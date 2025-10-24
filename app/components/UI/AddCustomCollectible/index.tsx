@@ -5,14 +5,17 @@ import {
   Text,
   TextInput,
   View,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
-import ActionView from '../ActionView';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -51,7 +54,7 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     rowWrapper: {
-      padding: 20,
+      marginBottom: 20,
     },
     rowTitleText: {
       paddingBottom: 3,
@@ -99,6 +102,25 @@ const createStyles = (colors: any) =>
     },
     buttonIcon: {
       marginLeft: 16,
+    },
+    contentContainer: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+      padding: 20,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      gap: 16,
+      backgroundColor: colors.background.default,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+    },
+    button: {
+      flex: 1,
     },
   });
 
@@ -292,105 +314,120 @@ const AddCustomCollectible = ({
 
   return (
     <View style={styles.wrapper} testID={NFTImportScreenSelectorsIDs.CONTAINER}>
-      <ActionView
-        cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
-        confirmText={strings('add_asset.collectibles.add_collectible')}
-        onCancelPress={cancelAddCollectible}
-        onConfirmPress={addNft}
-        confirmDisabled={!address || !tokenId || !selectedNetwork}
-        loading={loading}
-        confirmTestID={'add-collectible-button'}
-      >
-        <View>
-          <View style={styles.rowWrapper}>
-            <TouchableOpacity
-              style={styles.networkSelectorContainer}
-              onPress={() => setOpenNetworkSelector(true)}
-              onLongPress={() => setOpenNetworkSelector(true)}
-            >
-              <Text style={styles.networkSelectorText}>
-                {selectedNetwork || strings('networks.select_network')}
-              </Text>
+      <View style={styles.contentContainer}>
+        <View style={styles.scrollView}>
+          <View>
+            <View style={styles.rowWrapper}>
+              <TouchableOpacity
+                style={styles.networkSelectorContainer}
+                onPress={() => setOpenNetworkSelector(true)}
+                onLongPress={() => setOpenNetworkSelector(true)}
+              >
+                <Text style={styles.networkSelectorText}>
+                  {selectedNetwork || strings('networks.select_network')}
+                </Text>
 
-              <View style={styles.overlappingAvatarsContainer}>
-                {selectedNetwork ? (
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Sm}
-                    name={selectedNetwork}
-                    imageSource={getNetworkImageSource({
-                      networkType: 'evm',
-                      chainId: networkId,
-                    })}
+                <View style={styles.overlappingAvatarsContainer}>
+                  {selectedNetwork ? (
+                    <Avatar
+                      variant={AvatarVariant.Network}
+                      size={AvatarSize.Sm}
+                      name={selectedNetwork}
+                      imageSource={getNetworkImageSource({
+                        networkType: 'evm',
+                        chainId: networkId,
+                      })}
+                      testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+                    />
+                  ) : null}
+
+                  <ButtonIcon
+                    iconName={IconName.ArrowDown}
+                    iconColor={IconColor.Default}
                     testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+                    onPress={() => setOpenNetworkSelector(true)}
+                    accessibilityRole="button"
+                    style={styles.buttonIcon}
                   />
-                ) : null}
+                </View>
+              </TouchableOpacity>
 
-                <ButtonIcon
-                  iconName={IconName.ArrowDown}
-                  iconColor={IconColor.Default}
-                  testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-                  onPress={() => setOpenNetworkSelector(true)}
-                  accessibilityRole="button"
-                  style={styles.buttonIcon}
-                />
-              </View>
-            </TouchableOpacity>
-
-            <Text style={styles.rowTitleText}>
-              {strings('collectible.collectible_address')}
-            </Text>
-            <TextInput
-              style={[
-                styles.textInput,
-                inputWidth ? { width: inputWidth } : {},
-              ]}
-              placeholder={'0x...'}
-              placeholderTextColor={colors.text.muted}
-              value={address}
-              onChangeText={onAddressChange}
-              onBlur={validateCustomCollectibleAddress}
-              testID={NFTImportScreenSelectorsIDs.ADDRESS_INPUT_BOX}
-              onSubmitEditing={jumpToAssetTokenId}
-              keyboardAppearance={themeAppearance}
-            />
-            <Text
-              style={styles.warningText}
-              testID={NFTImportScreenSelectorsIDs.ADDRESS_WARNING_MESSAGE}
-            >
-              {warningAddress}
-            </Text>
-          </View>
-          <View style={styles.rowWrapper}>
-            <Text style={styles.rowTitleText}>
-              {strings('collectible.collectible_token_id')}
-            </Text>
-            <TextInput
-              style={[
-                styles.textInput,
-                inputWidth ? { width: inputWidth } : {},
-              ]}
-              value={tokenId}
-              keyboardType="numeric"
-              onChangeText={onTokenIdChange}
-              onBlur={validateCustomCollectibleTokenId}
-              testID={NFTImportScreenSelectorsIDs.IDENTIFIER_INPUT_BOX}
-              ref={assetTokenIdInput}
-              onSubmitEditing={addNft}
-              returnKeyType={'done'}
-              placeholder={strings('collectible.id_placeholder')}
-              placeholderTextColor={colors.text.muted}
-              keyboardAppearance={themeAppearance}
-            />
-            <Text
-              style={styles.warningText}
-              testID={NFTImportScreenSelectorsIDs.IDENTIFIER_WARNING_MESSAGE}
-            >
-              {warningTokenId}
-            </Text>
+              <Text style={styles.rowTitleText}>
+                {strings('collectible.collectible_address')}
+              </Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  inputWidth ? { width: inputWidth } : {},
+                ]}
+                placeholder={'0x...'}
+                placeholderTextColor={colors.text.muted}
+                value={address}
+                onChangeText={onAddressChange}
+                onBlur={validateCustomCollectibleAddress}
+                testID={NFTImportScreenSelectorsIDs.ADDRESS_INPUT_BOX}
+                onSubmitEditing={jumpToAssetTokenId}
+                keyboardAppearance={themeAppearance}
+              />
+              <Text
+                style={styles.warningText}
+                testID={NFTImportScreenSelectorsIDs.ADDRESS_WARNING_MESSAGE}
+              >
+                {warningAddress}
+              </Text>
+            </View>
+            <View style={styles.rowWrapper}>
+              <Text style={styles.rowTitleText}>
+                {strings('collectible.collectible_token_id')}
+              </Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  inputWidth ? { width: inputWidth } : {},
+                ]}
+                value={tokenId}
+                keyboardType="numeric"
+                onChangeText={onTokenIdChange}
+                onBlur={validateCustomCollectibleTokenId}
+                testID={NFTImportScreenSelectorsIDs.IDENTIFIER_INPUT_BOX}
+                ref={assetTokenIdInput}
+                onSubmitEditing={addNft}
+                returnKeyType={'done'}
+                placeholder={strings('collectible.id_placeholder')}
+                placeholderTextColor={colors.text.muted}
+                keyboardAppearance={themeAppearance}
+              />
+              <Text
+                style={styles.warningText}
+                testID={NFTImportScreenSelectorsIDs.IDENTIFIER_WARNING_MESSAGE}
+              >
+                {warningTokenId}
+              </Text>
+            </View>
           </View>
         </View>
-      </ActionView>
+      </View>
+
+      {/* CTA Buttons at bottom */}
+      <View style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          label={strings('add_asset.collectibles.cancel_add_collectible')}
+          onPress={cancelAddCollectible}
+          style={styles.button}
+        />
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          label={strings('add_asset.collectibles.add_collectible')}
+          onPress={addNft}
+          isDisabled={!address || !tokenId || !selectedNetwork}
+          loading={loading}
+          testID={'add-collectible-button'}
+          style={styles.button}
+        />
+      </View>
     </View>
   );
 };

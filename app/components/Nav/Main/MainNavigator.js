@@ -26,6 +26,7 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
+import NftsFullView from '../../Views/NftsFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -195,11 +196,6 @@ const WalletTabStackFlow = () => (
       name="WalletView"
       component={WalletModalFlow}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AddAsset"
-      component={AddAsset}
-      options={AddAsset.navigationOptions}
     />
     <Stack.Screen
       name="Collectible"
@@ -626,6 +622,15 @@ const HomeTabs = () => {
       return null;
     }
 
+    // Hide tab bar for AddAsset screen
+    if (
+      currentRoute.name === 'AddAsset' ||
+      currentRoute.name?.includes('AddAsset') ||
+      currentRoute.params?.assetType
+    ) {
+      return null;
+    }
+
     // Hide tab bar when browser is in fullscreen mode
     if (
       isBrowserFullscreen &&
@@ -943,6 +948,11 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen
+        name="AddAsset"
+        component={AddAsset}
+        options={{ headerShown: false }}
+      />
       {isRewardsEnabled && (
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
@@ -991,6 +1001,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.NFTS_FULL_VIEW}
+        component={NftsFullView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen name={Routes.RAMP.BUY}>

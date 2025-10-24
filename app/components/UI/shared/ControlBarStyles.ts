@@ -28,6 +28,7 @@ const createControlBarStyles = (params: { theme: Theme }) => {
     controlButtonInnerWrapper: {
       flexDirection: 'row',
       gap: 12,
+      alignItems: 'center',
     },
     controlButton: {
       backgroundColor: colors.background.default,

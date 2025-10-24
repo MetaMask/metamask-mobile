@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { RefreshTestId, SpinnerTestId } from './constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
@@ -20,31 +20,51 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import BaseControlBar from '../shared/BaseControlBar';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../hooks/useStyles';
-import createControlBarStyles from '../shared/ControlBarStyles';
+import { ActivityIndicator } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 
-const style = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+interface NFTNavigationParamList {
+  AddAsset: { assetType: string };
+  [key: string]: undefined | object;
+}
 
-const NftGrid = () => {
-  const navigation = useNavigation();
+interface NftGridProps {
+  onAddCollectible?: () => void;
+  flashListProps?: Partial<FlashListProps<Nft[]>>;
+}
+
+const NftRow = ({
+  items,
+  onLongPress,
+}: {
+  items: Nft[];
+  onLongPress: (nft: Nft) => void;
+}) => (
+  <Box twClassName="flex-row justify-between gap-3 mb-3">
+    {items.map((item, index) => (
+      <Box key={`${item.address}-${index}`} twClassName="flex-1">
+        <NftGridItem item={item} onLongPress={onLongPress} />
+      </Box>
+    ))}
+    {/* Fill remaining slots if less than 3 items */}
+    {items.length < 3 &&
+      Array.from({ length: 3 - items.length }).map((_, index) => (
+        <Box key={`empty-${index}`} twClassName="flex-1" />
+      ))}
+  </Box>
+);
+
+const NftGrid = ({ onAddCollectible, flashListProps }: NftGridProps) => {
+  const navigation =
+    useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [longPressedCollectible, setLongPressedCollectible] =
     useState<Nft | null>(null);
-  const { styles } = useStyles(createControlBarStyles, undefined);
 
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
@@ -64,6 +84,14 @@ const NftGrid = () => {
     return owned;
   }, [collectiblesByEnabledNetworks]);
 
+  const groupedCollectibles: Nft[][] = useMemo(() => {
+    const groups: Nft[][] = [];
+    for (let i = 0; i < allFilteredCollectibles.length; i += 3) {
+      groups.push(allFilteredCollectibles.slice(i, i + 3));
+    }
+    return groups;
+  }, [allFilteredCollectibles]);
+
   useEffect(() => {
     if (longPressedCollectible) {
       actionSheetRef.current.show();
@@ -71,42 +99,27 @@ const NftGrid = () => {
   }, [longPressedCollectible]);
 
   const goToAddCollectible = useCallback(() => {
-    setIsAddNFTEnabled(false);
-    navigation.navigate('AddAsset', { assetType: 'collectible' });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
-    );
-    setIsAddNFTEnabled(true);
-  }, [navigation, trackEvent, createEventBuilder]);
-
-  const additionalButtons = (
-    <ButtonIcon
-      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-      size={ButtonIconSizes.Lg}
-      onPress={goToAddCollectible}
-      iconName={IconName.Add}
-      disabled={!isAddNFTEnabled}
-      isDisabled={!isAddNFTEnabled}
-      style={styles.controlIconButton}
-    />
-  );
+    if (onAddCollectible) {
+      onAddCollectible();
+    } else {
+      setIsAddNFTEnabled(false);
+      navigation.push('AddAsset', { assetType: 'collectible' });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+      );
+      setIsAddNFTEnabled(true);
+    }
+  }, [onAddCollectible, navigation, trackEvent, createEventBuilder]);
 
   return (
-    <View style={style.container}>
-      <BaseControlBar
-        networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-        useEvmSelectionLogic={false}
-        customWrapper="none"
-        additionalButtons={additionalButtons}
-        hideSort
-      />
+    <>
       <FlashList
         ListHeaderComponent={<NftGridHeader />}
-        data={allFilteredCollectibles}
+        data={groupedCollectibles}
         renderItem={({ item }) => (
-          <NftGridItem item={item} onLongPress={setLongPressedCollectible} />
+          <NftRow items={item} onLongPress={setLongPressedCollectible} />
         )}
-        keyExtractor={(item, index) => `nft-${item.address}-${index}`}
+        keyExtractor={(_, index) => `nft-row-${index}`}
         testID={RefreshTestId}
         decelerationRate="fast"
         refreshControl={<NftGridRefreshControl />}
@@ -130,14 +143,14 @@ const NftGrid = () => {
             )}
           </>
         }
-        numColumns={3}
+        {...flashListProps}
       />
 
       <NftGridItemActionSheet
         actionSheetRef={actionSheetRef}
         longPressedCollectible={longPressedCollectible}
       />
-    </View>
+    </>
   );
 };
 
