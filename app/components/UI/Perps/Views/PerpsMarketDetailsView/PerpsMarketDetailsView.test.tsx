@@ -49,6 +49,11 @@ jest.mock('../../hooks/usePerpsSelector', () => ({
   }),
 }));
 
+// Mock Redux selectors for chart preferences
+jest.mock('../../../../../selectors/settings', () => ({
+  selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
+}));
+
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();

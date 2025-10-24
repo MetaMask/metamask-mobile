@@ -43,3 +43,21 @@ export const selectAvatarAccountType = createSelector(
     (settingsState.avatarAccountType as AvatarAccountType) ??
     AvatarAccountType.Maskicon,
 );
+
+export const selectPerpsChartPreferences = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) => {
+    const preferences = settingsState.perpsChartPreferences as
+      | Record<string, unknown>
+      | undefined;
+    return {
+      preferredCandlePeriod:
+        (preferences?.preferredCandlePeriod as string) ?? '15m',
+    };
+  },
+);
+
+export const selectPerpsChartPreferredCandlePeriod = createSelector(
+  selectPerpsChartPreferences,
+  (preferences) => preferences.preferredCandlePeriod,
+);
