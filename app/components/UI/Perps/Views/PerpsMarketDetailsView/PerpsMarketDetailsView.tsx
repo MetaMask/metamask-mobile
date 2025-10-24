@@ -110,9 +110,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [navigation, market]);
 
   // Get persisted candle period preference from Redux store
-  const selectedCandlePeriod =
-    (useSelector(selectPerpsChartPreferredCandlePeriod) as CandlePeriod) ||
-    CandlePeriod.FIFTEEN_MINUTES;
+  const selectedCandlePeriod = useSelector(
+    selectPerpsChartPreferredCandlePeriod,
+  );
   const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);

@@ -39,16 +39,6 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
-// Mock usePerpsSelector to provide default candle period
-jest.mock('../../hooks/usePerpsSelector', () => ({
-  usePerpsSelector: jest.fn((selector) => {
-    const state = {
-      preferredCandlePeriod: '15m', // Default to 15 minutes
-    };
-    return selector(state);
-  }),
-}));
-
 // Mock Redux selectors for chart preferences
 jest.mock('../../../../../selectors/settings', () => ({
   selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
