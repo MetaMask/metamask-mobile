@@ -62,7 +62,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
           style={tw.style('flex-1 w-full')}
           initialPage={0}
         >
-          <View key="search" style={tw.style('flex-1 pt-4 w-full')}>
+          <View key="search" style={tw.style('flex-1 w-full')}>
             <MarketListContent
               category="trending"
               q={searchQuery}
@@ -85,7 +85,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
             <View
               key="trending"
               {...{ tabLabel: strings('predict.category.trending') }}
-              style={tw.style('flex-1 pt-4 w-full')}
+              style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.TRENDING_TAB}
             >
               <MarketListContent
@@ -97,7 +97,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
             <View
               key="new"
               {...{ tabLabel: strings('predict.category.new') }}
-              style={tw.style('flex-1 pt-4 w-full')}
+              style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.NEW_TAB}
             >
               <MarketListContent
@@ -109,7 +109,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
             <View
               key="sports"
               {...{ tabLabel: strings('predict.category.sports') }}
-              style={tw.style('flex-1 pt-4 w-full')}
+              style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.SPORTS_TAB}
             >
               <MarketListContent
@@ -121,7 +121,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
             <View
               key="crypto"
               {...{ tabLabel: strings('predict.category.crypto') }}
-              style={tw.style('flex-1 pt-4 w-full')}
+              style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.CRYPTO_TAB}
             >
               <MarketListContent
@@ -133,7 +133,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
             <View
               key="politics"
               {...{ tabLabel: strings('predict.category.politics') }}
-              style={tw.style('flex-1 pt-4 w-full')}
+              style={tw.style('flex-1 w-full')}
               testID={PredictMarketListSelectorsIDs.POLITICS_TAB}
             >
               <MarketListContent

@@ -190,7 +190,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
-        contentContainerStyle={tw.style('pb-5')}
+        contentContainerStyle={tw.style('pt-4 pb-5')}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
         getItemType={() => 'market'}
@@ -210,7 +210,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }
-      contentContainerStyle={tw.style('pb-5')}
+      contentContainerStyle={tw.style('pt-4 pb-5')}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       getItemType={() => 'market'}
