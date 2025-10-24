@@ -44,6 +44,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box twClassName="items-end">
             <Switch
               value={localValue.enabled}
+              disabled
               onValueChange={(newValue: boolean) => {
                 setLocalValue({ ...localValue, enabled: newValue });
                 onToggle(flag.key, newValue);
@@ -67,6 +68,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case 'boolean':
         return (
           <Switch
+            disabled
             value={localValue}
             onValueChange={(newValue: boolean) => {
               setLocalValue(newValue);
