@@ -12,6 +12,7 @@ import { usePredictTrading } from './usePredictTrading';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { useNavigation } from '@react-navigation/native';
 
 interface UsePredictClaimParams {
   providerId?: string;
@@ -24,6 +25,7 @@ export const usePredictClaim = ({
   const { claim: claimWinnings } = usePredictTrading();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
+  const navigation = useNavigation();
 
   const selectClaimTransaction = createSelector(
     (state: RootState) => state.engine.backgroundState.PredictController,
@@ -39,8 +41,6 @@ export const usePredictClaim = ({
       });
       await claimWinnings({ providerId });
     } catch (err) {
-      console.error('Failed to proceed with claim:', err);
-
       // Capture exception with claim context
       captureException(err instanceof Error ? err : new Error(String(err)), {
         tags: {
@@ -53,14 +53,6 @@ export const usePredictClaim = ({
             providerId,
           },
         },
-      });
-
-      // Extract error message for more specific toast
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('Claim error details:', {
-        message: errorMessage,
-        providerId,
-        timestamp: new Date().toISOString(),
       });
 
       navigation.goBack();
@@ -91,6 +83,7 @@ export const usePredictClaim = ({
   }, [
     claimWinnings,
     navigateToConfirmation,
+    navigation,
     providerId,
     theme.colors.accent04.normal,
     theme.colors.error.default,
