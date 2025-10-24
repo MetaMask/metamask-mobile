@@ -1,24 +1,47 @@
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import TabBar from '../../../../Base/TabBar';
 import { PredictEventValues } from '../../constants/eventNames';
 import MarketListContent from '../MarketListContent';
+import { PredictCategory } from '../../types';
+import { ScrollCoordinator } from '../../types/scrollCoordinator';
 
 interface PredictMarketListProps {
   isSearchVisible: boolean;
   searchQuery: string;
+  scrollCoordinator?: ScrollCoordinator;
 }
 
 const PredictMarketList: React.FC<PredictMarketListProps> = ({
   isSearchVisible,
   searchQuery,
+  scrollCoordinator,
 }) => {
   const tw = useTailwind();
+
+  const handleTabChange = useCallback(
+    (changeInfo: { i: number; ref: unknown; from?: number }) => {
+      if (!scrollCoordinator) return;
+
+      const categories: PredictCategory[] = [
+        'trending',
+        'new',
+        'sports',
+        'crypto',
+        'politics',
+      ];
+      const category = categories[changeInfo.i];
+      if (category) {
+        scrollCoordinator.setCurrentCategory(category);
+      }
+    },
+    [scrollCoordinator],
+  );
 
   return (
     <>
@@ -46,6 +69,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
             )}
             style={tw.style('flex-1 w-full')}
             initialPage={0}
+            onChangeTab={handleTabChange}
           >
             <View
               key="trending"
@@ -53,7 +77,10 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
               style={tw.style('flex-1 pt-4 w-full')}
               testID={PredictMarketListSelectorsIDs.TRENDING_TAB}
             >
-              <MarketListContent category="trending" />
+              <MarketListContent
+                category="trending"
+                scrollCoordinator={scrollCoordinator}
+              />
             </View>
 
             <View
@@ -62,7 +89,10 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
               style={tw.style('flex-1 pt-4 w-full')}
               testID={PredictMarketListSelectorsIDs.NEW_TAB}
             >
-              <MarketListContent category="new" />
+              <MarketListContent
+                category="new"
+                scrollCoordinator={scrollCoordinator}
+              />
             </View>
 
             <View
@@ -71,7 +101,10 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
               style={tw.style('flex-1 pt-4 w-full')}
               testID={PredictMarketListSelectorsIDs.SPORTS_TAB}
             >
-              <MarketListContent category="sports" />
+              <MarketListContent
+                category="sports"
+                scrollCoordinator={scrollCoordinator}
+              />
             </View>
 
             <View
@@ -80,7 +113,10 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
               style={tw.style('flex-1 pt-4 w-full')}
               testID={PredictMarketListSelectorsIDs.CRYPTO_TAB}
             >
-              <MarketListContent category="crypto" />
+              <MarketListContent
+                category="crypto"
+                scrollCoordinator={scrollCoordinator}
+              />
             </View>
 
             <View
@@ -89,7 +125,10 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
               style={tw.style('flex-1 pt-4 w-full')}
               testID={PredictMarketListSelectorsIDs.POLITICS_TAB}
             >
-              <MarketListContent category="politics" />
+              <MarketListContent
+                category="politics"
+                scrollCoordinator={scrollCoordinator}
+              />
             </View>
           </ScrollableTabView>
         </Box>
