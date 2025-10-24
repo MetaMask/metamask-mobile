@@ -51,29 +51,33 @@ interface PositionTabContentProps {
   onTpslCountPress: (tabId: string) => void;
 }
 
-const PositionTabContent = React.memo<PositionTabContentProps>(
-  ({ position, expanded, showIcon, onTooltipPress, onTpslCountPress }) => {
-    const { styles } = useStyles(styleSheet, {});
+const PositionTabContent: React.FC<PositionTabContentProps> = ({
+  position,
+  expanded,
+  showIcon,
+  onTooltipPress,
+  onTpslCountPress,
+}) => {
+  const { styles } = useStyles(styleSheet, {});
 
-    if (!position) return null;
+  if (!position) return null;
 
-    return (
-      <View
-        style={styles.tabContent}
-        testID={PerpsMarketTabsSelectorsIDs.POSITION_CONTENT}
-      >
-        <PerpsPositionCard
-          key={`${position.coin}`}
-          position={position}
-          expanded={expanded}
-          showIcon={showIcon}
-          onTooltipPress={onTooltipPress}
-          onTpslCountPress={onTpslCountPress}
-        />
-      </View>
-    );
-  },
-);
+  return (
+    <View
+      style={styles.tabContent}
+      testID={PerpsMarketTabsSelectorsIDs.POSITION_CONTENT}
+    >
+      <PerpsPositionCard
+        key={`${position.coin}`}
+        position={position}
+        expanded={expanded}
+        showIcon={showIcon}
+        onTooltipPress={onTooltipPress}
+        onTpslCountPress={onTpslCountPress}
+      />
+    </View>
+  );
+};
 
 // Tab content component for Orders tab
 interface OrdersTabContentProps {
