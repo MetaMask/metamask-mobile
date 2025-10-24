@@ -1660,21 +1660,29 @@ export class PerpsController extends BaseController<
             success: successCount > 0,
             successCount,
             failureCount,
-            results: results.map((result, index) => ({
-              orderId: ordersToCancel[index].orderId,
-              coin: ordersToCancel[index].symbol,
-              success: !!(
-                result.status === 'fulfilled' && result.value.success
-              ),
-              error:
-                result.status === 'rejected'
-                  ? result.reason instanceof Error
+            results: results.map((result, index) => {
+              let error: string | undefined;
+              if (result.status === 'rejected') {
+                error =
+                  result.reason instanceof Error
                     ? result.reason.message
-                    : 'Unknown error'
-                  : result.status === 'fulfilled' && !result.value.success
-                  ? result.value.error
-                  : undefined,
-            })),
+                    : 'Unknown error';
+              } else if (
+                result.status === 'fulfilled' &&
+                !result.value.success
+              ) {
+                error = result.value.error;
+              }
+
+              return {
+                orderId: ordersToCancel[index].orderId,
+                coin: ordersToCancel[index].symbol,
+                success: !!(
+                  result.status === 'fulfilled' && result.value.success
+                ),
+                error,
+              };
+            }),
           };
         }, ['orders']); // Disconnect orders stream during operation
 
@@ -2118,18 +2126,25 @@ export class PerpsController extends BaseController<
           success: successCount > 0,
           successCount,
           failureCount,
-          results: results.map((result, index) => ({
-            coin: positionsToClose[index].coin,
-            success: !!(result.status === 'fulfilled' && result.value.success),
-            error:
-              result.status === 'rejected'
-                ? result.reason instanceof Error
+          results: results.map((result, index) => {
+            let error: string | undefined;
+            if (result.status === 'rejected') {
+              error =
+                result.reason instanceof Error
                   ? result.reason.message
-                  : 'Unknown error'
-                : result.status === 'fulfilled' && !result.value.success
-                ? result.value.error
-                : undefined,
-          })),
+                  : 'Unknown error';
+            } else if (result.status === 'fulfilled' && !result.value.success) {
+              error = result.value.error;
+            }
+
+            return {
+              coin: positionsToClose[index].coin,
+              success: !!(
+                result.status === 'fulfilled' && result.value.success
+              ),
+              error,
+            };
+          }),
         };
 
         return operationResult;
