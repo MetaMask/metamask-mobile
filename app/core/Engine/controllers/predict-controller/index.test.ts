@@ -69,6 +69,7 @@ describe('predict controller init', () => {
       claimTransaction: null,
       claimablePositions: [],
       depositTransaction: null,
+      withdrawTransaction: null,
       isOnboarded: {},
     };
 

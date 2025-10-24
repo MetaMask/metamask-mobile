@@ -104,6 +104,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -268,6 +269,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -432,6 +434,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -596,6 +599,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -760,6 +764,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -924,6 +929,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1088,6 +1094,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1252,6 +1259,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

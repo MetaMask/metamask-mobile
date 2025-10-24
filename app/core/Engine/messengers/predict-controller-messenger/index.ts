@@ -28,6 +28,7 @@ export function getPredictControllerMessenger(
     actions: [
       'AccountsController:getSelectedAccount',
       'NetworkController:getState',
+      'TransactionController:estimateGas',
     ],
     events: [
       'TransactionController:transactionSubmitted',
