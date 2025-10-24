@@ -510,33 +510,6 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                               }
                                             }
                                           >
-                                            <View
-                                              style={
-                                                [
-                                                  {
-                                                    "backgroundColor": "#f3f5f9",
-                                                    "borderRadius": 30,
-                                                    "padding": 14,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "height": 50,
-                                                  },
-                                                ]
-                                              }
-                                            />
                                             <TouchableOpacity
                                               onPress={[Function]}
                                               style={

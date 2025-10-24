@@ -9,7 +9,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
-import { getTokenTransferData } from '../../utils/transaction-pay';
+import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { useSelector } from 'react-redux';
@@ -162,16 +162,6 @@ function useMaxPercentage() {
 
     return 100 - bufferPercentage * 100;
   }, [chainId, featureFlags, payToken, requiredTokens]);
-}
-
-function getTokenAddress(transactionMeta: TransactionMeta | undefined): Hex {
-  const nestedCall = transactionMeta && getTokenTransferData(transactionMeta);
-
-  if (nestedCall) {
-    return nestedCall.to;
-  }
-
-  return transactionMeta?.txParams?.to as Hex;
 }
 
 function useTokenBalance() {
