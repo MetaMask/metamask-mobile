@@ -2184,7 +2184,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
-      DevLogger.log('Getting positions via HyperLiquid SDK');
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isPositionsCacheInitialized()
+      ) {
+        const cachedPositions =
+          this.subscriptionService.getCachedPositions() || [];
+        DevLogger.log('Using cached positions from WebSocket', {
+          count: cachedPositions.length,
+        });
+        return cachedPositions;
+      }
+
+      // Fallback to API call
+      DevLogger.log(
+        'Fetching positions via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
+      );
 
       await this.ensureReady();
 
@@ -2495,7 +2512,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         !params?.skipCache &&
         this.subscriptionService.isOrdersCacheInitialized()
       ) {
-        const cachedOrders = this.subscriptionService.getCachedOpenOrders();
+        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
         DevLogger.log('Using cached open orders from WebSocket', {
           count: cachedOrders.length,
         });

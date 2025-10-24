@@ -4727,7 +4727,7 @@ describe('HyperLiquidProvider', () => {
       mockSubscriptionService.isOrdersCacheInitialized = jest
         .fn()
         .mockReturnValue(true);
-      mockSubscriptionService.getCachedOpenOrders = jest
+      mockSubscriptionService.getCachedOrders = jest
         .fn()
         .mockReturnValue(cachedOrders);
 

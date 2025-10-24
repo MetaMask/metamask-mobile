@@ -486,6 +486,7 @@ export interface OrderFill {
 export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetAccountStateParams {

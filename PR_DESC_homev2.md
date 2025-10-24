@@ -16,11 +16,37 @@ Replaced the previous market-only list view with a comprehensive trading dashboa
 
 Added comprehensive market sorting capabilities accessible via the "See all" button from trending markets:
 
-- **Sort Fields**: Volume, Price Change, Market Cap, Funding Rate, New Markets
-- **Sort Direction**: Toggle between ascending/descending for each field
+- **Sort Fields**: Volume, Price Change, Open Interest, Funding Rate
+- **Sort Direction**: Simplified list-based selection with combined field+direction options (e.g., "Price change: high to low")
 - **Search**: Real-time market search by symbol/name
-- **Filter Chips**: Visual sort field selection using familiar chip pattern (similar to TP/SL presets)
-- **Bottom Sheets**: Native iOS/Android bottom sheet selectors for sort field and direction
+- **Watchlist Filter**: Optional toggle to show only favorited markets
+- **Bottom Sheet Selection**: Native bottom sheet with checkmark indicators for selected options
+
+#### Design Decision: 24h Timeframe Only
+
+The initial design included a timeframe selector (1h / 24h) for Volume and Price Change data. However, **we've intentionally omitted the 1h timeframe** for the following technical reasons:
+
+**API Limitation:**
+
+- HyperLiquid's `metaAndAssetCtxs` API endpoint only provides 24h aggregated data:
+  - `dayNtlVlm` (24h notional volume)
+  - `prevDayPx` (previous day price for 24h change calculation)
+- No equivalent 1h fields (`hourNtlVlm`, `prevHourPx`) exist in the API response
+
+**Performance Concerns:**
+
+- While HyperLiquid supports 1h candle subscriptions, implementing 1h metrics would require:
+  - Subscribing to individual candle WebSocket feeds for **every market** (~100+ assets)
+  - Extracting volume and price data from the latest completed 1h candle per asset
+  - Maintaining ~100+ active WebSocket subscriptions just for market list sorting
+  - Significantly increased API calls, memory usage, and complexity
+- This approach would be **inefficient and not aligned with the current architecture**, which uses a single aggregated endpoint for all market data
+
+**User Impact:**
+
+- Market sorting functionality remains fully functional with 24h data
+- All other metrics (Open Interest, Funding Rate) are point-in-time snapshots and don't require timeframe selection
+- When/if HyperLiquid adds 1h aggregated data to their API, the timeframe selector can be easily restored (component already exists but is unused)
 
 ### 3. **Close All Positions** (TAT-1049)
 
@@ -68,6 +94,8 @@ Implemented smart leverage defaults that remember user preferences per market:
 - **Performance**: Parallel execution for batch operations with partial success handling
 - **Type Safety**: Complete TypeScript types for all new hooks, components, and controller methods
 - **Consistent Patterns**: All hooks use object parameter pattern for extensibility
+- **No Pull-to-Refresh**: Intentionally omitted from PerpsHomeView because 95% of data (positions, orders, activity) auto-updates via WebSocket. Only markets data uses REST API and changes infrequently. This prevents false expectations where users pull-to-refresh but see no visible change since data is already live.
+- **WebSocket Cache Optimization**: Implemented cache-first pattern for `getPositions()` and `getOpenOrders()` methods to leverage real-time WebSocket subscription data instead of making redundant API calls. Both methods now check the WebSocket cache first (when initialized) and fall back to API calls only when needed. Added optional `skipCache` parameter to both methods for scenarios requiring fresh data. This optimization reduces API load, improves response times, and provides more up-to-date data since the cache is maintained by active WebSocket subscriptions.
 
 ## **Changelog**
 
