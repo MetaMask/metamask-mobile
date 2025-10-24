@@ -1,7 +1,7 @@
 import React from 'react';
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -70,11 +70,10 @@ describe('AccountGroupBalance', () => {
       }),
     );
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
-      {
-        state: testState,
-      },
+    const { getByTestId, queryByTestId } = renderScreen(
+      () => <AccountGroupBalance />,
+      { name: 'AccountGroupBalance' },
+      { state: testState },
     );
 
     // Should render BalanceEmptyState instead of balance text
