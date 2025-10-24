@@ -162,6 +162,10 @@ describe('usePredictWithdrawToasts', () => {
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initialization', () => {
     it('subscribes to transaction status updates on mount', () => {
       renderHook(() => usePredictWithdrawToasts(), { wrapper });
