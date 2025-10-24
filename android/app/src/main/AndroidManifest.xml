@@ -175,7 +175,7 @@
 
 		<!-- EAS Update configuration -->
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620" />
-		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="false" />
+		<meta-data android:name="expo.modules.updates.ENABLED" android:value="false" />
 		<!-- EXPO_RUNTIME_VERSION, channel, and request headers are auto-injected by build script -->
 
 		<provider

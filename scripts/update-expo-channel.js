@@ -77,17 +77,17 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
     );
   }
 
-  // Only toggle EXPO_UPDATES_CONFIGURATION_ENABLED; rely on defaults for the rest
+  // Only toggle expo.modules.updates.ENABLED; rely on defaults for the rest
   const enabledValue = updatesEnabled ? 'true' : 'false';
-  if (content.includes('expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED')) {
+  if (content.includes('expo.modules.updates.ENABLED')) {
     content = content.replace(
-      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="(true|false)" \/>/g,
-      `<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="${enabledValue}" />`
+      /<meta-data android:name="expo\.modules\.updates\.ENABLED" android:value="(true|false)" \/>/g,
+      `<meta-data android:name="expo.modules.updates.ENABLED" android:value="${enabledValue}" />`
     );
   } else {
     content = content.replace(
       /(\s*)<\/application>/,
-      `\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="${enabledValue}" />$1</application>`
+      `\n\t\t<meta-data android:name="expo.modules.updates.ENABLED" android:value="${enabledValue}" />$1</application>`
     );
   }
 
