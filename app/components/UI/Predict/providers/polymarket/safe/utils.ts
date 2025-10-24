@@ -17,6 +17,7 @@ import {
   SplitSignature,
 } from './types';
 import { Hex, numberToHex } from '@metamask/utils';
+import Logger from '../../../../../../util/Logger';
 import {
   CONDITIONAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,
@@ -411,6 +412,12 @@ export const getDeployProxyWalletTransaction = async ({
     };
   } catch (error) {
     console.error('Error creating proxy wallet', error);
+
+    // Log to Sentry with proxy wallet deployment context (no user address)
+    Logger.error(error as Error, {
+      message: 'Predict: Failed to create proxy wallet transaction',
+      context: 'safeUtils.getDeployProxyWalletTransaction',
+    });
   }
 };
 
