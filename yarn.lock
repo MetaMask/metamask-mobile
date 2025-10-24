@@ -7012,14 +7012,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0, @metamask/base-controller@npm:^8.4.1, @metamask/base-controller@npm:^8.4.2":
-  version: 8.4.2
-  resolution: "@metamask/base-controller@npm:8.4.2"
+"@metamask/base-controller@npm:@metamask-previews/base-controller@8.4.2-preview-5cda4487":
+  version: 8.4.2-preview-5cda4487
+  resolution: "@metamask-previews/base-controller@npm:8.4.2-preview-5cda4487"
   dependencies:
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
     immer: "npm:^9.0.6"
-  checksum: 10/e5c4d97a35952072dc8e93c90a334ea60a8d9faa7c15584b5ce8f60b151cf56a7dd5304cb8549b183cdd61d53421b45e3c4688170fcd0a3e2c6a184aeb942067
+  checksum: 10/493073b959493840569281e86423f47ee19080d6c197db8b8055f25c67e573b83131e00c0b6b707b313e697886b4da24052ad1b9d331438e0293e92c1733a7f1
   languageName: node
   linkType: hard
 

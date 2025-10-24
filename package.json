@@ -185,6 +185,7 @@
     "appwright@^0.1.45": "patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch",
     "@scure/bip32": "1.7.0",
     "@metamask/snaps-sdk": "^10.0.0",
+    "@metamask/base-controller": "npm:@metamask-previews/base-controller@8.4.2-preview-5cda4487",
     "@metamask/account-tree-controller": "npm:@metamask-previews/account-tree-controller@1.6.0-preview-5cda4487",
     "@metamask/accounts-controller": "npm:@metamask-previews/accounts-controller@33.1.1-preview-5cda4487",
     "@metamask/address-book-controller": "npm:@metamask-previews/address-book-controller@6.2.0-preview-5cda4487",

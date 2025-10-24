@@ -174,7 +174,7 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
-import { Messenger } from '@metamask/messenger';
+import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -553,7 +553,7 @@ export class Engine {
     const composableControllerMessenger = new Messenger<
       'ComposableController',
       never,
-      never,
+      MessengerEvents<RootMessenger>,
       RootMessenger
     >({
       namespace: 'ComposableController',
