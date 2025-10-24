@@ -195,9 +195,5 @@
       android:exported="true">
 
     </service>
-		<!-- EAS Update configuration -->
-		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="preview" />
-		<meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="{&quot;expo-channel-name&quot;:&quot;preview&quot;}"/>
-		<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="7.59.99" />
 	</application>
 </manifest>
