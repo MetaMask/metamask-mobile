@@ -22,8 +22,10 @@ import Engine from '../../../../core/Engine';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { ensureError } from '../utils/predictErrorHandler';
 import {
   PredictEventProperties,
   PredictEventType,
@@ -230,6 +232,14 @@ export class PredictController extends BaseController<
             : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
         timestamp: new Date().toISOString(),
       });
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('initializeProviders', {
+          existingProvidersCount: this.providers.size,
+          isInitialized: this.isInitialized,
+        }),
+      );
     });
 
     this.refreshEligibility().catch((error) => {
@@ -240,6 +250,13 @@ export class PredictController extends BaseController<
             : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
         timestamp: new Date().toISOString(),
       });
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('refreshEligibility', {
+          providersCount: this.providers.size,
+        }),
+      );
     });
   }
 
@@ -290,6 +307,25 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Generate standard error context for Logger.error calls
+   * Ensures consistent error reporting to Sentry with minimal but complete context
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields
+   * @returns Standardized error context object
+   * @private
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      feature: 'Predict',
+      context: `PredictController.${method}`,
+      ...extra,
+    };
+  }
+
+  /**
    * Get available markets with optional filtering
    */
   async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
@@ -331,6 +367,19 @@ export class PredictController extends BaseController<
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
+
+      // Log to Sentry with market query context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getMarkets', {
+          providerId: params.providerId,
+          category: params.category,
+          sortBy: params.sortBy,
+          sortDirection: params.sortDirection,
+          status: params.status,
+          hasSearchQuery: !!params.q,
+        }),
+      );
 
       // Re-throw the error so components can handle it appropriately
       throw error;
@@ -384,6 +433,15 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      // Log to Sentry with market details context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getMarket', {
+          marketId: resolvedMarketId,
+          providerId: providerId ?? 'polymarket',
+        }),
+      );
+
       if (error instanceof Error) {
         throw error;
       }
@@ -434,6 +492,17 @@ export class PredictController extends BaseController<
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
+
+      // Log to Sentry with price history context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPriceHistory', {
+          providerId: params.providerId,
+          marketId: params.marketId,
+          fidelity: params.fidelity,
+          interval: params.interval,
+        }),
+      );
 
       throw error;
     }
@@ -496,6 +565,16 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      // Log to Sentry with positions query context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPositions', {
+          providerId: params.providerId,
+          claimable: params.claimable,
+          marketId: params.marketId,
+        }),
+      );
+
       // Re-throw the error so components can handle it appropriately
       throw error;
     }
@@ -547,6 +626,15 @@ export class PredictController extends BaseController<
             : PREDICT_ERROR_CODES.ACTIVITY_NOT_AVAILABLE;
         state.lastUpdateTimestamp = Date.now();
       });
+
+      // Log to Sentry with activity query context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getActivity', {
+          providerId: params.providerId,
+        }),
+      );
+
       throw error;
     }
   }
@@ -594,32 +682,36 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      // Log to Sentry with unrealized PnL context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getUnrealizedPnL', {
+          providerId,
+        }),
+      );
+
       throw error;
     }
   }
 
   /**
    * Track Predict order analytics events
-   * @private
+   * @public
    */
-  private async trackPredictOrderEvent({
+  public async trackPredictOrderEvent({
     eventType,
     amount,
     analyticsProperties,
-    provider,
     providerId,
-    ownerAddress,
     completionDuration,
     orderId,
     failureReason,
     sharePrice,
   }: {
     eventType: PredictEventTypeValue;
-    amount: number;
+    amount?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-    provider?: PredictProvider;
     providerId: string;
-    ownerAddress?: string;
     completionDuration?: number;
     orderId?: string;
     failureReason?: string;
@@ -629,23 +721,19 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Get safe address from account state for analytics (only if provider and ownerAddress available)
+    // Get safe address from getAccountState for analytics
     let safeAddress: string | undefined;
-    if (provider && ownerAddress) {
-      try {
-        const accountState = await provider.getAccountState({
-          providerId,
-          ownerAddress,
-        });
-        safeAddress = accountState.address;
-      } catch {
-        // If we can't get safe address, continue without it
-      }
+    try {
+      const accountState = await this.getAccountState({
+        providerId,
+      });
+      safeAddress = accountState.address;
+    } catch {
+      // If we can't get safe address, continue without it
     }
 
     // Build regular properties (common to all events)
     const regularProperties = {
-      [PredictEventProperties.TIMESTAMP]: Date.now(),
       [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
       [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]:
@@ -668,7 +756,9 @@ export class PredictController extends BaseController<
 
     // Build sensitive properties
     const sensitiveProperties = {
-      [PredictEventProperties.AMOUNT]: amount,
+      ...(amount !== undefined && {
+        [PredictEventProperties.AMOUNT]: amount,
+      }),
       // Add user address only if we have it
       ...(safeAddress && {
         [PredictEventProperties.USER_ADDRESS]: safeAddress,
@@ -684,6 +774,10 @@ export class PredictController extends BaseController<
     let eventLabel: string;
 
     switch (eventType) {
+      case PredictEventType.INITIATED:
+        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_INITIATED;
+        eventLabel = 'PREDICT_ACTION_INITIATED';
+        break;
       case PredictEventType.SUBMITTED:
         metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_SUBMITTED;
         eventLabel = 'PREDICT_ACTION_SUBMITTED';
@@ -712,24 +806,39 @@ export class PredictController extends BaseController<
   }
 
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    try {
+      const provider = this.providers.get(params.providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const { AccountsController, KeyringController } = Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const signer = {
+        address: selectedAddress,
+        signTypedMessage: (
+          _params: TypedMessageParams,
+          _version: SignTypedDataVersion,
+        ) => KeyringController.signTypedMessage(_params, _version),
+        signPersonalMessage: (_params: PersonalMessageParams) =>
+          KeyringController.signPersonalMessage(_params),
+      };
+
+      return provider.previewOrder({ ...params, signer });
+    } catch (error) {
+      // Log to Sentry with preview context (no sensitive amounts)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('previewOrder', {
+          providerId: params.providerId,
+          side: params.side,
+          marketId: params.marketId,
+          outcomeId: params.outcomeId,
+        }),
+      );
+
+      throw error;
     }
-
-    const { AccountsController, KeyringController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
-    const signer = {
-      address: selectedAddress,
-      signTypedMessage: (
-        _params: TypedMessageParams,
-        _version: SignTypedDataVersion,
-      ) => KeyringController.signTypedMessage(_params, _version),
-      signPersonalMessage: (_params: PersonalMessageParams) =>
-        KeyringController.signPersonalMessage(_params),
-    };
-
-    return provider.previewOrder({ ...params, signer });
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
@@ -762,9 +871,7 @@ export class PredictController extends BaseController<
         eventType: PredictEventType.SUBMITTED,
         amount,
         analyticsProperties,
-        provider,
         providerId,
-        ownerAddress: selectedAddress,
         sharePrice,
       });
 
@@ -794,9 +901,7 @@ export class PredictController extends BaseController<
           eventType: PredictEventType.COMPLETED,
           amount: spentAmount ? parseFloat(spentAmount) : amount,
           analyticsProperties,
-          provider,
           providerId,
-          ownerAddress: selectedAddress,
           completionDuration,
           orderId,
           sharePrice: realSharePrice,
@@ -807,9 +912,7 @@ export class PredictController extends BaseController<
           eventType: PredictEventType.FAILED,
           amount,
           analyticsProperties,
-          provider,
           providerId,
-          ownerAddress: selectedAddress,
           sharePrice,
           completionDuration,
           failureReason: result.error || 'Unknown error',
@@ -820,23 +923,28 @@ export class PredictController extends BaseController<
     } catch (error) {
       const completionDuration = performance.now() - startTime;
 
-      // Track Predict Action Failed (fire and forget)
-      // Note: If provider/ownerAddress unavailable, we'll track without user_address
-      const provider = this.providers.get(providerId);
-      const selectedAddress =
-        Engine.context?.AccountsController?.getSelectedAccount()?.address;
-
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
         amount,
         analyticsProperties,
-        provider,
         providerId,
-        ownerAddress: selectedAddress,
         sharePrice,
         completionDuration,
         failureReason: error instanceof Error ? error.message : 'Unknown error',
       });
+
+      // Log to Sentry with order context (excluding sensitive data like amounts)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('placeOrder', {
+          providerId,
+          marketId: analyticsProperties?.marketId,
+          marketTitle: analyticsProperties?.marketTitle,
+          transactionType: analyticsProperties?.transactionType,
+          entryPoint: analyticsProperties?.entryPoint,
+          completionDuration,
+        }),
+      );
 
       return {
         success: false,
@@ -851,65 +959,77 @@ export class PredictController extends BaseController<
   async claimWithConfirmation({
     providerId,
   }: ClaimParams): Promise<PredictClaim> {
-    const provider = this.providers.get(providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
+    try {
+      const provider = this.providers.get(providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
 
-    const { AccountsController, KeyringController, NetworkController } =
-      Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
+      const { AccountsController, KeyringController, NetworkController } =
+        Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
 
-    const signer = {
-      address: selectedAddress,
-      signTypedMessage: (
-        params: TypedMessageParams,
-        version: SignTypedDataVersion,
-      ) => KeyringController.signTypedMessage(params, version),
-      signPersonalMessage: (params: PersonalMessageParams) =>
-        KeyringController.signPersonalMessage(params),
-    };
+      const signer = {
+        address: selectedAddress,
+        signTypedMessage: (
+          params: TypedMessageParams,
+          version: SignTypedDataVersion,
+        ) => KeyringController.signTypedMessage(params, version),
+        signPersonalMessage: (params: PersonalMessageParams) =>
+          KeyringController.signPersonalMessage(params),
+      };
 
-    const claimablePositions = await this.getPositions({
-      claimable: true,
-    });
+      const claimablePositions = await this.getPositions({
+        claimable: true,
+      });
 
-    const { transactions, chainId } = await provider.prepareClaim({
-      positions: claimablePositions,
-      signer,
-    });
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
-      numberToHex(chainId),
-    );
+      const { transactions, chainId } = await provider.prepareClaim({
+        positions: claimablePositions,
+        signer,
+      });
+      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+        numberToHex(chainId),
+      );
 
-    const { batchId } = await addTransactionBatch({
-      from: signer.address as Hex,
-      origin: ORIGIN_METAMASK,
-      networkClientId,
-      disableHook: true,
-      disableSequential: true,
-      transactions: [
-        {
-          params: {
-            to: signer.address as Hex,
-            value: '0x1',
+      const { batchId } = await addTransactionBatch({
+        from: signer.address as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        transactions: [
+          {
+            params: {
+              to: signer.address as Hex,
+              value: '0x1',
+            },
           },
-        },
-        ...transactions,
-      ],
-    });
+          ...transactions,
+        ],
+      });
 
-    const predictClaim: PredictClaim = {
-      batchId,
-      chainId,
-      status: PredictClaimStatus.PENDING,
-    };
+      const predictClaim: PredictClaim = {
+        batchId,
+        chainId,
+        status: PredictClaimStatus.PENDING,
+      };
 
-    this.update((state) => {
-      state.claimTransaction = predictClaim;
-    });
+      this.update((state) => {
+        state.claimTransaction = predictClaim;
+      });
 
-    return predictClaim;
+      return predictClaim;
+    } catch (error) {
+      // Log to Sentry with claim context (no user address or amounts)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('claimWithConfirmation', {
+          providerId,
+        }),
+      );
+
+      throw error;
+    }
   }
 
   /**
@@ -938,6 +1058,14 @@ export class PredictController extends BaseController<
               : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
           timestamp: new Date().toISOString(),
         });
+
+        // Log to Sentry with provider context
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('refreshEligibility.provider', {
+            providerId,
+          }),
+        );
       }
     }
   }
@@ -1022,6 +1150,14 @@ export class PredictController extends BaseController<
         },
       };
     } catch (error) {
+      // Log to Sentry with deposit context (no sensitive amounts)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('depositWithConfirmation', {
+          providerId: params.providerId,
+        }),
+      );
+
       throw new Error(
         error instanceof Error
           ? error.message
@@ -1039,29 +1175,53 @@ export class PredictController extends BaseController<
   public async getAccountState(
     params: GetAccountStateParams,
   ): Promise<AccountState> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-    const { AccountsController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
+    try {
+      const provider = this.providers.get(params.providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+      const { AccountsController } = Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
 
-    return provider.getAccountState({
-      ...params,
-      ownerAddress: selectedAddress,
-    });
+      return provider.getAccountState({
+        ...params,
+        ownerAddress: selectedAddress,
+      });
+    } catch (error) {
+      // Log to Sentry with account state context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getAccountState', {
+          providerId: params.providerId,
+        }),
+      );
+
+      throw error;
+    }
   }
 
   public async getBalance(params: GetBalanceParams): Promise<number> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    try {
+      const provider = this.providers.get(params.providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+      const { AccountsController } = Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+      return provider.getBalance({
+        ...params,
+        address: params.address ?? selectedAddress,
+      });
+    } catch (error) {
+      // Log to Sentry with balance query context (no user address)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getBalance', {
+          providerId: params.providerId,
+        }),
+      );
+
+      throw error;
     }
-    const { AccountsController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
-    return provider.getBalance({
-      ...params,
-      address: params.address ?? selectedAddress,
-    });
   }
 }
