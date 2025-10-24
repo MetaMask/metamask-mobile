@@ -24,6 +24,18 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
 
+// Don't mock usePerpsMarketListView - test the real implementation
+// Instead, mock its dependencies below
+
+// Mock Engine for PerpsController
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      saveMarketSortPreference: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
@@ -104,6 +116,46 @@ jest.mock('../../components/PerpsMarketBalanceActions', () => {
   };
 });
 
+jest.mock(
+  '../../../../../component-library/components/Form/TextFieldSearch',
+  () => {
+    const { TextInput, TouchableOpacity, View } =
+      jest.requireActual('react-native');
+    return function MockTextFieldSearch({
+      value,
+      onChangeText,
+      placeholder,
+      testID,
+      showClearButton,
+      onPressClearButton,
+    }: {
+      value: string;
+      onChangeText: (text: string) => void;
+      placeholder: string;
+      testID: string;
+      showClearButton?: boolean;
+      onPressClearButton?: () => void;
+    }) {
+      return (
+        <View>
+          <TextInput
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            testID={testID}
+          />
+          {showClearButton && (
+            <TouchableOpacity
+              onPress={onPressClearButton}
+              testID={`${testID}-clear`}
+            />
+          )}
+        </View>
+      );
+    };
+  },
+);
+
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(() => ({
     navigateToConfirmation: jest.fn(),
@@ -113,6 +165,7 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
   selectPerpsWatchlistMarkets: jest.fn(() => []),
+  selectPerpsMarketSortPreference: jest.fn(() => 'volume'),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -415,6 +468,7 @@ describe('PerpsMarketListView', () => {
       params: {},
     });
 
+    // Mock usePerpsMarkets - this is the data source for the real hook
     mockUsePerpsMarkets.mockReturnValue({
       markets: mockMarketData,
       isLoading: false,
@@ -441,8 +495,7 @@ describe('PerpsMarketListView', () => {
           PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
         ),
       ).toBeOnTheScreen();
-      expect(screen.getAllByText('Volume')[0]).toBeOnTheScreen();
-      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
     });
 
     it('renders market list when data is available', () => {
@@ -979,8 +1032,8 @@ describe('PerpsMarketListView', () => {
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
+      // During loading, sort dropdowns are hidden, so don't check for them
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
     });
   });
 
@@ -1180,8 +1233,7 @@ describe('PerpsMarketListView', () => {
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
+      // When there are no markets and not loading/error, just shows empty list
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
     });
 

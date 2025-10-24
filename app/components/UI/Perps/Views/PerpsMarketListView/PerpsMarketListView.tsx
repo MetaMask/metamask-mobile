@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -28,9 +22,7 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 import PerpsMarketSortDropdowns from '../../components/PerpsMarketSortDropdowns';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketList from '../../components/PerpsMarketList';
-import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { usePerpsSearch } from '../../hooks/usePerpsSearch';
-import { usePerpsSorting } from '../../hooks/usePerpsSorting';
+import { usePerpsMarketListView } from '../../hooks/usePerpsMarketListView';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type { PerpsMarketData } from '../../controllers/types';
@@ -52,19 +44,10 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import {
-  PERPS_CONSTANTS,
-  type SortOptionId,
-} from '../../constants/perpsConfig';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useSelector } from 'react-redux';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
-import {
-  selectPerpsWatchlistMarkets,
-  selectPerpsMarketSortPreference,
-} from '../../selectors/perpsController';
-import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TabBarItem from '../../../../../component-library/components/Navigation/TabBarItem';
 import {
@@ -145,99 +128,46 @@ const PerpsMarketListView = ({
   };
   const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
-  const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
-  const savedSortPreference = useSelector(selectPerpsMarketSortPreference);
 
+  // Use the combined market list view hook for all business logic
   const {
-    markets,
+    markets: filteredMarkets,
+    searchState,
+    sortState,
+    favoritesState,
     isLoading: isLoadingMarkets,
     error,
-  } = usePerpsMarkets({
+  } = usePerpsMarketListView({
+    defaultSearchVisible,
     enablePolling: false,
+    showWatchlistOnly,
   });
 
-  // Filter out markets with no volume
-  const marketsWithVolume = useMemo(
-    () =>
-      markets.filter((market: PerpsMarketData) => {
-        if (
-          !market.volume ||
-          market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY ||
-          market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
-        ) {
-          return false;
-        }
-        if (
-          market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
-          market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
-        ) {
-          return false;
-        }
-        return true;
-      }),
-    [markets],
-  );
-
-  // Use search hook for search state and filtering
+  // Destructure search state for easier access
   const {
     searchQuery,
     setSearchQuery,
     isSearchVisible,
     toggleSearchVisibility,
-    filteredMarkets: searchedMarkets,
     clearSearch,
-  } = usePerpsSearch({
-    markets: marketsWithVolume,
-    initialSearchVisible: defaultSearchVisible,
-  });
+  } = searchState;
 
-  // Use sorting hook for sort state and sorting logic
-  const {
-    selectedOptionId,
-    sortBy,
-    handleOptionChange: originalHandleOptionChange,
-    sortMarketsList,
-  } = usePerpsSorting({ initialOptionId: savedSortPreference });
+  // Destructure sort state for easier access
+  const { selectedOptionId, sortBy, handleOptionChange } = sortState;
 
-  // Wrap handleOptionChange to save preference
-  const handleOptionChange = useCallback(
-    (
-      optionId: SortOptionId,
-      field: Parameters<typeof originalHandleOptionChange>[1],
-      direction: Parameters<typeof originalHandleOptionChange>[2],
-    ) => {
-      // Save preference to controller
-      Engine.context.PerpsController.saveMarketSortPreference(optionId);
-      // Update local state
-      originalHandleOptionChange(optionId, field, direction);
-    },
-    [originalHandleOptionChange],
-  );
-
-  // Apply favorites filter if enabled
-  const favoritesFilteredMarkets = useMemo(() => {
-    if (!showFavoritesOnly) {
-      return searchedMarkets;
-    }
-    return searchedMarkets.filter((market) =>
-      watchlistMarkets.includes(market.symbol),
-    );
-  }, [searchedMarkets, showFavoritesOnly, watchlistMarkets]);
-
-  // Apply sorting to searched and favorites-filtered markets
-  const filteredMarkets = sortMarketsList(favoritesFilteredMarkets);
+  // Destructure favorites state for easier access
+  const { showFavoritesOnly, setShowFavoritesOnly } = favoritesState;
 
   useEffect(() => {
-    if (markets.length > 0) {
+    if (filteredMarkets.length > 0) {
       Animated.timing(fadeAnimation, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
     }
-  }, [markets.length, fadeAnimation]);
+  }, [filteredMarkets.length, fadeAnimation]);
 
   const { track } = usePerpsEventTracking();
 
@@ -302,7 +232,7 @@ const PerpsMarketListView = ({
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    conditions: [markets.length > 0],
+    conditions: [filteredMarkets.length > 0],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.MARKETS,
       [PerpsEventProperties.SOURCE]: source,

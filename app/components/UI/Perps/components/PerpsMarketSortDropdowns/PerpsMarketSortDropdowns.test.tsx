@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortDropdowns from './PerpsMarketSortDropdowns';
-import type { SortField, SortDirection } from '../../utils/sortMarkets';
+import type { SortOptionId } from '../../constants/perpsConfig';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -17,24 +17,33 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+// Mock the design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    Box: View,
+    Text: ({ children, ...props }: { children?: React.ReactNode }) => (
+      <Text {...props}>{children}</Text>
+    ),
+    TextVariant: {},
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: (key: string) => {
     const translations: Record<string, string> = {
       'perps.sort.volume': 'Volume',
-      'perps.sort.price_change': 'Price Change',
+      'perps.sort.price_change_high_to_low': 'Price Change (High to Low)',
+      'perps.sort.price_change_low_to_high': 'Price Change (Low to High)',
       'perps.sort.funding_rate': 'Funding Rate',
-      'perps.sort.high_to_low': 'High to Low',
-      'perps.sort.low_to_high': 'Low to High',
-      'perps.sort.favorites': 'Favorites',
+      'perps.sort.open_interest': 'Open Interest',
     };
     return translations[key] || key;
-  }),
+  },
 }));
 
 describe('PerpsMarketSortDropdowns', () => {
   const mockOnSortPress = jest.fn();
-  const mockOnDirectionPress = jest.fn();
-  const mockOnFavoritesToggle = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -48,7 +57,7 @@ describe('PerpsMarketSortDropdowns', () => {
     it('renders with default props', () => {
       render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
@@ -61,7 +70,7 @@ describe('PerpsMarketSortDropdowns', () => {
     it('renders with custom testID', () => {
       render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
           testID="custom-sort-dropdowns"
         />,
@@ -73,136 +82,52 @@ describe('PerpsMarketSortDropdowns', () => {
     it('renders sort field button', () => {
       render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
 
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders favorites button when onFavoritesToggle is provided', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-favorites'),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render favorites button when onFavoritesToggle is not provided', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      expect(
-        screen.queryByTestId('perps-market-sort-dropdowns-favorites'),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('Sort Field Display', () => {
-    it('displays volume label when sortBy is volume', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      // Component renders with volume sort field
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
-      ).toBeOnTheScreen();
-    });
-
-    it('updates label when sortBy changes to priceChange', () => {
-      const { rerender } = render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      rerender(
-        <PerpsMarketSortDropdowns
-          sortBy="priceChange"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      // Component re-renders with new sort field
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
-      ).toBeOnTheScreen();
-    });
-
-    it('updates label when sortBy changes to fundingRate', () => {
-      const { rerender } = render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      rerender(
-        <PerpsMarketSortDropdowns
-          sortBy="fundingRate"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      // Component re-renders with new sort field
       expect(
         screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       ).toBeOnTheScreen();
     });
   });
 
-  describe('Direction Display', () => {
-    it('displays high to low label when direction is desc', () => {
+  describe('Sort Field Display', () => {
+    it('displays volume label when selectedOptionId is volume', () => {
       render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
 
-      // Component renders with desc direction
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-market-sort-dropdowns-direction'),
+        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       ).toBeOnTheScreen();
     });
 
-    it('updates label when direction changes to asc', () => {
-      const { rerender } = render(
+    it('displays price change label when selectedOptionId is priceChange-desc', () => {
+      render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="priceChange-desc"
           onSortPress={mockOnSortPress}
         />,
       );
 
-      rerender(
+      expect(screen.getByText('Price Change (High to Low)')).toBeOnTheScreen();
+    });
+
+    it('displays funding rate label when selectedOptionId is fundingRate', () => {
+      render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="fundingRate"
           onSortPress={mockOnSortPress}
         />,
       );
 
-      // Component re-renders with new direction
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-direction'),
-      ).toBeOnTheScreen();
+      expect(screen.getByText('Funding Rate')).toBeOnTheScreen();
     });
   });
 
@@ -210,7 +135,7 @@ describe('PerpsMarketSortDropdowns', () => {
     it('calls onSortPress when sort field button is pressed', () => {
       render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
@@ -223,43 +148,10 @@ describe('PerpsMarketSortDropdowns', () => {
       expect(mockOnSortPress).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onDirectionPress when direction button is pressed', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      const directionButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-direction',
-      );
-      fireEvent.press(directionButton);
-
-      expect(mockOnDirectionPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onFavoritesToggle when favorites button is pressed', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      const favoritesButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-favorites',
-      );
-      fireEvent.press(favoritesButton);
-
-      expect(mockOnFavoritesToggle).toHaveBeenCalledTimes(1);
-    });
-
     it('handles multiple rapid presses on sort field button', () => {
       render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
@@ -273,155 +165,52 @@ describe('PerpsMarketSortDropdowns', () => {
 
       expect(mockOnSortPress).toHaveBeenCalledTimes(3);
     });
-
-    it('handles multiple rapid presses on direction button', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      const directionButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-direction',
-      );
-      fireEvent.press(directionButton);
-      fireEvent.press(directionButton);
-
-      expect(mockOnDirectionPress).toHaveBeenCalledTimes(2);
-    });
-
-    it('handles multiple rapid presses on favorites button', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      const favoritesButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-favorites',
-      );
-      fireEvent.press(favoritesButton);
-      fireEvent.press(favoritesButton);
-
-      expect(mockOnFavoritesToggle).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe('Favorites State', () => {
-    it('renders favorites button with showFavoritesOnly false', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          showFavoritesOnly={false}
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-favorites'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders favorites button with showFavoritesOnly true', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          showFavoritesOnly
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-favorites'),
-      ).toBeOnTheScreen();
-    });
-
-    it('updates when showFavoritesOnly changes from false to true', () => {
-      const { rerender } = render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          showFavoritesOnly={false}
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      rerender(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          showFavoritesOnly
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      // Component re-renders with new showFavoritesOnly state
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-favorites'),
-      ).toBeOnTheScreen();
-    });
   });
 
   describe('Props Updates', () => {
-    it('updates all props correctly', () => {
+    it('updates selectedOptionId and callback correctly', () => {
       const { rerender } = render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
-          showFavoritesOnly={false}
-          onFavoritesToggle={mockOnFavoritesToggle}
         />,
       );
 
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
+
       const newOnSortPress = jest.fn();
-      const newOnDirectionPress = jest.fn();
-      const newOnFavoritesToggle = jest.fn();
 
       rerender(
         <PerpsMarketSortDropdowns
-          sortBy="priceChange"
+          selectedOptionId="priceChange-desc"
           onSortPress={newOnSortPress}
-          showFavoritesOnly
-          onFavoritesToggle={newOnFavoritesToggle}
         />,
       );
+
+      expect(screen.getByText('Price Change (High to Low)')).toBeOnTheScreen();
 
       const sortButton = screen.getByTestId(
         'perps-market-sort-dropdowns-sort-field',
       );
-      const directionButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-direction',
-      );
-      const favoritesButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-favorites',
-      );
-
       fireEvent.press(sortButton);
-      fireEvent.press(directionButton);
-      fireEvent.press(favoritesButton);
 
       expect(newOnSortPress).toHaveBeenCalledTimes(1);
-      expect(newOnDirectionPress).toHaveBeenCalledTimes(1);
-      expect(newOnFavoritesToggle).toHaveBeenCalledTimes(1);
       expect(mockOnSortPress).not.toHaveBeenCalled();
-      expect(mockOnDirectionPress).not.toHaveBeenCalled();
-      expect(mockOnFavoritesToggle).not.toHaveBeenCalled();
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles all sort field values', () => {
-      const sortFields: SortField[] = ['volume', 'priceChange', 'fundingRate'];
+    it('handles all sort option values', () => {
+      const sortOptions: SortOptionId[] = [
+        'volume',
+        'priceChange-desc',
+        'fundingRate',
+      ];
 
-      sortFields.forEach((sortBy) => {
+      sortOptions.forEach((optionId) => {
         const { unmount } = render(
           <PerpsMarketSortDropdowns
-            sortBy={sortBy}
+            selectedOptionId={optionId}
             onSortPress={mockOnSortPress}
           />,
         );
@@ -433,83 +222,13 @@ describe('PerpsMarketSortDropdowns', () => {
         unmount();
       });
     });
-
-    it('handles both direction values', () => {
-      const directions: SortDirection[] = ['asc', 'desc'];
-
-      directions.forEach((direction) => {
-        const { unmount } = render(
-          <PerpsMarketSortDropdowns
-            sortBy="volume"
-            direction={direction}
-            onSortPress={mockOnSortPress}
-          />,
-        );
-
-        expect(
-          screen.getByTestId('perps-market-sort-dropdowns-direction'),
-        ).toBeOnTheScreen();
-
-        unmount();
-      });
-    });
-
-    it('handles adding favorites toggle dynamically', () => {
-      const { rerender } = render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      expect(
-        screen.queryByTestId('perps-market-sort-dropdowns-favorites'),
-      ).not.toBeOnTheScreen();
-
-      rerender(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-favorites'),
-      ).toBeOnTheScreen();
-    });
-
-    it('handles removing favorites toggle dynamically', () => {
-      const { rerender } = render(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-          onFavoritesToggle={mockOnFavoritesToggle}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-favorites'),
-      ).toBeOnTheScreen();
-
-      rerender(
-        <PerpsMarketSortDropdowns
-          sortBy="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      expect(
-        screen.queryByTestId('perps-market-sort-dropdowns-favorites'),
-      ).not.toBeOnTheScreen();
-    });
   });
 
   describe('Component Lifecycle', () => {
     it('does not throw error on unmount', () => {
       const { unmount } = render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
@@ -520,7 +239,7 @@ describe('PerpsMarketSortDropdowns', () => {
     it('cleans up properly when remounted with different props', () => {
       const { root, rerender, unmount } = render(
         <PerpsMarketSortDropdowns
-          sortBy="volume"
+          selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
@@ -529,10 +248,8 @@ describe('PerpsMarketSortDropdowns', () => {
 
       rerender(
         <PerpsMarketSortDropdowns
-          sortBy="priceChange"
+          selectedOptionId="priceChange-desc"
           onSortPress={mockOnSortPress}
-          showFavoritesOnly
-          onFavoritesToggle={mockOnFavoritesToggle}
         />,
       );
 
