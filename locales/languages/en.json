@@ -5935,7 +5935,8 @@
         "confirm_code_label": "Confirmation code",
         "confirm_code_placeholder": "Enter the 6-digit code",
         "resend_verification": "Resend verification code",
-        "resend_cooldown": "Resend available in {{seconds}} seconds"
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "Phone number",
@@ -5960,7 +5961,8 @@
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "Validating your KYC..."
+        "title": "Validating your KYC...",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "Rejected",
