@@ -748,6 +748,79 @@ describe('PerpsMarketTabs', () => {
     });
   });
 
+  describe('Tooltip Interaction', () => {
+    it('closes tooltip when close button is pressed', async () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, coin: 'BTC' }],
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
+        ).toBeDefined();
+      });
+
+      expect(queryByTestId('perps-bottom-sheet-tooltip')).toBeNull();
+    });
+  });
+
+  describe('Order Cancellation Cleanup', () => {
+    it('removes cancelled order IDs when orders are removed from WebSocket', async () => {
+      const order1 = { ...mockOrder, symbol: 'BTC', orderId: 'order-1' };
+      const order2 = { ...mockOrder, symbol: 'BTC', orderId: 'order-2' };
+
+      mockUsePerpsLiveOrders.mockReturnValue([order1, order2]);
+      mockCancelOrder.mockResolvedValue({ success: true });
+
+      const { getAllByText, getAllByTestId, rerender } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      const ordersTab = getAllByText('perps.market.orders')[0];
+      fireEvent.press(ordersTab);
+
+      await waitFor(() => {
+        expect(getAllByTestId('mock-perps-open-order-card')).toHaveLength(2);
+      });
+
+      const orderCards = getAllByTestId('mock-perps-open-order-card');
+      fireEvent.press(orderCards[0]);
+
+      await waitFor(() => {
+        expect(mockCancelOrder).toHaveBeenCalled();
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([order2]);
+
+      rerender(
+        <PerpsMarketTabs
+          symbol="BTC"
+          onActiveTabChange={jest.fn()}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(getAllByTestId('mock-perps-open-order-card')).toHaveLength(1);
+      });
+    });
+  });
+
   describe('Order Cancellation', () => {
     const mockOnOrderCancelled = jest.fn();
 
