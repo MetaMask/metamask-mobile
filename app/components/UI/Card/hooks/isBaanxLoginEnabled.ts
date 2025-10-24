@@ -1,13 +1,12 @@
-import { useCardSDK } from '../sdk';
+import { useSelector } from 'react-redux';
+import { selectDisplayCardButtonFeatureFlag } from '../../../../selectors/featureFlagController/card';
 
 const useIsBaanxLoginEnabled = () => {
-  const { sdk } = useCardSDK();
+  const displayCardButtonFeatureFlag = useSelector(
+    selectDisplayCardButtonFeatureFlag,
+  );
 
-  if (!sdk) {
-    return false;
-  }
-
-  return sdk.isBaanxLoginEnabled;
+  return displayCardButtonFeatureFlag ?? false;
 };
 
 export default useIsBaanxLoginEnabled;
