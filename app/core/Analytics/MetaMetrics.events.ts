@@ -33,6 +33,11 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
+  ///: END:ONLY_INCLUDE_IF
+
   // Approval
   APPROVAL_STARTED = 'Approval Started',
   APPROVAL_COMPLETED = 'Approval Completed',
@@ -552,10 +557,10 @@ enum EVENT_NAME {
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
-  CARD_WELCOME_VIEWED = 'Card Welcome Viewed',
+  CARD_WELCOME_VIEWED = 'Card Welcome Page Viewed',
   CARD_VERIFY_ACCOUNT_BUTTON_CLICKED = 'Card Verify Account Button Clicked',
-  CARD_AUTHENTICATION_VIEWED = 'Card Authentication Viewed',
-  CARD_OTP_AUTHENTICATION_VIEWED = 'Card OTP Authentication Viewed',
+  CARD_AUTHENTICATION_VIEWED = 'Card Authentication Page Viewed',
+  CARD_OTP_AUTHENTICATION_VIEWED = 'Card OTP Authentication Page Viewed',
   CARD_AUTHENTICATION_LOGIN_BUTTON_CLICKED = 'Card Authentication Login Button Clicked',
   CARD_OTP_AUTHENTICATION_CONFIRM_BUTTON_CLICKED = 'Card OTP Authentication Confirm Button Clicked',
   // Rewards
@@ -627,6 +632,13 @@ enum ACTIONS {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
+
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
+  ///: END:ONLY_INCLUDE_IF
+
+  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),

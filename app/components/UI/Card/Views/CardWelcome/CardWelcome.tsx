@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { Image, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -19,10 +19,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useIsCardholder } from '../../hooks/useIsCardholder';
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
+  const isCardholder = useIsCardholder();
   const theme = useTheme();
 
   const styles = createStyles(theme);
@@ -33,14 +35,39 @@ const CardWelcome = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const handleVerifyAccountButtonPress = () => {
+  const cardWelcomeCopies = useMemo(() => {
+    if (isCardholder) {
+      return {
+        title: strings('card.card_onboarding.title'),
+        description: strings('card.card_onboarding.description'),
+        verify_account_button: strings(
+          'card.card_onboarding.verify_account_button',
+        ),
+      };
+    }
+
+    return {
+      title: strings('card.card_onboarding.non_cardholder_title'),
+      description: strings('card.card_onboarding.non_cardholder_description'),
+      verify_account_button: strings(
+        'card.card_onboarding.non_cardholder_verify_account_button',
+      ),
+    };
+  }, [isCardholder]);
+
+  const handleButtonPress = useCallback(() => {
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.CARD_VERIFY_ACCOUNT_BUTTON_CLICKED,
       ).build(),
     );
-    navigate(Routes.CARD.AUTHENTICATION);
-  };
+
+    if (isCardholder) {
+      navigate(Routes.CARD.AUTHENTICATION);
+    } else {
+      navigate(Routes.CARD.ONBOARDING.ROOT);
+    }
+  }, [isCardholder, navigate, trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -58,22 +85,22 @@ const CardWelcome = () => {
             variant={TextVariant.HeadingLG}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
           >
-            {strings('card.card_onboarding.title')}
+            {cardWelcomeCopies.title}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Alternative}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
           >
-            {strings('card.card_onboarding.description')}
+            {cardWelcomeCopies.description}
           </Text>
 
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('card.card_onboarding.verify_account_button')}
+            label={cardWelcomeCopies.verify_account_button}
             size={ButtonSize.Lg}
             testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            onPress={handleVerifyAccountButtonPress}
+            onPress={handleButtonPress}
             style={styles.button}
             width={ButtonWidthTypes.Full}
           />
