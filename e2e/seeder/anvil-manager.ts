@@ -1,7 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createServer } from 'net';
-import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
@@ -161,22 +160,11 @@ class AnvilManager {
       '.bin',
       'anvil',
     );
-    this.anvilBinary = fs.existsSync(localAnvil) ? localAnvil : 'anvil';
-    const versionOutput = execSync('anvil --version', { encoding: 'utf-8' });
-    try {
-      console.log(
-        'CHRIS:: whichAnvil',
-        execSync('which anvil', { encoding: 'utf-8' }),
-      );
-    } catch (error) {
-      console.log('CHRIS:: failed to get which anvil', error);
-    }
-    console.log('CHRIS:: versionOutput', versionOutput);
-    console.log(
-      'CHRIS:: existsSync(localAnvil)',
-      fs.existsSync(localAnvil),
-      localAnvil,
-    );
+    this.anvilBinary = localAnvil;
+    const versionOutput = execSync(`${localAnvil} --version`, {
+      encoding: 'utf-8',
+    });
+    logger.debug('CHRIS:: versionOutput', versionOutput);
 
     // First try the configured port, then find an available one if it fails
     const initialPort = opts.port || AnvilPort();
