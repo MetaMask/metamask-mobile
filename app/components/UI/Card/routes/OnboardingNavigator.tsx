@@ -1,5 +1,8 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import SignUp from '../components/Onboarding/SignUp';
 import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
@@ -12,12 +15,75 @@ import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
 import Complete from '../components/Onboarding/Complete';
-import { cardAuthenticationNavigationOptions } from '.';
+import { cardAuthenticationNavigationOptions, headerStyle } from '.';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import KYCWebview from '../components/Onboarding/KYCWebview';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../locales/i18n';
+import { View } from 'react-native';
 
 const Stack = createStackNavigator();
+
+const KYCModalavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => <View />,
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'card-view-title'}
+    >
+      {strings('card.card')}
+    </Text>
+  ),
+  headerRight: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.Close}
+      onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC)}
+    />
+  ),
+});
+
+const ValidatingKYCNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() =>
+        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY)
+      }
+    />
+  ),
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'card-view-title'}
+    >
+      {strings('card.card')}
+    </Text>
+  ),
+  headerRight: () => <View />,
+});
 
 const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
@@ -74,7 +140,7 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
         component={ValidatingKYC}
-        options={cardAuthenticationNavigationOptions}
+        options={ValidatingKYCNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
@@ -100,6 +166,11 @@ const OnboardingNavigator: React.FC = () => {
         name={Routes.CARD.ONBOARDING.COMPLETE}
         component={Complete}
         options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.WEBVIEW}
+        component={KYCWebview}
+        options={KYCModalavigationOptions}
       />
     </Stack.Navigator>
   );
