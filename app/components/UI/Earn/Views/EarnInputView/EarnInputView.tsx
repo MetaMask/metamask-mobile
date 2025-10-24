@@ -810,7 +810,9 @@ const EarnInputView = () => {
     <ScreenLayout style={styles.container}>
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        <ResourceToggle value={resourceType} onChange={setResourceType} />
+        isTrxStakingEnabled && (
+          <ResourceToggle value={resourceType} onChange={setResourceType} />
+        )
         ///: END:ONLY_INCLUDE_IF
       }
       <ScrollView
