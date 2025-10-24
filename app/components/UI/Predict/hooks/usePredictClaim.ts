@@ -2,6 +2,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
+import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
@@ -53,6 +54,21 @@ export const usePredictClaim = ({
       await claimWinnings({ providerId });
     } catch (err) {
       console.error('Failed to proceed with claim:', err);
+
+      // Capture exception with claim context
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        tags: {
+          component: 'usePredictClaim',
+          action: 'claim_winnings',
+          operation: 'position_management',
+        },
+        extra: {
+          claimContext: {
+            providerId,
+          },
+        },
+      });
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
