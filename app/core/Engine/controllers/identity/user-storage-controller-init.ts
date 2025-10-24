@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../../types';
-import { Controller as UserStorageController } from '@metamask/profile-sync-controller/user-storage';
-import { UserStorageControllerMessenger } from '../../messengers/identity/user-storage-controller-messenger';
+import {
+  Controller as UserStorageController,
+  UserStorageControllerMessenger,
+} from '@metamask/profile-sync-controller/user-storage';
 import { calculateScryptKey } from './calculate-scrypt-key';
 import { MetaMetrics, MetaMetricsEvents } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';

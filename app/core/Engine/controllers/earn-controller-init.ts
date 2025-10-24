@@ -1,9 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { EarnController } from '@metamask/earn-controller';
 import {
-  EarnControllerInitMessenger,
+  EarnController,
   EarnControllerMessenger,
-} from '../messengers/earn-controller-messenger';
+} from '@metamask/earn-controller';
+import { EarnControllerInitMessenger } from '../messengers/earn-controller-messenger';
 
 /**
  * Initialize the earn controller.

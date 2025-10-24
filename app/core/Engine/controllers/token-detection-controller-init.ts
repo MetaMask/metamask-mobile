@@ -1,9 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { TokenDetectionController } from '@metamask/assets-controllers';
 import {
-  TokenDetectionControllerInitMessenger,
-  TokenDetectionControllerMessenger,
-} from '../messengers/token-detection-controller-messenger';
+  TokenDetectionController,
+  type TokenDetectionControllerMessenger,
+} from '@metamask/assets-controllers';
+import { TokenDetectionControllerInitMessenger } from '../messengers/token-detection-controller-messenger';
 import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 import { getDecimalChainId } from '../../../util/networks';

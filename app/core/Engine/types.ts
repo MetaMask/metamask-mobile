@@ -357,6 +357,21 @@ import {
 } from '@metamask/delegation-controller/dist/types.cjs';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
+import {
+  ControllerGetStateAction,
+  ControllerStateChangeEvent,
+} from '@metamask/base-controller/next.js';
+import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
+
+type NftDetectionControllerActions = ControllerGetStateAction<
+  'NftDetectionController',
+  NFTDetectionControllerState
+>;
+
+type NftDetectionControllerEvents = ControllerStateChangeEvent<
+  'NftDetectionController',
+  NFTDetectionControllerState
+>;
 
 /**
  * Controllers that area always instantiated
@@ -475,7 +490,8 @@ type GlobalActions =
   | DeFiPositionsControllerActions
   | ErrorReportingServiceActions
   | DelegationControllerActions
-  | SeedlessOnboardingControllerActions;
+  | SeedlessOnboardingControllerActions
+  | NftDetectionControllerActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -544,7 +560,8 @@ type GlobalEvents =
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
-  | DelegationControllerEvents;
+  | DelegationControllerEvents
+  | NftDetectionControllerEvents;
 
 /**
  * Type definition for the messenger used in the Engine.

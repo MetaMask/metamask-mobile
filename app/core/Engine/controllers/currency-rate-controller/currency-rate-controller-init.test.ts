@@ -1,10 +1,10 @@
-import { CurrencyRateController } from '@metamask/assets-controllers';
+import {
+  CurrencyRateController,
+  CurrencyRateMessenger,
+} from '@metamask/assets-controllers';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import {
-  currencyRateControllerInit,
-  CurrencyRateMessenger,
-} from './currency-rate-controller-init';
+import { currencyRateControllerInit } from './currency-rate-controller-init';
 import { defaultCurrencyRateState } from './constants';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';

@@ -4,7 +4,10 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import { SnapInterfaceControllerMessenger } from '@metamask/snaps-controllers';
+import { MaybeUpdateState } from '@metamask/phishing-controller';
 import { RootMessenger } from '../../types';
+
+export { type SnapInterfaceControllerMessenger };
 
 /**
  * Get a messenger for the Snap interface controller. This is scoped
@@ -19,7 +22,7 @@ export function getSnapInterfaceControllerMessenger(
 ): SnapInterfaceControllerMessenger {
   const messenger = new Messenger<
     'SnapInterfaceController',
-    MessengerActions<SnapInterfaceControllerMessenger>,
+    MessengerActions<SnapInterfaceControllerMessenger> | MaybeUpdateState,
     MessengerEvents<SnapInterfaceControllerMessenger>,
     RootMessenger
   >({

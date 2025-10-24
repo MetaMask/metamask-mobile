@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../../types';
-import { Controller as AuthenticationController } from '@metamask/profile-sync-controller/auth';
-import { AuthenticationControllerMessenger } from '../../messengers/identity/authentication-controller-messenger';
+import {
+  Controller as AuthenticationController,
+  type AuthenticationControllerMessenger,
+} from '@metamask/profile-sync-controller/auth';
 import { MetaMetrics } from '../../../Analytics';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 

@@ -6,12 +6,12 @@ import {
 } from '@metamask/messenger';
 import {
   CurrencyRateController,
-  CurrencyRateMessenger,
+  RatesControllerMessenger,
 } from '@metamask/assets-controllers';
 import { RootMessenger } from '../types';
 
 /**
- * Get the CurrencyRateMessenger for the CurrencyRateController.
+ * Get the RatesControllerMessenger for the RatesController.
  * rates controller is allowed to handle.
  *
  * @param rootMessenger - The root messenger.
@@ -19,11 +19,11 @@ import { RootMessenger } from '../types';
  */
 export function getRatesControllerMessenger(
   rootMessenger: RootMessenger,
-): CurrencyRateMessenger {
+): RatesControllerMessenger {
   const messenger = new Messenger<
     'RatesController',
-    MessengerActions<CurrencyRateMessenger>,
-    MessengerEvents<CurrencyRateMessenger>,
+    MessengerActions<RatesControllerMessenger>,
+    MessengerEvents<RatesControllerMessenger>,
     RootMessenger
   >({
     namespace: 'RatesController',

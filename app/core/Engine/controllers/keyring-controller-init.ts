@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../types';
-import { KeyringController } from '@metamask/keyring-controller';
-import { KeyringControllerMessenger } from '../messengers/keyring-controller-messenger';
+import {
+  KeyringController,
+  KeyringControllerMessenger,
+} from '@metamask/keyring-controller';
 import { QrKeyring } from '@metamask/eth-qr-keyring';
 import {
   LedgerKeyring,

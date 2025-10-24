@@ -3,7 +3,7 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { TokenSearchDiscoveryDataControllerMessenger } from '@metamask/assets-controllers';
+import { type TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import { RootMessenger } from '../types';
 
 /**
@@ -15,11 +15,11 @@ import { RootMessenger } from '../types';
  */
 export function getTokenSearchDiscoveryControllerMessenger(
   rootMessenger: RootMessenger,
-): TokenSearchDiscoveryDataControllerMessenger {
+): TokenSearchDiscoveryControllerMessenger {
   const messenger = new Messenger<
     'TokenSearchDiscoveryController',
-    MessengerActions<TokenSearchDiscoveryDataControllerMessenger>,
-    MessengerEvents<TokenSearchDiscoveryDataControllerMessenger>,
+    MessengerActions<TokenSearchDiscoveryControllerMessenger>,
+    MessengerEvents<TokenSearchDiscoveryControllerMessenger>,
     RootMessenger
   >({
     namespace: 'TokenSearchDiscoveryController',

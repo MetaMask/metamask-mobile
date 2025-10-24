@@ -6,6 +6,8 @@ import {
 import { ExecutionServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
+export { type ExecutionServiceMessenger };
+
 /**
  * Get a messenger for the execution service. This is scoped to the
  * actions and events that the execution service is allowed to handle.
