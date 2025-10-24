@@ -238,6 +238,10 @@ const createStyles = (colors: Colors) =>
     badge: {
       marginTop: 8,
     },
+    viewAllTokensButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
   });
 
 export default createStyles;

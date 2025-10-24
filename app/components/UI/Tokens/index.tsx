@@ -26,6 +26,8 @@ import { strings } from '../../../../locales/i18n';
 import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import Routes from '../../../constants/navigation/Routes';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
@@ -39,6 +41,7 @@ import { SolScope } from '@metamask/keyring-api';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
+  TokensFullView: undefined;
   [key: string]: undefined | object;
 }
 
@@ -247,12 +250,26 @@ const Tokens = memo(() => {
     setShowScamWarningModal((prev) => !prev);
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const navigateToTokensFullView = useCallback(() => {
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+  }, [navigation]);
+
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <TokenListControlBar goToAddToken={goToAddToken} />
+      {/* Uncomment these lines to review TokensFullView */}
+      {/* <View style={styles.viewAllTokensButton}>
+        <Button
+          variant={ButtonVariant.Secondary}
+          onPress={navigateToTokensFullView}
+        >
+          {strings('wallet.view_all_tokens')}
+        </Button>
+      </View> */}
       {!isTokensLoading &&
       renderedTokenKeys.length === 0 &&
       progressiveTokens.length === 0 ? (

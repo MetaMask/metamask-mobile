@@ -1819,6 +1819,7 @@
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
+    "view_all_tokens": "View all tokens",
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
