@@ -20,6 +20,7 @@ import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardW
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
+import { CardButtons, CardScreens } from '../../util/metrics';
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -31,7 +32,11 @@ const CardWelcome = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_WELCOME_VIEWED).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+        .addProperties({
+          screen: CardScreens.CARD_WELCOME,
+        })
+        .build(),
     );
   }, [trackEvent, createEventBuilder]);
 
@@ -57,9 +62,11 @@ const CardWelcome = () => {
 
   const handleButtonPress = useCallback(() => {
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.CARD_VERIFY_ACCOUNT_BUTTON_CLICKED,
-      ).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          button: CardButtons.CARD_VERIFY_ACCOUNT,
+        })
+        .build(),
     );
 
     if (isCardholder) {

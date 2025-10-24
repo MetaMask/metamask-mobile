@@ -51,6 +51,7 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardButtons, CardScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
 
@@ -179,22 +180,34 @@ const CardAuthentication = () => {
   }, [step]);
 
   useEffect(() => {
-    const event =
+    const screenName =
       step === 'login'
-        ? MetaMetricsEvents.CARD_AUTHENTICATION_VIEWED
-        : MetaMetricsEvents.CARD_OTP_AUTHENTICATION_VIEWED;
+        ? CardScreens.CARD_AUTHENTICATION
+        : CardScreens.CARD_OTP_AUTHENTICATION;
 
-    trackEvent(createEventBuilder(event).build());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+        .addProperties({
+          screen: screenName,
+        })
+        .build(),
+    );
   }, [trackEvent, createEventBuilder, step]);
 
   const performLogin = useCallback(
     async (otpCode?: string) => {
-      const event =
+      const button =
         step === 'login'
-          ? MetaMetricsEvents.CARD_AUTHENTICATION_LOGIN_BUTTON_CLICKED
-          : MetaMetricsEvents.CARD_OTP_AUTHENTICATION_CONFIRM_BUTTON_CLICKED;
+          ? CardButtons.CARD_AUTHENTICATION_LOGIN_BUTTON
+          : CardButtons.CARD_OTP_AUTHENTICATION;
 
-      trackEvent(createEventBuilder(event).build());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            button,
+          })
+          .build(),
+      );
 
       try {
         setLoading(true);
