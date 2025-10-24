@@ -1,5 +1,6 @@
 import { typography } from '@metamask/design-tokens';
 import { FontWeight, FontStyle, TextVariant } from './Text.types';
+import { FONT_FAMILIES, GEIST_WEIGHT_MAPPING } from '../../../constants/fonts';
 
 export const getFontFamily = (
   variant: TextVariant,
@@ -9,23 +10,9 @@ export const getFontFamily = (
   const resolvedWeight = fontWeight ?? typography[variant].fontWeight;
   const resolvedStyle = fontStyle ?? 'normal';
 
-  const weightToFontSuffix: Record<FontWeight, 'Regular' | 'Medium' | 'Bold'> =
-    {
-      '100': 'Regular',
-      '200': 'Regular',
-      '300': 'Regular',
-      '400': 'Regular',
-      '500': 'Medium',
-      '600': 'Medium',
-      '700': 'Bold',
-      '800': 'Bold',
-      '900': 'Bold',
-      normal: 'Regular',
-      bold: 'Bold',
-    };
+  const fontSuffix = GEIST_WEIGHT_MAPPING[resolvedWeight as keyof typeof GEIST_WEIGHT_MAPPING];
+  const italicSuffix = resolvedStyle === 'italic' ? '-Italic' : '';
 
-  const fontSuffix = weightToFontSuffix[resolvedWeight as FontWeight];
-  const italicSuffix = resolvedStyle === 'italic' ? ' Italic' : '';
-
-  return `Geist ${fontSuffix}${italicSuffix}`;
+  // Return PostScript name format (with hyphens)
+  return `Geist-${fontSuffix}${italicSuffix}`;
 };
