@@ -717,19 +717,7 @@ export class PredictController extends BaseController<
       throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
-    const { AccountsController, KeyringController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
-    const signer = {
-      address: selectedAddress,
-      signTypedMessage: (
-        _params: TypedMessageParams,
-        _version: SignTypedDataVersion,
-      ) => KeyringController.signTypedMessage(_params, _version),
-      signPersonalMessage: (_params: PersonalMessageParams) =>
-        KeyringController.signPersonalMessage(_params),
-    };
-
-    return provider.previewOrder({ ...params, signer });
+    return provider.previewOrder(params);
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {

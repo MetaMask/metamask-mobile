@@ -30,10 +30,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 8,
     },
-    secondRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
+    tokenVolume: {
       marginTop: 2,
     },
     rightSection: {

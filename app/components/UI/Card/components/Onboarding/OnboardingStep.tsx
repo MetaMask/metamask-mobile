@@ -49,30 +49,21 @@ const OnboardingStep = ({
             {/* Title */}
             <Text
               variant={TextVariant.HeadingMd}
-              testID="onboarding-step-title"
               twClassName="mt-2 text-center text-default"
             >
               {title}
             </Text>
 
             {/* Description */}
-            <Text
-              variant={TextVariant.BodyMd}
-              testID="onboarding-step-description"
-              twClassName="text-center"
-            >
+            <Text variant={TextVariant.BodyMd} twClassName="text-center">
               {description}
             </Text>
 
             {/* Form */}
-            <Box testID="onboarding-step-form" twClassName="gap-4 flex-1">
-              {formFields}
-            </Box>
+            <Box twClassName="gap-4 flex-1">{formFields}</Box>
 
             {/* Actions */}
-            <Box testID="onboarding-step-actions" twClassName="mt-2">
-              {actions}
-            </Box>
+            <Box twClassName="mt-2">{actions}</Box>
           </Box>
         </ScrollView>
       </SafeAreaView>

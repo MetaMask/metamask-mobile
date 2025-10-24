@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import { Image, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -18,42 +18,12 @@ import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useIsCardholder } from '../../hooks/useIsCardholder';
 
 const CardWelcome = () => {
   const { navigate } = useNavigation();
-  const isCardholder = useIsCardholder();
   const theme = useTheme();
 
   const styles = createStyles(theme);
-
-  const cardWelcomeCopies = useMemo(() => {
-    if (isCardholder) {
-      return {
-        title: strings('card.card_onboarding.title'),
-        description: strings('card.card_onboarding.description'),
-        verify_account_button: strings(
-          'card.card_onboarding.verify_account_button',
-        ),
-      };
-    }
-
-    return {
-      title: strings('card.card_onboarding.non_cardholder_title'),
-      description: strings('card.card_onboarding.non_cardholder_description'),
-      verify_account_button: strings(
-        'card.card_onboarding.non_cardholder_verify_account_button',
-      ),
-    };
-  }, [isCardholder]);
-
-  const handleButtonPress = useCallback(() => {
-    if (isCardholder) {
-      navigate(Routes.CARD.AUTHENTICATION);
-    } else {
-      navigate(Routes.CARD.ONBOARDING.ROOT);
-    }
-  }, [isCardholder, navigate]);
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
@@ -71,22 +41,22 @@ const CardWelcome = () => {
             variant={TextVariant.HeadingLG}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
           >
-            {cardWelcomeCopies.title}
+            {strings('card.card_onboarding.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Alternative}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
           >
-            {cardWelcomeCopies.description}
+            {strings('card.card_onboarding.description')}
           </Text>
 
           <Button
             variant={ButtonVariants.Primary}
-            label={cardWelcomeCopies.verify_account_button}
+            label={strings('card.card_onboarding.verify_account_button')}
             size={ButtonSize.Lg}
             testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            onPress={handleButtonPress}
+            onPress={() => navigate(Routes.CARD.AUTHENTICATION)}
             style={styles.button}
             width={ButtonWidthTypes.Full}
           />

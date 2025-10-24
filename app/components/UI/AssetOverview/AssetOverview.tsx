@@ -87,9 +87,6 @@ import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
-///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -463,11 +460,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const isTronNative =
-    asset.ticker === 'TRX' && String(asset.chainId).startsWith('tron:');
-  ///: END:ONLY_INCLUDE_IF
-
   if (isMultichainAccountsState2Enabled) {
     balance = asset.balance;
   } else if (isMultichainAsset) {
@@ -573,11 +565,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               chainId,
             }}
           />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && <TronEnergyBandwidthDetail />
-            ///: END:ONLY_INCLUDE_IF
-          }
+
           {balance != null && (
             <Balance
               asset={asset}

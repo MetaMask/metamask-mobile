@@ -1,19 +1,13 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
-import useStartVerification from '../../hooks/useStartVerification';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
-
-// Mock useStartVerification hook
-jest.mock('../../hooks/useStartVerification');
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -65,9 +59,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(Text, props, children),
-    TextVariant: {
-      BodySm: 'BodySm',
-    },
   };
 });
 
@@ -79,24 +70,22 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   const MockButton = ({
     label,
     onPress,
-    isDisabled,
-    testID,
+    variant,
+    size,
+    width,
     ...props
   }: {
     label: string;
     onPress: () => void;
-    isDisabled?: boolean;
-    testID?: string;
-    variant?: string;
-    size?: string;
-    width?: string;
+    variant: string;
+    size: string;
+    width: string;
   }) =>
     React.createElement(
       TouchableOpacity,
       {
-        testID: testID || 'verify-identity-continue-button',
+        testID: 'verify-identity-continue-button',
         onPress,
-        disabled: isDisabled,
         ...props,
       },
       React.createElement(
@@ -141,104 +130,35 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.verify_identity.title': 'Verify your identity',
       'card.card_onboarding.verify_identity.description':
         'We need to verify your identity to continue with your card application.',
-      'card.card_onboarding.continue_button': 'Continue',
-      'card.card_onboarding.verify_identity.start_verification_error':
-        'Unable to start verification. Please try again.',
+      'card.card_onboarding.confirm_button': 'Continue',
     };
     return mockStrings[key] || key;
   }),
 }));
 
-// Create test store
-const createTestStore = (initialState = {}) =>
-  configureStore({
-    reducer: {
-      card: (
-        state = {
-          onboarding: {
-            selectedCountry: null,
-            onboardingId: null,
-            contactVerificationId: null,
-            user: null,
-            ...initialState,
-          },
-          userCardLocation: 'international',
-        },
-        action = { type: '', payload: null },
-      ) => {
-        switch (action.type) {
-          default:
-            return state;
-        }
-      },
-    },
-  });
-
 describe('VerifyIdentity Component', () => {
   const mockNavigate = jest.fn();
-  let store: ReturnType<typeof createTestStore>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
-
-    (useStartVerification as jest.Mock).mockReturnValue({
-      data: { sessionUrl: 'https://example.com/verify' },
-      isLoading: false,
-      isError: false,
-      error: null,
-    });
-
-    store = createTestStore();
   });
 
-  describe('Initial Render', () => {
-    it('renders all elements with correct testIDs', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+  describe('Component Rendering', () => {
+    it('should render the component correctly', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
 
       expect(getByTestId('onboarding-step')).toBeTruthy();
       expect(getByTestId('onboarding-step-title')).toBeTruthy();
       expect(getByTestId('onboarding-step-description')).toBeTruthy();
       expect(getByTestId('onboarding-step-form-fields')).toBeTruthy();
       expect(getByTestId('onboarding-step-actions')).toBeTruthy();
-      expect(getByTestId('verify-identity-continue-button')).toBeTruthy();
     });
 
-    it('has continue button enabled when sessionUrl is available', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(false);
-    });
-
-    it('does not show error messages initially when verification is successful', () => {
-      const { queryByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(
-        queryByTestId('verify-identity-start-verification-error'),
-      ).toBeNull();
-    });
-
-    it('displays the correct title and description', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+    it('should display the correct title and description', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
 
       const title = getByTestId('onboarding-step-title');
       const description = getByTestId('onboarding-step-description');
@@ -250,269 +170,76 @@ describe('VerifyIdentity Component', () => {
     });
   });
 
-  describe('Error State Testing', () => {
-    it('shows error message when verification hook fails', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: false,
-        isError: true,
-        error: 'Verification service unavailable',
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const errorText = getByTestId('verify-identity-start-verification-error');
-      expect(errorText).toBeTruthy();
-      expect(errorText.props.children).toBe('Verification service unavailable');
-    });
-
-    it('shows default error message when no sessionUrl and not loading', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const errorText = getByTestId('verify-identity-start-verification-error');
-      expect(errorText).toBeTruthy();
-      expect(errorText.props.children).toBe(
-        'Unable to start verification. Please try again.',
-      );
-    });
-
-    it('disables continue button when no sessionUrl is available', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
-    });
-  });
-
-  describe('Loading State Testing', () => {
-    it('does not show error when verification is loading', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: true,
-        isError: false,
-        error: null,
-      });
-
-      const { queryByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(
-        queryByTestId('verify-identity-start-verification-error'),
-      ).toBeNull();
-    });
-
-    it('disables continue button when verification is loading', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: true,
-        isError: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const continueButton = getByTestId('verify-identity-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
-    });
-  });
-
-  describe('User State Testing', () => {
-    it('navigates to validating KYC when user verification state is PENDING', async () => {
-      const storeWithPendingUser = createTestStore({
-        user: { verificationState: 'PENDING' },
-      });
-
-      render(
-        <Provider store={storeWithPendingUser}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
-        );
-      });
-    });
-
-    it('does not auto-navigate when user verification state is not PENDING', () => {
-      const storeWithNonPendingUser = createTestStore({
-        user: { verificationState: 'VERIFIED' },
-      });
-
-      render(
-        <Provider store={storeWithNonPendingUser}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not auto-navigate when user is null', () => {
-      const storeWithNullUser = createTestStore({
-        user: null,
-      });
-
-      render(
-        <Provider store={storeWithNullUser}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Button Interaction and Navigation', () => {
-    it('navigates with sessionUrl when continue button is pressed', async () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const button = getByTestId('verify-identity-continue-button');
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
-          {
-            sessionUrl: 'https://example.com/verify',
-          },
-        );
-      });
-    });
-
-    it('does not navigate when continue button is pressed without sessionUrl', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const button = getByTestId('verify-identity-continue-button');
-      fireEvent.press(button);
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('handles multiple button presses correctly', async () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const button = getByTestId('verify-identity-continue-button');
-
-      fireEvent.press(button);
-      fireEvent.press(button);
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(3);
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
-          {
-            sessionUrl: 'https://example.com/verify',
-          },
-        );
-      });
-    });
-  });
-
   describe('Form Fields', () => {
-    it('renders empty form fields section when no errors', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+    it('should render empty form fields section', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
 
       const formFields = getByTestId('onboarding-step-form-fields');
       expect(formFields).toBeTruthy();
+      expect(formFields.props.children).toBeNull();
+    });
+  });
+
+  describe('Continue Button', () => {
+    it('should render the continue button', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
+
+      const button = getByTestId('verify-identity-continue-button');
+      const buttonText = getByTestId('verify-identity-continue-button-text');
+
+      expect(button).toBeTruthy();
+      expect(buttonText).toBeTruthy();
+      expect(buttonText.props.children).toBe('Continue');
     });
 
-    it('renders error in form fields when verification fails', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: false,
-        isError: true,
-        error: 'Network error',
-      });
+    it('should navigate to validating KYC screen when continue button is pressed', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
 
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
+      const button = getByTestId('verify-identity-continue-button');
+      fireEvent.press(button);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.VALIDATING_KYC,
       );
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
 
-      const errorText = getByTestId('verify-identity-start-verification-error');
-      expect(errorText).toBeTruthy();
+    it('should have correct button properties', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
+
+      const button = getByTestId('verify-identity-continue-button');
+
+      // Button should be rendered with proper test ID
+      expect(button).toBeTruthy();
     });
   });
 
   describe('Navigation Integration', () => {
-    it('uses navigation hook correctly', () => {
-      render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+    it('should use navigation hook correctly', () => {
+      render(<VerifyIdentity />);
 
       expect(useNavigation).toHaveBeenCalled();
+    });
+
+    it('should handle navigation when button is pressed multiple times', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
+
+      const button = getByTestId('verify-identity-continue-button');
+
+      fireEvent.press(button);
+      fireEvent.press(button);
+      fireEvent.press(button);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(3);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.VALIDATING_KYC,
+      );
     });
   });
 
   describe('Component Integration', () => {
-    it('passes correct props to OnboardingStep', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+    it('should pass correct props to OnboardingStep', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
 
       const onboardingStep = getByTestId('onboarding-step');
       const title = getByTestId('onboarding-step-title');
@@ -525,16 +252,12 @@ describe('VerifyIdentity Component', () => {
       expect(description.props.children).toBe(
         'We need to verify your identity to continue with your card application.',
       );
-      expect(formFields).toBeTruthy();
+      expect(formFields.props.children).toBeNull();
       expect(actions).toBeTruthy();
     });
 
-    it('renders actions section with continue button', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+    it('should render actions section with continue button', () => {
+      const { getByTestId } = render(<VerifyIdentity />);
 
       const actions = getByTestId('onboarding-step-actions');
       const button = getByTestId('verify-identity-continue-button');
@@ -545,14 +268,10 @@ describe('VerifyIdentity Component', () => {
   });
 
   describe('i18n Integration', () => {
-    it('uses correct i18n keys for title and description', () => {
+    it('should use correct i18n keys for title and description', () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+      render(<VerifyIdentity />);
 
       expect(strings).toHaveBeenCalledWith(
         'card.card_onboarding.verify_identity.title',
@@ -561,28 +280,7 @@ describe('VerifyIdentity Component', () => {
         'card.card_onboarding.verify_identity.description',
       );
       expect(strings).toHaveBeenCalledWith(
-        'card.card_onboarding.continue_button',
-      );
-    });
-
-    it('uses correct i18n key for error message', () => {
-      const { strings } = jest.requireMock('../../../../../../locales/i18n');
-
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: false,
-        isError: false,
-        error: null,
-      });
-
-      render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(strings).toHaveBeenCalledWith(
-        'card.card_onboarding.verify_identity.start_verification_error',
+        'card.card_onboarding.confirm_button',
       );
     });
   });

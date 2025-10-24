@@ -13,10 +13,7 @@ import SkipAccountSecurityModal from '../../../../wdio/screen-objects/Modals/Ski
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
-import {
-  dissmissAllModals,
-  tapPerpsBottomSheetGotItButton,
-} from '../../../utils/Flows.js';
+import { dissmissAllModals, tapPerpsBottomSheetGotItButton } from '../../../utils/Flows.js';
 
 /* Scenario 2: Account creation after fresh install */
 

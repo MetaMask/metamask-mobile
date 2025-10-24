@@ -51,7 +51,6 @@ import { signSolanaRewardsMessage } from './utils/solana-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
-  AccountAlreadyRegisteredError,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
 
@@ -79,9 +78,6 @@ const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
-
-// Opt-in status stale threshold for not opted-in accounts to force a fresh check
-const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60 * 24; // 24 hours
 
 /**
  * State metadata for the RewardsController
@@ -640,13 +636,22 @@ export class RewardsController extends BaseController<
         const sortedAccounts = sortAccounts(accounts);
 
         // Try silent auth on each account until one succeeds
+        let success = false;
         for (const account of sortedAccounts) {
           try {
-            await this.performSilentAuth(account, true, true);
+            const subscriptionId = await this.performSilentAuth(
+              account,
+              true,
+              true,
+            );
+            success = !!subscriptionId;
             break; // Stop on first success
           } catch {
             // Continue to next account
           }
+        }
+        if (!success && sortedAccounts.length > 1) {
+          throw new Error('Silent auth failed for all accounts');
         }
       }
     } catch (error) {
@@ -664,7 +669,7 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  shouldSkipSilentAuth(
+  #shouldSkipSilentAuth(
     account: CaipAccountId,
     internalAccount: InternalAccount,
   ): boolean {
@@ -673,16 +678,6 @@ export class RewardsController extends BaseController<
 
     const accountState = this.#getAccountState(account);
     if (accountState) {
-      if (accountState.hasOptedIn === false) {
-        if (!accountState.lastFreshOptInStatusCheck) {
-          return false;
-        }
-
-        return (
-          Date.now() - accountState.lastFreshOptInStatusCheck <=
-          NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS
-        );
-      }
       return true;
     }
 
@@ -763,7 +758,7 @@ export class RewardsController extends BaseController<
       this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
-      ? this.shouldSkipSilentAuth(account, internalAccount)
+      ? this.#shouldSkipSilentAuth(account, internalAccount)
       : false;
 
     if (shouldSkip && respectSkipSilentAuth) {
@@ -793,51 +788,15 @@ export class RewardsController extends BaseController<
           }
         });
       }
+      Logger.log(
+        'RewardsController: Skipping for account (likely authenticated & within grace period)',
+        account,
+      );
       return accountState?.subscriptionId || null;
     }
 
     let subscription: SubscriptionDto | null = null;
     let authUnexpectedError = false;
-
-    if (respectSkipSilentAuth && !shouldSkip) {
-      // First, check opt-in status before attempting login
-      try {
-        const optInStatusResult = await this.getOptInStatus({
-          addresses: [internalAccount.address],
-        });
-
-        // Check if the account has not opted in (result is false)
-        if (optInStatusResult.ois && optInStatusResult.ois[0] === false) {
-          Logger.log(
-            'RewardsController: Account has not opted in, skipping silent auth',
-            internalAccount.address,
-          );
-          // Account hasn't opted in, don't proceed with login
-          subscription = null;
-          // Update state to reflect not opted in
-          this.update((state: RewardsControllerState) => {
-            if (!account) {
-              return;
-            }
-            const accountState: RewardsAccountState = {
-              account,
-              hasOptedIn: false,
-              subscriptionId: null,
-              perpsFeeDiscount: null,
-              lastPerpsDiscountRateFetched: null,
-              lastFreshOptInStatusCheck: Date.now(),
-            };
-            state.accounts[account] = accountState;
-            if (shouldBecomeActiveAccount) {
-              state.activeAccount = accountState;
-            }
-          });
-          return null;
-        }
-      } catch {
-        // Continue with silent login attempt
-      }
-    }
 
     try {
       // Generate timestamp and sign the message
@@ -948,7 +907,6 @@ export class RewardsController extends BaseController<
           subscriptionId: subscription?.id || null,
           perpsFeeDiscount: null, // Default value, will be updated when fetched
           lastPerpsDiscountRateFetched: null,
-          lastFreshOptInStatusCheck: Date.now(),
         };
         state.accounts[account] = accountState;
         if (shouldBecomeActiveAccount) {
@@ -1089,21 +1047,6 @@ export class RewardsController extends BaseController<
         if (caipAccount) {
           const accountState = this.#getAccountState(caipAccount);
           if (accountState?.hasOptedIn !== undefined) {
-            // Check if account is not opted in and needs a recheck
-            const shouldRecheckFreshIfNotOptedIn =
-              !accountState.lastFreshOptInStatusCheck ||
-              Date.now() - accountState.lastFreshOptInStatusCheck >
-                NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS;
-
-            if (
-              accountState.hasOptedIn === false &&
-              shouldRecheckFreshIfNotOptedIn
-            ) {
-              // Force a fresh check for this not-opted-in account
-              addressesNeedingFresh.push(address);
-              continue;
-            }
-
             // Use cached data
             cachedOptInResults[i] = accountState.hasOptedIn;
             cachedSubscriptionIds[i] = accountState.subscriptionId || null;
@@ -1132,11 +1075,10 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       // Return empty arrays when feature flag is disabled
-      const result = {
+      return {
         ois: params.addresses.map(() => false),
         sids: params.addresses.map(() => null),
       };
-      return result;
     }
 
     try {
@@ -1197,7 +1139,6 @@ export class RewardsController extends BaseController<
             const caipAccount =
               this.convertInternalAccountToCaipAccountId(internalAccount);
             if (caipAccount) {
-              const lastFreshOptInStatusCheck = Date.now();
               this.update((state: RewardsControllerState) => {
                 // Update or create account state with fresh opt-in status and subscription ID
                 if (!state.accounts[caipAccount]) {
@@ -1207,20 +1148,15 @@ export class RewardsController extends BaseController<
                     subscriptionId,
                     perpsFeeDiscount: null,
                     lastPerpsDiscountRateFetched: null,
-                    lastFreshOptInStatusCheck,
                   };
                 } else {
                   state.accounts[caipAccount].hasOptedIn = hasOptedIn;
                   state.accounts[caipAccount].subscriptionId = subscriptionId;
-                  state.accounts[caipAccount].lastFreshOptInStatusCheck =
-                    lastFreshOptInStatusCheck;
                 }
 
                 if (state.activeAccount?.account === caipAccount) {
                   state.activeAccount.hasOptedIn = hasOptedIn;
                   state.activeAccount.subscriptionId = subscriptionId;
-                  state.activeAccount.lastFreshOptInStatusCheck =
-                    lastFreshOptInStatusCheck;
                 }
               });
             }
@@ -1694,7 +1630,6 @@ export class RewardsController extends BaseController<
           perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
-          lastFreshOptInStatusCheck: null,
           account: state.activeAccount.account, // Ensure account is always present (never undefined)
         };
       }
@@ -1907,29 +1842,6 @@ export class RewardsController extends BaseController<
           signature = await this.#signRewardsMessage(account, timestamp);
           return await executeMobileOptin(timestamp, signature);
         }
-
-        // Check if it's an AccountAlreadyRegisteredError
-        if (error instanceof AccountAlreadyRegisteredError) {
-          // Try to perform silent auth for this account
-          const subscriptionId = await this.performSilentAuth(
-            account,
-            false,
-            false,
-          );
-
-          // If silent auth returned a subscription ID, recover with login response
-          if (subscriptionId && this.state.subscriptions[subscriptionId]) {
-            const subscription = this.state.subscriptions[subscriptionId];
-            const tokenResult = await getSubscriptionToken(subscriptionId);
-            if (tokenResult.success && tokenResult.token) {
-              return {
-                sessionId: tokenResult.token,
-                subscription,
-              };
-            }
-          }
-        }
-
         throw error;
       }
     };
@@ -2013,7 +1925,6 @@ export class RewardsController extends BaseController<
             subscriptionId: null,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
-            lastFreshOptInStatusCheck: null,
           };
         }
       });
@@ -2376,21 +2287,6 @@ export class RewardsController extends BaseController<
             signature = await this.#signRewardsMessage(account, timestamp);
             return await executeMobileJoin(timestamp, signature);
           }
-
-          if (error instanceof AccountAlreadyRegisteredError) {
-            // Try to perform silent auth for this account
-            const subscriptionId = await this.performSilentAuth(
-              account,
-              false,
-              false,
-            );
-
-            // If silent auth returned a subscription ID, return the subscription from cache
-            if (subscriptionId && this.state.subscriptions[subscriptionId]) {
-              return this.state.subscriptions[subscriptionId];
-            }
-          }
-
           throw error;
         }
       };
@@ -2520,16 +2416,13 @@ export class RewardsController extends BaseController<
    */
   async optOut(subscriptionId: string): Promise<boolean> {
     try {
-      // Check if subscription exists in our map or in any of the accounts
+      // Check if subscription exists in our map
       if (!this.state.subscriptions[subscriptionId]) {
-        const matchingAccount = this.state.accounts
-          ? Object.values(this.state.accounts).find(
-              (account) => account.subscriptionId === subscriptionId,
-            )
-          : null;
-        if (!matchingAccount) {
-          return false;
-        }
+        Logger.log(
+          'RewardsController: Subscription not found in map',
+          subscriptionId,
+        );
+        return false;
       }
 
       // Call the opt-out endpoint
@@ -2549,7 +2442,6 @@ export class RewardsController extends BaseController<
               subscriptionId: null,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
-              lastFreshOptInStatusCheck: null,
             };
           }
         });

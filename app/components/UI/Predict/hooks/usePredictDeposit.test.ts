@@ -196,7 +196,6 @@ describe('usePredictDeposit', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
-        stack: 'Predict',
       });
     });
 

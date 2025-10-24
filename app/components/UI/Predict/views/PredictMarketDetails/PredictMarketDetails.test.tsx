@@ -584,12 +584,8 @@ describe('PredictMarketDetails', () => {
     it('renders tab bar with correct tabs', () => {
       setupPredictMarketDetailsTest();
 
-      expect(
-        screen.getByTestId('predict-market-details-tab-bar'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('predict-market-details-scrollable-tab-view'),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
+      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
     });
 
     it('displays About tab content', () => {
@@ -608,12 +604,6 @@ describe('PredictMarketDetails', () => {
 
     it('displays Positions tab content', () => {
       setupPredictMarketDetailsTest();
-
-      // Switch to Positions tab
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
 
       expect(
         screen.getByText('predict.market_details.no_positions_found'),
@@ -809,12 +799,6 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the cash out button
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
-
       const cashOutButton = screen.getByText('Cash out');
       fireEvent.press(cashOutButton);
 
@@ -913,12 +897,6 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
-
       expect(screen.getByText('Cash out')).toBeOnTheScreen();
       expect(
         screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes/),
@@ -944,12 +922,6 @@ describe('PredictMarketDetails', () => {
         {},
         { positions: { positions: [mockPosition] } },
       );
-
-      // Switch to Positions tab to see the positions content
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
 
       expect(screen.getByText('-7.7%')).toBeOnTheScreen();
     });
@@ -979,12 +951,6 @@ describe('PredictMarketDetails', () => {
       });
 
       setupPredictMarketDetailsTest(multiOutcomeMarket);
-
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
 
       // Should render outcomes for multi-outcome markets
       expect(screen.getAllByTestId('predict-market-outcome')).toHaveLength(3);
@@ -1082,12 +1048,6 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
-
       expect(
         screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes Option/),
       ).toBeOnTheScreen();
@@ -1111,12 +1071,6 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
-
       expect(
         screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes/),
       ).toBeOnTheScreen();
@@ -1139,12 +1093,6 @@ describe('PredictMarketDetails', () => {
         {},
         { positions: { positions: [mockPosition] } },
       );
-
-      // Switch to Positions tab to see the positions content
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
 
       expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     });
@@ -1308,12 +1256,6 @@ describe('PredictMarketDetails', () => {
       });
 
       setupPredictMarketDetailsTest(closedMarket);
-
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
 
       // Should render outcomes tab for closed markets
       expect(
@@ -1544,12 +1486,6 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(closedMarket);
 
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
-
       // Should render outcomes tab for closed markets
       expect(screen.getByTestId('predict-market-outcome')).toBeOnTheScreen();
     });
@@ -1695,12 +1631,6 @@ describe('PredictMarketDetails', () => {
         {},
         { positions: { positions: [mockPosition] } },
       );
-
-      // Switch to Positions tab to see the positions content
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
 
       // Verify the position section renders with icon
       expect(screen.getByText('Cash out')).toBeOnTheScreen();

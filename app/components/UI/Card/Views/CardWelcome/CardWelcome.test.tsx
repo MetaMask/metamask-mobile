@@ -1,7 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
 import CardWelcome from './CardWelcome';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -38,32 +36,14 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { background: { default: '#fff' } } }),
 }));
 
-jest.mock('../../hooks/useIsCardholder', () => ({
-  useIsCardholder: jest.fn(() => true),
-}));
-
-const createTestStore = () =>
-  configureStore({
-    reducer: {
-      card: (state = {}) => state,
-    },
-  });
-
 describe('CardWelcome', () => {
-  let store: ReturnType<typeof createTestStore>;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
-    store = createTestStore();
   });
 
   it('renders required UI elements', () => {
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <CardWelcome />
-      </Provider>,
-    );
+    const { getByTestId } = render(<CardWelcome />);
 
     expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
     expect(
@@ -78,11 +58,7 @@ describe('CardWelcome', () => {
   });
 
   it('navigates to authentication when verify account button pressed', () => {
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <CardWelcome />
-      </Provider>,
-    );
+    const { getByTestId } = render(<CardWelcome />);
     fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);

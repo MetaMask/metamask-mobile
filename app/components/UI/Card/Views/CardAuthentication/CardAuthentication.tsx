@@ -538,7 +538,7 @@ const CardAuthentication = () => {
                 </Text>
               </Box>
             )}
-            <Box style={styles.buttonsContainer}>
+            <Box>
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('card.card_authentication.login_button')}
@@ -546,17 +546,12 @@ const CardAuthentication = () => {
                 testID={CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON}
                 onPress={() => performLogin()}
                 loading={loading}
-                style={[isLoginDisabled && styles.buttonDisabled]}
+                style={[
+                  styles.button,
+                  isLoginDisabled && styles.buttonDisabled,
+                ]}
                 width={ButtonWidthTypes.Full}
                 disabled={isLoginDisabled || loading}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                label={strings('card.card_authentication.signup_button')}
-                size={ButtonSize.Lg}
-                testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
-                onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
-                width={ButtonWidthTypes.Full}
               />
             </Box>
           </Box>
