@@ -520,7 +520,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  Change asset
+                                  card.card_home.change_asset
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -578,7 +578,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Manage spending limit
+                                    card.card_home.manage_card_options.manage_spending_limit
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -592,7 +592,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Full spending access
+                                    card.card_home.manage_card_options.manage_spending_limit_description_full
                                   </Text>
                                 </View>
                                 <View
@@ -1262,7 +1262,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     }
                                   }
                                 >
-                                  Change asset
+                                  card.card_home.change_asset
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -1320,7 +1320,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                       }
                                     }
                                   >
-                                    Manage spending limit
+                                    card.card_home.manage_card_options.manage_spending_limit
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -1334,7 +1334,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                       }
                                     }
                                   >
-                                    Full spending access
+                                    card.card_home.manage_card_options.manage_spending_limit_description_full
                                   </Text>
                                 </View>
                                 <View
