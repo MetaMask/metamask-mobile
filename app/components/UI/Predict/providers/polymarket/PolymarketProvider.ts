@@ -592,11 +592,7 @@ export class PolymarketProvider implements PredictProvider {
       // Get safe address from cache or fetch it
       let safeAddress: string | undefined;
       try {
-        const cachedState = this.#accountStateByAddress.get(signer.address);
-        safeAddress =
-          cachedState?.address ??
-          (await this.getAccountState({ ownerAddress: signer.address }))
-            .address;
+        safeAddress = computeProxyAddress(signer.address);
       } catch (error) {
         throw new Error(
           `Failed to retrieve account state: ${
@@ -777,8 +773,7 @@ export class PolymarketProvider implements PredictProvider {
       const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
       let address: string;
       try {
-        address =
-          cachedAddress?.address ?? (await computeSafeAddress(ownerAddress));
+        address = cachedAddress?.address ?? computeProxyAddress(ownerAddress);
       } catch (error) {
         throw new Error(
           `Failed to compute safe address: ${
@@ -811,7 +806,7 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       const accountState = {
-        address,
+        address: address as `0x${string}`,
         isDeployed,
         hasAllowances: hasAllowancesResult,
       };
