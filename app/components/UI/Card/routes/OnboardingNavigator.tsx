@@ -29,7 +29,8 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 
 const Stack = createStackNavigator();
 
@@ -87,7 +88,7 @@ const ValidatingKYCNavigationOptions = ({
 
 const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
-  const { user } = useCardSDK();
+  const { user, isLoading } = useCardSDK();
 
   const getInitialRouteName = () => {
     if (!onboardingId || !user?.id) {
@@ -109,6 +110,15 @@ const OnboardingNavigator: React.FC = () => {
     }
     return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
   };
+
+  // Show loading indicator while SDK is initializing or user data is being fetched
+  if (isLoading) {
+    return (
+      <Box twClassName="flex-1 items-center justify-center">
+        <ActivityIndicator />
+      </Box>
+    );
+  }
 
   return (
     <Stack.Navigator initialRouteName={getInitialRouteName()}>
