@@ -30,6 +30,23 @@ module.exports = {
     ],
 
     'expo-apple-authentication',
+    [
+      'expo-font',
+      {
+        fonts: [
+          './assets/fonts/Geist-Regular.otf',
+          './assets/fonts/Geist-Medium.otf',
+          './assets/fonts/Geist-Bold.otf',
+          './assets/fonts/Geist-Regular-Italic.otf',
+          './assets/fonts/Geist-Medium-Italic.otf',
+          './assets/fonts/Geist-Bold-Italic.otf',
+          './assets/fonts/MMSans-Regular.otf',
+          './assets/fonts/MMSans-Medium.otf',
+          './assets/fonts/MMSans-Bold.otf',
+          './assets/fonts/MMPoly-Regular.otf',
+        ],
+      },
+    ],
   ],
   android: {
     package:
