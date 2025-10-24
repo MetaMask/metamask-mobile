@@ -4,6 +4,7 @@ import {
   selectIsFirstTimeUser,
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
+  selectMarketSortPreference,
 } from '../../controllers/selectors';
 
 const selectPerpsControllerState = (state: RootState) =>
@@ -62,6 +63,11 @@ const selectPerpsWatchlistMarkets = createSelector(
   (perpsControllerState) => selectWatchlistMarkets(perpsControllerState),
 );
 
+const selectPerpsMarketSortPreference = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => selectMarketSortPreference(perpsControllerState),
+);
+
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) =>
@@ -77,4 +83,5 @@ export {
   selectPerpsBalances,
   selectIsFirstTimePerpsUser,
   selectPerpsWatchlistMarkets,
+  selectPerpsMarketSortPreference,
 };

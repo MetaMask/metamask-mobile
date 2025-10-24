@@ -16,8 +16,11 @@ import {
   HOME_SCREEN_CONFIG,
   MARKET_SORTING_CONFIG,
 } from '../constants/perpsConfig';
-import { sortMarkets } from '../utils/sortMarkets';
-import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
+import { sortMarkets, type SortField } from '../utils/sortMarkets';
+import {
+  selectPerpsWatchlistMarkets,
+  selectPerpsMarketSortPreference,
+} from '../selectors/perpsController';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -33,6 +36,7 @@ interface UsePerpsHomeDataReturn {
   watchlistMarkets: PerpsMarketData[];
   trendingMarkets: PerpsMarketData[];
   recentActivity: OrderFill[];
+  sortBy: SortField;
   isLoading: {
     positions: boolean;
     markets: boolean;
@@ -81,6 +85,9 @@ export const usePerpsHomeData = ({
   // Get watchlist symbols from Redux
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
+  // Get saved market sort preference
+  const savedSortPreference = useSelector(selectPerpsMarketSortPreference);
+
   // Filter markets that are in watchlist
   const watchlistMarkets = useMemo(
     () =>
@@ -88,15 +95,28 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
+  // Derive sort field and direction from saved preference
+  const { sortBy, direction } = useMemo(() => {
+    const sortOption = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+      (opt) => opt.id === savedSortPreference,
+    );
+
+    return {
+      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+      direction:
+        sortOption?.direction ?? MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+    };
+  }, [savedSortPreference]);
+
   // Sort markets and apply limit for trending section
   const trendingMarkets = useMemo(
     () =>
       sortMarkets({
         markets: allMarkets,
-        sortBy: MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        sortBy,
+        direction,
       }).slice(0, trendingLimit),
-    [allMarkets, trendingLimit],
+    [allMarkets, sortBy, direction, trendingLimit],
   );
 
   // Refresh markets data (WebSocket data auto-updates, only markets need manual refresh)
@@ -190,6 +210,7 @@ export const usePerpsHomeData = ({
     watchlistMarkets: limitedWatchlistMarkets,
     trendingMarkets: limitedMarkets,
     recentActivity: limitedActivity,
+    sortBy,
     isLoading: {
       positions: isPositionsLoading,
       markets: isMarketsLoading,

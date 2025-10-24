@@ -6,6 +6,7 @@ import {
   PerpsControllerMessenger,
   PerpsControllerState,
 } from '../../../../components/UI/Perps/controllers';
+import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
 import { perpsControllerInit } from '.';
 
 jest.mock('../../../../components/UI/Perps/controllers', () => {
@@ -124,6 +125,7 @@ describe('perps controller init', () => {
         testnet: {},
         mainnet: {},
       },
+      marketSortPreference: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
       withdrawInProgress: false,
       lastWithdrawResult: null,
       withdrawalRequests: [],

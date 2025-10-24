@@ -1,11 +1,13 @@
+import type { SortOptionId } from '../../constants/perpsConfig';
+
 /**
  * Props for PerpsMarketSortDropdowns component
  */
 export interface PerpsMarketSortDropdownsProps {
   /**
-   * Currently selected sort option ID (e.g., 'volume', 'priceChange-desc')
+   * Currently selected sort option ID
    */
-  selectedOptionId: string;
+  selectedOptionId: SortOptionId;
   /**
    * Callback when sort field button is pressed
    */

@@ -1,4 +1,8 @@
 import type { PerpsControllerState } from './PerpsController';
+import {
+  MARKET_SORTING_CONFIG,
+  type SortOptionId,
+} from '../constants/perpsConfig';
 
 /**
  * Select whether the user is a first-time perps user
@@ -73,3 +77,13 @@ export const selectTradeConfiguration = (
 
   return { leverage: config.leverage };
 };
+
+/**
+ * Select market sort preference (network-independent)
+ * @param state - PerpsController state
+ * @returns Sort option ID
+ */
+export const selectMarketSortPreference = (
+  state: PerpsControllerState,
+): SortOptionId =>
+  state?.marketSortPreference ?? MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID;

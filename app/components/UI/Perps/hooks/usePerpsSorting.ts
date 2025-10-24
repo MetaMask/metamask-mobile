@@ -5,18 +5,21 @@ import {
   type SortField,
   type SortDirection,
 } from '../utils/sortMarkets';
-import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
+import {
+  MARKET_SORTING_CONFIG,
+  type SortOptionId,
+} from '../constants/perpsConfig';
 
 interface UsePerpsSortingParams {
-  initialOptionId?: string;
+  initialOptionId?: SortOptionId;
 }
 
 interface UsePerpsSortingReturn {
-  selectedOptionId: string;
+  selectedOptionId: SortOptionId;
   sortBy: SortField;
   direction: SortDirection;
   handleOptionChange: (
-    optionId: string,
+    optionId: SortOptionId,
     field: SortField,
     direction: SortDirection,
   ) => void;
@@ -31,7 +34,7 @@ export const usePerpsSorting = ({
   initialOptionId = MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
 }: UsePerpsSortingParams = {}): UsePerpsSortingReturn => {
   const [selectedOptionId, setSelectedOptionId] =
-    useState<string>(initialOptionId);
+    useState<SortOptionId>(initialOptionId);
 
   // Derive sortBy and direction from selectedOptionId
   const { sortBy, direction } = useMemo(() => {
@@ -45,7 +48,7 @@ export const usePerpsSorting = ({
   }, [selectedOptionId]);
 
   const handleOptionChange = useCallback(
-    (optionId: string, _field: SortField, _direction: SortDirection) => {
+    (optionId: SortOptionId, _field: SortField, _direction: SortDirection) => {
       setSelectedOptionId(optionId);
     },
     [],

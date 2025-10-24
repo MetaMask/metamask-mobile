@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -46,11 +52,19 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
+import {
+  PERPS_CONSTANTS,
+  type SortOptionId,
+} from '../../constants/perpsConfig';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useSelector } from 'react-redux';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
-import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
+import {
+  selectPerpsWatchlistMarkets,
+  selectPerpsMarketSortPreference,
+} from '../../selectors/perpsController';
+import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TabBarItem from '../../../../../component-library/components/Navigation/TabBarItem';
 import {
@@ -134,6 +148,7 @@ const PerpsMarketListView = ({
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
+  const savedSortPreference = useSelector(selectPerpsMarketSortPreference);
 
   const {
     markets,
@@ -149,12 +164,15 @@ const PerpsMarketListView = ({
       markets.filter((market: PerpsMarketData) => {
         if (
           !market.volume ||
-          market.volume === '$0' ||
-          market.volume === '$0.00'
+          market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY ||
+          market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
         ) {
           return false;
         }
-        if (market.volume === '$---' || market.volume === '---') {
+        if (
+          market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
+          market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+        ) {
           return false;
         }
         return true;
@@ -176,8 +194,27 @@ const PerpsMarketListView = ({
   });
 
   // Use sorting hook for sort state and sorting logic
-  const { selectedOptionId, sortBy, handleOptionChange, sortMarketsList } =
-    usePerpsSorting();
+  const {
+    selectedOptionId,
+    sortBy,
+    handleOptionChange: originalHandleOptionChange,
+    sortMarketsList,
+  } = usePerpsSorting({ initialOptionId: savedSortPreference });
+
+  // Wrap handleOptionChange to save preference
+  const handleOptionChange = useCallback(
+    (
+      optionId: SortOptionId,
+      field: Parameters<typeof originalHandleOptionChange>[1],
+      direction: Parameters<typeof originalHandleOptionChange>[2],
+    ) => {
+      // Save preference to controller
+      Engine.context.PerpsController.saveMarketSortPreference(optionId);
+      // Update local state
+      originalHandleOptionChange(optionId, field, direction);
+    },
+    [originalHandleOptionChange],
+  );
 
   // Apply favorites filter if enabled
   const favoritesFilteredMarkets = useMemo(() => {

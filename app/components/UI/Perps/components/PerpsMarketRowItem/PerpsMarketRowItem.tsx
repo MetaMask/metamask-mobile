@@ -97,9 +97,12 @@ const PerpsMarketRowItem = ({
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = '$0.00';
+        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
       }
-    } else if (!market.volume || market.volume === '$0') {
+    } else if (
+      !market.volume ||
+      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
+    ) {
       // Fallback: ensure volume field always has a value
       updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }

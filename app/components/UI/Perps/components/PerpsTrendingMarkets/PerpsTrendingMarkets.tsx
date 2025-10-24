@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -11,17 +11,20 @@ import type {
   PerpsMarketData,
   PerpsNavigationParamList,
 } from '../../controllers/types';
-import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
+import type { SortField } from '../../utils/sortMarkets';
+import PerpsMarketList from '../PerpsMarketList';
 import styleSheet from './PerpsTrendingMarkets.styles';
 
 interface PerpsTrendingMarketsProps {
   markets: PerpsMarketData[];
+  sortBy?: SortField;
   isLoading?: boolean;
 }
 
 const PerpsTrendingMarkets: React.FC<PerpsTrendingMarketsProps> = ({
   markets,
+  sortBy = 'volume',
   isLoading,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -43,24 +46,27 @@ const PerpsTrendingMarkets: React.FC<PerpsTrendingMarketsProps> = ({
     [navigation],
   );
 
-  const renderMarket = useCallback(
-    ({ item }: { item: PerpsMarketData }) => (
-      <PerpsMarketRowItem
-        market={item}
-        onPress={() => handleMarketPress(item)}
-      />
+  // Header component for the trending section
+  const TrendingHeader = useCallback(
+    () => (
+      <View style={styles.header}>
+        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          {strings('perps.home.trending')}
+        </Text>
+        <TouchableOpacity onPress={handleViewAll}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.home.see_all')}
+          </Text>
+        </TouchableOpacity>
+      </View>
     ),
-    [handleMarketPress],
+    [styles.header, handleViewAll],
   );
 
   if (isLoading || markets.length === 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {strings('perps.home.trending')}
-          </Text>
-        </View>
+        <TrendingHeader />
         <Text
           variant={TextVariant.BodySM}
           color={TextColor.Alternative}
@@ -76,24 +82,11 @@ const PerpsTrendingMarkets: React.FC<PerpsTrendingMarketsProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {strings('perps.home.trending')}
-        </Text>
-        <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={markets}
-        renderItem={renderMarket}
-        keyExtractor={(item) => item.symbol}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={false}
-        contentContainerStyle={styles.listContent}
+      <PerpsMarketList
+        markets={markets}
+        sortBy={sortBy}
+        onMarketPress={handleMarketPress}
+        ListHeaderComponent={TrendingHeader}
       />
     </View>
   );

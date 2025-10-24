@@ -74,6 +74,7 @@ const PerpsHomeView = () => {
     watchlistMarkets,
     trendingMarkets,
     recentActivity,
+    sortBy,
     isLoading,
   } = usePerpsHomeData({
     searchQuery: isSearchVisible ? searchQuery : '',
@@ -374,6 +375,7 @@ const PerpsHomeView = () => {
         {/* Trending Markets List */}
         <PerpsTrendingMarkets
           markets={trendingMarkets}
+          sortBy={sortBy}
           isLoading={isLoading.markets}
         />
 

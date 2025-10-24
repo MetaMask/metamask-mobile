@@ -48,6 +48,8 @@ import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DATA_LAKE_API_CONFIG,
   PERPS_CONSTANTS,
+  MARKET_SORTING_CONFIG,
+  type SortOptionId,
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
@@ -235,6 +237,9 @@ export type PerpsControllerState = {
     };
   };
 
+  // Market sort preference (network-independent)
+  marketSortPreference: SortOptionId;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -282,6 +287,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: {},
     mainnet: {},
   },
+  marketSortPreference: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
 });
 
 /**
@@ -420,6 +426,12 @@ const metadata = {
     anonymous: false,
     usedInUi: true,
   },
+  marketSortPreference: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -533,6 +545,14 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getTradeConfiguration';
       handler: PerpsController['getTradeConfiguration'];
+    }
+  | {
+      type: 'PerpsController:saveMarketSortPreference';
+      handler: PerpsController['saveMarketSortPreference'];
+    }
+  | {
+      type: 'PerpsController:getMarketSortPreference';
+      handler: PerpsController['getMarketSortPreference'];
     };
 
 /**
@@ -3998,6 +4018,31 @@ export class PerpsController extends BaseController<
       state.tradeConfigurations[network][coin] = {
         leverage,
       };
+    });
+  }
+
+  /**
+   * Get saved market sort preference
+   */
+  getMarketSortPreference(): SortOptionId {
+    return (
+      this.state.marketSortPreference ??
+      MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID
+    );
+  }
+
+  /**
+   * Save market sort preference
+   * @param optionId - Sort option ID
+   */
+  saveMarketSortPreference(optionId: SortOptionId): void {
+    DevLogger.log('PerpsController: Saving market sort preference', {
+      optionId,
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      state.marketSortPreference = optionId;
     });
   }
 

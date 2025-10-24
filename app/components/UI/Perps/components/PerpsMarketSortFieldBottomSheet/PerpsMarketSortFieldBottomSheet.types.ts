@@ -1,4 +1,5 @@
 import type { SortField, SortDirection } from '../../utils/sortMarkets';
+import type { SortOptionId } from '../../constants/perpsConfig';
 
 /**
  * Props for PerpsMarketSortFieldBottomSheet component
@@ -13,9 +14,9 @@ export interface PerpsMarketSortFieldBottomSheetProps {
    */
   onClose: () => void;
   /**
-   * Currently selected option ID (e.g., 'volume', 'priceChange-desc', 'openInterest')
+   * Currently selected option ID
    */
-  selectedOptionId: string;
+  selectedOptionId: SortOptionId;
   /**
    * Callback when an option is selected
    * @param optionId - The ID of the selected option
@@ -23,7 +24,7 @@ export interface PerpsMarketSortFieldBottomSheetProps {
    * @param direction - The sort direction
    */
   onOptionSelect: (
-    optionId: string,
+    optionId: SortOptionId,
     field: SortField,
     direction: SortDirection,
   ) => void;

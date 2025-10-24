@@ -211,7 +211,9 @@ export function transformMarketData(
       price: isNaN(currentPrice)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
-      change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
+      change24h: isNaN(change24h)
+        ? PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
+        : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),

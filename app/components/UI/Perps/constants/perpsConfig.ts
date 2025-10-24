@@ -27,6 +27,8 @@ export const PERPS_CONSTANTS = {
   FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
   FALLBACK_PERCENTAGE_DISPLAY: '--%', // Display when change data is unavailable
   FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
+  ZERO_AMOUNT_DISPLAY: '$0', // Display for zero dollar amounts (e.g., no volume)
+  ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
 } as const;
 
 /**
@@ -366,6 +368,14 @@ export const MARKET_SORTING_CONFIG = {
     },
   ] as const,
 } as const;
+
+/**
+ * Type for valid sort option IDs
+ * Derived from SORT_OPTIONS to ensure type safety
+ * Valid values: 'volume' | 'priceChange-desc' | 'priceChange-asc' | 'openInterest' | 'fundingRate'
+ */
+export type SortOptionId =
+  (typeof MARKET_SORTING_CONFIG.SORT_OPTIONS)[number]['id'];
 
 /**
  * Learn more card configuration
