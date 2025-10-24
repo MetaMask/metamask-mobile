@@ -1865,7 +1865,6 @@
     "token_is_needed_to_continue": "続けるには{{tokenSymbol}}が必要です",
     "fund_your_wallet": "Fund your wallet",
     "get_ready_for_web3": "Get your wallet ready to use web3",
-    "fund_your_wallet_to_get_started": "ウォレットに入金してWeb3の利用を開始",
     "add_funds": "資金を追加",
     "next": "次へ",
     "buy_asset": "{{asset}}を購入",
