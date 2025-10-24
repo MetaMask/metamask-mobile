@@ -24,6 +24,8 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
@@ -32,6 +34,7 @@ const ConfirmEmail = () => {
   const [resendCooldown, setResendCooldown] = useState(0);
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { email, password } = useParams<{
     email: string;
@@ -61,6 +64,16 @@ const ConfirmEmail = () => {
     [resetVerifyEmailVerification],
   );
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+        .addProperties({
+          page: OnboardingScreens.CONFIRM_EMAIL,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
   // Cooldown timer effect
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -77,6 +90,13 @@ const ConfirmEmail = () => {
   const handleResendVerification = useCallback(async () => {
     if (resendCooldown > 0 || !email) return;
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        .addProperties({
+          action: OnboardingActions.CONFIRM_EMAIL_RESEND_BUTTON_CLICKED,
+        })
+        .build(),
+    );
     try {
       const { contactVerificationId } = await sendEmailVerification(email);
       dispatch(setContactVerificationId(contactVerificationId));
@@ -84,7 +104,14 @@ const ConfirmEmail = () => {
     } catch {
       // Allow error message to display
     }
-  }, [dispatch, email, resendCooldown, sendEmailVerification]);
+  }, [
+    dispatch,
+    email,
+    resendCooldown,
+    sendEmailVerification,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleContinue = useCallback(async () => {
     if (
@@ -97,6 +124,13 @@ const ConfirmEmail = () => {
       return;
     }
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+          .addProperties({
+            action: OnboardingActions.CONFIRM_EMAIL_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { onboardingId, hasAccount } = await verifyEmailVerification({
         email,
         password,
@@ -131,6 +165,8 @@ const ConfirmEmail = () => {
     password,
     selectedCountry,
     verifyEmailVerification,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const isDisabled =
