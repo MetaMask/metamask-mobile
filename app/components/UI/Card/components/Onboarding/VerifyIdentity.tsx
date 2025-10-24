@@ -10,12 +10,11 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
-import { useSelector } from 'react-redux';
-import { selectUser } from '../../../../../core/redux/slices/card';
+import { useCardSDK } from '../../sdk';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
-  const user = useSelector(selectUser);
+  const { user } = useCardSDK();
 
   const {
     data: verificationResponse,

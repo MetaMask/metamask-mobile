@@ -18,9 +18,8 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  setUser,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SelectComponent from '../../../SelectComponent';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -29,10 +28,11 @@ import {
   validateDateOfBirth,
 } from '../../util/validateDateOfBirth';
 import { CardError } from '../../types';
+import { useCardSDK } from '../../sdk';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
 
@@ -152,7 +152,7 @@ const PersonalDetails = () => {
       });
 
       if (user) {
-        dispatch(setUser(user));
+        setUser(user);
         navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
       }
     } catch (error) {
