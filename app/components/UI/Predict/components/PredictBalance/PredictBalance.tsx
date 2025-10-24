@@ -35,6 +35,7 @@ import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -52,6 +53,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
     refreshOnFocus: true,
   });
   const { deposit, status } = usePredictDeposit();
+  const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: 'polymarket',
     navigation,
@@ -73,8 +75,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
-    // TODO: implement withdraw
-  }, []);
+    withdraw();
+  }, [withdraw]);
 
   if (isLoading) {
     return (
