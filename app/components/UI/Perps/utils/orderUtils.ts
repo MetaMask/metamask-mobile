@@ -1,7 +1,7 @@
 import { strings } from '../../../../../locales/i18n';
 import { OrderParams, Order } from '../controllers/types';
 import { Position } from '../hooks';
-import { capitalizeFirst } from './textUtils';
+import { capitalize } from 'lodash';
 
 /**
  * Get the order direction based on the side and position size
@@ -96,10 +96,10 @@ export const formatOrderLabel = (order: Order): string => {
 
   // Build the label: [Type] [Close?] [Direction]
   if (isClosing) {
-    return capitalizeFirst(`${typeString} close ${direction}`);
+    return capitalize(`${typeString} close ${direction}`);
   }
 
-  return capitalizeFirst(`${typeString} ${direction}`);
+  return capitalize(`${typeString} ${direction}`);
 };
 
 /**
