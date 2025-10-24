@@ -204,6 +204,7 @@ describe('useNetworksByNamespace', () => {
       );
       expect(ethereumNetwork).toEqual({
         id: 'eip155:1',
+        hasMultipleRpcs: false,
         name: 'Ethereum Mainnet',
         caipChainId: 'eip155:1',
         isSelected: true,
@@ -222,6 +223,7 @@ describe('useNetworksByNamespace', () => {
       const mumbaiNetwork = result.current.networks[0];
       expect(mumbaiNetwork).toEqual({
         id: 'eip155:80001',
+        hasMultipleRpcs: false,
         name: 'Mumbai Testnet',
         caipChainId: 'eip155:80001',
         isSelected: true,
