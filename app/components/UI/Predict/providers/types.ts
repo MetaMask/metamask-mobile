@@ -57,6 +57,7 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
+  signer?: Signer;
 }
 
 // Fees in US dollars
@@ -94,6 +95,7 @@ export interface OrderPreview {
   minOrderSize: number;
   negRisk: boolean;
   fees?: PredictFees;
+  rateLimited?: boolean;
 }
 
 export type OrderResult = Result<{
