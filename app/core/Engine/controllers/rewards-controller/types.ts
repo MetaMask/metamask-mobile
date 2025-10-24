@@ -808,7 +808,7 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
  */
 export interface RewardsControllerGetSeasonMetadataAction {
   type: 'RewardsController:getSeasonMetadata';
-  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState>;
+  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState | null>;
 }
 
 /**

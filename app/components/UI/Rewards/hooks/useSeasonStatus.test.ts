@@ -269,6 +269,34 @@ describe('useSeasonStatus', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
   });
 
+  it('handles null season metadata and dispatches error state', async () => {
+    mockEngineCall.mockResolvedValueOnce(null);
+
+    renderHook(() => useSeasonStatus({}));
+
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    await focusCallback();
+
+    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsController:getSeasonMetadata',
+      'current',
+    );
+    expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'No season metadata found',
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setSeasonStatusError('Mocked error message'),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+  });
+
   it('handles 403 errors by resetting rewards state and setting candidate subscription to retry', async () => {
     const mockSeasonMetadata = {
       id: 'season-1',

@@ -784,7 +784,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: mockRefreshPosition,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -794,7 +794,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Act - Switch to statistics tab
-      const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
+      const statisticsTab = getByText('Overview');
       fireEvent.press(statisticsTab);
 
       const scrollView = getByTestId(
