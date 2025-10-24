@@ -64,7 +64,7 @@ jobs:
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
-          FINGERPRINT="60951c57f7d44284529cf40308b84becbf3c9876"
+          FINGERPRINT="60951c57f7d44284529cf40308b84becbf3c9877"
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
