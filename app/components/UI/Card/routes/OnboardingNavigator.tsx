@@ -54,6 +54,7 @@ const KYCModalavigationOptions = ({
       style={headerStyle.icon}
       size={ButtonIconSizes.Lg}
       iconName={IconName.Close}
+      testID="close-button"
       onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC)}
     />
   ),
@@ -69,6 +70,7 @@ const ValidatingKYCNavigationOptions = ({
       style={headerStyle.icon}
       size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
+      testID="back-button"
       onPress={() =>
         navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY)
       }

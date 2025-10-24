@@ -397,7 +397,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders navigation with proper configuration', () => {
         const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
+        expect(queryByTestId('close-button')).toBeDefined();
         expect(queryByTestId('activity-indicator')).toBeNull();
       });
     });
@@ -419,7 +419,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders navigation with proper configuration', () => {
         const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
+        expect(queryByTestId('back-button')).toBeDefined();
         expect(queryByTestId('activity-indicator')).toBeNull();
       });
     });
