@@ -5,7 +5,6 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -34,7 +33,6 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
-  PerpsTutorialSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -42,10 +40,6 @@ import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { OrderDirection } from '../../types/perps-types';
-import PerpsNavigationCard, {
-  type NavigationItem,
-} from '../PerpsNavigationCard/PerpsNavigationCard';
-import Routes from '../../../../../constants/navigation/Routes';
 
 // Tab content component for Position tab
 interface PositionTabContentProps {
@@ -55,7 +49,6 @@ interface PositionTabContentProps {
   showIcon: boolean;
   onTooltipPress: (contentKey: PerpsTooltipContentKey) => void;
   onTpslCountPress: (tabId: string) => void;
-  navigationItems: NavigationItem[];
 }
 
 const PositionTabContent: React.FC<PositionTabContentProps> = ({
@@ -64,7 +57,6 @@ const PositionTabContent: React.FC<PositionTabContentProps> = ({
   showIcon,
   onTooltipPress,
   onTpslCountPress,
-  navigationItems,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -83,7 +75,6 @@ const PositionTabContent: React.FC<PositionTabContentProps> = ({
         onTooltipPress={onTooltipPress}
         onTpslCountPress={onTpslCountPress}
       />
-      <PerpsNavigationCard items={navigationItems} />
     </View>
   );
 };
@@ -97,7 +88,6 @@ interface OrdersTabContentProps {
   cancellingOrderIds: Set<string>;
   onOrderCancel: (order: Order) => Promise<void>;
   onOrderSelect?: (orderId: string) => void;
-  navigationItems: NavigationItem[];
 }
 
 const OrdersTabContent = React.memo<OrdersTabContentProps>(
@@ -108,7 +98,6 @@ const OrdersTabContent = React.memo<OrdersTabContentProps>(
     cancellingOrderIds,
     onOrderCancel,
     onOrderSelect,
-    navigationItems,
   }) => {
     const { styles } = useStyles(styleSheet, {});
 
@@ -172,7 +161,6 @@ const OrdersTabContent = React.memo<OrdersTabContentProps>(
             })}
           </>
         )}
-        <PerpsNavigationCard items={navigationItems} />
       </View>
     );
   },
@@ -185,17 +173,10 @@ interface StatisticsTabContentProps {
   nextFundingTime?: number;
   fundingIntervalHours?: number;
   tabLabel?: string; // Used by TabsList parent, not by component itself
-  navigationItems: NavigationItem[];
 }
 
 const StatisticsTabContent = React.memo<StatisticsTabContentProps>(
-  ({
-    symbol,
-    onTooltipPress,
-    nextFundingTime,
-    fundingIntervalHours,
-    navigationItems,
-  }) => {
+  ({ symbol, onTooltipPress, nextFundingTime, fundingIntervalHours }) => {
     const { styles } = useStyles(styleSheet, {});
     const marketStats = usePerpsMarketStats(symbol);
 
@@ -211,7 +192,6 @@ const StatisticsTabContent = React.memo<StatisticsTabContentProps>(
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
         />
-        <PerpsNavigationCard items={navigationItems} />
       </View>
     );
   },
@@ -230,7 +210,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);
@@ -264,23 +243,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-
-  // Define navigation items for the panel
-  const navigationItems: NavigationItem[] = useMemo(
-    () => [
-      {
-        label: strings('perps.tutorial.card.title'),
-        onPress: () => navigation.navigate(Routes.PERPS.TUTORIAL),
-        testID: PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
-      },
-      {
-        label: strings('perps.market.go_to_activity'),
-        onPress: () => navigation.navigate(Routes.TRANSACTIONS_VIEW),
-        testID: PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
-      },
-    ],
-    [navigation],
-  );
 
   const sortedUnfilledOrders = useMemo(() => {
     // Filter out successfully cancelled orders that haven't been removed by WebSocket yet
@@ -614,9 +576,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       showIcon: true,
       onTooltipPress: handleTooltipPress,
       onTpslCountPress: handleTabSwitchByTabId,
-      navigationItems,
     }),
-    [position, handleTooltipPress, handleTabSwitchByTabId, navigationItems],
+    [position, handleTooltipPress, handleTabSwitchByTabId],
   );
 
   const ordersTabProps = useMemo(
@@ -629,7 +590,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       cancellingOrderIds,
       onOrderCancel: handleOrderCancel,
       onOrderSelect,
-      navigationItems,
     }),
     [
       sortedUnfilledOrders,
@@ -638,7 +598,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       cancellingOrderIds,
       handleOrderCancel,
       onOrderSelect,
-      navigationItems,
     ],
   );
 
@@ -650,15 +609,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       onTooltipPress: handleTooltipPress,
       nextFundingTime,
       fundingIntervalHours,
-      navigationItems,
     }),
-    [
-      symbol,
-      handleTooltipPress,
-      nextFundingTime,
-      fundingIntervalHours,
-      navigationItems,
-    ],
+    [symbol, handleTooltipPress, nextFundingTime, fundingIntervalHours],
   );
 
   // Build tabs array dynamically based on data availability (similar to wallet pattern)
@@ -752,7 +704,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           onTooltipPress={handleTooltipPress}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
-          navigationItems={navigationItems}
         />
         {renderTooltipModal()}
       </View>

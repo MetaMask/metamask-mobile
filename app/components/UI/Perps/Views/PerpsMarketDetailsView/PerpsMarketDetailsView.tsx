@@ -29,6 +29,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsTutorialSelectorsIDs,
+  PerpsMarketTabsSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import type {
@@ -63,6 +65,9 @@ import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
+import PerpsNavigationCard, {
+  type NavigationItem,
+} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import TradingViewChart, {
   type TradingViewChartRef,
@@ -520,6 +525,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [hasZeroBalance, isLoadingPosition],
   );
 
+  // Define navigation items for the card
+  const navigationItems: NavigationItem[] = useMemo(
+    () => [
+      {
+        label: strings('perps.tutorial.card.title'),
+        onPress: () => navigation.navigate(Routes.PERPS.TUTORIAL),
+        testID: PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
+      },
+      {
+        label: strings('perps.market.go_to_activity'),
+        onPress: () => navigation.navigate(Routes.TRANSACTIONS_VIEW),
+        testID: PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
+      },
+    ],
+    [navigation],
+  );
+
   // Simplified styles - no complex calculations needed
   const { styles, theme } = useStyles(createStyles, {});
 
@@ -623,6 +645,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               activeTPOrderId={selectedOrderTPSL?.activeTPOrderId}
               activeSLOrderId={selectedOrderTPSL?.activeSLOrderId}
             />
+          </View>
+
+          {/* Navigation Card Section */}
+          <View style={styles.section}>
+            <PerpsNavigationCard items={navigationItems} />
           </View>
 
           {/* Risk Disclaimer Section */}
