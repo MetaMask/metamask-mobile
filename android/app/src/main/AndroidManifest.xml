@@ -176,7 +176,6 @@
 		<!-- EAS Update configuration -->
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620" />
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="false" />
-		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="NEVER" />
 		<!-- EXPO_RUNTIME_VERSION, channel, and request headers are auto-injected by build script -->
 
 		<provider
@@ -196,5 +195,9 @@
       android:exported="true">
 
     </service>
+		<!-- EAS Update configuration -->
+		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="preview" />
+		<meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="{&quot;expo-channel-name&quot;:&quot;preview&quot;}"/>
+		<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="7.59.99" />
 	</application>
 </manifest>

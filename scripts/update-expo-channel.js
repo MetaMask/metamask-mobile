@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Updates expo-channel-name in both AndroidManifest.xml and Expo.plist
+ * Updates expo updates enable flag in Android and iOS plists
  * based on the METAMASK_ENVIRONMENT environment variable.
  *
  * Usage: node scripts/update-expo-channel.js
@@ -31,30 +31,27 @@ function getChannelForEnvironment(environment) {
 }
 
 /**
- * Updates or inserts expo-channel-name, runtime version, and updates enabled flag in AndroidManifest.xml
- * @param {string} filePath - Path to AndroidManifest.xml
- * @param {string} channelName - The channel name to set
- * @param {string} runtimeVersion - The runtime version to set
- * @param {boolean} updatesEnabled - Whether expo-updates should be enabled
+ * Only toggles EXPO_UPDATES_CONFIGURATION_ENABLED in AndroidManifest.xml
+ * @param {string} filePath
+ * @param {boolean} updatesEnabled
  */
 function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled) {
   let content = fs.readFileSync(filePath, 'utf8');
 
-  // Update or insert EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE
+  // Update or insert EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE (channel)
   if (content.includes('expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE')) {
     content = content.replace(
       /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="[^"]*" \/>/g,
       `<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="${channelName}" />`
     );
   } else {
-    // Insert before </application>
     content = content.replace(
       /(\s*)<\/application>/,
       `\n\t\t<!-- EAS Update configuration -->\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="${channelName}" />$1</application>`
     );
   }
 
-  // Update or insert UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY
+  // Update or insert UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY (JSON header with channel)
   if (content.includes('expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY')) {
     content = content.replace(
       /<meta-data android:name="expo\.modules\.updates\.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="\{&quot;expo-channel-name&quot;:&quot;[^"]*&quot;\}"\/>/g,
@@ -80,7 +77,7 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
     );
   }
 
-  // Update or insert EXPO_UPDATES_CONFIGURATION_ENABLED (enable/disable updates)
+  // Only toggle EXPO_UPDATES_CONFIGURATION_ENABLED; rely on defaults for the rest
   const enabledValue = updatesEnabled ? 'true' : 'false';
   if (content.includes('expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED')) {
     content = content.replace(
@@ -99,14 +96,13 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
 }
 
 /**
- * Updates or inserts expo-channel-name and runtime version in a plist file
- * @param {string} filePath - Path to plist file
- * @param {string} channelName - The channel name to set
- * @param {string} runtimeVersion - The runtime version to set
- * @param {string} fileName - Display name for logging
+ * Only toggles EXUpdatesEnabled in plist file
+ * @param {string} filePath
+ * @param {string} fileName
+ * @param {boolean} updatesEnabled
  */
 function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled) {
-  console.log(`Updating ${fileName} to channel: ${channelName}, runtime: ${runtimeVersion}`);
+  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}`);
 
   let content = fs.readFileSync(filePath, 'utf8');
 
@@ -117,7 +113,6 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
       `$1${channelName}$2`
     );
   } else {
-    // Insert before </dict>
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
       `\n\t<key>EXUpdatesChannel</key>\n\t<string>${channelName}</string>$1</dict>\n</plist>`
@@ -137,38 +132,33 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
     );
   }
 
-  // Update or insert expo-channel-name in EXUpdatesRequestHeaders
+  // Update or insert EXUpdatesRequestHeaders.expo-channel-name
   if (content.includes('<key>EXUpdatesRequestHeaders</key>')) {
-    // RequestHeaders dict exists, update or insert expo-channel-name within it
     if (content.includes('<key>expo-channel-name</key>')) {
       content = content.replace(
         /(<key>expo-channel-name<\/key>\s*<string>)[^<]*(<\/string>)/,
         `$1${channelName}$2`
       );
     } else {
-      // Insert expo-channel-name inside EXUpdatesRequestHeaders dict
       content = content.replace(
         /(<key>EXUpdatesRequestHeaders<\/key>\s*<dict>)/,
         `$1\n\t\t<key>expo-channel-name</key>\n\t\t<string>${channelName}</string>`
       );
     }
   } else {
-    // Insert entire EXUpdatesRequestHeaders dict
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
       `\n\t<key>EXUpdatesRequestHeaders</key>\n\t<dict>\n\t\t<key>expo-channel-name</key>\n\t\t<string>${channelName}</string>\n\t</dict>$1</dict>\n</plist>`
     );
   }
 
-  // Update or insert EXUpdatesEnabled (boolean)
+  // Only toggle EXUpdatesEnabled; do not modify CheckOnLaunch or LaunchWaitMs
   if (content.includes('<key>EXUpdatesEnabled</key>')) {
-    // Replace existing true/false
     content = content.replace(
       /<key>EXUpdatesEnabled<\/key>\s*<(true|false)\/>/,
       `<key>EXUpdatesEnabled</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>`
     );
   } else {
-    // Insert before </dict>
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
       `\n\t<key>EXUpdatesEnabled</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>\n$1</dict>\n</plist>`
@@ -186,7 +176,7 @@ function main() {
   const environment = process.env.METAMASK_ENVIRONMENT;
 
   console.log('======================================');
-  console.log('  Updating Expo Channel Configuration');
+  console.log('  Updating Expo Updates Configuration');
   console.log('======================================');
   console.log('');
 
@@ -205,9 +195,9 @@ function main() {
 
   console.log(`Environment: ${environment}`);
 
-  // Determine channel name
+  // Determine channel name (left here in case other tooling uses it downstream)
   const channelName = getChannelForEnvironment(environment);
-  console.log(`Channel: ${channelName}`);
+  console.log(`Channel (unchanged): ${channelName}`);
   console.log('');
 
   // Determine updates enabled flag (production => false, others => true)
@@ -239,7 +229,7 @@ function main() {
     console.log('');
     console.log('✓ All files updated successfully!');
     console.log(`  Runtime Version: ${RUNTIME_VERSION}`);
-    console.log(`  Channel: ${channelName}`);
+    console.log(`  Channel (unchanged): ${channelName}`);
     console.log('');
   } catch (error) {
     console.error('❌ Error updating files:', error.message);

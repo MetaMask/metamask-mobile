@@ -118,9 +118,15 @@ const OnboardingAnimation = ({
   ]);
 
   useEffect(() => {
-    if (startOnboardingAnimation) {
+    if (!startOnboardingAnimation) return;
+
+    const timeoutId = setTimeout(() => {
       startRiveAnimation();
-    }
+    }, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [startOnboardingAnimation, startRiveAnimation]);
 
   return (
