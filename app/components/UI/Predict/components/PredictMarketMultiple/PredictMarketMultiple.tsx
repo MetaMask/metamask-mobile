@@ -105,7 +105,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     return sum + volume;
   }, 0);
 
-  const handleYes = (outcome: PredictOutcome) => {
+  const handleBuy = (
+    outcome: PredictOutcome,
+    outcomeToken: PredictOutcomeToken,
+  ) => {
     executeGuardedAction(
       () => {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
@@ -113,24 +116,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           params: {
             market,
             outcome,
-            outcomeToken: outcome.tokens[0],
-            entryPoint,
-          },
-        });
-      },
-      { checkBalance: true },
-    );
-  };
-
-  const handleNo = (outcome: PredictOutcome) => {
-    executeGuardedAction(
-      () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: outcome.tokens[1],
+            outcomeToken,
             entryPoint,
           },
         });
@@ -225,7 +211,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         {truncateLabel(outcomeLabels[0])}
                       </Text>
                     }
-                    onPress={() => handleYes(outcome)}
+                    onPress={() => handleBuy(outcome, outcome.tokens[0])}
                     style={styles.buttonYes}
                   />
                   <Button
@@ -240,7 +226,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         {truncateLabel(outcomeLabels[1])}
                       </Text>
                     }
-                    onPress={() => handleNo(outcome)}
+                    onPress={() => handleBuy(outcome, outcome.tokens[1])}
                     style={styles.buttonNo}
                   />
                 </Box>
