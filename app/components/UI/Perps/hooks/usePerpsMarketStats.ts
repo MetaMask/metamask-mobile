@@ -148,8 +148,12 @@ export const usePerpsMarketStats = (
     // Market data (funding, volume, etc.) will update via WebSocket subscriptions
   }, [refreshCandleData]);
 
-  return {
-    ...stats,
-    refresh,
-  };
+  // Memoize the final return object to prevent unnecessary re-renders
+  return useMemo(
+    () => ({
+      ...stats,
+      refresh,
+    }),
+    [stats, refresh],
+  );
 };
