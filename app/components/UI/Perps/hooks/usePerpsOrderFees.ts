@@ -18,6 +18,8 @@ import {
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+import { usePerpsTrading } from './usePerpsTrading';
+import { determineMakerStatus } from '../utils/orderUtils';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
