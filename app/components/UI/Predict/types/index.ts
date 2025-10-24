@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
+import { Hex } from '@metamask/utils';
+
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -66,6 +68,14 @@ export enum PredictClaimStatus {
 }
 
 export enum PredictDepositStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
+
+export enum PredictWithdrawStatus {
   IDLE = 'idle',
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
@@ -269,4 +279,13 @@ export type PredictDeposit = {
   chainId: number;
   status: PredictDepositStatus;
   providerId: string;
+};
+
+export type PredictWithdraw = {
+  chainId: number;
+  status: PredictWithdrawStatus;
+  providerId: string;
+  predictAddress: Hex;
+  transactionId: string;
+  amount: number;
 };
