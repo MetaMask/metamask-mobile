@@ -197,7 +197,7 @@ describe('PerpsController selectors', () => {
           mainnet: true,
           testnet: false,
         },
-      } as PerpsControllerState;
+      } as unknown as PerpsControllerState;
 
       const result = selectHasPlacedFirstOrder(state);
 
@@ -211,7 +211,7 @@ describe('PerpsController selectors', () => {
           mainnet: true,
           testnet: false,
         },
-      } as PerpsControllerState;
+      } as unknown as PerpsControllerState;
 
       const result = selectHasPlacedFirstOrder(state);
 
@@ -221,7 +221,7 @@ describe('PerpsController selectors', () => {
     it('returns false when hasPlacedFirstOrder is undefined', () => {
       const state = {
         isTestnet: false,
-      } as PerpsControllerState;
+      } as unknown as PerpsControllerState;
 
       const result = selectHasPlacedFirstOrder(state);
 
@@ -241,7 +241,7 @@ describe('PerpsController selectors', () => {
     });
 
     it('returns default volume when preference is undefined', () => {
-      const state = {} as PerpsControllerState;
+      const state = {} as unknown as PerpsControllerState;
 
       const result = selectMarketSortPreference(state);
 

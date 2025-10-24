@@ -19,11 +19,14 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectPredictBalanceByAddress } from '../../components/predict-confirmations/predict-temp';
 import { RootState } from '../../../../../reducers';
 import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
 
-export function useTransactionCustomAmount() {
+export function useTransactionCustomAmount({
+  currency,
+}: { currency?: string } = {}) {
   const { amount: defaultAmount } = useParams<{ amount?: string }>();
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
@@ -43,7 +46,7 @@ export function useTransactionCustomAmount() {
   const { chainId } = transactionMeta;
 
   const tokenAddress = getTokenAddress(transactionMeta);
-  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
+  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   const tokenBalanceFiat = useTokenBalance();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
@@ -173,10 +176,11 @@ function getTokenAddress(transactionMeta: TransactionMeta | undefined): Hex {
 
 function useTokenBalance() {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { convertFiat } = useTransactionPayFiat();
   const from = (transactionMeta?.txParams?.from ?? '0x0') as Hex;
 
   const { payToken } = useTransactionPayToken();
-  const payTokenBalance = payToken?.tokenFiatAmount ?? 0;
+  const payTokenBalance = convertFiat(payToken?.tokenFiatAmount ?? 0);
 
   const predictBalance = useSelector((state: RootState) =>
     selectPredictBalanceByAddress(state, from),
