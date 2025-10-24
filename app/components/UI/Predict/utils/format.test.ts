@@ -21,6 +21,10 @@ describe('format utils', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('formatPercentage', () => {
     it('formats positive decimal percentage with 2 decimal places', () => {
       // Arrange & Act
@@ -360,6 +364,10 @@ describe('format utils', () => {
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('formatCurrencyValue', () => {
     beforeEach(() => {
       mockFormatWithThreshold.mockImplementation(
@@ -430,6 +438,10 @@ describe('format utils', () => {
         },
       );
     });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('formatAddress', () => {
