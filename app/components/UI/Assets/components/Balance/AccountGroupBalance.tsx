@@ -9,6 +9,7 @@ import {
   selectBalanceChangeBySelectedAccountGroup,
 } from '../../../../../selectors/assets/balances';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import { selectChainId } from '../../../../../selectors/networkController';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -18,6 +19,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 import BalanceEmptyState from '../../../BalanceEmptyState';
+import { isTestNet } from '../../../../../util/networks';
 
 const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
@@ -31,6 +33,7 @@ const AccountGroupBalance = () => {
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const chainId = useSelector(selectChainId);
 
   const togglePrivacy = useCallback(
     (value: boolean) => {
@@ -55,7 +58,9 @@ const AccountGroupBalance = () => {
             <Skeleton width={100} height={40} />
             <Skeleton width={100} height={20} />
           </View>
-        ) : hasZeroBalance && isHomepageRedesignV1Enabled ? (
+        ) : hasZeroBalance &&
+          isHomepageRedesignV1Enabled &&
+          !isTestNet(chainId) ? (
           <>
             <BalanceEmptyState testID="account-group-balance-empty-state" />
           </>

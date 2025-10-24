@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectChainId } from '../../../../../selectors/networkController';
 import createStyles from '../../styles';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import SensitiveText, {
@@ -17,6 +18,7 @@ import NonEvmAggregatedPercentage from '../../../../../component-library/compone
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import BalanceEmptyState from '../../../BalanceEmptyState';
+import { isTestNet } from '../../../../../util/networks';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -30,6 +32,7 @@ export const PortfolioBalance = React.memo(() => {
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const chainId = useSelector(selectChainId);
 
   const renderAggregatedPercentage = () => {
     if (
@@ -74,7 +77,9 @@ export const PortfolioBalance = React.memo(() => {
           <View style={styles.loaderWrapper}>
             <Loader />
           </View>
-        ) : hasZeroBalance && isHomepageRedesignV1Enabled ? (
+        ) : hasZeroBalance &&
+          isHomepageRedesignV1Enabled &&
+          !isTestNet(chainId) ? (
           <BalanceEmptyState testID="portfolio-balance-empty-state" />
         ) : (
           <TouchableOpacity
