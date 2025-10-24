@@ -4,6 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  Button,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
@@ -14,7 +16,6 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ButtonHero from '../../../component-library/components-temp/Buttons/ButtonHero';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
@@ -104,13 +105,14 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           {strings('wallet.get_ready_for_web3')}
         </Text>
       </Box>
-      <ButtonHero
+      <Button
+        size={ButtonSize.Lg}
         onPress={handleAction}
         isFullWidth
         testID={`${testID}-action-button`}
       >
         {strings('wallet.add_funds')}
-      </ButtonHero>
+      </Button>
     </Box>
   );
 };
