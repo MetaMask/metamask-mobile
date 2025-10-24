@@ -4,49 +4,10 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useDispatch: jest.fn(),
-}));
-
-jest.mock('../../../../../core/redux/slices/card', () => ({
-  resetOnboardingState: jest.fn(),
-}));
-
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  log: jest.fn(),
-}));
-
 jest.mock('../../hooks/useUserRegistrationStatus', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    SafeAreaView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-  };
-});
-
-jest.mock('@metamask/react-native-webview', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    WebView: ({ ...props }: Record<string, unknown>) =>
-      React.createElement(View, { testID: 'webview', ...props }),
-  };
-});
 
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
@@ -81,12 +42,6 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((styles) => styles),
-  })),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -105,19 +60,19 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+jest.mock('../../../Button', () => {
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   const MockButton = ({
-    label,
+    children,
     onPress,
     disabled,
     testID,
     ...props
   }: {
-    label?: string;
-    onPress?: () => void;
+    children: React.ReactNode;
+    onPress: () => void;
     disabled?: boolean;
     testID?: string;
     [key: string]: unknown;
@@ -125,37 +80,15 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     React.createElement(
       TouchableOpacity,
       {
-        testID: testID || 'validating-kyc-button',
+        testID: testID || 'validating-kyc-continue-button',
         onPress,
         disabled,
         ...props,
       },
-      React.createElement(Text, {}, label),
+      React.createElement(Text, {}, children),
     );
 
-  MockButton.defaultProps = {
-    variant: 'Primary',
-    size: 'Lg',
-    width: 'Full',
-  };
-
-  return {
-    __esModule: true,
-    default: MockButton,
-    ButtonSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-    ButtonVariants: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-    },
-    ButtonWidthTypes: {
-      Full: 'Full',
-      Auto: 'Auto',
-    },
-  };
+  return MockButton;
 });
 
 jest.mock('react-native', () => {
@@ -184,7 +117,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.validating_kyc.title': 'Validating your identity',
       'card.card_onboarding.validating_kyc.description':
         'Please wait while we validate your identity.',
-      'card.card_onboarding.validating_kyc.timeout_button': 'Start Over',
       'card.card_onboarding.continue_button': 'Continue',
     };
     return translations[key] || key;
@@ -194,32 +126,23 @@ jest.mock('../../../../../../locales/i18n', () => ({
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import ValidatingKYC from './ValidatingKYC';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
 
 describe('ValidatingKYC Component', () => {
   let mockNavigate: jest.Mock;
   let mockUseUserRegistrationStatus: jest.Mock;
-  let mockDispatch: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate = jest.fn();
-    mockDispatch = jest.fn();
-
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
 
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-
     (useRoute as jest.Mock).mockReturnValue({
-      params: {},
+      params: { sessionUrl: 'https://example.com/session' },
     });
-
-    (useParams as jest.Mock).mockReturnValue({});
 
     // Default mock for useUserRegistrationStatus
     mockUseUserRegistrationStatus = jest.fn().mockReturnValue({
@@ -385,14 +308,10 @@ describe('ValidatingKYC Component', () => {
       });
     });
 
-    it('renders WebView when verificationState is PENDING with sessionUrl', () => {
-      (useParams as jest.Mock).mockReturnValue({
-        sessionUrl: 'https://example.com/session',
-      });
-
+    it('navigates to Webview when verificationState is UNVERIFIED with sessionUrl', async () => {
       mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'PENDING',
-        userResponse: { verificationState: 'PENDING' },
+        verificationState: 'UNVERIFIED',
+        userResponse: { verificationState: 'UNVERIFIED' },
         isLoading: false,
         isError: false,
         error: null,
@@ -400,10 +319,17 @@ describe('ValidatingKYC Component', () => {
         fetchRegistrationStatus: jest.fn(),
       });
 
-      const { getByTestId } = render(<ValidatingKYC />);
+      render(<ValidatingKYC />);
 
-      expect(getByTestId('webview')).toBeTruthy();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: 'https://example.com/session',
+            title: 'Identity Verification',
+          },
+        });
+      });
     });
 
     it('does not navigate when verificationState is PENDING', async () => {
