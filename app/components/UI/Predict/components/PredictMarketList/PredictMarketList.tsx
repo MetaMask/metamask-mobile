@@ -47,8 +47,10 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
     if (!scrollCoordinator) {
       return {};
     }
+    const offset = scrollCoordinator.balanceCardOffset.value;
     return {
-      transform: [{ translateY: scrollCoordinator.balanceCardOffset.value }],
+      transform: [{ translateY: offset }],
+      marginBottom: offset,
     };
   }, [scrollCoordinator]);
 
