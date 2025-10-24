@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectSmartTransactionsEnabled } from '../../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../reducers';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
@@ -15,7 +15,7 @@ export function useIsGaslessSupported() {
   const { from } = txParams ?? {};
 
   const isSmartTransaction = useSelector((state: RootState) =>
-    selectSmartTransactionsEnabled(state, chainId),
+    selectShouldUseSmartTransaction(state, chainId),
   );
 
   const { value: atomicBatchSupportResult } = useAsyncResult(async () => {
