@@ -1020,57 +1020,7 @@ describe('PerpsMarketTabs', () => {
     });
   });
 
-  describe('Navigation', () => {
-    it('navigates to tutorial when tutorial card is pressed', () => {
-      // Arrange
-      const onActiveTabChange = jest.fn();
-      // Configure hooks to return position data (needed to render full tab view with navigation)
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
-      });
-
-      const { getByTestId } = render(
-        <PerpsMarketTabs
-          symbol="BTC"
-          onActiveTabChange={onActiveTabChange}
-          nextFundingTime={nextFundingTime}
-          fundingIntervalHours={fundingIntervalHours}
-        />,
-      );
-
-      // Act
-      const tutorialCard = getByTestId('perps-tutorial-card');
-      fireEvent.press(tutorialCard);
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith('PerpsTutorial');
-    });
-
-    it('navigates to activity when activity link is pressed', () => {
-      // Arrange
-      const onActiveTabChange = jest.fn();
-      // Configure hooks to return position data (needed to render full tab view with navigation)
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
-      });
-
-      const { getByTestId } = render(
-        <PerpsMarketTabs
-          symbol="BTC"
-          onActiveTabChange={onActiveTabChange}
-          nextFundingTime={nextFundingTime}
-          fundingIntervalHours={fundingIntervalHours}
-        />,
-      );
-
-      // Act
-      const activityLink = getByTestId(
-        PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
-      );
-      fireEvent.press(activityLink);
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith('TransactionsView');
-    });
-  });
+  // Note: Navigation tests (tutorial card, activity link) removed as these elements
+  // have been relocated to other components as part of the home screen refactor.
+  // See PR description: "Activity Link Relocation" and "Learn More Component" sections.
 });
