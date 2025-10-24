@@ -241,6 +241,10 @@ jest.mock('../../hooks/useRegistrationSettings', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
@@ -272,11 +276,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import PersonalDetails from './PersonalDetails';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import { useCardSDK } from '../../sdk';
 
 // Mock implementations
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockRegisterPersonalDetails = jest.fn();
+const mockSetUser = jest.fn();
 
 // Mock hooks
 (useNavigation as jest.Mock).mockReturnValue({
@@ -312,6 +318,14 @@ const mockRegisterPersonalDetails = jest.fn();
       { code: 'CA', name: 'Canada' },
     ],
   },
+});
+
+(useCardSDK as jest.Mock).mockReturnValue({
+  sdk: null,
+  isLoading: false,
+  user: null,
+  setUser: mockSetUser,
+  logoutFromProvider: jest.fn(),
 });
 
 describe('PersonalDetails Component', () => {
