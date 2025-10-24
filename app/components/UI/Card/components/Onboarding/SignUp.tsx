@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -28,6 +33,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { TouchableOpacity } from 'react-native';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -320,15 +326,29 @@ const SignUp = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-      testID="signup-continue-button"
-    />
+    <>
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        testID="signup-continue-button"
+      />
+      <TouchableOpacity
+        onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
+      >
+        <Text
+          testID="signup-i-already-have-an-account-text"
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-primary-default text-center p-4 underline"
+        >
+          {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
+        </Text>
+      </TouchableOpacity>
+    </>
   );
 
   return (

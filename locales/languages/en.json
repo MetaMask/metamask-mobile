@@ -5970,6 +5970,7 @@
       "sign_up": {
         "title": "Sign up",
         "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "Email",
         "password_label": "Password",
         "confirm_password_label": "Re-enter your password",
