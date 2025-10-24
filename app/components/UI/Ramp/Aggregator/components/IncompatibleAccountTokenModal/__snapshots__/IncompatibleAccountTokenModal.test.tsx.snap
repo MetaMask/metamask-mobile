@@ -551,6 +551,7 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
