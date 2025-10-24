@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -43,7 +43,7 @@ const VerifyIdentity = () => {
     navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
       sessionUrl,
     });
-  };
+  }, [navigation, sessionUrl, trackEvent, createEventBuilder]);
 
   useEffect(() => {
     trackEvent(
