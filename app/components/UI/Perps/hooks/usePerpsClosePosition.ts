@@ -26,6 +26,7 @@ export const usePerpsClosePosition = (
       orderType: 'market' | 'limit' = 'market',
       limitPrice?: string,
       trackingData?: TrackingData,
+      marketPrice?: string, // Used for PnL toast to lock in the market price at time of closing
     ) => {
       try {
         setIsClosing(true);
@@ -111,14 +112,17 @@ export const usePerpsClosePosition = (
               showToast(
                 PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionSuccess(
                   position,
+                  marketPrice,
                 ),
               );
             }
             // Market closed partial position
             else {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .partial.closePartialPositionSuccess,
+                PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionSuccess(
+                  position,
+                  marketPrice,
+                ),
               );
             }
           }

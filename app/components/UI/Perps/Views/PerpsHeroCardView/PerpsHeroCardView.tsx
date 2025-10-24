@@ -34,9 +34,9 @@ import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
 import RewardsReferralQRCode from '../../../Rewards/components/RewardsReferralQRCode';
-import { usePerpsLivePrices } from '../../hooks';
 import {
   formatPerpsFiat,
+  parseCurrencyString,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import MetaMaskLogo from '../../../../../images/branding/metamask-name.png';
@@ -67,15 +67,12 @@ const PerpsHeroCardView: React.FC = () => {
   // Get data from route params
   const params = route.params as {
     position: Position;
+    // Market price at time of closing
+    marketPrice?: string;
   };
-  const { position } = params;
+  const { position, marketPrice } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
-
-  const prices = usePerpsLivePrices({
-    symbols: [position.coin],
-    throttleMs: 3000,
-  });
 
   const data = useMemo(() => {
     const isLong = Number.parseFloat(position.size) >= 0;
@@ -84,6 +81,8 @@ const PerpsHeroCardView: React.FC = () => {
     const roeValue = Number.parseFloat(position.returnOnEquity || '0') * 100;
     const entryPrice = position.entryPrice;
 
+    const marketPriceParsed = parseCurrencyString(marketPrice ?? '');
+
     return {
       asset: position.coin,
       direction,
@@ -91,7 +90,7 @@ const PerpsHeroCardView: React.FC = () => {
       pnl: pnlValue,
       roe: roeValue,
       entryPrice,
-      markPrice: formatPerpsFiat(prices[position.coin]?.price, {
+      markPrice: formatPerpsFiat(marketPriceParsed ?? '', {
         ranges: PRICE_RANGES_MINIMAL_VIEW,
       }),
       isLong,
@@ -103,7 +102,7 @@ const PerpsHeroCardView: React.FC = () => {
     position.entryPrice,
     position.coin,
     position.leverage.value,
-    prices,
+    marketPrice,
   ]);
 
   const handleTabChange = useCallback((obj: { i: number }) => {

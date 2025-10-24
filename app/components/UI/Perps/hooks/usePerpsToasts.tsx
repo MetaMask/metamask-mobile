@@ -107,7 +107,10 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
-          closeFullPositionSuccess: (position: Position) => PerpsToastOptions;
+          closeFullPositionSuccess: (
+            position: Position,
+            marketPrice?: string,
+          ) => PerpsToastOptions;
           closeFullPositionFailed: PerpsToastOptions;
         };
         partial: {
@@ -116,7 +119,10 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
-          closePartialPositionSuccess: PerpsToastOptions;
+          closePartialPositionSuccess: (
+            position: Position,
+            marketPrice?: string,
+          ) => PerpsToastOptions;
           closePartialPositionFailed: PerpsToastOptions;
         };
       };
@@ -271,10 +277,11 @@ const usePerpsToasts = (): {
           });
         }, 100);
       },
-      goToPnlHeroCard: (position: Position) => {
+      goToPnlHeroCard: (position: Position, marketPrice?: string) => {
         toastRef?.current?.closeToast();
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
+          marketPrice,
         });
       },
     }),
@@ -285,6 +292,7 @@ const usePerpsToasts = (): {
     () => ({
       pnlHeroCardShareButton: (
         position: Position,
+        marketPrice?: string,
       ): ToastOptions['closeButtonOptions'] => ({
         // label: strings('perps.pnl_hero_card.share_button'),
         label: (
@@ -292,7 +300,8 @@ const usePerpsToasts = (): {
             {strings('perps.pnl_hero_card.share_button')}
           </Text>
         ),
-        onPress: () => navigationHandlers.goToPnlHeroCard(position),
+        onPress: () =>
+          navigationHandlers.goToPnlHeroCard(position, marketPrice),
         variant: ButtonVariants.Link,
         style: {
           backgroundColor: theme.colors.background.muted,
@@ -623,16 +632,20 @@ const usePerpsToasts = (): {
                   ),
                 };
               },
-              closeFullPositionSuccess: (position: Position) => {
-                const roeValue = Number.parseFloat(
-                  position.returnOnEquity || '0',
-                );
-                const roe = Number.isNaN(roeValue) ? 0 : roeValue * 100;
+              closeFullPositionSuccess: (
+                position: Position,
+                marketPrice?: string,
+              ) => {
+                const roeValue =
+                  Number.parseFloat(position.returnOnEquity) * 100;
 
                 return {
                   ...perpsBaseToastOptions.success,
                   closeButtonOptions:
-                    perpsToastButtonOptions.pnlHeroCardShareButton(position),
+                    perpsToastButtonOptions.pnlHeroCardShareButton(
+                      position,
+                      marketPrice,
+                    ),
                   labelOptions: getPerpsToastLabels(
                     strings('perps.close_position.position_closed'),
                     <Text
@@ -643,13 +656,13 @@ const usePerpsToasts = (): {
                       <Text
                         variant={TextVariant.BodyMd}
                         color={
-                          roe >= 0
+                          roeValue >= 0
                             ? TextColor.SuccessDefault
                             : TextColor.ErrorDefault
                         }
                       >
                         {' '}
-                        {`${roe.toFixed(1)}%`}
+                        {`${roeValue.toFixed(1)}%`}
                       </Text>
                     </Text>,
                   ),
@@ -692,12 +705,41 @@ const usePerpsToasts = (): {
                   ),
                 };
               },
-              closePartialPositionSuccess: {
-                ...perpsBaseToastOptions.success,
-                labelOptions: getPerpsToastLabels(
-                  strings('perps.close_position.position_partially_closed'),
-                  strings('perps.close_position.funds_are_available_to_trade'),
-                ),
+              closePartialPositionSuccess: (
+                position: Position,
+                marketPrice?: string,
+              ) => {
+                const roeValue =
+                  Number.parseFloat(position.returnOnEquity) * 100;
+
+                return {
+                  ...perpsBaseToastOptions.success,
+                  closeButtonOptions:
+                    perpsToastButtonOptions.pnlHeroCardShareButton(
+                      position,
+                      marketPrice,
+                    ),
+                  labelOptions: getPerpsToastLabels(
+                    strings('perps.close_position.position_partially_closed'),
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {strings('perps.close_position.your_pnl_is')}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={
+                          roeValue >= 0
+                            ? TextColor.SuccessDefault
+                            : TextColor.ErrorDefault
+                        }
+                      >
+                        {' '}
+                        {`${roeValue.toFixed(1)}%`}
+                      </Text>
+                    </Text>,
+                  ),
+                };
               },
               closePartialPositionFailed: {
                 ...perpsBaseToastOptions.error,

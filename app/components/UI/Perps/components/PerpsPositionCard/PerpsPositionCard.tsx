@@ -181,7 +181,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   ]);
 
   const handleSharePress = () => {
-    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, { position });
+    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
+      position,
+      marketPrice: marketData?.price,
+    });
   };
 
   const handleTpslCountPress = useCallback(async () => {

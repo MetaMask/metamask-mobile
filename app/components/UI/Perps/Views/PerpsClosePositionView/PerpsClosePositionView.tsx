@@ -323,6 +323,7 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
       },
+      priceData[position.coin]?.price,
     );
   };
 
