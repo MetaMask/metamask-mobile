@@ -332,6 +332,19 @@ export const MARKET_SORTING_CONFIG = {
     FUNDING_RATE: 'fundingRate',
   } as const,
 
+  // Sort button presets for filter chips (simplified buttons without direction)
+  SORT_BUTTON_PRESETS: [
+    { field: 'volume', labelKey: 'perps.sort.volume' },
+    { field: 'priceChange', labelKey: 'perps.sort.price_change' },
+    { field: 'fundingRate', labelKey: 'perps.sort.funding_rate' },
+  ] as const,
+
+  // Timeframe options for market data
+  TIMEFRAME_OPTIONS: [
+    { id: '1h', labelKey: 'perps.sort.1h' },
+    { id: '24h', labelKey: 'perps.sort.24h' },
+  ] as const,
+
   // Sort options for the bottom sheet
   // Each option combines field + direction into a single selectable item
   // Only Price Change has both directions as separate options
@@ -376,6 +389,20 @@ export const MARKET_SORTING_CONFIG = {
  */
 export type SortOptionId =
   (typeof MARKET_SORTING_CONFIG.SORT_OPTIONS)[number]['id'];
+
+/**
+ * Type for sort button presets (filter chips)
+ * Derived from SORT_BUTTON_PRESETS to ensure type safety
+ */
+export type SortButtonPreset =
+  (typeof MARKET_SORTING_CONFIG.SORT_BUTTON_PRESETS)[number];
+
+/**
+ * Type for timeframe options
+ * Derived from TIMEFRAME_OPTIONS to ensure type safety
+ */
+export type TimeframeOption =
+  (typeof MARKET_SORTING_CONFIG.TIMEFRAME_OPTIONS)[number];
 
 /**
  * Learn more card configuration

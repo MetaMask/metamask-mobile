@@ -98,27 +98,6 @@ describe('PerpsMarketSortFilters', () => {
     expect(getByText('Funding Rate')).toBeTruthy();
   });
 
-  it('renders with custom sort options', () => {
-    // Arrange
-    const customSortOptions = [
-      { field: 'volume' as const, labelKey: 'perps.sort.volume' },
-      { field: 'priceChange' as const, labelKey: 'perps.sort.price_change' },
-    ];
-
-    // Act
-    const { getByText, queryByText } = render(
-      <PerpsMarketSortFilters
-        {...defaultProps}
-        sortOptions={customSortOptions}
-      />,
-    );
-
-    // Assert
-    expect(getByText('Volume')).toBeTruthy();
-    expect(getByText('Price Change')).toBeTruthy();
-    expect(queryByText('Funding Rate')).toBeNull();
-  });
-
   it('calls onSortChange when sort chip is pressed', () => {
     // Arrange
     const { getByTestId } = render(

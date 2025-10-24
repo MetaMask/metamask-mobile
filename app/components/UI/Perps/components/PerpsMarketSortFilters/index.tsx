@@ -1,5 +1,2 @@
 export { default } from './PerpsMarketSortFilters';
-export type {
-  PerpsMarketSortFiltersProps,
-  SortOption,
-} from './PerpsMarketSortFilters.types';
+export type { PerpsMarketSortFiltersProps } from './PerpsMarketSortFilters.types';

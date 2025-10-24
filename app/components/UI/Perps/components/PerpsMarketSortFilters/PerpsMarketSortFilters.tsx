@@ -46,7 +46,6 @@ const PerpsMarketSortFilters: React.FC<PerpsMarketSortFiltersProps> = ({
   direction,
   onSortChange,
   onDirectionToggle,
-  sortOptions = MARKET_SORTING_CONFIG.SORT_BUTTON_PRESETS,
   testID = 'perps-market-sort-filters',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -77,7 +76,7 @@ const PerpsMarketSortFilters: React.FC<PerpsMarketSortFiltersProps> = ({
     <View style={styles.container} testID={testID}>
       {/* Sort Chips */}
       <View style={styles.sortRow}>
-        {sortOptions.map((option) =>
+        {MARKET_SORTING_CONFIG.SORT_BUTTON_PRESETS.map((option) =>
           renderSortChip(option.field, option.labelKey),
         )}
       </View>

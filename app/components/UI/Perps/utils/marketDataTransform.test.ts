@@ -77,6 +77,7 @@ describe('marketDataTransform', () => {
         fundingRate: 0.01,
         marketSource: undefined, // Main DEX has no source
         marketType: undefined, // Main DEX has no type
+        openInterest: '$1.00M',
       });
     });
 

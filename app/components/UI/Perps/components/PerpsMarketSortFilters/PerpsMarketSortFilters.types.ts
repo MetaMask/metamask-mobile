@@ -1,14 +1,6 @@
 import type { SortField, SortDirection } from '../../utils/sortMarkets';
 
 /**
- * Sort option configuration
- */
-export interface SortOption {
-  field: SortField;
-  labelKey: string;
-}
-
-/**
  * Props for PerpsMarketSortFilters component
  * Reusable sort chips + direction toggle UI (no internal state)
  */
@@ -29,11 +21,6 @@ export interface PerpsMarketSortFiltersProps {
    * Callback when direction toggle is pressed
    */
   onDirectionToggle: () => void;
-  /**
-   * Optional custom sort options
-   * If not provided, uses MARKET_SORTING_CONFIG.SORT_BUTTON_PRESETS
-   */
-  sortOptions?: SortOption[];
   /**
    * Test ID for E2E testing
    */

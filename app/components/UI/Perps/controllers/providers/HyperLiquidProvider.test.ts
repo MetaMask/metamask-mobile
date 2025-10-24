@@ -4532,7 +4532,11 @@ describe('HyperLiquidProvider', () => {
         perpDexs: jest.fn().mockResolvedValue([null]),
       });
 
-      const result = await provider.getOpenOrders();
+      // Mock getValidatedDexs to return main DEX
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      jest.spyOn(provider as any, 'getValidatedDexs').mockResolvedValue([null]);
+
+      const result = await provider.getOpenOrders({ skipCache: true });
 
       expect(result).toHaveLength(3);
 
@@ -4676,6 +4680,206 @@ describe('HyperLiquidProvider', () => {
 
       const fills = await provider.getOrderFills();
       expect(fills[0].liquidation).toBeUndefined();
+    });
+  });
+
+  describe('getOpenOrders additional coverage', () => {
+    it('returns empty array when frontendOpenOrders throws error', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        frontendOpenOrders: jest.fn().mockRejectedValue(new Error('API Error')),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        perpDexs: jest.fn().mockResolvedValue([null]),
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      jest.spyOn(provider as any, 'getValidatedDexs').mockResolvedValue([null]);
+
+      // Act
+      const result = await provider.getOpenOrders({ skipCache: true });
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('returns cached orders when cache is initialized', async () => {
+      // Arrange
+      const cachedOrders = [
+        {
+          orderId: '101',
+          symbol: 'ETH',
+          side: 'buy' as const,
+          orderType: 'limit' as const,
+          size: '1.0',
+          originalSize: '1.0',
+          filledSize: '0',
+          remainingSize: '1.0',
+          price: '2900',
+          status: 'open' as const,
+          timestamp: Date.now(),
+          detailedOrderType: 'Limit',
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ];
+      // Add cache methods to mock
+      mockSubscriptionService.isOrdersCacheInitialized = jest
+        .fn()
+        .mockReturnValue(true);
+      mockSubscriptionService.getCachedOpenOrders = jest
+        .fn()
+        .mockReturnValue(cachedOrders);
+
+      // Act
+      const result = await provider.getOpenOrders();
+
+      // Assert
+      expect(result).toEqual(cachedOrders);
+      expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+    });
+
+    it('queries only main DEX when no additional DEXs enabled', async () => {
+      // Arrange
+      const mockFrontendOpenOrders = jest.fn().mockResolvedValue([
+        {
+          coin: 'ETH',
+          side: 'B',
+          limitPx: '3000',
+          sz: '1.0',
+          oid: 301,
+          timestamp: Date.now(),
+          origSz: '1.0',
+          triggerCondition: '',
+          isTrigger: false,
+          triggerPx: '',
+          children: [],
+          isPositionTpsl: false,
+          reduceOnly: false,
+          orderType: 'Limit',
+          tif: 'Gtc',
+          cloid: null,
+        },
+      ]);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        frontendOpenOrders: mockFrontendOpenOrders,
+        clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: { totalMarginUsed: '0', accountValue: '1000' },
+          withdrawable: '1000',
+          assetPositions: [],
+          crossMarginSummary: { accountValue: '1000', totalMarginUsed: '0' },
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 25 }],
+        }),
+        perpDexs: jest.fn().mockResolvedValue([null]),
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      jest.spyOn(provider as any, 'getValidatedDexs').mockResolvedValue([null]);
+
+      // Act
+      const result = await provider.getOpenOrders({ skipCache: true });
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('ETH');
+      // Note: frontendOpenOrders is called twice - once for getOpenOrders and once for getPositions
+      expect(mockFrontendOpenOrders).toHaveBeenCalled();
+    });
+
+    it('queries multiple DEXs when HIP-3 enabled', async () => {
+      // Arrange
+      // Ensure cache is disabled for this test
+      mockSubscriptionService.isOrdersCacheInitialized = jest
+        .fn()
+        .mockReturnValue(false);
+
+      const mockFrontendOpenOrders = jest
+        .fn()
+        .mockImplementation((params: { user: string; dex?: string }) => {
+          if (params.dex === 'xyz') {
+            return Promise.resolve([
+              {
+                coin: 'xyz:STOCK1',
+                side: 'B',
+                limitPx: '100',
+                sz: '10',
+                oid: 401,
+                timestamp: Date.now(),
+                origSz: '10',
+                triggerCondition: '',
+                isTrigger: false,
+                triggerPx: '',
+                children: [],
+                isPositionTpsl: false,
+                reduceOnly: false,
+                orderType: 'Limit',
+                tif: 'Gtc',
+                cloid: null,
+              },
+            ]);
+          }
+          // Main DEX
+          return Promise.resolve([
+            {
+              coin: 'BTC',
+              side: 'A',
+              limitPx: '51000',
+              sz: '0.5',
+              oid: 402,
+              timestamp: Date.now(),
+              origSz: '0.5',
+              triggerCondition: '',
+              isTrigger: false,
+              triggerPx: '',
+              children: [],
+              isPositionTpsl: false,
+              reduceOnly: false,
+              orderType: 'Limit',
+              tif: 'Gtc',
+              cloid: null,
+            },
+          ]);
+        });
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        frontendOpenOrders: mockFrontendOpenOrders,
+        clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: { totalMarginUsed: '0', accountValue: '1000' },
+          withdrawable: '1000',
+          assetPositions: [],
+          crossMarginSummary: { accountValue: '1000', totalMarginUsed: '0' },
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'xyz:STOCK1', szDecimals: 2, maxLeverage: 20 },
+          ],
+        }),
+        perpDexs: jest
+          .fn()
+          .mockResolvedValue([null, { name: 'xyz', url: 'https://xyz.com' }]),
+      });
+      const getValidatedDexsSpy = jest.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        provider as any,
+        'getValidatedDexs',
+      );
+      getValidatedDexsSpy.mockResolvedValue([null, 'xyz']);
+
+      // Act
+      const result = await provider.getOpenOrders({ skipCache: true });
+
+      // Assert
+      expect(result).toHaveLength(2);
+      // Verify both orders are present (order may vary due to Promise.all)
+      const symbols = result.map((r) => r.symbol);
+      expect(symbols).toContain('xyz:STOCK1');
+      expect(symbols).toContain('BTC');
+      // Verify both DEXs were queried
+      expect(mockFrontendOpenOrders).toHaveBeenCalled();
+      expect(
+        mockFrontendOpenOrders.mock.calls.some((call) => call[0].dex === 'xyz'),
+      ).toBe(true);
     });
   });
 
