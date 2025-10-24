@@ -31,12 +31,13 @@ function getChannelForEnvironment(environment) {
 }
 
 /**
- * Updates or inserts expo-channel-name and runtime version in AndroidManifest.xml
+ * Updates or inserts expo-channel-name, runtime version, and updates enabled flag in AndroidManifest.xml
  * @param {string} filePath - Path to AndroidManifest.xml
  * @param {string} channelName - The channel name to set
  * @param {string} runtimeVersion - The runtime version to set
+ * @param {boolean} updatesEnabled - Whether expo-updates should be enabled
  */
-function updateAndroidManifest(filePath, channelName, runtimeVersion) {
+function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled) {
   let content = fs.readFileSync(filePath, 'utf8');
 
   // Update or insert EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE
@@ -79,6 +80,20 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion) {
     );
   }
 
+  // Update or insert EXPO_UPDATES_CONFIGURATION_ENABLED (enable/disable updates)
+  const enabledValue = updatesEnabled ? 'true' : 'false';
+  if (content.includes('expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED')) {
+    content = content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="(true|false)" \/>/g,
+      `<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="${enabledValue}" />`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/application>/,
+      `\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="${enabledValue}" />$1</application>`
+    );
+  }
+
   fs.writeFileSync(filePath, content, 'utf8');
   console.log('✓ AndroidManifest.xml updated successfully');
 }
@@ -90,7 +105,7 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion) {
  * @param {string} runtimeVersion - The runtime version to set
  * @param {string} fileName - Display name for logging
  */
-function updatePlistFile(filePath, channelName, runtimeVersion, fileName) {
+function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled) {
   console.log(`Updating ${fileName} to channel: ${channelName}, runtime: ${runtimeVersion}`);
 
   let content = fs.readFileSync(filePath, 'utf8');
@@ -145,6 +160,21 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName) {
     );
   }
 
+  // Update or insert EXUpdatesEnabled (boolean)
+  if (content.includes('<key>EXUpdatesEnabled</key>')) {
+    // Replace existing true/false
+    content = content.replace(
+      /<key>EXUpdatesEnabled<\/key>\s*<(true|false)\/>/,
+      `<key>EXUpdatesEnabled</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>`
+    );
+  } else {
+    // Insert before </dict>
+    content = content.replace(
+      /(\s*)<\/dict>\s*<\/plist>/,
+      `\n\t<key>EXUpdatesEnabled</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>\n$1</dict>\n</plist>`
+    );
+  }
+
   fs.writeFileSync(filePath, content, 'utf8');
   console.log(`✓ ${fileName} updated successfully`);
 }
@@ -180,6 +210,10 @@ function main() {
   console.log(`Channel: ${channelName}`);
   console.log('');
 
+  // Determine updates enabled flag (production => false, others => true)
+  const updatesEnabled = environment !== 'production';
+  console.log(`Updates Enabled: ${updatesEnabled}`);
+
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
     console.error(`❌ Error: AndroidManifest.xml not found at ${ANDROID_MANIFEST_PATH}`);
@@ -198,9 +232,9 @@ function main() {
 
   // Update files
   try {
-    updateAndroidManifest(ANDROID_MANIFEST_PATH, channelName, RUNTIME_VERSION);
-    updatePlistFile(IOS_EXPO_PLIST_PATH, channelName, RUNTIME_VERSION, 'Expo.plist');
-    updatePlistFile(IOS_INFO_PLIST_PATH, channelName, RUNTIME_VERSION, 'Info.plist');
+    updateAndroidManifest(ANDROID_MANIFEST_PATH, channelName, RUNTIME_VERSION, updatesEnabled);
+    updatePlistFile(IOS_EXPO_PLIST_PATH, channelName, RUNTIME_VERSION, 'Expo.plist', updatesEnabled);
+    updatePlistFile(IOS_INFO_PLIST_PATH, channelName, RUNTIME_VERSION, 'Info.plist', updatesEnabled);
 
     console.log('');
     console.log('✓ All files updated successfully!');

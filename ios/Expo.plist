@@ -5,7 +5,7 @@
     <key>EXUpdatesCheckOnLaunch</key>
     <string>NEVER</string>
     <key>EXUpdatesEnabled</key>
-    <true/>
+    <false/>
     <key>EXUpdatesURL</key>
     <string>https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620</string>
     <!-- EXUpdatesChannel, EXUpdatesRuntimeVersion, and EXUpdatesRequestHeaders are auto-injected by build script -->
