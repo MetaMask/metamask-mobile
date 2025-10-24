@@ -80,6 +80,10 @@ const FIXTURES = {
     new FixtureBuilder()
       .withImportedAccountKeyringController()
       .build(),
+  'import-srp': () =>
+    new FixtureBuilder()
+      .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+      .build(),
 
   // Feature fixtures
   'with-backup-sync': () =>

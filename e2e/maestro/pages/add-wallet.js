@@ -1,13 +1,21 @@
-// importSRP.js
-// Page Object for adding wallet on Import Secret Recovery Phrase screen
+// add-wallet.js
+// Page Object for adding/importing wallets
 
 /* global output */
 
-output.importSRP = {
-  // Screen Title
-  screenTitle: 'Import Secret Recovery Phrase',
+output.addWallet = {
+  // Account list screen
+  addAccountHeader: 'Add account',
+  addAccountOrHardwareWalletBtn: 'add-account-or-hardware-wallet',
 
-  // SRP Input Fields (12-word)
+  // Add account options
+  importAccountBtn: 'import-account-button',
+
+  // Import SRP Screen
+  screenTitle: 'Import Secret Recovery Phrase',
+  srpInput: 'import-srp-input',
+
+  // SRP Input Fields (12-word - individual word inputs)
   word1: 'srp-input-word-1',
   word2: 'srp-input-word-2',
   word3: 'srp-input-word-3',
@@ -21,7 +29,8 @@ output.importSRP = {
   word11: 'srp-input-word-11',
   word12: 'srp-input-word-12',
 
-  // Action Button
+  // Action Buttons
+  importBtn: 'submit-import-seed-phrase-button',
   continueBtn: 'Continue',
 
   // Helper to get word input by index (1-12)
