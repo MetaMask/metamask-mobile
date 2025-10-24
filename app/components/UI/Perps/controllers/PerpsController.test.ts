@@ -387,8 +387,16 @@ describe('PerpsController', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
-          context: 'PerpsController.constructor',
-          operation: 'readRemoteFeatureFlags',
+          tags: expect.objectContaining({
+            feature: 'perps',
+          }),
+          context: expect.objectContaining({
+            name: 'PerpsController',
+            data: expect.objectContaining({
+              method: 'constructor',
+              operation: 'readRemoteFeatureFlags',
+            }),
+          }),
         }),
       );
 
@@ -1749,16 +1757,17 @@ describe('PerpsController', () => {
       expect(result.orderId).toBe('order123');
 
       // Verify that Logger.error was called for the data lake failure
-      // The new implementation uses getErrorContext() which has different structure
+      // The new implementation uses LoggerErrorOptions format
       const errorCalls = (Logger.error as jest.Mock).mock.calls;
 
       const hasDataLakeError = errorCalls.some((call) => {
         const secondArg = call[1];
         return (
           typeof secondArg === 'object' &&
-          secondArg.context === 'PerpsController.reportOrderToDataLake' &&
-          secondArg.coin === 'BTC' &&
-          secondArg.action === 'open'
+          secondArg.context?.name === 'PerpsController' &&
+          secondArg.context?.data?.method === 'reportOrderToDataLake' &&
+          secondArg.context?.data?.coin === 'BTC' &&
+          secondArg.context?.data?.action === 'open'
         );
       });
       expect(hasDataLakeError).toBe(true);
