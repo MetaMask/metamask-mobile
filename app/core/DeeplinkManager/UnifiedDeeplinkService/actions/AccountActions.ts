@@ -3,13 +3,12 @@ import {
   DeeplinkParams,
   ActionRegistry,
 } from '../ActionRegistry';
-import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
+import { ACTIONS, PREFIXES , ETH_ACTIONS } from '../../../../constants/deeplinks';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { handleCreateAccountUrl } from '../../Handlers/handleCreateAccountUrl';
 import { handleRewardsUrl } from '../../Handlers/handleRewardsUrl';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../../DeeplinkManager';
-
+import { parse } from 'eth-url-parser';
 /**
  * Creates a unified handler for create account action
  */
@@ -64,31 +63,45 @@ export const createSendAction = (): DeeplinkAction => ({
       originalUrl: params.originalUrl,
     });
 
-    // For universal links, we need to transform the URL to ethereum: protocol
-    // and re-parse it through the deeplink manager
-    if (params.scheme.includes('http')) {
-      // Construct ethereum URL
-      const ethereumUrl = `${PREFIXES[ACTIONS.SEND]}${params.path}`;
+    try {
+      // For universal links, construct ethereum URL
+      const ethereumUrl = params.scheme.includes('http')
+        ? `${PREFIXES[ACTIONS.SEND]}${params.path}`
+        : params.originalUrl;
 
-      // Re-parse through deeplink manager
-      // Note: We need access to the DeeplinkManager instance
-      // This will be handled when integrating with the main service
-      const deeplinkManager = new DeeplinkManager();
-      deeplinkManager.navigation = params.navigation;
+      // Parse the ethereum URL directly
+      const ethUrl = parse(ethereumUrl);
 
-      await deeplinkManager.parse(ethereumUrl, {
-        origin: params.origin || 'deeplink',
-      });
-    } else {
-      // For traditional deeplinks, construct the full URL and re-parse
-      const fullUrl = `${params.originalUrl}`;
+      // Create txMeta object
+      const txMeta = {
+        ...ethUrl,
+        source: params.originalUrl,
+        action:
+          ethUrl.function_name === ETH_ACTIONS.TRANSFER
+            ? 'send-token'
+            : 'send-eth',
+      };
 
-      const deeplinkManager = new DeeplinkManager();
-      deeplinkManager.navigation = params.navigation;
-
-      await deeplinkManager.parse(fullUrl, {
-        origin: params.origin || 'deeplink',
-      });
+      // Navigate directly - no new DeeplinkManager instance!
+      if (ethUrl.function_name === ETH_ACTIONS.TRANSFER) {
+        params.navigation?.navigate('SendView', {
+          screen: 'Send',
+          params: { txMeta },
+        });
+      } else if (ethUrl.parameters?.value) {
+        params.navigation?.navigate('SendView', {
+          screen: 'Send',
+          params: { txMeta },
+        });
+      } else {
+        params.navigation?.navigate('SendFlowView', {
+          screen: 'SendTo',
+          params: { txMeta },
+        });
+      }
+    } catch (error) {
+      DevLogger.log('AccountActions: Error handling send action', error);
+      throw error;
     }
   },
 });
