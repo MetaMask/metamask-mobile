@@ -8,6 +8,7 @@ import {
   selectTransactionPayTotalsByTransactionId,
 } from '../../../../../selectors/transactionPayController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 export function useTransactionPayQuotes() {
   return useTransactionPayData(selectTransactionPayQuotesByTransactionId);
@@ -24,7 +25,12 @@ export function useTransactionPaySourceAmounts() {
 }
 
 export function useIsTransactionPayLoading() {
-  return useTransactionPayData(selectIsTransactionPayLoadingByTransactionId);
+  const { isTransactionDataUpdating } = useConfirmationContext();
+
+  return (
+    useTransactionPayData(selectIsTransactionPayLoadingByTransactionId) ||
+    isTransactionDataUpdating
+  );
 }
 
 export function useTransactionPayTotals() {

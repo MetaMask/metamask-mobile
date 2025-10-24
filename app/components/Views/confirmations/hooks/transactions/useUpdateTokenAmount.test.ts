@@ -112,26 +112,4 @@ describe('useUpdateTokenAmount', () => {
         ) + toHex(15000).substring(2),
     });
   });
-
-  // MATT TODO
-  // it('sets updating', async () => {
-  //   const { result } = runHook({
-  //     transactionMeta: {
-  //       txParams: {
-  //         data: TOKEN_TRANSFER_DATA_MOCK,
-  //         from: '0x13',
-  //         to: tokenAddress1Mock,
-  //       },
-  //     },
-  //   });
-
-  //   await act(async () => {
-  //     result.current.updateTokenAmount('1.5');
-  //   });
-
-  //   expect(setTransactionUpdatingMock).toHaveBeenCalledWith({
-  //     transactionId: expect.any(String),
-  //     isUpdating: true,
-  //   });
-  // });
 });

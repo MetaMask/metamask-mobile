@@ -15,8 +15,10 @@ describe('ConfirmationContext', () => {
 
     expect(result.current).toStrictEqual({
       isFooterVisible: undefined,
+      isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
       setIsFooterVisible: expect.any(Function),
+      setIsTransactionDataUpdating: expect.any(Function),
       setIsTransactionValueUpdating: expect.any(Function),
     });
   });
@@ -43,5 +45,21 @@ describe('ConfirmationContext', () => {
     result.current.setIsFooterVisible(false);
 
     expect(result.current.isFooterVisible).toBe(false);
+  });
+
+  it('updates isTransactionDataUpdating state when calling setIsTransactionDataUpdating', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setIsTransactionDataUpdating(true);
+    });
+
+    expect(result.current.isTransactionDataUpdating).toBe(true);
+
+    act(() => {
+      result.current.setIsTransactionDataUpdating(false);
+    });
+
+    expect(result.current.isTransactionDataUpdating).toBe(false);
   });
 });

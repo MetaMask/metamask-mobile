@@ -15,9 +15,11 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { getTokenTransferData } from '../../utils/transaction-pay';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 export function useUpdateTokenAmount() {
   const dispatch = useDispatch();
+  const { setIsTransactionDataUpdating } = useConfirmationContext();
   const transactionMeta = useTransactionMetadataRequest();
   const { chainId } = transactionMeta ?? {};
   const transactionId = transactionMeta?.id ?? '';
@@ -43,18 +45,12 @@ export function useUpdateTokenAmount() {
     Boolean(previousAmountRaw) && amountRaw === previousAmountRaw;
 
   useEffect(() => {
-    // MATT TODO
-    // dispatch(
-    //   setTransactionUpdating({
-    //     transactionId,
-    //     isUpdating,
-    //   }),
-    // );
+    setIsTransactionDataUpdating(isUpdating);
 
     if (!isUpdating) {
       setPreviousAmountRaw(undefined);
     }
-  }, [dispatch, isUpdating, transactionId]);
+  }, [dispatch, isUpdating, transactionId, setIsTransactionDataUpdating]);
 
   const updateTokenAmount = useCallback(
     (amountHuman: string) => {

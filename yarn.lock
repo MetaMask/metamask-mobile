@@ -8846,7 +8846,7 @@ __metadata:
 
 "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller#.yalc/@metamask/transaction-pay-controller::hash=32fffc&locator=metamask%40workspace%3A."
+  resolution: "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller#.yalc/@metamask/transaction-pay-controller::hash=e2b084&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
@@ -8862,10 +8862,11 @@ __metadata:
     "@metamask/assets-controllers": ^79.0.0
     "@metamask/bridge-controller": ^49.0.0
     "@metamask/bridge-status-controller": ^49.0.0
+    "@metamask/gas-fee-controller": ^24.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.5.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: c90e03942891c015da009a5993cfb9f7351dd9437a46e2989586c16e81bb28b54340cbad78cc8dd54c51f1f8a20853b7f04dc29390aa3c04bb5825d50fa5c243
+  checksum: 09c04a01e601ef4a3e3132acd938c4ccf5cd51125ea84a41c71fb13e70a544ed3fa358b99be023c3bca7a296d031b59043a4c1112becf2a65442f65d43639b7f
   languageName: node
   linkType: hard
 
