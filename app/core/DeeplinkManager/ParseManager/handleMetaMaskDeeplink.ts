@@ -165,6 +165,10 @@ export function handleMetaMaskDeeplink({
       '',
     );
     instance._handleDepositCash(depositCashPath);
+  } else if (
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ENABLE_CARD_BUTTON}`)
+  ) {
+    instance._handleEnableCardButton();
   }
 }
 

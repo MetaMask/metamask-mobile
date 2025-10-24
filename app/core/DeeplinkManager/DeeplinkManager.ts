@@ -25,6 +25,7 @@ import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
 import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
 import handleFastOnboarding from './Handlers/handleFastOnboarding';
+import { handleEnableCardButton } from './Handlers/handleEnableCardButton';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -144,6 +145,10 @@ class DeeplinkManager {
 
   _handleFastOnboarding(onboardingPath: string) {
     handleFastOnboarding({ onboardingPath });
+  }
+
+  _handleEnableCardButton() {
+    handleEnableCardButton();
   }
 
   async parse(
