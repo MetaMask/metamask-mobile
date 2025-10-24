@@ -13,6 +13,8 @@ export class ExtendedMessenger<
     string,
     ActionConstraint,
     EventConstraint,
+    // Use `any` to avoid preventing a parent from having a parent. `any` is harmless in a type
+    // constraint anyway, it's the one totally safe place to use it.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     any
   > = never,
