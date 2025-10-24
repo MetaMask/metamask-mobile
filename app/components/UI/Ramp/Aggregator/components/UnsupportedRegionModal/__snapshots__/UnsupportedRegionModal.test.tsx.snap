@@ -541,6 +541,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -1127,6 +1128,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

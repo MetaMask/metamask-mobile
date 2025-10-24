@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { Image, View } from 'react-native';
+import { Image, useWindowDimensions, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -12,7 +12,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import MetalCard from '../../../../../images/metal-card.png';
+import MM_CARDS_MOCKUP from '../../../../../images/mm-cards-mockup.png';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,21 +20,21 @@ import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardW
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
-import { CardButtons, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const isCardholder = useIsCardholder();
   const theme = useTheme();
-
-  const styles = createStyles(theme);
+  const deviceWidth = useWindowDimensions().width;
+  const styles = createStyles(theme, deviceWidth);
 
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
         .addProperties({
-          screen: CardScreens.CARD_WELCOME,
+          screen: CardScreens.WELCOME,
         })
         .build(),
     );
@@ -64,7 +64,7 @@ const CardWelcome = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          button: CardButtons.CARD_VERIFY_ACCOUNT,
+          button: CardActions.VERIFY_ACCOUNT_BUTTON,
         })
         .build(),
     );
@@ -81,7 +81,7 @@ const CardWelcome = () => {
       <View style={styles.container}>
         <View style={styles.imageWrapper}>
           <Image
-            source={MetalCard}
+            source={MM_CARDS_MOCKUP}
             style={styles.image}
             resizeMode="contain"
             testID={CardWelcomeSelectors.CARD_IMAGE}

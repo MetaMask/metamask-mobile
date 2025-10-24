@@ -23,11 +23,13 @@ import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
   selectContactVerificationId,
   selectOnboardingId,
-  setUser,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
+import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
 
@@ -61,7 +63,7 @@ const createStyles = (params: { theme: Theme }) => {
 
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const { styles } = useStyles(createStyles, {});
   const inputRef = useRef<TextInput>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -69,7 +71,7 @@ const ConfirmPhoneNumber = () => {
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { phoneNumber, phoneCountryCode } = useParams<{
     phoneNumber: string;
     phoneCountryCode: string;
@@ -105,6 +107,13 @@ const ConfirmPhoneNumber = () => {
       return;
     }
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { user } = await verifyPhoneVerification({
         onboardingId,
         phoneNumber,
@@ -113,7 +122,7 @@ const ConfirmPhoneNumber = () => {
         contactVerificationId,
       });
       if (user) {
-        dispatch(setUser(user));
+        setUser(user);
         navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
       }
     } catch (error) {
@@ -139,8 +148,10 @@ const ConfirmPhoneNumber = () => {
     phoneCountryCode,
     contactVerificationId,
     verifyPhoneVerification,
-    dispatch,
+    setUser,
     navigation,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const handleValueChange = useCallback(
@@ -162,6 +173,13 @@ const ConfirmPhoneNumber = () => {
       return;
     }
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       await sendPhoneVerification({
         phoneCountryCode,
         phoneNumber,
@@ -177,7 +195,19 @@ const ConfirmPhoneNumber = () => {
     phoneCountryCode,
     contactVerificationId,
     sendPhoneVerification,
+    trackEvent,
+    createEventBuilder,
   ]);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+        .addProperties({
+          page: CardScreens.CONFIRM_PHONE_NUMBER,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   // Cooldown timer effect
   useEffect(() => {

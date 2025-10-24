@@ -18,9 +18,8 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  setUser,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SelectComponent from '../../../SelectComponent';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -29,13 +28,16 @@ import {
   validateDateOfBirth,
 } from '../../util/validateDateOfBirth';
 import { CardError } from '../../types';
+import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -142,6 +144,13 @@ const PersonalDetails = () => {
     }
 
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.PERSONAL_DETAILS_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { user } = await registerPersonalDetails({
         onboardingId,
         firstName,
@@ -152,7 +161,7 @@ const PersonalDetails = () => {
       });
 
       if (user) {
-        dispatch(setUser(user));
+        setUser(user);
         navigation.navigate(Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS);
       }
     } catch (error) {
@@ -167,6 +176,16 @@ const PersonalDetails = () => {
       // Allow error message to display
     }
   };
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+        .addProperties({
+          page: CardScreens.PERSONAL_DETAILS,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const isDisabled = useMemo(
     () =>

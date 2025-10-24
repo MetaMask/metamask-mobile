@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonSize,
@@ -12,24 +12,44 @@ import { AddressFields } from './PhysicalAddress';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  setUser,
+  setIsAuthenticatedCard,
+  setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { CardError } from '../../types';
+import { storeCardBaanxToken } from '../../util/cardTokenVault';
+import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import { extractTokenExpiration } from '../../util/extractTokenExpiration';
+import Logger from '../../../../../util/Logger';
+import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+        .addProperties({
+          page: CardScreens.MAILING_ADDRESS,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const {
     registerAddress,
@@ -112,6 +132,13 @@ const MailingAddress = () => {
     }
 
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.MAILING_ADDRESS_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -122,10 +149,31 @@ const MailingAddress = () => {
       });
 
       if (updatedUser) {
-        dispatch(setUser(updatedUser));
+        setUser(updatedUser);
       }
 
       if (accessToken) {
+        // Store the access token for immediate authentication
+        const location = mapCountryToLocation(selectedCountry);
+        const accessTokenExpiresIn = extractTokenExpiration(accessToken);
+
+        const storeResult = await storeCardBaanxToken({
+          accessToken,
+          accessTokenExpiresAt: accessTokenExpiresIn,
+          location,
+        });
+
+        if (storeResult.success) {
+          // Update Redux state to reflect authentication
+          dispatch(setIsAuthenticatedCard(true));
+          dispatch(setUserCardLocation(location));
+        } else {
+          Logger.log(
+            'MailingAddress: Failed to store access token',
+            storeResult.error,
+          );
+        }
+
         // Registration complete
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
       }

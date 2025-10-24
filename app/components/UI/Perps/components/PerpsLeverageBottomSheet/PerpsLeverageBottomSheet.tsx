@@ -471,8 +471,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     );
     const baseOptions = [2, 5, 10, 20, 40];
     const filtered = baseOptions.filter((option) => option <= maxLeverage);
-    DevLogger.log(`Available leverage options: ${filtered.join(', ')}`);
-    return filtered;
+
+    // Special case: when maxLeverage is 3, show both 2x and 3x buttons
+    const options = maxLeverage === 3 ? [2, 3] : filtered;
+
+    DevLogger.log(`Available leverage options: ${options.join(', ')}`);
+    return options;
   }, [maxLeverage]);
 
   /**

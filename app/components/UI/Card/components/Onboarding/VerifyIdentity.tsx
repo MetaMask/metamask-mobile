@@ -10,13 +10,14 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
-import { useSelector } from 'react-redux';
-import { selectUser } from '../../../../../core/redux/slices/card';
+import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
-  const user = useSelector(selectUser);
-
+  const { user } = useCardSDK();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
@@ -31,6 +32,14 @@ const VerifyIdentity = () => {
       return;
     }
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFY_IDENTITY_BUTTON_CLICKED,
+        })
+        .build(),
+    );
+
     navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
       sessionUrl,
     });
@@ -41,6 +50,16 @@ const VerifyIdentity = () => {
       navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
     }
   }, [navigation, user?.verificationState]);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+        .addProperties({
+          page: CardScreens.VERIFY_IDENTITY,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
     <>

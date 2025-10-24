@@ -51,7 +51,9 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { CardButtons, CardScreens } from '../../util/metrics';
+import { useDispatch } from 'react-redux';
+import { setOnboardingId } from '../../../../../core/redux/slices/card';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
 
@@ -101,7 +103,7 @@ const CardAuthentication = () => {
   >(null);
   const [resendCountdown, setResendCountdown] = useState(60);
   const otpInputRef = useRef<TextInput>(null);
-
+  const dispatch = useDispatch();
   const theme = useTheme();
   const {
     login,
@@ -182,8 +184,8 @@ const CardAuthentication = () => {
   useEffect(() => {
     const screenName =
       step === 'login'
-        ? CardScreens.CARD_AUTHENTICATION
-        : CardScreens.CARD_OTP_AUTHENTICATION;
+        ? CardScreens.AUTHENTICATION
+        : CardScreens.OTP_AUTHENTICATION;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
@@ -198,8 +200,8 @@ const CardAuthentication = () => {
     async (otpCode?: string) => {
       const button =
         step === 'login'
-          ? CardButtons.CARD_AUTHENTICATION_LOGIN_BUTTON
-          : CardButtons.CARD_OTP_AUTHENTICATION;
+          ? CardActions.AUTHENTICATION_LOGIN_BUTTON
+          : CardActions.OTP_AUTHENTICATION_CONFIRM_BUTTON;
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -228,6 +230,16 @@ const CardAuthentication = () => {
           return;
         }
 
+        if (
+          loginResponse?.verificationState === 'PENDING' ||
+          loginResponse?.phase
+        ) {
+          // Switch to OTP step instead of navigating
+          dispatch(setOnboardingId(loginResponse.userId));
+          navigation.navigate(Routes.CARD.ONBOARDING.ROOT);
+          return;
+        }
+
         // Successful login - navigate to home
         navigation.reset({
           index: 0,
@@ -244,8 +256,9 @@ const CardAuthentication = () => {
       location,
       login,
       password,
-      navigation,
       step,
+      navigation,
+      dispatch,
       trackEvent,
       createEventBuilder,
     ],

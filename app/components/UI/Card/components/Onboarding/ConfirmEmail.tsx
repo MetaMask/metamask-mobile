@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -24,6 +24,14 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
+import { CardActions, CardScreens } from '../../util/metrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
@@ -32,6 +40,9 @@ const ConfirmEmail = () => {
   const [resendCooldown, setResendCooldown] = useState(0);
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const { toastRef } = useContext(ToastContext);
+  const theme = useTheme();
 
   const { email, password } = useParams<{
     email: string;
@@ -61,6 +72,16 @@ const ConfirmEmail = () => {
     [resetVerifyEmailVerification],
   );
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_SCREEN_VIEWED)
+        .addProperties({
+          page: CardScreens.CONFIRM_EMAIL,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
   // Cooldown timer effect
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -77,6 +98,13 @@ const ConfirmEmail = () => {
   const handleResendVerification = useCallback(async () => {
     if (resendCooldown > 0 || !email) return;
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON_CLICKED,
+        })
+        .build(),
+    );
     try {
       const { contactVerificationId } = await sendEmailVerification(email);
       dispatch(setContactVerificationId(contactVerificationId));
@@ -84,7 +112,14 @@ const ConfirmEmail = () => {
     } catch {
       // Allow error message to display
     }
-  }, [dispatch, email, resendCooldown, sendEmailVerification]);
+  }, [
+    dispatch,
+    email,
+    resendCooldown,
+    sendEmailVerification,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleContinue = useCallback(async () => {
     if (
@@ -97,6 +132,13 @@ const ConfirmEmail = () => {
       return;
     }
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.CONFIRM_EMAIL_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { onboardingId, hasAccount } = await verifyEmailVerification({
         email,
         password,
@@ -111,7 +153,21 @@ const ConfirmEmail = () => {
         dispatch(setOnboardingId(onboardingId));
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (hasAccount) {
-        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+        navigation.navigate(Routes.CARD.AUTHENTICATION);
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          hasNoTimeout: false,
+          iconName: IconName.Info,
+          iconColor: theme.colors.info.default,
+          labelOptions: [
+            {
+              label: strings(
+                'card.card_onboarding.confirm_email.account_exists',
+              ),
+              isBold: true,
+            },
+          ],
+        });
       }
     } catch (error) {
       if (
@@ -128,9 +184,13 @@ const ConfirmEmail = () => {
     dispatch,
     email,
     navigation,
+    theme,
     password,
     selectedCountry,
     verifyEmailVerification,
+    trackEvent,
+    createEventBuilder,
+    toastRef,
   ]);
 
   const isDisabled =
