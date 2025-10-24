@@ -157,7 +157,10 @@ jest.mock(
   '../../components/PerpsMarketBalanceActions',
   () => 'PerpsMarketBalanceActions',
 );
-jest.mock('../../components/PerpsSearchBar', () => 'PerpsSearchBar');
+jest.mock(
+  '../../../../../component-library/components/Form/TextFieldSearch',
+  () => 'TextFieldSearch',
+);
 jest.mock('../../components/PerpsCard', () => 'PerpsCard');
 jest.mock(
   '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets',

@@ -31,6 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     searchContainer: {
       paddingTop: 16,
+      paddingHorizontal: 16,
     },
     searchInputContainer: {
       flexDirection: 'row',

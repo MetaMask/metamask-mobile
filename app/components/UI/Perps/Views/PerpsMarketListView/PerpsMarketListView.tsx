@@ -18,7 +18,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
-import PerpsSearchBar from '../../components/PerpsSearchBar';
+import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsMarketSortDropdowns from '../../components/PerpsMarketSortDropdowns';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketSortDirectionBottomSheet from '../../components/PerpsMarketSortDirectionBottomSheet';
@@ -565,13 +565,16 @@ const PerpsMarketListView = ({
         </View>
       </Pressable>
 
-      {/* Search Bar - Use reusable component */}
+      {/* Search Bar - Use design system component */}
       {isSearchVisible && (
         <View style={styles.searchContainer}>
-          <PerpsSearchBar
+          <TextFieldSearch
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoFocus
+            showClearButton={searchQuery.length > 0}
+            onPressClearButton={() => setSearchQuery('')}
+            placeholder={strings('perps.search_by_token_symbol')}
             testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
           />
         </View>

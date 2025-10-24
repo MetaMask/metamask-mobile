@@ -1,10 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -41,7 +36,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 import { usePerpsHomeData } from '../../hooks/usePerpsHomeData';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
-import PerpsSearchBar from '../../components/PerpsSearchBar';
+import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsTrendingMarkets from '../../components/PerpsTrendingMarkets/PerpsTrendingMarkets';
@@ -68,9 +63,6 @@ const PerpsHomeView = () => {
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  // Track refreshing state
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -83,7 +75,6 @@ const PerpsHomeView = () => {
     trendingMarkets,
     recentActivity,
     isLoading,
-    refresh,
   } = usePerpsHomeData({
     searchQuery: isSearchVisible ? searchQuery : '',
   });
@@ -109,17 +100,6 @@ const PerpsHomeView = () => {
       [PerpsEventProperties.SOURCE]: source,
     },
   });
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await refresh();
-    } catch (err) {
-      console.error('Failed to refresh home data:', err);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [refresh]);
 
   const handleSearchToggle = useCallback(() => {
     setIsSearchVisible(!isSearchVisible);
@@ -303,13 +283,16 @@ const PerpsHomeView = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Search Bar - Use reusable component */}
+      {/* Search Bar - Use design system component */}
       {isSearchVisible && (
         <View style={styles.searchContainer}>
-          <PerpsSearchBar
+          <TextFieldSearch
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoFocus
+            showClearButton={searchQuery.length > 0}
+            onPressClearButton={() => setSearchQuery('')}
+            placeholder={strings('perps.search_by_token_symbol')}
             testID="perps-home-search"
           />
         </View>
@@ -319,13 +302,6 @@ const PerpsHomeView = () => {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.colors.primary.default}
-          />
-        }
         showsVerticalScrollIndicator={false}
       >
         {/* Balance Actions Component */}
