@@ -1,3 +1,5 @@
+const { RUNTIME_VERSION } = require('./ota.config.js');
+
 module.exports = {
   name: 'MetaMask',
   displayName: 'MetaMask',
@@ -15,7 +17,9 @@ module.exports = {
             '../../node_modules/@notifee/react-native/android/libs',
           ],
         },
-        ios: {},
+        ios: {
+          jsEngine: 'hermes',
+        },
       },
     ],
     [
@@ -36,5 +40,28 @@ module.exports = {
   ios: {
     bundleIdentifier: 'io.metamask.MetaMask',
     usesAppleSignIn: true,
+    jsEngine: 'hermes',
+  },
+  expo: {
+    owner: 'metamask-test',
+    runtimeVersion: RUNTIME_VERSION,
+    updates: {
+      url: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
+      // Channel is set by requestHeaders, will be overridden at runtime for RC builds
+      requestHeaders: {
+        'expo-channel-name': 'production',
+      },
+    },
+    extra: {
+      eas: {
+        projectId: 'fddf3e54-a014-4ba7-a695-d116a9ef9620',
+      },
+    },
+    android: {
+      package: 'io.metamask',
+    },
+    ios: {
+      bundleIdentifier: 'io.metamask.MetaMask',
+    },
   },
 };
