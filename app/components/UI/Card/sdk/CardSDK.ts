@@ -81,10 +81,6 @@ export class CardSDK {
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
-  get isBaanxLoginEnabled(): boolean {
-    return this.cardFeatureFlag?.isBaanxLoginEnabled ?? false;
-  }
-
   get isCardEnabled(): boolean {
     return this.cardFeatureFlag.chains?.[this.lineaChainId]?.enabled || false;
   }
