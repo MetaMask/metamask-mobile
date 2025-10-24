@@ -314,7 +314,7 @@ const PhysicalAddress = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.PHYSICAL_ADDRESS_BUTTON,
+            action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
           })
           .build(),
       );
