@@ -52,6 +52,7 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsHomeView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -199,7 +200,7 @@ const PerpsHomeView = () => {
             iconName={IconName.Home}
             onPress={handleWalletPress}
             isActive={false}
-            testID="tab-bar-item-wallet"
+            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_WALLET}
           />
         </View>
         <View style={tw.style('flex-1')}>
@@ -208,7 +209,7 @@ const PerpsHomeView = () => {
             iconName={IconName.Explore}
             onPress={handleBrowserPress}
             isActive={false}
-            testID="tab-bar-item-browser"
+            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_BROWSER}
           />
         </View>
         <View style={tw.style('flex-1')}>
@@ -218,7 +219,7 @@ const PerpsHomeView = () => {
             onPress={handleActionsPress}
             isActive
             isTradeButton
-            testID="tab-bar-item-actions"
+            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIONS}
           />
         </View>
         <View style={tw.style('flex-1')}>
@@ -227,7 +228,7 @@ const PerpsHomeView = () => {
             iconName={IconName.Activity}
             onPress={handleActivityPress}
             isActive={false}
-            testID="tab-bar-item-activity"
+            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIVITY}
           />
         </View>
         <View style={tw.style('flex-1')}>
@@ -262,7 +263,7 @@ const PerpsHomeView = () => {
           onPress={handleBackPress}
           size={ButtonIconSizes.Md}
           iconColor={IconColor.Default}
-          testID="back-button"
+          testID={PerpsHomeViewSelectorsIDs.BACK_BUTTON}
         />
         <Text
           variant={TextVariant.HeadingLG}
@@ -274,7 +275,7 @@ const PerpsHomeView = () => {
         <TouchableOpacity
           style={styles.searchButton}
           onPress={handleSearchToggle}
-          testID="perps-home-search-toggle"
+          testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
         >
           <Icon
             name={isSearchVisible ? IconName.Close : IconName.Search}
@@ -294,7 +295,7 @@ const PerpsHomeView = () => {
             showClearButton={searchQuery.length > 0}
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
-            testID="perps-home-search"
+            testID={PerpsHomeViewSelectorsIDs.SEARCH_INPUT}
           />
         </View>
       )}

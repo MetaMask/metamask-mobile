@@ -181,9 +181,21 @@ export const PerpsTabViewSelectorsIDs = {
   SCROLL_VIEW: 'perps-tab-scroll-view',
 };
 
+export const PerpsHomeViewSelectorsIDs = {
+  BACK_BUTTON: 'back-button',
+  SEARCH_TOGGLE: 'perps-home-search-toggle',
+  SEARCH_INPUT: 'perps-home-search',
+  SCROLL_CONTENT: 'scroll-content',
+  // TabBar mock items (for testing)
+  TAB_BAR_WALLET: 'tab-bar-item-wallet',
+  TAB_BAR_BROWSER: 'tab-bar-item-browser',
+  TAB_BAR_ACTIONS: 'tab-bar-item-actions',
+  TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
-  BACK_BUTTON: 'button-icon-arrow-left',
+  BACK_BUTTON: 'back-button',
   POSITION_ITEM: 'perps-positions-item',
   POSITIONS_SECTION: 'perps-positions-section',
   POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
@@ -209,6 +221,7 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 // ========================================
 
 export const PerpsTPSLViewSelectorsIDs = {
+  BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
   SET_BUTTON: 'bottomsheetfooter-button',
 } as const;

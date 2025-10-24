@@ -26,7 +26,10 @@ import { usePerpsMarketListView } from '../../hooks/usePerpsMarketListView';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type { PerpsMarketData } from '../../controllers/types';
-import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketListViewSelectorsIDs,
+  PerpsHomeViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   NavigationProp,
   useNavigation,
@@ -401,7 +404,7 @@ const PerpsMarketListView = ({
               iconName={IconName.Home}
               onPress={handleWalletPress}
               isActive={false}
-              testID="tab-bar-item-wallet"
+              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_WALLET}
             />
           </View>
           <View style={tw.style('flex-1')}>
@@ -410,7 +413,7 @@ const PerpsMarketListView = ({
               iconName={IconName.Explore}
               onPress={handleBrowserPress}
               isActive={false}
-              testID="tab-bar-item-browser"
+              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_BROWSER}
             />
           </View>
           <View style={tw.style('flex-1')}>
@@ -420,7 +423,7 @@ const PerpsMarketListView = ({
               onPress={handleActionsPress}
               isActive
               isTradeButton
-              testID="tab-bar-item-actions"
+              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIONS}
             />
           </View>
           <View style={tw.style('flex-1')}>
@@ -429,7 +432,7 @@ const PerpsMarketListView = ({
               iconName={IconName.Activity}
               onPress={handleActivityPress}
               isActive={false}
-              testID="tab-bar-item-activity"
+              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIVITY}
             />
           </View>
           <View style={tw.style('flex-1')}>
