@@ -125,6 +125,7 @@ describe('perps controller init', () => {
         activeWithdrawalId: undefined,
       },
       depositRequests: [],
+      preferredCandlePeriod: '15m',
     };
 
     initRequestMock.persistedState = {
