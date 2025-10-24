@@ -1024,13 +1024,14 @@ describe('PerpsMarketTabs', () => {
     it('navigates to tutorial when tutorial card is pressed', () => {
       // Arrange
       const onActiveTabChange = jest.fn();
+      // Configure hooks to return position data (needed to render full tab view with navigation)
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, coin: 'BTC' }],
+      });
+
       const { getByTestId } = render(
         <PerpsMarketTabs
           symbol="BTC"
-          marketStats={mockMarketStats}
-          position={mockPosition} // Include position to render full tab view with navigation
-          isLoadingPosition={false}
-          unfilledOrders={[]}
           onActiveTabChange={onActiveTabChange}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
@@ -1048,13 +1049,14 @@ describe('PerpsMarketTabs', () => {
     it('navigates to activity when activity link is pressed', () => {
       // Arrange
       const onActiveTabChange = jest.fn();
+      // Configure hooks to return position data (needed to render full tab view with navigation)
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, coin: 'BTC' }],
+      });
+
       const { getByTestId } = render(
         <PerpsMarketTabs
           symbol="BTC"
-          marketStats={mockMarketStats}
-          position={mockPosition} // Include position to render full tab view with navigation
-          isLoadingPosition={false}
-          unfilledOrders={[]}
           onActiveTabChange={onActiveTabChange}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
