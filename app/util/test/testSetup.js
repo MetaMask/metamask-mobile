@@ -551,16 +551,6 @@ require('react-native-reanimated').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
-// Mock UIManager.measureAsyncOnUI for the patched React Native version
-// This function is added via patch to support Fabric's async measurements
-const { UIManager } = require('react-native');
-if (UIManager.measureAsyncOnUI === undefined) {
-  UIManager.measureAsyncOnUI = jest.fn((node, callback) => {
-    // Mock implementation that calls the callback with default measurements
-    callback(0, 0, 100, 100, 0, 0);
-  });
-}
-
 jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
