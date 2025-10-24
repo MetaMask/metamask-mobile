@@ -309,22 +309,39 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return dynamicTabs;
   }, [position, sortedUnfilledOrders.length]);
 
-  // Initialize with initialTab or statistics by default
-  const [activeTabId, setActiveTabId] = useState<PerpsTabId>(
-    initialTab || 'statistics',
-  );
+  // Initialize with first available tab based on priority
+  const [activeTabId, setActiveTabId] = useState<PerpsTabId>(() => {
+    if (initialTab) {
+      return initialTab;
+    }
+
+    // Auto-select based on priority
+    if (position) {
+      return 'position';
+    }
+    if (sortedUnfilledOrders.length > 0) {
+      return 'orders';
+    }
+    return 'statistics';
+  });
+
+  // Mark that we have an initialTab prop to prevent auto-selection from overriding it
+  useEffect(() => {
+    if (initialTab && !hasSetInitialTab.current) {
+      hasSetInitialTab.current = true;
+    }
+  }, [initialTab]);
 
   // Handle initialTab when it becomes available after data loads
   useEffect(() => {
-    if (initialTab && !hasUserInteracted.current && !hasSetInitialTab.current) {
+    if (initialTab && !hasUserInteracted.current) {
       const availableTabs = tabs.map((t) => t.id);
       if (availableTabs.includes(initialTab)) {
-        hasSetInitialTab.current = true;
         setActiveTabId(initialTab as PerpsTabId);
         onActiveTabChange?.(initialTab);
       }
     }
-  }, [initialTab, tabs, onActiveTabChange]);
+  }, [initialTab, tabs, onActiveTabChange, activeTabId]);
 
   // Set initial tab based on data availability
   // Now we can properly distinguish between loading and empty states
@@ -339,7 +356,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       return;
     }
 
-    // If initialTab prop is provided and will be applied by the other useEffect, skip auto-selection
+    // If initialTab is provided, don't auto-select - let the initialTab effect handle it
     if (initialTab) {
       return;
     }
@@ -358,12 +375,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
     // Only update if tab actually needs to change
     if (activeTabId !== targetTabId) {
-      DevLogger.log('PerpsMarketTabs: Auto-selecting tab:', {
-        targetTabId,
-        hasPosition: !!position,
-        ordersCount: sortedUnfilledOrders.length,
-        previousTab: activeTabId,
-      });
       setActiveTabId(targetTabId as PerpsTabId);
       onActiveTabChange?.(targetTabId);
     }
@@ -379,12 +390,17 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   useEffect(() => {
     const tabIds = tabs.map((t) => t.id);
     if (!tabIds.includes(activeTabId)) {
+      // If we have an initialTab, wait for that tab's data to load - don't switch away
+      if (initialTab && !hasUserInteracted.current) {
+        return;
+      }
+
       // Switch to first available tab if current tab is hidden
       const newTabId = tabs[0]?.id || 'statistics';
       setActiveTabId(newTabId as PerpsTabId);
       onActiveTabChange?.(newTabId);
     }
-  }, [tabs, activeTabId, onActiveTabChange]);
+  }, [tabs, activeTabId, onActiveTabChange, initialTab]);
 
   // Handle programmatic tab control from external activeTabId prop
   useEffect(() => {
@@ -665,7 +681,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (tabsListRef.current && activeIndex >= 0) {
       tabsListRef.current.goToTabIndex(activeIndex);
     }
-  }, [tabsKey, activeIndex]);
+  }, [tabsKey, activeIndex, activeTabId]);
 
   if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
