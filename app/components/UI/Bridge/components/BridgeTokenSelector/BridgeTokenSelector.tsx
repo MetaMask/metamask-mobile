@@ -13,8 +13,12 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
+import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
+import { Theme } from '../../../../../util/theme/models';
 
-const createStyles = () => StyleSheet.create({
+const createStyles = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
     scrollView: {
       flexGrow: 0,
     },
@@ -25,7 +29,19 @@ const createStyles = () => StyleSheet.create({
       paddingHorizontal: 20,
       paddingVertical: 12,
     },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    searchInput: {
+      marginVertical: 12,
+      marginHorizontal: 8,
+      borderRadius: 12,
+      borderWidth: 0,
+      backgroundColor: theme.colors.background.section,
+    },
   });
+};
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
@@ -34,6 +50,7 @@ export const BridgeTokenSelector: React.FC = () => {
   const [selectedChainId, setSelectedChainId] = useState<
     Hex | CaipChainId | undefined
   >(undefined);
+  const [searchString, setSearchString] = useState<string>('');
 
   const handleClose = () => {
     navigation.goBack();
@@ -42,6 +59,11 @@ export const BridgeTokenSelector: React.FC = () => {
   const handleChainSelect = (chainId?: Hex | CaipChainId) => {
     setSelectedChainId(chainId);
     // TODO: Implement token filtering based on selected chain
+  };
+
+  const handleSearchTextChange = (text: string) => {
+    setSearchString(text);
+    // TODO: Implement token search functionality
   };
 
   return (
@@ -55,6 +77,14 @@ export const BridgeTokenSelector: React.FC = () => {
       <NetworkPills
         selectedChainId={selectedChainId}
         onChainSelect={handleChainSelect}
+      />
+
+      <TextFieldSearch
+        value={searchString}
+        onChangeText={handleSearchTextChange}
+        placeholder={strings('swaps.search_token')}
+        testID="bridge-token-search-input"
+        style={styles.searchInput}
       />
 
       <ScrollView

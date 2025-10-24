@@ -60,7 +60,7 @@ const createStyles = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
-      paddingHorizontal: 4,
+      marginHorizontal: 8,
     },
   });
 };
