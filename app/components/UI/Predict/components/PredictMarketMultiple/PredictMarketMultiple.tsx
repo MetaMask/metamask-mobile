@@ -8,7 +8,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -69,7 +71,28 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         return (firstValue * 100).toFixed(2);
       }
     } catch (error) {
-      console.warn('Failed to parse outcomePrices:', outcomePrices, error);
+      DevLogger.log('PredictMarketMultiple: Failed to parse outcomePrices', {
+        outcomePrices,
+        error,
+      });
+
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tags: {
+            component: 'PredictMarketMultiple',
+            action: 'parse_outcome_prices',
+            operation: 'market_display',
+          },
+          extra: {
+            context: {
+              marketId: market.id,
+              marketTitle: market.title,
+              outcomePrices,
+            },
+          },
+        },
+      );
     }
 
     return undefined;
