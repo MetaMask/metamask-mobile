@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
 } from 'react';
@@ -26,11 +27,21 @@ export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
 }
 
-const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
+interface PredictPositionsProps {
+  /**
+   * Callback when an error occurs during positions fetch
+   */
+  onError?: (error: string | null) => void;
+}
+
+const PredictPositions = forwardRef<
+  PredictPositionsHandle,
+  PredictPositionsProps
+>(({ onError }, ref) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { positions, isRefreshing, loadPositions, isLoading } =
+  const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,
       refreshOnFocus: true,
@@ -38,12 +49,19 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   const {
     positions: claimablePositions,
     loadPositions: loadClaimablePositions,
+    error: claimableError,
   } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
     refreshOnFocus: true,
   });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
+
+  // Notify parent of errors while keeping state isolated
+  useEffect(() => {
+    const combinedError = error || claimableError;
+    onError?.(combinedError);
+  }, [error, claimableError, onError]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
