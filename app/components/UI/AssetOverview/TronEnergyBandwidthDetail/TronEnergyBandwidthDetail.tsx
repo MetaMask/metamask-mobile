@@ -12,25 +12,28 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import ResourceRing from './ResourceRing';
+import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 
 const TronEnergyBandwidthDetail = () => {
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
 
-  const energy = tronResources.find((a) => a.symbol.toLowerCase() === 'energy');
+  const energy = tronResources.find(
+    (a) => a.symbol.toLowerCase() === TRON_RESOURCE.ENERGY,
+  );
   const bandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'bandwidth',
+    (a) => a.symbol.toLowerCase() === TRON_RESOURCE.BANDWIDTH,
   );
   const maxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'max-energy',
+    (a) => a.symbol.toLowerCase() === TRON_RESOURCE.MAX_ENERGY,
   );
   const maxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'max-bandwidth',
+    (a) => a.symbol.toLowerCase() === TRON_RESOURCE.MAX_BANDWIDTH,
   );
   const strxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-energy',
+    (a) => a.symbol.toLowerCase() === TRON_RESOURCE.STRX_ENERGY,
   );
   const strxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
+    (a) => a.symbol.toLowerCase() === TRON_RESOURCE.STRX_BANDWIDTH,
   );
 
   const parseNum = (v?: string | number) =>
