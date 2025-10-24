@@ -2471,6 +2471,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           timestamp: statusTimestamp,
           lastUpdated: statusTimestamp,
           detailedOrderType: order.orderType, // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+          isTrigger: order.isTrigger,
+          reduceOnly: order.reduceOnly,
         };
       });
 
