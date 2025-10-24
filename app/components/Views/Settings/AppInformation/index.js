@@ -19,7 +19,7 @@ import {
   channel,
   runtimeVersion,
   isEmbeddedLaunch,
-  isEnabled,
+  isEnabled as isOTAUpdatesEnabled,
 } from 'expo-updates';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -223,7 +223,7 @@ export default class AppInformation extends PureComponent {
               </Text>
             ) : null}
 
-            {this.state.showEnvironmentInfo ? (
+            {this.state.showEnvironmentInfo && (
               <>
                 <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
@@ -235,19 +235,23 @@ export default class AppInformation extends PureComponent {
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
                 </Text>
                 <Text style={styles.branchInfo}>
-                  {`OTA Update Channel: ${channel}`}
+                  {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
                 </Text>
-                <Text style={styles.branchInfo}>
-                  {`OTA Update runtime version: ${runtimeVersion}`}
-                </Text>
-                <Text style={styles.branchInfo}>
-                  {`OTA Update status: ${otaUpdateMessage}`}
-                </Text>
-                <Text style={styles.branchInfo}>
-                  {`OTA Updates enabled: ${String(isEnabled)}`}
-                </Text>
+                {isOTAUpdatesEnabled && (
+                  <>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update Channel: ${channel}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update runtime version: ${runtimeVersion}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update status: ${otaUpdateMessage}`}
+                    </Text>
+                  </>
+                )}
               </>
-            ) : null}
+            )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>

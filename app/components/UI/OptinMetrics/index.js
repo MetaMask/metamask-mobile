@@ -47,7 +47,6 @@ import {
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
 import Device from '../../../util/device';
-import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -444,7 +443,8 @@ class OptinMetrics extends PureComponent {
             </Text>
             <View style={styles.imageContainer}>
               <Image
-                source={PrivacyIllustration}
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
+                source={require('../../../images/privacy_metrics_illustration.png')}
                 style={styles.illustration}
                 resizeMode="contain"
               />

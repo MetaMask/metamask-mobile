@@ -1,8 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
-import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
 import { isE2E } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
 
@@ -61,6 +66,7 @@ const OnboardingAnimation = ({
   setStartFoxAnimation: (value: boolean) => void;
 }) => {
   const logoRef = useRef<RiveRef>(null);
+  const [riveReady, setRiveReady] = useState(false);
   const logoPosition = useMemo(() => new Animated.Value(0), []);
   const buttonsOpacity = useMemo(() => new Animated.Value(isE2E ? 1 : 0), []);
 
@@ -118,17 +124,9 @@ const OnboardingAnimation = ({
   ]);
 
   useEffect(() => {
-    if (!startOnboardingAnimation) return;
-
-    // to ensure the animation is triggered with EAS updates in placed
-    const timeoutId = setTimeout(() => {
-      startRiveAnimation();
-    }, 1000);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [startOnboardingAnimation, startRiveAnimation]);
+    if (!startOnboardingAnimation || !riveReady) return;
+    startRiveAnimation();
+  }, [startOnboardingAnimation, riveReady, startRiveAnimation]);
 
   return (
     <>
@@ -144,12 +142,15 @@ const OnboardingAnimation = ({
           <Rive
             ref={logoRef}
             style={styles.image}
-            source={MetaMaskWordmarkAnimation}
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            source={require('../../../animations/metamask_wordmark_animation_build-up.riv')}
             fit={Fit.Contain}
             alignment={Alignment.Center}
             autoplay={false}
             stateMachineName="WordmarkBuildUp"
             testID="metamask-wordmark-animation"
+            // Some versions expose only onPlay; use that to mark readiness
+            onPlay={() => setRiveReady(true)}
           />
         </Animated.View>
       </View>
