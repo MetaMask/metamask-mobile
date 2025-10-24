@@ -17,7 +17,7 @@ import {
   captureScreenshot,
   createScreenshotNavigationWrapper,
 } from '../framework';
-import { loginToApp } from '../helpers';
+import { loginToApp } from '../viewHelper';
 import TabBarComponent from '../pages/wallet/TabBarComponent';
 import WalletView from '../pages/wallet/WalletView';
 import SettingsView from '../pages/Settings/SettingsView';
