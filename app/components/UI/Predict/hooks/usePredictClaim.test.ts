@@ -70,12 +70,13 @@ const mockCaptureException = captureException as jest.MockedFunction<
 const mockNavigation = {
   navigate: mockNavigate,
   goBack: mockGoBack,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as unknown as NavigationProp<any>;
+} as unknown as NavigationProp<Record<string, object | undefined>>;
 
+const mockCloseToast = jest.fn();
 const mockToastRef = {
   current: {
     showToast: mockShowToast,
+    closeToast: mockCloseToast,
   },
 };
 
@@ -89,19 +90,19 @@ describe('usePredictClaim', () => {
       .fn()
       .mockReturnValue(mockNavigation);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUsePredictTrading.mockReturnValue({
       claim: mockClaimWinnings,
       getPositions: jest.fn(),
       placeOrder: jest.fn(),
       calculateBetAmounts: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+      getBalance: jest.fn(),
+      previewOrder: jest.fn(),
+      deposit: jest.fn(),
+    } as ReturnType<typeof usePredictTrading>);
 
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as ReturnType<typeof useConfirmNavigation>);
 
     mockUseSelector.mockReturnValue({
       status: 'pending',
@@ -115,8 +116,14 @@ describe('usePredictClaim', () => {
   const wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       ToastContext.Provider,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { value: { toastRef: mockToastRef as any } },
+      {
+        value: {
+          toastRef: mockToastRef as React.RefObject<{
+            showToast: jest.Mock;
+            closeToast: jest.Mock;
+          }>,
+        },
+      },
       children,
     );
 
@@ -396,7 +403,7 @@ describe('usePredictClaim', () => {
       expect(result.current.status).toBe('processing');
     });
 
-    it('selects claimTransaction from Redux state correctly', () => {
+    it('selects claimTransaction from Redux state', () => {
       // Arrange
       const mockClaimTransaction = {
         status: 'failed',
@@ -425,7 +432,7 @@ describe('usePredictClaim', () => {
   });
 
   describe('toast context handling', () => {
-    it('handles missing toastRef gracefully on error', async () => {
+    it('does not show toast when toastRef is null and claim fails', async () => {
       // Arrange
       const mockError = new Error('Claim failed');
       mockClaimWinnings.mockRejectedValue(mockError);
@@ -433,8 +440,11 @@ describe('usePredictClaim', () => {
       const noToastWrapper = ({ children }: { children: React.ReactNode }) =>
         React.createElement(
           ToastContext.Provider,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          { value: { toastRef: null as any } },
+          {
+            value: {
+              toastRef: undefined,
+            },
+          },
           children,
         );
 

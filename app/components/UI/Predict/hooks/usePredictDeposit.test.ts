@@ -63,8 +63,17 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock react-redux
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockState: any = {
+interface MockReduxState {
+  engine: {
+    backgroundState: {
+      PredictController: {
+        depositTransaction: unknown;
+      };
+    };
+  };
+}
+
+let mockState: MockReduxState = {
   engine: {
     backgroundState: {
       PredictController: {
@@ -78,18 +87,23 @@ jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
     ...actual,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useSelector: jest.fn((selector: any) => selector(mockState)),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    connect: () => (component: any) => component,
+    useSelector: jest.fn((selector: (state: MockReduxState) => unknown) =>
+      selector(mockState),
+    ),
+    connect: () => (component: React.ComponentType) => component,
   };
 });
 
 // Mock toast
 const mockShowToast = jest.fn();
-const mockToastRef: React.RefObject<{ showToast: jest.Mock }> = {
+const mockCloseToast = jest.fn();
+const mockToastRef: React.RefObject<{
+  showToast: jest.Mock;
+  closeToast: jest.Mock;
+}> = {
   current: {
     showToast: mockShowToast,
+    closeToast: mockCloseToast,
   },
 };
 
@@ -113,8 +127,10 @@ function createMockDepositTransaction(overrides = {}) {
 function setupUsePredictDepositTest(
   stateOverrides = {},
   hookOptions = {},
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  customToastRef?: any,
+  customToastRef?:
+    | React.RefObject<{ showToast: jest.Mock; closeToast: jest.Mock }>
+    | null
+    | undefined,
 ) {
   jest.clearAllMocks();
   mockState = {
@@ -131,11 +147,15 @@ function setupUsePredictDepositTest(
   const wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       ToastContext.Provider,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       {
         value: {
           toastRef:
-            customToastRef !== undefined ? customToastRef : mockToastRef,
+            customToastRef !== undefined
+              ? (customToastRef as React.RefObject<{
+                  showToast: jest.Mock;
+                  closeToast: jest.Mock;
+                }>)
+              : mockToastRef,
         },
       },
       children,
@@ -163,15 +183,19 @@ describe('usePredictDeposit', () => {
   });
 
   describe('initial state', () => {
-    it('returns correct initial state when no deposit transaction exists', () => {
+    it('returns undefined status when no deposit transaction exists', () => {
       const { result } = setupUsePredictDepositTest();
+
+      // No action needed - testing initial state
 
       expect(result.current.status).toBeUndefined();
       expect(typeof result.current.deposit).toBe('function');
     });
 
-    it('returns deposit function that is callable', () => {
+    it('returns callable deposit function', () => {
       const { result } = setupUsePredictDepositTest();
+
+      // No action needed - testing initial state
 
       expect(result.current.deposit).toBeDefined();
       expect(typeof result.current.deposit).toBe('function');
@@ -209,7 +233,7 @@ describe('usePredictDeposit', () => {
       expect(result.current.status).toBe(PredictDepositStatus.ERROR);
     });
 
-    it('handles null transaction correctly', () => {
+    it('returns undefined status when transaction is null', () => {
       const { result } = setupUsePredictDepositTest({
         depositTransaction: null,
       });
@@ -229,14 +253,13 @@ describe('usePredictDeposit', () => {
   });
 
   describe('deposit function', () => {
-    it('calls navigateToConfirmation with correct params', async () => {
+    it('calls navigateToConfirmation with loader and stack parameters', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
         success: true,
         response: { batchId: 'batch-123' },
       });
-
       const { result } = setupUsePredictDepositTest();
 
       await result.current.deposit();
@@ -294,17 +317,14 @@ describe('usePredictDeposit', () => {
       });
     });
 
-    it('handles depositWithConfirmation error gracefully', async () => {
+    it('navigates back and logs error when depositWithConfirmation fails', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockRejectedValue(new Error('Deposit failed'));
-
       const { result } = setupUsePredictDepositTest();
 
       await result.current.deposit();
-
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
@@ -316,12 +336,11 @@ describe('usePredictDeposit', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('handles navigation error gracefully', async () => {
+    it('navigates back and logs error when navigation fails', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockNavigateToConfirmation.mockImplementationOnce(() => {
         throw new Error('Navigation failed');
       });
-
       const { result } = setupUsePredictDepositTest();
 
       await result.current.deposit();
@@ -661,17 +680,14 @@ describe('usePredictDeposit', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('handles missing toastRef gracefully on depositWithConfirmation error', async () => {
+    it('does not show toast when toastRef is null and depositWithConfirmation fails', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockRejectedValue(new Error('Deposit failed'));
-
       const { result } = setupUsePredictDepositTest({}, {}, null);
 
       await result.current.deposit();
-
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
@@ -681,12 +697,11 @@ describe('usePredictDeposit', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('handles missing toastRef gracefully on navigation error', async () => {
+    it('does not show toast when toastRef is null and navigation fails', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockNavigateToConfirmation.mockImplementationOnce(() => {
         throw new Error('Navigation failed');
       });
-
       const { result } = setupUsePredictDepositTest({}, {}, null);
 
       await result.current.deposit();
@@ -773,12 +788,11 @@ describe('usePredictDeposit', () => {
   });
 
   describe('selector', () => {
-    it('selects depositTransaction from Redux state correctly', () => {
+    it('selects depositTransaction from Redux state', () => {
       const mockDepositTransaction = createMockDepositTransaction({
         status: PredictDepositStatus.CONFIRMED,
         batchId: 'custom-batch',
       });
-
       const { result } = setupUsePredictDepositTest({
         depositTransaction: mockDepositTransaction,
       });
