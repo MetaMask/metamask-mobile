@@ -34,25 +34,9 @@ const MAX_REGION_RESULTS = 20;
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
   onRegionSelect?: (region: DepositRegion) => void;
-  /**
-   * Region to display as selected. Overrides the SDK's selectedRegion.
-   * Comparison is done by isoCode.
-   */
   selectedRegion?: DepositRegion;
-  /**
-   * If true, all regions are selectable regardless of their supported status.
-   * If false/undefined, only regions with supported=true are selectable.
-   */
   allRegionsSelectable?: boolean;
-  /**
-   * Whether to update the global region in the SDK when a region is selected.
-   * Defaults to true.
-   */
   updateGlobalRegion?: boolean;
-  /**
-   * Whether to track the region selection event.
-   * Defaults to true.
-   */
   trackSelection?: boolean;
 }
 
