@@ -149,10 +149,6 @@ describe('usePredictActionGuard', () => {
     });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('when user is eligible but has no balance', () => {
     beforeEach(() => {
       mockUsePredictBalance.mockReturnValue({
@@ -204,10 +200,6 @@ describe('usePredictActionGuard', () => {
     });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('when user is not eligible and has no balance', () => {
     beforeEach(() => {
       mockUsePredictEligibility.mockReturnValue({
@@ -253,10 +245,6 @@ describe('usePredictActionGuard', () => {
       expect(result.current.isEligible).toBe(false);
       expect(result.current.hasNoBalance).toBe(true);
     });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('providerId usage', () => {

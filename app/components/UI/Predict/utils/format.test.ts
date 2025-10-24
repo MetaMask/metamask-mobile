@@ -364,10 +364,6 @@ describe('format utils', () => {
     });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('formatCurrencyValue', () => {
     beforeEach(() => {
       mockFormatWithThreshold.mockImplementation(
@@ -438,10 +434,6 @@ describe('format utils', () => {
         },
       );
     });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('formatAddress', () => {

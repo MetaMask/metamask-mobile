@@ -2901,10 +2901,6 @@ describe('PredictController', () => {
     });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('clearWithdrawTransaction', () => {
     it('clear withdraw transaction from state', () => {
       withController(({ controller }) => {
