@@ -240,8 +240,6 @@ export default {
       'https://legal.consensys.io/plain/terms-of-use/',
   },
   FAVICON_CACHE_MAX_SIZE: 100,
-  PPOM_INITIALISATION_STATE_CHANGE_EVENT:
-    'PPOMController:initialisationStateChangeEvent',
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
     'token-api',
     'token.api',
