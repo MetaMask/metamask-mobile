@@ -42,11 +42,17 @@ describe(SmokeTrade('Predictions'), () => {
         await Assertions.expectElementToBeVisible(
           WalletView.PredictionsTabContainer,
         );
+        await Assertions.expectTextDisplayed('$28.16');
+
         await WalletView.tapOnPredictionsPosition('Spurs vs. Pelicans');
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
         await PredictDetailsPage.tapCashOutButton();
+
+        // Set up cash out mocks before tapping cash out
+        await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
+        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
 
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
@@ -54,13 +60,8 @@ describe(SmokeTrade('Predictions'), () => {
           PredictCashOutPage.cashOutButton,
         );
 
-        // Set up cash out mocks before tapping the button
-        await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
-        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
-
         await PredictCashOutPage.tapCashOutButton();
 
-        // Navigate back to check if balance updated
         await PredictDetailsPage.tapBackButton();
 
         await Assertions.expectElementToBeVisible(
