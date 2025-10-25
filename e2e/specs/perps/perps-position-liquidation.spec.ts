@@ -1,6 +1,6 @@
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
@@ -14,14 +14,15 @@ import PerpsE2EModifiers from './helpers/perps-modifiers';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
   level: LogLevel.INFO,
 });
 
-describe(RegressionTrade('Perps Position'), () => {
-  it.skip('should open a long position with custom profit and close it', async () => {
+describe(SmokeTrade('Perps Position'), () => {
+  it('should open a long position with custom profit and close it', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -29,49 +30,44 @@ describe(RegressionTrade('Perps Position'), () => {
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
       async () => {
-        logger.info('💰 Using E2E mock balance - no wallet import needed');
-        logger.info('🎯 Mock account: $10,000 total, $8,000 available');
         await loginToApp();
-
+        await device.disableSynchronization();
         // Navigate to Perps tab using manual sync management
         await PerpsHelpers.navigateToPerpsTab();
 
-        // Navigate to actions
-        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapStartANewTradeButton();
 
-        await WalletActionsBottomSheet.tapPerpsButton();
-
-        await device.disableSynchronization();
-        await PerpsMarketListView.tapFirstMarketRowItem();
+        await PerpsMarketListView.tapMarketRowItem('ETH');
         await PerpsMarketDetailsView.tapLongButton();
-
+        await PerpsOrderView.tapQuickAmountPercent(25);
         await PerpsView.tapPlaceOrderButton();
 
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
         await PerpsView.tapBackButtonPositionSheet();
-        await PerpsView.tapBackButtonMarketList();
+        // Next line is a workaround to go to wallet from Perps
+        await TabBarComponent.tapHome();
 
         // add price change and liquidation -> not yet liquidated
-        await PerpsE2EModifiers.updateMarketPrice('BTC', '80000.00');
+        await PerpsE2EModifiers.updateMarketPrice('BTC', '50000.00');
         await PerpsE2EModifiers.triggerLiquidation('BTC');
-        logger.info('🔥 E2E Mock: Liquidation triggered. Not yet liquidated');
+        logger.info('🔥 E2E Mock: Liquidation triggered. Not yet liquidated.');
 
         // Assertion 1: still have 2 positions (the default and the recently opened)
         await PerpsView.ensurePerpsTabPositionVisible('BTC', 5, 'long', 0);
-        await PerpsView.ensurePerpsTabPositionVisible('BTC', 3, 'long', 1);
+        await PerpsView.ensurePerpsTabPositionVisible('ETH', 3, 'long', 1);
 
         // add price change and force liquidation - BTC below 30k triggers default BTC liquidation
-        await PerpsE2EModifiers.updateMarketPrice('BTC', '30000.00');
+        await PerpsE2EModifiers.updateMarketPrice('BTC', '10000.00');
         await PerpsE2EModifiers.triggerLiquidation('BTC');
-        logger.info('🔥 E2E Mock: Liquidation triggered. Liquidated');
+        logger.info('🔥 E2E Mock: Liquidation triggered. Liquidated.');
 
         // Assertion 2: only BTC 3x is visible
         // 1) The expected (first item) exists and is visible
         await Assertions.expectElementToBeVisible(
-          PerpsView.getPositionItem('BTC', 3, 'long', 0),
-          { description: 'BTC 3x long en índice 0' },
+          PerpsView.getPositionItem('ETH', 3, 'long', 0),
+          { description: 'ETH 3x long en índice 0' },
         );
 
         // 2) There is no second item of position (verification by index with base ID)

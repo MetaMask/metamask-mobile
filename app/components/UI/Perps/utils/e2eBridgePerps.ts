@@ -5,7 +5,6 @@
  * without direct dependencies on E2E files. The bridge automatically
  * configures itself when the isE2E flag is detected.
  */
-
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isE2E } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
@@ -21,6 +20,8 @@ let e2eBridgePerps: E2EBridgePerpsStreaming = {};
 
 // Ensure we only register the deep link handler once
 let hasRegisteredDeepLinkHandler = false;
+// Track processed URLs to avoid duplicate handling when both initial URL and event fire
+const processedDeepLinks = new Set<string>();
 
 /**
  * Register a lightweight deep link handler for E2E-only schema (e2e://perps/*)
@@ -33,17 +34,21 @@ function registerE2EPerpsDeepLinkHandler(): void {
   }
 
   try {
-    Linking.addEventListener('url', (event: { url: string }) => {
+    const handleUrl = (incomingUrl?: string) => {
       try {
-        const { url } = event || {};
-        // Accept both native e2e scheme and tunneled expo-metamask scheme used in Android E2E
-        const isE2EScheme = url?.startsWith('e2e://perps/');
-        const isExpoMappedScheme = url?.startsWith(
-          'expo-metamask://e2e/perps/',
-        );
-        if (!isE2EScheme && !isExpoMappedScheme) {
+        const url = incomingUrl || '';
+        if (!url) return;
+
+        const isExpoMappedScheme = url.startsWith('metamask://e2e/perps/');
+        // Backward-compat: tolerate accidental double-colon variant
+        if (!isExpoMappedScheme) {
           return;
         }
+
+        if (processedDeepLinks.has(url)) {
+          return; // Avoid duplicate processing
+        }
+        processedDeepLinks.add(url);
 
         // Lazy require to keep bridge tree-shakeable in prod and avoid ESM import in Jest
         /* eslint-disable @typescript-eslint/no-require-imports */
@@ -54,7 +59,7 @@ function registerE2EPerpsDeepLinkHandler(): void {
 
           // Parse path and query
           const withoutScheme = isExpoMappedScheme
-            ? url.replace('expo-metamask://e2e/perps/', '')
+            ? url.replace('metamask://e2e/perps/', '')
             : url.replace('e2e://perps/', '');
           const [path, queryString] = withoutScheme.split('?');
           const params = new URLSearchParams(queryString || '');
@@ -63,17 +68,20 @@ function registerE2EPerpsDeepLinkHandler(): void {
           if (path === 'push-price') {
             const price = params.get('price') || '';
             DevLogger.log('[E2E Bridge] push-price', symbol, price);
-            if (service && typeof service.mockPushPrice === 'function') {
-              service.mockPushPrice(symbol, price);
-            }
+            service.mockPushPrice(symbol, price);
+            return;
+          }
+
+          if (path === 'mock-deposit') {
+            const amount = params.get('amount') || '';
+            DevLogger.log('[E2E Bridge] mock-deposit', amount);
+            service.mockDepositUSD(amount);
             return;
           }
 
           if (path === 'force-liquidation') {
             DevLogger.log('[E2E Bridge] force-liquidation', symbol);
-            if (service && typeof service.mockForceLiquidation === 'function') {
-              service.mockForceLiquidation(symbol);
-            }
+            service.mockForceLiquidation(symbol);
             return;
           }
         } catch (e) {
@@ -84,7 +92,25 @@ function registerE2EPerpsDeepLinkHandler(): void {
       } catch (err) {
         DevLogger.log('[E2E Bridge] Error handling E2E perps deeplink', err);
       }
+    };
+
+    // Listen to runtime deep links
+    Linking.addEventListener('url', (event: { url: string }) => {
+      handleUrl(event?.url);
     });
+
+    // Also process the initial URL if present (e.g., app launched via link)
+    // This ensures E2E commands are honored even if delivered as initial URL
+    Linking.getInitialURL()
+      .then((initialUrl) => {
+        if (initialUrl) {
+          DevLogger.log('[E2E Bridge] Processing initial URL', initialUrl);
+          handleUrl(initialUrl);
+        }
+      })
+      .catch(() => {
+        // no-op
+      });
 
     hasRegisteredDeepLinkHandler = true;
     DevLogger.log('[E2E Bridge] Registered E2E perps deep link handler');
@@ -186,13 +212,15 @@ export function getE2EMockStreamManager(): unknown {
  * Apply controller mocks if available
  */
 export function applyE2EControllerMocks(controller: unknown): void {
-  if (
-    process.env.IS_TEST === 'true' &&
-    process.env.METAMASK_ENVIRONMENT === 'e2e'
-  ) {
+  // Use unified isE2E flag so CI/local runs with either IS_TEST=true or METAMASK_ENVIRONMENT='e2e'
+  if (isE2E) {
+    DevLogger.log('[E2E Bridge] Applying E2E PerpsController mocks');
     autoConfigureE2EBridge();
     if (e2eBridgePerps.applyControllerMocks) {
       e2eBridgePerps.applyControllerMocks(controller);
+      DevLogger.log('[E2E Bridge] PerpsController mocks applied');
+    } else {
+      DevLogger.log('[E2E Bridge] applyControllerMocks not available');
     }
   }
 }

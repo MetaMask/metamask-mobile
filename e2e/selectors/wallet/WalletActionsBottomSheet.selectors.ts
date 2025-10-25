@@ -9,4 +9,5 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   EARN_BUTTON: 'wallet-earn-action',
   PERPS_BUTTON: 'wallet-perps-action',
   PREDICT_BUTTON: 'wallet-predict-action',
+  START_A_NEW_TRADE_BUTTON: 'perps-tab-view-start-new-trade-cta',
 };
