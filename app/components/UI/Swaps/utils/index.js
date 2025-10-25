@@ -5,6 +5,7 @@ import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { SolScope, BtcScope } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const {
   ETH_CHAIN_ID,
@@ -31,6 +32,7 @@ const allowedChainIds = [
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
   SEI_CHAIN_ID,
+  CHAIN_IDS.MONAD,
   SWAPS_TESTNET_CHAIN_ID,
 ];
 
