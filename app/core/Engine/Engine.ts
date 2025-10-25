@@ -557,6 +557,7 @@ export class Engine {
       RootMessenger
     >({
       namespace: 'ComposableController',
+      parent: this.controllerMessenger,
     });
 
     this.controllerMessenger.delegate({
