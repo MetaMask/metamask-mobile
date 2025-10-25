@@ -249,6 +249,9 @@ const LeverageSlider: React.FC<{
     runOnJS(updateValue)(newValue);
     runOnJS(checkThresholdCrossing)(newValue);
     runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+    if (onDragEnd) {
+      runOnJS(onDragEnd)(newValue);
+    }
   });
 
   const composed = Gesture.Simultaneous(tapGesture, panGesture);
