@@ -29,7 +29,7 @@ const tags = {
   FlaskBuildTests: 'FlaskBuildTests:',
   performance: 'Performance:',
   smokeCard: 'SmokeCard:',
-  regressionSampleFeature: 'RegressionSampleFeature:',
+  screenshotExamples: 'ScreenshotExamples:',
 };
 
 const RegressionAccounts = (testName) =>
@@ -80,6 +80,8 @@ const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
 const RegressionSampleFeature = (testName) =>
   `${tags.regressionSampleFeature} ${testName}`;
 const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
+const ScreenshotExamples = (testName) =>
+  `${tags.screenshotExamples} ${testName}`;
 
 export {
   FlaskBuildTests,
@@ -112,6 +114,6 @@ export {
   SmokeCard,
   SmokeWalletUX,
   RegressionWalletUX,
-  RegressionSampleFeature,
+  ScreenshotExamples,
   tags,
 };

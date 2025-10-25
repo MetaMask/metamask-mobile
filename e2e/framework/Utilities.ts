@@ -416,6 +416,92 @@ export default class Utilities {
     }
   }
 
+  /**
+   * Take a screenshot with a descriptive name
+   * @param name - Name for the screenshot (will be sanitized)
+   * @param options - Optional settings for the screenshot
+   * @returns Promise<string> - Path to the saved screenshot
+   */
+  static async takeScreenshot(
+    name: string,
+    options: { prefix?: string; timestamp?: boolean } = {},
+  ): Promise<string> {
+    const { prefix = '', timestamp = true } = options;
+
+    // Sanitize the name to remove invalid characters
+    const sanitizedName = name.replace(/[^a-zA-Z0-9-_]/g, '_');
+
+    // Build screenshot name
+    const parts = [
+      prefix,
+      timestamp ? new Date().toISOString().replace(/[:.]/g, '-') : '',
+      sanitizedName,
+    ].filter(Boolean);
+
+    const screenshotName = parts.join('_');
+
+    try {
+      const screenshotPath = await device.takeScreenshot(screenshotName);
+      logger.debug(`📸 Screenshot saved: ${screenshotName}`);
+      return screenshotPath;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      logger.warn(`⚠️ Failed to take screenshot: ${errorMessage}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Execute an operation and automatically take screenshots before and/or after
+   * @param operation - The operation to execute
+   * @param options - Configuration including screenshot settings
+   */
+  static async executeWithScreenshot<T>(
+    operation: () => Promise<T>,
+    options: {
+      name: string;
+      captureBeforeAction?: boolean;
+      captureAfterAction?: boolean;
+      screenshotPrefix?: string;
+    } & Omit<RetryOptions, 'description'>,
+  ): Promise<T> {
+    const {
+      name,
+      captureBeforeAction = false,
+      captureAfterAction = true,
+      screenshotPrefix = '',
+      ...retryOptions
+    } = options;
+
+    if (captureBeforeAction) {
+      await this.takeScreenshot(`${name}-before`, {
+        prefix: screenshotPrefix,
+      });
+    }
+
+    try {
+      const result = await this.executeWithRetry(operation, {
+        ...retryOptions,
+        description: name,
+      });
+
+      if (captureAfterAction) {
+        await this.takeScreenshot(`${name}-after`, {
+          prefix: screenshotPrefix,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      // Take a screenshot on failure
+      await this.takeScreenshot(`${name}-failed`, {
+        prefix: screenshotPrefix,
+      });
+      throw error;
+    }
+  }
+
   static async executeWithRetry<T>(
     operation: () => Promise<T>,
     options: RetryOptions,
