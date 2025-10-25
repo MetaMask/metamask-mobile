@@ -214,6 +214,8 @@ const Routes = {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
+    TOKENS_FULL_VIEW: 'TokensFullView',
+    NFTS_FULL_VIEW: 'NftsFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
