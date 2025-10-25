@@ -27,6 +27,16 @@ class PredictDetailsPage {
       PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
     );
   }
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
+    );
+  }
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button',
+    });
+  }
 
   async tapPositionsTab(): Promise<void> {
     await Gestures.waitAndTap(this.positionsTab, {
