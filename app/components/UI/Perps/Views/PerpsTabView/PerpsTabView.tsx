@@ -1,12 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import {
-  Modal,
-  ScrollView,
-  TouchableOpacity,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
