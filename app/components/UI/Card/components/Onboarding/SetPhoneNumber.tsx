@@ -23,26 +23,39 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
 
   const contactVerificationId = useSelector(selectContactVerificationId);
   const selectedCountry = useSelector(selectSelectedCountry);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { data: registrationSettings } = useRegistrationSettings();
 
   const selectOptions = useMemo(() => {
     if (!registrationSettings?.countries) {
       return [];
     }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        value: `+${country.callingCode}`,
-        label: `+${country.callingCode} ${country.name}`,
-      }));
+
+    const uniqueCallingCodes = new Map();
+
+    registrationSettings.countries.forEach((country) => {
+      const callingCode = `+${country.callingCode}`;
+      if (!uniqueCallingCodes.has(callingCode)) {
+        uniqueCallingCodes.set(callingCode, {
+          key: country.iso3166alpha2,
+          value: callingCode,
+          label: callingCode,
+        });
+      }
+    });
+
+    // Convert Map values to array and sort
+    return Array.from(uniqueCallingCodes.values()).sort((a, b) =>
+      a.value.localeCompare(b.value),
+    );
   }, [registrationSettings]);
 
   const initialSelectedCountryAreaCode = useMemo(() => {
@@ -71,6 +84,16 @@ const SetPhoneNumber = () => {
     reset: resetPhoneVerificationSend,
   } = usePhoneVerificationSend();
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+        .addProperties({
+          page: OnboardingScreens.SET_PHONE_NUMBER,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
   const handleContinue = async () => {
     if (
       !debouncedPhoneNumber ||
@@ -81,6 +104,13 @@ const SetPhoneNumber = () => {
     }
 
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+          .addProperties({
+            action: OnboardingActions.SET_PHONE_NUMBER_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { success } = await sendPhoneVerification({
         phoneCountryCode: selectedCountryAreaCode,
         phoneNumber: debouncedPhoneNumber,
@@ -151,7 +181,7 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="w-30 border border-solid border-border-default rounded-lg py-1">
+        <Box twClassName="w-28 border border-solid border-border-default rounded-lg py-1">
           <SelectComponent
             options={selectOptions}
             selectedValue={selectedCountryAreaCode}

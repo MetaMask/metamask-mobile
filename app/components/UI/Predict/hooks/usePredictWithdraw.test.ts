@@ -133,6 +133,10 @@ describe('usePredictWithdraw', () => {
     mockEligibilityResult.isEligible = true;
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initialization', () => {
     it('returns withdraw function and withdrawTransaction', () => {
       const { result } = setupUsePredictWithdrawTest();
