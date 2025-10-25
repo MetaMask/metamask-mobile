@@ -14,8 +14,17 @@ export function useTransactionPayToken() {
   );
 
   const setPayToken = useCallback(
-    (newPayToken: { address: Hex; chainId: Hex }) => {
-      const { TransactionPayController } = Engine.context;
+    async (newPayToken: { address: Hex; chainId: Hex }) => {
+      const { GasFeeController, NetworkController, TransactionPayController } =
+        Engine.context;
+
+      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+        newPayToken.chainId,
+      );
+
+      await GasFeeController.fetchGasFeeEstimates({
+        networkClientId,
+      });
 
       try {
         TransactionPayController.updatePaymentToken({

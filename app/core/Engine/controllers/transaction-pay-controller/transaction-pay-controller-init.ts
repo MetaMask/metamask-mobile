@@ -3,7 +3,12 @@ import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
+  TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 export const TransactionPayControllerInit: ControllerInitFunction<
   TransactionPayController,
@@ -13,6 +18,7 @@ export const TransactionPayControllerInit: ControllerInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
+      getStrategy,
       messenger: controllerMessenger,
       state: persistedState.TransactionPayController,
     });
@@ -26,3 +32,11 @@ export const TransactionPayControllerInit: ControllerInitFunction<
     throw error;
   }
 };
+
+async function getStrategy(
+  transaction: TransactionMeta,
+): Promise<TransactionPayStrategy> {
+  return transaction.type === TransactionType.perpsDeposit
+    ? TransactionPayStrategy.Relay
+    : TransactionPayStrategy.Bridge;
+}

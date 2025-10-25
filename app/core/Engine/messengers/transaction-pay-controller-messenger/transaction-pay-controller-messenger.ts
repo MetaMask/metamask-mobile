@@ -24,12 +24,14 @@ import {
   TokensControllerGetStateAction,
 } from '@metamask/assets-controllers';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import { GasFeeControllerActions } from '@metamask/gas-fee-controller';
 
 type MessengerActions =
   | AccountTrackerControllerGetStateAction
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | CurrencyRateControllerActions
+  | GasFeeControllerActions
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction
@@ -55,6 +57,7 @@ export function getTransactionPayControllerMessenger(
       'BridgeController:fetchQuotes',
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
+      'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'RemoteFeatureFlagController:getState',
