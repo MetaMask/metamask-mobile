@@ -4,7 +4,7 @@ BottomSheetOverlay is a semi-transparent layer that is placed on top of the page
 
 ## Props
 
-This component extends [OverlayProp](../../../Overlay/Overlay.types.ts) component.
+This component extends [OverlayProp](../../../../Overlay/Overlay.types.ts) component.
 
 ### `color`
 
