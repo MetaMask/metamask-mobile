@@ -9,7 +9,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
-import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
+import { limitToMaximumDecimalPlaces } from '../../../../../../util/number/legacy';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { convertGasInputToHexWEI } from '../../../utils/gas';

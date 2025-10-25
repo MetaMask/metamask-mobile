@@ -7,6 +7,9 @@ import { Skeleton } from '../../../../../../component-library/components/Skeleto
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { MAX_LENGTH } from '../../../hooks/transactions/useTransactionCustomAmount';
+import currencySymbols from '../../../../../../util/currency-symbols.json';
+
+type CurrencyCode = keyof typeof currencySymbols;
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -29,7 +32,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
 
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
-  const fiatSymbol = getCurrencySymbol(currency);
+  const fiatSymbol = getCurrencySymbol(currency as CurrencyCode);
   const amountLength = amountFiat.length;
 
   const { styles } = useStyles(styleSheet, {

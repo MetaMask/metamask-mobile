@@ -18,7 +18,7 @@ import { capitalize } from '../../../../../util/general';
 import {
   addCurrencySymbol,
   renderFromTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';

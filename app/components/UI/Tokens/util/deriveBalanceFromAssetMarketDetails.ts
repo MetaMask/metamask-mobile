@@ -3,7 +3,7 @@ import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
   balanceToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../constants';
 import { TokenI } from '../types';

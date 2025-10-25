@@ -50,7 +50,7 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import BN from 'bnjs4';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number/legacy';
 import { TokenI } from '../../../Tokens/types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';

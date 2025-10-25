@@ -1,7 +1,7 @@
 import i18n from '../../../../../locales/i18n';
 import { DECIMALS_TO_SHOW } from '../../../../components/UI/Tokens/constants';
 import { formatWithThreshold } from '../../../../util/assets';
-import { renderFiat } from '../../../../util/number';
+import { renderFiat } from '../../../../util/number/legacy';
 import { TextColor } from '../../../components/Texts/Text';
 
 export const getFormattedAmountChange = (

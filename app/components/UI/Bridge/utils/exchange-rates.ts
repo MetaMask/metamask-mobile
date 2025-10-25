@@ -11,7 +11,7 @@ import {
   isCaipChainId,
 } from '@metamask/utils';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import { balanceToFiatNumber } from '../../../../util/number';
+import { balanceToFiatNumber } from '../../../../util/number/legacy';
 import { BridgeToken } from '../types';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import {

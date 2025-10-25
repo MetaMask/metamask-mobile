@@ -8,7 +8,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import useBalance from './useBalance';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { hexToBN } from '../../../../../util/number';
+import { hexToBN } from '../../../../../util/number/legacy';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainBalances } from '../../../../../selectors/multichain';

@@ -20,7 +20,11 @@ import {
   setProposedNonce,
 } from '../../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { fromWei, renderFromWei, hexToBN } from '../../../../../util/number';
+import {
+  fromWei,
+  renderFromWei,
+  hexToBN,
+} from '../../../../../util/number/legacy';
 import {
   getNormalizedTxState,
   getTicker,
