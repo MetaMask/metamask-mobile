@@ -5,7 +5,6 @@ import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { isE2E } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
 
-import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
 import { useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 
@@ -92,11 +91,13 @@ const OnboardingAnimation = ({
       return;
     }
 
-    // Delay to ensure Rive artboard is ready before manipulating inputs
+    // MUST wait for Rive artboard to initialize
     setTimeout(() => {
       try {
+        console.log('Rive ref exists:', !!logoRef.current);
         if (logoRef.current) {
           const isDarkMode = themeAppearance === 'dark';
+          console.log('Triggering Rive with dark mode:', isDarkMode);
           logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
           logoRef.current.fireState('WordmarkBuildUp', 'Start');
           setTimeout(() => {
@@ -106,13 +107,15 @@ const OnboardingAnimation = ({
           setTimeout(() => {
             setStartFoxAnimation(true);
           }, 1200);
+        } else {
+          Alert.alert('Rive Error', 'Animation ref is null after 1s delay');
         }
       } catch (error) {
         Logger.error(error as Error, 'Error triggering Rive animation');
         console.error('Rive animation error:', error);
-        Alert.alert('Error triggering Rive animation', error as string);
+        Alert.alert('Rive Error', JSON.stringify(error));
       }
-    }, 5000);
+    }, 1000);
   }, [
     themeAppearance,
     moveLogoUp,
@@ -142,7 +145,8 @@ const OnboardingAnimation = ({
           <Rive
             ref={logoRef}
             style={styles.image}
-            source={MetaMaskWordmarkAnimation}
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            source={require('../../../animations/metamask_wordmark_animation_build-up.riv')}
             fit={Fit.Contain}
             alignment={Alignment.Center}
             autoplay={false}
