@@ -62,7 +62,7 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictCashOutPage.tapCashOutButton();
 
-        await new Promise((resolve) => setTimeout(resolve, 8000));
+        await new Promise((resolve) => setTimeout(resolve, 9000));
         await PredictDetailsPage.tapBackButton();
 
         // await Assertions.expectElementToBeVisible(
