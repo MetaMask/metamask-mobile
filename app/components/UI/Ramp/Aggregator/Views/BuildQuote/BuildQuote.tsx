@@ -140,8 +140,6 @@ const BuildQuote = () => {
     selectedPaymentMethodId,
     selectedRegion,
     selectedAsset,
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
     selectedAddress,
     selectedNetworkName,
     sdkError,
@@ -185,7 +183,6 @@ const BuildQuote = () => {
   }, [paymentMethods, themeAppearance]);
 
   const {
-    defaultFiatCurrency,
     queryDefaultFiatCurrency,
     fiatCurrencies,
     queryGetFiatCurrencies,
@@ -241,32 +238,6 @@ const BuildQuote = () => {
       }
     }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
-
-  useEffect(() => {
-    const handleRegionChange = async () => {
-      if (
-        selectedRegion &&
-        selectedFiatCurrencyId === defaultFiatCurrency?.id
-      ) {
-        const newRegionCurrency = await queryDefaultFiatCurrency(
-          selectedRegion.id,
-          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
-        );
-        if (newRegionCurrency?.id) {
-          setSelectedFiatCurrencyId(newRegionCurrency.id);
-        }
-      }
-    };
-
-    handleRegionChange();
-  }, [
-    selectedRegion,
-    selectedFiatCurrencyId,
-    defaultFiatCurrency?.id,
-    queryDefaultFiatCurrency,
-    selectedPaymentMethodId,
-    setSelectedFiatCurrencyId,
-  ]);
 
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
