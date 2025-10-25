@@ -30,6 +30,10 @@ describe('usePredictActionGuard', () => {
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('when user is eligible and has balance', () => {
     it('executes action without navigation when checkBalance is false', () => {
       const { result } = renderHook(() =>

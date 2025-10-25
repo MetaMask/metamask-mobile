@@ -17,6 +17,10 @@ describe('useSharedScrollCoordinator', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initialization', () => {
     it('initializes with default values', () => {
       const { result } = renderHook(() => useSharedScrollCoordinator());

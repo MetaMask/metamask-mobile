@@ -73,6 +73,10 @@ describe('usePredictMarket', () => {
     (Engine.context.PredictController.getMarket as jest.Mock) = mockGetMarket;
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initial state', () => {
     it('returns null market and not fetching when no id provided', () => {
       const { result } = renderHook(() => usePredictMarket());

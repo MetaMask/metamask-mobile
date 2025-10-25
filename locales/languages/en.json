@@ -1,4 +1,4 @@
-{  
+{
   "sample_feature": {
     "title": "Sample Feature",
     "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
@@ -1220,6 +1220,7 @@
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
       "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
+      "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "Please select an amount to close",
       "order_type_reverted_to_market_order": "Changed to market order",
       "you_need_set_price_limit_order": "You need to set a price for a limit order."
@@ -5971,7 +5972,7 @@
     },
     "card_onboarding": {
       "title": "Enable MetaMask Card features",
-      "description": "Change your spending token and network by signing in with your Crypto Life username and password.",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
       "verify_account_button": "Sign in",
       "non_cardholder_title": "Welcome to MetaMask Card",
       "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
@@ -5979,6 +5980,7 @@
       "sign_up": {
         "title": "Sign up",
         "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "Email",
         "password_label": "Password",
         "confirm_password_label": "Re-enter your password",
@@ -6002,7 +6004,7 @@
       },
       "set_phone_number": {
         "title": "Phone number",
-        "description": "We'll send your confirmation code to this number.",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Phone number",
         "phone_number_placeholder": "Enter your phone number",
         "country_area_code_label": "Country area code",

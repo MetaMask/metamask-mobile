@@ -119,6 +119,10 @@ describe('usePredictToasts', () => {
     (Engine.controllerMessenger.unsubscribe as jest.Mock).mockClear();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initialization', () => {
     it('subscribes to transaction status updates on mount', () => {
       // Act
