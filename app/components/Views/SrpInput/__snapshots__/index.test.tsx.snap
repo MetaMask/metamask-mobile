@@ -1,45 +1,75 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SrpInput should render default settings correctly 1`] = `
-<TouchableWithoutFeedback>
+exports[`SrpInput renders default settings correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessible={true}
+  focusable={false}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "height": 40,
+      "opacity": 1,
+      "paddingHorizontal": 16,
+    }
+  }
+  testID="textfield"
+>
   <View
     style={
-      {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 8,
-        "borderWidth": 1,
-        "flexDirection": "row",
-        "height": 40,
-        "opacity": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "backgroundColor": "inherit",
+          "height": 38,
+        },
+        {
+          "flex": 1,
+        },
+      ]
     }
-    testID="textfield"
   >
-    <View
+    <TextInput
+      autoFocus={false}
+      editable={true}
+      onBlur={[Function]}
+      onFocus={[Function]}
+      onSelectionChange={[Function]}
       style={
-        [
-          {
-            "backgroundColor": "inherit",
-            "height": 38,
-          },
-          {
-            "flex": 1,
-          },
-        ]
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "transparent",
+          "borderWidth": 1,
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "height": 24,
+          "letterSpacing": 0,
+          "opacity": 1,
+          "paddingVertical": 0,
+        }
       }
-    >
-      <ForwardRef
-        autoFocus={false}
-        isDisabled={false}
-        isStateStylesDisabled={true}
-        onBlur={[Function]}
-        onFocus={[Function]}
-        textVariant="sBodyMD"
-      />
-    </View>
+    />
   </View>
-</TouchableWithoutFeedback>
+</View>
 `;
