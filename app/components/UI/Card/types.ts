@@ -219,7 +219,6 @@ export interface CachedNetworkConfig {
   timestamp: number;
   expiresAt: number;
 }
-}
 
 // Country type definition
 export interface RegistrationSettingsResponse {

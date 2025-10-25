@@ -14,10 +14,6 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       flex: 1,
-<<<<<<< HEAD
-=======
-      gap: 16,
->>>>>>> 8ae259608f (feat: card delegation)
       marginLeft: 16,
     },
     textsContainer: {
@@ -27,13 +23,6 @@ const createStyles = (theme: Theme) =>
     buttonsContainer: {
       flexDirection: 'row',
       gap: 8,
-<<<<<<< HEAD
-      marginTop: 16,
-    },
-    isHidden: {
-      display: 'none',
-=======
->>>>>>> 8ae259608f (feat: card delegation)
     },
   });
 

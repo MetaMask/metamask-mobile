@@ -7,16 +7,6 @@ describe('truncateAddress', () => {
     expect(result).toBe('0x12...5678');
   });
 
-<<<<<<< HEAD
-  it('should return "0x" when address is undefined', () => {
-    const result = truncateAddress(undefined);
-    expect(result).toBe('0x');
-  });
-
-  it('should return "0x" when address is an empty string', () => {
-    const result = truncateAddress('');
-    expect(result).toBe('0x');
-=======
   it('should return null when address is undefined', () => {
     const result = truncateAddress(undefined);
     expect(result).toBe(null);
@@ -30,7 +20,6 @@ describe('truncateAddress', () => {
   it('should return null when address is an empty string', () => {
     const result = truncateAddress('');
     expect(result).toBe(null);
->>>>>>> 8ae259608f (feat: card delegation)
   });
 
   it('should handle short addresses (less than 8 characters)', () => {

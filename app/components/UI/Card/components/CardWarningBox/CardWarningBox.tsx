@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, { useMemo } from 'react';
-=======
 import React from 'react';
->>>>>>> 8ae259608f (feat: card delegation)
 import { View } from 'react-native';
 import Button, {
   ButtonVariants,
@@ -37,11 +33,7 @@ const CardWarningBox = ({
 
   const warningTexts: Record<
     CardWarningType,
-<<<<<<< HEAD
-    { title: string; description: string; confirmButtonLabel?: string }
-=======
     { title: string; description: string; confirmButtonLabel: string }
->>>>>>> 8ae259608f (feat: card delegation)
   > = {
     [CardWarningType.CloseSpendingLimit]: {
       title: strings('card.card_home.warnings.close_spending_limit.title'),
@@ -61,37 +53,7 @@ const CardWarningBox = ({
         'card.card_home.warnings.need_delegation.confirm_button_label',
       ),
     },
-<<<<<<< HEAD
-    [CardWarningType.Frozen]: {
-      title: strings('card.card_home.warnings.frozen.title'),
-      description: strings('card.card_home.warnings.frozen.description'),
-    },
-    [CardWarningType.Blocked]: {
-      title: strings('card.card_home.warnings.blocked.title'),
-      description: strings('card.card_home.warnings.blocked.description'),
-    },
-    [CardWarningType.NoCard]: {
-      title: strings('card.card_home.warnings.no_card.title'),
-      description: strings('card.card_home.warnings.no_card.description'),
-    },
   };
-
-  const isWarningWithoutBox = useMemo(
-    () =>
-      [CardWarningType.NoCard, CardWarningType.NeedDelegation].includes(
-        warning,
-      ),
-    [warning],
-  );
-
-  if (isWarningWithoutBox) {
-    return null;
-  }
-
-=======
-  };
-
->>>>>>> 8ae259608f (feat: card delegation)
   return (
     <View style={styles.container}>
       <Icon
@@ -110,33 +72,16 @@ const CardWarningBox = ({
           </Text>
         </View>
 
-<<<<<<< HEAD
-        <View
-          style={[
-            styles.buttonsContainer,
-            !(onConfirm || onDismiss) ? styles.isHidden : undefined,
-          ]}
-        >
-=======
         <View style={styles.buttonsContainer}>
->>>>>>> 8ae259608f (feat: card delegation)
           {onDismiss && (
             <Button
               variant={ButtonVariants.Secondary}
               onPress={onDismiss}
-<<<<<<< HEAD
-              label={strings('card.card_home.warnings.dismiss_button_label')}
-              testID="dismiss-button"
-            />
-          )}
-          {warningTexts[warning].confirmButtonLabel && onConfirm ? (
-=======
               label="Dismiss"
               testID="dismiss-button"
             />
           )}
           {onConfirm && (
->>>>>>> 8ae259608f (feat: card delegation)
             <Button
               variant={ButtonVariants.Primary}
               onPress={onConfirm}
@@ -144,11 +89,7 @@ const CardWarningBox = ({
               label={warningTexts[warning].confirmButtonLabel}
               testID="confirm-button"
             />
-<<<<<<< HEAD
-          ) : null}
-=======
           )}
->>>>>>> 8ae259608f (feat: card delegation)
         </View>
       </View>
     </View>
