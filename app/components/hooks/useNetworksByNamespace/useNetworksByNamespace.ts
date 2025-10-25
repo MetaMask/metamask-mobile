@@ -22,6 +22,7 @@ export interface ProcessedNetwork {
   isSelected: boolean;
   imageSource: ImageSourcePropType;
   networkTypeOrRpcUrl?: string;
+  hasMultipleRpcs?: boolean;
 }
 
 export enum NetworkType {
@@ -121,6 +122,11 @@ const useProcessedNetworks = (
           EvmAndMultichainNetworkConfigurationsWithCaipChainId,
         ][]
       ).map(([, network]) => {
+        const rpcEndpointsCount =
+          'rpcEndpoints' in network ? network.rpcEndpoints?.length ?? 0 : 0;
+
+        const hasMultipleRpcs = rpcEndpointsCount > 1;
+
         const rpcUrl =
           'rpcEndpoints' in network
             ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
@@ -139,12 +145,18 @@ const useProcessedNetworks = (
             chainId: network.caipChainId,
           }),
           networkTypeOrRpcUrl: rpcUrl,
+          hasMultipleRpcs,
         };
       });
     }
     return (
       filteredNetworkConfigurations as EvmAndMultichainNetworkConfigurationsWithCaipChainId[]
     ).map((network) => {
+      const rpcEndpointsCount =
+        'rpcEndpoints' in network ? network.rpcEndpoints?.length ?? 0 : 0;
+
+      const hasMultipleRpcs = rpcEndpointsCount > 1;
+
       const rpcUrl =
         'rpcEndpoints' in network
           ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
@@ -159,6 +171,7 @@ const useProcessedNetworks = (
         isSelected,
         imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
         networkTypeOrRpcUrl: rpcUrl,
+        hasMultipleRpcs,
       };
     });
   }, [filteredNetworkConfigurations, enabledNetworksForNamespace, networkType]);

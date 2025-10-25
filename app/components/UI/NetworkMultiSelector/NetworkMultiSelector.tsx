@@ -59,6 +59,7 @@ const CUSTOM_NETWORK_PROPS = {
 const NetworkMultiSelector = ({
   openModal,
   dismissModal,
+  openRpcModal,
 }: NetworkMultiSelectorProps) => {
   const { styles } = useStyles(stylesheet, {});
 
@@ -211,6 +212,7 @@ const NetworkMultiSelector = ({
         additionalNetworksComponent={additionalNetworksComponent}
         selectAllNetworksComponent={selectAllNetworksComponent}
         areAllNetworksSelected={areAllNetworksSelectedCombined}
+        openRpcModal={openRpcModal}
       />
     </ScrollView>
   );

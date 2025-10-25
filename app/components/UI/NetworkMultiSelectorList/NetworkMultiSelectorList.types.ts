@@ -23,6 +23,7 @@ export interface Network {
   imageSource: ImageSourcePropType;
   caipChainId: CaipChainId;
   networkTypeOrRpcUrl?: string;
+  hasMultipleRpcs?: boolean;
 }
 
 export interface AdditionalNetworkSection {
@@ -52,4 +53,5 @@ export interface NetworkMultiSelectorListProps {
   selectAllNetworksComponent?: React.ReactNode;
   openModal: (networkMenuModal: NetworkMenuModalState) => void;
   areAllNetworksSelected?: boolean;
+  openRpcModal?: (params: { chainId: string; networkName: string }) => void;
 }
