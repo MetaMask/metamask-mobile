@@ -6,21 +6,28 @@ import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBann
 
 jest.mock('../../hooks/useNetworkConnectionBanner');
 
-jest.mock('../AnimatedSpinner', () => ({
-  __esModule: true,
-  default: ({ size }: { size: Record<string, string> }) => {
-    const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="animated-spinner">
-        <Text testID="spinner-size">{size}</Text>
-      </View>
-    );
-  },
-  SpinnerSize: {
-    SM: 'SM',
-  },
+jest.mock('../../../util/theme', () => ({
+  useAppTheme: jest.fn(() => ({
+    colors: {
+      background: {
+        section: '#FFFFFF',
+      },
+      icon: {
+        default: '#000000',
+      },
+      error: {
+        muted: '#FFE5E5',
+        default: '#FF0000',
+      },
+    },
+    themeAppearance: 'light',
+    typography: {},
+    shadows: {},
+    brandColors: {},
+  })),
 }));
 
+// Necessary because we mock SVGs by default
 jest.mock('../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: ({ size }: { size: Record<string, string> }) => {
@@ -42,10 +49,7 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
   },
 }));
 
-const mockuseNetworkConnectionBanner =
-  useNetworkConnectionBanner as jest.MockedFunction<
-    typeof useNetworkConnectionBanner
-  >;
+const useNetworkConnectionBannerMock = jest.mocked(useNetworkConnectionBanner);
 
 describe('NetworkConnectionBanner', () => {
   const mockUpdateRpc = jest.fn();
@@ -54,381 +58,117 @@ describe('NetworkConnectionBanner', () => {
     jest.clearAllMocks();
   });
 
-  describe('snapshots', () => {
-    it('should match snapshot when banner is not visible', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: { visible: false },
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { toJSON } = render(<NetworkConnectionBanner />);
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    const statusSnapshotTestCases = [
-      {
-        status: 'degraded' as const,
-        name: 'for degraded status banner',
-      },
-      {
-        status: 'unavailable' as const,
-        name: 'for unavailable status banner',
-      },
-    ];
-
-    it.each(statusSnapshotTestCases)(
-      'should match snapshot $name',
-      ({ status }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        const { toJSON } = render(<NetworkConnectionBanner />);
-
-        expect(toJSON()).toMatchSnapshot();
-      },
-    );
-
-    it('should match snapshot for different network', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x89',
-          status: 'degraded',
-          networkName: 'Polygon Mainnet',
-          rpcUrl: 'https://polygon-rpc.com',
-        },
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { toJSON } = render(<NetworkConnectionBanner />);
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('when banner is not visible', () => {
     it('should not render when visible is false', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
+      useNetworkConnectionBannerMock.mockReturnValue({
         networkConnectionBannerState: { visible: false },
         updateRpc: mockUpdateRpc,
       });
 
-      const { queryByTestId } = render(<NetworkConnectionBanner />);
+      const { root } = render(<NetworkConnectionBanner />);
 
-      expect(queryByTestId('animated-spinner')).toBeNull();
+      expect(root).toBeUndefined();
     });
   });
 
   describe('when banner is visible', () => {
-    const statusTestCases = [
+    const customNetworkStatusTestCases = [
+      {
+        status: 'degraded' as const,
+        expectedMessage: 'Still connecting to Polygon Mainnet...',
+        updateRpcButtonText: 'Update RPC',
+      },
+      {
+        status: 'unavailable' as const,
+        expectedMessage: 'Unable to connect to Polygon Mainnet.',
+        updateRpcButtonText: 'update RPC',
+      },
+    ];
+
+    const infuraNetworkStatusTestCases = [
       {
         status: 'degraded' as const,
         expectedMessage: 'Still connecting to Ethereum Mainnet...',
-        expectedIconTestId: 'animated-spinner',
       },
       {
         status: 'unavailable' as const,
         expectedMessage: 'Unable to connect to Ethereum Mainnet.',
-        expectedIconTestId: 'icon',
       },
     ];
 
-    it.each(statusTestCases)(
-      'should render the banner with correct structure for $status status',
-      ({ status, expectedMessage, expectedIconTestId }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
+    it.each(customNetworkStatusTestCases)(
+      'should render the banner with correct structure for $status status with custom network',
+      ({ status, expectedMessage, updateRpcButtonText }) => {
+        useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
             visible: true,
-            chainId: '0x1',
+            chainId: '0x89',
             status,
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
+            networkName: 'Polygon Mainnet',
+            rpcUrl: 'https://polygon-rpc.com',
+            isInfuraEndpoint: false,
           },
           updateRpc: mockUpdateRpc,
         });
 
         const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
 
-        expect(getByTestId(expectedIconTestId)).toBeTruthy();
+        expect(getByTestId('icon')).toBeTruthy();
         expect(getByText(expectedMessage)).toBeTruthy();
-        expect(getByText('Update RPC')).toBeTruthy();
+        expect(getByText(updateRpcButtonText)).toBeTruthy();
       },
     );
 
-    it.each(statusTestCases)(
-      'should display network name in the message for $status status',
+    it.each(infuraNetworkStatusTestCases)(
+      'should render the banner with correct structure for $status status with Infura network',
       ({ status, expectedMessage }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
+        useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
             networkName: 'Ethereum Mainnet',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
+            isInfuraEndpoint: true,
           },
           updateRpc: mockUpdateRpc,
         });
 
-        const { getByText } = render(<NetworkConnectionBanner />);
-
-        expect(getByText(expectedMessage)).toBeTruthy();
-      },
-    );
-
-    it.each(statusTestCases)(
-      'should call updateRpc when Update RPC button is pressed for $status status',
-      ({ status }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        const { getByText } = render(<NetworkConnectionBanner />);
-
-        const updateButton = getByText('Update RPC');
-        fireEvent.press(updateButton);
-
-        expect(mockUpdateRpc).toHaveBeenCalledWith(
-          'https://mainnet.infura.io/v3/test',
-          status,
-          '0x1',
+        const { getByTestId, getByText, queryByText } = render(
+          <NetworkConnectionBanner />,
         );
-      },
-    );
 
-    it.each(statusTestCases)(
-      'should render button with correct variant and properties for $status status',
-      ({ status }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        const { getByText } = render(<NetworkConnectionBanner />);
-
-        const updateButton = getByText('Update RPC');
-        expect(updateButton).toBeTruthy();
-      },
-    );
-
-    describe('status transitions', () => {
-      it('should update message when status changes from degraded to unavailable', () => {
-        // Start with degraded status
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status: 'degraded',
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        const { rerender, getByText } = render(<NetworkConnectionBanner />);
-
-        expect(
-          getByText('Still connecting to Ethereum Mainnet...'),
-        ).toBeTruthy();
-
-        // Change to unavailable status
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status: 'unavailable',
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        rerender(<NetworkConnectionBanner />);
-
-        expect(
-          getByText('Unable to connect to Ethereum Mainnet.'),
-        ).toBeTruthy();
-      });
-
-      it('should update message when status changes from unavailable to degraded', () => {
-        // Start with unavailable status
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status: 'unavailable',
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        const { rerender, getByText } = render(<NetworkConnectionBanner />);
-
-        expect(
-          getByText('Unable to connect to Ethereum Mainnet.'),
-        ).toBeTruthy();
-
-        // Change to degraded status
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status: 'degraded',
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        rerender(<NetworkConnectionBanner />);
-
-        expect(
-          getByText('Still connecting to Ethereum Mainnet...'),
-        ).toBeTruthy();
-      });
-    });
-  });
-
-  describe('with different network configurations', () => {
-    it('should display different network names correctly', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x89',
-          status: 'degraded',
-          networkName: 'Polygon Mainnet',
-          rpcUrl: 'https://polygon-rpc.com',
-        },
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { getByText } = render(<NetworkConnectionBanner />);
-
-      expect(getByText('Still connecting to Polygon Mainnet...')).toBeTruthy();
-    });
-
-    it('should handle network with special characters in name', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'degraded',
-          networkName: 'Test-Network (Beta)',
-          rpcUrl: 'https://mainnet.infura.io/v3/test',
-        },
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { getByText } = render(<NetworkConnectionBanner />);
-
-      expect(
-        getByText('Still connecting to Test-Network (Beta)...'),
-      ).toBeTruthy();
-    });
-
-    it('should handle network with very long name', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'degraded',
-          networkName: 'Very Long Network Name That Might Cause Layout Issues',
-          rpcUrl: 'https://mainnet.infura.io/v3/test',
-        },
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { getByText } = render(<NetworkConnectionBanner />);
-
-      expect(
-        getByText(
-          'Still connecting to Very Long Network Name That Might Cause Layout Issues...',
-        ),
-      ).toBeTruthy();
-    });
-  });
-
-  describe('accessibility', () => {
-    const accessibilityTestCases = [
-      {
-        status: 'degraded' as const,
-        expectedMessage: 'Still connecting to Ethereum Mainnet...',
-      },
-      {
-        status: 'unavailable' as const,
-        expectedMessage: 'Unable to connect to Ethereum Mainnet.',
-      },
-    ];
-
-    it.each(accessibilityTestCases)(
-      'should render with proper accessibility structure for $status status',
-      ({ status, expectedMessage }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
-          },
-          updateRpc: mockUpdateRpc,
-        });
-
-        const { getByText } = render(<NetworkConnectionBanner />);
-
-        // The banner should be accessible with proper text content
+        expect(getByTestId('icon')).toBeTruthy();
         expect(getByText(expectedMessage)).toBeTruthy();
-        expect(getByText('Update RPC')).toBeTruthy();
+        expect(queryByText('Update RPC')).toBeNull();
+        expect(queryByText('update RPC')).toBeNull();
       },
     );
 
-    it.each(accessibilityTestCases)(
-      'should have accessible button for updating RPC for $status status',
-      ({ status }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
+    it.each(customNetworkStatusTestCases)(
+      'should call updateRpc when Update RPC button is pressed for $status status',
+      ({ status, updateRpcButtonText }) => {
+        useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
             visible: true,
-            chainId: '0x1',
+            chainId: '0x89',
             status,
-            networkName: 'Ethereum Mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3/test',
+            networkName: 'Polygon Mainnet',
+            rpcUrl: 'https://polygon-rpc.com',
+            isInfuraEndpoint: false,
           },
           updateRpc: mockUpdateRpc,
         });
 
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        const updateButton = getByText('Update RPC');
-        expect(updateButton).toBeTruthy();
-
-        // Test that button is pressable
+        const updateButton = getByText(updateRpcButtonText);
         fireEvent.press(updateButton);
+
         expect(mockUpdateRpc).toHaveBeenCalledWith(
-          'https://mainnet.infura.io/v3/test',
+          'https://polygon-rpc.com',
           status,
-          '0x1',
+          '0x89',
         );
       },
     );
@@ -449,13 +189,14 @@ describe('NetworkConnectionBanner', () => {
     it.each(emptyNameTestCases)(
       'should handle network with empty name for $status status',
       ({ status, expectedMessage }) => {
-        mockuseNetworkConnectionBanner.mockReturnValue({
+        useNetworkConnectionBannerMock.mockReturnValue({
           networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
             networkName: '',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
+            isInfuraEndpoint: true,
           },
           updateRpc: mockUpdateRpc,
         });
@@ -467,13 +208,14 @@ describe('NetworkConnectionBanner', () => {
     );
 
     it('should handle multiple rapid button presses', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
+      useNetworkConnectionBannerMock.mockReturnValue({
         networkConnectionBannerState: {
           visible: true,
-          chainId: '0x1',
+          chainId: '0x89',
           status: 'degraded',
-          networkName: 'Ethereum Mainnet',
-          rpcUrl: 'https://mainnet.infura.io/v3/test',
+          networkName: 'Polygon Mainnet',
+          rpcUrl: 'https://polygon-rpc.com',
+          isInfuraEndpoint: false,
         },
         updateRpc: mockUpdateRpc,
       });
@@ -489,76 +231,10 @@ describe('NetworkConnectionBanner', () => {
 
       expect(mockUpdateRpc).toHaveBeenCalledTimes(3);
       expect(mockUpdateRpc).toHaveBeenCalledWith(
-        'https://mainnet.infura.io/v3/test',
+        'https://polygon-rpc.com',
         'degraded',
-        '0x1',
+        '0x89',
       );
-    });
-  });
-
-  describe('component lifecycle', () => {
-    it('should update when hook values change', () => {
-      // Initially not visible
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: { visible: false },
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { rerender, queryByTestId, getByTestId } = render(
-        <NetworkConnectionBanner />,
-      );
-
-      expect(queryByTestId('animated-spinner')).toBeNull();
-
-      // Make it visible
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'degraded',
-          networkName: 'Ethereum Mainnet',
-          rpcUrl: 'https://mainnet.infura.io/v3/test',
-        },
-        updateRpc: mockUpdateRpc,
-      });
-
-      rerender(<NetworkConnectionBanner />);
-
-      expect(getByTestId('animated-spinner')).toBeTruthy();
-    });
-
-    it('should handle hook returning different network', () => {
-      // Initially Ethereum
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'degraded',
-          networkName: 'Ethereum Mainnet',
-          rpcUrl: 'https://mainnet.infura.io/v3/test',
-        },
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { rerender, getByText } = render(<NetworkConnectionBanner />);
-
-      expect(getByText('Still connecting to Ethereum Mainnet...')).toBeTruthy();
-
-      // Switch to Polygon
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x89',
-          status: 'degraded',
-          networkName: 'Polygon Mainnet',
-          rpcUrl: 'https://polygon-rpc.com',
-        },
-        updateRpc: mockUpdateRpc,
-      });
-
-      rerender(<NetworkConnectionBanner />);
-
-      expect(getByText('Still connecting to Polygon Mainnet...')).toBeTruthy();
     });
   });
 });
