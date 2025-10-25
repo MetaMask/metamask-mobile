@@ -10,14 +10,14 @@
     "pet_name": {
       "list_count_text": "Pet Names on this network",
       "add_pet_name_button": "Add Pet Name",
-      "address": "Address",
+      "address": "Endereço",
       "address_placeholder": "0x...",
-      "name": "Name",
-      "name_placeholder": "Name",
+      "name": "Nome",
+      "name_placeholder": "Nome",
       "duplicate_title": "Address already exists",
       "duplicate_message": "This address already has a pet name. Do you want to update it?",
-      "cancel": "Cancel",
-      "update": "Update"
+      "cancel": "Cancelar",
+      "update": "Atualizar"
     }
   },
   "alert_system": {
@@ -241,7 +241,7 @@
     "remind_later_description": "Se não fizer o backup da sua Frase de Recuperação Secreta, você perderá acesso aos seus valores se ficar sem acesso ao app ou passar a usar um novo dispositivo.",
     "remind_later_description2": "Você pode fazer o backup das suas carteiras ou ver sua Frase de Recuperação Secreta em",
     "setting_security_privacy": "Configurações > Segurança e Privacidade",
-    "wallet_ready": "Your wallet is ready!"
+    "wallet_ready": "Sua carteira está pronta!"
   },
   "social_login_ios_user": {
     "new_user_title": "Você se inscreveu!",
@@ -697,10 +697,10 @@
       "title_musd": "Starting is easy with mUSD",
       "bullet_1_title_musd": "Stable cryptocurrency",
       "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_title_musd": "Baixa volatilidade",
       "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "bullet_3_title_musd": "Mais rápido que nos bancos",
+      "bullet_3_description_musd": "Envie e receba em minutos, sem horário bancário nem atrasos internacionais."
     },
     "enter_email": {
       "navbar_title": "Confirme sua identidade",
@@ -1220,6 +1220,7 @@
       "minimum_remaining_error": "Não é possível encerrar parcialmente: a posição restante (US$ {{remaining}}) ficaria abaixo do tamanho mínimo de (US$ {{minimum}}) da ordem. Em vez disso, encerre 100%.",
       "must_close_full_below_minimum": "O valor da posição está abaixo de US$ 10. Você deve encerrar 100% da posição.",
       "negative_receive_amount": "As taxas excedem o valor da sua posição",
+      "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "Selecione um valor para encerrar",
       "order_type_reverted_to_market_order": "Alterado para ordem a mercado",
       "you_need_set_price_limit_order": "É necessário definir um preço para uma ordem limitada."
@@ -1250,9 +1251,9 @@
       "above": "acima",
       "below": "abaixo",
       "done": "Pronto",
-      "cancel": "Cancel",
+      "cancel": "Cancelar",
       "set": "Definir",
-      "clear": "Clear",
+      "clear": "Limpar",
       "expected_profit": "Expected profit: {{amount}}",
       "expected_loss": "Expected loss: {{amount}}"
     },
@@ -1530,8 +1531,8 @@
         "trades": "Negociações",
         "orders": "Ordens",
         "funding": "Captação",
-        "withdraw": "Withdraw",
-        "deposit": "Deposit",
+        "withdraw": "Sacar",
+        "deposit": "Depositar",
         "deposits": "Deposits",
         "funding_description": "O histórico de captação é um resumo das taxas que você pagou ou recebeu, conforme determinado pelas taxas de captação em suas posições abertas."
       },
@@ -1617,9 +1618,9 @@
     "title": "MetaMask Predict",
     "prediction_markets": "Mercados de previsão",
     "market_list": "Lista de mercado",
-    "loading": "Loading...",
+    "loading": "Carregando...",
     "market_details": {
-      "title": "Market Details",
+      "title": "Detalhes do mercado",
       "market_ended_on": "Market ended on {{outcome}}",
       "market_resulted_to": "Market resulted to {{outcome}}",
       "waiting_for_final_resolution": "Waiting for final resolution",
@@ -1627,11 +1628,15 @@
       "volume": "Volume",
       "end_date": "End date",
       "resolver": "Resolver",
-      "powered_by": "Powered by",
-      "yes": "Yes",
-      "no": "No",
+      "powered_by": "Com tecnologia da",
+      "yes": "Sim",
+      "no": "Não",
       "on": "on",
-      "market_unavailable": "Market unavailable"
+      "won": "Won",
+      "lost": "Lost",
+      "market_unavailable": "Market unavailable",
+      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "outcome_at_price": "{{outcome}} at {{price}}¢"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1640,12 +1645,12 @@
       "resolved_markets": "Resolved markets"
     },
     "tabs": {
-      "about": "About",
-      "positions": "Positions",
+      "about": "Sobre",
+      "positions": "Posições",
       "outcomes": "Outcomes"
     },
     "sell_position": "Posição de venda",
-    "cash_out": "Sacar",
+    "cash_out": "Cash out",
     "buy_yes": "Sim",
     "buy_no": "Não",
     "outcomes": "resultados",
@@ -1672,37 +1677,37 @@
     "claim_button": "Resgatar",
     "markets_won": "Mercados ganhos",
     "won_markets_text": "Ganhou {{count}} mercado{{s}}",
-    "available_balance": "Available balance",
+    "available_balance": "Saldo disponível",
     "claim_amount_text": "Resgatar $ {{amount}}",
     "unrealized_pnl_label": "P&L não realizados",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
+    "unrealized_pnl_error": "Não foi possível carregar",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
-      "button": "Got it"
+      "button": "Entendi"
     },
     "deposit": {
-      "in_progress": "Deposit in progress",
+      "in_progress": "Depósito em andamento",
       "adding_funds": "Adding funds",
       "adding_your_funds": "Adding your funds",
-      "add_funds": "Add funds",
-      "withdraw": "Withdraw",
+      "add_funds": "Adicionar fundos",
+      "withdraw": "Sacar",
       "estimated_processing_time": "Est. {{time}} seconds",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
-      "error_title": "Something went wrong",
+      "error_title": "Ocorreu algum erro",
       "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "try_again": "Tentar novamente"
     },
     "add_funds_sheet": {
-      "title": "Add funds",
+      "title": "Adicionar fundos",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
     "transactions": {
-      "title": "Predictions",
-      "no_transactions": "No recent activity",
+      "title": "Previsões",
+      "no_transactions": "Nenhuma atividade recente",
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
@@ -1710,15 +1715,15 @@
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
       "not_available": "N/A",
-      "date": "Date",
-      "market": "Market",
+      "date": "Data",
+      "market": "Mercado",
       "outcome": "Outcome",
       "predicted_amount": "Predicted amount",
       "shares_bought": "Shares bought",
       "shares_sold": "Shares sold",
       "price_per_share": "Price per share",
-      "price_impact": "Price impact",
-      "net_pnl": "Net P&L",
+      "price_impact": "Impacto do preço",
+      "net_pnl": "P&L líquido",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
       "activity_details": "Activity details"
@@ -1730,29 +1735,38 @@
           "description": "Est. {{time}} seconds"
         },
         "confirmed": {
-          "title": "Claimed",
+          "title": "Resgatada",
           "description": "{{amount}} added to your balance"
         },
         "error": {
-          "title": "Something went wrong",
+          "title": "Ocorreu algum erro",
           "description": "Failed to proceed with claim",
-          "try_again": "Try again"
+          "try_again": "Tentar novamente"
         }
       }
     },
     "order": {
-      "available": "Available",
+      "available": "Disponível",
       "cashed_out": "Cashed out",
       "cashed_out_subtitle": "{{amount}} added to your balance",
       "cashing_out": "Cashing out {{amount}}",
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed",
+      "order_failed": "Falha na ordem",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
       "prediction_minimum_bet": "Minimum bet is {{amount}}",
       "to_win": "To win"
+    },
+    "withdraw": {
+      "withdrawing": "Withdrawing {{amount}} USDC",
+      "withdrawing_subtitle": "Est. {{time}} seconds",
+      "withdraw_completed": "Withdrawal completed",
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Failed to proceed with withdraw",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -1863,7 +1877,7 @@
     "alphabetically": "Em ordem alfabética (A-Z)",
     "add_to_get_started": "Adicione criptomoedas para começar",
     "token_is_needed_to_continue": "É necessário {{tokenSymbol}} para continuar",
-    "fund_your_wallet": "Fund your wallet",
+    "fund_your_wallet": "Deposite fundos em sua carteira",
     "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Deposite fundos em sua carteira para começar na web3",
     "add_funds": "Adicionar fundos",
@@ -5450,7 +5464,7 @@
       "approve": "Aprovar solicitação",
       "perps_deposit": "Adicionar fundos",
       "predict_deposit": "Add Predict funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "Sacar"
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",
@@ -5633,7 +5647,7 @@
     "points_error_content": "Você ainda ganhará os pontos por essa transação. Notificaremos você assim que eles forem adicionados à sua conta. Você também poderá conferir sua guia de recompensas em cerca de uma hora.",
     "see_other_quotes": "Ver outras cotações",
     "receive_at": "Receber em",
-    "recipient": "Recipient",
+    "recipient": "Destinatário",
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "Esta rota comercial não está disponível no momento. Experimente mudar o valor, a rede ou o token e encontraremos a melhor opção.",
@@ -5649,7 +5663,7 @@
     "fetching_quote": "Buscando cotação",
     "fee_disclaimer": "Includes {{feePercentage}}% MM fee.",
     "no_mm_fee": "Sem taxa da MM",
-    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
+    "no_mm_fee_disclaimer": "Sem taxa da MM ao trocar por {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Ainda não oferecemos suporte a carteiras de hardware. Use uma hot wallet para continuar.",
     "hardware_wallet_not_supported_solana": "Carteiras de hardware ainda não são compatíveis com Solana. Use uma hot wallet para continuar.",
     "price_impact_info_title": "Impacto no preço",
@@ -5700,7 +5714,7 @@
     "create_new_wallet": "Criar uma nova carteira",
     "use_different_login_method": "Usar um método de login diferente",
     "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "unlock_wallet": "Desbloquear carteira"
   },
   "error_sheet": {
     "still_there_title": "Ainda está aí?",
@@ -5799,14 +5813,14 @@
       "section_2_title": "Mesmo endereço, mais redes",
       "section_2_description": "Unificamos suas contas, mas continue usando a MetaMask normalmente. Seus fundos permanecem seguros e inalterados",
       "view_accounts_button": "Ver contas",
-      "learn_more_button": "Learn more",
+      "learn_more_button": "Saiba mais",
       "setting_up_accounts": "Configurando suas contas"
     },
     "learn_more": {
-      "title": "Learn more",
+      "title": "Saiba mais",
       "description": "Contas multicadeia agora são o padrão. Se preferir, você pode desativá-las desligando a funcionalidade básica.",
-      "checkbox_label": "Turn off basic functionality",
-      "confirm_button": "Confirm"
+      "checkbox_label": "Desativar funcionalidade básica",
+      "confirm_button": "Confirmar"
     },
     "add_wallet": "Adicionar carteira",
     "add_hardware_wallet": "Adicionar uma carteira de hardware",
@@ -5939,8 +5953,8 @@
     "unsupported": {
       "title": "This page is not supported in current version",
       "description": "Update to the latest version to use this feature",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
+      "update_to_store_link": "Atualize para a versão mais recente da MetaMask",
+      "well_take_you_to_right_place": " e nós levaremos você ao lugar certo."
     },
     "go_to_home_button": "Ir para a página inicial",
     "back_button": "Voltar",
@@ -5956,31 +5970,40 @@
       "select_method": "Selecionar método"
     },
     "card_onboarding": {
-      "title": "Bem-vindo ao cartão",
-      "description": "Para usar os recursos do cartão, será necessário verificar sua conta com o nosso parceiro.",
-      "verify_account_button": "Verificar conta",
+      "title": "Enable MetaMask Card features",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
+      "verify_account_button": "Sign in",
+      "non_cardholder_title": "Welcome to MetaMask Card",
+      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
+      "non_cardholder_verify_account_button": "Comece já",
       "sign_up": {
-        "title": "Inscrever-me",
-        "description": "Registre seus dados com a Crypto Life, a provedora do cartão MetaMask. Você usará essa conta para acessar e gerenciar seu cartão.",
+        "title": "Sign up",
+        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "E-mail",
         "password_label": "Senha",
-        "confirm_password_label": "Confirmar senha",
+        "confirm_password_label": "Insira sua senha novamente",
         "country_label": "País de residência",
         "email_placeholder": "Insira seu endereço de e-mail",
-        "password_placeholder": "Insira sua senha",
+        "password_placeholder": "Must be 15+ characters long",
+        "confirm_password_placeholder": "Insira sua senha novamente",
         "country_placeholder": "Selecione seu país",
         "password_mismatch": "As senhas não coincidem",
-        "invalid_email": "Endereço de e-mail inválido"
+        "invalid_email": "Endereço de e-mail inválido",
+        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
       },
       "confirm_email": {
         "title": "Confirme seu e-mail",
         "description": "Enviamos um código de confirmação para: {{email}}",
         "confirm_code_label": "Código de confirmação",
-        "confirm_code_placeholder": "Insira o código de confirmação"
+        "confirm_code_placeholder": "Enter the 6-digit code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "Número de telefone",
-        "description": "Insira seu número de telefone",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Número de telefone",
         "phone_number_placeholder": "Insira seu número de telefone",
         "country_area_code_label": "Código de área do país",
@@ -5989,24 +6012,28 @@
       },
       "confirm_phone_number": {
         "title": "Confirme seu número de telefone",
-        "description": "Enviamos um código de confirmação para: {{phoneNumber}}",
-        "confirm_code_label": "Código de confirmação"
+        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
+        "confirm_code_label": "Código de confirmação",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
-        "title": "Verificando sua identidade para receber seu cartão",
-        "description": "Para manter sua conta protegida e cumprir as regulamentações, precisamos verificar sua identidade.\n\nVocê precisará de um documento de identidade oficial e um comprovante de endereço (por exemplo, uma conta de serviço público ou extrato bancário).\n\nA verificação geralmente leva de 5 a 30 minutos, e você receberá uma notificação assim que ela for concluída.",
-        "verify_button": "Verificar agora com Veriff"
+        "title": "Next, verify your identity",
+        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
+        "verify_button": "Start verification",
+        "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "Validando seu KYC..."
+        "title": "Validando seu KYC...",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "Rejeitado",
         "description": "Seu KYC foi rejeitado. Por gentileza, tente novamente."
       },
       "personal_details": {
-        "title": "Dados pessoais",
-        "description": "Insira seus dados pessoais",
+        "title": "Now, our partner needs some info about you",
+        "description": "Don't worry, this info is private and we never see it",
         "first_name_label": "Nome",
         "last_name_label": "Sobrenome",
         "date_of_birth_label": "Data de nascimento",
@@ -6018,24 +6045,23 @@
         "nationality_placeholder": "Selecione sua nacionalidade",
         "ssn_placeholder": "Insira seu NSS",
         "invalid_ssn": "NSS inválido",
-        "invalid_date_of_birth": "Data de nascimento inválida",
-        "invalid_date_of_birth_underage": "Você deve ter pelo menos 18 anos de idade"
+        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "Endereço físico",
-        "description": "Informe seu endereço físico",
+        "title": "Residential address",
+        "description": "Please provide your physical residence address to Crypto Life",
         "address_line_1_label": "Endereço linha 1",
         "address_line_2_label": "Endereço linha 2",
         "city_label": "Cidade",
         "state_label": "Estado",
-        "zip_code_label": "CEP",
-        "address_line_1_placeholder": "Insira a linha 1 do seu endereço",
-        "address_line_2_placeholder": "Insira a linha 2 do seu endereço",
+        "zip_code_label": "ZIP or Postal code",
+        "address_line_1_placeholder": "Street address",
+        "address_line_2_placeholder": "Floor, apartment or suite number",
         "city_placeholder": "Insira sua cidade",
         "state_placeholder": "Insira seu estado",
-        "zip_code_placeholder": "Insira seu CEP",
-        "same_mailing_address_label": "O endereço físico é o mesmo que o endereço postal",
-        "electronic_consent": "Concordo com o consentimento e divulgação conforme a Lei E-Sign (lei americana de assinaturas eletrônicas no comércio mundial e nacional) e em receber todas as comunicações por via eletrônica."
+        "zip_code_placeholder": "Enter your ZIP code or postal code",
+        "same_mailing_address_label": "Residential address is the same as mailing address",
+        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically."
       },
       "mailing_address": {
         "title": "Endereço postal",
@@ -6043,14 +6069,29 @@
       },
       "complete": {
         "title": "Aprovado!",
-        "description": "Seu KYC foi aprovado. Você já pode usar o seu cartão."
+        "description": "Your KYC was approved. You can now use MetaMask Card."
       },
       "continue_button": "Avançar",
       "confirm_button": "Confirmar",
-      "retry_button": "Tentar novamente"
+      "retry_button": "Tentar novamente",
+      "errors": {
+        "email_already_exists": "Email already exists. Please use a different email.",
+        "invalid_email_format": "Invalid email format. Please check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Please request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
+        "create_user_failed": "Failed to create user. Please try again."
+      }
     },
     "card_home": {
-      "error_title": "Não é possível obter os dados",
+      "error_title": "Can't fetch data",
       "error_description": "Parece haver um problema impedindo que você visualize o conteúdo desta página. Verifique sua conexão ou tente atualizar a página.",
       "try_again": "Tentar novamente",
       "limited_spending_warning": "Sua capacidade real de gastos pode estar limitada. Para ajustar seu limite, acesse {{manageCard}}",
@@ -6065,33 +6106,33 @@
           "confirm_button_label": "Definir novo limite"
         },
         "need_delegation": {
-          "title": "Você precisa atribuir ativos",
-          "description": "Atribua ativos ao seu cartão para começar a gastar",
-          "confirm_button_label": "Atribuir ativos"
+          "title": "You need to enable your card",
+          "description": "Choose an asset to start spending",
+          "confirm_button_label": "Enable card"
         },
         "no_card": {
-          "title": "You don't have a Card",
-          "description": "Please enable your Card to start spending"
+          "title": "You need to enable your card",
+          "description": "Please enable your card to start spending"
         },
         "frozen": {
-          "title": "Your Card is frozen",
-          "description": "Please contact support to unfreeze your Card"
+          "title": "Your card is frozen",
+          "description": "Please contact support to unfreeze your card"
         },
         "blocked": {
-          "title": "Your Card is blocked",
-          "description": "Please contact support to unblock your Card"
+          "title": "Your card is blocked",
+          "description": "Please contact support to unblock your card"
         }
       },
       "manage_card_options": {
         "manage_spending_limit": "Gerenciar limite de gastos",
-        "manage_spending_limit_description_restricted": "O limite de gastos restrito está ativo",
-        "manage_spending_limit_description_full": "O acesso de gastos total está ativo",
+        "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Gerenciar cartão",
         "advanced_card_management_description": "Transações detalhadas, congelamento de cartão e muito mais"
       }
     },
     "card_authentication": {
-      "title": "Faça login na conta do seu cartão",
+      "title": "Log in to your MetaMask Card account",
       "location_button_text": "Internacional",
       "location_button_text_us": "Conta nos EUA",
       "email_label": "E-mail",
@@ -6099,6 +6140,7 @@
       "email_placeholder": "Insira seu endereço de e-mail",
       "password_placeholder": "Insira sua senha",
       "login_button": "Fazer login",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Dados de login inválidos",
         "unknown_error": "Erro desconhecido. Tente novamente mais tarde",
@@ -6114,11 +6156,11 @@
       }
     },
     "card_otp_authentication": {
-      "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "title": "Confirme seu número de telefone",
+      "description_with_phone_number": "Enviamos um código de confirmação para: {{maskedPhoneNumber}}",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
-      "confirm_code_label": "Confirmation code",
-      "confirm_button": "Confirm",
+      "confirm_code_label": "Código de confirmação",
+      "confirm_button": "Confirmar",
       "back_to_login_button": "Back to Login",
       "resend_timer": "Resend code in {{seconds}}s",
       "resend_code": "Resend code"
@@ -6451,7 +6493,7 @@
       "bridge_fee": "Taxa de ponte",
       "network_fee": "Taxa de rede",
       "paid_with": "Paga com",
-      "retry_button": "Try again",
+      "retry_button": "Tentar novamente",
       "total": "Total"
     },
     "summary_title": {
@@ -6463,7 +6505,7 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "Transação",
       "perps_deposit": "Adicionar fundos",
-      "predict_deposit": "Add funds",
+      "predict_deposit": "Adicionar fundos",
       "swap": "Trocar tokens",
       "swap_approval": "Aprovar tokens"
     },
@@ -6479,7 +6521,7 @@
       "description": "Failed to establish connection. Please try again."
     },
     "show_return_to_app": {
-      "title": "Success",
+      "title": "Sucesso",
       "description": "Return to the app to continue."
     }
   },

@@ -10,14 +10,14 @@
     "pet_name": {
       "list_count_text": "Pet Names on this network",
       "add_pet_name_button": "Add Pet Name",
-      "address": "Address",
+      "address": "पता",
       "address_placeholder": "0x...",
-      "name": "Name",
-      "name_placeholder": "Name",
+      "name": "नाम",
+      "name_placeholder": "नाम",
       "duplicate_title": "Address already exists",
       "duplicate_message": "This address already has a pet name. Do you want to update it?",
-      "cancel": "Cancel",
-      "update": "Update"
+      "cancel": "कैंसिल करें",
+      "update": "अपडेट करें"
     }
   },
   "alert_system": {
@@ -100,8 +100,8 @@
   "blockaid_banner": {
     "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
     "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
-    "deceptive_request_title": "This is a deceptive request",
-    "failed_title": "Request may not be safe",
+    "deceptive_request_title": "इस अनुरोध को धोखेबाजी के उद्देश्य से भेजा गया है",
+    "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
     "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
     "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "other_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
@@ -241,7 +241,7 @@
     "remind_later_description": "यदि आप अपने सीक्रेट रिकवरी फ्रेज़ का बैकअप नहीं लेते हैं, तो ऐप से लॉक होने या नया डिवाइस लेने पर आप अपने फंड्स तक पहुंच खो देंगे।",
     "remind_later_description2": "आप अपने वॉलेट का बैकअप ले सकते हैं या इसमें अपना सीक्रेट रिकवरी फ्रेज़ देख सकते हैं",
     "setting_security_privacy": "सेटिंग > सुरक्षा और गोपनीयता",
-    "wallet_ready": "Your wallet is ready!"
+    "wallet_ready": "आपका वॉलेट तैयार है!"
   },
   "social_login_ios_user": {
     "new_user_title": "आपने साइन अप कर लिया है!",
@@ -697,10 +697,10 @@
       "title_musd": "Starting is easy with mUSD",
       "bullet_1_title_musd": "Stable cryptocurrency",
       "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_title_musd": "कम अस्थिरता",
       "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "bullet_3_title_musd": "बैंकों से भी तेज़",
+      "bullet_3_description_musd": "मिनटों में भेजें और प्राप्त करें — न बैंक के समय का, न ही अंतरराष्ट्रीय देरी का इंतज़ार।"
     },
     "enter_email": {
       "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
@@ -1220,6 +1220,7 @@
       "minimum_remaining_error": "आंशिक क्लोज़ नहीं किया जा सकता: शेष पोज़िशन (${{remaining}}) न्यूनतम ऑर्डर साइज (${{minimum}}) से कम होगा। कृपया 100% क्लोज़ करें।",
       "must_close_full_below_minimum": "पोज़िशन का मूल्य $10 से कम है। आपको पोज़िशन का 100% बंद करना होगा।",
       "negative_receive_amount": "फीस आपकी पोजीशन मूल्य से अधिक है",
+      "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "कृपया बंद करने के लिए कोई राशि चुनें",
       "order_type_reverted_to_market_order": "मार्केट ऑर्डर में बदल दिया गया",
       "you_need_set_price_limit_order": "लिमिट ऑर्डर के लिए आपको एक प्राइस सेट करना होगा।"
@@ -1250,9 +1251,9 @@
       "above": "ऊपर",
       "below": "नीचे",
       "done": "पूरा हुआ",
-      "cancel": "Cancel",
+      "cancel": "कैंसिल करें",
       "set": "निर्धारित करें",
-      "clear": "Clear",
+      "clear": "हटाएं",
       "expected_profit": "Expected profit: {{amount}}",
       "expected_loss": "Expected loss: {{amount}}"
     },
@@ -1530,8 +1531,8 @@
         "trades": "ट्रेड्स",
         "orders": "ऑर्डर",
         "funding": "फंडिंग",
-        "withdraw": "Withdraw",
-        "deposit": "Deposit",
+        "withdraw": "निकालें",
+        "deposit": "डिपॉज़िट करें",
         "deposits": "Deposits",
         "funding_description": "फंडिंग इतिहास आपके द्वारा चुकाए या प्राप्त किए गए फीस का सारांश है, जो आपकी ओपन पोज़िशन पर लागू फंडिंग रेट्स द्वारा निर्धारित होता है।"
       },
@@ -1580,7 +1581,7 @@
         "subtitle": "यहां बताया गया है कि यह कैसे काम करता है।"
       },
       "go_long_or_short": {
-        "title": "Go long or short on a token",
+        "title": "टोकन पर लॉन्ग या शॉर्ट लें",
         "description": "किसी टोकन को लॉन्ग या शॉर्ट लेने के लिए चुनें, फिर अपना ऑर्डर साइज़ सेट करें।",
         "subtitle": "यदि प्राइस बढ़ती है तो लाभ के लिए लॉन्ग लें। यदि प्राइस घटती है तो लाभ के लिए शॉर्ट लें।"
       },
@@ -1617,21 +1618,25 @@
     "title": "MetaMask प्रिडिक्ट",
     "prediction_markets": "प्रेडिक्शन मार्केट",
     "market_list": "मार्केट लिस्ट",
-    "loading": "Loading...",
+    "loading": "लोड हो रहा है...",
     "market_details": {
-      "title": "Market Details",
+      "title": "मार्केट का विवरण",
       "market_ended_on": "Market ended on {{outcome}}",
       "market_resulted_to": "Market resulted to {{outcome}}",
       "waiting_for_final_resolution": "Waiting for final resolution",
       "no_positions_found": "No positions found",
-      "volume": "Volume",
+      "volume": "वॉल्यूम",
       "end_date": "End date",
       "resolver": "Resolver",
-      "powered_by": "Powered by",
-      "yes": "Yes",
-      "no": "No",
+      "powered_by": "के द्वारा पावर्ड",
+      "yes": "हां",
+      "no": "नहीं",
       "on": "on",
-      "market_unavailable": "Market unavailable"
+      "won": "Won",
+      "lost": "Lost",
+      "market_unavailable": "Market unavailable",
+      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "outcome_at_price": "{{outcome}} at {{price}}¢"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1640,12 +1645,12 @@
       "resolved_markets": "Resolved markets"
     },
     "tabs": {
-      "about": "About",
-      "positions": "Positions",
+      "about": "बारे में",
+      "positions": "पोजीशन्स",
       "outcomes": "Outcomes"
     },
     "sell_position": "सेल पोज़िशन",
-    "cash_out": "कैश आउट",
+    "cash_out": "Cash out",
     "buy_yes": "हां",
     "buy_no": "नहीं",
     "outcomes": "परिणाम",
@@ -1672,36 +1677,36 @@
     "claim_button": "क्लेम करें",
     "markets_won": "मार्केट जीते",
     "won_markets_text": "{{count}} मार्केट{{s}} जीते",
-    "available_balance": "Available balance",
+    "available_balance": "उपलब्ध बैलेंस",
     "claim_amount_text": "${{amount}} क्लेम करें",
     "unrealized_pnl_label": "अनरियलाइज्ड P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
+    "unrealized_pnl_error": "लोड करने में असमर्थ",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
-      "button": "Got it"
+      "button": "समझ गए"
     },
     "deposit": {
-      "in_progress": "Deposit in progress",
+      "in_progress": "डिपॉज़िट प्रगति में है",
       "adding_funds": "Adding funds",
       "adding_your_funds": "Adding your funds",
-      "add_funds": "Add funds",
-      "withdraw": "Withdraw",
+      "add_funds": "फंड जोड़ें",
+      "withdraw": "निकालें",
       "estimated_processing_time": "Est. {{time}} seconds",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
-      "error_title": "Something went wrong",
+      "error_title": "कुछ गलत हो गया",
       "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "try_again": "फिर से प्रयास करें"
     },
     "add_funds_sheet": {
-      "title": "Add funds",
+      "title": "फंड जोड़ें",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
     "transactions": {
-      "title": "Predictions",
+      "title": "प्रेडिक्शंस",
       "no_transactions": "No recent activity",
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
@@ -1710,15 +1715,15 @@
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
       "not_available": "N/A",
-      "date": "Date",
-      "market": "Market",
+      "date": "तिथि",
+      "market": "मार्केट",
       "outcome": "Outcome",
       "predicted_amount": "Predicted amount",
       "shares_bought": "Shares bought",
       "shares_sold": "Shares sold",
       "price_per_share": "Price per share",
-      "price_impact": "Price impact",
-      "net_pnl": "Net P&L",
+      "price_impact": "कीमत का प्रभाव",
+      "net_pnl": "नेट P&L",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
       "activity_details": "Activity details"
@@ -1730,29 +1735,38 @@
           "description": "Est. {{time}} seconds"
         },
         "confirmed": {
-          "title": "Claimed",
+          "title": "क्लेम किया गया",
           "description": "{{amount}} added to your balance"
         },
         "error": {
-          "title": "Something went wrong",
+          "title": "कुछ गलत हो गया",
           "description": "Failed to proceed with claim",
-          "try_again": "Try again"
+          "try_again": "फिर से प्रयास करें"
         }
       }
     },
     "order": {
-      "available": "Available",
+      "available": "उपलब्ध",
       "cashed_out": "Cashed out",
       "cashed_out_subtitle": "{{amount}} added to your balance",
       "cashing_out": "Cashing out {{amount}}",
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed",
+      "order_failed": "ऑर्डर नहीं हो पाया",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
       "prediction_minimum_bet": "Minimum bet is {{amount}}",
       "to_win": "To win"
+    },
+    "withdraw": {
+      "withdrawing": "Withdrawing {{amount}} USDC",
+      "withdrawing_subtitle": "Est. {{time}} seconds",
+      "withdraw_completed": "Withdrawal completed",
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Failed to proceed with withdraw",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -1863,7 +1877,7 @@
     "alphabetically": "वर्णानुक्रम में (A-Z)",
     "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
     "token_is_needed_to_continue": "जारी रखने के लिए {{tokenSymbol}} की आवश्यकता है",
-    "fund_your_wallet": "Fund your wallet",
+    "fund_your_wallet": "अपने वॉलेट को फंड करें",
     "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Web3 में शुरू करने के लिए अपने वॉलेट को फंड करें",
     "add_funds": "फंड जोड़ें",
@@ -5450,7 +5464,7 @@
       "approve": "अनुरोध एप्रूव करें",
       "perps_deposit": "फंड जोड़ें",
       "predict_deposit": "Add Predict funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "निकालें"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -5633,7 +5647,7 @@
     "points_error_content": "आप इस ट्रांसेक्शन के लिए अभी भी पॉइंट्स अर्जित करेंगे। जब ये आपके अकाउंट में जोड़ दिए जाएंगे, तब हम आपको सूचित करेंगे। आप लगभग एक घंटे में अपने रिवॉर्ड्स टैब में भी जांच सकते हैं।",
     "see_other_quotes": "अन्य कोटेशन देखें",
     "receive_at": "यहां प्राप्त करें",
-    "recipient": "Recipient",
+    "recipient": "प्राप्तकर्ता",
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "यह ट्रेड रूट अभी उपलब्ध नहीं है। राशि, नेटवर्क या टोकन बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।",
@@ -5700,7 +5714,7 @@
     "create_new_wallet": "एक नया वॉलेट बनाएं",
     "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें",
     "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "unlock_wallet": "वॉलेट अनलॉक करें"
   },
   "error_sheet": {
     "still_there_title": "अभी तक वहीं हैं?",
@@ -5708,7 +5722,7 @@
     "unable_to_login_title": "कनेक्ट करने में असमर्थ",
     "unable_to_login_description": "आपका इंटरनेट कनेक्शन अस्थिर है। अपना कनेक्शन जांचें और फिर से प्रयास करें।",
     "something_went_wrong_title": "कुछ गलत हो गया",
-    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "something_went_wrong_description": "लॉग इन करते समय एक गड़बड़ी (एरर) हुई। फिर से प्रयास करें और यदि समस्या बनी रहती है, तो",
     "support_button": "MetaMask समर्थन.",
     "error_button": "फिर से कोशिश करें",
     "user_cancelled_title": "लॉगिन कैंसिल कर दिया गया",
@@ -5799,14 +5813,14 @@
       "section_2_title": "वही एड्रेस, अधिक नेटवर्क",
       "section_2_description": "हमने आपके एकाउट्स को समूहित किया है, इसलिए MetaMask का उपयोग पहले की तरह जारी रखें। आपके फंड सुरक्षित और अपरिवर्तित हैं",
       "view_accounts_button": "एकाउंट्स देखें",
-      "learn_more_button": "Learn more",
+      "learn_more_button": "ज़्यादा जानें",
       "setting_up_accounts": "आपके एकाउंट्स को सेटअप किया जा रहा है"
     },
     "learn_more": {
-      "title": "Learn more",
+      "title": "ज़्यादा जानें",
       "description": "मल्टीचेन एकाउंट्स अब डिफॉल्ट हैं। बाहर निकलने के लिए, बेसिक फ़ंक्शनैलिटी बंद करें।",
-      "checkbox_label": "Turn off basic functionality",
-      "confirm_button": "Confirm"
+      "checkbox_label": "बेसिक फंक्शनलिटी को बंद करें",
+      "confirm_button": "कन्फर्म करें"
     },
     "add_wallet": "वॉलेट जोड़ें",
     "add_hardware_wallet": "हार्डवेयर वॉलेट जोड़ें",
@@ -5939,8 +5953,8 @@
     "unsupported": {
       "title": "This page is not supported in current version",
       "description": "Update to the latest version to use this feature",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
+      "update_to_store_link": "MetaMask के लेटेस्ट वर्शन में अपडेट करें",
+      "well_take_you_to_right_place": " और हम आपको सही स्थान पर ले चलेंगे।"
     },
     "go_to_home_button": "होम पेज पर जाएं",
     "back_button": "वापस",
@@ -5956,31 +5970,40 @@
       "select_method": "विधि चुनें"
     },
     "card_onboarding": {
-      "title": "कार्ड में आपका स्वागत है",
-      "description": "कार्ड संबंधी फीचर्स का उपयोग करने के लिए, आपको हमारे पार्टनर के साथ अपना अकाउंट वेरिफ़ाई करना होगा।",
-      "verify_account_button": "अकाउंट वेरिफ़ाई करें",
+      "title": "Enable MetaMask Card features",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
+      "verify_account_button": "Sign in",
+      "non_cardholder_title": "Welcome to MetaMask Card",
+      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
+      "non_cardholder_verify_account_button": "शुरू करें",
       "sign_up": {
-        "title": "साइन-अप",
-        "description": "MetaMask कार्ड के प्रदाता Crypto Life के साथ अपनी जानकारी पंजीकृत करें। आप इस अकाउंट का उपयोग अपने कार्ड तक पहुँचने और इसे प्रबंधित करने के लिए करेंगे।",
+        "title": "Sign up",
+        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "ईमेल",
         "password_label": "पासवर्ड",
-        "confirm_password_label": "पासवर्ड कन्फर्म करें",
+        "confirm_password_label": "अपना पासवर्ड दोबारा डालें",
         "country_label": "निवास देश",
         "email_placeholder": "अपना ईमेल एड्रेस डालें",
-        "password_placeholder": "अपना पासवर्ड डालें",
+        "password_placeholder": "Must be 15+ characters long",
+        "confirm_password_placeholder": "अपना पासवर्ड दोबारा डालें",
         "country_placeholder": "अपना देश चुनें",
         "password_mismatch": "पासवर्ड मैच नहीं कर रहे",
-        "invalid_email": "ईमेल एड्रेस ग़लत है"
+        "invalid_email": "ईमेल एड्रेस ग़लत है",
+        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
       },
       "confirm_email": {
         "title": "अपना ईमेल कन्फर्म करें",
         "description": "हमने कन्फर्मेशन कोड इस एड्रेस पर भेजा है: {{email}}",
         "confirm_code_label": "कन्फर्मेशन कोड",
-        "confirm_code_placeholder": "कन्फर्मेशन कोड दर्ज करें"
+        "confirm_code_placeholder": "Enter the 6-digit code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "फ़ोन नंबर",
-        "description": "अपना फ़ोन नंबर दर्ज करें",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "फ़ोन नंबर",
         "phone_number_placeholder": "अपना फ़ोन नंबर दर्ज करें",
         "country_area_code_label": "देश का क्षेत्र कोड",
@@ -5989,24 +6012,28 @@
       },
       "confirm_phone_number": {
         "title": "अपना फ़ोन नंबर कन्फर्म करें",
-        "description": "हमने कन्फर्मेशन कोड इस नंबर पर भेजा है: {{phoneNumber}}",
-        "confirm_code_label": "कन्फर्मेशन कोड"
+        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
+        "confirm_code_label": "कन्फर्मेशन कोड",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
-        "title": "आपके कार्ड को प्राप्त करने के लिए आपकी पहचान सत्यापित की जा रही है",
-        "description": "अपने अकाउंट की सुरक्षा बनाए रखने और नियमों का पालन करने के लिए, हमें आपकी पहचान सत्यापित करने की आवश्यकता है।\n\nइसके लिए आपको एक सरकार द्वारा जारी किया गया ID और पता प्रमाण (जैसे यूटिलिटी बिल या बैंक स्टेटमेंट) की आवश्यकता होगी।\n\nसत्यापन आमतौर पर 5-30 मिनट में पूरा हो जाता है, और जैसे ही यह पूरा होगा, हम आपको सूचित करेंगे।",
-        "verify_button": "Veriff के साथ अभी सत्यापित करें"
+        "title": "Next, verify your identity",
+        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
+        "verify_button": "Start verification",
+        "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "आपका KYC सत्यापित किया जा रहा है…"
+        "title": "आपका KYC सत्यापित किया जा रहा है…",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "रिजेक्ट किया गया",
         "description": "आपका KYC रिजेक्ट किया गया। कृपया फिर से प्रयास करें।"
       },
       "personal_details": {
-        "title": "व्यक्तिगत जानकारी",
-        "description": "अपनी व्यक्तिगत जानकारी दर्ज करें",
+        "title": "Now, our partner needs some info about you",
+        "description": "Don't worry, this info is private and we never see it",
         "first_name_label": "पहला नाम",
         "last_name_label": "उपनाम",
         "date_of_birth_label": "जन्मतिथि",
@@ -6018,24 +6045,23 @@
         "nationality_placeholder": "अपनी राष्ट्रीयता चुनें",
         "ssn_placeholder": "अपना SSN दर्ज करें",
         "invalid_ssn": "SSN ग़लत है",
-        "invalid_date_of_birth": "जन्मतिथि ग़लत है",
-        "invalid_date_of_birth_underage": "आपकी आयु कम से कम 18 वर्ष होनी चाहिए"
+        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "भौतिक पता",
-        "description": "कृपया अपना भौतिक पता प्रदान करें",
+        "title": "Residential address",
+        "description": "Please provide your physical residence address to Crypto Life",
         "address_line_1_label": "एड्रेस लाइन 1",
         "address_line_2_label": "एड्रेस लाइन 2",
         "city_label": "शहर",
         "state_label": "राज्य",
-        "zip_code_label": "ज़िप कोड",
-        "address_line_1_placeholder": "अपना एड्रेस लाइन 1 डालें",
-        "address_line_2_placeholder": "अपना एड्रेस लाइन 2 डालें",
+        "zip_code_label": "ZIP or Postal code",
+        "address_line_1_placeholder": "Street address",
+        "address_line_2_placeholder": "Floor, apartment or suite number",
         "city_placeholder": "अपना शहर दर्ज करें",
         "state_placeholder": "अपना राज्य दर्ज करें",
-        "zip_code_placeholder": "अपना ज़िप कोड दर्ज करें",
-        "same_mailing_address_label": "भौतिक पता डाक पते के समान ही होता है",
-        "electronic_consent": "मैं E-Sign Act की सहमति और प्रकटीकरण से सहमत हूँ और सभी संचार इलेक्ट्रॉनिक रूप में प्राप्त करने के लिए सहमति देता/देती हूँ।"
+        "zip_code_placeholder": "Enter your ZIP code or postal code",
+        "same_mailing_address_label": "Residential address is the same as mailing address",
+        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically."
       },
       "mailing_address": {
         "title": "डाक पता",
@@ -6043,14 +6069,29 @@
       },
       "complete": {
         "title": "एप्रूव किया गया!",
-        "description": "आपका KYC एप्रूव किया गया। अब आप अपना कार्ड उपयोग कर सकते हैं।"
+        "description": "Your KYC was approved. You can now use MetaMask Card."
       },
       "continue_button": "आगे",
       "confirm_button": "कन्फर्म करें",
-      "retry_button": "फिर से प्रयास करें"
+      "retry_button": "फिर से प्रयास करें",
+      "errors": {
+        "email_already_exists": "Email already exists. Please use a different email.",
+        "invalid_email_format": "Invalid email format. Please check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Please request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
+        "create_user_failed": "Failed to create user. Please try again."
+      }
     },
     "card_home": {
-      "error_title": "डेटा प्राप्त नहीं किया जा सकता",
+      "error_title": "Can't fetch data",
       "error_description": "ऐसा लगता है कि कोई समस्या आपको इस पेज की सामग्री देखने से रोक रही है। कृपया अपना कनेक्शन जांचें या पेज को रीफ्रेश करके देखें।",
       "try_again": "फिर से कोशिश करें",
       "limited_spending_warning": "आपकी वास्तविक खर्च करने की क्षमता सीमित हो सकती है। अपनी सीमा समायोजित करने के लिए, {{manageCard}} पर जाएँ",
@@ -6065,33 +6106,33 @@
           "confirm_button_label": "नई सीमा निर्धारित करें"
         },
         "need_delegation": {
-          "title": "आपको एसेट्स डेलीगेट करने की आवश्यकता है",
-          "description": "खर्च शुरू करने के लिए अपनी कार्ड में एसेट्स डेलीगेट करें",
-          "confirm_button_label": "एसेट्स डेलीगेट करें"
+          "title": "You need to enable your card",
+          "description": "Choose an asset to start spending",
+          "confirm_button_label": "Enable card"
         },
         "no_card": {
-          "title": "You don't have a Card",
-          "description": "Please enable your Card to start spending"
+          "title": "You need to enable your card",
+          "description": "Please enable your card to start spending"
         },
         "frozen": {
-          "title": "Your Card is frozen",
-          "description": "Please contact support to unfreeze your Card"
+          "title": "Your card is frozen",
+          "description": "Please contact support to unfreeze your card"
         },
         "blocked": {
-          "title": "Your Card is blocked",
-          "description": "Please contact support to unblock your Card"
+          "title": "Your card is blocked",
+          "description": "Please contact support to unblock your card"
         }
       },
       "manage_card_options": {
         "manage_spending_limit": "खर्च की सीमा प्रबंधित करें",
-        "manage_spending_limit_description_restricted": "सीमित खर्च की सीमा चालू है",
-        "manage_spending_limit_description_full": "पूर्ण खर्च की एक्सेस चालू है",
+        "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "कार्ड प्रबंधित करें",
         "advanced_card_management_description": "विस्तृत ट्रांसेक्शन, कार्ड फ्रीज करना, और बहुत कुछ"
       }
     },
     "card_authentication": {
-      "title": "अपने कार्ड अकाउंट में लॉगिन करें",
+      "title": "Log in to your MetaMask Card account",
       "location_button_text": "अंतरराष्ट्रीय",
       "location_button_text_us": "यूएस अकाउंट",
       "email_label": "ईमेल",
@@ -6099,6 +6140,7 @@
       "email_placeholder": "अपना ईमेल एड्रेस डालें",
       "password_placeholder": "अपना पासवर्ड डालें",
       "login_button": "लॉग इन करें",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "लॉगिन जानकारी ग़लत है",
         "unknown_error": "अज्ञात गड़बड़ी, कृपया बाद में फिर से प्रयास करें",
@@ -6114,11 +6156,11 @@
       }
     },
     "card_otp_authentication": {
-      "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "title": "अपना फ़ोन नंबर कन्फर्म करें",
+      "description_with_phone_number": "हमने कन्फर्मेशन कोड इस नंबर पर भेजा है: {{maskedPhoneNumber}}",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
-      "confirm_code_label": "Confirmation code",
-      "confirm_button": "Confirm",
+      "confirm_code_label": "कन्फर्मेशन कोड",
+      "confirm_button": "कन्फर्म करें",
       "back_to_login_button": "Back to Login",
       "resend_timer": "Resend code in {{seconds}}s",
       "resend_code": "Resend code"
@@ -6451,7 +6493,7 @@
       "bridge_fee": "ब्रिज फीस",
       "network_fee": "नेटवर्क फीस",
       "paid_with": "के साथ भुगतान किया गया",
-      "retry_button": "Try again",
+      "retry_button": "फिर से प्रयास करें",
       "total": "कुल"
     },
     "summary_title": {
@@ -6463,7 +6505,7 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "ट्रांसेक्शन",
       "perps_deposit": "फंड जोड़ें",
-      "predict_deposit": "Add funds",
+      "predict_deposit": "फंड जोड़ें",
       "swap": "टोकन स्वैप करें",
       "swap_approval": "टोकन एप्रूव करें"
     },
@@ -6479,7 +6521,7 @@
       "description": "Failed to establish connection. Please try again."
     },
     "show_return_to_app": {
-      "title": "Success",
+      "title": "सफल",
       "description": "Return to the app to continue."
     }
   },

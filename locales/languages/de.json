@@ -10,13 +10,13 @@
     "pet_name": {
       "list_count_text": "Pet Names on this network",
       "add_pet_name_button": "Add Pet Name",
-      "address": "Address",
+      "address": "Adresse",
       "address_placeholder": "0x...",
       "name": "Name",
       "name_placeholder": "Name",
       "duplicate_title": "Address already exists",
       "duplicate_message": "This address already has a pet name. Do you want to update it?",
-      "cancel": "Cancel",
+      "cancel": "Stornieren",
       "update": "Update"
     }
   },
@@ -241,7 +241,7 @@
     "remind_later_description": "Wenn Sie Ihre geheime Wiederherstellungsphrase nicht sichern, verlieren Sie den Zugriff auf Ihre Gelder, wenn Sie aus der App ausgesperrt werden oder ein neues Gerät erhalten.",
     "remind_later_description2": "Sie können Ihre Wallet sichern oder Ihre geheime Wiederherstellungsphrase sehen in:",
     "setting_security_privacy": "Einstellungen > Sicherheit und Datenschutz",
-    "wallet_ready": "Your wallet is ready!"
+    "wallet_ready": "Ihre Wallet ist bereit!"
   },
   "social_login_ios_user": {
     "new_user_title": "Sie haben sich angemeldet!",
@@ -697,10 +697,10 @@
       "title_musd": "Starting is easy with mUSD",
       "bullet_1_title_musd": "Stable cryptocurrency",
       "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_title_musd": "Geringe Volatilität",
       "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "bullet_3_title_musd": "Schneller als Banken",
+      "bullet_3_description_musd": "Senden und empfangen Sie in wenigen Minuten, ohne auf Banköffnungszeiten oder internationale Verzögerungen zu warten."
     },
     "enter_email": {
       "navbar_title": "Verifizieren Sie Ihre Identität",
@@ -1220,6 +1220,7 @@
       "minimum_remaining_error": "Keine Teilschließung möglich: Die verbleibende Position ({{remaining}}$) würde unter der Mindestordergröße ({{minimum}}$) liegen. Schließen Sie daher bitte 100 %.",
       "must_close_full_below_minimum": "Der Wert der Position liegt unter 10 $. Sie müssen 100 % der Position schließen.",
       "negative_receive_amount": "Die Gebühren überschreiten den Wert Ihrer Position",
+      "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "Bitte wählen Sie einen zu schließenden Betrag",
       "order_type_reverted_to_market_order": "Geändert zu Markt-Order",
       "you_need_set_price_limit_order": "Sie müssen einen Preis für eine Limit-Order festlegen."
@@ -1250,9 +1251,9 @@
       "above": "Über",
       "below": "Unter",
       "done": "Fertig",
-      "cancel": "Cancel",
+      "cancel": "Stornieren",
       "set": "Festlegen",
-      "clear": "Clear",
+      "clear": "Löschen",
       "expected_profit": "Expected profit: {{amount}}",
       "expected_loss": "Expected loss: {{amount}}"
     },
@@ -1530,8 +1531,8 @@
         "trades": "Trades",
         "orders": "Orders",
         "funding": "Finanzierung",
-        "withdraw": "Withdraw",
-        "deposit": "Deposit",
+        "withdraw": "Auszahlen",
+        "deposit": "Einzahlung",
         "deposits": "Deposits",
         "funding_description": "Der Finanzierungsverlauf ist eine Übersicht der von Ihnen gezahlten oder erhaltenen Gebühren, die sich aus den Finanzierungsraten Ihrer offenen Positionen ergeben."
       },
@@ -1617,21 +1618,25 @@
     "title": "MetaMask Predict",
     "prediction_markets": "Prognosemärkte",
     "market_list": "Marktliste",
-    "loading": "Loading...",
+    "loading": "Wird geladen ...",
     "market_details": {
-      "title": "Market Details",
+      "title": "Marktdetails",
       "market_ended_on": "Market ended on {{outcome}}",
       "market_resulted_to": "Market resulted to {{outcome}}",
       "waiting_for_final_resolution": "Waiting for final resolution",
       "no_positions_found": "No positions found",
-      "volume": "Volume",
+      "volume": "Volumen",
       "end_date": "End date",
       "resolver": "Resolver",
-      "powered_by": "Powered by",
-      "yes": "Yes",
-      "no": "No",
+      "powered_by": "Unterstützt durch",
+      "yes": "Ja",
+      "no": "Nein",
       "on": "on",
-      "market_unavailable": "Market unavailable"
+      "won": "Won",
+      "lost": "Lost",
+      "market_unavailable": "Market unavailable",
+      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "outcome_at_price": "{{outcome}} at {{price}}¢"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1640,12 +1645,12 @@
       "resolved_markets": "Resolved markets"
     },
     "tabs": {
-      "about": "About",
-      "positions": "Positions",
+      "about": "Über",
+      "positions": "Positionen",
       "outcomes": "Outcomes"
     },
     "sell_position": "Verkaufsposition",
-    "cash_out": "Auszahlen",
+    "cash_out": "Cash out",
     "buy_yes": "Ja",
     "buy_no": "Nein",
     "outcomes": "Ergebnisse",
@@ -1672,37 +1677,37 @@
     "claim_button": "Einfordern",
     "markets_won": "Gewonnene Märkte",
     "won_markets_text": "{{count}} Markt{{s}} gewonnen",
-    "available_balance": "Available balance",
+    "available_balance": "Verfügbares Guthaben",
     "claim_amount_text": "{{amount}} $ einfordern",
     "unrealized_pnl_label": "Nicht realisierte GuV",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
+    "unrealized_pnl_error": "Laden nicht möglich",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
-      "button": "Got it"
+      "button": "Verstanden"
     },
     "deposit": {
-      "in_progress": "Deposit in progress",
+      "in_progress": "Einzahlung im Gange",
       "adding_funds": "Adding funds",
       "adding_your_funds": "Adding your funds",
-      "add_funds": "Add funds",
-      "withdraw": "Withdraw",
+      "add_funds": "Gelder hinzufügen",
+      "withdraw": "Auszahlen",
       "estimated_processing_time": "Est. {{time}} seconds",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
-      "error_title": "Something went wrong",
+      "error_title": "Hoppla! Etwas ist schiefgelaufen ...",
       "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "try_again": "Erneut versuchen"
     },
     "add_funds_sheet": {
-      "title": "Add funds",
+      "title": "Gelder hinzufügen",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
     "transactions": {
-      "title": "Predictions",
-      "no_transactions": "No recent activity",
+      "title": "Prognosen",
+      "no_transactions": "Keine aktuelle Aktivität",
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
@@ -1710,15 +1715,15 @@
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
       "not_available": "N/A",
-      "date": "Date",
-      "market": "Market",
+      "date": "Datum",
+      "market": "Markt",
       "outcome": "Outcome",
       "predicted_amount": "Predicted amount",
       "shares_bought": "Shares bought",
       "shares_sold": "Shares sold",
       "price_per_share": "Price per share",
-      "price_impact": "Price impact",
-      "net_pnl": "Net P&L",
+      "price_impact": "Preiseinfluss",
+      "net_pnl": "Netto-GuV",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
       "activity_details": "Activity details"
@@ -1730,29 +1735,38 @@
           "description": "Est. {{time}} seconds"
         },
         "confirmed": {
-          "title": "Claimed",
+          "title": "Eingefordert",
           "description": "{{amount}} added to your balance"
         },
         "error": {
-          "title": "Something went wrong",
+          "title": "Hoppla! Etwas ist schiefgelaufen ...",
           "description": "Failed to proceed with claim",
-          "try_again": "Try again"
+          "try_again": "Erneut versuchen"
         }
       }
     },
     "order": {
-      "available": "Available",
+      "available": "Verfügbar",
       "cashed_out": "Cashed out",
       "cashed_out_subtitle": "{{amount}} added to your balance",
       "cashing_out": "Cashing out {{amount}}",
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed",
+      "order_failed": "Bestellung fehlgeschlagen",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
       "prediction_minimum_bet": "Minimum bet is {{amount}}",
       "to_win": "To win"
+    },
+    "withdraw": {
+      "withdrawing": "Withdrawing {{amount}} USDC",
+      "withdrawing_subtitle": "Est. {{time}} seconds",
+      "withdraw_completed": "Withdrawal completed",
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Failed to proceed with withdraw",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -1863,7 +1877,7 @@
     "alphabetically": "Alphabetisch (A-Z)",
     "add_to_get_started": "Zum Anfangen Krypto hinzufügen",
     "token_is_needed_to_continue": "{{tokenSymbol}} ist erforderlich, um fortzufahren",
-    "fund_your_wallet": "Fund your wallet",
+    "fund_your_wallet": "Zahlen Sie Mittel auf Ihre Wallet ein",
     "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Zahlen Sie Gelder auf Ihre Wallet ein, um bei web3 loszulegen.",
     "add_funds": "Gelder hinzufügen",
@@ -5450,7 +5464,7 @@
       "approve": "Anfrage genehmigen",
       "perps_deposit": "Gelder hinzufügen",
       "predict_deposit": "Add Predict funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "Auszahlen"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -5633,7 +5647,7 @@
     "points_error_content": "Sie erhalten für diese Transaktion weiterhin Punkte. Wir werden Sie benachrichtigen, sobald sie Ihrem Konto gutgeschrieben wurden. Sie können auch in etwa einer Stunde Ihre Registerkarte „Belohnungen“ überprüfen.",
     "see_other_quotes": "Andere Angebote sehen",
     "receive_at": "Empfangen bei",
-    "recipient": "Recipient",
+    "recipient": "Empfänger",
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "Diese Handelsroute ist derzeit nicht verfügbar. Versuchen Sie, den Betrag, das Netzwerk oder das Token zu ändern, und wir finden die beste Option.",
@@ -5647,9 +5661,9 @@
     "title": "Bridge",
     "submitting_transaction": "Absenden",
     "fetching_quote": "Angebot einholen",
-    "fee_disclaimer": "Includes {{feePercentage}}% MM fee.",
+    "fee_disclaimer": "Beinhaltet {{feePercentage}} % MM-Gebühr.",
     "no_mm_fee": "Keine MM-Gebühr",
-    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
+    "no_mm_fee_disclaimer": "Keine MM-Gebühr beim Swappen in {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Hardware-Wallets werden noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren.",
     "hardware_wallet_not_supported_solana": "Hardware-Wallets werden für Solana noch nicht unterstützt. Verwenden Sie ein Hot Wallet, um fortzufahren.",
     "price_impact_info_title": "Preisauswirkungen",
@@ -5700,7 +5714,7 @@
     "create_new_wallet": "Neue Wallet erstellen",
     "use_different_login_method": "Eine andere Anmeldemethode verwenden",
     "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "unlock_wallet": "Wallet entsperren"
   },
   "error_sheet": {
     "still_there_title": "Noch da?",
@@ -5799,14 +5813,14 @@
       "section_2_title": "Dieselbe Adresse, mehr Netzwerke",
       "section_2_description": "Wir haben Ihre Konten gruppiert, sodass Sie MetaMask wie gewohnt weiter nutzen können. Ihre Gelder sind sicher und unverändert",
       "view_accounts_button": "Konten anzeigen",
-      "learn_more_button": "Learn more",
+      "learn_more_button": "Mehr erfahren",
       "setting_up_accounts": "Einrichtung Ihrer Konten"
     },
     "learn_more": {
-      "title": "Learn more",
+      "title": "Erfahren Sie mehr",
       "description": "Multichain-Konten sind nun die Standardeinstellung. Wenn Sie dies nicht wünschen, deaktivieren Sie die Grundfunktionen.",
-      "checkbox_label": "Turn off basic functionality",
-      "confirm_button": "Confirm"
+      "checkbox_label": "Grundfunktionalität ausschalten",
+      "confirm_button": "Bestätigen"
     },
     "add_wallet": "Wallet hinzufügen",
     "add_hardware_wallet": "Eine Hardware-Wallet hinzufügen",
@@ -5939,8 +5953,8 @@
     "unsupported": {
       "title": "This page is not supported in current version",
       "description": "Update to the latest version to use this feature",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
+      "update_to_store_link": "Aktualisieren Sie auf die neueste Version von MetaMask",
+      "well_take_you_to_right_place": " und wir bringen Sie an den richtigen Ort."
     },
     "go_to_home_button": "Zur Startseite gehen",
     "back_button": "Zurück",
@@ -5956,31 +5970,40 @@
       "select_method": "Methode wählen"
     },
     "card_onboarding": {
-      "title": "Willkommen bei Karte",
-      "description": "Um Kartenfunktionen nutzen zu können, müssen Sie Ihr Konto bei unserem Partner verifizieren.",
-      "verify_account_button": "Konto verifizieren",
+      "title": "Enable MetaMask Card features",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
+      "verify_account_button": "Sign in",
+      "non_cardholder_title": "Welcome to MetaMask Card",
+      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
+      "non_cardholder_verify_account_button": "Erste Schritte",
       "sign_up": {
-        "title": "Anmelden",
-        "description": "Registrieren Sie Ihre Daten bei Crypto Life, dem Anbieter von MetaMask-Karte. Über dieses Konto können Sie auf Ihre Karte zugreifen und sie verwalten.",
+        "title": "Sign up",
+        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "E-Mail",
         "password_label": "Passwort",
-        "confirm_password_label": "Passwort bestätigen",
+        "confirm_password_label": "Passwort erneut eingeben",
         "country_label": "Wohnsitzland",
         "email_placeholder": "Geben Sie Ihre E-Mail-Adresse ein",
-        "password_placeholder": "Geben Sie Ihr Passwort ein",
+        "password_placeholder": "Must be 15+ characters long",
+        "confirm_password_placeholder": "Passwort erneut eingeben",
         "country_placeholder": "Wählen Sie Ihr Land",
         "password_mismatch": "Passwörter stimmen nicht überein",
-        "invalid_email": "Ungültige E-Mail-Adresse"
+        "invalid_email": "Ungültige E-Mail-Adresse",
+        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
       },
       "confirm_email": {
         "title": "Bestätigen Sie Ihre E-Mail-Adresse",
         "description": "Wir haben einen Bestätigungscode gesendet an: {{email}}",
         "confirm_code_label": "Bestätigungscode",
-        "confirm_code_placeholder": "Geben Sie den Bestätigungscode ein"
+        "confirm_code_placeholder": "Enter the 6-digit code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "Telefonnummer",
-        "description": "Geben Sie Ihre Telefonnummer ein",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Telefonnummer",
         "phone_number_placeholder": "Geben Sie Ihre Telefonnummer ein",
         "country_area_code_label": "Ländervorwahl",
@@ -5989,24 +6012,28 @@
       },
       "confirm_phone_number": {
         "title": "Bestätigen Sie Ihre Telefonnummer",
-        "description": "Wir haben einen Bestätigungscode gesendet an: {{phoneNumber}}",
-        "confirm_code_label": "Bestätigungscode"
+        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
+        "confirm_code_label": "Bestätigungscode",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
-        "title": "Verifizierung Ihrer Identität, um Ihre Karte zu erhalten",
-        "description": "Um die Sicherheit Ihres Kontos zu wahren und die Vorschriften einzuhalten, müssen wir Ihre Identität verifizieren.\n\nDazu benötigen Sie einen amtlichen Ausweis und einen Adressnachweis (z. B. eine Stromrechnung oder einen Kontoauszug).\n\nDie Verifizierung dauert in der Regel 5–30 Minuten und wir werden Sie benachrichtigen, sobald sie abgeschlossen ist.",
-        "verify_button": "Jetzt mit Veriff verifizieren"
+        "title": "Next, verify your identity",
+        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
+        "verify_button": "Start verification",
+        "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "Validierung Ihres KYC ..."
+        "title": "Validierung Ihres KYC ...",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "Abgelehnt",
         "description": "Ihr KYC wurde abgelehnt. Bitte versuchen Sie es erneut."
       },
       "personal_details": {
-        "title": "Persönliche Daten",
-        "description": "Geben Sie Ihre persönlichen Daten ein",
+        "title": "Now, our partner needs some info about you",
+        "description": "Don't worry, this info is private and we never see it",
         "first_name_label": "Vorname",
         "last_name_label": "Nachname",
         "date_of_birth_label": "Geburtsdatum",
@@ -6018,24 +6045,23 @@
         "nationality_placeholder": "Wählen Sie Ihre Staatsangehörigkeit",
         "ssn_placeholder": "Geben Sie Ihre SSN ein",
         "invalid_ssn": "Ungültige SSN",
-        "invalid_date_of_birth": "Ungültiges Geburtsdatum",
-        "invalid_date_of_birth_underage": "Sie müssen mindestens 18 Jahre alt sein"
+        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "Physische Adresse",
-        "description": "Bitte geben Sie Ihre physische Adresse an",
+        "title": "Residential address",
+        "description": "Please provide your physical residence address to Crypto Life",
         "address_line_1_label": "Adresszeile 1",
         "address_line_2_label": "Adresszeile 2",
         "city_label": "Stadt",
         "state_label": "Staat/Bundesland",
-        "zip_code_label": "Postleitzahl",
-        "address_line_1_placeholder": "Geben Sie Ihre Adresszeile 1 ein",
-        "address_line_2_placeholder": "Geben Sie Ihre Adresszeile 2 ein",
+        "zip_code_label": "ZIP or Postal code",
+        "address_line_1_placeholder": "Street address",
+        "address_line_2_placeholder": "Floor, apartment or suite number",
         "city_placeholder": "Geben Sie Ihre Stadt ein",
         "state_placeholder": "Geben Sie Ihren Staat/Ihr Bundesland ein",
-        "zip_code_placeholder": "Geben Sie Ihre Postleitzahl ein",
-        "same_mailing_address_label": "Physische Adresse ist dieselbe wie die Postanschrift",
-        "electronic_consent": "Ich stimme der Einwilligung und Offenlegung gemäß dem E-Sign Act zu und bin damit einverstanden, alle Mitteilungen elektronisch zu erhalten."
+        "zip_code_placeholder": "Enter your ZIP code or postal code",
+        "same_mailing_address_label": "Residential address is the same as mailing address",
+        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically."
       },
       "mailing_address": {
         "title": "Postanschrift",
@@ -6043,14 +6069,29 @@
       },
       "complete": {
         "title": "Genehmigt!",
-        "description": "Ihr KYC wurde genehmigt. Sie können Ihre Karte nun benutzen."
+        "description": "Your KYC was approved. You can now use MetaMask Card."
       },
       "continue_button": "Weiter",
       "confirm_button": "Bestätigen",
-      "retry_button": "Erneut versuchen"
+      "retry_button": "Erneut versuchen",
+      "errors": {
+        "email_already_exists": "Email already exists. Please use a different email.",
+        "invalid_email_format": "Invalid email format. Please check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Please request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
+        "create_user_failed": "Failed to create user. Please try again."
+      }
     },
     "card_home": {
-      "error_title": "Daten können nicht abgerufen werden",
+      "error_title": "Can't fetch data",
       "error_description": "Es scheint ein Problem zu geben, das Sie an der Anzeige des Inhalts dieser Seite hindert. Bitte überprüfen Sie Ihre Verbindung oder aktualisieren Sie die Seite.",
       "try_again": "Erneut versuchen",
       "limited_spending_warning": "Ihre tatsächliche Ausgabenkapazität ist möglicherweise begrenzt. Um Ihr Limit anzupassen, gehen Sie zu {{manageCard}}.",
@@ -6065,33 +6106,33 @@
           "confirm_button_label": "Neues Limit festlegen"
         },
         "need_delegation": {
-          "title": "Sie müssen Assets delegieren",
-          "description": "Delegieren Sie Assets an Ihre Karte und beginnen Sie mit dem Ausgeben",
-          "confirm_button_label": "Assets delegieren"
+          "title": "You need to enable your card",
+          "description": "Choose an asset to start spending",
+          "confirm_button_label": "Enable card"
         },
         "no_card": {
-          "title": "You don't have a Card",
-          "description": "Please enable your Card to start spending"
+          "title": "You need to enable your card",
+          "description": "Please enable your card to start spending"
         },
         "frozen": {
-          "title": "Your Card is frozen",
-          "description": "Please contact support to unfreeze your Card"
+          "title": "Your card is frozen",
+          "description": "Please contact support to unfreeze your card"
         },
         "blocked": {
-          "title": "Your Card is blocked",
-          "description": "Please contact support to unblock your Card"
+          "title": "Your card is blocked",
+          "description": "Please contact support to unblock your card"
         }
       },
       "manage_card_options": {
         "manage_spending_limit": "Ausgabenlimit verwalten",
-        "manage_spending_limit_description_restricted": "Das eingeschränkte Ausgabenlimit ist aktiviert",
-        "manage_spending_limit_description_full": "Vollständiger Zugriff auf die Ausgaben ist aktiviert",
+        "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Karte verwalten",
         "advanced_card_management_description": "Detaillierte Transaktionen, Karte sperren und mehr"
       }
     },
     "card_authentication": {
-      "title": "Melden Sie sich bei Ihrem Kartenkonto an",
+      "title": "Log in to your MetaMask Card account",
       "location_button_text": "International",
       "location_button_text_us": "US-Konto",
       "email_label": "E-Mail",
@@ -6099,6 +6140,7 @@
       "email_placeholder": "Geben Sie Ihre E-Mail-Adresse ein",
       "password_placeholder": "Geben Sie Ihr Passwort ein",
       "login_button": "Anmelden",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Ungültige Anmeldedaten",
         "unknown_error": "Unbekannter Fehler. Bitte versuchen Sie es später erneut.",
@@ -6114,11 +6156,11 @@
       }
     },
     "card_otp_authentication": {
-      "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "title": "Bestätigen Sie Ihre Telefonnummer",
+      "description_with_phone_number": "Wir haben einen Bestätigungscode gesendet an: {{maskedPhoneNumber}}",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
-      "confirm_code_label": "Confirmation code",
-      "confirm_button": "Confirm",
+      "confirm_code_label": "Bestätigungscode",
+      "confirm_button": "Bestätigen",
       "back_to_login_button": "Back to Login",
       "resend_timer": "Resend code in {{seconds}}s",
       "resend_code": "Resend code"
@@ -6451,7 +6493,7 @@
       "bridge_fee": "Bridge-Gebühr",
       "network_fee": "Netzwerk-Gebühr",
       "paid_with": "Bezahlt mit",
-      "retry_button": "Try again",
+      "retry_button": "Erneut versuchen",
       "total": "Insgesamt"
     },
     "summary_title": {
@@ -6463,7 +6505,7 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "Transaktion",
       "perps_deposit": "Gelder hinzufügen",
-      "predict_deposit": "Add funds",
+      "predict_deposit": "Gelder hinzufügen",
       "swap": "Tokens tauschen",
       "swap_approval": "Tokens genehmigen"
     },
@@ -6479,7 +6521,7 @@
       "description": "Failed to establish connection. Please try again."
     },
     "show_return_to_app": {
-      "title": "Success",
+      "title": "Erolg",
       "description": "Return to the app to continue."
     }
   },
