@@ -1,16 +1,11 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
 import { isE2E } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
 
+import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
 import { useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 
@@ -66,7 +61,6 @@ const OnboardingAnimation = ({
   setStartFoxAnimation: (value: boolean) => void;
 }) => {
   const logoRef = useRef<RiveRef>(null);
-  const [riveReady, setRiveReady] = useState(false);
   const logoPosition = useMemo(() => new Animated.Value(0), []);
   const buttonsOpacity = useMemo(() => new Animated.Value(isE2E ? 1 : 0), []);
 
@@ -98,22 +92,25 @@ const OnboardingAnimation = ({
       return;
     }
 
-    try {
-      if (logoRef.current) {
-        const isDarkMode = themeAppearance === 'dark';
-        logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
-        logoRef.current.fireState('WordmarkBuildUp', 'Start');
-        setTimeout(() => {
-          moveLogoUp();
-        }, 1000);
+    // Short delay to ensure Rive artboard is ready before manipulating inputs
+    setTimeout(() => {
+      try {
+        if (logoRef.current) {
+          const isDarkMode = themeAppearance === 'dark';
+          logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
+          logoRef.current.fireState('WordmarkBuildUp', 'Start');
+          setTimeout(() => {
+            moveLogoUp();
+          }, 1000);
 
-        setTimeout(() => {
-          setStartFoxAnimation(true);
-        }, 1200);
+          setTimeout(() => {
+            setStartFoxAnimation(true);
+          }, 1200);
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'Error triggering Rive animation');
       }
-    } catch (error) {
-      Logger.error(error as Error, 'Error triggering Rive animation');
-    }
+    }, 100);
   }, [
     themeAppearance,
     moveLogoUp,
@@ -124,9 +121,10 @@ const OnboardingAnimation = ({
   ]);
 
   useEffect(() => {
-    if (!startOnboardingAnimation || !riveReady) return;
-    startRiveAnimation();
-  }, [startOnboardingAnimation, riveReady, startRiveAnimation]);
+    if (startOnboardingAnimation) {
+      startRiveAnimation();
+    }
+  }, [startOnboardingAnimation, startRiveAnimation]);
 
   return (
     <>
@@ -142,15 +140,12 @@ const OnboardingAnimation = ({
           <Rive
             ref={logoRef}
             style={styles.image}
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            source={require('../../../animations/metamask_wordmark_animation_build-up.riv')}
+            source={MetaMaskWordmarkAnimation}
             fit={Fit.Contain}
             alignment={Alignment.Center}
             autoplay={false}
             stateMachineName="WordmarkBuildUp"
             testID="metamask-wordmark-animation"
-            // Some versions expose only onPlay; use that to mark readiness
-            onPlay={() => setRiveReady(true)}
           />
         </Animated.View>
       </View>
