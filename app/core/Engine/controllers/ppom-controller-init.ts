@@ -1,9 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { PPOMController } from '@metamask/ppom-validator';
 import {
-  PPOMControllerInitMessenger,
-  PPOMControllerMessenger,
-} from '../messengers/ppom-controller-messenger';
+  PPOMController,
+  type PPOMControllerMessenger,
+} from '@metamask/ppom-validator';
+import { PPOMControllerInitMessenger } from '../messengers/ppom-controller-messenger';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { PPOM, ppomInit } from '../../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../../lib/ppom/ppom-storage-backend';

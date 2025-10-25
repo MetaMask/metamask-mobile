@@ -1,7 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { PreferencesController } from '@metamask/preferences-controller';
+import {
+  PreferencesController,
+  type PreferencesControllerMessenger,
+} from '@metamask/preferences-controller';
 import AppConstants from '../../AppConstants';
-import { PreferencesControllerMessenger } from '../messengers/preferences-controller-messenger';
 
 /**
  * Initialize the preferences controller.

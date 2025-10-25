@@ -1,9 +1,9 @@
 import { ControllerInitFunction, EngineState } from '../types';
-import { TokenBalancesController } from '@metamask/assets-controllers';
 import {
-  TokenBalancesControllerInitMessenger,
-  TokenBalancesControllerMessenger,
-} from '../messengers/token-balances-controller-messenger';
+  TokenBalancesController,
+  type TokenBalancesControllerMessenger,
+} from '@metamask/assets-controllers';
+import { TokenBalancesControllerInitMessenger } from '../messengers/token-balances-controller-messenger';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 

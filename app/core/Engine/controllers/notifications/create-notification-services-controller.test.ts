@@ -4,9 +4,10 @@ import {
   Controller as NotificationServicesController,
   defaultState,
 } from '@metamask/notification-services-controller/notification-services';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { createNotificationServicesController } from './create-notification-services-controller';
 import { getNotificationServicesControllerMessenger } from '../../messengers/notifications/notification-services-controller-messenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/notification-services-controller/notification-services');
 
@@ -14,7 +15,9 @@ describe('Notification Services Controller', () => {
   beforeEach(() => jest.resetAllMocks());
 
   const arrange = () => {
-    const globalMessenger = new ExtendedControllerMessenger();
+    const globalMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     const messenger: NotificationServicesControllerMessenger =
       getNotificationServicesControllerMessenger(globalMessenger);
 

@@ -1,13 +1,14 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getSnapKeyringBuilderInitMessenger,
   getSnapKeyringBuilderMessenger,
   SnapKeyringBuilderInitMessenger,
-  type SnapKeyringBuilderMessenger,
 } from '../messengers/snap-keyring-builder-messenger';
 import { ControllerInitRequest } from '../types';
 import { snapKeyringBuilderInit } from './snap-keyring-builder-init';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { SnapKeyringBuilderMessenger } from '../../SnapKeyring/types';
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<
@@ -15,7 +16,9 @@ function getInitRequestMock(): jest.Mocked<
     SnapKeyringBuilderInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

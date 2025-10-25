@@ -1,24 +1,47 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   getMultichainRouterMessenger,
   getMultichainRouterInitMessenger,
+  MultichainRouterInitMessenger,
 } from './multichain-router-messenger';
+import { MultichainRouterMessenger } from '@metamask/snaps-controllers';
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  | MessengerActions<MultichainRouterMessenger>
+  | MessengerActions<MultichainRouterInitMessenger>,
+  | MessengerEvents<MultichainRouterMessenger>
+  | MessengerEvents<MultichainRouterInitMessenger>
+>;
+
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
 
 describe('getMultichainRouterMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
-    const multichainRouterMessenger = getMultichainRouterMessenger(messenger);
+  it('returns a messenger', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
+    const multichainRouterMessenger =
+      getMultichainRouterMessenger(rootMessenger);
 
-    expect(multichainRouterMessenger).toBeInstanceOf(RestrictedMessenger);
+    expect(multichainRouterMessenger).toBeInstanceOf(Messenger);
   });
 });
 
 describe('getMultichainRouterInitMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
+  it('returns a messenger', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
     const multichainRouterInitMessenger =
-      getMultichainRouterInitMessenger(messenger);
+      getMultichainRouterInitMessenger(rootMessenger);
 
-    expect(multichainRouterInitMessenger).toBeInstanceOf(RestrictedMessenger);
+    expect(multichainRouterInitMessenger).toBeInstanceOf(Messenger);
   });
 });

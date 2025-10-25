@@ -1,27 +1,30 @@
-import { BaseControllerMessenger } from '../../types';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { RootExtendedMessenger } from '../../types';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getNotificationServicesPushControllerMessenger } from './notification-services-push-controller-messenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 describe('getNotificationServicesControllerMessenger', () => {
   const arrangeMocks = () => {
-    const baseMessenger: BaseControllerMessenger =
-      new ExtendedControllerMessenger();
-    const mockGetRestricted = jest.spyOn(baseMessenger, 'getRestricted');
-    return { baseMessenger, mockGetRestricted };
+    const baseMessenger: RootExtendedMessenger =
+      new ExtendedMessenger<MockAnyNamespace>({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+    const mockDelegate = jest.spyOn(baseMessenger, 'delegate');
+    return { baseMessenger, mockDelegate };
   };
 
-  it('returns a restricted messenger with the correct configuration', () => {
-    const { baseMessenger, mockGetRestricted } = arrangeMocks();
+  it('returns a delegated messenger with the correct configuration', () => {
+    const { baseMessenger, mockDelegate } = arrangeMocks();
 
-    const restrictedMessenger =
+    const delegatedMessenger =
       getNotificationServicesPushControllerMessenger(baseMessenger);
 
-    expect(mockGetRestricted).toHaveBeenCalledWith({
-      name: 'NotificationServicesPushController',
-      allowedActions: ['AuthenticationController:getBearerToken'],
-      allowedEvents: [],
+    expect(mockDelegate).toHaveBeenCalledWith({
+      actions: ['AuthenticationController:getBearerToken'],
+      events: [],
+      messenger: delegatedMessenger,
     });
 
-    expect(restrictedMessenger).toBeDefined();
+    expect(delegatedMessenger).toBeDefined();
   });
 });

@@ -1,9 +1,12 @@
 import { getPredictControllerMessenger } from '.';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 describe('PredictController Messenger', () => {
   it('returns an instance of the predict controller messenger', () => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
 
     const result = getPredictControllerMessenger(baseControllerMessenger);
 

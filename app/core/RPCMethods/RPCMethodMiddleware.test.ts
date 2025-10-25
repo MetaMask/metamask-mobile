@@ -38,7 +38,11 @@ import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   PermissionKeys,
   getCaveatSpecifications,
@@ -408,7 +412,9 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('with permission middleware before', () => {
     const engine = new JsonRpcEngine();
-    const messenger = new Messenger();
+    const rootMessenger = new Messenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     const baseEoaAccount = {
       type: EthAccountType.Eoa,
       options: {},
@@ -435,10 +441,14 @@ describe('getRpcMethodMiddleware', () => {
       },
     ]);
     const permissionController = new PermissionController({
-      messenger: messenger.getRestricted({
-        name: 'PermissionController',
-        allowedActions: [],
-        allowedEvents: [],
+      messenger: new Messenger<
+        'PermissionController',
+        never,
+        never,
+        typeof rootMessenger
+      >({
+        namespace: 'PermissionController',
+        parent: rootMessenger,
       }),
       caveatSpecifications: getCaveatSpecifications({
         listAccounts: mockListAccounts,

@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../types';
-import { NftController } from '@metamask/assets-controllers';
-import { NftControllerMessenger } from '../messengers/nft-controller-messenger';
+import {
+  NftController,
+  type NftControllerMessenger,
+} from '@metamask/assets-controllers';
 
 /**
  * Initialize the NFT controller.

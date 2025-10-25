@@ -1,12 +1,29 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type { UserStorageControllerMessenger } from '@metamask/profile-sync-controller/user-storage';
 import { getUserStorageControllerMessenger } from './user-storage-controller-messenger';
 
-describe('getUserStorageControllerMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
-    const UserStorageControllerMessenger =
-      getUserStorageControllerMessenger(messenger);
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<UserStorageControllerMessenger>,
+  MessengerEvents<UserStorageControllerMessenger>
+>;
 
-    expect(UserStorageControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+const getRootMessenger = (): RootMessenger =>
+  new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+describe('getUserStorageControllerMessenger', () => {
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const userStorageControllerMessenger =
+      getUserStorageControllerMessenger(rootMessenger);
+
+    expect(userStorageControllerMessenger).toBeInstanceOf(Messenger);
   });
 });

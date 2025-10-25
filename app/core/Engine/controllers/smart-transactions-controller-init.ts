@@ -6,8 +6,8 @@ import {
   getSmartTransactionMetricsSensitiveProperties,
   MetaMetricsEventCategory,
   MetaMetricsEventName,
+  type SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
-import { SmartTransactionsControllerMessenger } from '../messengers/smart-transactions-controller-messenger';
 import { selectSwapsChainFeatureFlags } from '../../../reducers/swaps';
 import { MetaMetrics } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';

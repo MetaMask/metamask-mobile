@@ -1,4 +1,8 @@
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  MockAnyNamespace,
+} from '@metamask/messenger';
 import { BridgeStatusControllerGetStateAction } from '@metamask/bridge-status-controller';
 import { toHex } from '@metamask/controller-utils';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
@@ -62,6 +66,20 @@ const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
 };
 
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  | BridgeStatusControllerGetStateAction
+  | DelegationControllerSignDelegationAction
+  | KeyringControllerSignEip7702AuthorizationAction
+  | KeyringControllerSignTypedMessageAction,
+  never
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
 describe('Delegation 7702 Publish Hook', () => {
   const submitRelayTransactionMock = jest.mocked(submitRelayTransaction);
   const waitForRelayResultMock = jest.mocked(waitForRelayResult);
@@ -84,34 +102,41 @@ describe('Delegation 7702 Publish Hook', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    const baseMessenger = new Messenger<
+    const rootMessenger = getRootMessenger();
+
+    messenger = new Messenger<
+      'TransactionController',
       | BridgeStatusControllerGetStateAction
       | DelegationControllerSignDelegationAction
       | KeyringControllerSignEip7702AuthorizationAction
       | KeyringControllerSignTypedMessageAction,
-      never
-    >();
+      never,
+      RootMessenger
+    >({
+      namespace: 'TransactionController',
+      parent: rootMessenger,
+    });
 
-    messenger = baseMessenger.getRestricted({
-      name: 'TransactionController',
-      allowedActions: [
+    rootMessenger.delegate({
+      actions: [
         'KeyringController:signEip7702Authorization',
         'KeyringController:signTypedMessage',
         'BridgeStatusController:getState',
         'DelegationController:signDelegation',
       ],
-      allowedEvents: [],
-    }) as TransactionControllerInitMessenger;
+      events: [],
+      messenger,
+    });
 
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'KeyringController:signEip7702Authorization',
       signEip7702AuthorizationMock,
     );
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'KeyringController:signTypedMessage',
       signTypedMessageMock,
     );
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'DelegationController:signDelegation',
       signDelegationControllerMock,
     );

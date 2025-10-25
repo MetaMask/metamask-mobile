@@ -1,50 +1,45 @@
-import { Messenger } from '@metamask/base-controller';
 import {
-  AcceptRequest,
-  AddApprovalRequest,
-  HasApprovalRequest,
-  RejectRequest,
-} from '@metamask/approval-controller';
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+
 import {
   GetPermittedSnaps,
   InstallSnaps,
   MultichainRouterGetSupportedAccountsAction,
   MultichainRouterIsSupportedScopeAction,
 } from '@metamask/snaps-controllers';
-import { GetSubjectMetadata } from '@metamask/permission-controller';
 import { AccountsControllerListAccountsAction } from '@metamask/accounts-controller';
 import {
   SnapPermissionSpecificationsActions,
   SnapPermissionSpecificationsEvents,
 } from '../../Snaps/permissions/specifications.ts';
 import { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
-
-type AllowedActions =
-  | AddApprovalRequest
-  | HasApprovalRequest
-  | AcceptRequest
-  | RejectRequest
-  | GetPermittedSnaps
-  | InstallSnaps
-  | GetSubjectMetadata;
-
-export type PermissionControllerMessenger = ReturnType<
-  typeof getPermissionControllerMessenger
->;
+import { RootMessenger } from '../types.ts';
+import { PermissionControllerMessenger } from '@metamask/permission-controller';
 
 /**
- * Get a restricted messenger for the permission controller. This is scoped to the
+ * Get the messenger for the permission controller. This is scoped to the
  * actions and events that the permission controller is allowed to handle.
  *
- * @param messenger - The messenger to restrict.
- * @returns The restricted messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The PermissionControllerMessenger.
  */
-export function getPermissionControllerMessenger(
-  messenger: Messenger<AllowedActions, never>,
-) {
-  return messenger.getRestricted({
-    name: 'PermissionController',
-    allowedActions: [
+export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'PermissionController',
+    | MessengerActions<PermissionControllerMessenger>
+    | GetPermittedSnaps
+    | InstallSnaps,
+    MessengerEvents<PermissionControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'PermissionController',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'ApprovalController:addRequest',
       'ApprovalController:hasRequest',
       'ApprovalController:acceptRequest',
@@ -55,8 +50,10 @@ export function getPermissionControllerMessenger(
       'SubjectMetadataController:getSubjectMetadata',
       ///: END:ONLY_INCLUDE_IF
     ],
-    allowedEvents: [],
+    events: [],
+    messenger,
   });
+  return messenger;
 }
 
 type AllowedInitializationActions =
@@ -73,22 +70,27 @@ export type PermissionControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get a restricted messenger for the permission controller. This is scoped to the
+ * Get the messenger for the permission controller. This is scoped to the
  * actions and events that the permission controller is allowed to handle during
  * initialization.
  *
- * @param messenger - The messenger to restrict.
- * @returns The restricted messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The PermissionControllerInitMessenger.
  */
 export function getPermissionControllerInitMessenger(
-  messenger: Messenger<
-    AllowedInitializationActions,
-    AllowedInitializationEvents
-  >,
+  rootMessenger: RootMessenger,
 ) {
-  return messenger.getRestricted({
-    name: 'PermissionControllerInit',
-    allowedActions: [
+  const messenger = new Messenger<
+    'PermissionControllerInit',
+    AllowedInitializationActions,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
+    namespace: 'PermissionControllerInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'ApprovalController:addRequest',
       'AccountsController:listAccounts',
       'CurrencyRateController:getState',
@@ -111,6 +113,8 @@ export function getPermissionControllerInitMessenger(
       'SnapInterfaceController:getInterface',
       'SnapInterfaceController:updateInterface',
     ],
-    allowedEvents: ['KeyringController:unlock'],
+    events: ['KeyringController:unlock'],
+    messenger,
   });
+  return messenger;
 }

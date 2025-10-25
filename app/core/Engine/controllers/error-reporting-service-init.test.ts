@@ -1,19 +1,22 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getErrorReportingServiceMessenger,
-  type ErrorReportingServiceMessenger,
-} from '../messengers/error-reporting-service-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getErrorReportingServiceMessenger } from '../messengers/error-reporting-service-messenger';
 import { ControllerInitRequest } from '../types';
 import { errorReportingServiceInit } from './error-reporting-service-init';
-import { ErrorReportingService } from '@metamask/error-reporting-service';
+import {
+  ErrorReportingService,
+  ErrorReportingServiceMessenger,
+} from '@metamask/error-reporting-service';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/error-reporting-service');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<ErrorReportingServiceMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

@@ -1,6 +1,6 @@
 import { createProjectLogger } from '@metamask/utils';
 import type {
-  BaseRestrictedControllerMessenger,
+  ControllerMessenger,
   ControllerByName,
   ControllerMessengerCallback,
   ControllerName,
@@ -14,8 +14,8 @@ import { CONTROLLER_MESSENGERS } from '../messengers';
 const log = createProjectLogger('controller-init');
 
 type BaseControllerInitRequest = ControllerInitRequest<
-  BaseRestrictedControllerMessenger,
-  BaseRestrictedControllerMessenger | void
+  ControllerMessenger,
+  ControllerMessenger | void
 >;
 
 type InitFunction<Name extends ControllersToInitialize> =
