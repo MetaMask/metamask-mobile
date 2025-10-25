@@ -33,6 +33,7 @@ import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -99,15 +100,13 @@ export const BridgeDestTokenSelector: React.FC = () => {
         networkConfigurations,
       );
 
-      // Open the asset details screen as a bottom sheet
-      // Use dispatch with unique key to force new modal instance
+      // Open the token insights bottom sheet
       const handleInfoButtonPress = () => {
-        navigation.dispatch({
-          type: 'NAVIGATE',
-          payload: {
-            name: 'Asset',
-            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
-            params: { ...item },
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.TOKEN_INSIGHTS,
+          params: {
+            token: item,
+            networkName,
           },
         });
 
