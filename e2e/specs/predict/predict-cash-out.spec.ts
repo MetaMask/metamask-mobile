@@ -9,10 +9,14 @@ import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-response
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
+  POLYMARKET_POST_CASH_OUT_MOCKS,
+  POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
@@ -24,21 +28,21 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokeTrade('Predictions'), () => {
-  it('should cash out on open position: 76ers vs. Celtics', async () => {
+  it('should cash out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
       },
-      async () => {
+      async ({ mockServer }) => {
         await loginToApp();
 
         await WalletView.tapOnPredictionsTab();
         await Assertions.expectElementToBeVisible(
           WalletView.PredictionsTabContainer,
         );
-        await WalletView.tapOnPredictionsPosition('76ers vs. Celtics');
+        await WalletView.tapOnPredictionsPosition('Spurs vs. Pelicans');
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
@@ -50,9 +54,26 @@ describe(SmokeTrade('Predictions'), () => {
           PredictCashOutPage.cashOutButton,
         );
 
+        // Set up cash out mocks before tapping the button
+        await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
+
         await PredictCashOutPage.tapCashOutButton();
 
-        // TODO: Complete cash out flow. Currently in Dev
+        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
+
+        // Navigate back to check if balance updated
+        await PredictDetailsPage.tapBackButton();
+
+        await Assertions.expectElementToBeVisible(
+          WalletView.PredictionsTabContainer,
+        );
+        await Assertions.expectTextDisplayed('$58.66');
+
+        await TabBarComponent.tapActions();
+
+        await WalletActionsBottomSheet.tapPredictButton();
+        await Assertions.expectTextDisplayed('$58.66');
+
       },
     );
   });

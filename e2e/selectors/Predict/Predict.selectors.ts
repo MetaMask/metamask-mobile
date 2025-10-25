@@ -112,3 +112,16 @@ export const PredictCashOutSelectorsIDs = {
   // Cash out buttons
   SELL_PREVIEW_CASH_OUT_BUTTON: 'predict-sell-preview-cash-out-button',
 } as const;
+
+// ========================================
+// PREDICT CLAIM CONFIRMATION SELECTORS
+// ========================================
+
+export const PredictClaimConfirmationSelectorsIDs = {
+  // Claim amount container
+  CLAIM_BACKGROUND_CONTAINER: 'predict-claim-background',
+  CLAIM_AMOUNT_CONTAINER: 'predict-claim-amount-container',
+
+  // Claim confirm button
+  CLAIM_CONFIRM_BUTTON: 'predict-claim-confirm-button',
+} as const;
