@@ -29,7 +29,7 @@ import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
 
@@ -108,9 +108,9 @@ const ConfirmPhoneNumber = () => {
     }
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.CONFIRM_PHONE_NUMBER_BUTTON_CLICKED,
+            action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
           })
           .build(),
       );
@@ -174,10 +174,9 @@ const ConfirmPhoneNumber = () => {
     }
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action:
-              OnboardingActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON_CLICKED,
+            action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON,
           })
           .build(),
       );
@@ -202,9 +201,9 @@ const ConfirmPhoneNumber = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.CONFIRM_PHONE_NUMBER,
+          screen: CardScreens.CONFIRM_PHONE_NUMBER,
         })
         .build(),
     );

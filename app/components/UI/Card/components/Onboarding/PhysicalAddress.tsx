@@ -33,7 +33,7 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 export const AddressFields = ({
   addressLine1,
@@ -319,9 +319,9 @@ const PhysicalAddress = () => {
     }
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.PHYSICAL_ADDRESS_BUTTON_CLICKED,
+            action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
           })
           .build(),
       );
@@ -387,9 +387,9 @@ const PhysicalAddress = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.PHYSICAL_ADDRESS,
+          screen: CardScreens.RESIDENTIAL_ADDRESS,
         })
         .build(),
     );

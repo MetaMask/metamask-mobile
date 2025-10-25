@@ -64,22 +64,22 @@ describe.skip(SmokeCard('Card NavBar Button'), () => {
 
   it('should validate segment/metametric event when opening Card Home', async () => {
     const expectedEvents = {
-      CARD_VIEWED: 'Card Viewed',
+      CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',
     };
 
     const softAssert = new SoftAssert();
 
     // Find all events
-    const cardViewed = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_VIEWED,
+    const cardButtonViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.CARD_BUTTON_VIEWED,
     );
     const cardHomeClicked = eventsToCheck.filter(
       (event) => event.event === expectedEvents.CARD_HOME_CLICKED,
     );
 
     const checkCardViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardViewed);
+      await Assertions.checkIfValueIsDefined(cardButtonViewed);
     }, 'Check Card Viewed event');
 
     const checkCardHomeClicked = softAssert.checkAndCollect(async () => {

@@ -24,7 +24,7 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import {
   ToastContext,
@@ -74,9 +74,9 @@ const ConfirmEmail = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.CONFIRM_EMAIL,
+          screen: CardScreens.CONFIRM_EMAIL,
         })
         .build(),
     );
@@ -99,9 +99,9 @@ const ConfirmEmail = () => {
     if (resendCooldown > 0 || !email) return;
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          action: OnboardingActions.CONFIRM_EMAIL_RESEND_BUTTON_CLICKED,
+          action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON,
         })
         .build(),
     );
@@ -133,9 +133,9 @@ const ConfirmEmail = () => {
     }
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.CONFIRM_EMAIL_BUTTON_CLICKED,
+            action: CardActions.CONFIRM_EMAIL_BUTTON,
           })
           .build(),
       );
