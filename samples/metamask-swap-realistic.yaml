@@ -1,0 +1,110 @@
+appId: io.metamask
+tags:
+  - android
+  - swap
+  - realistic
+---
+# MetaMask Mobile Realistic Swap Test - ETH to USDC
+# This test uses comprehensive mocking but works with actual app flow
+# 
+# Prerequisites: Start mock server externally
+# Run: node scripts/start-comprehensive-mock-server.js
+
+# Launch MetaMask Mobile app
+- launchApp
+
+# Complete simplified onboarding (create new wallet)
+- tapOn:
+    text: "Create a new wallet"
+
+# Skip seedless onboarding if it appears
+- tapOn:
+    text: "Import with Secret Recovery Phrase"
+    optional: true
+
+# Create password screen
+- assertVisible:
+    text: "Create password"
+
+# Enter password using input fields directly
+- tapOn:
+    index: 0
+- inputText: "MetaMask123!"
+
+# Re-enter password
+- tapOn:
+    index: 1  
+- inputText: "MetaMask123!"
+
+# Check "I understand" checkbox
+- tapOn:
+    text: "I understand that MetaMask cannot recover this password for me."
+
+# Tap create password button
+- tapOn:
+    text: "Create password"
+
+# Handle "Secure your wallet" screen - choose "Remind me later"
+- tapOn:
+    text: "Remind me later"
+
+# Handle skip account security modal
+- tapOn:
+    text: "I understand that if I lose my Secret Recovery Phrase I will not be able to access my wallet"
+
+- tapOn:
+    text: "Skip"
+
+# Handle MetaMetrics opt-in (opt in by default)
+- tapOn:
+    text: "I agree"
+
+# Complete onboarding
+- tapOn:
+    text: "Done"
+
+# Dismiss any additional modals
+- tapOn:
+    text: "Skip"
+    optional: true
+
+- tapOn:
+    text: "Maybe later"
+    optional: true
+
+# Now we should be in the main wallet view
+- assertVisible:
+    text: "Wallet"
+
+# Navigate to swap functionality
+- tapOn:
+    text: "Swap"
+
+# Enter swap amount (0.1 ETH for testing)
+- tapOn:
+    text: "0"
+- inputText: "0.1"
+
+# Select destination token (USDC)
+- tapOn:
+    text: "Select token"
+- tapOn:
+    text: "USDC"
+
+# Wait for quote to load and review
+- assertVisible:
+    text: "Review"
+
+- tapOn:
+    text: "Review"
+
+# The swap should show quote information from our mock server
+- assertVisible:
+    text: "Confirm"
+
+# Note: We won't actually confirm the swap since we don't have real test funds
+# But we've successfully tested the flow up to the confirmation step
+
+# Test completed successfully!
+# The mock server provided all the necessary API responses
+
