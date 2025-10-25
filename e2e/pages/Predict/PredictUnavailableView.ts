@@ -24,8 +24,8 @@ class PredictUnavailableView {
     await Assertions.expectElementToBeVisible(this.title, {
       description: 'Predict Unavailable title visible',
     });
-    await Assertions.expectElementToBeVisible(this.description, {
-      description: 'Predict Unavailable description visible',
+    await Assertions.expectElementToBeVisible(this.gotItButton, {
+      description: 'Predict Unavailable Got it button visible',
     });
   }
 
