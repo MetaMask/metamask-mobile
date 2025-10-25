@@ -690,10 +690,10 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         try {
           const bodyText = await request.body.getText();
           const body = bodyText ? JSON.parse(bodyText) : undefined;
-          const isUSDCBalanceCall = (
+          const isUSDCBalanceCall =
             body?.method === 'eth_call' &&
-            body?.params?.[0]?.to?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
-          );
+            body?.params?.[0]?.to?.toLowerCase() ===
+              USDC_CONTRACT_ADDRESS.toLowerCase();
 
           if (isUSDCBalanceCall) {
             // USDC balance call intercepted
@@ -915,13 +915,13 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
       const bodyText = await request.body.getText();
       const body = bodyText ? JSON.parse(bodyText) : undefined;
 
-
       // Return success for any clob request
       const response = {
         statusCode: 200,
         json: {
           errorMsg: '',
-          orderID: '0x58531391ac95ce6430875c66d13187bc7813c2dab20c9217ce51b57ce7d215bf',
+          orderID:
+            '0x58531391ac95ce6430875c66d13187bc7813c2dab20c9217ce51b57ce7d215bf',
           takingAmount: '30.50',
           makingAmount: '5.00',
           status: 'matched',
@@ -945,14 +945,15 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
     });
 
   // Update the global USDC balance to cash out amount
-  await POLYMARKET_USDC_BALANCE_MOCKS(mockServer, POST_CASH_OUT_USDC_BALANCE_WEI);
+  await POLYMARKET_USDC_BALANCE_MOCKS(
+    mockServer,
+    POST_CASH_OUT_USDC_BALANCE_WEI,
+  );
 
   // Add comprehensive mock for polygon-rpc.com to catch any unmocked requests
   await mockServer
     .forPost()
-    .matching((request) => {
-      return request.url.includes('polygon-rpc.com');
-    })
+    .matching((request) => request.url.includes('polygon-rpc.com'))
     .asPriority(1007)
     .thenCallback(async (request) => {
       const bodyText = await request.body.getText();
@@ -967,13 +968,20 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
         if (toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()) {
           // USDC contract call - return current global balance
           result = currentUSDCBalance;
-        } else if (toAddress?.toLowerCase() === SAFE_FACTORY_ADDRESS.toLowerCase()) {
+        } else if (
+          toAddress?.toLowerCase() === SAFE_FACTORY_ADDRESS.toLowerCase()
+        ) {
           // Safe Factory call - return proxy wallet address
           result = MOCK_RPC_RESPONSES.SAFE_FACTORY_RESULT;
-        } else if (toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()) {
+        } else if (
+          toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()
+        ) {
           // Multicall contract - return empty result for now
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
-        } else if (toAddress?.toLowerCase() === CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()) {
+        } else if (
+          toAddress?.toLowerCase() ===
+          CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()
+        ) {
           result = MOCK_RPC_RESPONSES.APPROVAL_RESULT;
         } else {
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
@@ -1015,10 +1023,10 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
         try {
           const bodyText = await request.body.getText();
           const body = bodyText ? JSON.parse(bodyText) : undefined;
-          const isUSDCBalanceCall = (
+          const isUSDCBalanceCall =
             body?.method === 'eth_call' &&
-            body?.params?.[0]?.to?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
-          );
+            body?.params?.[0]?.to?.toLowerCase() ===
+              USDC_CONTRACT_ADDRESS.toLowerCase();
 
           if (isUSDCBalanceCall) {
             // Additional USDC balance call after cash out
@@ -1047,13 +1055,13 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
  * This simulates the app refreshing the balance when navigating between screens
  * @param mockServer - The mockttp server instance
  */
-export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (
+  mockServer: Mockttp,
+) => {
   // Add comprehensive mock for polygon-rpc.com to catch any unmocked requests
   await mockServer
     .forPost()
-    .matching((request) => {
-      return request.url.includes('polygon-rpc.com');
-    })
+    .matching((request) => request.url.includes('polygon-rpc.com'))
     .asPriority(1008)
     .thenCallback(async (request) => {
       const bodyText = await request.body.getText();
@@ -1068,13 +1076,20 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (mockServer: Mockttp
         if (toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()) {
           // USDC contract call - return cash out balance
           result = POST_CASH_OUT_USDC_BALANCE_WEI;
-        } else if (toAddress?.toLowerCase() === SAFE_FACTORY_ADDRESS.toLowerCase()) {
+        } else if (
+          toAddress?.toLowerCase() === SAFE_FACTORY_ADDRESS.toLowerCase()
+        ) {
           // Safe Factory call - return proxy wallet address
           result = MOCK_RPC_RESPONSES.SAFE_FACTORY_RESULT;
-        } else if (toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()) {
+        } else if (
+          toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()
+        ) {
           // Multicall contract - return empty result for now
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
-        } else if (toAddress?.toLowerCase() === CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()) {
+        } else if (
+          toAddress?.toLowerCase() ===
+          CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()
+        ) {
           result = MOCK_RPC_RESPONSES.APPROVAL_RESULT;
         } else {
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
@@ -1117,10 +1132,10 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (mockServer: Mockttp
         try {
           const bodyText = await request.body.getText();
           const body = bodyText ? JSON.parse(bodyText) : undefined;
-          const isUSDCBalanceCall = (
+          const isUSDCBalanceCall =
             body?.method === 'eth_call' &&
-            body?.params?.[0]?.to?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
-          );
+            body?.params?.[0]?.to?.toLowerCase() ===
+              USDC_CONTRACT_ADDRESS.toLowerCase();
 
           if (isUSDCBalanceCall) {
             // Force refresh USDC balance call intercepted
