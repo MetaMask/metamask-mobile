@@ -4,17 +4,10 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
 import { store } from '../../../store';
 import { setOnboardingReferralCode } from '../../../reducers/rewards';
-
-interface HandleRewardsUrlParams {
-  rewardsPath: string;
-}
-
-/**
- * Extensible interface for parsed rewards navigation parameters
- */
-interface RewardsNavigationParams {
-  referral?: string;
-}
+import {
+  HandleRewardsUrlParams,
+  RewardsNavigationParams,
+} from '../types/deepLink.types';
 
 /**
  * Parse URL parameters into typed navigation parameters

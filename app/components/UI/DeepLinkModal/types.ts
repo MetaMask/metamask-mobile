@@ -1,19 +1,15 @@
 import { TextStyle, ImageStyle, ViewStyle } from 'react-native';
+import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
+import { DeepLinkAnalyticsContext } from '../../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 
-/**
- * Deeplink Modal Link Type
- */
-export enum DeepLinkModalLinkType {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  INVALID = 'invalid',
-  UNSUPPORTED = 'unsupported',
-}
+// Re-export DeepLinkModalLinkType for external use
+export { DeepLinkModalLinkType };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CommonLinkParams = {
   linkType: DeepLinkModalLinkType;
   onBack: () => void;
+  deepLinkContext?: DeepLinkAnalyticsContext;
 };
 
 type PublicLinkParams = CommonLinkParams & {
@@ -30,10 +26,14 @@ type PrivateLinkParams = CommonLinkParams & {
 
 type InvalidLinkParams = CommonLinkParams & {
   linkType: DeepLinkModalLinkType.INVALID;
+  onContinue?: never; // Invalid links don't continue, they only go back or navigate home
+  pageTitle?: never; // Invalid links don't have a page title
 };
 
 type UnsupportedLinkParams = CommonLinkParams & {
   linkType: DeepLinkModalLinkType.UNSUPPORTED;
+  onContinue?: never; // Unsupported links don't continue, they only go back or navigate home
+  pageTitle?: never; // Unsupported links don't have a page title
 };
 
 /**

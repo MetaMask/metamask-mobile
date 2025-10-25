@@ -10,9 +10,26 @@ import {
   MISSING,
   VALID,
 } from './utils/verifySignature';
-import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import {
+  DeepLinkModalLinkType,
+  SUPPORTED_ACTIONS,
+} from '../types/deepLink.types';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
+import {
+  createDeepLinkUsedEventBuilder,
+  mapSupportedActionToRoute,
+} from '../../../util/deeplinks/deepLinkAnalytics';
+import {
+  DeepLinkAnalyticsContext,
+  SignatureStatus,
+  InterstitialState,
+} from '../types/deepLinkAnalytics.types';
+import { MetaMetrics } from '../../Analytics';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
+import ReduxService from '../../redux';
+import Logger from '../../../util/Logger';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -20,24 +37,6 @@ const {
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
-enum SUPPORTED_ACTIONS {
-  DAPP = ACTIONS.DAPP,
-  BUY = ACTIONS.BUY,
-  BUY_CRYPTO = ACTIONS.BUY_CRYPTO,
-  SELL = ACTIONS.SELL,
-  SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
-  DEPOSIT = ACTIONS.DEPOSIT,
-  HOME = ACTIONS.HOME,
-  SWAP = ACTIONS.SWAP,
-  SEND = ACTIONS.SEND,
-  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
-  PERPS = ACTIONS.PERPS,
-  PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
-  PERPS_ASSET = ACTIONS.PERPS_ASSET,
-  REWARDS = ACTIONS.REWARDS,
-  WC = ACTIONS.WC,
-  ONBOARDING = ACTIONS.ONBOARDING,
-}
 
 /**
  * Actions that should not show the deep link modal
@@ -46,6 +45,74 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
 const interstitialWhitelist = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
+
+/**
+ * Determines the signature status of a validated URL
+ */
+async function determineSignatureStatus(
+  validatedUrl: URL,
+): Promise<SignatureStatus> {
+  if (hasSignature(validatedUrl)) {
+    try {
+      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+      switch (signatureResult) {
+        case VALID:
+          return SignatureStatus.VALID;
+        case INVALID:
+          return SignatureStatus.INVALID;
+        case MISSING:
+        default:
+          return SignatureStatus.MISSING;
+      }
+    } catch (error) {
+      return SignatureStatus.INVALID;
+    }
+  }
+  return SignatureStatus.MISSING;
+}
+
+/**
+ * Resolves the interstitial action based on whitelisting and user interaction
+ */
+async function resolveInterstitialAction(
+  action: SUPPORTED_ACTIONS,
+  validatedUrl: URL,
+  url: string,
+  linkType: () => DeepLinkModalLinkType,
+): Promise<InterstitialState> {
+  if (WHITELISTED_ACTIONS.includes(action)) {
+    return InterstitialState.ACCEPTED;
+  }
+
+  const validatedUrlString = validatedUrl.toString();
+  if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
+    return InterstitialState.ACCEPTED;
+  }
+
+  return new Promise<InterstitialState>((resolve) => {
+    const [, actionName] = validatedUrl.pathname.split('/');
+    const sanitizedAction = actionName?.replace(/-/g, ' ');
+    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
+
+    handleDeepLinkModalDisplay(
+      {
+        linkType: linkType(),
+        pageTitle,
+        onContinue: () => resolve(InterstitialState.ACCEPTED),
+        onBack: () => resolve(InterstitialState.REJECTED),
+      },
+      {
+        url,
+        route: mapSupportedActionToRoute(action),
+        urlParams: extractURLParams(url).params,
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
+      },
+    );
+  });
+}
 
 async function handleUniversalLink({
   instance,
@@ -141,33 +208,64 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
-  const shouldProceed =
-    WHITELISTED_ACTIONS.includes(action) ||
-    (await new Promise<boolean>((resolve) => {
-      const [, actionName] = validatedUrl.pathname.split('/');
-      const sanitizedAction = actionName?.replace(/-/g, ' ');
-      const pageTitle: string =
-        capitalize(sanitizedAction?.toLowerCase()) || '';
-
-      const validatedUrlString = validatedUrl.toString();
-      if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
-        resolve(true);
-        return;
-      }
-
-      handleDeepLinkModalDisplay({
-        linkType: linkType(),
-        pageTitle,
-        onContinue: () => resolve(true),
-        onBack: () => resolve(false),
-      });
-    }));
+  const interstitialAction = await resolveInterstitialAction(
+    action,
+    validatedUrl,
+    url,
+    linkType,
+  );
 
   // Universal links
   handled();
 
-  if (!shouldProceed) {
+  if (interstitialAction === InterstitialState.REJECTED) {
     return false;
+  }
+
+  // Track consolidated deep link analytics event
+  try {
+    const { params } = extractURLParams(url);
+
+    // Determine signature status
+    const signatureStatus = await determineSignatureStatus(validatedUrl);
+
+    // Get modal disabled state from Redux store
+    const isModalDisabled = selectDeepLinkModalDisabled(
+      ReduxService.store.getState(),
+    );
+
+    // Determine if interstitial was shown based on user action
+    const wasInterstitialShown =
+      (interstitialAction as InterstitialState) ===
+        InterstitialState.ACCEPTED ||
+      (interstitialAction as InterstitialState) === InterstitialState.REJECTED;
+
+    // Create analytics context
+    const analyticsContext: DeepLinkAnalyticsContext = {
+      url,
+      route: mapSupportedActionToRoute(action), // Proper mapping function
+      urlParams: params,
+      signatureStatus,
+      interstitialShown: wasInterstitialShown, // Modal was shown if user accepted or rejected
+      interstitialDisabled: isModalDisabled, // Get actual modal disabled state
+      interstitialAction,
+    };
+
+    // Create and track the consolidated event
+    const eventBuilder = await createDeepLinkUsedEventBuilder(analyticsContext);
+
+    const metrics = MetaMetrics.getInstance();
+    eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
+
+    const event = eventBuilder.build();
+    metrics.trackEvent(event);
+
+    DevLogger.log(
+      'DeepLinkAnalytics: Tracked consolidated deep link event:',
+      event,
+    );
+  } catch (error) {
+    Logger.error(error as Error, 'Error tracking deep link event');
   }
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
