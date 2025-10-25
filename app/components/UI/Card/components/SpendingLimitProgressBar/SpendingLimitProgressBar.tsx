@@ -8,22 +8,64 @@ import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
 import { ethers } from 'ethers';
+import {
+  renderFromTokenMinimalUnit,
+  toTokenMinimalUnit,
+} from '../../../../../util/number';
+
+interface PriorityToken {
+  allowance?: string | null;
+  decimals?: number | null;
+  symbol?: string | null;
+}
+
+interface SpendingLimitSettings {
+  limitAmount?: string;
+  isFullAccess?: boolean;
+}
 
 interface SpendingLimitProgressBarProps {
-  remainingAllowance?: ethers.BigNumber;
-  totalAllowance?: ethers.BigNumber;
-  symbol: string;
+  priorityToken: PriorityToken;
+  spendingLimitSettings: SpendingLimitSettings;
 }
 
 const SpendingLimitProgressBar = ({
-  remainingAllowance,
-  totalAllowance,
-  symbol,
+  priorityToken,
+  spendingLimitSettings,
 }: SpendingLimitProgressBarProps) => {
   const theme = useTheme();
   const styles = createStyles();
 
-  // Convert serialized BigNumber objects to actual BigNumber instances
+  const calculateRemainingAllowance = (
+    limitAmount: string | undefined,
+    currentAllowance: string | undefined,
+    decimals: number | undefined,
+  ): string => {
+    const limit = parseFloat(limitAmount || '0');
+    const used = parseFloat(currentAllowance || '0');
+    const remaining = Math.max(0, limit - used);
+    return remaining.toFixed(decimals || 6);
+  };
+
+  const remainingAllowanceString = calculateRemainingAllowance(
+    spendingLimitSettings.limitAmount,
+    priorityToken.allowance || undefined,
+    priorityToken.decimals || undefined,
+  );
+
+  const remainingAllowance = ethers.BigNumber.from(
+    toTokenMinimalUnit(
+      remainingAllowanceString,
+      priorityToken.decimals || 6,
+    ).toString(),
+  );
+
+  const totalAllowance = ethers.BigNumber.from(
+    toTokenMinimalUnit(
+      spendingLimitSettings.limitAmount || '0',
+      priorityToken.decimals || 6,
+    ).toString(),
+  );
   const remainingAllowanceOrZero = remainingAllowance
     ? ethers.BigNumber.from(remainingAllowance)
     : ethers.BigNumber.from(0);
@@ -58,12 +100,25 @@ const SpendingLimitProgressBar = ({
 
   const consumedAmount = totalAllowanceOrZero.sub(remainingAllowanceOrZero);
 
+  const formatDisplayValue = (value: ethers.BigNumber) => {
+    const decimalValue = parseFloat(
+      renderFromTokenMinimalUnit(value.toString(), priorityToken.decimals || 6),
+    );
+
+    const precision = decimalValue < 1 ? 6 : 2;
+    const formatted = decimalValue.toFixed(precision);
+
+    return parseFloat(formatted).toString();
+  };
+
+  const totalAllowanceDisplay = formatDisplayValue(totalAllowanceOrZero);
+  const consumedAmountDisplay = formatDisplayValue(consumedAmount);
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
         <Text variant={TextVariant.BodySMMedium}>Spending Limit</Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {consumedAmount.toString()}/{totalAllowanceOrZero.toString()} {symbol}
+          {consumedAmountDisplay}/{totalAllowanceDisplay} {priorityToken.symbol}
         </Text>
       </View>
       <ProgressBar

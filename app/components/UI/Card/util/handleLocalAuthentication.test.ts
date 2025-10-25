@@ -290,7 +290,7 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
+        'Token refresh failed:',
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -327,7 +327,7 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
+        'Token refresh failed:',
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -364,7 +364,7 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
+        'Token refresh failed:',
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -395,7 +395,7 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
+        'Token refresh failed:',
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -416,7 +416,7 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Authentication verification failed:',
+        'Authentication verification failed:',
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -444,7 +444,7 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Authentication verification failed:',
+        'Authentication verification failed:',
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -481,7 +481,7 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
+        'Token refresh failed:',
         expect.any(Error),
       );
       expect(result).toEqual({

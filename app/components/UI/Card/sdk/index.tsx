@@ -7,6 +7,8 @@ import React, {
   useCallback,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectChainId } from '../../../../selectors/networkController';
+import Logger from '../../../../util/Logger';
 
 import { CardSDK } from './CardSDK';
 import {
@@ -22,16 +24,12 @@ import {
   setIsAuthenticatedCard,
   selectUserCardLocation,
   setUserCardLocation,
-  selectOnboardingId,
 } from '../../../../core/redux/slices/card';
-import { UserResponse } from '../types';
 
 // Types
 export interface ICardSDK {
   sdk: CardSDK | null;
   isLoading: boolean;
-  user: UserResponse | null;
-  setUser: (user: UserResponse | null) => void;
   logoutFromProvider: () => Promise<void>;
 }
 
@@ -54,13 +52,26 @@ export const CardSDKProvider = ({
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const userCardLocation = useSelector(selectUserCardLocation);
-  const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const [sdk, setSdk] = useState<CardSDK | null>(null);
   // Start with true to indicate initialization in progress
   const [isLoading, setIsLoading] = useState(true);
-  // Add user state management
-  const [user, setUser] = useState<UserResponse | null>(null);
+
+  // Get current chain ID from network controller
+  const hexChainId = useSelector(selectChainId);
+  const currentChainId = useMemo(() => {
+    if (hexChainId) {
+      const decimalChainId = parseInt(hexChainId, 16);
+      Logger.log(
+        'CardSDKProvider: Resolved currentChainId (decimal):',
+        decimalChainId,
+      );
+      Logger.log('CardSDKProvider: Resolved currentChainId (hex):', hexChainId);
+      return `eip155:${decimalChainId}` as const;
+    }
+    Logger.log('CardSDKProvider: Defaulting currentChainId to Linea Mainnet');
+    return 'eip155:59144' as const; // Default to Linea Mainnet
+  }, [hexChainId]);
 
   const removeAuthenticatedData = useCallback(() => {
     dispatch(setIsAuthenticatedCard(false));
@@ -73,9 +84,14 @@ export const CardSDKProvider = ({
   useEffect(() => {
     if (cardFeatureFlag) {
       setIsLoading(true);
+      Logger.log(
+        'CardSDKProvider: Initializing CardSDK with currentChainId:',
+        currentChainId,
+      );
       const cardSDK = new CardSDK({
         cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
         userCardLocation,
+        currentChainId,
       });
       setSdk(cardSDK);
     } else {
@@ -84,28 +100,7 @@ export const CardSDKProvider = ({
     }
 
     setIsLoading(false);
-  }, [cardFeatureFlag, userCardLocation]);
-
-  // Fetch user data on mount if onboardingId exists
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!sdk || !onboardingId) {
-        return;
-      }
-      setIsLoading(true);
-
-      try {
-        const userData = await sdk.getRegistrationStatus(onboardingId);
-        setUser(userData);
-      } catch {
-        // Assume user is not registered
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [sdk, onboardingId]);
+  }, [cardFeatureFlag, userCardLocation, currentChainId]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
@@ -114,9 +109,6 @@ export const CardSDKProvider = ({
 
     await removeCardBaanxToken();
     removeAuthenticatedData();
-
-    // Clear user data from context
-    setUser(null);
   }, [sdk, removeAuthenticatedData]);
 
   // Memoized context value to prevent unnecessary re-renders
@@ -124,11 +116,9 @@ export const CardSDKProvider = ({
     (): ICardSDK => ({
       sdk,
       isLoading,
-      user,
-      setUser,
       logoutFromProvider,
     }),
-    [sdk, isLoading, user, setUser, logoutFromProvider],
+    [sdk, isLoading, logoutFromProvider],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;

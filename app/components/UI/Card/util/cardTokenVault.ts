@@ -16,8 +16,7 @@ interface TokenResponse {
 }
 
 /**
- * Store a card baanx token. Automatically converts token expiration dates from seconds to milliseconds.
- * Supports both full token pairs (access + refresh) and access-only tokens from onboarding.
+ * Store a card baanx token. Automtically converts token expiration dates from seconds to milliseconds.
  */
 export async function storeCardBaanxToken(
   params: CardTokenData,
@@ -25,11 +24,8 @@ export async function storeCardBaanxToken(
   try {
     const accessTokenExpiresAt =
       Date.now() + params.accessTokenExpiresAt * 1000;
-
-    // Handle optional refresh token (for onboarding flow)
-    const refreshTokenExpiresAt = params.refreshTokenExpiresAt
-      ? Date.now() + params.refreshTokenExpiresAt * 1000
-      : undefined;
+    const refreshTokenExpiresAt =
+      Date.now() + params.refreshTokenExpiresAt * 1000;
 
     const stringifiedTokens = JSON.stringify({
       ...params,
@@ -66,30 +62,15 @@ export async function storeCardBaanxToken(
  * Validate the token data
  * @param tokenData The token data to validate
  * @returns True if the token data is valid, false otherwise
- *
- * Note: Supports both full token pairs and access-only tokens from onboarding.
- * For full authentication, both access and refresh tokens are required.
- * For onboarding flow, only access token is required.
  */
-const validateTokenData = (tokenData: Partial<CardTokenData>): boolean => {
-  // Always require access token, expiration, and location
-  const hasRequiredFields = Boolean(
+const validateTokenData = (tokenData: Partial<CardTokenData>): boolean =>
+  Boolean(
     tokenData.accessToken &&
+      tokenData.refreshToken &&
       tokenData.accessTokenExpiresAt &&
+      tokenData.refreshTokenExpiresAt &&
       tokenData.location,
   );
-
-  if (!hasRequiredFields) {
-    return false;
-  }
-
-  // If refresh token is present, refresh token expiration must also be present
-  if (tokenData.refreshToken && !tokenData.refreshTokenExpiresAt) {
-    return false;
-  }
-
-  return true;
-};
 
 /**
  * Get a card baanx token

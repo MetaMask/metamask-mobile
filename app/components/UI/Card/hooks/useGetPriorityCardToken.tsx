@@ -54,9 +54,8 @@ const fetchAllowances = async (
       name: TraceName.Card,
       op: TraceOperation.CardGetSupportedTokensAllowances,
     });
-    const supportedTokensAllowances = await sdk.getSupportedTokensAllowances(
-      selectedAddress,
-    );
+    const supportedTokensAllowances =
+      await sdk.getAuthenticatedTokensAllowances(selectedAddress);
 
     const supportedTokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
 
@@ -443,10 +442,24 @@ export const useGetPriorityCardToken = () => {
           error: false,
           warning: null,
         }));
+        if (!sdk) {
+          Logger.log(
+            'useGetPriorityCardToken: SDK is null, cannot fetch external wallet details',
+          );
+          setState((prevState) => ({
+            ...prevState,
+            isLoading: false,
+            error: true,
+            warning: null,
+          }));
+          return null;
+        }
+
         const cardExternalWalletDetails =
-          await sdk?.getCardExternalWalletDetails();
-        let cardExternalWalletDetailsWithPriority =
-          cardExternalWalletDetails?.[0];
+          await sdk.getCardExternalWalletDetails();
+        let cardExternalWalletDetailsWithPriority:
+          | CardExternalWalletDetail
+          | undefined = cardExternalWalletDetails?.[0];
 
         // There's some cases where the the first one doesn't have balance; so we need to find the first one with balance.
         // If there's only one WalletExternalDetail, we can just take the first one.
@@ -455,21 +468,22 @@ export const useGetPriorityCardToken = () => {
           cardExternalWalletDetails?.length > 1 &&
           !cardExternalWalletDetailsWithPriority?.balance
         ) {
-          cardExternalWalletDetailsWithPriority =
-            cardExternalWalletDetails?.find((detail) => {
-              if (isNaN(parseFloat(detail.balance)) || isZero(detail.balance)) {
-                return false;
-              }
+          const foundDetail = cardExternalWalletDetails?.find((detail) => {
+            if (isNaN(parseFloat(detail.balance)) || isZero(detail.balance)) {
+              return false;
+            }
 
-              return true;
-            });
+            return true;
+          });
+          cardExternalWalletDetailsWithPriority = foundDetail;
         }
 
-        const mappedCardExternalWalletDetails =
-          mapCardExternalWalletDetailToCardTokenAllowance(
-            cardExternalWalletDetailsWithPriority ??
-              cardExternalWalletDetails?.[0],
-          );
+        const walletDetail =
+          cardExternalWalletDetailsWithPriority ??
+          cardExternalWalletDetails?.[0];
+        const mappedCardExternalWalletDetails = walletDetail
+          ? mapCardExternalWalletDetailToCardTokenAllowance(walletDetail)
+          : null;
 
         setState((prevState) => ({
           ...prevState,
