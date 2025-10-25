@@ -1,6 +1,12 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { Modal, ScrollView, View, TouchableOpacity } from 'react-native';
+import {
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  View,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
@@ -23,7 +29,6 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -111,10 +116,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
-  const memoizedPressHandler = useCallback(() => {
-    handleNewTrade();
-  }, [handleNewTrade]);
-
   // Modal handlers - now using navigation to modal stack
   const handleCloseAllPress = useCallback(() => {
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
@@ -129,11 +130,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   }, [navigation]);
 
   const renderStartTradeCTA = () => (
-    <TempTouchableOpacity
+    <TouchableOpacity
       style={styles.startTradeCTA}
-      onPress={memoizedPressHandler}
+      onPress={handleNewTrade}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
-      shouldEnableAndroidPressIn
     >
       <View style={styles.startTradeContent}>
         <View style={styles.startTradeIconContainer}>
@@ -147,7 +147,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TempTouchableOpacity>
+    </TouchableOpacity>
   );
 
   const renderOrdersSection = () => {

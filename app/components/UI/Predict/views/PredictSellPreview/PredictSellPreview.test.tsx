@@ -348,6 +348,10 @@ describe('PredictSellPreview', () => {
     mockFormatPercentage.mockImplementation((value) => `${value}% return`);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('rendering', () => {
     it('renders cash out screen with position details', () => {
       const { getByText, queryByText } = renderWithProvider(

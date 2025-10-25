@@ -94,6 +94,10 @@ describe('PredictPositions', () => {
     mockUsePredictPositions.mockReturnValue(defaultMockHookReturn);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders loading state when isLoading is true', () => {
     // Arrange
     mockUsePredictPositions

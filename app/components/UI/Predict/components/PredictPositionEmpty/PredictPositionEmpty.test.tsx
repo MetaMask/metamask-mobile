@@ -148,6 +148,10 @@ describe('PredictPositionEmpty', () => {
     );
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('renders the empty state with all required elements', () => {
       renderWithProvider(<PredictPositionEmpty />);

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -20,7 +20,6 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 /**
@@ -106,21 +105,16 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     }
   }, [onPress, markets, symbol, navigation, order, position, source]);
 
-  const memoizedPressHandler = useCallback(() => {
-    handlePress();
-  }, [handlePress]);
-
   if (!position && !order) {
     return null;
   }
 
   return (
-    <TempTouchableOpacity
+    <TouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
-      onPress={memoizedPressHandler}
+      onPress={handlePress}
       testID={testID}
-      shouldEnableAndroidPressIn
     >
       <View style={styles.cardContent}>
         {/* Left side: Icon and info */}
@@ -152,7 +146,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           </Text>
         </View>
       </View>
-    </TempTouchableOpacity>
+    </TouchableOpacity>
   );
 };
 

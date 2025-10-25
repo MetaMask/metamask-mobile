@@ -176,7 +176,10 @@ export const useLatestBalance = (token: {
     }
 
     return { displayBalance, atomicBalance };
-  }, [token.balance, token.decimals]);
+    // Include token.address in the dependency array to ensure
+    // that the cached balance is updated when the token address changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token.balance, token.decimals, token.address]);
 
   if (!token.address || !token.decimals) {
     return undefined;

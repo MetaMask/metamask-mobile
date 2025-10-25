@@ -8,7 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import FOX_LOGO from '../../../../../images/branding/fox.png';
+import MM_CARD_MOCKUP from '../../../../../images/mm-card-mockup.png';
 
 interface OnboardingStepProps {
   title: string;
@@ -36,34 +36,34 @@ const OnboardingStep = ({
           showsVerticalScrollIndicator={false}
           alwaysBounceVertical={false}
         >
-          <Box twClassName="flex-1 items-stretch gap-6">
-            {/* FOX Logo */}
+          <Box twClassName="flex-1 items-stretch gap-4">
+            {/* Card Mockup Image */}
             <Box twClassName="items-center">
               <Image
-                source={FOX_LOGO}
-                style={tw.style('w-16 h-16')}
+                source={MM_CARD_MOCKUP}
+                style={tw.style('w-full h-52')}
                 resizeMode="contain"
               />
             </Box>
+            <Box twClassName="gap-2">
+              {/* Title */}
+              <Text
+                variant={TextVariant.HeadingMd}
+                testID="onboarding-step-title"
+                twClassName="text-center text-default"
+              >
+                {title}
+              </Text>
 
-            {/* Title */}
-            <Text
-              variant={TextVariant.HeadingMd}
-              testID="onboarding-step-title"
-              twClassName="mt-2 text-center text-default"
-            >
-              {title}
-            </Text>
-
-            {/* Description */}
-            <Text
-              variant={TextVariant.BodyMd}
-              testID="onboarding-step-description"
-              twClassName="text-center"
-            >
-              {description}
-            </Text>
-
+              {/* Description */}
+              <Text
+                variant={TextVariant.BodyMd}
+                testID="onboarding-step-description"
+                twClassName="text-center"
+              >
+                {description}
+              </Text>
+            </Box>
             {/* Form */}
             <Box testID="onboarding-step-form" twClassName="gap-4 flex-1">
               {formFields}

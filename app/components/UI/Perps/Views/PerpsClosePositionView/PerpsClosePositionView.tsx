@@ -642,7 +642,6 @@ const PerpsClosePositionView: React.FC = () => {
               (orderType === 'limit' &&
                 (!limitPrice || parseFloat(limitPrice) <= 0)) ||
               (orderType === 'market' && closePercentage === 0) ||
-              receiveAmount <= 0 ||
               !validationResult.isValid
             }
             loading={isClosing}
