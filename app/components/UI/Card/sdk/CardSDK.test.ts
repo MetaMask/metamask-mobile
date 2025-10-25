@@ -19,17 +19,6 @@ import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import AppConstants from '../../../../core/AppConstants';
 
-// Type definition for accessing private methods in tests
-interface CardSDKPrivateAccess {
-  userCardLocation: string;
-  enableLogs: boolean;
-  mapAPINetworkToCaipChainId: (network: string) => string;
-  mapAPINetworkToAssetChainId: (network: string) => string;
-  getFirstSupportedTokenOrNull: () => CardToken | null;
-  findSupportedTokenByAddress: (address: string) => CardToken | null;
-  mapSupportedTokenToCardToken: (token: SupportedToken) => CardToken;
-}
-
 // Mock ethers
 jest.mock('ethers', () => ({
   ethers: {
@@ -1559,6 +1548,47 @@ describe('CardSDK', () => {
     });
   });
 
+  describe('isBaanxLoginEnabled', () => {
+    it('returns true when Baanx login is enabled', () => {
+      const enabledFeatureFlag: CardFeatureFlag = {
+        ...mockCardFeatureFlag,
+        isBaanxLoginEnabled: true,
+      };
+
+      const enabledSDK = new CardSDK({
+        cardFeatureFlag: enabledFeatureFlag,
+      });
+
+      expect(enabledSDK.isBaanxLoginEnabled).toBe(true);
+    });
+
+    it('returns false when Baanx login is disabled', () => {
+      const disabledFeatureFlag: CardFeatureFlag = {
+        ...mockCardFeatureFlag,
+        isBaanxLoginEnabled: false,
+      };
+
+      const disabledSDK = new CardSDK({
+        cardFeatureFlag: disabledFeatureFlag,
+      });
+
+      expect(disabledSDK.isBaanxLoginEnabled).toBe(false);
+    });
+
+    it('returns false when Baanx login flag is undefined', () => {
+      const undefinedFeatureFlag: CardFeatureFlag = {
+        ...mockCardFeatureFlag,
+      };
+      delete undefinedFeatureFlag.isBaanxLoginEnabled;
+
+      const undefinedSDK = new CardSDK({
+        cardFeatureFlag: undefinedFeatureFlag,
+      });
+
+      expect(undefinedSDK.isBaanxLoginEnabled).toBe(false);
+    });
+  });
+
   describe('makeRequest error scenarios', () => {
     it('handles unknown error type', async () => {
       const unknownError = 'string error';
@@ -1641,117 +1671,6 @@ describe('CardSDK', () => {
       });
 
       expect(Logger.log).toHaveBeenCalled();
-    });
-  });
-
-  describe('provisionCard', () => {
-    it('provisions card successfully', async () => {
-      const mockResponse = { success: true };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.provisionCard();
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/card/order'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            type: 'VIRTUAL',
-          }),
-          credentials: 'omit',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'x-us-env': 'false',
-            'x-client-key': 'test-api-key',
-            Authorization: 'Bearer mock-token',
-          }),
-        }),
-      );
-    });
-
-    it('throws SERVER_ERROR when provision fails', async () => {
-      const errorResponse = { error: 'Card provision failed' };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: jest.fn().mockResolvedValue(errorResponse),
-      });
-
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
-
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Failed to provision card. Please try again.',
-      });
-
-      expect(Logger.log).toHaveBeenCalledWith(
-        errorResponse,
-        'Failed to provision card.',
-      );
-    });
-
-    it('handles error when response JSON parsing fails', async () => {
-      const parseError = new Error('Invalid JSON');
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: jest.fn().mockRejectedValue(parseError),
-      });
-
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
-
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Failed to provision card. Please try again.',
-      });
-    });
-
-    it('includes authentication token in request', async () => {
-      const mockResponse = { success: true };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      await cardSDK.provisionCard();
-
-      expect(getCardBaanxToken).toHaveBeenCalled();
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer mock-token',
-          }),
-        }),
-      );
-    });
-
-    it('provisions card with correct card type', async () => {
-      const mockResponse = { success: true };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      await cardSDK.provisionCard();
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          body: JSON.stringify({
-            type: 'VIRTUAL',
-          }),
-        }),
-      );
     });
   });
 
@@ -1991,819 +1910,200 @@ describe('CardSDK', () => {
     });
   });
 
-  describe('emailVerificationSend', () => {
-    it('sends email verification successfully', async () => {
-      const mockRequest = {
-        email: 'test@example.com',
-      };
-
-      const mockResponse = {
-        contactVerificationId: 'contact123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.emailVerificationSend(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/email/send'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles email verification send error', async () => {
-      const mockRequest = {
-        email: 'test@example.com',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid email',
-        }),
-      });
-
-      await expect(
-        cardSDK.emailVerificationSend(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-      });
-    });
-
-    it('handles network error during email verification send', async () => {
-      const mockRequest = {
-        email: 'test@example.com',
-      };
-
-      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
-
-      await expect(
-        cardSDK.emailVerificationSend(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.NETWORK_ERROR,
-      });
-    });
-  });
-
-  describe('emailVerificationVerify', () => {
-    it('verifies email successfully', async () => {
-      const mockRequest = {
-        email: 'test@example.com',
-        password: 'password123',
-        verificationCode: '123456',
-        contactVerificationId: 'contact123',
-        countryOfResidence: 'US',
-        allowMarketing: false,
-        allowSms: false,
-      };
-
-      const mockResponse = {
-        hasAccount: false,
-        onboardingId: 'onboarding123',
-        user: {
-          id: 'user123',
-          email: 'test@example.com',
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.emailVerificationVerify(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/email/verify'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles email verification verify error', async () => {
-      const mockRequest = {
-        email: 'test@example.com',
-        password: 'password123',
-        verificationCode: '123456',
-        contactVerificationId: 'contact123',
-        countryOfResidence: 'US',
-        allowMarketing: false,
-        allowSms: false,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid code',
-        }),
-      });
-
-      await expect(
-        cardSDK.emailVerificationVerify(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-      });
-    });
-  });
-
-  describe('phoneVerificationSend', () => {
-    it('sends phone verification successfully', async () => {
-      const mockRequest = {
-        phoneCountryCode: '+1',
-        phoneNumber: '1234567890',
-        contactVerificationId: 'contact123',
-      };
-
-      const mockResponse = {
-        success: true,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.phoneVerificationSend(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/phone/send'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles phone verification send error', async () => {
-      const mockRequest = {
-        phoneCountryCode: '+1',
-        phoneNumber: '1234567890',
-        contactVerificationId: 'contact123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid phone number',
-        }),
-      });
-
-      await expect(
-        cardSDK.phoneVerificationSend(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-      });
-    });
-  });
-
-  describe('phoneVerificationVerify', () => {
-    it('verifies phone successfully', async () => {
-      const mockRequest = {
-        phoneCountryCode: '+1',
-        phoneNumber: '1234567890',
-        verificationCode: '123456',
-        onboardingId: 'onboarding123',
-        contactVerificationId: 'contact123',
-      };
-
-      const mockResponse = {
-        onboardingId: 'onboarding123',
-        user: {
-          id: 'user123',
-          email: 'test@example.com',
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.phoneVerificationVerify(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/phone/verify'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles phone verification verify error', async () => {
-      const mockRequest = {
-        phoneCountryCode: '+1',
-        phoneNumber: '1234567890',
-        verificationCode: '123456',
-        onboardingId: 'onboarding123',
-        contactVerificationId: 'contact123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid code',
-        }),
-      });
-
-      await expect(
-        cardSDK.phoneVerificationVerify(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-      });
-    });
-  });
-
-  describe('startUserVerification', () => {
-    it('starts user verification successfully', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        location: 'us' as CardLocation,
-      };
-
-      const mockResponse = {
-        success: true,
-        verificationId: 'verification123',
-        status: 'pending',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.startUserVerification(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/register/verification'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles start user verification error', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        location: 'us' as CardLocation,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: jest.fn().mockResolvedValue({
-          error: 'Server error',
-        }),
-      });
-
-      await expect(
-        cardSDK.startUserVerification(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Server error while getting registration settings',
-      });
-    });
-  });
-
-  describe('registerPersonalDetails', () => {
-    it('registers personal details successfully', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01',
-        countryOfNationality: 'US',
-      };
-
-      const mockResponse = {
-        success: true,
-        userId: 'user123',
-        onboardingId: 'onboarding123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.registerPersonalDetails(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/register/personal'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles register personal details error', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01',
-        countryOfNationality: 'US',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid data',
-        }),
-      });
-
-      await expect(
-        cardSDK.registerPersonalDetails(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-        message: expect.stringMatching(
-          /Personal details registration failed: 400/,
-        ),
-      });
-    });
-  });
-
-  describe('registerPhysicalAddress', () => {
-    it('registers physical address successfully', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        addressLine1: '123 Main St',
-        city: 'New York',
-        zip: '10001',
-        usState: 'NY',
-      };
-
-      const mockResponse = {
-        success: true,
-        addressId: 'address123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.registerPhysicalAddress(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/register/address'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles register physical address error', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        addressLine1: '123 Main St',
-        city: 'New York',
-        zip: '10001',
-        usState: 'NY',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid address',
-        }),
-      });
-
-      await expect(
-        cardSDK.registerPhysicalAddress(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-        message: expect.stringMatching(/Address registration failed: 400/),
-      });
-    });
-  });
-
-  describe('registerMailingAddress', () => {
-    it('registers mailing address successfully', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        addressLine1: '456 Oak Ave',
-        city: 'Los Angeles',
-        zip: '90210',
-        usState: 'CA',
-      };
-
-      const mockResponse = {
-        success: true,
-        addressId: 'address456',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.registerMailingAddress(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/register/mailing-address'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles register mailing address error', async () => {
-      const mockRequest = {
-        onboardingId: 'onboarding123',
-        addressLine1: '456 Oak Ave',
-        city: 'Los Angeles',
-        zip: '90210',
-        usState: 'CA',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid address',
-        }),
-      });
-
-      await expect(
-        cardSDK.registerMailingAddress(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-        message: expect.stringMatching(/Address registration failed: 400/),
-      });
-    });
-  });
-
-  describe('getRegistrationSettings', () => {
-    it('gets registration settings successfully', async () => {
-      const mockResponse = {
-        countries: ['US', 'CA', 'GB'],
-        requiredFields: ['firstName', 'lastName', 'dateOfBirth'],
-        optionalFields: ['middleName'],
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.getRegistrationSettings();
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/auth/settings'),
-        expect.objectContaining({
-          method: 'GET',
-        }),
-      );
-    });
-
-    it('handles get registration settings error', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: jest.fn().mockResolvedValue({
-          error: 'Server error',
-        }),
-      });
-
-      await expect(cardSDK.getRegistrationSettings()).rejects.toMatchObject({
-        type: CardErrorType.SERVER_ERROR,
-        message: 'Server error while getting registration settings',
-      });
-    });
-  });
-
-  describe('getRegistrationStatus', () => {
-    it('gets registration status successfully', async () => {
-      const onboardingId = 'onboarding123';
-      const mockResponse = {
-        status: 'pending',
-        completedSteps: ['email', 'phone'],
-        nextStep: 'personal_details',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.getRegistrationStatus(onboardingId);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `/v1/auth/register?onboardingId=${onboardingId}`,
-        ),
-        expect.objectContaining({
-          method: 'GET',
-        }),
-      );
-    });
-
-    it('handles get registration status error', async () => {
-      const onboardingId = 'onboarding123';
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 404,
-        json: jest.fn().mockResolvedValue({
-          error: 'Not found',
-        }),
-      });
-
-      await expect(
-        cardSDK.getRegistrationStatus(onboardingId),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-        message: 'Failed to get registration status',
-      });
-    });
-  });
-
-  describe('createOnboardingConsent', () => {
-    it('creates onboarding consent successfully', async () => {
-      const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'us',
-        onboardingId: 'onboarding123',
-        consents: [],
-        tenantId: 'tenant_baanx_global',
-        metadata: {
-          userAgent: AppConstants.USER_AGENT,
-          timestamp: new Date().toISOString(),
-        },
-      };
-
-      const mockResponse = {
-        success: true,
-        consentId: 'consent123',
-        consentSetId: 'consentSet123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.createOnboardingConsent(mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/v2/consent/onboarding'),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles create onboarding consent error', async () => {
-      const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'us',
-        onboardingId: 'onboarding123',
-        consents: [],
-        tenantId: 'tenant_baanx_global',
-        metadata: {
-          userAgent: AppConstants.USER_AGENT,
-          timestamp: new Date().toISOString(),
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid consent data',
-        }),
-      });
-
-      await expect(
-        cardSDK.createOnboardingConsent(mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-        message: 'Failed to create onboarding consent',
-      });
-    });
-  });
-
-  describe('linkUserToConsent', () => {
-    it('links user to consent successfully', async () => {
-      const consentSetId = 'consentSet123';
-      const mockRequest = {
-        userId: 'user123',
-        onboardingId: 'onboarding123',
-        location: 'us' as CardLocation,
-      };
-
-      const mockResponse = {
-        success: true,
-        linkId: 'link123',
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(mockResponse),
-      });
-
-      const result = await cardSDK.linkUserToConsent(consentSetId, mockRequest);
-
-      expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/v2/consent/onboarding/${consentSetId}`),
-        expect.objectContaining({
-          method: 'PATCH',
-          body: JSON.stringify(mockRequest),
-        }),
-      );
-    });
-
-    it('handles link user to consent error', async () => {
-      const consentSetId = 'consentSet123';
-      const mockRequest = {
-        userId: 'user123',
-        onboardingId: 'onboarding123',
-        location: 'us' as CardLocation,
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue({
-          error: 'Invalid link data',
-        }),
-      });
-
-      await expect(
-        cardSDK.linkUserToConsent(consentSetId, mockRequest),
-      ).rejects.toMatchObject({
-        type: CardErrorType.CONFLICT_ERROR,
-        message: 'Failed to link user to consent',
-      });
-    });
-  });
-
-  describe('constructor with userCardLocation', () => {
-    it('initializes with provided userCardLocation', () => {
-      const customCardSDK = new CardSDK({
-        cardFeatureFlag: mockCardFeatureFlag,
-        userCardLocation: 'us',
-      });
-
-      expect(
-        (customCardSDK as unknown as CardSDKPrivateAccess).userCardLocation,
-      ).toBe('us');
-    });
-
-    it('defaults to international when userCardLocation is not provided', () => {
-      const customCardSDK = new CardSDK({
-        cardFeatureFlag: mockCardFeatureFlag,
-      });
-
-      expect(
-        (customCardSDK as unknown as CardSDKPrivateAccess).userCardLocation,
-      ).toBe('international');
-    });
-
-    it('initializes with enableLogs option', () => {
-      const customCardSDK = new CardSDK({
-        cardFeatureFlag: mockCardFeatureFlag,
-        enableLogs: true,
-      });
-
-      expect(
-        (customCardSDK as unknown as CardSDKPrivateAccess).enableLogs,
-      ).toBe(true);
-    });
-  });
-
-  describe('private helper methods', () => {
-    describe('mapAPINetworkToCaipChainId', () => {
-      it('maps linea network to correct CAIP chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToCaipChainId('linea');
-        expect(result).toBe('eip155:59144');
-      });
-
-      it('maps solana network to correct CAIP chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToCaipChainId('solana');
-        expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
-      });
-    });
-
-    describe('mapAPINetworkToAssetChainId', () => {
-      it('maps linea network to correct asset chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToAssetChainId('linea');
-        expect(result).toBe('0xe708'); // LINEA_CHAIN_ID is in hex format
-      });
-
-      it('maps solana network to correct asset chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToAssetChainId('solana');
-        expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'); // Full CAIP chain ID
-      });
-    });
-
-    describe('getFirstSupportedTokenOrNull', () => {
-      it('returns first supported token when tokens exist', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).getFirstSupportedTokenOrNull();
-        expect(result).toEqual({
-          address: mockSupportedTokens[0].address || null,
-          symbol: mockSupportedTokens[0].symbol || null,
-          name: mockSupportedTokens[0].name || null,
-          decimals: mockSupportedTokens[0].decimals || null,
-        });
-      });
-
-      it('returns null when no supported tokens exist', () => {
-        const emptyTokensCardFeatureFlag: CardFeatureFlag = {
-          chains: {
-            'eip155:59144': {
-              enabled: true,
-              tokens: [],
+  describe('Chain Configuration', () => {
+    const mockChainConfigResponse = {
+      networks: [
+        {
+          network: 'ethereum',
+          environment: 'production',
+          chainId: '1',
+          delegationContract: '0xb453ba76d9ca952115e9e32ca069c96e846c5d9d',
+          tokens: {
+            usdc: {
+              symbol: 'usdc',
+              decimals: 6,
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            },
+            usdt: {
+              symbol: 'usdt',
+              decimals: 6,
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
             },
           },
-        };
+        },
+        {
+          network: 'linea',
+          environment: 'production',
+          chainId: '59144',
+          delegationContract: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+          tokens: {
+            usdc: {
+              symbol: 'usdc',
+              decimals: 6,
+              address: '0x176211869ca2b568f2A7D4EE941E073a821EE1ff',
+            },
+            usdt: {
+              symbol: 'usdt',
+              decimals: 6,
+              address: '0xa219439258ca9da29e9cc4ce5596924745e12b93',
+            },
+          },
+        },
+      ],
+      count: 2,
+      _links: {
+        self: '/v1/delegation/chain/config',
+      },
+    };
 
-        const emptyTokensCardSDK = new CardSDK({
-          cardFeatureFlag: emptyTokensCardFeatureFlag,
-        });
-
-        const result = (
-          emptyTokensCardSDK as unknown as CardSDKPrivateAccess
-        ).getFirstSupportedTokenOrNull();
-        expect(result).toBeNull();
+    beforeEach(() => {
+      // Mock fetch for chain config API calls
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockChainConfigResponse),
       });
     });
 
-    describe('findSupportedTokenByAddress', () => {
-      it('finds token by address (case insensitive)', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).findSupportedTokenByAddress(
-          mockSupportedTokens[0].address?.toUpperCase() || '',
-        );
-        expect(result).toEqual({
-          address: mockSupportedTokens[0].address || null,
-          symbol: mockSupportedTokens[0].symbol || null,
-          name: mockSupportedTokens[0].name || null,
-          decimals: mockSupportedTokens[0].decimals || null,
-        });
-      });
-
-      it('returns null when token not found', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).findSupportedTokenByAddress('0xnonexistent');
-        expect(result).toBeNull();
-      });
+    afterEach(() => {
+      jest.clearAllMocks();
+      cardSDK.clearChainConfigCache();
     });
 
-    describe('mapSupportedTokenToCardToken', () => {
-      it('maps supported token to card token correctly', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapSupportedTokenToCardToken(mockSupportedTokens[0]);
-        expect(result).toEqual({
-          address: mockSupportedTokens[0].address || null,
-          symbol: mockSupportedTokens[0].symbol || null,
-          name: mockSupportedTokens[0].name || null,
-          decimals: mockSupportedTokens[0].decimals || null,
-        });
+    it('should get chain configuration from API', async () => {
+      const result = await cardSDK.getChainConfig();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/chain/config'),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'x-client-key': 'test-api-key',
+            Authorization: expect.stringContaining('Bearer'),
+          }),
+        }),
+      );
+
+      expect(result).toEqual(mockChainConfigResponse);
+    });
+
+    it('should get chain configuration for specific network', async () => {
+      const result = await cardSDK.getChainConfig('ethereum');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/chain/config?network=ethereum'),
+        expect.any(Object),
+      );
+
+      expect(result).toEqual(mockChainConfigResponse);
+    });
+
+    it('should cache chain configuration', async () => {
+      // First call
+      await cardSDK.getChainConfig();
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      // Second call should use cache
+      await cardSDK.getChainConfig();
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should get network configuration', async () => {
+      const result = await cardSDK.getNetworkConfig('ethereum');
+
+      expect(result).toEqual(mockChainConfigResponse.networks[0]);
+    });
+
+    it('should throw error for unsupported network', async () => {
+      await expect(
+        cardSDK.getNetworkConfig('unsupported' as 'linea' | 'ethereum'),
+      ).rejects.toThrow('Network configuration not found for unsupported');
+    });
+
+    it('should get token address', async () => {
+      const usdcAddress = await cardSDK.getTokenAddress('ethereum', 'usdc');
+      const usdtAddress = await cardSDK.getTokenAddress('linea', 'usdt');
+
+      expect(usdcAddress).toBe('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48');
+      expect(usdtAddress).toBe('0xa219439258ca9da29e9cc4ce5596924745e12b93');
+    });
+
+    it('should throw error for unsupported token', async () => {
+      await expect(
+        cardSDK.getTokenAddress('ethereum', 'unsupported' as 'usdc' | 'usdt'),
+      ).rejects.toThrow('Token address not found for unsupported on ethereum');
+    });
+
+    it('should get delegation contract address', async () => {
+      const ethereumAddress = await cardSDK.getDelegationContractAddress(
+        'ethereum',
+      );
+      const lineaAddress = await cardSDK.getDelegationContractAddress('linea');
+
+      expect(ethereumAddress).toBe(
+        '0xb453ba76d9ca952115e9e32ca069c96e846c5d9d',
+      );
+      expect(lineaAddress).toBe('0x9dd23A4a0845f10d65D293776B792af1131c7B30');
+    });
+
+    it('should get platform spender address using chain config', async () => {
+      const spenderAddress = await cardSDK.getPlatformSpenderAddress(
+        'ethereum',
+      );
+
+      expect(spenderAddress).toBe('0xb453ba76d9ca952115e9e32ca069c96e846c5d9d');
+    });
+
+    it('should fallback to hardcoded addresses when chain config fails', async () => {
+      // Mock fetch to fail
+      global.fetch = jest.fn().mockRejectedValue(new Error('API Error'));
+
+      const spenderAddress = await cardSDK.getPlatformSpenderAddress('linea');
+
+      // Should fallback to hardcoded foxConnect address
+      expect(spenderAddress).toBe('0x9dd23A4a0845f10d65D293776B792af1131c7B30');
+    });
+
+    it('should validate chain configuration', async () => {
+      const invalidConfig = {
+        networks: [
+          {
+            network: 'ethereum',
+            environment: 'production',
+            chainId: '1',
+            delegationContract: 'invalid-address',
+            tokens: {
+              usdc: {
+                symbol: 'usdc',
+                decimals: 6,
+                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              },
+              usdt: {
+                symbol: 'usdt',
+                decimals: 6,
+                address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: {
+          self: '/v1/delegation/chain/config',
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(invalidConfig),
       });
+
+      await expect(cardSDK.getChainConfig()).rejects.toThrow(
+        'Invalid chain configuration for ethereum: delegation contract address format is invalid',
+      );
+    });
+
+    it('should clear chain config cache', () => {
+      cardSDK.clearChainConfigCache();
+      // No assertions needed, just ensuring no errors are thrown
     });
   });
 });

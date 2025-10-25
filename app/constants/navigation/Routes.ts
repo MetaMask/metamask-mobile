@@ -251,7 +251,6 @@ const Routes = {
     MARKET_DETAILS: 'PerpsMarketDetails',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
-    HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
     MODALS: {
       ROOT: 'PerpsModals',
@@ -353,6 +352,8 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    SPENDING_LIMIT: 'CardSpendingLimit',
+    CHANGE_ASSET: 'CardChangeAsset',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',

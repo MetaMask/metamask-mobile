@@ -49,8 +49,11 @@ describe('useCardDetails', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+<<<<<<< HEAD
       user: null,
       setUser: jest.fn(),
+=======
+>>>>>>> 8ae259608f (feat: card delegation)
       logoutFromProvider: mockLogoutFromProvider,
     });
   });
@@ -240,8 +243,11 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: true,
+<<<<<<< HEAD
         user: null,
         setUser: jest.fn(),
+=======
+>>>>>>> 8ae259608f (feat: card delegation)
         logoutFromProvider: mockLogoutFromProvider,
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
@@ -258,8 +264,11 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+<<<<<<< HEAD
         user: null,
         setUser: jest.fn(),
+=======
+>>>>>>> 8ae259608f (feat: card delegation)
         logoutFromProvider: mockLogoutFromProvider,
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
@@ -297,8 +306,11 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: true,
+<<<<<<< HEAD
         user: null,
         setUser: jest.fn(),
+=======
+>>>>>>> 8ae259608f (feat: card delegation)
         logoutFromProvider: mockLogoutFromProvider,
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
@@ -313,8 +325,11 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: mockSDK,
         isLoading: false,
+<<<<<<< HEAD
         user: null,
         setUser: jest.fn(),
+=======
+>>>>>>> 8ae259608f (feat: card delegation)
         logoutFromProvider: mockLogoutFromProvider,
       });
       rerender();
@@ -332,8 +347,11 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+<<<<<<< HEAD
         user: null,
         setUser: jest.fn(),
+=======
+>>>>>>> 8ae259608f (feat: card delegation)
         logoutFromProvider: mockLogoutFromProvider,
       });
 
@@ -400,6 +418,7 @@ describe('useCardDetails', () => {
       expect(result.current.cardDetails).toBeNull();
     });
   });
+<<<<<<< HEAD
 
   describe('Warning States', () => {
     it('sets frozen warning when card status is FROZEN', async () => {
@@ -752,4 +771,6 @@ describe('useCardDetails', () => {
       expect(result.current.warning).toBeNull();
     });
   });
+=======
+>>>>>>> 8ae259608f (feat: card delegation)
 });

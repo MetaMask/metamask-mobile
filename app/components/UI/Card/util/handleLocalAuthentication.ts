@@ -28,6 +28,7 @@ export const handleLocalAuthentication = async ({
       return { isAuthenticated: false };
     }
 
+<<<<<<< HEAD
     const {
       accessTokenExpiresAt,
       refreshToken,
@@ -65,6 +66,14 @@ export const handleLocalAuthentication = async ({
       Logger.log(
         'handleLocalAuthentication: Refresh token expired, clearing storage',
       );
+=======
+    const { refreshToken, refreshTokenExpiresAt, location } =
+      tokenResult.tokenData;
+
+    // Check if refresh token will be expired in the next 1 hour.
+    // If so, remove the token and return false.
+    if (Date.now() + 1 * 60 * 60 * 1000 > refreshTokenExpiresAt) {
+>>>>>>> 8ae259608f (feat: card delegation)
       await removeCardBaanxToken();
       return { isAuthenticated: false };
     }
@@ -90,6 +99,7 @@ export const handleLocalAuthentication = async ({
         userCardLocation: location,
       };
     } catch (error) {
+<<<<<<< HEAD
       Logger.log('handleLocalAuthentication: Token refresh failed:', error);
       // If refresh fails, clear tokens and require re-authentication
       await removeCardBaanxToken();
@@ -100,6 +110,13 @@ export const handleLocalAuthentication = async ({
       'handleLocalAuthentication: Authentication verification failed:',
       error,
     );
+=======
+      Logger.log('Token refresh failed:', error);
+      return { isAuthenticated: false };
+    }
+  } catch (error) {
+    Logger.log('Authentication verification failed:', error);
+>>>>>>> 8ae259608f (feat: card delegation)
     return {
       isAuthenticated: false,
     };

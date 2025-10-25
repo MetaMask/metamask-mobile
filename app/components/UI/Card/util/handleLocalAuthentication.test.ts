@@ -290,7 +290,11 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
+<<<<<<< HEAD
         'handleLocalAuthentication: Token refresh failed:',
+=======
+        'Token refresh failed:',
+>>>>>>> 8ae259608f (feat: card delegation)
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -327,7 +331,11 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
+<<<<<<< HEAD
         'handleLocalAuthentication: Token refresh failed:',
+=======
+        'Token refresh failed:',
+>>>>>>> 8ae259608f (feat: card delegation)
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -364,7 +372,11 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
+<<<<<<< HEAD
         'handleLocalAuthentication: Token refresh failed:',
+=======
+        'Token refresh failed:',
+>>>>>>> 8ae259608f (feat: card delegation)
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -395,7 +407,11 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
+<<<<<<< HEAD
         'handleLocalAuthentication: Token refresh failed:',
+=======
+        'Token refresh failed:',
+>>>>>>> 8ae259608f (feat: card delegation)
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -416,7 +432,11 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
+<<<<<<< HEAD
         'handleLocalAuthentication: Authentication verification failed:',
+=======
+        'Authentication verification failed:',
+>>>>>>> 8ae259608f (feat: card delegation)
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -444,7 +464,11 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
+<<<<<<< HEAD
         'handleLocalAuthentication: Authentication verification failed:',
+=======
+        'Authentication verification failed:',
+>>>>>>> 8ae259608f (feat: card delegation)
         expect.any(Error),
       );
       expect(result).toEqual({
@@ -481,7 +505,11 @@ describe('handleLocalAuthentication', () => {
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
+<<<<<<< HEAD
         'handleLocalAuthentication: Token refresh failed:',
+=======
+        'Token refresh failed:',
+>>>>>>> 8ae259608f (feat: card delegation)
         expect.any(Error),
       );
       expect(result).toEqual({

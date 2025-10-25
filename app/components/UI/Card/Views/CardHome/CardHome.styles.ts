@@ -104,6 +104,10 @@ const createStyles = (theme: Theme) =>
     shouldBeHidden: {
       display: 'none',
     },
+    managementOptionsContainer: {
+      marginTop: 16,
+      gap: 8,
+    },
   });
 
 export default createStyles;

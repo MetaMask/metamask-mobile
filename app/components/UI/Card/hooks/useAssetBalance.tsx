@@ -49,7 +49,7 @@ export const useAssetBalance = (
   });
 
   let asset = useSelector((state: RootState) =>
-    token
+    token && token.address
       ? selectAsset(state, {
           address: token.address,
           chainId: token.chainId as string,
@@ -58,7 +58,7 @@ export const useAssetBalance = (
       : undefined,
   );
 
-  if (!asset && token) {
+  if (!asset && token && token.address) {
     const assetAddress =
       token.chainId && isSolanaChainId(token.chainId)
         ? `${token.chainId}/token:${token.address}`
@@ -225,8 +225,8 @@ export const useAssetBalance = (
   }
 
   if (balanceFiat === TOKEN_RATE_UNDEFINED) {
-    mainBalance = balanceValueFormatted;
-    secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+    mainBalance = balanceValueFormatted || '0';
+    secondaryBalance = '0';
   }
 
   if (asset?.hasBalanceError) {
@@ -235,6 +235,23 @@ export const useAssetBalance = (
   }
 
   asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };
+
+  // Early return if token is null/undefined or has no valid address
+  if (
+    !token ||
+    !token.address ||
+    token.address.length < 42 ||
+    token.address === '0x'
+  ) {
+    return {
+      asset: undefined,
+      balanceFiat: undefined,
+      mainBalance: undefined,
+      secondaryBalance: undefined,
+      rawFiatNumber: undefined,
+      rawTokenBalance: undefined,
+    };
+  }
 
   return {
     asset,
