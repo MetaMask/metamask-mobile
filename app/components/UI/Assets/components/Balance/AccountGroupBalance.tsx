@@ -8,6 +8,8 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
 } from '../../../../../selectors/assets/balances';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import { selectChainId } from '../../../../../selectors/networkController';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -16,6 +18,8 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
+import BalanceEmptyState from '../../../BalanceEmptyState';
+import { isTestNet } from '../../../../../util/networks';
 
 const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
@@ -26,6 +30,10 @@ const AccountGroupBalance = () => {
   const balanceChange1d = useSelector(
     selectBalanceChangeBySelectedAccountGroup('1d'),
   );
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
+  const chainId = useSelector(selectChainId);
 
   const togglePrivacy = useCallback(
     (value: boolean) => {
@@ -38,10 +46,25 @@ const AccountGroupBalance = () => {
   const userCurrency = groupBalance?.userCurrency ?? '';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
+  // Check if balance is zero (empty state) - only check when we have balance data
+  const hasZeroBalance =
+    groupBalance && groupBalance.totalBalanceInUserCurrency === 0;
+
   return (
     <View style={styles.accountGroupBalance}>
       <View>
-        {groupBalance ? (
+        {!groupBalance ? (
+          <View style={styles.skeletonContainer}>
+            <Skeleton width={100} height={40} />
+            <Skeleton width={100} height={20} />
+          </View>
+        ) : hasZeroBalance &&
+          isHomepageRedesignV1Enabled &&
+          !isTestNet(chainId) ? (
+          <>
+            <BalanceEmptyState testID="account-group-balance-empty-state" />
+          </>
+        ) : (
           <TouchableOpacity
             onPress={() => togglePrivacy(!privacyMode)}
             testID="balance-container"
@@ -66,11 +89,6 @@ const AccountGroupBalance = () => {
               />
             )}
           </TouchableOpacity>
-        ) : (
-          <View style={styles.skeletonContainer}>
-            <Skeleton width={100} height={40} />
-            <Skeleton width={100} height={20} />
-          </View>
         )}
       </View>
     </View>

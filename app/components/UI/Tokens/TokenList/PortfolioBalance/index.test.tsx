@@ -5,21 +5,45 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PortfolioBalance } from '.';
 import Engine from '../../../../../core/Engine';
+import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
 
 const { PreferencesController } = Engine.context;
 
 // Mock the useMultichainBalances hook
 const mockSelectedAccountMultichainBalance = {
   displayBalance: '$123.45',
-  totalFiatBalance: '123.45',
+  displayCurrency: 'USD',
+  totalFiatBalance: 123.45,
+  totalNativeTokenBalance: '0.1',
+  nativeTokenUnit: 'ETH',
   shouldShowAggregatedPercentage: true,
+  isPortfolioVieEnabled: false,
+  aggregatedBalance: {
+    ethFiat: 123.45,
+    tokenFiat: 0,
+    tokenFiat1dAgo: 0,
+    ethFiat1dAgo: 100.0,
+  },
+  isLoadingAccount: false,
   tokenFiatBalancesCrossChains: [],
 };
 
 jest.mock('../../../../hooks/useMultichainBalances', () => ({
-  useSelectedAccountMultichainBalances: () => ({
+  useSelectedAccountMultichainBalances: jest.fn(() => ({
     selectedAccountMultichainBalance: mockSelectedAccountMultichainBalance,
-  }),
+  })),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../selectors/networkController', () => ({
+  selectChainId: jest.fn(() => '0x1'), // Default to mainnet
+}));
+
+jest.mock('../../../../../util/networks', () => ({
+  isTestNet: jest.fn(() => false), // Default to mainnet
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -44,6 +68,30 @@ jest.mock('../../../../../core/Engine', () => ({
         selectedNetworkClientId: 'mainnet',
       },
     },
+  },
+}));
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    })),
+  }),
+  MetaMetricsEvents: {
+    CARD_ADD_FUNDS_DEPOSIT_CLICKED: 'CARD_ADD_FUNDS_DEPOSIT_CLICKED',
+    RAMPS_BUTTON_CLICKED: 'RAMPS_BUTTON_CLICKED',
   },
 }));
 
@@ -146,6 +194,15 @@ const renderPortfolioBalance = (state: any = {}) =>
   renderWithProvider(<PortfolioBalance />, { state });
 
 describe('PortfolioBalance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset to default mock before each test
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance: mockSelectedAccountMultichainBalance,
+    });
+  });
+
   it('fiat balance must be defined', () => {
     const { getByTestId } = renderPortfolioBalance(initialState);
     expect(
@@ -206,5 +263,144 @@ describe('PortfolioBalance', () => {
     fireEvent.press(balanceContainer);
 
     expect(PreferencesController.setPrivacyMode).toHaveBeenCalledWith(true);
+  });
+
+  it('displays BalanceEmptyState when balance is zero and feature flag is enabled', () => {
+    // Mock the feature flag to be enabled
+    const { selectHomepageRedesignV1Enabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/homepage',
+    );
+    (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(true);
+
+    // Mock zero balance
+    const mockSelectedAccountMultichainBalanceZero = {
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
+      totalFiatBalance: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
+      shouldShowAggregatedPercentage: false,
+      isPortfolioVieEnabled: false,
+      aggregatedBalance: {
+        ethFiat: 123.45,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+        ethFiat1dAgo: 100.0,
+      },
+      isLoadingAccount: false,
+      tokenFiatBalancesCrossChains: [],
+    };
+
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance:
+        mockSelectedAccountMultichainBalanceZero,
+    });
+
+    const { getByTestId, queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should render BalanceEmptyState instead of balance text
+    expect(getByTestId('portfolio-balance-empty-state')).toBeDefined();
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
+  });
+
+  it('does not display BalanceEmptyState when balance is zero but feature flag is disabled', () => {
+    // Ensure feature flag is disabled
+    const { selectHomepageRedesignV1Enabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/homepage',
+    );
+    (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(false);
+
+    // Mock zero balance
+    const mockSelectedAccountMultichainBalanceZero = {
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
+      totalFiatBalance: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
+      shouldShowAggregatedPercentage: false,
+      isPortfolioVieEnabled: false,
+      aggregatedBalance: {
+        ethFiat: 123.45,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+        ethFiat1dAgo: 100.0,
+      },
+      isLoadingAccount: false,
+      tokenFiatBalancesCrossChains: [],
+    };
+
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance:
+        mockSelectedAccountMultichainBalanceZero,
+    });
+
+    const { getByTestId, queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should render balance text, not empty state
+    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
+    expect(queryByTestId('portfolio-balance-empty-state')).toBeNull();
+  });
+
+  it('does not display BalanceEmptyState when balance is zero and feature flag is enabled but network is testnet', () => {
+    // Mock the feature flag to be enabled
+    const { selectHomepageRedesignV1Enabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/homepage',
+    );
+    const { selectChainId } = jest.requireMock(
+      '../../../../../selectors/networkController',
+    );
+    const { isTestNet } = jest.requireMock('../../../../../util/networks');
+
+    (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(true);
+    // Mock testnet
+    (selectChainId as jest.Mock).mockReturnValue('0xaa36a7'); // Sepolia testnet
+    (isTestNet as jest.Mock).mockReturnValue(true);
+
+    // Mock zero balance
+    const mockSelectedAccountMultichainBalanceZero = {
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
+      totalFiatBalance: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
+      shouldShowAggregatedPercentage: false,
+      isPortfolioVieEnabled: false,
+      aggregatedBalance: {
+        ethFiat: 123.45,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+        ethFiat1dAgo: 100.0,
+      },
+      isLoadingAccount: false,
+      tokenFiatBalancesCrossChains: [],
+    };
+
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance:
+        mockSelectedAccountMultichainBalanceZero,
+    });
+
+    const { getByTestId, queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should render balance text, not empty state (because it's testnet)
+    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
+    expect(queryByTestId('portfolio-balance-empty-state')).toBeNull();
+  });
+
+  it('displays loader when balance is not available', () => {
+    // Mock undefined balance
+    const mockedHook = jest.mocked(useSelectedAccountMultichainBalances);
+    mockedHook.mockReturnValue({
+      selectedAccountMultichainBalance: undefined,
+    });
+
+    const { queryByTestId } = renderPortfolioBalance(initialState);
+
+    // Should not render balance text or empty state
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
+    expect(queryByTestId('portfolio-balance-empty-state')).toBeNull();
   });
 });
