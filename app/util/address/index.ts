@@ -4,6 +4,7 @@ import {
   isValidChecksumAddress,
   isHexPrefixed,
 } from 'ethereumjs-util';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   getChecksumAddress,
   type Hex,
@@ -732,6 +733,10 @@ export async function validateAddressOrENS(
  * @returns {boolean} indicates if the string is a valid input.
  */
 export function isValidAddressInputViaQRCode(input: string) {
+  if (isSolanaAddress(input)) {
+    return true;
+  }
+
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -14,12 +14,17 @@ export const useSendNavigation = () => {
   );
 
   const navigateToSendPage = useCallback(
-    (location: string, asset?: AssetType | Nft) => {
+    (
+      location: string,
+      asset?: AssetType | Nft,
+      extraParams?: { recipientAddress?: string },
+    ) => {
       handleSendPageNavigation(
         navigate,
         location,
         isSendRedesignEnabled,
         asset,
+        extraParams,
       );
     },
     [navigate, isSendRedesignEnabled],
