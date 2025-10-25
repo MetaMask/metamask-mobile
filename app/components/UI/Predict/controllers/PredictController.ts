@@ -1441,7 +1441,7 @@ export class PredictController extends BaseController<
     // Attempt to estimate gas for the updated transaction
     let updatedGas: Hex | undefined;
     try {
-      const estimateResult = await this.messagingSystem.call(
+      const estimateResult = await this.messenger.call(
         'TransactionController:estimateGas',
         newParams,
         networkClientId,
