@@ -12,7 +12,19 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
+  const mockLogger = {
+    log: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    DevLogger: mockLogger,
+    default: mockLogger,
+  };
+});
+
 import Engine from '../../../../../core/Engine';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   PredictPositionStatus,
   PredictPriceHistoryInterval,
@@ -757,6 +769,10 @@ describe('PolymarketProvider', () => {
   }
 
   describe('placeOrder', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('successfully places a buy order and returns correct result', async () => {
       // Arrange
       const { provider, mockSigner } = setupPlaceOrderTest();
@@ -822,6 +838,51 @@ describe('PolymarketProvider', () => {
       expect(result.error).toBe('Submission failed');
     });
 
+    it('catches exceptions and returns error result instead of throwing', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      mockSignTypedMessage.mockRejectedValue(new Error('Signature rejected'));
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Signature rejected');
+    });
+
+    it('logs error details when exception occurs', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const mockError = new Error('Network error');
+      mockSignTypedMessage.mockRejectedValue(mockError);
+      const preview = createMockOrderPreview({ side: Side.SELL });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'PolymarketProvider: Place order failed',
+        expect.objectContaining({
+          error: 'Network error',
+          side: Side.SELL,
+          outcomeTokenId: preview.outcomeTokenId,
+        }),
+      );
+    });
+
     it('calls all required utility functions with correct parameters', async () => {
       // Arrange
       const { provider, mockSigner } = setupPlaceOrderTest();
@@ -840,7 +901,8 @@ describe('PolymarketProvider', () => {
       expect(mockSubmitClobOrder).toHaveBeenCalled();
     });
 
-    it('throws error when maker address is not found', async () => {
+    it('returns error result when maker address is not found', async () => {
+      // Arrange
       const provider = createProvider();
       const mockSigner = {
         address: '0x1234567890123456789012345678901234567890',
@@ -854,9 +916,12 @@ describe('PolymarketProvider', () => {
       mockGetNetworkClientById.mockReturnValue({ provider: {} });
       mockQuery.mockResolvedValue('0x0');
 
-      await expect(
-        provider.placeOrder({ signer: mockSigner, preview }),
-      ).rejects.toThrow('Maker address not found');
+      // Act
+      const result = await provider.placeOrder({ signer: mockSigner, preview });
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to get safe address');
     });
   });
 
@@ -1113,6 +1178,53 @@ describe('PolymarketProvider', () => {
           to: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
         }),
       );
+    });
+  });
+
+  describe('placeOrder edge cases', () => {
+    it('places order without fee authorization when totalFee is zero', async () => {
+      // Clear mock to ensure clean state for this test
+      mockCreateSafeFeeAuthorization.mockClear();
+
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: { metamaskFee: 0, providerFee: 0, totalFee: 0 },
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.any(Object),
+          headers: expect.any(Object),
+          feeAuthorization: undefined,
+        }),
+      );
+    });
+
+    it('returns error result when submitClobOrder returns no response', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      mockSubmitClobOrder.mockResolvedValue({
+        success: false,
+        response: null,
+        error: 'Submission failed',
+      });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Submission failed');
+      expect(result.response).toBeUndefined();
     });
   });
 
@@ -2208,6 +2320,30 @@ describe('PolymarketProvider', () => {
         });
 
         expect(preview.rateLimited).toBeUndefined();
+      });
+
+      it('sets rateLimited to true when BUY order is rate limited', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        // Place a BUY order first to set rate limit state
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        // Try to preview another BUY order immediately - should be rate limited
+        const secondPreview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(secondPreview.rateLimited).toBe(true);
       });
     });
 
