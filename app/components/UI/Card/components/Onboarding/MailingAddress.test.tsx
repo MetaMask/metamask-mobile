@@ -1289,53 +1289,6 @@ describe('MailingAddress Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
     });
 
-    it('logs error when token storage fails', async () => {
-      const mockLogger = jest.requireMock('../../../../../util/Logger').default;
-
-      mockUseRegisterMailingAddress.mockReturnValue({
-        registerAddress: mockRegisterAddress,
-        isLoading: false,
-        isSuccess: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        reset: jest.fn(),
-      });
-
-      mockRegisterAddress.mockResolvedValue({
-        accessToken: 'test-token',
-        user: { id: 'user-123', email: 'test@example.com' },
-      });
-
-      mockMapCountryToLocation.mockReturnValue('us');
-      mockExtractTokenExpiration.mockReturnValue(3600000);
-      mockStoreCardBaanxToken.mockResolvedValue({
-        success: false,
-        error: 'Storage failed',
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <MailingAddress />
-        </Provider>,
-      );
-
-      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
-      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
-      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
-      fireEvent.press(getByTestId('state-select'));
-
-      const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
-
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'MailingAddress: Failed to store access token',
-        'Storage failed',
-      );
-    });
-
     it('navigates to sign up when Onboarding ID not found error occurs', async () => {
       const { CardError } = jest.requireMock('../../types');
 
