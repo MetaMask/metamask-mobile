@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
+import { View, Animated, Easing, StyleSheet, Alert } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
 import { isE2E } from '../../../util/test/utils';
@@ -92,7 +92,7 @@ const OnboardingAnimation = ({
       return;
     }
 
-    // Short delay to ensure Rive artboard is ready before manipulating inputs
+    // Delay to ensure Rive artboard is ready before manipulating inputs
     setTimeout(() => {
       try {
         if (logoRef.current) {
@@ -109,8 +109,10 @@ const OnboardingAnimation = ({
         }
       } catch (error) {
         Logger.error(error as Error, 'Error triggering Rive animation');
+        console.error('Rive animation error:', error);
+        Alert.alert('Error triggering Rive animation', error as string);
       }
-    }, 100);
+    }, 5000);
   }, [
     themeAppearance,
     moveLogoUp,
