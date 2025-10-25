@@ -526,4 +526,139 @@ describe('useLatestBalance', () => {
       });
     });
   });
+
+  describe('cachedBalance memoization', () => {
+    it('returns undefined when decimals is missing during balance parsing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: undefined,
+            chainId: '0x1' as Hex,
+            balance: '10.0',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toBeUndefined();
+    });
+
+    it('memoizes cached balance when dependencies do not change', () => {
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '5.5',
+          }),
+        { state: initialState },
+      );
+
+      const firstResult = result.current;
+      rerender({ state: initialState });
+
+      expect(result.current).toBe(firstResult);
+    });
+
+    it('returns cached balance when token address changes', () => {
+      const firstToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        balance: '5.5',
+      };
+
+      const { result: firstResult } = renderHookWithProvider(
+        () => useLatestBalance(firstToken),
+        { state: initialState },
+      );
+
+      expect(firstResult.current?.displayBalance).toBe('5.5');
+
+      const secondToken = {
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        balance: '10.0',
+      };
+
+      const { result: secondResult } = renderHookWithProvider(
+        () => useLatestBalance(secondToken),
+        { state: initialState },
+      );
+
+      expect(secondResult.current?.displayBalance).toBe('10.0');
+      expect(secondResult.current).not.toBe(firstResult.current);
+    });
+
+    it('returns undefined when balance is provided but decimals is missing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: undefined,
+            chainId: '0x1' as Hex,
+            balance: '100.0',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toBeUndefined();
+    });
+
+    it('handles zero balance correctly', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '0',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('handles very large balance values', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '999999999999999999999999.123456789012345678',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current?.displayBalance).toBe(
+        '999999999999999999999999.123456789012345678',
+      );
+      expect(result.current?.atomicBalance).toBeDefined();
+    });
+
+    it('handles very small decimal balance values', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 18,
+            chainId: '0x1' as Hex,
+            balance: '0.000000000000000001',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0.000000000000000001',
+        atomicBalance: BigNumber.from('1'),
+      });
+    });
+  });
 });
