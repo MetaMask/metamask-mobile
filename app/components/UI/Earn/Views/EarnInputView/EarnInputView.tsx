@@ -20,6 +20,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import ResourceToggle, {
+  type ResourceType,
+} from '../../components/ResourceToggle';
+///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
@@ -153,6 +158,10 @@ const EarnInputView = () => {
     conversionRate,
     exchangeRate,
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const [resourceType, setResourceType] = useState<ResourceType>('energy');
+  ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
@@ -799,6 +808,13 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled && (
+          <ResourceToggle value={resourceType} onChange={setResourceType} />
+        )
+        ///: END:ONLY_INCLUDE_IF
+      }
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
