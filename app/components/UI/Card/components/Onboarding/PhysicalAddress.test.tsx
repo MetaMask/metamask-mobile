@@ -809,10 +809,22 @@ describe('PhysicalAddress Component', () => {
       // Wait for async operations to complete
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // When same mailing address is false for US users,
-      // it should navigate immediately WITHOUT calling register functions
-      expect(mockRegisterUserConsent).not.toHaveBeenCalled();
-      expect(mockRegisterAddress).not.toHaveBeenCalled();
+      // Should call register functions first
+      expect(mockRegisterAddress).toHaveBeenCalledWith({
+        onboardingId: 'test-id',
+        addressLine1: '123 Main St',
+        addressLine2: '',
+        city: 'San Francisco',
+        usState: 'CA',
+        zip: '12345',
+        isSameMailingAddress: false,
+      });
+      expect(mockRegisterUserConsent).toHaveBeenCalledWith(
+        'test-id',
+        'user-id',
+      );
+
+      // Then navigate to mailing address (no accessToken returned)
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.MAILING_ADDRESS,
       );

@@ -317,12 +317,6 @@ const PhysicalAddress = () => {
       return;
     }
 
-    // When isSameMailingAddress = false AND countryOfResidence = "US"
-    if (!isSameMailingAddress && selectedCountry === 'US') {
-      navigation.navigate(Routes.CARD.ONBOARDING.MAILING_ADDRESS);
-      return;
-    }
-
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
@@ -364,6 +358,11 @@ const PhysicalAddress = () => {
         }
 
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+      }
+
+      // When isSameMailingAddress = false AND countryOfResidence = "US"
+      if (!isSameMailingAddress && selectedCountry === 'US') {
+        navigation.navigate(Routes.CARD.ONBOARDING.MAILING_ADDRESS);
       }
 
       // Something is wrong. We need to display the registerError or restart the flow
