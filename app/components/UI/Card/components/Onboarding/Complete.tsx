@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -12,10 +12,13 @@ import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { getCardBaanxToken } from '../../util/cardTokenVault';
+import Logger from '../../../../../util/Logger';
 
 const Complete = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   useEffect(() => {
@@ -28,7 +31,8 @@ const Complete = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    setIsLoading(true);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
         .addProperties({
@@ -36,8 +40,20 @@ const Complete = () => {
         })
         .build(),
     );
-    dispatch(resetOnboardingState());
-    navigation.navigate(Routes.CARD.HOME);
+
+    try {
+      dispatch(resetOnboardingState());
+      const token = await getCardBaanxToken();
+      if (token.success && token.tokenData?.accessToken) {
+        navigation.navigate(Routes.CARD.HOME);
+      } else {
+        navigation.navigate(Routes.CARD.AUTHENTICATION);
+      }
+    } catch (error) {
+      Logger.log('Complete::handleContinue error', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderFormFields = () => null;
@@ -48,6 +64,8 @@ const Complete = () => {
       label={strings('card.card_onboarding.confirm_button')}
       size={ButtonSize.Lg}
       onPress={handleContinue}
+      disabled={isLoading}
+      loading={isLoading}
       width={ButtonWidthTypes.Full}
       testID="complete-confirm-button"
     />

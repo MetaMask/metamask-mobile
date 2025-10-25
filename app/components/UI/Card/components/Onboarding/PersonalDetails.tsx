@@ -34,7 +34,7 @@ import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
-  const { setUser } = useCardSDK();
+  const { setUser, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -48,6 +48,19 @@ const PersonalDetails = () => {
 
   // Get registration settings data
   const { data: registrationSettings } = useRegistrationSettings();
+
+  // If user data is available, set the state values
+  useEffect(() => {
+    if (userData) {
+      setFirstName(userData.firstName || '');
+      setLastName(userData.lastName || '');
+      setDateOfBirth(
+        userData.dateOfBirth ? formatDateOfBirth(userData.dateOfBirth) : '',
+      );
+      setNationality(userData.countryOfResidence || '');
+      setSSN(userData.ssn || '');
+    }
+  }, [userData]);
 
   // Create select options from registration settings data
   const selectOptions = useMemo(() => {
