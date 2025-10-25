@@ -591,4 +591,17 @@ describe('Transaction Controller Init', () => {
       expect(handler).toHaveBeenCalledWith(...expectedArgs);
     });
   });
+
+  describe('option isEIP7702GasFeeTokensEnabled', () => {
+    it('returns false when feature flag is enabled for current chain', async () => {
+      const mockTransactionMeta = {
+        id: '123',
+        status: 'approved',
+        chainId: '0x1',
+      } as unknown as TransactionMeta;
+      const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
+
+      expect(await optionFn?.(mockTransactionMeta)).toBe(false);
+    });
+  });
 });
