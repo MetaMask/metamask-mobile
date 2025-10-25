@@ -2,6 +2,7 @@ import { Gestures, Matchers } from '../../framework';
 import {
   PredictMarketListSelectorsIDs,
   getPredictMarketListSelector,
+  PredictBalanceSelectorsIDs,
 } from '../../selectors/Predict/Predict.selectors';
 
 // Type for category tabs
@@ -18,6 +19,15 @@ class PredictMarketList {
 
   get categoryTabs(): DetoxElement {
     return Matchers.getElementByID(PredictMarketListSelectorsIDs.CATEGORY_TABS);
+  }
+  get balanceCardContainer(): DetoxElement {
+    return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
+  }
+  get withdrawButton(): DetoxElement {
+    return Matchers.getElementByID(PredictBalanceSelectorsIDs.WITHDRAW_BUTTON);
+  }
+  get depositButton(): DetoxElement {
+    return Matchers.getElementByID(PredictBalanceSelectorsIDs.DEPOSIT_BUTTON);
   }
 
   getMarketCard(category: CategoryTab, cardIndex: number): DetoxElement {
@@ -55,6 +65,16 @@ class PredictMarketList {
     )) as unknown as DetoxElement;
     await Gestures.waitAndTap(tabElement, {
       elemDescription: `Tapping ${category} category tab`,
+    });
+  }
+  async tapWithdrawButton(): Promise<void> {
+    await Gestures.waitAndTap(this.withdrawButton, {
+      elemDescription: 'Withdraw button',
+    });
+  }
+  async tapDepositButton(): Promise<void> {
+    await Gestures.waitAndTap(this.depositButton, {
+      elemDescription: 'Deposit button',
     });
   }
 }

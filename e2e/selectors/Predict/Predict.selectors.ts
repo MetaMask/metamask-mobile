@@ -114,6 +114,32 @@ export const PredictCashOutSelectorsIDs = {
 } as const;
 
 // ========================================
+// PREDICT BALANCE SELECTORS
+// ========================================
+
+export const PredictBalanceSelectorsIDs = {
+  // Main balance card
+  BALANCE_CARD: 'predict-balance-card',
+  BALANCE_CARD_SKELETON: 'predict-balance-card-skeleton',
+
+  // Action buttons
+  DEPOSIT_BUTTON: 'predict-balance-deposit-button',
+  WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
+} as const;
+
+// ========================================
+// PREDICT WITHDRAW PAGE SELECTORS
+// ========================================
+
+export const PredictWithdrawSelectorsIDs = {
+  // Container
+  CONTAINER: 'predict-withdraw-container',
+
+  // Continue button (shared with deposit flow)
+  CONTINUE_BUTTON: 'predict-keyboard-done-button',
+} as const;
+
+// ========================================
 // PREDICT CLAIM CONFIRMATION SELECTORS
 // ========================================
 

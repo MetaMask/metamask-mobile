@@ -38,6 +38,10 @@ import {
   POST_CASH_OUT_USDC_BALANCE_WEI,
   POST_CLAIM_USDC_BALANCE_WEI,
 } from './polymarket-constants';
+import {
+  POLYMARKET_WITHDRAW_SIMULATION_MOCK,
+  POLYGON_SIMULATION_ENABLED_NETWORKS_MOCK,
+} from './polymarket-polygon-simulations';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -1156,5 +1160,106 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (
         jsonrpc: '2.0',
         result: POST_CASH_OUT_USDC_BALANCE_WEI,
       },
+    }));
+};
+
+/**
+ * Mock for gas fee estimation on Polygon
+ * Returns realistic gas fee estimates for Polymarket transactions
+ */
+export const POLYMARKET_MOCK_GAS_ESTIMATE_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  // Mock gas fee estimation API for Polygon
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/gas\.api\.cx\.metamask\.io\/networks\/137\/suggestedGasFees$/.test(
+            url,
+          ),
+      );
+    })
+    .asPriority(999)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        low: {
+          suggestedMaxPriorityFeePerGas: '0.00000003', // 30 gwei
+          suggestedMaxFeePerGas: '0.00000005', // 50 gwei
+          minWaitTimeEstimate: 60000,
+          maxWaitTimeEstimate: 180000,
+        },
+        medium: {
+          suggestedMaxPriorityFeePerGas: '0.00000004', // 40 gwei
+          suggestedMaxFeePerGas: '0.00000006', // 60 gwei
+          minWaitTimeEstimate: 15000,
+          maxWaitTimeEstimate: 60000,
+        },
+        high: {
+          suggestedMaxPriorityFeePerGas: '0.00000005', // 50 gwei
+          suggestedMaxFeePerGas: '0.00000008', // 80 gwei
+          minWaitTimeEstimate: 5000,
+          maxWaitTimeEstimate: 15000,
+        },
+        estimatedBaseFee: '0.00000003', // 30 gwei
+        networkCongestion: 0.3,
+        latestPriorityFeeRange: ['0.00000003', '0.00000005'],
+        historicalPriorityFeeRange: ['0.00000003', '0.00000005'],
+        historicalBaseFeeRange: ['0.00000003', '0.00000005'],
+        priorityFeeTrend: 'stable',
+        baseFeeTrend: 'stable',
+      },
+    }));
+
+  // Mock transaction simulation for Polygon withdraw
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const isPolygonSentinel = Boolean(
+        urlParam?.includes('tx-sentinel-polygon-mainnet.api.cx.metamask.io'),
+      );
+
+      if (isPolygonSentinel) {
+        try {
+          const bodyText = await request.body.getText();
+          const body = bodyText ? JSON.parse(bodyText) : undefined;
+          const isSimulationCall =
+            body?.method === 'infura_simulateTransactions' &&
+            body?.params?.[0]?.withCallTrace === true &&
+            body?.params?.[0]?.withLogs === true;
+
+          return isSimulationCall;
+        } catch (error) {
+          return false;
+        }
+      }
+      return false;
+    })
+    .asPriority(999)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: POLYMARKET_WITHDRAW_SIMULATION_MOCK.response,
+    }));
+
+  // Mock simulation enabled networks for Polygon
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/tx-sentinel-polygon-mainnet\.api\.cx\.metamask\.io\/networks$/.test(
+            url,
+          ),
+      );
+    })
+    .asPriority(999)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: POLYGON_SIMULATION_ENABLED_NETWORKS_MOCK.response,
     }));
 };

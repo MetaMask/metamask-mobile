@@ -13,6 +13,7 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import { PERPS_CURRENCY } from '../../constants/perps';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
+import { PredictWithdrawSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -95,7 +96,7 @@ export const DepositKeyboard = memo(
             ))}
           {!alertMessage && hasInput && (
             <Button
-              testID="deposit-keyboard-done-button"
+              testID={PredictWithdrawSelectorsIDs.CONTINUE_BUTTON}
               label={strings('confirm.deposit_edit_amount_done')}
               style={styles.percentageButton}
               onPress={onDonePress}

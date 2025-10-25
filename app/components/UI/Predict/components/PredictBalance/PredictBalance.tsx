@@ -36,6 +36,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
+import { PredictBalanceSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -82,7 +83,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
     return (
       <Box
         twClassName="bg-muted rounded-xl p-4 gap-3"
-        testID="predict-balance-card-skeleton"
+        testID={PredictBalanceSelectorsIDs.BALANCE_CARD_SKELETON}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -130,7 +131,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           'bg-muted p-4 gap-3 rounded-xl',
           isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
         )}
-        testID="predict-balance-card"
+        testID={PredictBalanceSelectorsIDs.BALANCE_CARD}
         onLayout={(event) => {
           const { height } = event.nativeEvent.layout;
           onLayout?.(height);
@@ -179,6 +180,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
             style={tw.style('flex-1')}
             label={strings('predict.deposit.add_funds')}
             onPress={handleAddFunds}
+            testID={PredictBalanceSelectorsIDs.DEPOSIT_BUTTON}
           />
           {hasBalance && (
             <Button
@@ -186,6 +188,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
               style={tw.style('flex-1')}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
+              testID={PredictBalanceSelectorsIDs.WITHDRAW_BUTTON}
             />
           )}
         </Box>
