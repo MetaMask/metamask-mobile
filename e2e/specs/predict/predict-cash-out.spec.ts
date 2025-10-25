@@ -62,6 +62,7 @@ describe(SmokeTrade('Predictions'), () => {
 
         await PredictCashOutPage.tapCashOutButton();
 
+        await new Promise((resolve) => setTimeout(resolve, 6000));
         await PredictDetailsPage.tapBackButton();
 
         await Assertions.expectElementToBeVisible(
