@@ -56,10 +56,9 @@ describe(SmokeTrade('Predictions'), () => {
 
         // Set up cash out mocks before tapping the button
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
+        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
 
         await PredictCashOutPage.tapCashOutButton();
-
-        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
 
         // Navigate back to check if balance updated
         await PredictDetailsPage.tapBackButton();
@@ -73,7 +72,6 @@ describe(SmokeTrade('Predictions'), () => {
 
         await WalletActionsBottomSheet.tapPredictButton();
         await Assertions.expectTextDisplayed('$58.66');
-
       },
     );
   });
