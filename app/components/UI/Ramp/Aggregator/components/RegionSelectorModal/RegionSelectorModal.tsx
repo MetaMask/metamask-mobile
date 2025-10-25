@@ -8,6 +8,7 @@ import React, {
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
+import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextColor,
@@ -58,6 +59,7 @@ export const createRegionSelectorModalNavigationDetails =
 function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<Region>>(null);
+  const navigation = useNavigation();
 
   const { selectedRegion, setSelectedRegion, isBuy } = useRampSDK();
   const { regions } = useParams<RegionSelectorModalParams>();
@@ -133,6 +135,13 @@ function RegionSelectorModal() {
     }
   }, []);
 
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      sheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
+
   const handleOnRegionPressCallback = useCallback(
     async (region: Region) => {
       if (region.states && region.states.length > 0) {
@@ -153,9 +162,19 @@ function RegionSelectorModal() {
       });
 
       setSelectedRegion(region);
-      sheetRef.current?.onCloseBottomSheet();
+      closeBottomSheetAndNavigate(() => {
+        navigation.goBack();
+      });
     },
-    [setSelectedRegion, trackEvent, regionInTransit, scrollToTop, isBuy],
+    [
+      setSelectedRegion,
+      trackEvent,
+      regionInTransit,
+      scrollToTop,
+      isBuy,
+      navigation,
+      closeBottomSheetAndNavigate,
+    ],
   );
 
   const renderRegionItem = useCallback(
@@ -232,9 +251,16 @@ function RegionSelectorModal() {
     if (activeView === RegionViewType.STATE) {
       handleRegionBackButton();
     } else {
-      sheetRef.current?.onCloseBottomSheet();
+      closeBottomSheetAndNavigate(() => {
+        navigation.goBack();
+      });
     }
-  }, [activeView, handleRegionBackButton]);
+  }, [
+    activeView,
+    handleRegionBackButton,
+    navigation,
+    closeBottomSheetAndNavigate,
+  ]);
 
   const onModalHide = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
@@ -246,7 +272,7 @@ function RegionSelectorModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      shouldNavigateBack={false}
       onClose={onModalHide}
       keyboardAvoidingViewEnabled={false}
     >

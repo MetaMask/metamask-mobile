@@ -3,6 +3,7 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
+import { useNavigation } from '@react-navigation/native';
 
 import NetworksFilterBar from '../../../components/NetworksFilterBar';
 import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
@@ -57,6 +58,7 @@ export const createTokenSelectorModalNavigationDetails =
 function TokenSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
   const [searchString, setSearchString] = useState('');
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
@@ -105,7 +107,9 @@ function TokenSelectorModal() {
         });
         setSelectedCryptoCurrency(selectedToken);
       }
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.goBack();
+      });
     },
     [
       supportedTokens,
@@ -114,6 +118,7 @@ function TokenSelectorModal() {
       selectedRegion?.currency,
       isAuthenticated,
       setSelectedCryptoCurrency,
+      navigation,
     ],
   );
 
@@ -209,8 +214,14 @@ function TokenSelectorModal() {
   }, [supportedTokens]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          sheetRef.current?.onCloseBottomSheet(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>
           {isEditingNetworkFilter
             ? strings('deposit.networks_filter_selector.select_network')

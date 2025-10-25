@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View, ScrollView, useWindowDimensions } from 'react-native';
 import { Payment } from '@consensys/on-ramp-sdk';
+import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -37,6 +38,7 @@ export const createPaymentMethodSelectorModalNavigationDetails =
 
 function PaymentMethodSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const { paymentMethods, location } =
     useParams<PaymentMethodSelectorModalParams>();
 
@@ -78,9 +80,12 @@ function PaymentMethodSelectorModal() {
 
         sheetRef.current?.onCloseBottomSheet(() => {
           setSelectedPaymentMethodId(paymentMethodId);
+          navigation.goBack();
         });
       } else {
-        sheetRef.current?.onCloseBottomSheet();
+        sheetRef.current?.onCloseBottomSheet(() => {
+          navigation.goBack();
+        });
       }
     },
     [
@@ -91,6 +96,7 @@ function PaymentMethodSelectorModal() {
       selectedPaymentMethodId,
       selectedRegion?.id,
       trackEvent,
+      navigation,
     ],
   );
 
@@ -99,8 +105,14 @@ function PaymentMethodSelectorModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          sheetRef.current?.onCloseBottomSheet(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>{title}</Text>
       </BottomSheetHeader>
 

@@ -88,10 +88,17 @@ function StateSelectorModal() {
     }
   }, []);
 
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      sheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
+
   const handleOnStatePressCallback = useCallback(
     (state: { code: string; name: string }) => {
       if (state.code === 'NY') {
-        sheetRef.current?.onCloseBottomSheet(() => {
+        closeBottomSheetAndNavigate(() => {
           navigation.navigate(
             ...createUnsupportedStateModalNavigationDetails({
               stateCode: state.code,
@@ -102,10 +109,12 @@ function StateSelectorModal() {
         });
       } else {
         onStateSelect(state.code);
-        sheetRef.current?.onCloseBottomSheet();
+        closeBottomSheetAndNavigate(() => {
+          navigation.goBack();
+        });
       }
     },
-    [navigation, onStateSelect],
+    [navigation, onStateSelect, closeBottomSheetAndNavigate],
   );
 
   const renderStateItem = useCallback(
@@ -155,8 +164,14 @@ function StateSelectorModal() {
   }, [scrollToTop]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false}>
+      <BottomSheetHeader
+        onClose={() =>
+          closeBottomSheetAndNavigate(() => {
+            navigation.goBack();
+          })
+        }
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.state_modal.select_a_state')}
         </Text>
