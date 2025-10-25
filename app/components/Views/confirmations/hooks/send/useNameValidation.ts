@@ -5,9 +5,13 @@ import { strings } from '../../../../../../locales/i18n';
 import { isENS } from '../../../../../util/address';
 import { useSnapNameResolution } from '../../../../Snaps/hooks/useSnapNameResolution';
 import { getConfusableCharacterInfo } from '../../utils/send-address-validations';
+import { useSendFlowEnsResolutions } from './useSendFlowEnsResolutions';
+import { useSendType } from './useSendType';
 
 export const useNameValidation = () => {
   const { fetchResolutions } = useSnapNameResolution();
+  const { setResolvedAddress } = useSendFlowEnsResolutions();
+  const { isEvmSendType } = useSendType();
 
   const validateName = useCallback(
     async (chainId: string, to: string) => {
@@ -24,6 +28,15 @@ export const useNameValidation = () => {
         }
         const resolvedAddress = resolutions[0]?.resolvedAddress;
 
+        if (resolvedAddress && isEvmSendType) {
+          // Set short living cache of ENS resolution for the given chain and address for confirmation screen
+          setResolvedAddress(
+            chainId.toLowerCase(),
+            to.toLowerCase(),
+            resolvedAddress.toLowerCase(),
+          );
+        }
+
         return {
           resolvedAddress,
           ...getConfusableCharacterInfo(to),
@@ -34,7 +47,7 @@ export const useNameValidation = () => {
         error: strings('send.could_not_resolve_name'),
       };
     },
-    [fetchResolutions],
+    [fetchResolutions, isEvmSendType, setResolvedAddress],
   );
 
   return {
