@@ -10,14 +10,14 @@
     "pet_name": {
       "list_count_text": "Pet Names on this network",
       "add_pet_name_button": "Add Pet Name",
-      "address": "Address",
+      "address": "アドレス",
       "address_placeholder": "0x...",
-      "name": "Name",
-      "name_placeholder": "Name",
+      "name": "名前",
+      "name_placeholder": "名前",
       "duplicate_title": "Address already exists",
       "duplicate_message": "This address already has a pet name. Do you want to update it?",
-      "cancel": "Cancel",
-      "update": "Update"
+      "cancel": "キャンセル",
+      "update": "更新"
     }
   },
   "alert_system": {
@@ -241,7 +241,7 @@
     "remind_later_description": "シークレットリカバリーフレーズをバックアップしなかった場合、アプリにログインできなくなったり、新しいデバイスに変更した際に、資金にアクセスできなくなります。",
     "remind_later_description2": "ウォレットのバックアップやシークレットリカバリーフレーズの確認は、",
     "setting_security_privacy": "「設定」>「セキュリティとプライバシー」",
-    "wallet_ready": "Your wallet is ready!"
+    "wallet_ready": "ウォレットの準備ができました！"
   },
   "social_login_ios_user": {
     "new_user_title": "サインアップが完了しました！",
@@ -697,10 +697,10 @@
       "title_musd": "Starting is easy with mUSD",
       "bullet_1_title_musd": "Stable cryptocurrency",
       "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_title_musd": "低ボラティリティ",
       "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "bullet_3_title_musd": "銀行よりも高速",
+      "bullet_3_description_musd": "銀行の営業時間を待ったり、国際送金の遅延を心配したりすることなく、数分で送金・受け取りが可能です。"
     },
     "enter_email": {
       "navbar_title": "本人確認を行う",
@@ -1220,6 +1220,7 @@
       "minimum_remaining_error": "部分的にクローズできません: 残りのポジション (${{remaining}}) が最小注文サイズ (${{minimum}}) を下回ります。代わりに100%クローズしてください。",
       "must_close_full_below_minimum": "ポジション評価額が$10を下回ります。ポジションを100%クローズする必要があります。",
       "negative_receive_amount": "手数料がポジション評価額を上回ります",
+      "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "クローズする金額を選択してください",
       "order_type_reverted_to_market_order": "成行注文に変更されました",
       "you_need_set_price_limit_order": "リミット注文の価格を設定する必要があります。"
@@ -1250,9 +1251,9 @@
       "above": "上",
       "below": "下",
       "done": "完了",
-      "cancel": "Cancel",
+      "cancel": "キャンセル",
       "set": "設定",
-      "clear": "Clear",
+      "clear": "消去",
       "expected_profit": "Expected profit: {{amount}}",
       "expected_loss": "Expected loss: {{amount}}"
     },
@@ -1530,8 +1531,8 @@
         "trades": "取引",
         "orders": "注文",
         "funding": "入金",
-        "withdraw": "Withdraw",
-        "deposit": "Deposit",
+        "withdraw": "出金",
+        "deposit": "入金する",
         "deposits": "Deposits",
         "funding_description": "資金調達履歴は、保有中のポジションに適用される資金調達率によって決まる手数料の支払い・受取り状況をまとめたものです。"
       },
@@ -1617,21 +1618,25 @@
     "title": "MetaMask Predict",
     "prediction_markets": "予測市場",
     "market_list": "市場リスト",
-    "loading": "Loading...",
+    "loading": "読み込み中...",
     "market_details": {
-      "title": "Market Details",
+      "title": "市場の詳細",
       "market_ended_on": "Market ended on {{outcome}}",
       "market_resulted_to": "Market resulted to {{outcome}}",
       "waiting_for_final_resolution": "Waiting for final resolution",
       "no_positions_found": "No positions found",
-      "volume": "Volume",
+      "volume": "取引量",
       "end_date": "End date",
       "resolver": "Resolver",
-      "powered_by": "Powered by",
-      "yes": "Yes",
-      "no": "No",
+      "powered_by": "提供元:",
+      "yes": "はい",
+      "no": "いいえ",
       "on": "on",
-      "market_unavailable": "Market unavailable"
+      "won": "Won",
+      "lost": "Lost",
+      "market_unavailable": "Market unavailable",
+      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "outcome_at_price": "{{outcome}} at {{price}}¢"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1640,12 +1645,12 @@
       "resolved_markets": "Resolved markets"
     },
     "tabs": {
-      "about": "About",
-      "positions": "Positions",
+      "about": "情報",
+      "positions": "ポジション",
       "outcomes": "Outcomes"
     },
     "sell_position": "売りポジション",
-    "cash_out": "キャッシュアウト",
+    "cash_out": "Cash out",
     "buy_yes": "はい",
     "buy_no": "いいえ",
     "outcomes": "結果",
@@ -1672,36 +1677,36 @@
     "claim_button": "請求",
     "markets_won": "的中した市場",
     "won_markets_text": "{{count}}件の市場{{s}}で的中",
-    "available_balance": "Available balance",
+    "available_balance": "利用可能残高",
     "claim_amount_text": "請求額 ${{amount}}",
     "unrealized_pnl_label": "含み損益",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
+    "unrealized_pnl_error": "読み込めません",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
-      "button": "Got it"
+      "button": "了解"
     },
     "deposit": {
-      "in_progress": "Deposit in progress",
+      "in_progress": "デポジット処理中",
       "adding_funds": "Adding funds",
       "adding_your_funds": "Adding your funds",
-      "add_funds": "Add funds",
-      "withdraw": "Withdraw",
+      "add_funds": "資金を追加",
+      "withdraw": "出金",
       "estimated_processing_time": "Est. {{time}} seconds",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
-      "error_title": "Something went wrong",
+      "error_title": "問題が発生しました",
       "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "try_again": "再試行してください"
     },
     "add_funds_sheet": {
-      "title": "Add funds",
+      "title": "資金を追加",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
     "transactions": {
-      "title": "Predictions",
+      "title": "予測",
       "no_transactions": "No recent activity",
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
@@ -1710,15 +1715,15 @@
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
       "not_available": "N/A",
-      "date": "Date",
-      "market": "Market",
+      "date": "日付",
+      "market": "マーケット",
       "outcome": "Outcome",
       "predicted_amount": "Predicted amount",
       "shares_bought": "Shares bought",
       "shares_sold": "Shares sold",
       "price_per_share": "Price per share",
-      "price_impact": "Price impact",
-      "net_pnl": "Net P&L",
+      "price_impact": "プライスインパクト",
+      "net_pnl": "純損益",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
       "activity_details": "Activity details"
@@ -1730,29 +1735,38 @@
           "description": "Est. {{time}} seconds"
         },
         "confirmed": {
-          "title": "Claimed",
+          "title": "請求済み",
           "description": "{{amount}} added to your balance"
         },
         "error": {
-          "title": "Something went wrong",
+          "title": "問題が発生しました",
           "description": "Failed to proceed with claim",
-          "try_again": "Try again"
+          "try_again": "再試行してください"
         }
       }
     },
     "order": {
-      "available": "Available",
+      "available": "使用可能",
       "cashed_out": "Cashed out",
       "cashed_out_subtitle": "{{amount}} added to your balance",
       "cashing_out": "Cashing out {{amount}}",
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed",
+      "order_failed": "注文に失敗しました",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
       "prediction_minimum_bet": "Minimum bet is {{amount}}",
       "to_win": "To win"
+    },
+    "withdraw": {
+      "withdrawing": "Withdrawing {{amount}} USDC",
+      "withdrawing_subtitle": "Est. {{time}} seconds",
+      "withdraw_completed": "Withdrawal completed",
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Failed to proceed with withdraw",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -1863,7 +1877,7 @@
     "alphabetically": "アルファベット順 (A～Z)",
     "add_to_get_started": "開始するには仮想通貨を追加してください",
     "token_is_needed_to_continue": "続けるには{{tokenSymbol}}が必要です",
-    "fund_your_wallet": "Fund your wallet",
+    "fund_your_wallet": "ウォレットへの入金",
     "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "ウォレットに入金してWeb3の利用を開始",
     "add_funds": "資金を追加",
@@ -5450,7 +5464,7 @@
       "approve": "要求の承認",
       "perps_deposit": "資金を追加",
       "predict_deposit": "Add Predict funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "出金"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -5633,7 +5647,7 @@
     "points_error_content": "このトランザクションで引き続きポイントを獲得できます。ポイントがアカウントに追加され次第、お知らせいたします。約1時間後に「リワード」タブにてご確認いただくことも可能です。",
     "see_other_quotes": "他のクォートを表示",
     "receive_at": "受取先:",
-    "recipient": "Recipient",
+    "recipient": "受取人",
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。",
@@ -5647,9 +5661,9 @@
     "title": "ブリッジ",
     "submitting_transaction": "送信中",
     "fetching_quote": "クォートを取得中",
-    "fee_disclaimer": "Includes {{feePercentage}}% MM fee.",
+    "fee_disclaimer": "{{feePercentage}}%のMM手数料込み.",
     "no_mm_fee": "MM手数料なし",
-    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
+    "no_mm_fee_disclaimer": "{{destTokenSymbol}}へのスワップにMM手数料はかかりません.",
     "hardware_wallet_not_supported": "まだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "price_impact_info_title": "プライスインパクト",
@@ -5700,7 +5714,7 @@
     "create_new_wallet": "新規ウォレットを作成",
     "use_different_login_method": "別のログイン方法を使用",
     "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "unlock_wallet": "ウォレットのロックを解除"
   },
   "error_sheet": {
     "still_there_title": "まだご利用になりますか？",
@@ -5799,14 +5813,14 @@
       "section_2_title": "同じアドレスで複数のネットワーク",
       "section_2_description": "アカウントをグループ化しましたので、これまでどおりMetaMaskをご利用ください。資金は安全に保護され、変更はありません",
       "view_accounts_button": "アカウントを表示",
-      "learn_more_button": "Learn more",
+      "learn_more_button": "詳細",
       "setting_up_accounts": "アカウントの設定"
     },
     "learn_more": {
-      "title": "Learn more",
+      "title": "詳細",
       "description": "マルチチェーンアカウントがデフォルトになりました。オプトアウトするには、基本機能をオフにしてください。",
-      "checkbox_label": "Turn off basic functionality",
-      "confirm_button": "Confirm"
+      "checkbox_label": "基本機能をオフにする",
+      "confirm_button": "確定"
     },
     "add_wallet": "ウォレットを追加",
     "add_hardware_wallet": "ハードウェアウォレットを追加",
@@ -5939,8 +5953,8 @@
     "unsupported": {
       "title": "This page is not supported in current version",
       "description": "Update to the latest version to use this feature",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
+      "update_to_store_link": "MetaMaskを最新バージョンにアップデートしてください。",
+      "well_take_you_to_right_place": "その後、該当するページにご案内いたします。"
     },
     "go_to_home_button": "ホームページに移動",
     "back_button": "戻る",
@@ -5956,31 +5970,40 @@
       "select_method": "方法を選択"
     },
     "card_onboarding": {
-      "title": "カードへようこそ",
-      "description": "カードの機能を使用するには、当社のパートナーとアカウントを検証する必要があります。",
-      "verify_account_button": "アカウントを検証",
+      "title": "Enable MetaMask Card features",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
+      "verify_account_button": "Sign in",
+      "non_cardholder_title": "Welcome to MetaMask Card",
+      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
+      "non_cardholder_verify_account_button": "開始",
       "sign_up": {
-        "title": "サインアップ",
-        "description": "MetaMaskカードの提供元であるCrypto Lifeにご登録ください。このアカウントでカードの管理とアクセスを行います。",
+        "title": "Sign up",
+        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "メールアドレス",
         "password_label": "パスワード",
-        "confirm_password_label": "パスワードの確認",
+        "confirm_password_label": "パスワードを再入力してください",
         "country_label": "お住いの国",
         "email_placeholder": "メールアドレスを入力してください",
-        "password_placeholder": "パスワードを入力してください",
+        "password_placeholder": "Must be 15+ characters long",
+        "confirm_password_placeholder": "パスワードを再入力してください",
         "country_placeholder": "お住いの国を選択してください",
         "password_mismatch": "パスワードが一致しません",
-        "invalid_email": "無効なメールアドレスです"
+        "invalid_email": "無効なメールアドレスです",
+        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
       },
       "confirm_email": {
         "title": "メールアドレスの確認",
         "description": "確認コードを{{email}}に送信しました",
         "confirm_code_label": "確認コード",
-        "confirm_code_placeholder": "確認コードを入力してください"
+        "confirm_code_placeholder": "Enter the 6-digit code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "電話番号",
-        "description": "電話番号を入力してください",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "電話番号",
         "phone_number_placeholder": "電話番号を入力してください",
         "country_area_code_label": "国番号",
@@ -5989,24 +6012,28 @@
       },
       "confirm_phone_number": {
         "title": "電話番号の確認",
-        "description": "確認コードを{{phoneNumber}}に送信しました",
-        "confirm_code_label": "確認コード"
+        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
+        "confirm_code_label": "確認コード",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
-        "title": "カード発行のための本人確認を行っています",
-        "description": "アカウントの安全性を確保し、規制に準拠するため、本人確認が必要です。\n\n政府発行の身分証明書と住所確認書類 (公共料金の請求書や銀行取引明細書など) をご用意ください。\n\n確認には通常5〜30分ほどかかります。完了後に通知いたします。",
-        "verify_button": "Veriffで本人確認を行う"
+        "title": "Next, verify your identity",
+        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
+        "verify_button": "Start verification",
+        "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "KYCを検証中…"
+        "title": "KYCを検証中…",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "拒否されました",
         "description": "KYCが拒否されました。もう一度お試しください。"
       },
       "personal_details": {
-        "title": "個人情報",
-        "description": "個人情報を入力してください",
+        "title": "Now, our partner needs some info about you",
+        "description": "Don't worry, this info is private and we never see it",
         "first_name_label": "名",
         "last_name_label": "姓",
         "date_of_birth_label": "生年月日",
@@ -6018,24 +6045,23 @@
         "nationality_placeholder": "国籍を選択",
         "ssn_placeholder": "社会保障番号を入力",
         "invalid_ssn": "無効な社会保障番号です",
-        "invalid_date_of_birth": "無効な生年月日です",
-        "invalid_date_of_birth_underage": "18歳以上である必要があります"
+        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "現住所",
-        "description": "現住所を入力してください",
+        "title": "Residential address",
+        "description": "Please provide your physical residence address to Crypto Life",
         "address_line_1_label": "住所行1",
         "address_line_2_label": "住所行2",
         "city_label": "市区町村",
         "state_label": "州・都道府県",
-        "zip_code_label": "郵便番号",
-        "address_line_1_placeholder": "住所行1を入力",
-        "address_line_2_placeholder": "住所行2を入力",
+        "zip_code_label": "ZIP or Postal code",
+        "address_line_1_placeholder": "Street address",
+        "address_line_2_placeholder": "Floor, apartment or suite number",
         "city_placeholder": "市区町村を入力",
         "state_placeholder": "州・都道府県を入力",
-        "zip_code_placeholder": "郵便番号を入力",
-        "same_mailing_address_label": "現住所は郵送先住所と同じ",
-        "electronic_consent": "電子署名法に基づく同意および開示事項に同意し、すべての通知を電子的に受け取ることに同意します。"
+        "zip_code_placeholder": "Enter your ZIP code or postal code",
+        "same_mailing_address_label": "Residential address is the same as mailing address",
+        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically."
       },
       "mailing_address": {
         "title": "郵送先住所",
@@ -6043,14 +6069,29 @@
       },
       "complete": {
         "title": "承認されました！",
-        "description": "KYCが承認されました。カードをご利用いただけます。"
+        "description": "Your KYC was approved. You can now use MetaMask Card."
       },
       "continue_button": "次へ",
       "confirm_button": "確定",
-      "retry_button": "再試行"
+      "retry_button": "再試行",
+      "errors": {
+        "email_already_exists": "Email already exists. Please use a different email.",
+        "invalid_email_format": "Invalid email format. Please check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Please request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
+        "create_user_failed": "Failed to create user. Please try again."
+      }
     },
     "card_home": {
-      "error_title": "データを取得できません",
+      "error_title": "Can't fetch data",
       "error_description": "問題が発生し、このページのコンテンツを表示できないようです。接続を確認するか、ページを更新してみてください。",
       "try_again": "再試行してください",
       "limited_spending_warning": "実際の利用可能額は制限されている可能性があります。制限を調整するには、{{manageCard}}に移動してください。",
@@ -6065,33 +6106,33 @@
           "confirm_button_label": "新しい限度額を設定"
         },
         "need_delegation": {
-          "title": "アセットの委任が必要です",
-          "description": "カードでの支払いを開始するにはアセットをカードに委任してください",
-          "confirm_button_label": "アセットを委任"
+          "title": "You need to enable your card",
+          "description": "Choose an asset to start spending",
+          "confirm_button_label": "Enable card"
         },
         "no_card": {
-          "title": "You don't have a Card",
-          "description": "Please enable your Card to start spending"
+          "title": "You need to enable your card",
+          "description": "Please enable your card to start spending"
         },
         "frozen": {
-          "title": "Your Card is frozen",
-          "description": "Please contact support to unfreeze your Card"
+          "title": "Your card is frozen",
+          "description": "Please contact support to unfreeze your card"
         },
         "blocked": {
-          "title": "Your Card is blocked",
-          "description": "Please contact support to unblock your Card"
+          "title": "Your card is blocked",
+          "description": "Please contact support to unblock your card"
         }
       },
       "manage_card_options": {
         "manage_spending_limit": "利用限度額を管理",
-        "manage_spending_limit_description_restricted": "利用限度額の制限が有効になっています",
-        "manage_spending_limit_description_full": "全額利用が有効になっています",
+        "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "カードの管理",
         "advanced_card_management_description": "トランザクションの詳細、カードの凍結など"
       }
     },
     "card_authentication": {
-      "title": "カードアカウントへのログイン",
+      "title": "Log in to your MetaMask Card account",
       "location_button_text": "外国",
       "location_button_text_us": "米国アカウント",
       "email_label": "メールアドレス",
@@ -6099,6 +6140,7 @@
       "email_placeholder": "メールアドレスを入力してください",
       "password_placeholder": "パスワードを入力してください",
       "login_button": "ログイン",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "ログイン情報が無効です",
         "unknown_error": "サーバーエラーが発生しました。後ほど再試行してください",
@@ -6114,11 +6156,11 @@
       }
     },
     "card_otp_authentication": {
-      "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "title": "電話番号の確認",
+      "description_with_phone_number": "確認コードを{{maskedPhoneNumber}}に送信しました",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
-      "confirm_code_label": "Confirmation code",
-      "confirm_button": "Confirm",
+      "confirm_code_label": "確認コード",
+      "confirm_button": "選択すると、",
       "back_to_login_button": "Back to Login",
       "resend_timer": "Resend code in {{seconds}}s",
       "resend_code": "Resend code"
@@ -6451,7 +6493,7 @@
       "bridge_fee": "ブリッジ手数料",
       "network_fee": "ネットワーク手数料",
       "paid_with": "支払方法:",
-      "retry_button": "Try again",
+      "retry_button": "再試行してください",
       "total": "合計"
     },
     "summary_title": {
@@ -6463,7 +6505,7 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "トランザクション",
       "perps_deposit": "資金を追加",
-      "predict_deposit": "Add funds",
+      "predict_deposit": "資金を追加",
       "swap": "トークンをスワップ",
       "swap_approval": "トークンを承認"
     },
@@ -6479,7 +6521,7 @@
       "description": "Failed to establish connection. Please try again."
     },
     "show_return_to_app": {
-      "title": "Success",
+      "title": "成功",
       "description": "Return to the app to continue."
     }
   },

@@ -10,14 +10,14 @@
     "pet_name": {
       "list_count_text": "Pet Names on this network",
       "add_pet_name_button": "Add Pet Name",
-      "address": "Address",
+      "address": "Alamat",
       "address_placeholder": "0x...",
-      "name": "Name",
-      "name_placeholder": "Name",
+      "name": "Nama",
+      "name_placeholder": "Nama",
       "duplicate_title": "Address already exists",
       "duplicate_message": "This address already has a pet name. Do you want to update it?",
-      "cancel": "Cancel",
-      "update": "Update"
+      "cancel": "Batal",
+      "update": "Perbarui"
     }
   },
   "alert_system": {
@@ -241,7 +241,7 @@
     "remind_later_description": "Jika tidak mencadangkan Frasa Pemulihan Rahasia, Anda akan kehilangan akses ke dana apabila terkunci dari aplikasi atau mendapatkan perangkat baru.",
     "remind_later_description2": "Anda dapat mencadangkan dompet atau melihat Frasa Pemulihan Rahasia di",
     "setting_security_privacy": "Pengaturan > Keamanan dan Privasi",
-    "wallet_ready": "Your wallet is ready!"
+    "wallet_ready": "Dompet Anda sudah siap!"
   },
   "social_login_ios_user": {
     "new_user_title": "Anda telah mendaftar!",
@@ -697,10 +697,10 @@
       "title_musd": "Starting is easy with mUSD",
       "bullet_1_title_musd": "Stable cryptocurrency",
       "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_title_musd": "Volatilitas rendah",
       "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "bullet_3_title_musd": "Lebih cepat dari bank",
+      "bullet_3_description_musd": "Kirim dan terima dalam hitungan menit, tanpa menunggu jam operasional bank atau penundaan internasional."
     },
     "enter_email": {
       "navbar_title": "Verifikasikan identitas Anda",
@@ -1220,6 +1220,7 @@
       "minimum_remaining_error": "Tidak dapat ditutup sebagian: posisi tersisa (${{remaining}}) akan berada di bawah jumlah order minimum (${{minimum}}). Tutup 100%.",
       "must_close_full_below_minimum": "Nilai posisi di bawah $10. Anda harus menutup posisi 100%.",
       "negative_receive_amount": "Biaya melebihi nilai posisi Anda",
+      "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "Pilih jumlah yang ingin ditutup",
       "order_type_reverted_to_market_order": "Diubah ke order pasar",
       "you_need_set_price_limit_order": "Anda perlu mengatur harga untuk order limit."
@@ -1250,9 +1251,9 @@
       "above": "di atas",
       "below": "di bawah",
       "done": "Selesai",
-      "cancel": "Cancel",
+      "cancel": "Batal",
       "set": "Atur",
-      "clear": "Clear",
+      "clear": "Hapus",
       "expected_profit": "Expected profit: {{amount}}",
       "expected_loss": "Expected loss: {{amount}}"
     },
@@ -1530,7 +1531,7 @@
         "trades": "Perdagangan",
         "orders": "Order",
         "funding": "Pendanaan",
-        "withdraw": "Withdraw",
+        "withdraw": "Tarik",
         "deposit": "Deposit",
         "deposits": "Deposits",
         "funding_description": "Riwayat pendanaan merupakan ringkasan biaya yang telah Anda bayarkan atau terima, sebagaimana ditentukan oleh tingkat pendanaan pada posisi terbuka."
@@ -1580,7 +1581,7 @@
         "subtitle": "Begini cara kerjanya."
       },
       "go_long_or_short": {
-        "title": "Go long or short on a token",
+        "title": "Pilih long atau short di token",
         "description": "Pilih token untuk posisi long atau short, lalu atur ukuran order Anda.",
         "subtitle": "Ambil posisi long untuk dapat profit jika harga naik. Ambil posisi short untuk dapat profit jika harga turun."
       },
@@ -1617,9 +1618,9 @@
     "title": "MetaMask Predict",
     "prediction_markets": "Prediksi Pasar",
     "market_list": "Daftar Pasar",
-    "loading": "Loading...",
+    "loading": "Memuat...",
     "market_details": {
-      "title": "Market Details",
+      "title": "Detail Pasar",
       "market_ended_on": "Market ended on {{outcome}}",
       "market_resulted_to": "Market resulted to {{outcome}}",
       "waiting_for_final_resolution": "Waiting for final resolution",
@@ -1627,11 +1628,15 @@
       "volume": "Volume",
       "end_date": "End date",
       "resolver": "Resolver",
-      "powered_by": "Powered by",
-      "yes": "Yes",
-      "no": "No",
+      "powered_by": "Didukung oleh",
+      "yes": "Ya",
+      "no": "Tidak",
       "on": "on",
-      "market_unavailable": "Market unavailable"
+      "won": "Won",
+      "lost": "Lost",
+      "market_unavailable": "Market unavailable",
+      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "outcome_at_price": "{{outcome}} at {{price}}¢"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1640,12 +1645,12 @@
       "resolved_markets": "Resolved markets"
     },
     "tabs": {
-      "about": "About",
-      "positions": "Positions",
+      "about": "Tentang",
+      "positions": "Posisi",
       "outcomes": "Outcomes"
     },
     "sell_position": "Posisi Jual",
-    "cash_out": "Uang Tunai",
+    "cash_out": "Cash out",
     "buy_yes": "Ya",
     "buy_no": "Tidak",
     "outcomes": "hasil",
@@ -1672,37 +1677,37 @@
     "claim_button": "Klaim",
     "markets_won": "Pasar menang",
     "won_markets_text": "Memenangkan {{count}} pasar{{s}}",
-    "available_balance": "Available balance",
+    "available_balance": "Saldo tersedia",
     "claim_amount_text": "Klaim ${{amount}}",
     "unrealized_pnl_label": "P&L Belum Terealisasi",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
+    "unrealized_pnl_error": "Tidak dapat memuat",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
-      "button": "Got it"
+      "button": "Mengerti"
     },
     "deposit": {
-      "in_progress": "Deposit in progress",
+      "in_progress": "Deposit sedang diproses",
       "adding_funds": "Adding funds",
       "adding_your_funds": "Adding your funds",
-      "add_funds": "Add funds",
-      "withdraw": "Withdraw",
+      "add_funds": "Tambahkan dana",
+      "withdraw": "Tarik",
       "estimated_processing_time": "Est. {{time}} seconds",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
-      "error_title": "Something went wrong",
+      "error_title": "Terjadi kesalahan",
       "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "try_again": "Coba lagi"
     },
     "add_funds_sheet": {
-      "title": "Add funds",
+      "title": "Tambahkan dana",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
     "transactions": {
-      "title": "Predictions",
-      "no_transactions": "No recent activity",
+      "title": "Prediksi",
+      "no_transactions": "Tidak ada aktivitas terbaru",
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
@@ -1710,15 +1715,15 @@
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
       "not_available": "N/A",
-      "date": "Date",
-      "market": "Market",
+      "date": "Tanggal",
+      "market": "Pasar",
       "outcome": "Outcome",
       "predicted_amount": "Predicted amount",
       "shares_bought": "Shares bought",
       "shares_sold": "Shares sold",
       "price_per_share": "Price per share",
-      "price_impact": "Price impact",
-      "net_pnl": "Net P&L",
+      "price_impact": "Dampak harga",
+      "net_pnl": "P&L Bersih",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
       "activity_details": "Activity details"
@@ -1730,29 +1735,38 @@
           "description": "Est. {{time}} seconds"
         },
         "confirmed": {
-          "title": "Claimed",
+          "title": "Diklaim",
           "description": "{{amount}} added to your balance"
         },
         "error": {
-          "title": "Something went wrong",
+          "title": "Terjadi kesalahan",
           "description": "Failed to proceed with claim",
-          "try_again": "Try again"
+          "try_again": "Coba lagi"
         }
       }
     },
     "order": {
-      "available": "Available",
+      "available": "Tersedia",
       "cashed_out": "Cashed out",
       "cashed_out_subtitle": "{{amount}} added to your balance",
       "cashing_out": "Cashing out {{amount}}",
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed",
+      "order_failed": "Pesanan gagal",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
       "prediction_minimum_bet": "Minimum bet is {{amount}}",
       "to_win": "To win"
+    },
+    "withdraw": {
+      "withdrawing": "Withdrawing {{amount}} USDC",
+      "withdrawing_subtitle": "Est. {{time}} seconds",
+      "withdraw_completed": "Withdrawal completed",
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Failed to proceed with withdraw",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -1863,7 +1877,7 @@
     "alphabetically": "Sesuai abjad (A-Z)",
     "add_to_get_started": "Tambahkan kripto untuk memulai",
     "token_is_needed_to_continue": "{{tokenSymbol}} diperlukan untuk melanjutkan",
-    "fund_your_wallet": "Fund your wallet",
+    "fund_your_wallet": "Danai dompet Anda",
     "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "Danai dompet Anda untuk memulai di web3",
     "add_funds": "Tambahkan dana",
@@ -5450,7 +5464,7 @@
       "approve": "Setujui permintaan",
       "perps_deposit": "Tambahkan dana",
       "predict_deposit": "Add Predict funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "Tarik"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
@@ -5633,7 +5647,7 @@
     "points_error_content": "Anda tetap akan memperoleh poin untuk transaksi ini. Kami akan memberi tahu Anda setelah poin ditambahkan ke akun. Anda juga dapat memeriksa tab reward dalam waktu satu jam.",
     "see_other_quotes": "Lihat kuotasi lainnya",
     "receive_at": "Terima di",
-    "recipient": "Recipient",
+    "recipient": "Penerima",
     "select_recipient": "Select recipient",
     "external_account": "External account",
     "error_banner_description": "Rute perdagangan ini tidak tersedia untuk saat ini. Coba ubah jumlah, jaringan, atau token, dan kami akan mencari opsi terbaik.",
@@ -5649,7 +5663,7 @@
     "fetching_quote": "Mengambil kuotasi",
     "fee_disclaimer": "Includes {{feePercentage}}% MM fee.",
     "no_mm_fee": "Tidak ada biaya MM",
-    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
+    "no_mm_fee_disclaimer": "Tidak ada biaya MM saat menukar ke {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung. Gunakan hot wallet untuk melanjutkan.",
     "hardware_wallet_not_supported_solana": "Dompet perangkat keras belum didukung untuk Solana. Gunakan hot wallet untuk melanjutkan.",
     "price_impact_info_title": "Dampak Harga",
@@ -5700,7 +5714,7 @@
     "create_new_wallet": "Buat dompet baru",
     "use_different_login_method": "Gunakan metode login yang berbeda",
     "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "unlock_wallet": "Buka dompet"
   },
   "error_sheet": {
     "still_there_title": "Masih di situ?",
@@ -5799,14 +5813,14 @@
       "section_2_title": "Alamat sama, lebih banyak jaringan",
       "section_2_description": "Kami telah mengelompokkan akun Anda, jadi, tetap gunakan MetaMask seperti sebelumnya. Dana Anda aman dan tidak berubah",
       "view_accounts_button": "Lihat akun",
-      "learn_more_button": "Learn more",
+      "learn_more_button": "Pelajari selengkapnya",
       "setting_up_accounts": "Mengatur akun Anda"
     },
     "learn_more": {
-      "title": "Learn more",
+      "title": "Pelajari selengkapnya",
       "description": "Akun multichain kini menjadi default. Untuk menonaktifkannya, maka nonaktifkan fungsi dasar.",
-      "checkbox_label": "Turn off basic functionality",
-      "confirm_button": "Confirm"
+      "checkbox_label": "Nonaktifkan fungsionalitas dasar",
+      "confirm_button": "Konfirmasikan"
     },
     "add_wallet": "Tambahkan dompet",
     "add_hardware_wallet": "Tambahkan dompet perangkat keras",
@@ -5939,8 +5953,8 @@
     "unsupported": {
       "title": "This page is not supported in current version",
       "description": "Update to the latest version to use this feature",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
+      "update_to_store_link": "Perbarui ke versi terkini MetaMask",
+      "well_take_you_to_right_place": " dan kami akan membawa Anda ke tempat yang tepat."
     },
     "go_to_home_button": "Buka halaman beranda",
     "back_button": "Kembali",
@@ -5956,31 +5970,40 @@
       "select_method": "Pilih metode"
     },
     "card_onboarding": {
-      "title": "Selamat datang di Card",
-      "description": "Untuk menggunakan fitur card, Anda perlu memverifikasi akun dengan mitra kami.",
-      "verify_account_button": "Verifikasikan akun",
+      "title": "Enable MetaMask Card features",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
+      "verify_account_button": "Sign in",
+      "non_cardholder_title": "Welcome to MetaMask Card",
+      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
+      "non_cardholder_verify_account_button": "Mulai",
       "sign_up": {
-        "title": "Daftar",
-        "description": "Daftarkan detail Anda ke Crypto Life, penyedia Kartu MetaMask. Anda akan menggunakan akun ini untuk mengakses dan mengelola kartu.",
+        "title": "Sign up",
+        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "Email",
         "password_label": "Kata sandi",
-        "confirm_password_label": "Konfirmasikan kata sandi",
+        "confirm_password_label": "Masukkan kembali kata sandi",
         "country_label": "Negara Tempat Tinggal",
         "email_placeholder": "Masukkan alamat email",
-        "password_placeholder": "Masukkan kata sandi",
+        "password_placeholder": "Must be 15+ characters long",
+        "confirm_password_placeholder": "Masukkan kembali kata sandi",
         "country_placeholder": "Pilih negara",
         "password_mismatch": "Kata sandi tidak cocok",
-        "invalid_email": "Alamat email tidak valid"
+        "invalid_email": "Alamat email tidak valid",
+        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
       },
       "confirm_email": {
         "title": "Konfirmasikan email",
         "description": "Kami telah mengirimkan kode konfirmasi ke: {{email}}",
         "confirm_code_label": "Kode konfirmasi",
-        "confirm_code_placeholder": "Masukkan kode konfirmasi"
+        "confirm_code_placeholder": "Enter the 6-digit code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "Nomor telepon",
-        "description": "Masukkan nomor telepon",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Nomor telepon",
         "phone_number_placeholder": "Masukkan nomor telepon",
         "country_area_code_label": "Kode area negara",
@@ -5989,24 +6012,28 @@
       },
       "confirm_phone_number": {
         "title": "Konfirmasikan nomor telepon",
-        "description": "Kami telah mengirimkan kode konfirmasi ke: {{phoneNumber}}",
-        "confirm_code_label": "Kode konfirmasi"
+        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
+        "confirm_code_label": "Kode konfirmasi",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend available in {{seconds}} seconds"
       },
       "verify_identity": {
-        "title": "Memverifikasi identitas Anda untuk mendapatkan kartu",
-        "description": "Demi menjaga akun Anda aman dan mematuhi peraturan, kami perlu memverifikasi identitas Anda.\n\nAnda memerlukan KTP dan bukti alamat (seperti tagihan listrik atau rekening koran).\n\nVerifikasi umumnya memerlukan waktu sekitar 5-30 menit dan kami akan segera memberi tahu Anda setelah selesai.",
-        "verify_button": "Verifikasikan sekarang dengan Veriff"
+        "title": "Next, verify your identity",
+        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
+        "verify_button": "Start verification",
+        "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "Memvalidasi KYC..."
+        "title": "Memvalidasi KYC...",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "Ditolak",
         "description": "KYC ditolak. Coba lagi."
       },
       "personal_details": {
-        "title": "Detail pribadi",
-        "description": "Masukkan detail pribadi",
+        "title": "Now, our partner needs some info about you",
+        "description": "Don't worry, this info is private and we never see it",
         "first_name_label": "Nama depan",
         "last_name_label": "Nama belakang",
         "date_of_birth_label": "Tanggal lahir",
@@ -6018,24 +6045,23 @@
         "nationality_placeholder": "Pilih kewarganegaraan",
         "ssn_placeholder": "Masukkan NJS",
         "invalid_ssn": "NJS tidak valid",
-        "invalid_date_of_birth": "Tanggal lahir tidak valid",
-        "invalid_date_of_birth_underage": "Anda harus berusia minimal 18 tahun"
+        "invalid_date_of_birth": "Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "Alamat fisik",
-        "description": "Mohon berikan alamat fisik",
+        "title": "Residential address",
+        "description": "Please provide your physical residence address to Crypto Life",
         "address_line_1_label": "Baris alamat 1",
         "address_line_2_label": "Baris alamat 2",
         "city_label": "Kota",
         "state_label": "Negara",
-        "zip_code_label": "Kode ZIP",
-        "address_line_1_placeholder": "Masukkan baris alamat 1",
-        "address_line_2_placeholder": "Masukkan baris alamat 2",
+        "zip_code_label": "ZIP or Postal code",
+        "address_line_1_placeholder": "Street address",
+        "address_line_2_placeholder": "Floor, apartment or suite number",
         "city_placeholder": "Masukkan kota",
         "state_placeholder": "Masukkan negara",
-        "zip_code_placeholder": "Masukkan kode ZIP",
-        "same_mailing_address_label": "Alamat fisik sama dengan alamat surat",
-        "electronic_consent": "Saya menyetujui Persetujuan dan Pengungkapan Undang-Undang E-Sign, dan menerima semua komunikasi secara elektronik."
+        "zip_code_placeholder": "Enter your ZIP code or postal code",
+        "same_mailing_address_label": "Residential address is the same as mailing address",
+        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically."
       },
       "mailing_address": {
         "title": "Alamat surat",
@@ -6043,14 +6069,29 @@
       },
       "complete": {
         "title": "Disetujui!",
-        "description": "KYC telah disetujui. Kini Kartu Anda dapat digunakan."
+        "description": "Your KYC was approved. You can now use MetaMask Card."
       },
       "continue_button": "Berikutnya",
       "confirm_button": "Konfirmasikan",
-      "retry_button": "Coba lagi"
+      "retry_button": "Coba lagi",
+      "errors": {
+        "email_already_exists": "Email already exists. Please use a different email.",
+        "invalid_email_format": "Invalid email format. Please check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Please request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
+        "create_user_failed": "Failed to create user. Please try again."
+      }
     },
     "card_home": {
-      "error_title": "Tidak dapat mengambil data",
+      "error_title": "Can't fetch data",
       "error_description": "Tampaknya ada masalah yang mencegah Anda melihat konten di halaman ini. Periksa koneksi Anda atau coba segarkan halaman.",
       "try_again": "Coba lagi",
       "limited_spending_warning": "Kemampuan pemakaian Anda mungkin terbatas. Untuk menyesuaikan limit, buka {{manageCard}}",
@@ -6065,33 +6106,33 @@
           "confirm_button_label": "Atur batas baru"
         },
         "need_delegation": {
-          "title": "Anda perlu mendelegasikan aset",
-          "description": "Delegasikan aset ke Kartu Anda untuk mulai menggunakannya",
-          "confirm_button_label": "Delegasikan aset"
+          "title": "You need to enable your card",
+          "description": "Choose an asset to start spending",
+          "confirm_button_label": "Enable card"
         },
         "no_card": {
-          "title": "You don't have a Card",
-          "description": "Please enable your Card to start spending"
+          "title": "You need to enable your card",
+          "description": "Please enable your card to start spending"
         },
         "frozen": {
-          "title": "Your Card is frozen",
-          "description": "Please contact support to unfreeze your Card"
+          "title": "Your card is frozen",
+          "description": "Please contact support to unfreeze your card"
         },
         "blocked": {
-          "title": "Your Card is blocked",
-          "description": "Please contact support to unblock your Card"
+          "title": "Your card is blocked",
+          "description": "Please contact support to unblock your card"
         }
       },
       "manage_card_options": {
         "manage_spending_limit": "Kelola batas penggunaan",
-        "manage_spending_limit_description_restricted": "Batas penggunaan terbatas aktif",
-        "manage_spending_limit_description_full": "Akses penggunaan penuh aktif",
+        "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Kelola kartu",
         "advanced_card_management_description": "Transaksi mendetail, bekukan kartu, dan lainnya"
       }
     },
     "card_authentication": {
-      "title": "Masuk ke akun Kartu",
+      "title": "Log in to your MetaMask Card account",
       "location_button_text": "Internasional",
       "location_button_text_us": "Akun AS",
       "email_label": "Email",
@@ -6099,6 +6140,7 @@
       "email_placeholder": "Masukkan alamat email",
       "password_placeholder": "Masukkan kata sandi",
       "login_button": "Masuk",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Detail login tidak valid",
         "unknown_error": "Kesalahan tidak dikenal, coba lagi nanti",
@@ -6114,11 +6156,11 @@
       }
     },
     "card_otp_authentication": {
-      "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "title": "Konfirmasikan nomor telepon",
+      "description_with_phone_number": "Kami telah mengirimkan kode konfirmasi ke: {{maskedPhoneNumber}}",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
-      "confirm_code_label": "Confirmation code",
-      "confirm_button": "Confirm",
+      "confirm_code_label": "Kode konfirmasi",
+      "confirm_button": "Konfirmasikan",
       "back_to_login_button": "Back to Login",
       "resend_timer": "Resend code in {{seconds}}s",
       "resend_code": "Resend code"
@@ -6451,7 +6493,7 @@
       "bridge_fee": "Biaya bridge",
       "network_fee": "Biaya jaringan",
       "paid_with": "Dibayar dengan",
-      "retry_button": "Try again",
+      "retry_button": "Coba lagi",
       "total": "Total"
     },
     "summary_title": {
@@ -6463,7 +6505,7 @@
       "bridge_receive_loading": "Bridge Receive",
       "default": "Transaksi",
       "perps_deposit": "Tambahkan dana",
-      "predict_deposit": "Add funds",
+      "predict_deposit": "Tambahkan dana",
       "swap": "Tukar token",
       "swap_approval": "Setujui token"
     },
@@ -6479,7 +6521,7 @@
       "description": "Failed to establish connection. Please try again."
     },
     "show_return_to_app": {
-      "title": "Success",
+      "title": "Berhasil",
       "description": "Return to the app to continue."
     }
   },
