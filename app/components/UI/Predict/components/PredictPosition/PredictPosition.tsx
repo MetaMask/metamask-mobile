@@ -32,9 +32,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   return (
     <TouchableOpacity
-      testID={getPredictPositionSelector.currentPositionCard(
-        position.outcomeIndex,
-      )}
+      testID={getPredictPositionSelector.currentPositionCard}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >

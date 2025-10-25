@@ -46,9 +46,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
 
   return (
     <TouchableOpacity
-      testID={getPredictPositionSelector.resolvedPositionCard(
-        position.outcomeIndex,
-      )}
+      testID={getPredictPositionSelector.resolvedPositionCard(position.id)}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >

@@ -94,12 +94,11 @@ export const PredictPositionsSelectorsIDs = {
   RESOLVED_MARKETS_HEADER: 'predict-resolved-markets-header',
 } as const;
 
-// Helper functions for position selectors with index
+// Helper functions for position selectors with unique identifiers
 export const getPredictPositionSelector = {
-  currentPositionCard: (outcomeIndex: number) =>
-    `predict-current-position-card-${outcomeIndex}`,
-  resolvedPositionCard: (outcomeIndex: number) =>
-    `predict-resolved-position-card-${outcomeIndex}`,
+  currentPositionCard: 'predict-current-position-card',
+  resolvedPositionCard: (positionId: string) =>
+    `predict-resolved-position-card-${positionId}`,
 };
 
 // ========================================
@@ -112,4 +111,17 @@ export const PredictCashOutSelectorsIDs = {
 
   // Cash out buttons
   SELL_PREVIEW_CASH_OUT_BUTTON: 'predict-sell-preview-cash-out-button',
+} as const;
+
+// ========================================
+// PREDICT CLAIM CONFIRMATION SELECTORS
+// ========================================
+
+export const PredictClaimConfirmationSelectorsIDs = {
+  // Claim amount container
+  CLAIM_BACKGROUND_CONTAINER: 'predict-claim-background',
+  CLAIM_AMOUNT_CONTAINER: 'predict-claim-amount-container',
+
+  // Claim confirm button
+  CLAIM_CONFIRM_BUTTON: 'predict-claim-confirm-button',
 } as const;
