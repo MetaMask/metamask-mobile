@@ -36,14 +36,40 @@ function canonicalize(url: URL): string {
 
   params.delete('sig');
 
-  params.sort();
+  let queryString = '';
 
-  const queryString = params.toString();
+  if (params.has('sig_params')) {
+    const sigParamsStr = params.get('sig_params');
+    const allowedParams = sigParamsStr?.split(',') ?? [];
+    const signedParams = new URLSearchParams();
+    const existingParams: string[] = [];
+    const seenParams = new Set<string>(); // Track which params we've already processed
 
-  const fullUrl =
-    url.origin + url.pathname + (queryString ? `?${queryString}` : '');
+    for (const param of allowedParams) {
+      if (params.has(param) && !seenParams.has(param)) {
+        const value = params.get(param);
+        if (value !== null) {
+          signedParams.set(param, value);
+          existingParams.push(param);
+          seenParams.add(param); // Mark this param as processed
+        }
+      }
+    }
+    // CRITICAL: Include normalized sig_params in the signature to prevent tampering
+    // Only include params that actually exist in the URL (deduplicated and sorted)
+    existingParams.sort(); // Sort parameter names alphabetically for consistent canonicalization
+    const rejoinedSigParams = existingParams.join(',');
+    signedParams.set('sig_params', rejoinedSigParams);
 
-  return fullUrl;
+    signedParams.sort();
+    queryString = signedParams.toString();
+  } else {
+    // Backward compatibility: sign all params if no sig_params
+    params.sort();
+    queryString = params.toString();
+  }
+
+  return url.origin + url.pathname + (queryString ? `?${queryString}` : '');
 }
 
 export const MISSING = 'MISSING' as const;
