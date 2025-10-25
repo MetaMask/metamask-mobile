@@ -652,7 +652,7 @@ export class WC2Manager {
       const isDeepLink = origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
       const rawParams = getAllUrlParams(wcUri);
-      // First check if the url continas sessionTopic, meaning it is only here from an existing connection (so we don't need to create pairing)
+      // First check if the url contains sessionTopic, meaning it is only here from an existing connection (so we don't need to create pairing)
       if (rawParams.sessionTopic) {
         const { sessionTopic } = rawParams;
         const session = this.sessions[sessionTopic];
