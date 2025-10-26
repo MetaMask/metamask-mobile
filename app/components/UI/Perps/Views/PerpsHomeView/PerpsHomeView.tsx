@@ -39,7 +39,7 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
-import PerpsTrendingMarkets from '../../components/PerpsTrendingMarkets/PerpsTrendingMarkets';
+import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
@@ -75,7 +75,10 @@ const PerpsHomeView = () => {
     positions,
     orders,
     watchlistMarkets,
-    trendingMarkets,
+    perpsMarkets, // Crypto markets (renamed from trendingMarkets)
+    stocksMarkets,
+    commoditiesMarkets,
+    forexMarkets,
     recentActivity,
     sortBy,
     isLoading,
@@ -359,10 +362,36 @@ const PerpsHomeView = () => {
           isLoading={isLoading.markets}
         />
 
-        {/* Trending Markets List */}
-        <PerpsTrendingMarkets
-          markets={trendingMarkets}
+        {/* Perps Markets List (Crypto) - Renamed from Trending */}
+        <PerpsMarketTypeSection
+          title={strings('perps.home.perps')}
+          markets={perpsMarkets}
+          marketType="crypto"
           sortBy={sortBy}
+          isLoading={isLoading.markets}
+        />
+
+        {/* Stocks Markets List */}
+        <PerpsMarketTypeSection
+          title={strings('perps.home.stocks')}
+          markets={stocksMarkets}
+          marketType="equity"
+          isLoading={isLoading.markets}
+        />
+
+        {/* Commodities Markets List */}
+        <PerpsMarketTypeSection
+          title={strings('perps.home.commodities')}
+          markets={commoditiesMarkets}
+          marketType="commodity"
+          isLoading={isLoading.markets}
+        />
+
+        {/* Forex Markets List */}
+        <PerpsMarketTypeSection
+          title={strings('perps.home.forex')}
+          markets={forexMarkets}
+          marketType="forex"
           isLoading={isLoading.markets}
         />
 

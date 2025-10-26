@@ -2,16 +2,12 @@ import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../util/theme/models';
 
 /**
- * Shared styles for market list components (PerpsTrendingMarkets, PerpsWatchlistMarkets)
+ * Shared styles for PerpsWatchlistMarkets component
  */
-export const createMarketListStyles = (theme: Theme) => {
-  const { colors } = theme;
-
-  return StyleSheet.create({
+export const createMarketListStyles = (_theme: Theme) =>
+  StyleSheet.create({
     container: {
       marginBottom: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
       paddingBottom: 16,
     },
     header: {
@@ -22,10 +18,9 @@ export const createMarketListStyles = (theme: Theme) => {
       paddingHorizontal: 16,
     },
     listContent: {
-      // No horizontal padding - PerpsMarketRowItem handles its own padding
+      paddingHorizontal: 16,
     },
     emptyText: {
       paddingHorizontal: 16,
     },
   });
-};

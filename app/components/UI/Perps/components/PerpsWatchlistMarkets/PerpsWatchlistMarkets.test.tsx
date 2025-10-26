@@ -144,7 +144,7 @@ describe('PerpsWatchlistMarkets', () => {
         fireEvent.press(seeAllButton);
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.TRENDING,
+          screen: Routes.PERPS.MARKET_LIST,
           params: {
             showWatchlistOnly: true,
           },

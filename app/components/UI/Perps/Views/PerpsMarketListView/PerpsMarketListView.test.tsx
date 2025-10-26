@@ -31,7 +31,7 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
-      saveMarketSortPreference: jest.fn(),
+      saveMarketFilterPreferences: jest.fn(),
     },
   },
 }));
@@ -165,7 +165,7 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
   selectPerpsWatchlistMarkets: jest.fn(() => []),
-  selectPerpsMarketSortPreference: jest.fn(() => 'volume'),
+  selectPerpsMarketFilterPreferences: jest.fn(() => 'volume'),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({

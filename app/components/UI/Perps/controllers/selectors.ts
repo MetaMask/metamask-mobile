@@ -79,11 +79,12 @@ export const selectTradeConfiguration = (
 };
 
 /**
- * Select market sort preference (network-independent)
+ * Select market filter preferences (network-independent)
  * @param state - PerpsController state
- * @returns Sort option ID
+ * @returns Sort/filter option ID
  */
-export const selectMarketSortPreference = (
+export const selectMarketFilterPreferences = (
   state: PerpsControllerState,
 ): SortOptionId =>
-  state?.marketSortPreference ?? MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID;
+  state?.marketFilterPreferences ??
+  MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID;

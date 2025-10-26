@@ -17,7 +17,7 @@ jest.mock('react-redux');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
-      saveMarketSortPreference: jest.fn(),
+      saveMarketFilterPreferences: jest.fn(),
     },
   },
 }));
@@ -302,9 +302,9 @@ describe('usePerpsMarketListView', () => {
         'desc' as SortDirection,
       );
 
-      // Should have called Engine's saveMarketSortPreference
+      // Should have called Engine's saveMarketFilterPreferences
       expect(
-        Engine.context.PerpsController.saveMarketSortPreference,
+        Engine.context.PerpsController.saveMarketFilterPreferences,
       ).toHaveBeenCalledWith('priceChange-desc');
     });
 

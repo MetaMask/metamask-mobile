@@ -19,7 +19,7 @@ import {
 import { sortMarkets, type SortField } from '../utils/sortMarkets';
 import {
   selectPerpsWatchlistMarkets,
-  selectPerpsMarketSortPreference,
+  selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 
 interface UsePerpsHomeDataParams {
@@ -34,7 +34,10 @@ interface UsePerpsHomeDataReturn {
   positions: Position[];
   orders: Order[];
   watchlistMarkets: PerpsMarketData[];
-  trendingMarkets: PerpsMarketData[];
+  perpsMarkets: PerpsMarketData[]; // Crypto markets (renamed from trending)
+  stocksMarkets: PerpsMarketData[]; // Equity markets
+  commoditiesMarkets: PerpsMarketData[]; // Commodity markets
+  forexMarkets: PerpsMarketData[]; // Forex markets
   recentActivity: OrderFill[];
   sortBy: SortField;
   isLoading: {
@@ -89,8 +92,8 @@ export const usePerpsHomeData = ({
   // Get watchlist symbols from Redux
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
-  // Get saved market sort preference
-  const savedSortPreference = useSelector(selectPerpsMarketSortPreference);
+  // Get saved market filter preferences
+  const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
 
   // Filter markets that are in watchlist
   const watchlistMarkets = useMemo(
@@ -112,11 +115,45 @@ export const usePerpsHomeData = ({
     };
   }, [savedSortPreference]);
 
-  // Sort markets and apply limit for trending section
-  const trendingMarkets = useMemo(
+  // Filter and sort markets by type
+  // Perps (crypto) - exclude all non-crypto markets
+  const perpsMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets,
+        markets: allMarkets.filter((m) => !m.marketType), // Crypto markets have no marketType
+        sortBy,
+        direction,
+      }).slice(0, trendingLimit),
+    [allMarkets, sortBy, direction, trendingLimit],
+  );
+
+  // Stocks (equity) - top N by user preference
+  const stocksMarkets = useMemo(
+    () =>
+      sortMarkets({
+        markets: allMarkets.filter((m) => m.marketType === 'equity'),
+        sortBy,
+        direction,
+      }).slice(0, trendingLimit),
+    [allMarkets, sortBy, direction, trendingLimit],
+  );
+
+  // Commodities - top N by user preference
+  const commoditiesMarkets = useMemo(
+    () =>
+      sortMarkets({
+        markets: allMarkets.filter((m) => m.marketType === 'commodity'),
+        sortBy,
+        direction,
+      }).slice(0, trendingLimit),
+    [allMarkets, sortBy, direction, trendingLimit],
+  );
+
+  // Forex - top N by user preference
+  const forexMarkets = useMemo(
+    () =>
+      sortMarkets({
+        markets: allMarkets.filter((m) => m.marketType === 'forex'),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -136,7 +173,7 @@ export const usePerpsHomeData = ({
           positions,
           orders: allOrders,
           watchlistMarkets, // Show all watchlisted markets
-          markets: trendingMarkets, // Show top 5 trending when no search
+          markets: perpsMarkets, // Show top 5 perps (crypto) when no search
           fills: allFills,
         };
       }
@@ -175,7 +212,7 @@ export const usePerpsHomeData = ({
       positions,
       allOrders,
       watchlistMarkets,
-      trendingMarkets,
+      perpsMarkets,
       allMarkets,
       allFills,
     ],
@@ -199,20 +236,48 @@ export const usePerpsHomeData = ({
     () => filteredData.watchlistMarkets,
     [filteredData.watchlistMarkets],
   );
-  const limitedMarkets = useMemo(
-    () => filteredData.markets.slice(0, trendingLimit),
-    [filteredData.markets, trendingLimit],
-  );
   const limitedActivity = useMemo(
     () => filteredData.fills.slice(0, activityLimit),
     [filteredData.fills, activityLimit],
   );
 
+  // When searching, split filtered markets by type
+  const searchedPerpsMarkets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return perpsMarkets;
+    }
+    return filteredData.markets.filter((m) => !m.marketType);
+  }, [searchQuery, perpsMarkets, filteredData.markets]);
+
+  const searchedStocksMarkets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return stocksMarkets;
+    }
+    return filteredData.markets.filter((m) => m.marketType === 'equity');
+  }, [searchQuery, stocksMarkets, filteredData.markets]);
+
+  const searchedCommoditiesMarkets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return commoditiesMarkets;
+    }
+    return filteredData.markets.filter((m) => m.marketType === 'commodity');
+  }, [searchQuery, commoditiesMarkets, filteredData.markets]);
+
+  const searchedForexMarkets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return forexMarkets;
+    }
+    return filteredData.markets.filter((m) => m.marketType === 'forex');
+  }, [searchQuery, forexMarkets, filteredData.markets]);
+
   return {
     positions: limitedPositions,
     orders: limitedOrders,
     watchlistMarkets: limitedWatchlistMarkets,
-    trendingMarkets: limitedMarkets,
+    perpsMarkets: searchedPerpsMarkets, // Crypto markets (renamed from trendingMarkets)
+    stocksMarkets: searchedStocksMarkets,
+    commoditiesMarkets: searchedCommoditiesMarkets,
+    forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
     isLoading: {

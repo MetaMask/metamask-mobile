@@ -237,8 +237,8 @@ export type PerpsControllerState = {
     };
   };
 
-  // Market sort preference (network-independent)
-  marketSortPreference: SortOptionId;
+  // Market filter preferences (network-independent) - includes both sorting and filtering options
+  marketFilterPreferences: SortOptionId;
 
   // Error handling
   lastError: string | null;
@@ -287,7 +287,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: {},
     mainnet: {},
   },
-  marketSortPreference: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
 });
 
 /**
@@ -426,7 +426,7 @@ const metadata = {
     anonymous: false,
     usedInUi: true,
   },
-  marketSortPreference: {
+  marketFilterPreferences: {
     includeInStateLogs: true,
     persist: true,
     anonymous: false,
@@ -547,12 +547,12 @@ export type PerpsControllerActions =
       handler: PerpsController['getTradeConfiguration'];
     }
   | {
-      type: 'PerpsController:saveMarketSortPreference';
-      handler: PerpsController['saveMarketSortPreference'];
+      type: 'PerpsController:saveMarketFilterPreferences';
+      handler: PerpsController['saveMarketFilterPreferences'];
     }
   | {
-      type: 'PerpsController:getMarketSortPreference';
-      handler: PerpsController['getMarketSortPreference'];
+      type: 'PerpsController:getMarketFilterPreferences';
+      handler: PerpsController['getMarketFilterPreferences'];
     };
 
 /**
@@ -3989,27 +3989,27 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get saved market sort preference
+   * Get saved market filter preferences
    */
-  getMarketSortPreference(): SortOptionId {
+  getMarketFilterPreferences(): SortOptionId {
     return (
-      this.state.marketSortPreference ??
+      this.state.marketFilterPreferences ??
       MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID
     );
   }
 
   /**
-   * Save market sort preference
-   * @param optionId - Sort option ID
+   * Save market filter preferences
+   * @param optionId - Sort/filter option ID
    */
-  saveMarketSortPreference(optionId: SortOptionId): void {
-    DevLogger.log('PerpsController: Saving market sort preference', {
+  saveMarketFilterPreferences(optionId: SortOptionId): void {
+    DevLogger.log('PerpsController: Saving market filter preferences', {
       optionId,
       timestamp: new Date().toISOString(),
     });
 
     this.update((state) => {
-      state.marketSortPreference = optionId;
+      state.marketFilterPreferences = optionId;
     });
   }
 

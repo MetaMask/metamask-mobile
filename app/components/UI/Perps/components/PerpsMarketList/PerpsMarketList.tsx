@@ -42,6 +42,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   ListHeaderComponent,
   iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
   sortBy = 'volume',
+  showBadge = true,
+  contentContainerStyle,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -53,9 +55,10 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
         onPress={() => onMarketPress(item)}
         iconSize={iconSize}
         displayMetric={sortBy}
+        showBadge={showBadge}
       />
     ),
-    [onMarketPress, iconSize, sortBy],
+    [onMarketPress, iconSize, sortBy, showBadge],
   );
 
   const renderEmpty = useCallback(
@@ -78,7 +81,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       data={markets}
       renderItem={renderItem}
       keyExtractor={(item: PerpsMarketData) => item.symbol}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={ListHeaderComponent}
       testID={testID}

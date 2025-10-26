@@ -34,6 +34,7 @@ const PerpsMarketRowItem = ({
   onPress,
   iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
   displayMetric = 'volume',
+  showBadge = true,
 }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -171,7 +172,7 @@ const PerpsMarketRowItem = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {getDisplayValue}
             </Text>
-            {badgeType && (
+            {showBadge && badgeType && (
               <PerpsBadge
                 type={badgeType}
                 testID={getPerpsMarketRowItemSelector.badge(

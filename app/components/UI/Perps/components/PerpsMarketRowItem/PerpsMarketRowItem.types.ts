@@ -26,4 +26,10 @@ export interface PerpsMarketRowItemProps {
    * @default 'volume'
    */
   displayMetric?: SortField;
+  /**
+   * Whether to show the market type badge (STOCK, COMMODITY, FOREX)
+   * Should be true in watchlist (mixed types) but false in type-specific sections/tabs
+   * @default true
+   */
+  showBadge?: boolean;
 }

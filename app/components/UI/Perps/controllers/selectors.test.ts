@@ -4,7 +4,7 @@ import {
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectHasPlacedFirstOrder,
-  selectMarketSortPreference,
+  selectMarketFilterPreferences,
 } from './selectors';
 import type { PerpsControllerState } from './PerpsController';
 import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
@@ -229,13 +229,13 @@ describe('PerpsController selectors', () => {
     });
   });
 
-  describe('selectMarketSortPreference', () => {
-    it('returns saved sort preference when defined', () => {
+  describe('selectMarketFilterPreferences', () => {
+    it('returns saved filter preferences when defined', () => {
       const state = {
-        marketSortPreference: 'price',
+        marketFilterPreferences: 'price',
       } as unknown as PerpsControllerState;
 
-      const result = selectMarketSortPreference(state);
+      const result = selectMarketFilterPreferences(state);
 
       expect(result).toBe('price');
     });
@@ -243,7 +243,7 @@ describe('PerpsController selectors', () => {
     it('returns default volume when preference is undefined', () => {
       const state = {} as unknown as PerpsControllerState;
 
-      const result = selectMarketSortPreference(state);
+      const result = selectMarketFilterPreferences(state);
 
       expect(result).toBe(MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID);
     });

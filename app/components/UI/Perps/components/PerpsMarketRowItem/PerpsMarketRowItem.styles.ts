@@ -10,8 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+      paddingVertical: 6,
       backgroundColor: colors.background.default,
     },
     perpIcon: {

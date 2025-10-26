@@ -53,6 +53,9 @@ const styleSheet = (params: { theme: Theme }) => {
     listContainerWithTabBar: {
       flex: 1,
     },
+    tabsContainer: {
+      flex: 1,
+    },
     tabBarContainer: {
       position: 'absolute',
       bottom: 0,

@@ -7,6 +7,7 @@ const styleSheet = () =>
     },
     contentContainer: {
       paddingBottom: 16,
+      paddingHorizontal: 16,
     },
     emptyContainer: {
       flex: 1,

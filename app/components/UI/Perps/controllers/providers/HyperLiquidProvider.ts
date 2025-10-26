@@ -10,6 +10,7 @@ import {
   FEE_RATES,
   getBridgeInfo,
   getChainId,
+  HIP3_ASSET_MARKET_TYPES,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   REFERRAL_CONFIG,
@@ -1915,6 +1916,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async closePositions(
     params: ClosePositionsParams,
   ): Promise<ClosePositionsResult> {
+    // Declare outside try block so it's accessible in catch block
+    let positionsToClose: Position[] = [];
+
     try {
       await this.ensureReady();
 
@@ -1922,7 +1926,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const positions = await this.getPositions();
 
       // Filter positions based on params
-      const positionsToClose =
+      positionsToClose =
         params.closeAll || !params.coins || params.coins.length === 0
           ? positions
           : positions.filter((p) => params.coins?.includes(p.coin));
@@ -3477,11 +3481,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     // Transform to UI-friendly format using standalone utility
-    return transformMarketData({
-      universe: combinedUniverse,
-      assetCtxs: combinedAssetCtxs,
-      allMids: combinedAllMids,
-    });
+    return transformMarketData(
+      {
+        universe: combinedUniverse,
+        assetCtxs: combinedAssetCtxs,
+        allMids: combinedAllMids,
+      },
+      HIP3_ASSET_MARKET_TYPES,
+    );
   }
 
   /**

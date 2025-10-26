@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -17,6 +23,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  TabsList,
+  type TabsListRef,
+} from '../../../../../component-library/components-temp/Tabs';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsMarketSortDropdowns from '../../components/PerpsMarketSortDropdowns';
@@ -122,13 +132,17 @@ const PerpsMarketListView = ({
     route.params?.defaultSearchVisible ?? propDefaultSearchVisible ?? false;
   const showWatchlistOnly =
     route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
+  const defaultMarketTypeFilter =
+    route.params?.defaultMarketTypeFilter ?? 'all';
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const tabsListRef = useRef<TabsListRef>(null);
   const hiddenButtonStyle = {
     position: 'absolute' as const,
     opacity: 0,
     pointerEvents: 'box-none' as const,
   };
+  const noPaddingContentStyle = useMemo(() => ({ paddingHorizontal: 0 }), []);
   const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
@@ -139,12 +153,16 @@ const PerpsMarketListView = ({
     searchState,
     sortState,
     favoritesState,
+    marketTypeFilterState,
+    marketCounts,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
     defaultSearchVisible,
     enablePolling: false,
     showWatchlistOnly,
+    defaultMarketTypeFilter,
+    showZeroVolume: true, // Show $0.00 volume markets in list view
   });
 
   // Destructure search state for easier access
@@ -162,6 +180,144 @@ const PerpsMarketListView = ({
   // Destructure favorites state for easier access
   const { showFavoritesOnly, setShowFavoritesOnly } = favoritesState;
 
+  // Destructure market type filter state
+  const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
+
+  // Handler for market press (defined early to avoid use-before-define)
+  const handleMarketPress = useCallback(
+    (market: PerpsMarketData) => {
+      if (onMarketSelect) {
+        onMarketSelect(market);
+      } else {
+        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+          market,
+          source: route.params?.source,
+        });
+      }
+    },
+    [onMarketSelect, navigation, route.params?.source],
+  );
+
+  // Market type tab content component (reusable for all types)
+  const MarketTypeTabContent = useCallback(
+    ({ tabLabel }: { tabLabel: string }) => (
+      <Animated.View
+        style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
+      >
+        <PerpsMarketList
+          markets={filteredMarkets}
+          onMarketPress={handleMarketPress}
+          sortBy={sortBy}
+          showBadge={false}
+          contentContainerStyle={noPaddingContentStyle}
+          testID={`${PerpsMarketListViewSelectorsIDs.MARKET_LIST}-${tabLabel}`}
+        />
+      </Animated.View>
+    ),
+    [
+      filteredMarkets,
+      handleMarketPress,
+      sortBy,
+      fadeAnimation,
+      styles.animatedListContainer,
+      noPaddingContentStyle,
+    ],
+  );
+
+  // Build tabs array dynamically based on available markets (hide empty tabs)
+  const tabsToRender = useMemo(() => {
+    const tabs = [];
+
+    if (marketCounts.crypto > 0) {
+      tabs.push(
+        <MarketTypeTabContent
+          key="crypto-tab"
+          tabLabel={strings('perps.home.perps')}
+        />,
+      );
+    }
+
+    if (marketCounts.equity > 0) {
+      tabs.push(
+        <MarketTypeTabContent
+          key="equity-tab"
+          tabLabel={strings('perps.home.stocks')}
+        />,
+      );
+    }
+
+    if (marketCounts.commodity > 0) {
+      tabs.push(
+        <MarketTypeTabContent
+          key="commodity-tab"
+          tabLabel={strings('perps.home.commodities')}
+        />,
+      );
+    }
+
+    if (marketCounts.forex > 0) {
+      tabs.push(
+        <MarketTypeTabContent
+          key="forex-tab"
+          tabLabel={strings('perps.home.forex')}
+        />,
+      );
+    }
+
+    return tabs;
+  }, [marketCounts, MarketTypeTabContent]);
+
+  // Calculate active tab index from current marketTypeFilter
+  const activeTabIndex = useMemo(() => {
+    if (marketTypeFilter === 'all' || tabsToRender.length === 0) {
+      return 0; // Default to first tab
+    }
+
+    // Map filter to index based on available tabs
+    const filterToKeyMap = {
+      crypto: 'crypto-tab',
+      equity: 'equity-tab',
+      commodity: 'commodity-tab',
+      forex: 'forex-tab',
+    };
+
+    const targetKey =
+      filterToKeyMap[marketTypeFilter as keyof typeof filterToKeyMap];
+    const index = tabsToRender.findIndex((tab) => tab.key === targetKey);
+    return index >= 0 ? index : 0;
+  }, [marketTypeFilter, tabsToRender]);
+
+  // Handle tab change (when user swipes)
+  const handleTabChange = useCallback(
+    ({ i }: { i: number }) => {
+      // Map index back to market type filter
+      const keyToFilterMap: Record<
+        string,
+        'crypto' | 'equity' | 'commodity' | 'forex'
+      > = {
+        'crypto-tab': 'crypto',
+        'equity-tab': 'equity',
+        'commodity-tab': 'commodity',
+        'forex-tab': 'forex',
+      };
+
+      const tabKey = tabsToRender[i]?.key;
+      const filter = tabKey ? keyToFilterMap[tabKey as string] : undefined;
+
+      if (filter) {
+        setMarketTypeFilter(filter);
+      }
+    },
+    [tabsToRender, setMarketTypeFilter],
+  );
+
+  // Sync TabsList when active tab changes (e.g., from navigation param)
+  useEffect(() => {
+    if (tabsListRef.current && activeTabIndex >= 0 && tabsToRender.length > 0) {
+      tabsListRef.current.goToTabIndex(activeTabIndex);
+    }
+  }, [activeTabIndex, tabsToRender.length]);
+
   useEffect(() => {
     if (filteredMarkets.length > 0) {
       Animated.timing(fadeAnimation, {
@@ -173,17 +329,6 @@ const PerpsMarketListView = ({
   }, [filteredMarkets.length, fadeAnimation]);
 
   const { track } = usePerpsEventTracking();
-
-  const handleMarketPress = (market: PerpsMarketData) => {
-    if (onMarketSelect) {
-      onMarketSelect(market);
-    } else {
-      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-        market,
-        source: route.params?.source,
-      });
-    }
-  };
 
   const handleBackPressed = () => {
     // Navigate back to the main Perps tab
@@ -343,6 +488,7 @@ const PerpsMarketListView = ({
           markets={filteredMarkets}
           onMarketPress={handleMarketPress}
           sortBy={sortBy}
+          showBadge={false}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -533,7 +679,36 @@ const PerpsMarketListView = ({
           />
         )}
 
-      <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
+      {/* Market Type Tabs - Only visible when search is NOT active and tabs exist */}
+      {!isSearchVisible &&
+        !isLoadingMarkets &&
+        !error &&
+        tabsToRender.length > 0 && (
+          <View style={styles.tabsContainer}>
+            <TabsList
+              ref={tabsListRef}
+              onChangeTab={handleTabChange}
+              key={`market-tabs-${tabsToRender.length}`}
+            >
+              {tabsToRender}
+            </TabsList>
+          </View>
+        )}
+
+      {/* Market list hidden when tabs are shown (tabs contain the list) */}
+      {!isSearchVisible &&
+        !isLoadingMarkets &&
+        !error &&
+        tabsToRender.length === 0 && (
+          <View style={styles.listContainerWithTabBar}>
+            {renderMarketList()}
+          </View>
+        )}
+
+      {/* Show regular list when searching or loading */}
+      {(isSearchVisible || isLoadingMarkets || error) && (
+        <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
+      )}
 
       {/* Bottom navbar - only show in full variant, hidden when search visible */}
       {showBottomNav && variant === 'full' && shouldShowNavbar && (

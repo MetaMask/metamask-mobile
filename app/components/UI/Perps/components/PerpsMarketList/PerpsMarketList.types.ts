@@ -1,5 +1,6 @@
 import type { PerpsMarketData } from '../../controllers/types';
 import type { SortField } from '../../utils/sortMarkets';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 /**
  * Props for PerpsMarketList component
@@ -36,6 +37,15 @@ export interface PerpsMarketListProps {
    * @default 'volume'
    */
   sortBy?: SortField;
+  /**
+   * Whether to show market type badges (STOCK, COMMODITY, FOREX) on row items
+   * @default true
+   */
+  showBadge?: boolean;
+  /**
+   * Optional style for the FlashList content container
+   */
+  contentContainerStyle?: StyleProp<ViewStyle>;
   /**
    * Test ID for E2E testing
    */

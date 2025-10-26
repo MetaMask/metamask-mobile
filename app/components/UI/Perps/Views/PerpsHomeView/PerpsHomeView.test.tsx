@@ -167,10 +167,6 @@ jest.mock(
   () => 'PerpsWatchlistMarkets',
 );
 jest.mock(
-  '../../components/PerpsTrendingMarkets/PerpsTrendingMarkets',
-  () => 'PerpsTrendingMarkets',
-);
-jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
 );
@@ -495,7 +491,6 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(UNSAFE_getByType('PerpsMarketBalanceActions' as never)).toBeTruthy();
-    expect(UNSAFE_getByType('PerpsTrendingMarkets' as never)).toBeTruthy();
     expect(UNSAFE_getByType('PerpsRecentActivityList' as never)).toBeTruthy();
   });
 

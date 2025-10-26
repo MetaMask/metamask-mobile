@@ -1523,8 +1523,12 @@
       "see_all": "See all",
       "positions": "Positions",
       "orders": "Orders",
-      "trending": "Trending",
-      "watchlist": "Watchlist"
+      "perps": "Perps",
+      "stocks": "Stocks",
+      "commodities": "Commodities",
+      "forex": "Forex",
+      "watchlist": "Watchlist",
+      "markets": "Markets"
     },
     "learn_more": {
       "title": "Learn more about Perps",

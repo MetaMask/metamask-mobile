@@ -74,6 +74,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showBottomNav?: boolean;
     defaultSearchVisible?: boolean;
     showWatchlistOnly?: boolean;
+    defaultMarketTypeFilter?:
+      | 'crypto'
+      | 'equity'
+      | 'commodity'
+      | 'forex'
+      | 'all';
   };
 
   PerpsMarketDetails: {

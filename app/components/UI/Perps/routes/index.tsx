@@ -89,15 +89,15 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.TRENDING}
+          name={Routes.PERPS.MARKET_LIST}
           component={PerpsMarketListView}
           options={{
-            title: strings('perps.home.trending'),
+            title: strings('perps.home.markets'),
             headerShown: false,
           }}
           initialParams={{
             variant: 'full',
-            title: strings('perps.home.trending'),
+            title: strings('perps.home.markets'),
             showBalanceActions: false,
             showBottomNav: true,
             defaultSearchVisible: false,

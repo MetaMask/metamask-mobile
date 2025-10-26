@@ -249,7 +249,7 @@ const Routes = {
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
-    TRENDING: 'PerpsTrendingView',
+    MARKET_LIST: 'PerpsTrendingView', // Keep original screen name to avoid breaking navigation state
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',

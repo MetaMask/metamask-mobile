@@ -5,10 +5,7 @@ import type {
   PredictedFunding,
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import {
-  HYPERLIQUID_CONFIG,
-  HIP3_DEX_MARKET_TYPES,
-} from '../constants/hyperLiquidConfig';
+import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
 import type { PerpsMarketData, MarketType } from '../controllers/types';
 import {
   formatVolume,
@@ -138,6 +135,7 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
  */
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
+  assetMarketTypes?: Record<string, MarketType>,
 ): PerpsMarketData[] {
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
@@ -200,9 +198,9 @@ export function transformMarketData(
     // Extract DEX and determine market type for badge display
     const { dex } = parseAssetName(symbol);
     const marketSource = dex || undefined;
-    const marketType: MarketType | undefined = dex
-      ? HIP3_DEX_MARKET_TYPES[dex as keyof typeof HIP3_DEX_MARKET_TYPES]
-      : undefined;
+
+    // Simple per-asset lookup from feature flag (e.g., 'xyz:GOLD' → 'commodity')
+    const marketType: MarketType | undefined = assetMarketTypes?.[symbol];
 
     return {
       symbol,

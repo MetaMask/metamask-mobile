@@ -30,7 +30,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
 
   const handleViewAll = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.TRENDING,
+      screen: Routes.PERPS.MARKET_LIST,
       params: {
         showWatchlistOnly: true,
       },

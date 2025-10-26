@@ -8,7 +8,7 @@ import type { SortField, SortDirection } from '../utils/sortMarkets';
 import { PERPS_CONSTANTS, type SortOptionId } from '../constants/perpsConfig';
 import {
   selectPerpsWatchlistMarkets,
-  selectPerpsMarketSortPreference,
+  selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
 
@@ -28,6 +28,16 @@ interface UsePerpsMarketListViewParams {
    * @default false
    */
   showWatchlistOnly?: boolean;
+  /**
+   * Initial market type filter
+   * @default 'all'
+   */
+  defaultMarketTypeFilter?: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all';
+  /**
+   * Show markets with $0.00 volume
+   * @default false
+   */
+  showZeroVolume?: boolean;
 }
 
 interface UsePerpsMarketListViewReturn {
@@ -65,6 +75,24 @@ interface UsePerpsMarketListViewReturn {
   favoritesState: {
     showFavoritesOnly: boolean;
     setShowFavoritesOnly: (show: boolean) => void;
+  };
+  /**
+   * Market type filter state (not persisted, UI-only)
+   */
+  marketTypeFilterState: {
+    marketTypeFilter: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all';
+    setMarketTypeFilter: (
+      filter: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all',
+    ) => void;
+  };
+  /**
+   * Market counts by type (for hiding empty tabs)
+   */
+  marketCounts: {
+    crypto: number;
+    equity: number;
+    commodity: number;
+    forex: number;
   };
   /**
    * Loading state
@@ -110,6 +138,8 @@ export const usePerpsMarketListView = ({
   defaultSearchVisible = false,
   enablePolling = false,
   showWatchlistOnly = false,
+  defaultMarketTypeFilter = 'all',
+  showZeroVolume = false,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
   const {
@@ -122,15 +152,35 @@ export const usePerpsMarketListView = ({
 
   // Get Redux state
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
-  const savedSortPreference = useSelector(selectPerpsMarketSortPreference);
+  const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
 
   // Favorites filter state
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
+
+  // Market type filter state (can be changed in UI, not persisted)
+  const [marketTypeFilter, setMarketTypeFilter] = useState<
+    'crypto' | 'equity' | 'commodity' | 'forex' | 'all'
+  >(defaultMarketTypeFilter);
 
   // Filter out markets with no valid volume
   const marketsWithVolume = useMemo(
     () =>
       allMarkets.filter((market: PerpsMarketData) => {
+        // Always filter out fallback/error values
+        if (
+          market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
+          market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+        ) {
+          return false;
+        }
+
+        // If showZeroVolume is true, allow $0.00 and $0 values
+        if (showZeroVolume) {
+          // Only filter if volume is completely missing
+          return !!market.volume;
+        }
+
+        // Default behavior: filter out zero and missing values
         if (
           !market.volume ||
           market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY ||
@@ -138,24 +188,41 @@ export const usePerpsMarketListView = ({
         ) {
           return false;
         }
-        if (
-          market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
-          market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
-        ) {
-          return false;
-        }
+
         return true;
       }),
-    [allMarkets],
+    [allMarkets, showZeroVolume],
   );
 
   // Use search hook for search state and filtering
+  // Pass ALL markets to search so it can search across all market types
   const searchHook = usePerpsSearch({
     markets: marketsWithVolume,
     initialSearchVisible: defaultSearchVisible,
   });
 
-  const { filteredMarkets: searchedMarkets } = searchHook;
+  const { filteredMarkets: searchedMarkets, searchQuery } = searchHook;
+
+  // Apply market type filter AFTER search
+  // When searching: show all search results across all market types
+  // When not searching: filter by current tab
+  const marketTypeFilteredMarkets = useMemo(() => {
+    // If searching, return search results from all markets (ignore tab filter)
+    if (searchQuery.trim()) {
+      return searchedMarkets;
+    }
+
+    // If not searching, filter by current tab
+    if (marketTypeFilter === 'all') {
+      return searchedMarkets;
+    }
+    if (marketTypeFilter === 'crypto') {
+      // Crypto markets have no marketType set
+      return searchedMarkets.filter((m) => !m.marketType);
+    }
+    // Filter by specific market type (equity, commodity, forex)
+    return searchedMarkets.filter((m) => m.marketType === marketTypeFilter);
+  }, [searchedMarkets, searchQuery, marketTypeFilter]);
 
   // Use sorting hook for sort state and sorting logic
   const sortingHook = usePerpsSorting({
@@ -166,7 +233,7 @@ export const usePerpsMarketListView = ({
   const handleOptionChange = useCallback(
     (optionId: SortOptionId, field: SortField, direction: SortDirection) => {
       // Save preference to controller
-      Engine.context.PerpsController.saveMarketSortPreference(optionId);
+      Engine.context.PerpsController.saveMarketFilterPreferences(optionId);
       // Update local state
       sortingHook.handleOptionChange(optionId, field, direction);
     },
@@ -176,15 +243,32 @@ export const usePerpsMarketListView = ({
   // Apply favorites filter if enabled
   const favoritesFilteredMarkets = useMemo(() => {
     if (!showFavoritesOnly) {
-      return searchedMarkets;
+      return marketTypeFilteredMarkets;
     }
-    return searchedMarkets.filter((market) =>
+    return marketTypeFilteredMarkets.filter((market) =>
       watchlistMarkets.includes(market.symbol),
     );
-  }, [searchedMarkets, showFavoritesOnly, watchlistMarkets]);
+  }, [marketTypeFilteredMarkets, showFavoritesOnly, watchlistMarkets]);
 
   // Apply sorting to searched and favorites-filtered markets
   const finalMarkets = sortingHook.sortMarketsList(favoritesFilteredMarkets);
+
+  // Calculate market counts by type (for hiding empty tabs)
+  const marketCounts = useMemo(() => {
+    const counts = { crypto: 0, equity: 0, commodity: 0, forex: 0 };
+    marketsWithVolume.forEach((market) => {
+      if (!market.marketType) {
+        counts.crypto++;
+      } else if (market.marketType === 'equity') {
+        counts.equity++;
+      } else if (market.marketType === 'commodity') {
+        counts.commodity++;
+      } else if (market.marketType === 'forex') {
+        counts.forex++;
+      }
+    });
+    return counts;
+  }, [marketsWithVolume]);
 
   return {
     markets: finalMarkets,
@@ -206,6 +290,11 @@ export const usePerpsMarketListView = ({
       showFavoritesOnly,
       setShowFavoritesOnly,
     },
+    marketTypeFilterState: {
+      marketTypeFilter,
+      setMarketTypeFilter,
+    },
+    marketCounts,
     isLoading: isLoadingMarkets,
     error,
   };
