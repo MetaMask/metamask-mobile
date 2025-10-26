@@ -48,6 +48,7 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
+import TrendingView from '../../Views/TrendingView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -104,6 +105,7 @@ import {
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -273,6 +275,16 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
       component={ReferralBottomSheetModal}
+    />
+  </Stack.Navigator>
+);
+
+const TrendingHome = () => (
+  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen
+      name={Routes.TRENDING_VIEW}
+      component={TrendingView}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -512,6 +524,9 @@ const HomeTabs = () => {
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
+  );
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -580,6 +595,18 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
+      unmountOnBlur: true,
+    },
+    trending: {
+      tabBarIconKey: TabBarIconKey.Trending,
+      callback: () => {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
+          ).build(),
+        );
+      },
+      rootScreenName: Routes.TRENDING_VIEW,
       unmountOnBlur: true,
     },
     settings: {
@@ -653,12 +680,21 @@ const HomeTabs = () => {
         options={options.home}
         component={WalletTabModalFlow}
       />
-      <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={options.browser}
-        component={BrowserFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {isAssetsTrendingTokensEnabled ? (
+        <Tab.Screen
+          name={Routes.TRENDING_VIEW}
+          options={options.trending}
+          component={TrendingHome}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.BROWSER.HOME}
+          options={options.browser}
+          component={BrowserFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      )}
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
@@ -670,21 +706,20 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-      {isRewardsEnabled ? (
+      {isRewardsEnabled && (
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
           component={RewardsHome}
           layout={({ children }) => UnmountOnBlurComponent(children)}
         />
-      ) : (
-        <Tab.Screen
-          name={Routes.SETTINGS_VIEW}
-          options={options.settings}
-          component={SettingsFlow}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
       )}
+      <Tab.Screen
+        name={Routes.SETTINGS_VIEW}
+        options={options.settings}
+        component={SettingsFlow}
+        layout={({ children }) => UnmountOnBlurComponent(children)}
+      />
     </Tab.Navigator>
   );
 };
