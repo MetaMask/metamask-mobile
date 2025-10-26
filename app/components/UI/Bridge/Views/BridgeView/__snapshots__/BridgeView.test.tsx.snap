@@ -899,7 +899,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       {
                                         "flex": 1,
                                         "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
                                       },
                                     ]
                                   }
@@ -1624,7 +1623,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
-                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -2560,7 +2558,6 @@ exports[`BridgeView renders 1`] = `
                                       {
                                         "flex": 1,
                                         "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
                                       },
                                     ]
                                   }
@@ -3285,7 +3282,6 @@ exports[`BridgeView renders 1`] = `
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
-                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
