@@ -1,6 +1,6 @@
-import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useMemo } from 'react';
 import { View, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef, FlashListProps } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -11,29 +11,18 @@ import createStyles from '../styles';
 import TextComponent, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListItem, TokenListItemBip44 } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
-
-export interface FlashListAssetKey {
-  address: string;
-  chainId: string | undefined;
-  isStaked: boolean | undefined;
-}
-
-interface TokenListProps {
-  tokenKeys: FlashListAssetKey[];
-  refreshing: boolean;
-  onRefresh: () => void;
-  showRemoveMenu: (arg: TokenI) => void;
-  showPercentageChange?: boolean;
-  setShowScamWarningModal: () => void;
-  flashListProps?: Partial<FlashListProps<FlashListAssetKey>>;
-}
+import { FlashListAssetKey, TokenListProps } from './TokenList.types';
+import {
+  Box,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 
 const TokenListComponent = ({
   tokenKeys,
@@ -43,6 +32,7 @@ const TokenListComponent = ({
   showPercentageChange = true,
   setShowScamWarningModal,
   flashListProps,
+  maxItems,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -73,6 +63,10 @@ const TokenListComponent = ({
     });
   };
 
+  const handleViewAllTokens = useCallback(() => {
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+  }, [navigation]);
+
   const renderTokenListItem = useCallback(
     ({ item }: { item: FlashListAssetKey }) => (
       <TokenListItemComponent
@@ -92,33 +86,60 @@ const TokenListComponent = ({
     ],
   );
 
-  return tokenKeys?.length ? (
-    <FlashList
-      ref={listRef}
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={tokenKeys}
-      removeClippedSubviews={false}
-      viewabilityConfig={{
-        itemVisiblePercentThreshold: 50,
-        minimumViewTime: 1000,
-      }}
-      renderItem={renderTokenListItem}
-      keyExtractor={(item, idx) => {
-        const staked = item.isStaked ? 'staked' : 'unstaked';
-        return `${item.address}-${item.chainId}-${staked}-${idx}`;
-      }}
-      decelerationRate="fast"
-      refreshControl={
-        <RefreshControl
-          colors={[colors.primary.default]}
-          tintColor={colors.icon.default}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-      }
-      extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
-      {...flashListProps}
-    />
+  // Apply maxItems limit if specified
+  const displayTokenKeys = useMemo(() => {
+    if (maxItems === undefined) {
+      return tokenKeys;
+    }
+    return tokenKeys.slice(0, maxItems);
+  }, [tokenKeys, maxItems]);
+
+  // Determine if we should show the "View all tokens" button
+  const shouldShowViewAllButton = useMemo(
+    () => maxItems !== undefined && tokenKeys.length > maxItems,
+    [maxItems, tokenKeys.length],
+  );
+
+  return displayTokenKeys?.length ? (
+    <Box twClassName="flex-1 bg-default">
+      <FlashList
+        ref={listRef}
+        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+        data={displayTokenKeys}
+        removeClippedSubviews={false}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+          minimumViewTime: 1000,
+        }}
+        renderItem={renderTokenListItem}
+        keyExtractor={(item, idx) => {
+          const staked = item.isStaked ? 'staked' : 'unstaked';
+          return `${item.address}-${item.chainId}-${staked}-${idx}`;
+        }}
+        decelerationRate="fast"
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+        extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+        {...flashListProps}
+      />
+      {shouldShowViewAllButton && (
+        <Box twClassName="pt-3 pb-9">
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={handleViewAllTokens}
+            isFullWidth
+          >
+            {strings('wallet.view_all_tokens')}
+          </Button>
+        </Box>
+      )}
+    </Box>
   ) : (
     <View style={styles.emptyView}>
       <View style={styles.emptyTokensView}>

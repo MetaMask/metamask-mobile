@@ -25,12 +25,7 @@ import { refreshTokens, removeEvmToken, goToAddEvmToken } from '../util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {
-  Button,
-  ButtonVariant,
-  Box,
-} from '@metamask/design-system-react-native';
-import Routes from '../../../../constants/navigation/Routes';
+import { Box } from '@metamask/design-system-react-native';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { TokenListControlBar } from '../TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../../selectors/accountsController';
@@ -250,26 +245,12 @@ const TokensTabView = memo(() => {
     setShowScamWarningModal((prev) => !prev);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const navigateToTokensFullView = useCallback(() => {
-    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
-  }, [navigation]);
-
   return (
     <Box
       twClassName="flex-1 bg-default"
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <TokenListControlBar goToAddToken={goToAddToken} />
-      {/* Uncomment these lines to review TokensFullView */}
-      {/* <Box twClassName="px-4 py-2">
-        <Button
-          variant={ButtonVariant.Secondary}
-          onPress={navigateToTokensFullView}
-        >
-          {strings('wallet.view_all_tokens')}
-        </Button>
-      </Box> */}
       {!isTokensLoading &&
       renderedTokenKeys.length === 0 &&
       progressiveTokens.length === 0 ? (
