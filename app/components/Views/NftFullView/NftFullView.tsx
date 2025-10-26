@@ -19,7 +19,7 @@ interface NFTNavigationParamList {
   [key: string]: undefined | object;
 }
 
-const NftsFullView = () => {
+const NftFullView = () => {
   const navigation =
     useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
   const tw = useTailwind();
@@ -71,4 +71,4 @@ const NftsFullView = () => {
   );
 };
 
-export default NftsFullView;
+export default NftFullView;

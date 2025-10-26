@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import NftsFullView from './NftsFullView';
+import NftFullView from './NftFullView';
 
 // Mock external dependencies that are not under test
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -21,15 +21,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-describe('NftsFullView', () => {
+describe('NftFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders header with title and back button', () => {
     // Arrange
-    const { getByTestId } = renderScreen(NftsFullView, {
-      name: 'NftsFullView',
+    const { getByTestId } = renderScreen(NftFullView, {
+      name: 'NftFullView',
     });
 
     // Act
@@ -45,8 +45,8 @@ describe('NftsFullView', () => {
 
   it('renders control bar with add collectible button', () => {
     // Arrange
-    const { getByTestId } = renderScreen(NftsFullView, {
-      name: 'NftsFullView',
+    const { getByTestId } = renderScreen(NftFullView, {
+      name: 'NftFullView',
     });
 
     // Act
@@ -60,8 +60,8 @@ describe('NftsFullView', () => {
 
   it('renders NFT grid', () => {
     // Arrange
-    const { getByTestId } = renderScreen(NftsFullView, {
-      name: 'NftsFullView',
+    const { getByTestId } = renderScreen(NftFullView, {
+      name: 'NftFullView',
     });
 
     // Act
@@ -82,8 +82,8 @@ describe('NftsFullView', () => {
       }),
     }));
 
-    const { getByTestId } = renderScreen(NftsFullView, {
-      name: 'NftsFullView',
+    const { getByTestId } = renderScreen(NftFullView, {
+      name: 'NftFullView',
     });
 
     // Act
@@ -117,8 +117,8 @@ describe('NftsFullView', () => {
       }),
     }));
 
-    const { getByTestId } = renderScreen(NftsFullView, {
-      name: 'NftsFullView',
+    const { getByTestId } = renderScreen(NftFullView, {
+      name: 'NftFullView',
     });
 
     // Act
@@ -135,8 +135,8 @@ describe('NftsFullView', () => {
 
   it('renders with safe area view', () => {
     // Arrange
-    const { getByTestId } = renderScreen(NftsFullView, {
-      name: 'NftsFullView',
+    const { getByTestId } = renderScreen(NftFullView, {
+      name: 'NftFullView',
     });
 
     // Act
@@ -148,8 +148,8 @@ describe('NftsFullView', () => {
 
   it('displays correct header title', () => {
     // Arrange
-    const { getByText } = renderScreen(NftsFullView, {
-      name: 'NftsFullView',
+    const { getByText } = renderScreen(NftFullView, {
+      name: 'NftFullView',
     });
 
     // Act

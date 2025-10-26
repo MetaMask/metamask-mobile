@@ -3,13 +3,13 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import BaseControlBar from '../shared/BaseControlBar';
+import BaseControlBar from '../../UI/shared/BaseControlBar';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { Box } from '@metamask/design-system-react-native';
-import NftGrid from '../NftGrid/NftGrid';
+import NftGrid from '../../UI/NftGrid/NftGrid';
 import { FlashListProps } from '@shopify/flash-list';
 import { Nft } from '@metamask/assets-controllers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -23,7 +23,7 @@ interface NFTsProps {
   flashListProps?: Partial<FlashListProps<Nft[]>>;
 }
 
-const NFTsTabView = ({ flashListProps }: NFTsProps) => {
+const NftTabView = ({ flashListProps }: NFTsProps) => {
   const navigation =
     useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -46,7 +46,7 @@ const NFTsTabView = ({ flashListProps }: NFTsProps) => {
   );
 
   return (
-    <Box twClassName="flex-1 pb-9">
+    <Box twClassName="flex-1">
       <BaseControlBar
         networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
         useEvmSelectionLogic={false}
@@ -63,4 +63,4 @@ const NFTsTabView = ({ flashListProps }: NFTsProps) => {
   );
 };
 
-export default NFTsTabView;
+export default NftTabView;

@@ -176,7 +176,7 @@ const NftGrid = ({
 
       {/* View all NFTs button - shown when there are more items than maxItems */}
       {shouldShowViewAllButton && (
-        <Box twClassName="pt-3">
+        <Box twClassName="pt-3 pb-9">
           <Button
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllNfts}

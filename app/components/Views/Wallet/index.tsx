@@ -184,7 +184,7 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NFTsTabView from '../../UI/NFTsTabView';
+import NftTabView from '../NftTabView';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
@@ -427,7 +427,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
 
     if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
-      tabs.push(<NFTsTabView {...nftsTabProps} key={nftsTabProps.key} />);
+      tabs.push(<NftTabView {...nftsTabProps} key={nftsTabProps.key} />);
     }
 
     return tabs;
