@@ -1,23 +1,23 @@
-import { DeFiPositionsControllerMessenger } from '@metamask/assets-controllers';
-import {
-  AccountsControllerAccountAddedEvent,
-  AccountsControllerListAccountsAction,
-} from '@metamask/accounts-controller';
-import {
-  KeyringControllerLockEvent,
-  KeyringControllerUnlockEvent,
-} from '@metamask/keyring-controller';
+import { KeyringControllerLockEvent } from '@metamask/keyring-controller';
 import { TransactionControllerTransactionConfirmedEvent } from '@metamask/transaction-controller';
 import { Messenger } from '@metamask/base-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
 
-type Actions = AccountsControllerListAccountsAction;
+type AllowedActions =
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction;
 
-type Events =
-  | KeyringControllerUnlockEvent
+type AllowedEvents =
   | KeyringControllerLockEvent
   | TransactionControllerTransactionConfirmedEvent
-  | AccountsControllerAccountAddedEvent;
+  | AccountTreeControllerSelectedAccountGroupChangeEvent;
+
+export type DeFiPositionsControllerMessenger = ReturnType<
+  typeof getDeFiPositionsControllerMessenger
+>;
 
 /**
  * Get a restricted messenger for the DeFiPositionsController.
@@ -26,16 +26,17 @@ type Events =
  * @returns The restricted messenger.
  */
 export function getDeFiPositionsControllerMessenger(
-  messenger: Messenger<Actions, Events>,
-): DeFiPositionsControllerMessenger {
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
   return messenger.getRestricted({
     name: 'DeFiPositionsController',
-    allowedActions: ['AccountsController:listAccounts'],
+    allowedActions: [
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+    ],
     allowedEvents: [
-      'KeyringController:unlock',
       'KeyringController:lock',
       'TransactionController:transactionConfirmed',
-      'AccountsController:accountAdded',
+      'AccountTreeController:selectedAccountGroupChange',
     ],
   });
 }
@@ -51,7 +52,7 @@ export function getDeFiPositionsControllerInitMessenger(
 ) {
   return messenger.getRestricted({
     name: 'DeFiPositionsControllerInit',
-    allowedEvents: [],
     allowedActions: ['RemoteFeatureFlagController:getState'],
+    allowedEvents: [],
   });
 }
