@@ -99,6 +99,51 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  usePerpsNavigation: jest.fn(() => ({
+    navigateToWallet: jest.fn(),
+    navigateToBrowser: jest.fn(),
+    navigateToActions: jest.fn(),
+    navigateToActivity: jest.fn(),
+    navigateToRewardsOrSettings: jest.fn(),
+    navigateToMarketDetails: jest.fn(),
+    navigateToHome: jest.fn(),
+    navigateToMarketList: jest.fn(),
+    navigateBack: jest.fn(),
+    canGoBack: true,
+  })),
+  usePerpsMarketListView: jest.fn(() => ({
+    markets: [],
+    searchState: {
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      isSearchVisible: false,
+      setIsSearchVisible: jest.fn(),
+      toggleSearchVisibility: jest.fn(),
+      clearSearch: jest.fn(),
+    },
+    sortState: {
+      selectedOptionId: 'volume',
+      sortBy: 'volume',
+      direction: 'desc',
+      handleOptionChange: jest.fn(),
+    },
+    favoritesState: {
+      showFavoritesOnly: false,
+      setShowFavoritesOnly: jest.fn(),
+    },
+    marketTypeFilterState: {
+      marketTypeFilter: 'all',
+      setMarketTypeFilter: jest.fn(),
+    },
+    marketCounts: {
+      crypto: 0,
+      equity: 0,
+      commodity: 0,
+      forex: 0,
+    },
+    isLoading: false,
+    error: null,
+  })),
   formatFeeRate: jest.fn((rate) => `${((rate || 0) * 100).toFixed(3)}%`),
   usePerpsMeasurement: jest.fn(),
 }));
@@ -112,6 +157,42 @@ jest.mock('../../components/PerpsMarketBalanceActions', () => {
       View,
       { testID: 'perps-market-balance-actions' },
       MockReact.createElement(Text, null, 'Balance Actions Mock'),
+    );
+  };
+});
+
+jest.mock('./components/PerpsMarketFiltersBar', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  return function PerpsMarketFiltersBar({
+    selectedOptionId,
+    onSortPress,
+    onWatchlistToggle,
+    testID,
+  }: {
+    selectedOptionId: string;
+    onSortPress: () => void;
+    showWatchlistOnly: boolean;
+    onWatchlistToggle: () => void;
+    testID?: string;
+  }) {
+    return MockReact.createElement(
+      View,
+      { testID },
+      MockReact.createElement(
+        TouchableOpacity,
+        { testID: testID ? `${testID}-sort` : undefined, onPress: onSortPress },
+        MockReact.createElement(Text, null, selectedOptionId),
+      ),
+      MockReact.createElement(
+        TouchableOpacity,
+        {
+          testID: testID ? `${testID}-watchlist-toggle` : undefined,
+          onPress: onWatchlistToggle,
+        },
+        MockReact.createElement(Text, null, 'Watchlist'),
+      ),
     );
   };
 });

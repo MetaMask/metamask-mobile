@@ -22,8 +22,8 @@ import {
 } from '../../../../../component-library/components-temp/Tabs';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
-import PerpsMarketSortDropdowns from '../../components/PerpsMarketSortDropdowns';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
+import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import PerpsBottomTabBar from '../../components/PerpsBottomTabBar';
 import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
@@ -458,14 +458,16 @@ const PerpsMarketListView = ({
         <PerpsMarketBalanceActions />
       )}
 
-      {/* Sort Dropdowns - Only visible when search is NOT active */}
+      {/* Filter Bar - Only visible when search is NOT active */}
       {!isSearchVisible &&
         !isLoadingMarkets &&
         !error &&
         (filteredMarkets.length > 0 || showFavoritesOnly) && (
-          <PerpsMarketSortDropdowns
+          <PerpsMarketFiltersBar
             selectedOptionId={selectedOptionId}
             onSortPress={() => setIsSortFieldSheetVisible(true)}
+            showWatchlistOnly={showFavoritesOnly}
+            onWatchlistToggle={handleFavoritesToggle}
             testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
           />
         )}

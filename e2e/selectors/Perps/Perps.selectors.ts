@@ -114,6 +114,7 @@ export const PerpsMarketListViewSelectorsIDs = {
   LIST_HEADER: 'perps-market-list-header',
   MARKET_LIST: 'perps-market-list',
   SORT_FILTERS: 'perps-market-list-sort-filters',
+  WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
 };
 
 // ========================================
