@@ -630,14 +630,6 @@ export class PerpsController extends BaseController<
   private readonly equityEnabled: boolean;
   private readonly enabledDexs: string[];
 
-  // Guard to prevent concurrent cancelOrders calls
-  // Using Promise tracking for proper atomicity instead of simple boolean flag
-  private cancelOrdersOperation: Promise<CancelOrdersResult> | null = null;
-
-  // Guard to prevent concurrent closePositions calls
-  // Using Promise tracking for proper atomicity instead of simple boolean flag
-  private closePositionsOperation: Promise<ClosePositionsResult> | null = null;
-
   constructor({
     messenger,
     state = {},
@@ -1571,166 +1563,143 @@ export class PerpsController extends BaseController<
    * Batch version of cancelOrder() that cancels multiple orders simultaneously
    */
   async cancelOrders(params: CancelOrdersParams): Promise<CancelOrdersResult> {
-    DevLogger.log('[cancelOrders] === ENTRY ===', {
-      timestamp: Date.now(),
-      cancelAll: params.cancelAll,
-      hasOngoingOperation: this.cancelOrdersOperation !== null,
-    });
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let operationResult: CancelOrdersResult | null = null;
+    let operationError: Error | null = null;
 
-    // Guard: Prevent concurrent calls by returning the existing operation's promise
-    // This ensures atomicity and allows subsequent calls to wait for the result
-    if (this.cancelOrdersOperation) {
-      DevLogger.log('[cancelOrders] === WAITING for existing operation ===', {
-        timestamp: Date.now(),
-        cancelAll: params.cancelAll,
+    try {
+      trace({
+        name: TraceName.PerpsCancelOrder,
+        id: traceId,
+        op: TraceOperation.PerpsOrderSubmission,
+        tags: {
+          provider: this.state.activeProvider,
+          isBatch: 'true',
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          cancelAll: params.cancelAll ? 'true' : 'false',
+          coinCount: params.coins?.length || 0,
+          orderIdCount: params.orderIds?.length || 0,
+        },
       });
-      return this.cancelOrdersOperation;
-    }
 
-    // Create the operation promise and store it before any await
-    // This assignment is effectively atomic in JavaScript's single-threaded execution
-    const operationPromise = (async (): Promise<CancelOrdersResult> => {
-      const traceId = uuidv4();
-      const startTime = performance.now();
-      let operationResult: CancelOrdersResult | null = null;
-      let operationError: Error | null = null;
+      // Pause orders stream to prevent WebSocket updates during cancellation
+      operationResult = await this.withStreamPause(async () => {
+        // Get all open orders (using getOpenOrders to avoid duplicates from historicalOrders)
+        const orders = await this.getOpenOrders();
 
-      try {
-        trace({
-          name: TraceName.PerpsCancelOrder,
-          id: traceId,
-          op: TraceOperation.PerpsOrderSubmission,
-          tags: {
-            provider: this.state.activeProvider,
-            isBatch: 'true',
-            isTestnet: this.state.isTestnet,
-          },
-          data: {
-            cancelAll: params.cancelAll ? 'true' : 'false',
-            coinCount: params.coins?.length || 0,
-            orderIdCount: params.orderIds?.length || 0,
-          },
-        });
-
-        // Pause orders stream to prevent WebSocket updates during cancellation
-        operationResult = await this.withStreamPause(async () => {
-          // Get all open orders (using getOpenOrders to avoid duplicates from historicalOrders)
-          const orders = await this.getOpenOrders();
-
-          // Filter orders based on params
-          let ordersToCancel = orders;
-          if (params.cancelAll || (!params.coins && !params.orderIds)) {
-            // Cancel all orders
-            ordersToCancel = orders;
-          } else if (params.orderIds && params.orderIds.length > 0) {
-            // Cancel specific order IDs
-            ordersToCancel = orders.filter((o) =>
-              params.orderIds?.includes(o.orderId),
-            );
-          } else if (params.coins && params.coins.length > 0) {
-            // Cancel orders for specific coins
-            ordersToCancel = orders.filter((o) =>
-              params.coins?.includes(o.symbol),
-            );
-          }
-
-          if (ordersToCancel.length === 0) {
-            return {
-              success: false,
-              successCount: 0,
-              failureCount: 0,
-              results: [],
-            };
-          }
-
-          // Cancel all orders in parallel using Promise.allSettled
-          const results = await Promise.allSettled(
-            ordersToCancel.map((order) =>
-              this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
-            ),
+        // Filter orders based on params
+        let ordersToCancel = orders;
+        if (params.cancelAll || (!params.coins && !params.orderIds)) {
+          // Cancel all orders
+          ordersToCancel = orders;
+        } else if (params.orderIds && params.orderIds.length > 0) {
+          // Cancel specific order IDs
+          ordersToCancel = orders.filter((o) =>
+            params.orderIds?.includes(o.orderId),
           );
+        } else if (params.coins && params.coins.length > 0) {
+          // Cancel orders for specific coins
+          ordersToCancel = orders.filter((o) =>
+            params.coins?.includes(o.symbol),
+          );
+        }
 
-          // Aggregate results
-          const successCount = results.filter(
-            (r) => r.status === 'fulfilled' && r.value.success,
-          ).length;
-          const failureCount = results.length - successCount;
-
+        if (ordersToCancel.length === 0) {
           return {
-            success: successCount > 0,
-            successCount,
-            failureCount,
-            results: results.map((result, index) => {
-              let error: string | undefined;
-              if (result.status === 'rejected') {
-                error =
-                  result.reason instanceof Error
-                    ? result.reason.message
-                    : 'Unknown error';
-              } else if (
-                result.status === 'fulfilled' &&
-                !result.value.success
-              ) {
-                error = result.value.error;
-              }
-
-              return {
-                orderId: ordersToCancel[index].orderId,
-                coin: ordersToCancel[index].symbol,
-                success: !!(
-                  result.status === 'fulfilled' && result.value.success
-                ),
-                error,
-              };
-            }),
+            success: false,
+            successCount: 0,
+            failureCount: 0,
+            results: [],
           };
-        }, ['orders']); // Disconnect orders stream during operation
+        }
 
-        return operationResult;
-      } catch (error) {
-        operationError =
-          error instanceof Error ? error : new Error(String(error));
-        throw error;
-      } finally {
-        const completionDuration = performance.now() - startTime;
+        const provider = this.getActiveProvider();
 
-        // Track batch cancel event (success or failure)
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]:
-                operationResult?.success && operationResult.successCount > 0
-                  ? PerpsEventValues.STATUS.EXECUTED
-                  : PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              ...(operationError && {
-                [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
-              }),
-              // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
-              // can be added to PerpsEventProperties if needed for analytics
-            })
-            .build(),
+        // Use batch cancel if provider supports it
+        if (provider.cancelOrders) {
+          return await provider.cancelOrders(
+            ordersToCancel.map((order) => ({
+              coin: order.symbol,
+              orderId: order.orderId,
+            })),
+          );
+        }
+
+        // Fallback: Cancel orders in parallel (for providers without batch support)
+        const results = await Promise.allSettled(
+          ordersToCancel.map((order) =>
+            this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
+          ),
         );
 
-        DevLogger.log('[cancelOrders] === EXIT ===', {
-          timestamp: Date.now(),
-        });
-        endTrace({
-          name: TraceName.PerpsCancelOrder,
-          id: traceId,
-        });
-      }
-    })();
+        // Aggregate results
+        const successCount = results.filter(
+          (r) => r.status === 'fulfilled' && r.value.success,
+        ).length;
+        const failureCount = results.length - successCount;
 
-    // Store the promise and ensure cleanup happens after completion
-    this.cancelOrdersOperation = operationPromise;
-    try {
-      return await operationPromise;
+        return {
+          success: successCount > 0,
+          successCount,
+          failureCount,
+          results: results.map((result, index) => {
+            let error: string | undefined;
+            if (result.status === 'rejected') {
+              error =
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : 'Unknown error';
+            } else if (result.status === 'fulfilled' && !result.value.success) {
+              error = result.value.error;
+            }
+
+            return {
+              orderId: ordersToCancel[index].orderId,
+              coin: ordersToCancel[index].symbol,
+              success: !!(
+                result.status === 'fulfilled' && result.value.success
+              ),
+              error,
+            };
+          }),
+        };
+      }, ['orders']); // Disconnect orders stream during operation
+
+      return operationResult;
+    } catch (error) {
+      operationError =
+        error instanceof Error ? error : new Error(String(error));
+      throw error;
     } finally {
-      // Clear the operation only after it completes
-      this.cancelOrdersOperation = null;
+      const completionDuration = performance.now() - startTime;
+
+      // Track batch cancel event (success or failure)
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]:
+              operationResult?.success && operationResult.successCount > 0
+                ? PerpsEventValues.STATUS.EXECUTED
+                : PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            ...(operationError && {
+              [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
+            }),
+            // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
+            // can be added to PerpsEventProperties if needed for analytics
+          })
+          .build(),
+      );
+
+      endTrace({
+        name: TraceName.PerpsCancelOrder,
+        id: traceId,
+      });
     }
   }
 
@@ -2050,50 +2019,43 @@ export class PerpsController extends BaseController<
   async closePositions(
     params: ClosePositionsParams,
   ): Promise<ClosePositionsResult> {
-    DevLogger.log('[closePositions] === ENTRY ===', {
-      timestamp: Date.now(),
-      closeAll: params.closeAll,
-      hasOngoingOperation: this.closePositionsOperation !== null,
-    });
+    const traceId = uuidv4();
+    const startTime = performance.now();
+    let operationResult: ClosePositionsResult | null = null;
+    let operationError: Error | null = null;
 
-    // Guard: Prevent concurrent calls by returning the existing operation's promise
-    // This ensures atomicity and allows subsequent calls to wait for the result
-    if (this.closePositionsOperation) {
-      DevLogger.log('[closePositions] === WAITING for existing operation ===', {
-        timestamp: Date.now(),
-        closeAll: params.closeAll,
+    try {
+      trace({
+        name: TraceName.PerpsClosePosition,
+        id: traceId,
+        op: TraceOperation.PerpsPositionManagement,
+        tags: {
+          provider: this.state.activeProvider,
+          isBatch: 'true',
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          closeAll: params.closeAll ? 'true' : 'false',
+          coinCount: params.coins?.length || 0,
+        },
       });
-      return this.closePositionsOperation;
-    }
 
-    // Create the operation promise and store it before any await
-    // This assignment is effectively atomic in JavaScript's single-threaded execution
-    const operationPromise = (async (): Promise<ClosePositionsResult> => {
-      const traceId = uuidv4();
-      const startTime = performance.now();
-      let operationResult: ClosePositionsResult | null = null;
-      let operationError: Error | null = null;
+      const provider = this.getActiveProvider();
 
-      try {
-        trace({
-          name: TraceName.PerpsClosePosition,
-          id: traceId,
-          op: TraceOperation.PerpsPositionManagement,
-          tags: {
-            provider: this.state.activeProvider,
-            isBatch: 'true',
-            isTestnet: this.state.isTestnet,
-          },
-          data: {
-            closeAll: params.closeAll ? 'true' : 'false',
-            coinCount: params.coins?.length || 0,
-          },
-        });
+      DevLogger.log('[closePositions] Batch method check', {
+        providerType: provider.protocolId,
+        hasBatchMethod: !!provider.closePositions,
+        methodType: typeof provider.closePositions,
+        providerKeys: Object.keys(provider).filter((k) => k.includes('close')),
+      });
 
-        // Get all positions
+      // Use batch close if provider supports it (provider handles filtering)
+      if (provider.closePositions) {
+        operationResult = await provider.closePositions(params);
+      } else {
+        // Fallback: Get positions, filter, and close in parallel
         const positions = await this.getPositions();
 
-        // Filter positions based on params
         const positionsToClose =
           params.closeAll || !params.coins || params.coins.length === 0
             ? positions
@@ -2109,7 +2071,6 @@ export class PerpsController extends BaseController<
           return operationResult;
         }
 
-        // Close all positions in parallel using Promise.allSettled
         const results = await Promise.allSettled(
           positionsToClose.map((position) =>
             this.closePosition({ coin: position.coin }),
@@ -2146,49 +2107,40 @@ export class PerpsController extends BaseController<
             };
           }),
         };
-
-        return operationResult;
-      } catch (error) {
-        operationError =
-          error instanceof Error ? error : new Error(String(error));
-        throw error;
-      } finally {
-        const completionDuration = performance.now() - startTime;
-
-        // Track batch close event (success or failure)
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]:
-                operationResult?.success && operationResult.successCount > 0
-                  ? PerpsEventValues.STATUS.EXECUTED
-                  : PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              ...(operationError && {
-                [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
-              }),
-              // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
-              // can be added to PerpsEventProperties if needed for analytics
-            })
-            .build(),
-        );
-
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          id: traceId,
-        });
       }
-    })();
 
-    // Store the promise and ensure cleanup happens after completion
-    this.closePositionsOperation = operationPromise;
-    try {
-      return await operationPromise;
+      return operationResult;
+    } catch (error) {
+      operationError =
+        error instanceof Error ? error : new Error(String(error));
+      throw error;
     } finally {
-      // Clear the operation only after it completes
-      this.closePositionsOperation = null;
+      const completionDuration = performance.now() - startTime;
+
+      // Track batch close event (success or failure)
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]:
+              operationResult?.success && operationResult.successCount > 0
+                ? PerpsEventValues.STATUS.EXECUTED
+                : PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            ...(operationError && {
+              [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
+            }),
+            // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
+            // can be added to PerpsEventProperties if needed for analytics
+          })
+          .build(),
+      );
+
+      endTrace({
+        name: TraceName.PerpsClosePosition,
+        id: traceId,
+      });
     }
   }
 

@@ -323,6 +323,11 @@ export interface CancelOrderResult {
   error?: string;
 }
 
+export type BatchCancelOrdersParams = {
+  orderId: string;
+  coin: string;
+}[];
+
 export type CancelOrdersParams = {
   coins?: string[]; // Optional: specific coins (omit to cancel all orders)
   orderIds?: string[]; // Optional: specific order IDs (omit to cancel all orders for specified coins)
@@ -654,7 +659,9 @@ export interface IPerpsProvider {
   placeOrder(params: OrderParams): Promise<OrderResult>;
   editOrder(params: EditOrderParams): Promise<OrderResult>;
   cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
+  cancelOrders?(params: BatchCancelOrdersParams): Promise<CancelOrdersResult>; // Optional: batch cancel for protocols that support it
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
+  closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
