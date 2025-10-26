@@ -5,14 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Animated,
-  Pressable,
-  Keyboard,
-} from 'react-native';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { View, Animated, Keyboard } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -32,26 +25,20 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 import PerpsMarketSortDropdowns from '../../components/PerpsMarketSortDropdowns';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketList from '../../components/PerpsMarketList';
-import { usePerpsMarketListView } from '../../hooks/usePerpsMarketListView';
+import PerpsBottomTabBar from '../../components/PerpsBottomTabBar';
+import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
+import {
+  usePerpsMarketListView,
+  usePerpsMeasurement,
+  usePerpsNavigation,
+} from '../../hooks';
+import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type { PerpsMarketData } from '../../controllers/types';
-import {
-  PerpsMarketListViewSelectorsIDs,
-  PerpsHomeViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-  RouteProp,
-} from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import { usePerpsMeasurement } from '../../hooks';
+import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
@@ -59,52 +46,7 @@ import {
 } from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { useSelector } from 'react-redux';
-import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import TabBarItem from '../../../../../component-library/components/Navigation/TabBarItem';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-} from '@metamask/design-system-react-native';
 import { PerpsNavigationParamList } from '../../types/navigation';
-
-const PerpsMarketRowItemSkeleton = () => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View
-      style={styles.skeletonContainer}
-      testID={PerpsMarketListViewSelectorsIDs.SKELETON_ROW}
-    >
-      <View style={styles.skeletonLeftSection}>
-        {/* Avatar skeleton */}
-        <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
-        <View style={styles.skeletonTokenInfo}>
-          <View style={styles.skeletonTokenHeader}>
-            {/* Token symbol skeleton */}
-            <Skeleton
-              width={60}
-              height={16}
-              style={styles.skeletonTokenSymbol}
-            />
-            {/* Leverage skeleton */}
-            <Skeleton width={30} height={14} style={styles.skeletonLeverage} />
-          </View>
-          {/* Volume skeleton */}
-          <Skeleton width={80} height={12} style={styles.skeletonVolume} />
-        </View>
-      </View>
-      <View style={styles.skeletonRightSection}>
-        {/* Price skeleton */}
-        <Skeleton width={90} height={16} style={styles.skeletonPrice} />
-        {/* Change skeleton */}
-        <Skeleton width={70} height={14} style={styles.skeletonChange} />
-      </View>
-    </View>
-  );
-};
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -117,9 +59,11 @@ const PerpsMarketListView = ({
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+
+  // Use centralized navigation hook
+  const perpsNavigation = usePerpsNavigation();
 
   // Merge route params with props (route params take precedence)
   const variant = route.params?.variant ?? propVariant ?? 'full';
@@ -137,15 +81,9 @@ const PerpsMarketListView = ({
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const tabsListRef = useRef<TabsListRef>(null);
-  const hiddenButtonStyle = {
-    position: 'absolute' as const,
-    opacity: 0,
-    pointerEvents: 'box-none' as const,
-  };
   const noPaddingContentStyle = useMemo(() => ({ paddingHorizontal: 0 }), []);
   const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Use the combined market list view hook for all business logic
   const {
@@ -189,13 +127,10 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-          market,
-          source: route.params?.source,
-        });
+        perpsNavigation.navigateToMarketDetails(market, route.params?.source);
       }
     },
-    [onMarketSelect, navigation, route.params?.source],
+    [onMarketSelect, perpsNavigation, route.params?.source],
   );
 
   // Market type tab content component (reusable for all types)
@@ -330,12 +265,8 @@ const PerpsMarketListView = ({
 
   const { track } = usePerpsEventTracking();
 
-  const handleBackPressed = () => {
-    // Navigate back to the main Perps tab
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  };
+  // Use navigation hook for back button
+  const handleBackPressed = perpsNavigation.navigateBack;
 
   const handleSearchToggle = () => {
     toggleSearchVisibility();
@@ -395,9 +326,10 @@ const PerpsMarketListView = ({
           {Array.from({ length: 8 }).map((_, index) => (
             //Using index as key is fine here because the list is static
             // eslint-disable-next-line react/no-array-index-key
-            <View key={index}>
-              <PerpsMarketRowItemSkeleton />
-            </View>
+            <PerpsMarketRowSkeleton
+              key={index}
+              testID={PerpsMarketListViewSelectorsIDs.SKELETON_ROW}
+            />
           ))}
         </View>
       );
@@ -495,157 +427,16 @@ const PerpsMarketListView = ({
     );
   };
 
-  const tw = useTailwind();
-  const insets = useSafeAreaInsets();
-
-  const renderBottomTabBar = () => {
-    const handleWalletPress = () => {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    };
-
-    const handleBrowserPress = () => {
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-      });
-    };
-
-    const handleActionsPress = () => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.WALLET_ACTIONS,
-      });
-    };
-
-    const handleActivityPress = () => {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    };
-
-    const handleRewardsOrSettingsPress = () => {
-      if (isRewardsEnabled) {
-        navigation.navigate(Routes.REWARDS_VIEW);
-      } else {
-        navigation.navigate(Routes.SETTINGS_VIEW, {
-          screen: 'Settings',
-        });
-      }
-    };
-
-    return (
-      <View>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="w-full pt-3 px-2 bg-default border-t border-muted gap-x-2"
-          style={[tw.style(`pb-[${insets.bottom}px]`)]}
-        >
-          <View style={tw.style('flex-1')}>
-            <TabBarItem
-              label={strings('bottom_nav.home')}
-              iconName={IconName.Home}
-              onPress={handleWalletPress}
-              isActive={false}
-              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_WALLET}
-            />
-          </View>
-          <View style={tw.style('flex-1')}>
-            <TabBarItem
-              label={strings('bottom_nav.browser')}
-              iconName={IconName.Explore}
-              onPress={handleBrowserPress}
-              isActive={false}
-              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_BROWSER}
-            />
-          </View>
-          <View style={tw.style('flex-1')}>
-            <TabBarItem
-              label="Trade"
-              iconName={IconName.SwapVertical}
-              onPress={handleActionsPress}
-              isActive
-              isTradeButton
-              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIONS}
-            />
-          </View>
-          <View style={tw.style('flex-1')}>
-            <TabBarItem
-              label={strings('bottom_nav.activity')}
-              iconName={IconName.Activity}
-              onPress={handleActivityPress}
-              isActive={false}
-              testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIVITY}
-            />
-          </View>
-          <View style={tw.style('flex-1')}>
-            <TabBarItem
-              label={
-                isRewardsEnabled
-                  ? strings('bottom_nav.rewards')
-                  : strings('bottom_nav.settings')
-              }
-              iconName={
-                isRewardsEnabled
-                  ? IconName.MetamaskFoxOutline
-                  : IconName.Setting
-              }
-              onPress={handleRewardsOrSettingsPress}
-              isActive={false}
-              testID={
-                isRewardsEnabled
-                  ? 'tab-bar-item-rewards'
-                  : 'tab-bar-item-settings'
-              }
-            />
-          </View>
-        </Box>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Hidden close button for navigation tests */}
-      <TouchableOpacity
-        onPress={handleBackPressed}
+      {/* Header - Using extracted component */}
+      <PerpsMarketListHeader
+        title={title}
+        isSearchVisible={isSearchVisible}
+        onBack={handleBackPressed}
+        onSearchToggle={handleSearchToggle}
         testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-        style={hiddenButtonStyle}
       />
-      {/* Header */}
-      <Pressable style={styles.header} onPress={() => Keyboard.dismiss()}>
-        {/* Back Button */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleBackPressed}
-          testID={PerpsMarketListViewSelectorsIDs.BACK_BUTTON}
-        >
-          <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
-        </TouchableOpacity>
-
-        <View style={styles.headerTitleContainer}>
-          <Text
-            variant={TextVariant.HeadingLG}
-            color={TextColor.Default}
-            style={styles.headerTitle}
-          >
-            {title || strings('perps.title')}
-          </Text>
-        </View>
-        <View style={styles.titleButtonsRightContainer}>
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={handleSearchToggle}
-            testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
-          >
-            <Icon
-              name={isSearchVisible ? IconName.Close : IconName.Search}
-              size={IconSize.Lg}
-            />
-          </TouchableOpacity>
-        </View>
-      </Pressable>
 
       {/* Search Bar - Use design system component */}
       {isSearchVisible && (
@@ -712,7 +503,9 @@ const PerpsMarketListView = ({
 
       {/* Bottom navbar - only show in full variant, hidden when search visible */}
       {showBottomNav && variant === 'full' && shouldShowNavbar && (
-        <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
+        <View style={styles.tabBarContainer}>
+          <PerpsBottomTabBar activeTab="trade" />
+        </View>
       )}
 
       {/* Sort Field Bottom Sheet */}

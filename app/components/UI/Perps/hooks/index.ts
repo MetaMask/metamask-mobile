@@ -13,6 +13,7 @@ export { usePerpsHomeData } from './usePerpsHomeData';
 export { usePerpsMarketListView } from './usePerpsMarketListView';
 export { usePerpsSearch } from './usePerpsSearch';
 export { usePerpsSorting } from './usePerpsSorting';
+export { usePerpsNavigation } from './usePerpsNavigation';
 
 // Connection management hooks
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';

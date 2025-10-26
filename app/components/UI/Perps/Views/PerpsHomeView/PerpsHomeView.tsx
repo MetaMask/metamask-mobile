@@ -1,22 +1,12 @@
 import React, { useCallback, useState } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -24,17 +14,15 @@ import Text, {
 import Icon, {
   IconName,
   IconSize,
-  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import TabBarItem from '../../../../../component-library/components/Navigation/TabBarItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
-import { usePerpsHomeData } from '../../hooks/usePerpsHomeData';
+import {
+  usePerpsHomeData,
+  usePerpsNavigation,
+  usePerpsMeasurement,
+} from '../../hooks';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsCard from '../../components/PerpsCard';
@@ -43,12 +31,13 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
+import PerpsBottomTabBar from '../../components/PerpsBottomTabBar';
+import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
-import { usePerpsMeasurement } from '../../hooks';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -58,13 +47,13 @@ import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 
 const PerpsHomeView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const tw = useTailwind();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Use centralized navigation hook
+  const perpsNavigation = usePerpsNavigation();
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,147 +137,18 @@ const PerpsHomeView = () => {
     });
   }, [navigation]);
 
-  // Back button handler
-  const handleBackPress = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  }, [navigation]);
-
-  // Bottom tab bar navigation handlers
-  const handleWalletPress = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
-  }, [navigation]);
-
-  const handleBrowserPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-    });
-  }, [navigation]);
-
-  const handleActionsPress = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.WALLET_ACTIONS,
-    });
-  }, [navigation]);
-
-  const handleActivityPress = useCallback(() => {
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [navigation]);
-
-  const handleRewardsOrSettingsPress = useCallback(() => {
-    if (isRewardsEnabled) {
-      navigation.navigate(Routes.REWARDS_VIEW);
-    } else {
-      navigation.navigate(Routes.SETTINGS_VIEW, {
-        screen: 'Settings',
-      });
-    }
-  }, [navigation, isRewardsEnabled]);
-
-  const renderBottomTabBar = () => (
-    <View>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="w-full pt-3 px-2 bg-default border-t border-muted gap-x-2"
-        style={[tw.style(`pb-[${insets.bottom}px]`)]}
-      >
-        <View style={tw.style('flex-1')}>
-          <TabBarItem
-            label={strings('bottom_nav.home')}
-            iconName={IconName.Home}
-            onPress={handleWalletPress}
-            isActive={false}
-            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_WALLET}
-          />
-        </View>
-        <View style={tw.style('flex-1')}>
-          <TabBarItem
-            label={strings('bottom_nav.browser')}
-            iconName={IconName.Explore}
-            onPress={handleBrowserPress}
-            isActive={false}
-            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_BROWSER}
-          />
-        </View>
-        <View style={tw.style('flex-1')}>
-          <TabBarItem
-            label="Trade"
-            iconName={IconName.SwapVertical}
-            onPress={handleActionsPress}
-            isActive
-            isTradeButton
-            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIONS}
-          />
-        </View>
-        <View style={tw.style('flex-1')}>
-          <TabBarItem
-            label={strings('bottom_nav.activity')}
-            iconName={IconName.Activity}
-            onPress={handleActivityPress}
-            isActive={false}
-            testID={PerpsHomeViewSelectorsIDs.TAB_BAR_ACTIVITY}
-          />
-        </View>
-        <View style={tw.style('flex-1')}>
-          <TabBarItem
-            label={
-              isRewardsEnabled
-                ? strings('bottom_nav.rewards')
-                : strings('bottom_nav.settings')
-            }
-            iconName={
-              isRewardsEnabled ? IconName.MetamaskFoxOutline : IconName.Setting
-            }
-            onPress={handleRewardsOrSettingsPress}
-            isActive={false}
-            testID={
-              isRewardsEnabled
-                ? 'tab-bar-item-rewards'
-                : 'tab-bar-item-settings'
-            }
-          />
-        </View>
-      </Box>
-    </View>
-  );
+  // Back button handler - now uses navigation hook
+  const handleBackPress = perpsNavigation.navigateBack;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          onPress={handleBackPress}
-          size={ButtonIconSizes.Md}
-          iconColor={IconColor.Default}
-          testID={PerpsHomeViewSelectorsIDs.BACK_BUTTON}
-        />
-        <Text
-          variant={TextVariant.HeadingLG}
-          color={TextColor.Default}
-          style={styles.headerTitle}
-        >
-          {strings('perps.title')}
-        </Text>
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={handleSearchToggle}
-          testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
-        >
-          <Icon
-            name={isSearchVisible ? IconName.Close : IconName.Search}
-            size={IconSize.Lg}
-            color={IconColor.Default}
-          />
-        </TouchableOpacity>
-      </View>
+      {/* Header - Using extracted component */}
+      <PerpsHomeHeader
+        isSearchVisible={isSearchVisible}
+        onBack={handleBackPress}
+        onSearchToggle={handleSearchToggle}
+        testID={PerpsHomeViewSelectorsIDs.BACK_BUTTON}
+      />
 
       {/* Search Bar - Use design system component */}
       {isSearchVisible && (
@@ -466,8 +326,10 @@ const PerpsHomeView = () => {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Bottom Tab Bar */}
-      <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
+      {/* Bottom Tab Bar - Using extracted component */}
+      <View style={styles.tabBarContainer}>
+        <PerpsBottomTabBar activeTab="trade" />
+      </View>
     </SafeAreaView>
   );
 };
