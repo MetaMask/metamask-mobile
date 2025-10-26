@@ -80,6 +80,13 @@ jest.mock('../PerpsTokenLogo', () => {
   };
 });
 
+jest.mock('../PerpsRowSkeleton', () => {
+  const { View: RNView } = jest.requireActual('react-native');
+  return function MockPerpsRowSkeleton({ count }: { count: number }) {
+    return <RNView testID={`perps-row-skeleton-${count}`} />;
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -192,10 +199,10 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Loading State', () => {
-    it('renders loading message when isLoading is true', () => {
+    it('renders loading skeleton when isLoading is true', () => {
       render(<PerpsRecentActivityList fills={[]} isLoading />);
 
-      expect(screen.getByText('Loading...')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
     });
 
     it('renders header with title when loading', () => {
@@ -706,11 +713,13 @@ describe('PerpsRecentActivityList', () => {
         <PerpsRecentActivityList fills={[]} isLoading />,
       );
 
-      expect(screen.getByText('Loading...')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
 
       rerender(<PerpsRecentActivityList fills={mockFills} isLoading={false} />);
 
-      expect(screen.queryByText('Loading...')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('perps-row-skeleton-3'),
+      ).not.toBeOnTheScreen();
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
     });
 

@@ -26,13 +26,32 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => false), // isRewardsEnabled
 }));
 
-// Mock hooks
-jest.mock('../../hooks/usePerpsHomeData', () => ({
-  usePerpsHomeData: jest.fn(),
-}));
+// Mock components to prevent complex module initialization chains
+jest.mock(
+  '../../components/PerpsMarketTypeSection',
+  () => 'PerpsMarketTypeSection',
+);
+jest.mock(
+  '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets',
+  () => 'PerpsWatchlistMarkets',
+);
+jest.mock(
+  '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
+  () => 'PerpsRecentActivityList',
+);
 
+// Mock hooks (consolidated to avoid conflicts)
+const mockNavigateBack = jest.fn();
 jest.mock('../../hooks', () => ({
+  usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
+  usePerpsNavigation: jest.fn(() => ({
+    navigateTo: jest.fn(),
+    navigateToMarketDetails: jest.fn(),
+    navigateToMarketList: jest.fn(),
+    navigateBack: mockNavigateBack,
+    goBack: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -117,18 +136,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-// Mock constants
-jest.mock('../../constants/perpsConfig', () => ({
-  LEARN_MORE_CONFIG: {
-    TITLE_KEY: 'perps.learn_more.title',
-    DESCRIPTION_KEY: 'perps.learn_more.description',
-  },
-  SUPPORT_CONFIG: {
-    URL: 'https://example.com/support',
-    TITLE_KEY: 'perps.support.title',
-    DESCRIPTION_KEY: 'perps.support.description',
-  },
-}));
+// Use actual constants - don't mock perpsConfig
 
 jest.mock('../../../../../util/trace', () => ({
   TraceName: {
@@ -153,13 +161,101 @@ jest.mock('../../constants/eventNames', () => ({
 }));
 
 // Mock child components
+jest.mock('../../components/PerpsHomeHeader', () => {
+  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  interface MockPerpsHomeHeaderProps {
+    onSearchToggle: () => void;
+    onBack: () => void;
+    testID: string;
+  }
+
+  return function MockPerpsHomeHeader({
+    onSearchToggle,
+    onBack,
+    testID,
+  }: MockPerpsHomeHeaderProps) {
+    return (
+      <View>
+        <TouchableOpacity testID={testID} onPress={onBack}>
+          <Text>Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="perps-home-search-toggle"
+          onPress={onSearchToggle}
+        >
+          <Text>Search</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+});
+jest.mock('../../components/PerpsHomeSection', () => {
+  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  interface MockPerpsHomeSectionProps {
+    title?: string;
+    children?: React.ReactNode;
+    isEmpty?: boolean;
+    showWhenEmpty?: boolean;
+    onActionPress?: () => void;
+    actionLabel?: string;
+  }
+
+  return function MockPerpsHomeSection({
+    title,
+    children,
+    isEmpty,
+    showWhenEmpty,
+    onActionPress,
+    actionLabel,
+  }: MockPerpsHomeSectionProps) {
+    if (isEmpty && !showWhenEmpty) return null;
+    return (
+      <View>
+        {title && <Text>{title}</Text>}
+        {children}
+        {actionLabel && onActionPress && (
+          <TouchableOpacity onPress={onActionPress}>
+            <Text>{actionLabel}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+});
 jest.mock(
   '../../components/PerpsMarketBalanceActions',
   () => 'PerpsMarketBalanceActions',
 );
 jest.mock(
   '../../../../../component-library/components/Form/TextFieldSearch',
-  () => 'TextFieldSearch',
+  () => {
+    const { TextInput } = jest.requireActual('react-native');
+
+    interface MockTextFieldSearchProps {
+      testID?: string;
+      value?: string;
+      onChangeText?: (text: string) => void;
+      placeholder?: string;
+    }
+
+    return function MockTextFieldSearch({
+      testID,
+      value,
+      onChangeText,
+      placeholder,
+    }: MockTextFieldSearchProps) {
+      return (
+        <TextInput
+          testID={testID}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+        />
+      );
+    };
+  },
 );
 jest.mock('../../components/PerpsCard', () => 'PerpsCard');
 jest.mock(
@@ -223,7 +319,7 @@ jest.mock(
   () => 'TabBarItem',
 );
 
-const mockUsePerpsHomeData = jest.requireMock('../../hooks/usePerpsHomeData')
+const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
 
 describe('PerpsHomeView', () => {
@@ -231,8 +327,12 @@ describe('PerpsHomeView', () => {
     positions: [],
     orders: [],
     watchlistMarkets: [],
-    trendingMarkets: [],
+    perpsMarkets: [],
+    stocksMarkets: [],
+    commoditiesMarkets: [],
+    forexMarkets: [],
     recentActivity: [],
+    sortBy: 'name',
     isLoading: {
       positions: false,
       markets: false,
@@ -242,23 +342,26 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigateBack.mockClear();
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
   });
 
   it('renders without crashing', () => {
     // Arrange & Act
-    const { getByText } = render(<PerpsHomeView />);
+    const { getByTestId } = render(<PerpsHomeView />);
 
-    // Assert
-    expect(getByText('perps.title')).toBeTruthy();
+    // Assert - Component renders with essential elements
+    expect(getByTestId('back-button')).toBeTruthy();
+    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
   });
 
-  it('shows header with title', () => {
+  it('shows header with navigation controls', () => {
     // Arrange & Act
-    const { getByText } = render(<PerpsHomeView />);
+    const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByText('perps.title')).toBeTruthy();
+    expect(getByTestId('back-button')).toBeTruthy();
+    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
   });
 
   it('shows search toggle button', () => {
@@ -399,7 +502,7 @@ describe('PerpsHomeView', () => {
     fireEvent.press(getByTestId('back-button'));
 
     // Assert
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigateBack).toHaveBeenCalled();
   });
 
   it('navigates to close all modal when close all is pressed', () => {
@@ -519,7 +622,7 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
-  it('hides watchlist section when no watchlist markets', () => {
+  it('renders watchlist component with empty markets array', () => {
     // Arrange
     mockUsePerpsHomeData.mockReturnValue({
       ...mockDefaultData,
@@ -527,9 +630,9 @@ describe('PerpsHomeView', () => {
     });
 
     // Act
-    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+    const { UNSAFE_getByType } = render(<PerpsHomeView />);
 
-    // Assert
-    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+    // Assert - Component is rendered, it handles empty state internally
+    expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 });

@@ -136,7 +136,10 @@ describe('PerpsCancelAllOrdersView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePerpsLiveOrders.mockReturnValue(mockOrders);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: mockOrders,
+      isInitialLoading: false,
+    });
     mockUsePerpsCancelAllOrders.mockReturnValue(mockCancelAllHook);
   });
 
@@ -151,7 +154,10 @@ describe('PerpsCancelAllOrdersView', () => {
 
   it('renders empty state when no orders', () => {
     // Arrange
-    mockUsePerpsLiveOrders.mockReturnValue([]);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    });
     mockUsePerpsCancelAllOrders.mockReturnValue({
       ...mockCancelAllHook,
       orderCount: 0,
@@ -205,7 +211,10 @@ describe('PerpsCancelAllOrdersView', () => {
 
   it('renders with empty orders gracefully', () => {
     // Arrange
-    mockUsePerpsLiveOrders.mockReturnValue([]);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    });
     mockUsePerpsCancelAllOrders.mockReturnValue({
       ...mockCancelAllHook,
       orderCount: 0,

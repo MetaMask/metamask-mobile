@@ -764,8 +764,9 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.totalPnl).toBe(0);
     });
 
-    it('recalculates when positions array changes', async () => {
-      // Arrange
+    it('does not recalculate when positions array changes due to optimization', async () => {
+      // Arrange - The hook has an optimization to prevent recalculation when
+      // positions change (to avoid slow points API calls on WebSocket updates)
       const initialPositions = [createMockPosition({ coin: 'BTC' })];
       const updatedPositions = [
         createMockPosition({ coin: 'BTC' }),
@@ -794,12 +795,11 @@ describe('usePerpsCloseAllCalculations', () => {
       // Act - Change positions
       rerender({ positions: updatedPositions });
 
-      // Assert
-      await waitFor(() => {
-        expect(mockCalculateFees.mock.calls.length).toBeGreaterThan(
-          initialCallCount,
-        );
-      });
+      // Small delay to ensure no recalculation triggered
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Assert - Should not recalculate due to hasValidResultsRef optimization
+      expect(mockCalculateFees.mock.calls.length).toBe(initialCallCount);
     });
 
     it('does not recalculate when only price data changes', async () => {

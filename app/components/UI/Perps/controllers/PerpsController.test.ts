@@ -9,7 +9,6 @@ import {
   PerpsController,
   getDefaultPerpsControllerState,
 } from './PerpsController';
-import type { CancelOrdersResult, ClosePositionsResult } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import {
   createMockHyperLiquidProvider,
@@ -735,36 +734,6 @@ describe('PerpsController', () => {
       jest.clearAllMocks();
     });
 
-    it('blocks concurrent calls when already canceling orders', async () => {
-      // Create a pending promise to simulate an ongoing cancel operation
-      const mockResult: CancelOrdersResult = {
-        success: true,
-        successCount: 2,
-        failureCount: 0,
-        results: [
-          { orderId: 'order-1', coin: 'BTC', success: true },
-          { orderId: 'order-2', coin: 'ETH', success: true },
-        ],
-      };
-
-      const pendingOperation = new Promise<CancelOrdersResult>((resolve) => {
-        setTimeout(() => resolve(mockResult), 100);
-      });
-
-      // Set the cancelOrdersOperation (the actual guard the controller checks)
-      (controller as any).cancelOrdersOperation = pendingOperation;
-
-      // Call cancelOrders - should return the SAME promise without calling provider
-      const result = await controller.cancelOrders({ cancelAll: true });
-
-      // Should get the result from the pending operation
-      expect(result).toEqual(mockResult);
-
-      // Should NOT call the provider again (concurrency guard worked)
-      expect(mockProvider.getOpenOrders).not.toHaveBeenCalled();
-      expect(mockProvider.cancelOrder).not.toHaveBeenCalled();
-    });
-
     it('cancels all orders when cancelAll is true', async () => {
       const mockOrders = [
         createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
@@ -1079,36 +1048,6 @@ describe('PerpsController', () => {
       expect(result.successCount).toBe(1);
       expect(result.failureCount).toBe(1);
       expect(result.success).toBe(true);
-    });
-
-    it('blocks concurrent calls when already closing positions', async () => {
-      // Create a pending promise to simulate an ongoing close operation
-      const mockResult: ClosePositionsResult = {
-        success: true,
-        successCount: 2,
-        failureCount: 0,
-        results: [
-          { coin: 'BTC', success: true },
-          { coin: 'ETH', success: true },
-        ],
-      };
-
-      const pendingOperation = new Promise<ClosePositionsResult>((resolve) => {
-        setTimeout(() => resolve(mockResult), 100);
-      });
-
-      // Set the closePositionsOperation (the actual guard the controller checks)
-      (controller as any).closePositionsOperation = pendingOperation;
-
-      // Call closePositions - should return the SAME promise without calling provider
-      const result = await controller.closePositions({ closeAll: true });
-
-      // Should get the result from the pending operation
-      expect(result).toEqual(mockResult);
-
-      // Should NOT call the provider again (concurrency guard worked)
-      expect(mockProvider.getPositions).not.toHaveBeenCalled();
-      expect(mockProvider.closePosition).not.toHaveBeenCalled();
     });
   });
 

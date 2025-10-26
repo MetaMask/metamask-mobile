@@ -43,8 +43,8 @@ export function usePerpsLiveFills(
 
     const unsubscribe = stream.fills.subscribe({
       callback: (newFills) => {
-        // null means no cached data yet, keep loading state
-        if (newFills === null) {
+        // null/undefined means no cached data yet, keep loading state
+        if (newFills === null || newFills === undefined) {
           // Keep isInitialLoading as true, fills as empty array
           return;
         }

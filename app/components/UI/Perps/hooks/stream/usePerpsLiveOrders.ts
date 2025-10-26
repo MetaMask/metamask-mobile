@@ -43,8 +43,8 @@ export function usePerpsLiveOrders(
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
       callback: (newOrders) => {
-        // null means no cached data yet, keep loading state
-        if (newOrders === null) {
+        // null/undefined means no cached data yet, keep loading state
+        if (newOrders === null || newOrders === undefined) {
           // Keep isInitialLoading as true, orders as empty array
           return;
         }

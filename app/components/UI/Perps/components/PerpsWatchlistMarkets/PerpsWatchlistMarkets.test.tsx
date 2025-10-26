@@ -43,14 +43,21 @@ jest.mock('../PerpsMarketRowItem', () => {
   };
 });
 
+jest.mock('../PerpsRowSkeleton', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsRowSkeleton({ count }: { count: number }) {
+    return <View testID={`perps-row-skeleton-${count}`} />;
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: (key: string) => {
     const translations: Record<string, string> = {
       'perps.home.watchlist': 'Watchlist',
       'perps.home.see_all': 'See all',
     };
     return translations[key] || key;
-  }),
+  },
 }));
 
 describe('PerpsWatchlistMarkets', () => {
@@ -117,13 +124,12 @@ describe('PerpsWatchlistMarkets', () => {
       expect(toJSON()).toBeNull();
     });
 
-    it('returns null when isLoading is true', () => {
-      const { toJSON } = render(
-        <PerpsWatchlistMarkets markets={mockMarkets} isLoading />,
-      );
+    it('shows loading skeleton when isLoading is true', () => {
+      render(<PerpsWatchlistMarkets markets={mockMarkets} isLoading />);
 
-      // Component returns null while loading
-      expect(toJSON()).toBeNull();
+      // Component shows skeleton while loading
+      expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
+      expect(screen.getByText('Watchlist')).toBeOnTheScreen();
     });
   });
 
@@ -327,34 +333,35 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   describe('Loading State Handling', () => {
-    it('hides component when isLoading transitions from false to true', () => {
-      const { toJSON, rerender } = render(
+    it('shows skeleton when isLoading transitions from false to true', () => {
+      const { rerender } = render(
         <PerpsWatchlistMarkets markets={mockMarkets} isLoading={false} />,
       );
 
-      // Component renders initially
-      expect(toJSON()).not.toBeNull();
+      // Component renders markets initially
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
 
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} isLoading />);
 
-      // Component is hidden during loading
-      expect(toJSON()).toBeNull();
+      // Component shows skeleton during loading
+      expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
     });
 
-    it('shows component when isLoading transitions from true to false', () => {
-      const { toJSON, rerender } = render(
+    it('shows markets when isLoading transitions from true to false', () => {
+      const { rerender } = render(
         <PerpsWatchlistMarkets markets={mockMarkets} isLoading />,
       );
 
-      // Component is hidden during loading
-      expect(toJSON()).toBeNull();
+      // Component shows skeleton during loading
+      expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
 
       rerender(
         <PerpsWatchlistMarkets markets={mockMarkets} isLoading={false} />,
       );
 
-      // Component renders after loading completes
-      expect(toJSON()).not.toBeNull();
+      // Component renders markets after loading completes
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
     });
   });
 
@@ -406,18 +413,19 @@ describe('PerpsWatchlistMarkets', () => {
 
       // Component renders with markets
       expect(toJSON()).not.toBeNull();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
 
       // Hides when empty
       rerender(<PerpsWatchlistMarkets markets={[]} />);
       expect(toJSON()).toBeNull();
 
-      // Hides when loading
+      // Shows skeleton when loading
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} isLoading />);
-      expect(toJSON()).toBeNull();
+      expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
 
-      // Shows again when ready
+      // Shows markets again when ready
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} />);
-      expect(toJSON()).not.toBeNull();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
     });
   });
 });
