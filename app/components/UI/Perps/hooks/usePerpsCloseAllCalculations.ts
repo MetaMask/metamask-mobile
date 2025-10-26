@@ -107,6 +107,10 @@ export function usePerpsCloseAllCalculations({
   const [isCalculating, setIsCalculating] = useState(false);
   const [hasCalculationError, setHasCalculationError] = useState(false);
 
+  // Prevent slow points computation from retriggering on WebSocket position updates
+  // Once we have valid results, freeze them to avoid recalculation failures showing 0 points
+  const hasValidResultsRef = useRef(false);
+
   // Calculate total margin (including P&L)
   const totalMargin = useMemo(
     () =>
@@ -131,6 +135,12 @@ export function usePerpsCloseAllCalculations({
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation
   useEffect(() => {
+    // Skip recalculation if we already have valid results
+    // Prevents slow points API calls from retriggering on WebSocket position updates
+    if (hasValidResultsRef.current) {
+      return;
+    }
+
     async function calculatePerPosition() {
       if (positions.length === 0) {
         setPerPositionResults([]);
@@ -229,6 +239,12 @@ export function usePerpsCloseAllCalculations({
         // Check if any calculation had errors
         const hasErrors = results.some((r) => r.error);
         setHasCalculationError(hasErrors);
+
+        // Mark as valid if calculation succeeded (no errors and has results)
+        // Freezes results to prevent slow points computation from retriggering
+        if (!hasErrors && results.length > 0) {
+          hasValidResultsRef.current = true;
+        }
       } catch (error) {
         console.error('Failed to calculate per-position fees:', error);
         setHasCalculationError(true);
