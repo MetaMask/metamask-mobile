@@ -15,6 +15,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import type { SortField } from '../../utils/sortMarkets';
 import PerpsMarketList from '../PerpsMarketList';
 import styleSheet from './PerpsTrendingMarkets.styles';
+import PerpsRowSkeleton from '../PerpsRowSkeleton';
 
 interface PerpsTrendingMarketsProps {
   markets: PerpsMarketData[];
@@ -63,7 +64,16 @@ const PerpsTrendingMarkets: React.FC<PerpsTrendingMarketsProps> = ({
     [styles.header, handleViewAll],
   );
 
-  if (isLoading || markets.length === 0) {
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <TrendingHeader />
+        <PerpsRowSkeleton count={5} />
+      </View>
+    );
+  }
+
+  if (markets.length === 0) {
     return (
       <View style={styles.container}>
         <TrendingHeader />
@@ -72,9 +82,7 @@ const PerpsTrendingMarkets: React.FC<PerpsTrendingMarketsProps> = ({
           color={TextColor.Alternative}
           style={styles.emptyText}
         >
-          {isLoading
-            ? strings('perps.home.loading')
-            : strings('perps.home.no_markets')}
+          {strings('perps.home.no_markets')}
         </Text>
       </View>
     );

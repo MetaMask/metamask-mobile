@@ -41,6 +41,8 @@ import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsTrendingMarkets from '../../components/PerpsTrendingMarkets/PerpsTrendingMarkets';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
+import PerpsHomeSection from '../../components/PerpsHomeSection';
+import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -309,69 +311,53 @@ const PerpsHomeView = () => {
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions />
 
-        {/* Positions Section - Only show when there are positions */}
-        {positions.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-                {strings('perps.home.positions')}
-              </Text>
-              <TouchableOpacity onPress={handleCloseAllPress}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.home.close_all')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.sectionContent}>
-              {positions.map((position, index) => (
-                <PerpsCard
-                  key={`${position.coin}-${index}`}
-                  position={position}
-                  source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
-                />
-              ))}
-            </View>
+        {/* Positions Section */}
+        <PerpsHomeSection
+          title={strings('perps.home.positions')}
+          isLoading={isLoading.positions}
+          isEmpty={positions.length === 0}
+          showWhenEmpty={false}
+          actionLabel={strings('perps.home.close_all')}
+          onActionPress={handleCloseAllPress}
+          renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+        >
+          <View style={styles.sectionContent}>
+            {positions.map((position, index) => (
+              <PerpsCard
+                key={`${position.coin}-${index}`}
+                position={position}
+                source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
+              />
+            ))}
           </View>
-        )}
+        </PerpsHomeSection>
 
-        {/* Orders Section - Only show when there are orders */}
-        {orders.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-                {strings('perps.home.orders')}
-              </Text>
-              <TouchableOpacity onPress={handleCancelAllPress}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.home.cancel_all')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.sectionContent}>
-              {orders.map((order) => (
-                <PerpsCard
-                  key={order.orderId}
-                  order={order}
-                  source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
-                />
-              ))}
-            </View>
+        {/* Orders Section */}
+        <PerpsHomeSection
+          title={strings('perps.home.orders')}
+          isLoading={isLoading.orders}
+          isEmpty={orders.length === 0}
+          showWhenEmpty={false}
+          actionLabel={strings('perps.home.cancel_all')}
+          onActionPress={handleCancelAllPress}
+          renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+        >
+          <View style={styles.sectionContent}>
+            {orders.map((order) => (
+              <PerpsCard
+                key={order.orderId}
+                order={order}
+                source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
+              />
+            ))}
           </View>
-        )}
+        </PerpsHomeSection>
 
-        {/* Watchlist Section - Only show when there are watchlisted markets */}
-        {watchlistMarkets.length > 0 && (
-          <PerpsWatchlistMarkets
-            markets={watchlistMarkets}
-            isLoading={isLoading.markets}
-          />
-        )}
+        {/* Watchlist Section */}
+        <PerpsWatchlistMarkets
+          markets={watchlistMarkets}
+          isLoading={isLoading.markets}
+        />
 
         {/* Trending Markets List */}
         <PerpsTrendingMarkets
@@ -381,7 +367,10 @@ const PerpsHomeView = () => {
         />
 
         {/* Recent Activity List */}
-        <PerpsRecentActivityList fills={recentActivity} />
+        <PerpsRecentActivityList
+          fills={recentActivity}
+          isLoading={isLoading.activity}
+        />
 
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>

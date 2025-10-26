@@ -14,6 +14,7 @@ import type {
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
+import PerpsRowSkeleton from '../PerpsRowSkeleton';
 
 interface PerpsWatchlistMarketsProps {
   markets: PerpsMarketData[];
@@ -56,8 +57,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     [handleMarketPress],
   );
 
-  if (isLoading || markets.length === 0) {
-    return null; // Don't show section if no watchlist markets
+  // Don't show section if no watchlist markets and not loading
+  if (!isLoading && markets.length === 0) {
+    return null;
   }
 
   return (
@@ -66,21 +68,27 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.home.watchlist')}
         </Text>
-        <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
-          </Text>
-        </TouchableOpacity>
+        {!isLoading && markets.length > 0 && (
+          <TouchableOpacity onPress={handleViewAll}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.home.see_all')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      <FlatList
-        data={markets}
-        renderItem={renderMarket}
-        keyExtractor={(item) => item.symbol}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={false}
-        contentContainerStyle={styles.listContent}
-      />
+      {isLoading ? (
+        <PerpsRowSkeleton count={3} />
+      ) : (
+        <FlatList
+          data={markets}
+          renderItem={renderMarket}
+          keyExtractor={(item) => item.symbol}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={false}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
     </View>
   );
 };

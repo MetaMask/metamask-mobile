@@ -39,7 +39,9 @@ interface UsePerpsHomeDataReturn {
   sortBy: SortField;
   isLoading: {
     positions: boolean;
+    orders: boolean;
     markets: boolean;
+    activity: boolean;
   };
   refresh: () => Promise<void>;
 }
@@ -63,15 +65,17 @@ export const usePerpsHomeData = ({
     });
 
   // Fetch orders via WebSocket (excluding TP/SL orders)
-  const allOrders = usePerpsLiveOrders({
-    throttleMs: 1000,
-    hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
-  });
+  const { orders: allOrders, isInitialLoading: isOrdersLoading } =
+    usePerpsLiveOrders({
+      throttleMs: 1000,
+      hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
+    });
 
   // Fetch recent activity (order fills) via WebSocket
-  const allFills = usePerpsLiveFills({
-    throttleMs: 1000,
-  });
+  const { fills: allFills, isInitialLoading: isActivityLoading } =
+    usePerpsLiveFills({
+      throttleMs: 1000,
+    });
 
   // Fetch markets data for trending section (markets don't need real-time updates)
   const {
@@ -213,7 +217,9 @@ export const usePerpsHomeData = ({
     sortBy,
     isLoading: {
       positions: isPositionsLoading,
+      orders: isOrdersLoading,
       markets: isMarketsLoading,
+      activity: isActivityLoading,
     },
     refresh,
   };

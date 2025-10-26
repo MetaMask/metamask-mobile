@@ -200,7 +200,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     enabled: !!(monitoringIntent && market && monitoringIntent.asset),
   });
   // Get real-time open orders via WebSocket
-  const ordersData = usePerpsLiveOrders({});
+  const { orders: ordersData } = usePerpsLiveOrders({});
   // Filter orders for the current market
   const openOrders = useMemo(() => {
     if (!ordersData?.length || !market?.symbol) return [];

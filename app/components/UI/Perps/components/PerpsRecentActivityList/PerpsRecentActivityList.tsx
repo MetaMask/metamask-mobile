@@ -17,6 +17,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import PerpsRowSkeleton from '../PerpsRowSkeleton';
 
 interface PerpsRecentActivityListProps {
   fills: OrderFill[];
@@ -111,7 +112,20 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     [styles, handleTransactionPress, iconSize],
   );
 
-  if (isLoading || fills.length === 0) {
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+            {strings('perps.home.recent_activity')}
+          </Text>
+        </View>
+        <PerpsRowSkeleton count={3} />
+      </View>
+    );
+  }
+
+  if (fills.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -124,9 +138,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           color={TextColor.Alternative}
           style={styles.emptyText}
         >
-          {isLoading
-            ? strings('perps.home.loading')
-            : strings('perps.home.no_activity')}
+          {strings('perps.home.no_activity')}
         </Text>
       </View>
     );

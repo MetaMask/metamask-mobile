@@ -219,7 +219,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   // Subscribe to data internally (marketStats moved to StatisticsTabContent to isolate price updates)
   const { positions } = usePerpsLivePositions({ throttleMs: 0 });
-  const allOrders = usePerpsLiveOrders({ throttleMs: 0 });
+  const { orders: allOrders } = usePerpsLiveOrders({ throttleMs: 0 });
 
   const position = useMemo(
     () => positions.find((p) => p.coin === symbol) || null,

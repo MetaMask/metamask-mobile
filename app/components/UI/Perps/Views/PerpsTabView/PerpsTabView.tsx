@@ -64,7 +64,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     ],
   });
 
-  const orders = usePerpsLiveOrders({
+  const { orders } = usePerpsLiveOrders({
     hideTpSl: true, // Filter out TP/SL orders
     throttleMs: 1000, // Update orders every second
   });

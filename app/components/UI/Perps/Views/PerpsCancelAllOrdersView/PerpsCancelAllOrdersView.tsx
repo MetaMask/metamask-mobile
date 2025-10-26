@@ -42,7 +42,7 @@ const PerpsCancelAllOrdersView: React.FC = () => {
   const { showToast } = usePerpsToasts();
 
   // Fetch orders from live stream (excluding TP/SL orders)
-  const orders = usePerpsLiveOrders({
+  const { orders } = usePerpsLiveOrders({
     throttleMs: 1000,
     hideTpSl: true, // Exclude Take Profit and Stop Loss orders
   });
