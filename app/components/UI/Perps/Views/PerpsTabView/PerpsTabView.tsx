@@ -92,7 +92,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const handleManageBalancePress = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKETS,
+      screen: Routes.PERPS.PERPS_HOME,
       params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
     });
   }, [navigation]);
@@ -104,7 +104,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     } else {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
         params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
       });
     }

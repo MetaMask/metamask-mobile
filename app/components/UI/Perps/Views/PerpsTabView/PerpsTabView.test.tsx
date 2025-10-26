@@ -414,7 +414,7 @@ describe('PerpsTabView', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
         params: { source: 'position_tab' },
       });
     });
@@ -558,7 +558,7 @@ describe('PerpsTabView', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
         params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
       });
     });

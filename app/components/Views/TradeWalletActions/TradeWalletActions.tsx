@@ -135,7 +135,7 @@ function TradeWalletActions() {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
         navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKETS,
+          screen: Routes.PERPS.PERPS_HOME,
         });
       }
     };

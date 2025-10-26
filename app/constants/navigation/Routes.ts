@@ -243,13 +243,13 @@ const Routes = {
   },
   PERPS: {
     ROOT: 'Perps',
-    TRADING_VIEW: 'PerpsTradingView',
+    PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
     ORDER: 'PerpsOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
-    MARKETS: 'PerpsMarketListView',
+    PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
     MARKET_DETAILS: 'PerpsMarketDetails',
-    MARKET_LIST: 'PerpsTrendingView', // Keep original screen name to avoid breaking navigation state
+    MARKET_LIST: 'PerpsTrendingView', // Full tabbed market list view
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',

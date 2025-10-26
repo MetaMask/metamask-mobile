@@ -325,7 +325,7 @@ describe('useTransactionConfirm', () => {
       await result.current.onConfirm();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     });
 

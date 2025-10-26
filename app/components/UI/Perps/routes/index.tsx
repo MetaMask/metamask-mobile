@@ -67,10 +67,10 @@ const PerpsScreenStack = () => (
   <PerpsConnectionProvider isFullScreen>
     <PerpsStreamProvider>
       <PerpsStreamBridge />
-      <Stack.Navigator initialRouteName={Routes.PERPS.TRADING_VIEW}>
+      <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
         {/* Redirect to wallet perps tab */}
         <Stack.Screen
-          name={Routes.PERPS.TRADING_VIEW}
+          name={Routes.PERPS.PERPS_TAB}
           component={PerpsRedirect}
           options={{
             title: strings('perps.perps_trading'),
@@ -79,7 +79,7 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.MARKETS}
+          name={Routes.PERPS.PERPS_HOME}
           component={PerpsHomeView}
           options={{
             title: strings('perps.markets.title'),

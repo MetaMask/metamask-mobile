@@ -90,7 +90,7 @@ export const usePerpsCancelAllOrders = (
         } else {
           // Fallback: navigate to Markets view if can't go back
           navigation.navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.MARKETS,
+            screen: Routes.PERPS.PERPS_HOME,
           });
         }
       }
@@ -127,7 +127,7 @@ export const usePerpsCancelAllOrders = (
     } else {
       // Fallback: navigate to Markets view if can't go back
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     }
   }, [navigation]);

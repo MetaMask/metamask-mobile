@@ -111,7 +111,7 @@ export const usePerpsCloseAllPositions = (
         } else {
           // Fallback: navigate to Markets view if can't go back
           navigation.navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.MARKETS,
+            screen: Routes.PERPS.PERPS_HOME,
           });
         }
       }
@@ -158,7 +158,7 @@ export const usePerpsCloseAllPositions = (
     } else {
       // Fallback: navigate to Markets view if can't go back
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     }
   }, [navigation]);

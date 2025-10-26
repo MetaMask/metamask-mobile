@@ -431,7 +431,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation.goBack();
     } else {
       // Fallback to markets list if no previous screen
-      navigation.navigate(Routes.PERPS.MARKETS, { source });
+      navigation.navigate(Routes.PERPS.PERPS_HOME, { source });
     }
   };
 
