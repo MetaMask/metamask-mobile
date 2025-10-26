@@ -12,7 +12,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       width: '100%',
-      paddingHorizontal: 16,
       backgroundColor: theme.colors.background.default,
     },
     sortContainer: {
