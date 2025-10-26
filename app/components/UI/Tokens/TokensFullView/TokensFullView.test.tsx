@@ -1,4 +1,4 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../util/test/renderWithProvider';
 import TokensFullView from './TokensFullView';
 
 // Mock only external dependencies that are not under test
@@ -6,7 +6,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => (className: string) => ({ className }),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
+jest.mock('../../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(),

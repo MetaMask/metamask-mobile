@@ -8,53 +8,52 @@ import React, {
   useMemo,
 } from 'react';
 import { InteractionManager } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectNativeNetworkCurrencies,
-} from '../../../selectors/networkController';
-import { getDecimalChainId } from '../../../util/networks';
-import { TokenList } from '../../UI/Tokens/TokenList';
-import { TokenI } from '../../UI/Tokens/types';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { strings } from '../../../../locales/i18n';
-import {
-  refreshTokens,
-  removeEvmToken,
-  goToAddEvmToken,
-} from '../../UI/Tokens/util';
+} from '../../../../selectors/networkController';
+import { getDecimalChainId } from '../../../../util/networks';
+import { TokenList } from '../TokenList';
+import { TokenI } from '../types';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { strings } from '../../../../../locales/i18n';
+import { refreshTokens, removeEvmToken, goToAddEvmToken } from '../util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { TokenListControlBar } from '../../UI/Tokens/TokenListControlBar';
-import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
-import { ScamWarningModal } from '../../UI/Tokens/TokenList/ScamWarningModal';
-import { selectSortedTokenKeys } from '../../../selectors/tokenList';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import Loader from '../../../component-library/components-temp/Loader';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {
+  Button,
+  ButtonVariant,
+  Box,
+} from '@metamask/design-system-react-native';
+import Routes from '../../../../constants/navigation/Routes';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { TokenListControlBar } from '../TokenListControlBar';
+import { selectSelectedInternalAccountId } from '../../../../selectors/accountsController';
+import { ScamWarningModal } from '../TokenList/ScamWarningModal';
+import { selectSortedTokenKeys } from '../../../../selectors/tokenList';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
+import { selectSortedAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import Loader from '../../../../component-library/components-temp/Loader';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { Box } from '@metamask/design-system-react-native';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
+  TokensFullView: undefined;
   [key: string]: undefined | object;
 }
 
-const TokensFullView = memo(() => {
+const TokensTabView = memo(() => {
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const tw = useTailwind();
 
   // evm
   const evmNetworkConfigurationsByChainId = useSelector(
@@ -251,73 +250,75 @@ const TokensFullView = memo(() => {
     setShowScamWarningModal((prev) => !prev);
   }, []);
 
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const navigateToTokensFullView = useCallback(() => {
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation]);
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
-      <Box twClassName="flex-1 bg-default">
-        <BottomSheetHeader onBack={handleBackPress}>
-          {strings('wallet.tokens')}
-        </BottomSheetHeader>
-
-        <Box
-          twClassName="flex-1 bg-default"
-          testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    <Box
+      twClassName="flex-1 bg-default"
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <TokenListControlBar goToAddToken={goToAddToken} />
+      {/* Uncomment these lines to review TokensFullView */}
+      {/* <Box twClassName="px-4 py-2">
+        <Button
+          variant={ButtonVariant.Secondary}
+          onPress={navigateToTokensFullView}
         >
-          <TokenListControlBar
-            goToAddToken={goToAddToken}
-            style={tw`px-4 pb-4`}
-          />
-          <Box twClassName="flex-1">
-            {isTokensLoading && progressiveTokens.length === 0 && (
-              <Loader size="large" />
-            )}
-            {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
-              <TokenList
-                tokenKeys={
-                  isTokensLoading ? progressiveTokens : renderedTokenKeys
-                }
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                showRemoveMenu={showRemoveMenu}
-                setShowScamWarningModal={handleScamWarningModal}
-                flashListProps={{
-                  contentContainerStyle: tw`px-4`,
-                  scrollEnabled: true,
-                }}
-              />
-            )}
-          </Box>
-          {showScamWarningModal && (
-            <ScamWarningModal
-              showScamWarningModal={showScamWarningModal}
-              setShowScamWarningModal={setShowScamWarningModal}
+          {strings('wallet.view_all_tokens')}
+        </Button>
+      </Box> */}
+      {!isTokensLoading &&
+      renderedTokenKeys.length === 0 &&
+      progressiveTokens.length === 0 ? (
+        <Box twClassName="flex-1 bg-default" />
+      ) : (
+        <>
+          {isTokensLoading && progressiveTokens.length === 0 && (
+            <Loader size="large" />
+          )}
+          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
+            <TokenList
+              tokenKeys={
+                isTokensLoading ? progressiveTokens : renderedTokenKeys
+              }
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              showRemoveMenu={showRemoveMenu}
+              setShowScamWarningModal={handleScamWarningModal}
+              flashListProps={{ scrollEnabled: true }}
             />
           )}
-          <ActionSheet
-            ref={actionSheet as LegacyRef<typeof ActionSheet>}
-            title={strings('wallet.remove_token_title')}
-            options={[strings('wallet.remove'), strings('wallet.cancel')]}
-            cancelButtonIndex={1}
-            destructiveButtonIndex={0}
-            onPress={onActionSheetPress}
-          />
-          <ActionSheet
-            ref={actionSheet as LegacyRef<typeof ActionSheet>}
-            title={strings('wallet.remove_token_title')}
-            options={[strings('wallet.remove'), strings('wallet.cancel')]}
-            cancelButtonIndex={1}
-            destructiveButtonIndex={0}
-            onPress={onActionSheetPress}
-          />
-        </Box>
-      </Box>
-    </SafeAreaView>
+        </>
+      )}
+      {showScamWarningModal && (
+        <ScamWarningModal
+          showScamWarningModal={showScamWarningModal}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+      )}
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
+    </Box>
   );
 });
 
-TokensFullView.displayName = 'TokensFullView';
+TokensTabView.displayName = 'TokensTabView';
 
-export default TokensFullView;
+export default TokensTabView;

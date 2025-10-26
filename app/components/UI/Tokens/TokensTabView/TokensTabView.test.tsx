@@ -1,25 +1,25 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import Tokens from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import TokensTabView from './TokensTabView';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { strings } from '../../../../locales/i18n';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import { strings } from '../../../../../locales/i18n';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
-jest.mock('../../../core/NotificationManager', () => ({
+jest.mock('../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
 }));
 
 const selectedAddress = '0x123';
 
-jest.mock('./TokensBottomSheet', () => ({
+jest.mock('../TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
@@ -233,7 +233,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+jest.mock('../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     isEligible: true,
@@ -245,7 +245,7 @@ jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   })),
 }));
 
-jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
+jest.mock('../UI/Stake/hooks/useStakingChain', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     isStakingSupportedChain: true,
@@ -255,7 +255,7 @@ jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+jest.mock('../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
     networks: [],
     selectNetwork: jest.fn(),
@@ -272,7 +272,7 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   },
 }));
 
-jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+jest.mock('../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: () => ({
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
@@ -280,7 +280,7 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+jest.mock('../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
     enabledNetworks: { '0x1': true },
@@ -292,7 +292,7 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
+jest.mock('../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: () => ({
     currentChainId: '0x1',
     isEvmNetwork: true,
@@ -305,12 +305,9 @@ jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(() => false),
-  }),
-);
+jest.mock('../../selectors/featureFlagController/multichainAccounts', () => ({
+  selectMultichainAccountsState2Enabled: jest.fn(() => false),
+}));
 
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
@@ -319,20 +316,20 @@ const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
-        {() => <Tokens />}
+        {() => <TokensTabView />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
   );
 
-describe('Tokens', () => {
+describe('TokensTabView', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { queryByText } = renderComponent(initialState);
     const tokensTabText = queryByText('Tokens');
     const nftsTabText = queryByText('NFTs');
@@ -340,7 +337,7 @@ describe('Tokens', () => {
     expect(nftsTabText).toBeDefined();
   });
 
-  it('should hide zero balance tokens when setting is on', async () => {
+  it('hides zero balance tokens when setting is on', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -348,7 +345,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeNull();
   });
 
-  it('should show all balance tokens when hideZeroBalanceTokens setting is off', async () => {
+  it('shows all balance tokens when hideZeroBalanceTokens setting is off', async () => {
     const { queryByTestId } = renderComponent({
       ...initialState,
       settings: {
@@ -362,7 +359,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeDefined();
   });
 
-  it('should show all balance with capitalized tickers', async () => {
+  it('shows all balance with capitalized tickers', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -410,7 +407,7 @@ describe('Tokens', () => {
     expect(true).toBe(true);
   });
 
-  it('should display unable to find conversion rate', async () => {
+  it('displays unable to find conversion rate', async () => {
     const testState = {
       ...initialState,
       engine: {
@@ -504,7 +501,7 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
-    it('should handle network filtering correctly', () => {
+    it('handles network filtering correctly', () => {
       const multiNetworkState = {
         ...initialState,
         engine: {
@@ -585,7 +582,7 @@ describe('Tokens', () => {
 
     describe('When hideZeroBalance is enabled', () => {
       describe('When currentNetwork is selected', () => {
-        it('should show zero balance native token and hide zero balance ERC20 token', () => {
+        it('shows zero balance native token and hides zero balance ERC20 token', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -666,7 +663,7 @@ describe('Tokens', () => {
       });
 
       describe('When allNetworks is selected', () => {
-        it('should hide zero balance ERC20 tokens and native tokens', () => {
+        it('hides zero balance ERC20 tokens and native tokens', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -778,7 +775,7 @@ describe('Tokens', () => {
     });
 
     describe('When hideZeroBalance is disabled', () => {
-      it('should show zero balance native and ERC20 tokens', () => {
+      it('shows zero balance native and ERC20 tokens', () => {
         const stateWithZeroBalances = {
           ...initialState,
           settings: {
