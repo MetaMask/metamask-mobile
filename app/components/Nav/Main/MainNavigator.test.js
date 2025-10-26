@@ -129,7 +129,7 @@ describe('MainNavigator', () => {
     expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
   });
 
-  it('shows Trending tab when trending feature flag is on', () => {
+  it('shows Trending tab and hides Browser tab when trending feature flag is on', () => {
     selectRewardsEnabledFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(true);
 
@@ -168,7 +168,7 @@ describe('MainNavigator', () => {
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
   });
 
-  it('shows Trending and Rewards tabs when both feature flags are on', () => {
+  it('shows Trending and Rewards tabs and hides Browser tab when both feature flags are on', () => {
     selectRewardsEnabledFlag.mockReturnValue(true);
     selectAssetsTrendingTokensEnabled.mockReturnValue(true);
 

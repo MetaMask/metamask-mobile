@@ -49,6 +49,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       activeUrl,
       setIsUrlBarFocused,
       isUrlBarFocused,
+      showCloseButton,
     },
     ref,
   ) => {
@@ -240,16 +241,27 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         </View>
         <View style={styles.rightButton}>
           {isUrlBarFocused ? (
-            <TouchableOpacity
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              style={styles.cancelButton}
-              testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
-              onPress={onCancelInput}
-            >
-              <Text style={styles.cancelButtonText}>
-                {strings('browser.cancel')}
-              </Text>
-            </TouchableOpacity>
+            showCloseButton ? (
+              <ButtonIcon
+                iconName={IconName.Close}
+                onPress={onCancelInput}
+                iconColor={colors.icon.default}
+                size={ButtonIconSizes.Lg}
+                style={styles.closeButton}
+                testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
+              />
+            ) : (
+              <TouchableOpacity
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={styles.cancelButton}
+                testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
+                onPress={onCancelInput}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {strings('browser.cancel')}
+                </Text>
+              </TouchableOpacity>
+            )
           ) : (
             <AccountRightButton
               selectedAddress={selectedAddress}

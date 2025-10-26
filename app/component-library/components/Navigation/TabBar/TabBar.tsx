@@ -133,8 +133,18 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   );
 
   const renderTabBarItems = useCallback(
-    () => state.routes.map(renderTabBarItem),
-    [state, renderTabBarItem],
+    () =>
+      state.routes
+        .filter((route) => {
+          const { tabBarButton } = descriptors[route.key].options;
+          // If tabBarButton is a function that returns null, don't render this tab
+          if (typeof tabBarButton === 'function') {
+            return tabBarButton({}) !== null;
+          }
+          return true;
+        })
+        .map(renderTabBarItem),
+    [state, renderTabBarItem, descriptors],
   );
 
   return (
