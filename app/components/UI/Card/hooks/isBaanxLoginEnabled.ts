@@ -1,13 +1,17 @@
-import { useCardSDK } from '../sdk';
+import { useSelector } from 'react-redux';
+import { selectDisplayCardButtonFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import { selectAlwaysShowCardButton } from '../../../../core/redux/slices/card';
 
 const useIsBaanxLoginEnabled = () => {
-  const { sdk } = useCardSDK();
+  const displayCardButtonFeatureFlag = useSelector(
+    selectDisplayCardButtonFeatureFlag,
+  );
+  const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
 
-  if (!sdk) {
-    return false;
-  }
-
-  return sdk.isBaanxLoginEnabled;
+  // If user has explicitly enabled the experimental switch,
+  // they should have full access to the feature including authentication/onboarding,
+  // regardless of the progressive rollout flag state
+  return alwaysShowCardButton || displayCardButtonFeatureFlag || false;
 };
 
 export default useIsBaanxLoginEnabled;
