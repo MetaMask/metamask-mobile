@@ -8,16 +8,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  Box,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Button,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
-import Routes from '../../../constants/navigation/Routes';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { strings } from '../../../../locales/i18n';
+import { Box } from '@metamask/design-system-react-native';
 import NftGrid from '../NftGrid/NftGrid';
 import { FlashListProps } from '@shopify/flash-list';
 import { Nft } from '@metamask/assets-controllers';
@@ -45,11 +36,6 @@ const NFTsTabView = ({ flashListProps }: NFTsProps) => {
   }, [navigation, trackEvent, createEventBuilder]);
   const tw = useTailwind();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const navigateToNftsFullView = useCallback(() => {
-    navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
-  }, [navigation]);
-
   const additionalButtons = (
     <ButtonIcon
       testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
@@ -60,7 +46,7 @@ const NFTsTabView = ({ flashListProps }: NFTsProps) => {
   );
 
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 pb-9">
       <BaseControlBar
         networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
         useEvmSelectionLogic={false}
@@ -69,15 +55,6 @@ const NFTsTabView = ({ flashListProps }: NFTsProps) => {
         hideSort
         style={tw`pb-3`}
       />
-      {/* Uncomment this to review NftsFullView */}
-      {/* <Box twClassName="px-4 py-2">
-        <Button
-          variant={ButtonVariant.Secondary}
-          onPress={navigateToNftsFullView}
-        >
-          {strings('wallet.view_all_nfts')}
-        </Button>
-      </Box> */}
       <NftGrid
         onAddCollectible={goToAddCollectible}
         flashListProps={flashListProps}

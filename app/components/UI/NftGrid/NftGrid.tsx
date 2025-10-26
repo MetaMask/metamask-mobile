@@ -25,7 +25,13 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { ActivityIndicator } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
+import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 
 interface NFTNavigationParamList {
   AddAsset: { assetType: string };
@@ -35,6 +41,7 @@ interface NFTNavigationParamList {
 interface NftGridProps {
   onAddCollectible?: () => void;
   flashListProps?: Partial<FlashListProps<Nft[]>>;
+  maxItems?: number;
 }
 
 const NftRow = ({
@@ -58,7 +65,11 @@ const NftRow = ({
   </Box>
 );
 
-const NftGrid = ({ onAddCollectible, flashListProps }: NftGridProps) => {
+const NftGrid = ({
+  onAddCollectible,
+  flashListProps,
+  maxItems,
+}: NftGridProps) => {
   const navigation =
     useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -86,11 +97,15 @@ const NftGrid = ({ onAddCollectible, flashListProps }: NftGridProps) => {
 
   const groupedCollectibles: Nft[][] = useMemo(() => {
     const groups: Nft[][] = [];
-    for (let i = 0; i < allFilteredCollectibles.length; i += 3) {
-      groups.push(allFilteredCollectibles.slice(i, i + 3));
+    const itemsToProcess = maxItems
+      ? allFilteredCollectibles.slice(0, maxItems)
+      : allFilteredCollectibles;
+
+    for (let i = 0; i < itemsToProcess.length; i += 3) {
+      groups.push(itemsToProcess.slice(i, i + 3));
     }
     return groups;
-  }, [allFilteredCollectibles]);
+  }, [allFilteredCollectibles, maxItems]);
 
   useEffect(() => {
     if (longPressedCollectible) {
@@ -110,6 +125,14 @@ const NftGrid = ({ onAddCollectible, flashListProps }: NftGridProps) => {
       setIsAddNFTEnabled(true);
     }
   }, [onAddCollectible, navigation, trackEvent, createEventBuilder]);
+
+  const handleViewAllNfts = useCallback(() => {
+    navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
+  }, [navigation]);
+
+  // Determine if we should show the "View all NFTs" button
+  const shouldShowViewAllButton =
+    maxItems && allFilteredCollectibles.length > maxItems;
 
   return (
     <>
@@ -150,6 +173,19 @@ const NftGrid = ({ onAddCollectible, flashListProps }: NftGridProps) => {
         actionSheetRef={actionSheetRef}
         longPressedCollectible={longPressedCollectible}
       />
+
+      {/* View all NFTs button - shown when there are more items than maxItems */}
+      {shouldShowViewAllButton && (
+        <Box twClassName="pt-3">
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={handleViewAllNfts}
+            isFullWidth
+          >
+            {strings('wallet.view_all_nfts')}
+          </Button>
+        </Box>
+      )}
     </>
   );
 };
