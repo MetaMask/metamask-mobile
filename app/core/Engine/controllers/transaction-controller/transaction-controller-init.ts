@@ -117,6 +117,8 @@ export const TransactionControllerInit: ControllerInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
+          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
+            beforeSign(_request, request),
         },
         incomingTransactions: {
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
@@ -317,6 +319,17 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function beforeSign(
+  hookRequest: { transactionMeta: TransactionMeta },
+  request: ControllerInitRequest<
+    TransactionControllerMessenger,
+    TransactionControllerInitMessenger
+  >,
+) {
+  const predictController = request.getController('PredictController');
+  return predictController.beforeSign(hookRequest);
 }
 
 function addTransactionControllerListeners(
