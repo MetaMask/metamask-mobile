@@ -11,11 +11,15 @@ import { handleRewardsUrl } from '../../Handlers/handleRewardsUrl';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { DeeplinkUrlParams } from '../../ParseManager/extractURLParams';
+import { parse } from 'eth-url-parser';
 
 // Mock dependencies
 jest.mock('../../Handlers/handleCreateAccountUrl');
 jest.mock('../../Handlers/handleRewardsUrl');
 jest.mock('../../../SDKConnect/utils/DevLogger');
+jest.mock('eth-url-parser');
+
+const mockParse = parse as jest.MockedFunction<typeof parse>;
 
 // Helper function to create default DeeplinkUrlParams
 const createDefaultParams = (
@@ -201,53 +205,158 @@ describe('AccountActions', () => {
       expect(action.handler).toBeDefined();
     });
 
-    /* Send action has special re-parse logic that's hard to test
-    it('handles send action with path', async () => {
+    it('navigates to SendView when ethUrl has value parameter', async () => {
       const action = createSendAction();
       const params: DeeplinkParams = {
-        action: ACTIONS.FAST_ONBOARDING,
-        path: '/import-wallet',
+        action: ACTIONS.SEND,
+        path: '/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
         params: createDefaultParams(),
-        originalUrl: 'metamask://fast-onboarding/import-wallet',
+        originalUrl:
+          'metamask://send/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
         scheme: 'metamask:',
         navigation: mockNavigation,
         origin: 'deeplink',
       };
 
+      // Mock eth-url-parser to return a parsed ethereum URL with value parameter
+      mockParse.mockReturnValue({
+        scheme: 'ethereum',
+        target_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+        parameters: {
+          value: '1000000000000000000', // 1 ETH in wei
+        },
+      });
+
       await action.handler(params);
 
-      expect(DevLogger.log).toHaveBeenCalledWith('AccountActions: Handling fast onboarding action');
-      expect(handleFastOnboarding).toHaveBeenCalledWith({
-        onboardingPath: '/import-wallet',
+      expect(mockParse).toHaveBeenCalledWith(
+        'metamask://send/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('SendView', {
+        screen: 'Send',
+        params: {
+          txMeta: {
+            scheme: 'ethereum',
+            target_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+            parameters: {
+              value: '1000000000000000000',
+            },
+            source:
+              'metamask://send/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+            action: 'send-eth',
+          },
+        },
       });
     });
 
-    it('handles fast onboarding action without path', async () => {
-      const action = createFastOnboardingAction();
+    it('navigates to SendFlowView when ethUrl has no value parameter', async () => {
+      const action = createSendAction();
       const params: DeeplinkParams = {
-        action: ACTIONS.FAST_ONBOARDING,
-        path: '',
+        action: ACTIONS.SEND,
+        path: '/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
         params: createDefaultParams(),
-        originalUrl: 'metamask://fast-onboarding',
+        originalUrl:
+          'metamask://send/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
         scheme: 'metamask:',
         navigation: mockNavigation,
-        origin: 'qr-code',
+        origin: 'deeplink',
       };
+
+      // Mock eth-url-parser to return a parsed ethereum URL without value parameter
+      mockParse.mockReturnValue({
+        scheme: 'ethereum',
+        target_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+        parameters: {}, // No value parameter
+      });
 
       await action.handler(params);
 
-      expect(handleFastOnboarding).toHaveBeenCalledWith({
-        onboardingPath: '',
+      expect(mockParse).toHaveBeenCalledWith(
+        'metamask://send/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('SendFlowView', {
+        screen: 'SendTo',
+        params: {
+          txMeta: {
+            scheme: 'ethereum',
+            target_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+            parameters: {},
+            source:
+              'metamask://send/0x742d35Cc6634C0532925a3b844Bc9e7595f6E123',
+            action: 'send-eth',
+          },
+        },
       });
     });
 
-    it('only supports metamask scheme', () => {
-      const action = createFastOnboardingAction();
+    it('navigates to SendView for token transfer (TRANSFER function)', async () => {
+      const action = createSendAction();
+      const params: DeeplinkParams = {
+        action: ACTIONS.SEND,
+        path: '/0xTokenContract/transfer',
+        params: createDefaultParams(),
+        originalUrl: 'metamask://send/0xTokenContract/transfer',
+        scheme: 'metamask:',
+        navigation: mockNavigation,
+        origin: 'deeplink',
+      };
 
-      expect(action.supportedSchemes).toEqual(['metamask://']);
-      expect(action.supportedSchemes).not.toContain('https://');
+      // Mock eth-url-parser to return a parsed ethereum URL with transfer function
+      mockParse.mockReturnValue({
+        scheme: 'ethereum',
+        target_address: '0xTokenContract',
+        function_name: 'transfer',
+        parameters: {
+          address: '0xRecipient',
+          uint256: '1000000',
+        },
+      });
+
+      await action.handler(params);
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('SendView', {
+        screen: 'Send',
+        params: {
+          txMeta: {
+            scheme: 'ethereum',
+            target_address: '0xTokenContract',
+            function_name: 'transfer',
+            parameters: {
+              address: '0xRecipient',
+              uint256: '1000000',
+            },
+            source: 'metamask://send/0xTokenContract/transfer',
+            action: 'send-token',
+          },
+        },
+      });
     });
-    */
+
+    it('handles error when parsing fails', async () => {
+      const action = createSendAction();
+      const params: DeeplinkParams = {
+        action: ACTIONS.SEND,
+        path: '/invalid-address',
+        params: createDefaultParams(),
+        originalUrl: 'metamask://send/invalid-address',
+        scheme: 'metamask:',
+        navigation: mockNavigation,
+        origin: 'deeplink',
+      };
+
+      const error = new Error('Invalid ethereum URL');
+      mockParse.mockImplementation(() => {
+        throw error;
+      });
+
+      await expect(action.handler(params)).rejects.toThrow(
+        'Invalid ethereum URL',
+      );
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'AccountActions: Error handling send action',
+        error,
+      );
+    });
   });
 
   describe('registerAccountActions', () => {
