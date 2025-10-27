@@ -58,6 +58,7 @@ export interface AuthenticatedCardTokenAllowanceData {
 export type CardTokenAllowance = {
   allowanceState: AllowanceState;
   allowance: string;
+  totalAllowance?: string;
 } & FlashListAssetKey &
   CardToken &
   AuthenticatedCardTokenAllowanceData;
@@ -146,10 +147,13 @@ export interface CardExternalWalletDetail {
   walletAddress: string;
   currency: string;
   balance: string;
-  allowance: string;
+  allowance: string; // Remaining allowance for the token
   priority: number;
   tokenDetails: CardToken;
   chainId: string;
+  network: CardNetwork;
+  delegationContractAddress?: string;
+  stagingTokenAddress?: string;
 }
 
 export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];

@@ -29,6 +29,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
@@ -50,7 +51,10 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
+import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
+import useCardDetails from '../../hooks/useCardDetails';
 import {
+  selectIsAuthenticatedCard,
   setIsAuthenticatedCard,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
@@ -62,7 +66,6 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
-import useLoadCardData from '../../hooks/useLoadCardData';
 
 /**
  * CardHome Component
@@ -81,6 +84,7 @@ const CardHome = () => {
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
@@ -90,25 +94,26 @@ const CardHome = () => {
   const styles = createStyles(theme);
 
   const privacyMode = useSelector(selectPrivacyMode);
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
-  // Use the orchestrator hook for card data
   const {
     priorityToken,
-    cardDetails,
-    isLoading,
-    error: cardError,
-    warning,
-    isAuthenticated,
-    isBaanxLoginEnabled,
     fetchPriorityToken,
-    fetchAllData,
-    pollCardStatusUntilProvisioned,
-    isLoadingPollCardStatusUntilProvisioned,
-  } = useLoadCardData();
-
+    isLoading: isLoadingPriorityToken,
+    error: priorityTokenError,
+    warning: priorityTokenWarning,
+  } = useGetPriorityCardToken();
   const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance, asset } =
     useAssetBalance(priorityToken);
-
+  const {
+    cardDetails,
+    pollCardStatusUntilProvisioned,
+    fetchCardDetails,
+    isLoading: isLoadingCardDetails,
+    error: cardDetailsError,
+    warning: cardDetailsWarning,
+    isLoadingPollCardStatusUntilProvisioned,
+  } = useCardDetails();
   const { provisionCard, isLoading: isLoadingProvisionCard } =
     useCardProvision();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
@@ -132,10 +137,6 @@ const CardHome = () => {
       priorityToken?.allowanceState === AllowanceState.Limited,
     [priorityToken, isAuthenticated],
   );
-
-  // Extract warnings from the combined warning
-  const priorityTokenWarning = warning;
-  const cardDetailsWarning = warning;
 
   const balanceAmount = useMemo(() => {
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
@@ -241,7 +242,7 @@ const CardHome = () => {
 
   const manageSpendingLimitAction = useCallback(() => {
     if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT);
+      // open spending limit screen
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
@@ -251,6 +252,11 @@ const CardHome = () => {
     logoutFromProvider();
     navigation.goBack();
   };
+
+  const isLoading = useMemo(
+    () => isLoadingPriorityToken || isLoadingCardDetails,
+    [isLoadingPriorityToken, isLoadingCardDetails],
+  );
 
   const enableCardAction = useCallback(async () => {
     await provisionCard();
@@ -371,15 +377,20 @@ const CardHome = () => {
     isSwapEnabledForPriorityToken,
   ]);
 
+  const error = useMemo(
+    () => priorityTokenError || cardDetailsError,
+    [priorityTokenError, cardDetailsError],
+  );
+
   // Handle authentication errors (expired token, invalid credentials, etc.)
   useEffect(() => {
     const handleAuthenticationError = async () => {
-      if (!cardError) {
+      if (!error) {
         return;
       }
 
       // Check if the error is authentication-related
-      if (isAuthenticated && isAuthenticationError(cardError)) {
+      if (isAuthenticated && isAuthenticationError(cardDetailsError)) {
         Logger.log(
           'CardHome: Authentication error detected, clearing auth state and redirecting',
         );
@@ -397,9 +408,9 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, isAuthenticated, dispatch, navigation]);
+  }, [error, isAuthenticated, dispatch, navigation, cardDetailsError]);
 
-  if (cardError) {
+  if (error) {
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -420,7 +431,7 @@ const CardHome = () => {
         >
           {strings('card.card_home.error_description')}
         </Text>
-        {retries < 3 && !isAuthenticationError(cardError) && (
+        {retries < 3 && !isAuthenticationError(error) && (
           <View style={styles.tryAgainButtonContainer}>
             <Button
               variant={ButtonVariants.Primary}
@@ -428,7 +439,11 @@ const CardHome = () => {
               size={ButtonSize.Md}
               onPress={() => {
                 setRetries((prevState) => prevState + 1);
-                fetchAllData();
+                fetchPriorityToken();
+
+                if (cardDetailsError) {
+                  fetchCardDetails();
+                }
               }}
               testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
             />

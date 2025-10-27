@@ -17,7 +17,6 @@ import { selectAllPopularNetworkConfigurations } from '../../../../selectors/net
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 export interface OpenSwapsParams {
-  chainId: string;
   beforeNavigate?: (navigate: () => void) => void;
 }
 
@@ -60,12 +59,12 @@ export const useOpenSwaps = ({
   });
 
   const openSwaps = useCallback(
-    ({ chainId, beforeNavigate }: OpenSwapsParams) => {
+    ({ beforeNavigate }: OpenSwapsParams) => {
       if (!priorityToken) return;
 
       const destToken: BridgeToken = {
         ...priorityToken,
-        image: buildTokenIconUrl(chainId, priorityToken.address),
+        image: buildTokenIconUrl(priorityToken.chainId, priorityToken.address),
       } as BridgeToken;
       dispatch(setDestToken(destToken));
 

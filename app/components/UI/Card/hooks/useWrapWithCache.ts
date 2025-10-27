@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { setCacheData } from '../../../../core/redux/slices/card';
@@ -85,8 +85,7 @@ export const useWrapWithCache = <T>(
     return lastFetchedDate > cacheExpiry;
   }, [lastFetched, cacheDuration]);
 
-  // Memoize cache validity to prevent unnecessary re-runs
-  const cacheIsValid = useMemo(() => isCacheValid(), [isCacheValid]);
+  const cacheIsValid = isCacheValid();
 
   // Fetch function that updates cache
   const fetchData: () => Promise<T | null> = useCallback(async () => {
@@ -114,7 +113,7 @@ export const useWrapWithCache = <T>(
     }
   }, [fetchFn, cacheKey, dispatch]);
 
-  // Effect to handle initial fetch and dependency changes
+  // Effect to handle initial fetch - runs on mount and when cache becomes invalid
   useEffect(() => {
     if (!fetchOnMount) {
       return;
@@ -127,7 +126,10 @@ export const useWrapWithCache = <T>(
 
     // Cache is stale or we don't have data, fetch new data
     fetchData();
-  }, [cacheIsValid, cachedData, fetchOnMount, fetchData]);
+    // We deliberately include fetchData to allow refetching when cache expires
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cacheIsValid, cachedData, fetchOnMount]);
 
   // Determine loading state: only show loading if actively fetching AND no cached data
   const shouldShowLoading = isLoading && (!cachedData || !cacheIsValid);

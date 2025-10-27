@@ -36,7 +36,6 @@ export interface AddFundsBottomSheetProps {
   setOpenAddFundsBottomSheet: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
   priorityToken?: CardTokenAllowance;
-  chainId: string;
   navigate: NavigationProp<ParamListBase>['navigate'];
 }
 
@@ -44,7 +43,6 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   setOpenAddFundsBottomSheet,
   sheetRef,
   priorityToken,
-  chainId,
   navigate,
 }) => {
   const { isDepositEnabled } = useDepositEnabled();
@@ -65,10 +63,9 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   const handleOpenSwaps = useCallback(() => {
     if (!priorityToken) return;
     openSwaps({
-      chainId,
       beforeNavigate: (nav) => closeBottomSheetAndNavigate(nav),
     });
-  }, [priorityToken, openSwaps, chainId, closeBottomSheetAndNavigate]);
+  }, [priorityToken, openSwaps, closeBottomSheetAndNavigate]);
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
@@ -85,7 +82,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
         .addProperties({
           text: 'Deposit',
           location: 'CardHome',
-          chain_id_destination: getDecimalChainId(chainId),
+          chain_id_destination: getDecimalChainId(priorityToken?.chainId),
           ramp_type: 'DEPOSIT',
         })
         .build(),
@@ -97,9 +94,9 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   }, [
     closeBottomSheetAndNavigate,
     navigate,
-    chainId,
     trackEvent,
     createEventBuilder,
+    priorityToken?.chainId,
   ]);
 
   const options = [
@@ -119,7 +116,8 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
       icon: IconName.SwapHorizontal,
       onPress: handleOpenSwaps,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
-      enabled: AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId),
+      enabled:
+        AppConstants.SWAPS.ACTIVE && isSwapsAllowed(priorityToken?.chainId),
     },
   ];
 

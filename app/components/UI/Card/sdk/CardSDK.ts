@@ -44,12 +44,14 @@ import {
   CardWalletExternalResponse,
   CardNetwork,
   DelegationSettingsResponse,
+  DelegationSettingsNetwork,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { CaipChainId } from '@metamask/utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -120,12 +122,17 @@ export class CardSDK {
     };
   }
 
-  private get ethersProvider() {
+  private async getEthersProvider() {
     // Default RPC URL for LINEA mainnet
-    return new ethers.providers.JsonRpcProvider(LINEA_DEFAULT_RPC_URL);
+    const provider = new ethers.providers.JsonRpcProvider(
+      LINEA_DEFAULT_RPC_URL,
+    );
+    await provider.ready;
+
+    return provider;
   }
 
-  private get balanceScannerInstance() {
+  private async getBalanceScannerInstance() {
     const balanceScannerAddress =
       this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
@@ -135,10 +142,12 @@ export class CardSDK {
       );
     }
 
+    const ethersProvider = await this.getEthersProvider();
+
     return new ethers.Contract(
       balanceScannerAddress,
       BALANCE_SCANNER_ABI,
-      this.ethersProvider,
+      ethersProvider,
     );
   }
 
@@ -311,7 +320,12 @@ export class CardSDK {
 
     const supportedTokensAddresses = this.getSupportedTokensByChainId(
       this.lineaChainId,
-    ).map((token) => token.address);
+    )
+      .map((token) => token.address)
+      // Ensure all addresses are valid Ethereum addresses
+      .filter(
+        (addr): addr is string => addr != null && ethers.utils.isAddress(addr),
+      );
 
     if (supportedTokensAddresses.length === 0) {
       return [];
@@ -325,8 +339,9 @@ export class CardSDK {
       foxConnectUsAddress,
     ]);
 
+    const balanceScannerInstance = await this.getBalanceScannerInstance();
     const spendersAllowancesForTokens: [boolean, string][][] =
-      await this.balanceScannerInstance.spendersAllowancesForTokens(
+      await balanceScannerInstance.spendersAllowancesForTokens(
         address,
         supportedTokensAddresses,
         spenders,
@@ -827,86 +842,233 @@ export class CardSDK {
     return (await response.json()) as CardDetailsResponse;
   };
 
-  getCardExternalWalletDetails =
-    async (): Promise<CardExternalWalletDetailsResponse> => {
-      const promises = [
-        this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
-        this.makeRequest(
-          '/v1/wallet/external/priority',
-          { method: 'GET' },
-          true,
-        ),
-      ];
+  getCardExternalWalletDetails = async (
+    delegationSettings: DelegationSettingsNetwork[],
+  ): Promise<CardExternalWalletDetailsResponse> => {
+    const promises = [
+      this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
+      this.makeRequest('/v1/wallet/external/priority', { method: 'GET' }, true),
+    ];
 
-      const responses = await Promise.all(promises);
+    const responses = await Promise.all(promises);
 
-      if (!responses[0].ok || !responses[1].ok) {
-        try {
-          const errorResponse0 = await responses[0].json();
-          const errorResponse1 = await responses[1].json();
-          Logger.log(
-            errorResponse0,
-            'Failed to get card external wallet details. Please try again.',
-          );
-          Logger.log(
-            errorResponse1,
-            'Failed to get card priority wallet details. Please try again.',
-          );
-        } catch (error) {
-          // If we can't parse response, continue without it
-        }
-
-        throw new CardError(
-          CardErrorType.SERVER_ERROR,
+    if (!responses[0].ok || !responses[1].ok) {
+      try {
+        const errorResponse0 = await responses[0].json();
+        const errorResponse1 = await responses[1].json();
+        Logger.log(
+          errorResponse0,
           'Failed to get card external wallet details. Please try again.',
         );
+        Logger.log(
+          errorResponse1,
+          'Failed to get card priority wallet details. Please try again.',
+        );
+      } catch (error) {
+        // If we can't parse response, continue without it
       }
 
-      const externalWalletDetails =
-        (await responses[0].json()) as CardWalletExternalResponse[];
-      const priorityWalletDetails =
-        (await responses[1].json()) as CardWalletExternalPriorityResponse[];
-
-      if (
-        externalWalletDetails.length === 0 ||
-        priorityWalletDetails.length === 0
-      ) {
-        return [];
-      }
-
-      const combinedDetails = externalWalletDetails.map(
-        (wallet: CardWalletExternalResponse) => {
-          const priorityWallet = priorityWalletDetails.find(
-            (p: CardWalletExternalPriorityResponse) =>
-              p?.currency === wallet?.currency &&
-              p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
-          );
-          const supportedTokens = this.getSupportedTokensByChainId(
-            this.mapAPINetworkToCaipChainId(wallet.network),
-          );
-          const tokenDetails = this.mapSupportedTokenToCardToken(
-            supportedTokens.find(
-              (token) =>
-                token.symbol?.toLowerCase() === wallet.currency?.toLowerCase(),
-            ) ?? supportedTokens[0],
-          );
-
-          return {
-            id: priorityWallet?.id ?? 0,
-            walletAddress: wallet.address,
-            currency: wallet.currency,
-            balance: wallet.balance,
-            allowance: wallet.allowance,
-            priority: priorityWallet?.priority ?? 0,
-            chainId: this.mapAPINetworkToAssetChainId(wallet.network),
-            tokenDetails,
-          } as CardExternalWalletDetail;
-        },
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to get card external wallet details. Please try again.',
       );
+    }
 
-      // Sort - lower number = higher priority
-      return combinedDetails.sort((a, b) => a.priority - b.priority);
+    const externalWalletDetails =
+      (await responses[0].json()) as CardWalletExternalResponse[];
+    const priorityWalletDetails =
+      (await responses[1].json()) as CardWalletExternalPriorityResponse[];
+
+    if (
+      externalWalletDetails.length === 0 ||
+      priorityWalletDetails.length === 0
+    ) {
+      return [];
+    }
+
+    const combinedDetails = externalWalletDetails.map(
+      (wallet: CardWalletExternalResponse) => {
+        const priorityWallet = priorityWalletDetails.find(
+          (p: CardWalletExternalPriorityResponse) =>
+            p?.currency === wallet?.currency &&
+            p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
+        );
+
+        const tokenDetails =
+          this.mapCardExternalWalletDetailsToDelegationSettings(
+            wallet,
+            delegationSettings,
+          );
+
+        return {
+          id: priorityWallet?.id ?? 0,
+          walletAddress: wallet.address,
+          currency: wallet.currency,
+          balance: wallet.balance,
+          allowance: wallet.allowance,
+          priority: priorityWallet?.priority ?? 0,
+          chainId: tokenDetails?.decimalChainId
+            ? formatChainIdToCaip(tokenDetails?.decimalChainId)
+            : '',
+          tokenDetails: {
+            address: tokenDetails?.address ?? '',
+            decimals: tokenDetails?.decimals ?? 0,
+            symbol: tokenDetails?.symbol ?? '',
+            name: tokenDetails?.name ?? '',
+          },
+          network: wallet.network,
+          totalAllowance: null, // Will be populated by getTotalAllowance
+          delegationContractAddress:
+            tokenDetails?.delegationContractAddress ?? '',
+          stagingTokenAddress: tokenDetails?.stagingTokenAddress ?? '',
+        } as CardExternalWalletDetail;
+      },
+    );
+
+    // Sort - lower number = higher priority
+    return combinedDetails.sort((a, b) => a?.priority - b?.priority);
+  };
+
+  mapCardExternalWalletDetailsToDelegationSettings = (
+    cardWalletExternal: CardWalletExternalResponse,
+    delegationSettings: DelegationSettingsNetwork[],
+  ) => {
+    const { network, currency } = cardWalletExternal;
+    const delegationSettingNetwork = delegationSettings.find(
+      (delegationSetting) =>
+        delegationSetting.network?.toLowerCase() === network?.toLowerCase(),
+    );
+
+    if (!delegationSettingNetwork) {
+      return null;
+    }
+
+    const delegationSettingToken =
+      delegationSettingNetwork.tokens[currency?.toLowerCase() ?? ''];
+
+    if (!delegationSettingToken) {
+      return null;
+    }
+
+    const supportedTokens = this.getSupportedTokensByChainId(
+      this.mapAPINetworkToCaipChainId(cardWalletExternal.network),
+    );
+    const tokenDetails = this.mapSupportedTokenToCardToken(
+      supportedTokens.find(
+        (token) =>
+          token.symbol?.toLowerCase() ===
+          delegationSettingToken.symbol?.toLowerCase(),
+      ) ?? supportedTokens[0],
+    );
+
+    if (delegationSettingNetwork.environment === 'staging') {
+      return {
+        symbol: delegationSettingToken.symbol,
+        address: tokenDetails.address,
+        decimals: delegationSettingToken.decimals,
+        decimalChainId: delegationSettingNetwork.chainId,
+        name: tokenDetails.name,
+        delegationContractAddress: delegationSettingNetwork.delegationContract,
+        // This is used for getting the allowance and delegation on the Staging environment
+        stagingTokenAddress: delegationSettingToken.address,
+      };
+    }
+
+    return {
+      symbol: delegationSettingToken.symbol,
+      address: delegationSettingToken.address,
+      decimals: delegationSettingToken.decimals,
+      decimalChainId: delegationSettingNetwork.chainId,
+      name: tokenDetails.name,
+      delegationContractAddress: delegationSettingNetwork.delegationContract,
     };
+  };
+
+  // Get total allowance for a list of tokens. Used for authenticated mode.
+  // Currently only supporting Linea.
+  getTotalAllowance = async (
+    tokens: CardExternalWalletDetail[],
+  ): Promise<{ address: string; allowance: string | undefined }[]> => {
+    if (!tokens || tokens.length === 0) {
+      return [];
+    }
+
+    const balanceScannerInstance = await this.getBalanceScannerInstance();
+
+    // Query each wallet for its specific token's allowance
+    // This avoids querying wallet A for token B's address (which doesn't make sense)
+    const promises = tokens.map(async (token) => {
+      const tokenAddress =
+        token.stagingTokenAddress ?? token.tokenDetails.address ?? '';
+
+      // Skip if not a valid EVM address (e.g., Solana addresses)
+      if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
+        Logger.log('getTotalAllowance: Skipping non-EVM address', tokenAddress);
+        return {
+          address: tokenAddress,
+          allowance: undefined,
+        };
+      }
+
+      try {
+        // Query this specific wallet for this specific token
+        const spendersAllowances =
+          await balanceScannerInstance.spendersAllowancesForTokens(
+            token.walletAddress,
+            [tokenAddress], // Only query for this token's address
+            [[token.delegationContractAddress ?? '']], // Only this token's delegation contract
+          );
+
+        Logger.log('getTotalAllowance result', {
+          tokenAddress,
+          walletAddress: token.walletAddress,
+          delegationContract: token.delegationContractAddress,
+          result: spendersAllowances,
+        });
+
+        // spendersAllowances is Result[][] - 2D array
+        // Outer array: one element per token (we queried 1 token)
+        // Inner array: one element per spender (we queried 1 spender)
+        // Each element is [success, allowance]
+        const tokenResults = spendersAllowances[0]; // First (and only) token
+        const spenderResult = tokenResults?.[0]; // First (and only) spender
+        const allowanceHex = spenderResult?.[1]; // The allowance value (hex-encoded bytes)
+
+        // Convert hex to human-readable number using token decimals
+        let allowance: string | undefined;
+        if (allowanceHex) {
+          try {
+            const allowanceBigNumber = ethers.BigNumber.from(allowanceHex);
+            // Format with token decimals (e.g., if decimals=6, divides by 10^6)
+            const decimals = token.tokenDetails.decimals ?? 18; // Default to 18 if not specified
+            allowance = ethers.utils.formatUnits(allowanceBigNumber, decimals);
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              `getTotalAllowance: Failed to parse allowance hex for token ${tokenAddress}`,
+            );
+            allowance = undefined;
+          }
+        }
+
+        return {
+          address: tokenAddress,
+          allowance,
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          `getTotalAllowance: Failed to get allowance for token ${tokenAddress} at wallet ${token.walletAddress}`,
+        );
+        return {
+          address: tokenAddress,
+          allowance: undefined,
+        };
+      }
+    });
+
+    return await Promise.all(promises);
+  };
 
   provisionCard = async (): Promise<{ success: boolean }> => {
     const response = await this.makeRequest(
@@ -2032,10 +2194,11 @@ export class CardSDK {
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
+    const ethersProvider = await this.getEthersProvider();
 
     const logsPerToken = await Promise.all(
       nonZeroBalanceTokensAddresses.map((tokenAddress) =>
-        this.ethersProvider
+        ethersProvider
           .getLogs({
             address: tokenAddress,
             fromBlock: spendersDeployedBlock,
