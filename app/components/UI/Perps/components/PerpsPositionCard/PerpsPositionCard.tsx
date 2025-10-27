@@ -529,6 +529,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               iconColor={IconColor.Default}
               onPress={handleSharePress}
               style={styles.shareButton}
+              testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
             />
           </View>
         )}

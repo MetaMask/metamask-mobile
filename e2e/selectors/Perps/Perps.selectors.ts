@@ -50,6 +50,7 @@ export const PerpsPositionCardSelectorsIDs = {
   PNL: 'position-card-pnl',
   CLOSE_BUTTON: 'position-card-close',
   EDIT_BUTTON: 'position-card-edit',
+  SHARE_BUTTON: 'position-card-share',
   TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON:
     'position-card-tpsl-count-warning-tooltip-view-orders',
   TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:

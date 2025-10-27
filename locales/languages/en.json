@@ -1702,7 +1702,7 @@
       "entry_price": "Entry",
       "mark_price": "Mark",
       "share_button": "Share",
-      "referral_footer": "Earn up to 500 points when you sign up for rewards with this code.",
+      "share_message": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
       "referral_link": "link.metamask.io/rewards/referrals={{code}}"
     }
   },

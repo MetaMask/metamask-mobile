@@ -48,14 +48,22 @@ import type { Position } from '../../controllers/types';
 import { darkTheme } from '@metamask/design-tokens';
 import styleSheet from './PerpsHeroCardView.styles';
 import Logger from '../../../../../util/Logger';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { buildReferralUrl } from '../../../Rewards/utils';
 
 // To add a new card, add the image to the array.
-const CARD_IMAGES: ImageSourcePropType[] = [
-  NegativePnlCharacter1,
-  NegativePnlCharacter2,
-  PositivePnlCharacter2,
-  PositivePnlCharacter3,
-];
+const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
+  [
+    { image: NegativePnlCharacter1, id: 0, name: 'Negative PNL Character 1' },
+    { image: NegativePnlCharacter2, id: 1, name: 'Negative PNL Character 2' },
+    { image: PositivePnlCharacter2, id: 2, name: 'Positive PNL Character 2' },
+    { image: PositivePnlCharacter3, id: 3, name: 'Positive PNL Character 3' },
+  ];
 
 const PerpsHeroCardView: React.FC = () => {
   const navigation = useNavigation();
@@ -64,6 +72,7 @@ const PerpsHeroCardView: React.FC = () => {
     Array.from({ length: CARD_IMAGES.length }, () => null),
   );
   const [currentTab, setCurrentTab] = useState(0);
+  const [isSharing, setIsSharing] = useState(false);
 
   // Get data from route params
   const params = route.params as {
@@ -74,6 +83,8 @@ const PerpsHeroCardView: React.FC = () => {
   const { position, marketPrice } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
+
+  const { track } = usePerpsEventTracking();
 
   const data = useMemo(() => {
     const isLong = Number.parseFloat(position.size) >= 0;
@@ -136,26 +147,6 @@ const PerpsHeroCardView: React.FC = () => {
     }
   };
 
-  // TODO: Test sharing to Twitter.
-  const handleShare = async () => {
-    try {
-      const imageUri = await captureCard();
-      if (imageUri) {
-        await Share.open({
-          url: imageUri,
-          message: strings('perps.pnl_hero_card.header_title'),
-          // File mime type (required for sharing file with Instagram)
-          type: 'image/png',
-        });
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: 'Error sharing Perps Hero Card',
-        context: 'PerpsHeroCardView.handleShare',
-      });
-    }
-  };
-
   const pnlSign = data.pnl >= 0 ? '+' : '';
   const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
   const directionText =
@@ -163,6 +154,68 @@ const PerpsHeroCardView: React.FC = () => {
   const directionBadgeText = data.leverage
     ? `${directionText} ${data.leverage}x`
     : directionText;
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    const imageSelected = CARD_IMAGES[currentTab].name;
+
+    const sharedEventProperties = {
+      [PerpsEventProperties.SCREEN_NAME]:
+        PerpsEventValues.SCREEN_NAME.PERPS_HERO_CARD,
+      [PerpsEventProperties.ACTION]: PerpsEventValues.ACTION.SHARE,
+      [PerpsEventProperties.ASSET]: data.asset,
+      [PerpsEventProperties.DIRECTION]: data.direction,
+      [PerpsEventProperties.LEVERAGE]: data.leverage,
+      [PerpsEventProperties.PNL_PERCENT]: pnlDisplay,
+      [PerpsEventProperties.IMAGE_SELECTED]: imageSelected,
+      [PerpsEventProperties.TAB_NUMBER]: currentTab,
+    };
+
+    try {
+      const imageUri = await captureCard();
+      if (imageUri) {
+        track(MetaMetricsEvents.SHARE_ACTION, {
+          ...sharedEventProperties,
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
+        });
+
+        const result = await Share.open({
+          url: imageUri,
+          // message: strings('perps.pnl_hero_card.header_title'),
+          message: strings('perps.pnl_hero_card.share_message', {
+            asset: data.asset,
+            code: rewardsReferralCode,
+            link: rewardsReferralCode
+              ? buildReferralUrl(rewardsReferralCode)
+              : '',
+          }),
+          // File mime type (required for sharing file with Instagram)
+          type: 'image/png',
+        });
+        track(MetaMetricsEvents.SHARE_ACTION, {
+          ...sharedEventProperties,
+          [PerpsEventProperties.STATUS]: result?.success
+            ? PerpsEventValues.STATUS.COMPLETED
+            : PerpsEventValues.STATUS.FAILED,
+        });
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      track(MetaMetricsEvents.SHARE_ACTION, {
+        ...sharedEventProperties,
+        [PerpsEventProperties.ASSET]: PerpsEventValues.STATUS.FAILED,
+        [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+      });
+
+      Logger.error(error as Error, {
+        message: 'Error sharing Perps Hero Card',
+        context: 'PerpsHeroCardView.handleShare',
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -196,7 +249,7 @@ const PerpsHeroCardView: React.FC = () => {
             initialPage={0}
             prerenderingSiblingsNumber={1}
           >
-            {CARD_IMAGES.map((image, index) => (
+            {CARD_IMAGES.map(({ image }, index) => (
               <View key={index} style={styles.cardWrapper}>
                 <View
                   ref={(ref) => {
@@ -326,6 +379,7 @@ const PerpsHeroCardView: React.FC = () => {
       </View>
 
       {/* Footer Button */}
+      {/* TODO: Add event tracking to see how often the share button is pressed and to see which social media platform is used */}
       <View style={styles.buttonsContainer}>
         <Button
           variant={ButtonVariants.Primary}
@@ -334,6 +388,7 @@ const PerpsHeroCardView: React.FC = () => {
           label={strings('perps.pnl_hero_card.share_button')}
           startIconName={IconName.Share}
           onPress={handleShare}
+          isDisabled={isSharing}
         />
       </View>
     </SafeAreaView>
