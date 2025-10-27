@@ -1,230 +1,418 @@
 import React, {
   useEffect,
   useState,
-  useRef,
   useCallback,
   useMemo,
   useContext,
+  useRef,
 } from 'react';
 import {
   Alert,
   TouchableOpacity,
-  TextInput,
   View,
   ActivityIndicator,
-  DimensionValue,
+  Keyboard,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import StyledButton from '../../UI/StyledButton';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { ButtonSize } from '../../../component-library/components/Buttons/Button';
 import { isValidMnemonic } from '../../../util/validators';
-import useCopyClipboard from '../Notifications/Details/hooks/useCopyClipboard';
-import ClipboardManager from '../../../core/ClipboardManager';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import SelectComponent from '../../UI/SelectComponent';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
-import {
-  validateSRP,
-  validateCompleteness,
-  validateCase,
-  validateWords,
-  validateMnemonic,
-} from './validation';
-import { AppThemeKey } from '../../../util/theme/models';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
+import Routes from '../../../constants/navigation/Routes';
+import { QRTabSwitcherScreens } from '../QRTabSwitcher';
+import Logger from '../../../util/Logger';
+import { formatSeedPhraseToSingleLine } from '../../../util/string';
+import { v4 as uuidv4 } from 'uuid';
+import SrpInput from '../SrpInput';
+import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 
-const defaultNumberOfWords = 12;
+const SRP_LENGTHS = [12, 15, 18, 21, 24];
+const SPACE_CHAR = ' ';
 
-export const parseSecretRecoveryPhrase = (seedPhrase: string) =>
-  (seedPhrase || '').trim().toLowerCase().match(/\w+/gu)?.join(' ') || '';
-
-const srpOptions = [
-  {
-    value: 12,
-    label: strings('import_new_secret_recovery_phrase.12_word_option'),
-  },
-  {
-    value: 24,
-    label: strings('import_new_secret_recovery_phrase.24_word_option'),
-  },
-];
+const checkValidSeedWord = (text: string) => wordlist.includes(text);
 
 /**
  * View that's displayed when the user is trying to import a new secret recovery phrase
  */
 const ImportNewSecretRecoveryPhrase = () => {
-  const [inputWidth, setInputWidth] = useState<DimensionValue | undefined>(
-    Device.isAndroid() ? '99%' : undefined,
-  );
   const navigation = useNavigation();
-  const mounted = useRef<boolean>(false);
-  const { colors, themeAppearance } = useAppTheme();
+  const route = useRoute();
+  const { colors } = useAppTheme();
   const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
 
-  const [numberOfWords, setNumberOfWords] = useState(defaultNumberOfWords);
-  const [secretRecoveryPhrase, setSecretRecoveryPhrase] = useState<string[]>(
-    Array(numberOfWords).fill(''),
-  );
-  const [showPassword, setShowPassword] = useState(true);
+  // Refs
+  const seedPhraseInputRefs = useRef<Map<
+    number,
+    { focus: () => void; blur: () => void }
+  > | null>(null);
+
+  function getSeedPhraseInputRef() {
+    if (!seedPhraseInputRefs.current) {
+      seedPhraseInputRefs.current = new Map();
+    }
+    return seedPhraseInputRefs.current;
+  }
+
+  // State
+  const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
-  const [srpError, setSrpError] = useState('');
-  const [invalidSRPWords, setInvalidSRPWords] = useState<boolean[]>(
-    Array(numberOfWords).fill(false),
-  );
+  const [error, setError] = useState('');
+  const [errorWordIndexes, setErrorWordIndexes] = useState<
+    Record<number, boolean>
+  >({});
+  const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
+    useState<number | null>(null);
+  const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
+    useState<number | null>(null);
+
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const copyToClipboard = useCopyClipboard();
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
   });
 
+  // Helper to get word count
+  const trimmedSeedPhraseLength = useMemo(
+    () => seedPhrase.filter((word) => word !== '').length,
+    [seedPhrase],
+  );
+
+  const uniqueId = useMemo(() => uuidv4(), []);
+
+  const isFirstInput = useMemo(() => seedPhrase.length <= 1, [seedPhrase]);
+
+  // Check if continue button should be disabled
+  const isSRPContinueButtonDisabled = useMemo(() => {
+    const updatedSeedPhrase = [...seedPhrase];
+    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
+      (word) => word !== '',
+    ).length;
+    return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
+  }, [seedPhrase]);
+
+  // Word-by-word validation
+  const checkForWordErrors = useCallback(
+    (seedPhraseArr: string[]) => {
+      const errorsMap: Record<number, boolean> = {};
+      seedPhraseArr.forEach((word, index) => {
+        const trimmedWord = word.trim();
+        if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
+          errorsMap[index] = true;
+        }
+      });
+      setErrorWordIndexes(errorsMap);
+      return errorsMap;
+    },
+    [setErrorWordIndexes],
+  );
+
+  // Validate and show errors
   useEffect(() => {
-    mounted.current = true;
-    // Workaround https://github.com/facebook/react-native/issues/9958
-    if (inputWidth) {
-      const timeoutId = setTimeout(() => {
-        mounted.current && setInputWidth('100%');
-      }, 100);
-
-      return () => {
-        clearTimeout(timeoutId);
-        mounted.current = false;
-      };
+    const wordErrorMap = checkForWordErrors(seedPhrase);
+    const hasWordErrors = Object.values(wordErrorMap).some(Boolean);
+    if (hasWordErrors) {
+      setError(strings('import_from_seed.spellcheck_error'));
+    } else {
+      setError('');
     }
-  }, [inputWidth]);
+  }, [seedPhrase, checkForWordErrors]);
 
-  const hasEmptySrp = useMemo(
-    () => secretRecoveryPhrase.every((word) => word === ''),
-    [secretRecoveryPhrase],
-  );
+  // Handle text change in individual input (for grid mode)
+  const handleSeedPhraseChangeAtIndex = useCallback(
+    (seedPhraseText: string, index: number) => {
+      try {
+        const text = formatSeedPhraseToSingleLine(seedPhraseText);
 
-  const isValidSrp = isValidMnemonic(secretRecoveryPhrase.join(' '));
+        if (text.includes(SPACE_CHAR)) {
+          const isEndWithSpace = text.at(-1) === SPACE_CHAR;
+          const splitArray = text
+            .trim()
+            .split(' ')
+            .filter((word) => word.trim() !== '');
 
-  // This is to keep the dropdown value in sync with the number of words when a user
-  // pasted their srp
-  const selectedDropdownValue = useMemo(
-    () => srpOptions.find((option) => option.value === numberOfWords)?.value,
-    [numberOfWords],
-  );
+          if (splitArray.length === 0) {
+            setSeedPhrase((prev) => {
+              const newSeedPhrase = [...prev];
+              newSeedPhrase[index] = '';
+              return newSeedPhrase;
+            });
+            return;
+          }
 
-  const handleSrpNumberChange = (value: number) => {
-    if (value === numberOfWords) {
-      return;
-    }
+          const mergedSeedPhrase = [
+            ...seedPhrase.slice(0, index),
+            ...splitArray,
+            ...seedPhrase.slice(index + 1),
+          ];
 
-    setNumberOfWords(value);
-    setSecretRecoveryPhrase(Array(value).fill(''));
-    setInvalidSRPWords(Array(value).fill(false));
-    setSrpError('');
-  };
+          const normalizedWords = mergedSeedPhrase
+            .map((w) => w.trim())
+            .filter((w) => w !== '');
+          const maxAllowed = Math.max(...SRP_LENGTHS);
+          const hasReachedMax = normalizedWords.length >= maxAllowed;
+          const isCompleteAndValid =
+            SRP_LENGTHS.includes(normalizedWords.length) &&
+            isValidMnemonic(normalizedWords.join(' '));
 
-  const onSrpChange = useCallback(
-    (newDraftSrp: string[]) => {
-      const hideErrorIfSrpIsEmpty = (
-        state: { error: string; words: boolean[] },
-        phrase: string[],
-      ) => {
-        if (phrase.every((word) => word === '')) {
-          return {
-            words: Array(phrase.length).fill(false),
-            error: '',
-          };
+          let nextSeedPhraseState = normalizedWords;
+          if (
+            isEndWithSpace &&
+            index === seedPhrase.length - 1 &&
+            !isCompleteAndValid &&
+            !hasReachedMax
+          ) {
+            nextSeedPhraseState = [...normalizedWords, ''];
+          }
+
+          setSeedPhrase(nextSeedPhraseState);
+
+          if (isCompleteAndValid || hasReachedMax) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
+          }
+
+          const targetIndex = Math.min(
+            nextSeedPhraseState.length - 1,
+            index + splitArray.length,
+          );
+          setTimeout(() => {
+            setNextSeedPhraseInputFocusedIndex(targetIndex);
+          }, 0);
+          return;
         }
 
-        return state;
-      };
-
-      const numberOfFilledWords = newDraftSrp.filter(
-        (word) => word !== '',
-      ).length;
-
-      if (numberOfFilledWords === 12 || numberOfFilledWords === 24) {
-        const joinedDraftSrp = newDraftSrp.join(' ').trim();
-        const invalidWords = Array(newDraftSrp.length).fill(false);
-        let validationResult = validateSRP(newDraftSrp, invalidWords);
-        validationResult = validateCompleteness(validationResult, newDraftSrp);
-        validationResult = validateCase(validationResult, joinedDraftSrp);
-        validationResult = validateWords(validationResult);
-        validationResult = validateMnemonic(validationResult, joinedDraftSrp);
-        validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
-        setSrpError(validationResult.error);
-        setInvalidSRPWords(validationResult.words);
+        if (seedPhrase[index] !== text) {
+          setSeedPhrase((prev) => {
+            const newSeedPhrase = [...prev];
+            newSeedPhrase[index] = text;
+            return newSeedPhrase;
+          });
+        }
+      } catch (err) {
+        Logger.error(err as Error, 'Error handling seed phrase change');
       }
-
-      setSecretRecoveryPhrase(newDraftSrp);
     },
-    [setSrpError, setSecretRecoveryPhrase],
+    [seedPhrase],
   );
 
-  const onSrpPaste = useCallback(async () => {
-    const rawSrp = await ClipboardManager.getString();
-    const parsedSrp = parseSecretRecoveryPhrase(rawSrp);
-    let newDraftSrp = parsedSrp.split(' ');
-    let newNumberOfWords = numberOfWords;
-    if (newDraftSrp.length !== numberOfWords) {
-      if (newDraftSrp.length < 12) {
-        newNumberOfWords = 12;
-      } else if (newDraftSrp.length === 24) {
-        newNumberOfWords = 24;
+  // Handle text change in first input (textarea mode)
+  const handleSeedPhraseChange = useCallback(
+    (seedPhraseText: string) => {
+      const text = formatSeedPhraseToSingleLine(seedPhraseText);
+      const trimmedText = text.trim();
+      const updatedTrimmedText = trimmedText
+        .split(' ')
+        .filter((word) => word !== '');
+
+      if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
+        setSeedPhrase(updatedTrimmedText);
       } else {
-        setSrpError(
-          strings(
-            'import_new_secret_recovery_phrase.error_number_of_words_error_message',
-          ),
-        );
+        handleSeedPhraseChangeAtIndex(text, 0);
       }
-      setNumberOfWords(newNumberOfWords);
-    }
 
-    if (newDraftSrp.length < newNumberOfWords) {
-      newDraftSrp = newDraftSrp.concat(
-        new Array(newNumberOfWords - newDraftSrp.length).fill(''),
-      );
-    }
-    onSrpChange(newDraftSrp);
-    copyToClipboard('');
-  }, [copyToClipboard, numberOfWords, onSrpChange]);
-
-  const onSrpWordChange = useCallback(
-    (index: number, newWord: string) => {
-      const newSrp = secretRecoveryPhrase.slice();
-      newSrp[index] = newWord.trim();
-      onSrpChange(newSrp);
+      if (updatedTrimmedText.length > 1) {
+        setTimeout(() => {
+          setSeedPhraseInputFocusedIndex(null);
+          setNextSeedPhraseInputFocusedIndex(null);
+          seedPhraseInputRefs.current?.get(0)?.blur();
+          Keyboard.dismiss();
+        }, 100);
+      }
     },
-    [secretRecoveryPhrase, onSrpChange],
+    [handleSeedPhraseChangeAtIndex],
   );
 
-  const dismiss = () => {
+  // Clear all
+  const handleClear = useCallback(() => {
+    setSeedPhrase(['']);
+    setErrorWordIndexes({});
+    setError('');
+    setSeedPhraseInputFocusedIndex(0);
+    setNextSeedPhraseInputFocusedIndex(0);
+  }, []);
+
+  // Paste from clipboard
+  const handlePaste = useCallback(async () => {
+    const text = await Clipboard.getString();
+    if (text.trim() !== '') {
+      handleSeedPhraseChange(text);
+    }
+  }, [handleSeedPhraseChange]);
+
+  const dismiss = useCallback(() => {
     navigation.goBack();
+  }, [navigation]);
+
+  const showWhatIsSeedPhrase = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  }, [navigation]);
+
+  const onQrCodePress = useCallback(() => {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Scanner,
+      disableTabber: true,
+      onScanSuccess: (data: { seed?: string }, content?: string) => {
+        const seed = data?.seed || content;
+
+        if (seed) {
+          handleClear();
+          handleSeedPhraseChange(seed);
+        } else {
+          Alert.alert(
+            strings('import_new_secret_recovery_phrase.invalid_qr_code_title'),
+            strings(
+              'import_new_secret_recovery_phrase.invalid_qr_code_message',
+            ),
+          );
+        }
+      },
+      onScanError: (error: unknown) => {
+        Logger.error(error as Error, 'QR scan error');
+      },
+    });
+  }, [navigation, handleClear, handleSeedPhraseChange]);
+
+  // Focus management
+  useEffect(() => {
+    if (nextSeedPhraseInputFocusedIndex === null) return;
+
+    const refElement = seedPhraseInputRefs.current?.get(
+      nextSeedPhraseInputFocusedIndex,
+    );
+
+    refElement?.focus();
+  }, [nextSeedPhraseInputFocusedIndex]);
+
+  const handleOnFocus = useCallback(
+    (index: number) => {
+      if (seedPhraseInputFocusedIndex !== null) {
+        const currentWord = seedPhrase[seedPhraseInputFocusedIndex];
+        const trimmedWord = currentWord ? currentWord.trim() : '';
+
+        if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
+          setErrorWordIndexes((prev) => ({
+            ...prev,
+            [seedPhraseInputFocusedIndex]: true,
+          }));
+        } else {
+          setErrorWordIndexes((prev) => ({
+            ...prev,
+            [seedPhraseInputFocusedIndex]: false,
+          }));
+        }
+      }
+      setSeedPhraseInputFocusedIndex(index);
+      setNextSeedPhraseInputFocusedIndex(index);
+    },
+    [seedPhrase, seedPhraseInputFocusedIndex],
+  );
+
+  const getInputValue = (
+    isFirstInputValue: boolean,
+    _index: number,
+    item: string,
+  ) => {
+    if (isFirstInputValue) {
+      return seedPhrase?.[0] || '';
+    }
+    return item;
   };
+
+  const handleKeyPress = (
+    e: { nativeEvent: { key: string } },
+    index: number,
+  ) => {
+    if (e.nativeEvent.key === 'Backspace') {
+      if (seedPhrase[index] === '') {
+        const newData = seedPhrase.filter((_, idx) => idx !== index);
+        if (index > 0) {
+          setNextSeedPhraseInputFocusedIndex(index - 1);
+        }
+        setTimeout(() => {
+          setSeedPhrase(index === 0 ? [''] : [...newData]);
+        }, 0);
+      }
+    }
+  };
+
+  const handleEnterKeyPress = (index: number) => {
+    handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
+  };
+
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity onPress={dismiss} style={styles.headerButton}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          testID={ImportSRPIDs.BACK}
+        />
+      </TouchableOpacity>
+    ),
+    [dismiss, styles],
+  );
+
+  const headerRight = useCallback(
+    () => (
+      <TouchableOpacity onPress={onQrCodePress} style={styles.headerButton}>
+        <Icon name={IconName.Scan} size={IconSize.Lg} testID="qr-code-button" />
+      </TouchableOpacity>
+    ),
+    [onQrCodePress, styles],
+  );
+
+  const updateNavBar = useCallback(() => {
+    navigation.setOptions({
+      headerShown: true,
+      ...getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft,
+          headerRight,
+        },
+        colors,
+        false,
+      ),
+    });
+  }, [navigation, route, headerLeft, headerRight, colors]);
+
+  useEffect(() => {
+    updateNavBar();
+  }, [updateNavBar]);
 
   const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
     trackEvent(
@@ -245,21 +433,27 @@ const ImportNewSecretRecoveryPhrase = () => {
       const isSeedlessPwdOutdated =
         await Authentication.checkIsSeedlessPasswordOutdated(true);
       if (isSeedlessPwdOutdated) {
-        // no need to handle error here, password outdated state will trigger modal that force user to log out
+        setLoading(false);
         return;
       }
+
+      // Parse SRP from array to string
+      const phrase = seedPhrase
+        .map((item) => item.trim())
+        .filter((item) => item !== '')
+        .join(' ');
 
       // In case state 2 is enabled, discoverAccounts will be 0 because accounts are synced and then discovered
       // in a non-blocking way. So we rely on the callback to track the event when the discovery is done.
       const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
-        secretRecoveryPhrase.join(' '),
+        phrase,
         undefined,
         async ({ discoveredAccountsCount }) => {
           trackDiscoveryEvent(discoveredAccountsCount);
         },
       );
       setLoading(false);
-      setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
+      setSeedPhrase(['']);
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -298,117 +492,187 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
   };
 
-  const onClear = () => {
-    setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
-    setSrpError('');
-    setInvalidSRPWords(Array(numberOfWords).fill(false));
-  };
-
   return (
-    <View style={styles.mainWrapper}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
-        style={styles.topOverlay}
-        resetScrollToCoords={{ x: 0, y: 0 }}
+        testID={ImportSRPIDs.CONTAINER}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={20}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content} testID={ImportSRPIDs.CONTAINER}>
-          <TouchableOpacity onPress={dismiss} style={styles.navbarLeftButton}>
-            <Icon
-              name={IconName.ArrowLeft}
-              size={IconSize.Sm}
-              testID={ImportSRPIDs.BACK}
-            />
-          </TouchableOpacity>
-          <Text variant={TextVariant.HeadingLG}>
-            {strings('import_new_secret_recovery_phrase.title')}
-          </Text>
-          <TouchableOpacity
-            style={styles.subheading}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <View style={styles.options}>
-              <SelectComponent
-                label={strings(
-                  'import_new_secret_recovery_phrase.srp_number_of_words_option_title',
-                )}
-                selectedValue={String(selectedDropdownValue)}
-                onValueChange={handleSrpNumberChange}
-                options={srpOptions}
-                testID={ImportSRPIDs.SRP_SELECTION_DROPDOWN}
+        {/* Title */}
+        <Text variant={TextVariant.DisplayMD} style={styles.title}>
+          {strings('import_new_secret_recovery_phrase.import_wallet_title')}
+        </Text>
+
+        <View style={styles.contentContainer}>
+          {/* Subtitle with info icon */}
+          <View style={styles.subtitleContainer}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
+            </Text>
+            <TouchableOpacity onPress={showWhatIsSeedPhrase}>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Md}
+                color={colors.icon.alternative}
               />
-            </View>
-            <Icon
-              name={showPassword ? IconName.Eye : IconName.EyeSlash}
-              size={IconSize.Sm}
-            />
-          </TouchableOpacity>
-          <View style={styles.grid}>
-            {secretRecoveryPhrase.map((_, index) => (
-              <View key={`cell-${index}`} style={styles.gridCell}>
-                <Text style={styles.gridCellPrefix}>{`${index + 1}. `}</Text>
-                <TextInput
-                  style={{
-                    ...styles.input,
-                    borderColor: invalidSRPWords[index]
-                      ? colors.error.default
-                      : colors.border.muted,
-                    color:
-                      themeAppearance === AppThemeKey.light
-                        ? colors.text.default
-                        : colors.text.alternative,
-                  }}
-                  autoCapitalize="none"
-                  keyboardAppearance={themeAppearance}
-                  value={showPassword ? secretRecoveryPhrase[index] : '***'}
-                  onChangeText={(value) => {
-                    onSrpWordChange(index, value);
-                  }}
-                  secureTextEntry={!showPassword}
-                  textContentType={showPassword ? 'none' : 'password'}
-                  testID={`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-${index + 1}`}
-                />
+            </TouchableOpacity>
+          </View>
+
+          {/* Dynamic Grid: Single textarea → Numbered boxes */}
+          <View style={styles.seedPhraseRoot}>
+            <View style={styles.seedPhraseContainer}>
+              <View style={styles.seedPhraseInnerContainer}>
+                <View style={styles.seedPhraseInputContainer}>
+                  {seedPhrase.map((item, index) => (
+                    <SrpInput
+                      key={`seed-phrase-item-${uniqueId}-${index}`}
+                      ref={(ref) => {
+                        const inputRefs = getSeedPhraseInputRef();
+                        if (ref) {
+                          inputRefs.set(index, ref);
+                        } else {
+                          inputRefs.delete(index);
+                        }
+                      }}
+                      startAccessory={
+                        !isFirstInput && (
+                          <Text
+                            variant={TextVariant.BodyMDBold}
+                            color={TextColor.Alternative}
+                            style={styles.inputIndex}
+                          >
+                            {index + 1}.
+                          </Text>
+                        )
+                      }
+                      value={getInputValue(isFirstInput, index, item)}
+                      onFocus={() => {
+                        handleOnFocus(index);
+                      }}
+                      onInputFocus={() => {
+                        setNextSeedPhraseInputFocusedIndex(index);
+                      }}
+                      onChangeText={(text) => {
+                        isFirstInput
+                          ? handleSeedPhraseChange(text)
+                          : handleSeedPhraseChangeAtIndex(text, index);
+                      }}
+                      onSubmitEditing={() => {
+                        handleEnterKeyPress(index);
+                      }}
+                      placeholder={
+                        isFirstInput
+                          ? strings(
+                              'import_new_secret_recovery_phrase.textarea_placeholder',
+                            )
+                          : ''
+                      }
+                      placeholderTextColor={
+                        isFirstInput
+                          ? colors.text.alternative
+                          : colors.text.muted
+                      }
+                      size={TextFieldSize.Md}
+                      style={
+                        isFirstInput
+                          ? styles.seedPhraseDefaultInput
+                          : [
+                              styles.input,
+                              styles.seedPhraseInputItem,
+                              (index + 1) % 3 === 0 &&
+                                styles.seedPhraseInputItemLast,
+                            ]
+                      }
+                      inputStyle={
+                        (isFirstInput
+                          ? styles.textAreaInput
+                          : styles.inputItem) as never
+                      }
+                      submitBehavior="submit"
+                      autoComplete="off"
+                      textAlignVertical={isFirstInput ? 'top' : 'center'}
+                      showSoftInputOnFocus
+                      isError={errorWordIndexes[index]}
+                      autoCapitalize="none"
+                      numberOfLines={1}
+                      testID={
+                        isFirstInput
+                          ? ImportSRPIDs.PASTE_BUTTON
+                          : `${ImportSRPIDs.PASTE_BUTTON}_${index}`
+                      }
+                      keyboardType="default"
+                      autoCorrect={false}
+                      textContentType="oneTimeCode"
+                      spellCheck={false}
+                      autoFocus={
+                        isFirstInput ||
+                        index === nextSeedPhraseInputFocusedIndex
+                      }
+                      multiline={isFirstInput}
+                      onKeyPress={(e) => handleKeyPress(e, index)}
+                    />
+                  ))}
+                </View>
               </View>
-            ))}
-          </View>
-          <View style={styles.footer}>
-            <ButtonLink
-              size={ButtonSize.Lg}
-              label={
-                hasEmptySrp
-                  ? strings('import_new_secret_recovery_phrase.paste')
-                  : strings('import_new_secret_recovery_phrase.clear')
-              }
-              onPress={hasEmptySrp ? onSrpPaste : onClear}
-              testID={ImportSRPIDs.PASTE_BUTTON}
-            />
-          </View>
-        </View>
-        {srpError && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            testID={ImportSRPIDs.SRP_ERROR}
-          >
-            <Text>{srpError}</Text>
-          </BannerAlert>
-        )}
-        <View style={styles.buttonWrapper}>
-          <StyledButton
-            containerStyle={styles.button}
-            type={'confirm'}
-            onPress={onSubmit}
-            disabled={Boolean(srpError) || !isValidSrp || loading}
-            testID={ImportSRPIDs.IMPORT_BUTTON}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color={colors.primary.inverse} />
-            ) : (
-              strings('import_new_secret_recovery_phrase.cta_text')
+            </View>
+
+            {/* Paste/Clear Button */}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Primary}
+              style={styles.pasteText}
+              onPress={() => {
+                if (trimmedSeedPhraseLength >= 1) {
+                  handleClear();
+                } else {
+                  handlePaste();
+                }
+              }}
+            >
+              {trimmedSeedPhraseLength >= 1
+                ? strings('import_from_seed.clear_all')
+                : strings('import_from_seed.paste')}
+            </Text>
+
+            {/* Error Text */}
+            {Boolean(error) && (
+              <Text variant={TextVariant.BodySMMedium} color={TextColor.Error}>
+                {error}
+              </Text>
             )}
-          </StyledButton>
+          </View>
+
+          {/* Continue Button */}
+          <View style={styles.buttonWrapper}>
+            <StyledButton
+              containerStyle={styles.button}
+              type={'confirm'}
+              onPress={onSubmit}
+              disabled={
+                isSRPContinueButtonDisabled || Boolean(error) || loading
+              }
+              testID={ImportSRPIDs.IMPORT_BUTTON}
+            >
+              {loading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.primary.inverse}
+                />
+              ) : (
+                strings('import_new_secret_recovery_phrase.cta_text')
+              )}
+            </StyledButton>
+          </View>
         </View>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP />
-    </View>
+    </SafeAreaView>
   );
 };
 

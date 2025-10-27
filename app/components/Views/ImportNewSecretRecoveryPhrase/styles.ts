@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { StyleSheet, Platform } from 'react-native';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import { Colors } from '../../../util/theme/models';
 
@@ -8,68 +8,55 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
-      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
-    },
-    topOverlay: {
-      flex: 1,
     },
     wrapper: {
       flexGrow: 1,
+      paddingHorizontal: 16,
     },
-    content: {
-      alignItems: 'flex-start',
+    headerButton: {
+      paddingHorizontal: 16,
     },
     title: {
-      fontSize: 32,
-      marginTop: 20,
-      marginBottom: 40,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'left',
-      ...fontStyles.normal,
+      marginTop: 0,
+      marginBottom: 0,
     },
-    grid: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      flexWrap: 'wrap',
-      gap: 8,
+    contentContainer: {
+      marginTop: 6,
     },
-    gridCell: {
-      display: 'flex',
+    subtitleContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      width: '30%',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    },
-    gridCellPrefix: {
-      color: colors.text.alternative,
-    },
-    input: {
-      width: '100%',
-    },
-    subheading: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      gap: 4,
       marginBottom: 16,
     },
-    options: {
-      display: 'flex',
-      flexGrow: 1,
-      marginLeft: -15,
-    },
-    footer: {
-      display: 'flex',
+    textareaContainer: {
       width: '100%',
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
+      marginBottom: 0,
+    },
+    textarea: {
+      minHeight: 180,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 8,
+      fontSize: 16,
+      lineHeight: 24,
+      color: colors.text.default,
+      backgroundColor: colors.background.default,
+      ...fontStyles.normal,
+    },
+    textareaError: {
+      borderColor: colors.error.default,
+    },
+    pasteText: {
+      textAlign: 'right',
+      paddingTop: 12,
+      paddingBottom: 16,
+      alignSelf: 'flex-end',
+    },
+    errorBanner: {
+      marginTop: 16,
     },
     footerText: {
       display: 'flex',
@@ -100,10 +87,8 @@ const createStyles = (colors: Colors) =>
       color: colors.icon.alternative,
     },
     buttonWrapper: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      marginBottom: 16,
-      backgroundColor: colors.background.default,
+      width: '100%',
+      marginTop: 24,
     },
     button: {
       marginBottom: Device.isIphoneX() ? 20 : 0,
@@ -123,9 +108,94 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 10,
       marginTop: Device.isIphoneX() ? 40 : 20,
     },
+    navbarRightButton: {
+      alignSelf: 'flex-end',
+      paddingTop: 20,
+      paddingBottom: 10,
+      marginTop: Device.isIphoneX() ? 40 : 20,
+    },
     closeIcon: {
       fontSize: 28,
       color: colors.text.default,
+    },
+    // Dynamic Grid Styles (from ImportFromSecretRecoveryPhrase)
+    seedPhraseRoot: {
+      flexDirection: 'column',
+      gap: 4,
+      marginBottom: 24,
+    },
+    seedPhraseContainer: {
+      paddingTop: 16,
+      backgroundColor: colors.background.section,
+      borderRadius: 10,
+      marginTop: 16,
+      minHeight: 264,
+      maxHeight: 'auto',
+    },
+    seedPhraseInnerContainer: {
+      paddingHorizontal: Platform.select({
+        ios: 16,
+        macos: 16,
+        default: 14,
+      }),
+    },
+    seedPhraseDefaultInput: {
+      borderWidth: 0,
+      paddingHorizontal: 0,
+      display: 'flex',
+      flex: 1,
+      backgroundColor: importedColors.transparent,
+    },
+    textAreaInput: {
+      display: 'flex',
+      backgroundColor: importedColors.transparent,
+      fontSize: 16,
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+      height: 66,
+    },
+    seedPhraseInputContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      width: '100%',
+    },
+    input: {
+      paddingVertical: Platform.select({
+        ios: 4,
+        macos: 4,
+        default: 0,
+      }),
+      borderRadius: 8,
+      backgroundColor: colors.background.default,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      height: 40,
+      fontSize: 16,
+      color: colors.text.default,
+      ...fontStyles.normal,
+      textAlignVertical: 'center',
+      paddingLeft: 8,
+      overflow: 'hidden',
+    },
+    seedPhraseInputItem: {
+      width: '31.33%',
+      marginRight: '3%',
+      marginBottom: 8,
+      flex: 0,
+      minWidth: 0,
+    },
+    seedPhraseInputItemLast: {
+      marginRight: 0,
+    },
+    inputItem: {
+      flex: 1,
+      minWidth: 0,
+      maxWidth: '100%',
+      paddingRight: 8,
+    },
+    inputIndex: {
+      marginRight: -4,
     },
   });
 
