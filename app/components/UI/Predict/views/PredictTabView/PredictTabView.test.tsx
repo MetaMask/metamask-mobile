@@ -80,11 +80,11 @@ jest.mock('../../components/PredictAddFundsSheet/PredictAddFundsSheet', () => {
   };
 });
 
-jest.mock('../../components/PredictErrorState', () => {
+jest.mock('../../components/PredictOffline', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: function MockPredictErrorState({
+    default: function MockPredictOffline({
       onRetry,
     }: {
       onRetry?: () => void;
