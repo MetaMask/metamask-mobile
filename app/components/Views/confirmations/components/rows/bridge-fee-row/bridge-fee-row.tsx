@@ -20,6 +20,7 @@ import {
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
+import { BigNumber } from 'bignumber.js';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
