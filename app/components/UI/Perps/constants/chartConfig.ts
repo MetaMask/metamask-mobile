@@ -178,6 +178,8 @@ export const CANDLE_PERIODS = [
   { label: '7d', value: CandlePeriod.ONE_WEEK },
 ] as const;
 
+export const DEFAULT_CANDLE_PERIOD = CandlePeriod.FIFTEEN_MINUTES;
+
 /**
  * Get available candle periods for a specific duration
  */
