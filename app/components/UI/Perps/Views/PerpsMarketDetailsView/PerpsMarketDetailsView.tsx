@@ -78,7 +78,7 @@ import ButtonSemantic, {
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import { selectPerpsChartPreferredCandlePeriod } from '../../../../../selectors/settings';
+import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;

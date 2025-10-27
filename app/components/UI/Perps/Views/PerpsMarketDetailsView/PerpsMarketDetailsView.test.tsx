@@ -40,7 +40,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 jest.mock('../../providers/PerpsStreamManager');
 
 // Mock Redux selectors for chart preferences
-jest.mock('../../../../../selectors/settings', () => ({
+jest.mock('../../selectors/chartPreferences', () => ({
   selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
 }));
 
