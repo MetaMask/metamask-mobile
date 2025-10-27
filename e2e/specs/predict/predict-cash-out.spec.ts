@@ -20,6 +20,16 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
+/*
+Test Scenario: Cash out on open position - Spurs vs. Pelicans
+  Verifies the cash out flow for a predictions position:
+  1. Navigate to Predictions tab and verify balance is $28.16
+  2. Open Spurs vs. Pelicans position details
+  3. Cash out the position with updated mocks
+  4. Verify cash out appears in Activities tab
+  5. Verify balance updated to $58.66 and position removed from current positions
+  6. Verify final balance consistency across views
+  */
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
