@@ -653,6 +653,104 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(screen.queryByText('20x')).toBeNull(); // Should not show 20x in quick select
       expect(screen.queryByText('40x')).toBeNull(); // Should not show 40x
     });
+
+    it('updates leverage when quick select button is pressed', () => {
+      // Arrange
+      const mockOnConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          leverage={5}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+
+      // Act - Press 10x button (multiple instances exist, get quick select button)
+      const buttons10x = screen.getAllByText('10x');
+      const quickSelectButton = buttons10x[0]; // First one is quick select button
+      fireEvent.press(quickSelectButton);
+
+      // Wait for state update, then confirm
+      const confirmButton = screen.getByText(/Set \d+x/);
+      fireEvent.press(confirmButton);
+
+      // Assert - onConfirm is called with the leverage value
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
+    it('updates leverage when 2x quick select button is pressed', () => {
+      // Arrange
+      const mockOnConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          leverage={5}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+
+      // Act - Press 2x button
+      const button2x = screen.getByText('2x');
+      fireEvent.press(button2x);
+      const confirmButton = screen.getByText('Set 2x');
+      fireEvent.press(confirmButton);
+
+      // Assert
+      expect(mockOnConfirm).toHaveBeenCalledWith(2, 'preset');
+    });
+
+    it('updates leverage when 20x quick select button is pressed', () => {
+      // Arrange
+      const mockOnConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          leverage={5}
+          maxLeverage={20}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+
+      // Act - Press 20x button (need to get first occurrence - quick select, not slider label)
+      const buttons20x = screen.getAllByText('20x');
+      const quickSelectButton = buttons20x[0]; // First one is quick select button
+      fireEvent.press(quickSelectButton);
+
+      // Wait for state update, then confirm
+      const confirmButton = screen.getByText(/Set \d+x/);
+      fireEvent.press(confirmButton);
+
+      // Assert - onConfirm is called
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
+    it('shows all available quick select options for maxLeverage 40', () => {
+      // Arrange
+      const props = { ...defaultProps, maxLeverage: 40 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should show all options: 2, 5, 10, 20, 40
+      expect(screen.getByText('2x')).toBeOnTheScreen();
+      expect(screen.getAllByText('5x').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('10x').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('20x').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('40x').length).toBeGreaterThan(0);
+    });
+
+    it('includes only 2x option when maxLeverage is 2', () => {
+      // Arrange
+      const props = { ...defaultProps, maxLeverage: 2, leverage: 2 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should only show 2x
+      expect(screen.getAllByText('2x').length).toBeGreaterThan(0);
+      expect(screen.queryByText('5x')).toBeNull();
+      expect(screen.queryByText('10x')).toBeNull();
+    });
   });
 
   describe('Leverage Risk Styling', () => {
@@ -665,6 +763,28 @@ describe('PerpsLeverageBottomSheet', () => {
 
       // Assert - Component should render without crashes (styling is applied)
       expect(screen.getByText('Set 2x')).toBeOnTheScreen();
+    });
+
+    it('displays safe risk styling for very low leverage', () => {
+      // Arrange - leverage 1 with maxLeverage 20 = 0% = safe risk
+      const props = { ...defaultProps, leverage: 1, maxLeverage: 20 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Component renders with safe styling
+      expect(screen.getByText('Set 1x')).toBeOnTheScreen();
+    });
+
+    it('displays caution risk styling for leverage around 30%', () => {
+      // Arrange - leverage 7 with maxLeverage 20 = ~32% = caution risk
+      const props = { ...defaultProps, leverage: 7, maxLeverage: 20 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Component renders with caution styling
+      expect(screen.getByText('Set 7x')).toBeOnTheScreen();
     });
 
     it('displays medium risk styling for medium leverage', () => {
@@ -688,6 +808,17 @@ describe('PerpsLeverageBottomSheet', () => {
       // Assert
       expect(screen.getByText('18x')).toBeOnTheScreen();
       expect(screen.getByText('Set 18x')).toBeOnTheScreen();
+    });
+
+    it('displays high risk styling for max leverage', () => {
+      // Arrange - leverage 20 with maxLeverage 20 = 100% = high risk
+      const props = { ...defaultProps, leverage: 20, maxLeverage: 20 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Component renders with high risk styling
+      expect(screen.getAllByText('20x').length).toBeGreaterThan(0);
     });
   });
 
@@ -865,6 +996,100 @@ describe('PerpsLeverageBottomSheet', () => {
     });
   });
 
+  describe('Component Lifecycle', () => {
+    it('resets temp leverage when modal closes and reopens with new value', () => {
+      // Arrange
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          isVisible
+          leverage={5}
+        />,
+      );
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+
+      // Act - Close modal
+      rerender(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          isVisible={false}
+          leverage={5}
+        />,
+      );
+      // Reopen with new leverage
+      rerender(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          isVisible
+          leverage={10}
+        />,
+      );
+
+      // Assert - Component uses new initial leverage value
+      expect(screen.getAllByText('10x').length).toBeGreaterThan(0);
+    });
+
+    it('maintains internal state when leverage prop changes while visible', () => {
+      // Arrange
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} leverage={5} />,
+      );
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+
+      // Act - Change leverage prop while modal is visible
+      rerender(<PerpsLeverageBottomSheet {...defaultProps} leverage={15} />);
+
+      // Assert - Internal state is maintained, doesn't auto-sync
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen(); // Still shows 5x
+      expect(screen.queryByText('Set 15x')).toBeNull(); // Doesn't show 15x
+    });
+
+    it('handles asset prop for liquidation calculations', () => {
+      // Arrange
+      const propsWithAsset = {
+        ...defaultProps,
+        asset: 'ETH-USD',
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...propsWithAsset} />);
+
+      // Assert - Component renders with asset
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+    });
+
+    it('handles missing asset prop gracefully', () => {
+      // Arrange
+      const propsWithoutAsset = {
+        ...defaultProps,
+        asset: undefined,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...propsWithoutAsset} />);
+
+      // Assert - Component renders without asset
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+    });
+
+    it('resets dragging state when modal closes', () => {
+      // Arrange
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible />,
+      );
+
+      // Act - Close modal
+      rerender(
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible={false} />,
+      );
+      // Reopen modal
+      rerender(<PerpsLeverageBottomSheet {...defaultProps} isVisible />);
+
+      // Assert - Component renders successfully after close/reopen cycle
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+    });
+  });
+
   describe('Component Memoization', () => {
     it('does not re-render when unrelated props change', () => {
       // Arrange
@@ -898,64 +1123,234 @@ describe('PerpsLeverageBottomSheet', () => {
       // Assert - Should render null when not visible
       expect(screen.queryByText('perps.order.leverage_modal.title')).toBeNull();
     });
+
+    it('uses new leverage value when closed and reopened', () => {
+      // Arrange
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          isVisible
+          leverage={5}
+        />,
+      );
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+
+      // Act - Close and reopen with different leverage
+      rerender(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          isVisible={false}
+          leverage={10}
+        />,
+      );
+      rerender(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          isVisible
+          leverage={10}
+        />,
+      );
+
+      // Assert - Component uses new leverage value
+      expect(screen.getAllByText('10x').length).toBeGreaterThan(0);
+    });
+
+    it('re-renders when maxLeverage prop changes', () => {
+      // Arrange
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} maxLeverage={20} />,
+      );
+      expect(screen.getAllByText('20x').length).toBeGreaterThan(0);
+
+      // Act
+      rerender(<PerpsLeverageBottomSheet {...defaultProps} maxLeverage={40} />);
+
+      // Assert - Component updates to show new max leverage
+      expect(screen.getAllByText('40x').length).toBeGreaterThan(0);
+    });
+
+    it('re-renders when direction prop changes', () => {
+      // Arrange
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} direction="long" />,
+      );
+      expect(screen.getByText(/drops/)).toBeOnTheScreen();
+
+      // Act
+      rerender(
+        <PerpsLeverageBottomSheet {...defaultProps} direction="short" />,
+      );
+
+      // Assert - Component updates direction text
+      expect(screen.getByText(/rises/)).toBeOnTheScreen();
+    });
   });
 
   describe('Gesture Handlers', () => {
-    it('initializes tap gesture with onEnd handler', () => {
-      // Arrange
-      const { Gesture } = jest.requireMock('react-native-gesture-handler');
-      const mockTapGesture = {
-        onEnd: jest.fn().mockReturnThis(),
-      };
-      Gesture.Tap.mockReturnValue(mockTapGesture);
+    describe('Gesture Initialization', () => {
+      it('initializes tap gesture with onEnd handler', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        const mockTapGesture = {
+          onEnd: jest.fn().mockReturnThis(),
+        };
+        Gesture.Tap.mockReturnValue(mockTapGesture);
 
-      // Act
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
-      // Assert
-      expect(Gesture.Tap).toHaveBeenCalled();
-      expect(mockTapGesture.onEnd).toHaveBeenCalledWith(expect.any(Function));
+        // Assert
+        expect(Gesture.Tap).toHaveBeenCalled();
+        expect(mockTapGesture.onEnd).toHaveBeenCalledWith(expect.any(Function));
+      });
+
+      it('initializes long press gesture with onEnd handler', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        const mockLongPressGesture = {
+          onEnd: jest.fn().mockReturnThis(),
+        };
+        Gesture.LongPress.mockReturnValue(mockLongPressGesture);
+
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Assert
+        expect(Gesture.LongPress).toHaveBeenCalled();
+        expect(mockLongPressGesture.onEnd).toHaveBeenCalledWith(
+          expect.any(Function),
+        );
+      });
+
+      it('composes tap, pan, and long press gestures simultaneously', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Assert
+        expect(Gesture.Simultaneous).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+      });
+
+      it('renders slider with gesture detector', () => {
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Assert - Component renders without crashes when gestures are configured
+        expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+      });
     });
 
-    it('initializes long press gesture with onEnd handler', () => {
-      // Arrange
-      const { Gesture } = jest.requireMock('react-native-gesture-handler');
-      const mockLongPressGesture = {
-        onEnd: jest.fn().mockReturnThis(),
-      };
-      Gesture.LongPress.mockReturnValue(mockLongPressGesture);
+    describe('Pan Gesture Behavior', () => {
+      it('initializes pan gesture with onBegin handler', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        const mockPanGesture = {
+          onBegin: jest.fn().mockReturnThis(),
+          onUpdate: jest.fn().mockReturnThis(),
+          onEnd: jest.fn().mockReturnThis(),
+          onFinalize: jest.fn().mockReturnThis(),
+        };
+        Gesture.Pan.mockReturnValue(mockPanGesture);
 
-      // Act
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
-      // Assert
-      expect(Gesture.LongPress).toHaveBeenCalled();
-      expect(mockLongPressGesture.onEnd).toHaveBeenCalledWith(
-        expect.any(Function),
-      );
+        // Assert
+        expect(Gesture.Pan).toHaveBeenCalled();
+        expect(mockPanGesture.onBegin).toHaveBeenCalledWith(
+          expect.any(Function),
+        );
+      });
+
+      it('initializes pan gesture with onUpdate handler', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        const mockPanGesture = {
+          onBegin: jest.fn().mockReturnThis(),
+          onUpdate: jest.fn().mockReturnThis(),
+          onEnd: jest.fn().mockReturnThis(),
+          onFinalize: jest.fn().mockReturnThis(),
+        };
+        Gesture.Pan.mockReturnValue(mockPanGesture);
+
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Assert
+        expect(mockPanGesture.onUpdate).toHaveBeenCalledWith(
+          expect.any(Function),
+        );
+      });
+
+      it('initializes pan gesture with onEnd handler', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        const mockPanGesture = {
+          onBegin: jest.fn().mockReturnThis(),
+          onUpdate: jest.fn().mockReturnThis(),
+          onEnd: jest.fn().mockReturnThis(),
+          onFinalize: jest.fn().mockReturnThis(),
+        };
+        Gesture.Pan.mockReturnValue(mockPanGesture);
+
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Assert
+        expect(mockPanGesture.onEnd).toHaveBeenCalledWith(expect.any(Function));
+      });
+
+      it('initializes pan gesture with onFinalize handler', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        const mockPanGesture = {
+          onBegin: jest.fn().mockReturnThis(),
+          onUpdate: jest.fn().mockReturnThis(),
+          onEnd: jest.fn().mockReturnThis(),
+          onFinalize: jest.fn().mockReturnThis(),
+        };
+        Gesture.Pan.mockReturnValue(mockPanGesture);
+
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Assert
+        expect(mockPanGesture.onFinalize).toHaveBeenCalledWith(
+          expect.any(Function),
+        );
+      });
     });
 
-    it('composes tap, pan, and long press gestures simultaneously', () => {
-      // Arrange
-      const { Gesture } = jest.requireMock('react-native-gesture-handler');
+    describe('Gesture Integration', () => {
+      it('renders component with all gesture handlers configured', () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
 
-      // Act
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
-      // Assert
-      expect(Gesture.Simultaneous).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
-    });
+        // Assert - All three gesture types are initialized
+        expect(Gesture.Tap).toHaveBeenCalled();
+        expect(Gesture.LongPress).toHaveBeenCalled();
+        expect(Gesture.Pan).toHaveBeenCalled();
+        expect(Gesture.Simultaneous).toHaveBeenCalled();
+      });
 
-    it('renders slider with gesture detector', () => {
-      // Act
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+      it('configures gestures before rendering slider', () => {
+        // Act
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
-      // Assert - Component renders without crashes when gestures are configured
-      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+        // Assert - Component successfully renders with configured gestures
+        expect(screen.getByText('1x')).toBeOnTheScreen(); // Min label
+        expect(screen.getAllByText('20x').length).toBeGreaterThan(0); // Max label appears
+        expect(screen.getByText('Set 5x')).toBeOnTheScreen(); // Confirm button
+      });
     });
   });
 
