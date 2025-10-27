@@ -8,7 +8,7 @@ import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountMo
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import SwapScreen from '../../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { importSRPFlow, login } from '../../../utils/Flows.js';
+import { importSRPFlow, login } from '../../../utils/flows/Flows.js';
 
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
 test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
