@@ -169,6 +169,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         activeOpacity={1}
         onPress={[MockFunction]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -374,6 +375,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         activeOpacity={1}
         onPress={[MockFunction]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

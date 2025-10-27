@@ -179,7 +179,6 @@ function TokenSelectModal() {
   const renderToken = useCallback(
     ({ item: token }: { item: CryptoCurrency }) => (
       <ListItemSelect
-        shouldEnableAndroidPressIn
         onPress={() => handleSelectTokenCallback(token)}
         isSelected={selectedAsset?.id === token.id}
         accessibilityRole="button"
