@@ -242,7 +242,7 @@ const LeverageSlider: React.FC<{
       thumbScale.value = 1; // Direct assignment, no spring
     });
 
-  const tapGesture = Gesture.Tap().onEnd((event) => {
+  const handleHoldEnd = (event: { x: number }) => {
     const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
     translateX.value = newPosition; // Direct assignment for instant response
     const newValue = positionToValue(newPosition, sliderWidth.value);
@@ -252,9 +252,13 @@ const LeverageSlider: React.FC<{
     if (onDragEnd) {
       runOnJS(onDragEnd)(newValue);
     }
-  });
+  };
 
-  const composed = Gesture.Simultaneous(tapGesture, panGesture);
+  const tapGesture = Gesture.Tap().onEnd(handleHoldEnd);
+
+  const holdGesture = Gesture.LongPress().onEnd(handleHoldEnd);
+
+  const composed = Gesture.Simultaneous(tapGesture, panGesture, holdGesture);
 
   // Generate tick marks based on max leverage using configuration constants
   const tickMarks = useMemo(() => {
