@@ -191,12 +191,22 @@ const PerpsClosePositionView: React.FC = () => {
     () => closingValue.toString(),
     [closingValue],
   );
+
+  const positionPriceData = priceData[position.coin];
+
   const feeResults = usePerpsOrderFees({
     orderType,
     amount: closingValueString,
-    isMaker: false, // Closing positions are typically taker orders
     coin: position.coin,
-    isClosing: true, // This is a position closing operation
+    isClosing: true,
+    limitPrice,
+    direction: isLong ? 'short' : 'long',
+    currentAskPrice: positionPriceData?.bestAsk
+      ? Number.parseFloat(positionPriceData.bestAsk)
+      : undefined,
+    currentBidPrice: positionPriceData?.bestBid
+      ? Number.parseFloat(positionPriceData.bestBid)
+      : undefined,
   });
 
   // Simple boolean calculation for rewards state
@@ -790,7 +800,6 @@ const PerpsClosePositionView: React.FC = () => {
               (orderType === 'limit' &&
                 (!limitPrice || parseFloat(limitPrice) <= 0)) ||
               (orderType === 'market' && closePercentage === 0) ||
-              receiveAmount <= 0 ||
               !validationResult.isValid
             }
             loading={isClosing}
