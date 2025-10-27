@@ -39,6 +39,11 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
+// Mock Redux selectors for chart preferences
+jest.mock('../../selectors/chartPreferences', () => ({
+  selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
+}));
+
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
