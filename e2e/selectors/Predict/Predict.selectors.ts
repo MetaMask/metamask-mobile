@@ -1,3 +1,5 @@
+import enContent from '../../../locales/languages/en.json';
+
 // ========================================
 // PREDICT TAB VIEW SELECTORS
 // ========================================
@@ -124,4 +126,14 @@ export const PredictClaimConfirmationSelectorsIDs = {
 
   // Claim confirm button
   CLAIM_CONFIRM_BUTTON: 'predict-claim-confirm-button',
+
+  // PREDICT UNAVAILABLE (GEO-BLOCK) SELECTORS
+  // ========================================
+} as const;
+
+export const PredictUnavailableSelectorsIDs = {
+  TITLE_TEXT: enContent.predict.unavailable.title,
+  DESCRIPTION_TEXT: enContent.predict.unavailable.description,
+  LINK_TEXT: enContent.predict.unavailable.link,
+  BUTTON_TEXT: enContent.predict.unavailable.button,
 } as const;
