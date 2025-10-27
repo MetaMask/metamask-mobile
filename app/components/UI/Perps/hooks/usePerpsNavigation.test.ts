@@ -177,6 +177,35 @@ describe('usePerpsNavigation', () => {
         params,
       );
     });
+
+    it('navigates to order screen with direction and asset', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { direction: 'long' as const, asset: 'BTC' };
+
+      result.current.navigateToOrder(params);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, params);
+    });
+
+    it('navigates to tutorial without params', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToTutorial();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+        undefined,
+      );
+    });
+
+    it('navigates to tutorial with params', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { isFromDeeplink: true };
+
+      result.current.navigateToTutorial(params);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, params);
+    });
   });
 
   describe('Utility Navigation', () => {

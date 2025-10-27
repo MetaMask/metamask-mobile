@@ -55,6 +55,7 @@ import {
   usePerpsConnection,
   usePerpsTrading,
   usePerpsNetworkManagement,
+  usePerpsNavigation,
 } from '../../hooks';
 import {
   usePerpsDataMonitor,
@@ -95,6 +96,17 @@ interface MarketDetailsRouteParams {
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
+  // Use centralized navigation hook for all Perps navigation
+  const {
+    navigateToHome,
+    navigateToActivity,
+    navigateToOrder,
+    navigateToTutorial,
+    navigateBack,
+    canGoBack,
+  } = usePerpsNavigation();
+
+  // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
@@ -427,11 +439,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
+    if (canGoBack) {
+      navigateBack();
     } else {
       // Fallback to markets list if no previous screen
-      navigation.navigate(Routes.PERPS.PERPS_HOME, { source });
+      navigateToHome(source);
     }
   };
 
@@ -466,7 +478,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    navigation.navigate(Routes.PERPS.ORDER, {
+    navigateToOrder({
       direction: 'long',
       asset: market.symbol,
     });
@@ -478,7 +490,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    navigation.navigate(Routes.PERPS.ORDER, {
+    navigateToOrder({
       direction: 'short',
       asset: market.symbol,
     });
@@ -530,16 +542,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     () => [
       {
         label: strings('perps.tutorial.card.title'),
-        onPress: () => navigation.navigate(Routes.PERPS.TUTORIAL),
+        onPress: () => navigateToTutorial(),
         testID: PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
       },
       {
         label: strings('perps.market.go_to_activity'),
-        onPress: () => navigation.navigate(Routes.TRANSACTIONS_VIEW),
+        onPress: () => navigateToActivity(),
         testID: PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
       },
     ],
-    [navigation],
+    [navigateToTutorial, navigateToActivity],
   );
 
   // Simplified styles - no complex calculations needed

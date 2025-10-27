@@ -23,6 +23,10 @@ export interface PerpsNavigationHandlers {
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
+  navigateToOrder: (params: PerpsNavigationParamList['PerpsOrder']) => void;
+  navigateToTutorial: (
+    params?: PerpsNavigationParamList['PerpsTutorial'],
+  ) => void;
 
   // Utility navigation
   navigateBack: () => void;
@@ -123,6 +127,20 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const navigateToOrder = useCallback(
+    (params: PerpsNavigationParamList['PerpsOrder']) => {
+      navigation.navigate(Routes.PERPS.ORDER, params);
+    },
+    [navigation],
+  );
+
+  const navigateToTutorial = useCallback(
+    (params?: PerpsNavigationParamList['PerpsTutorial']) => {
+      navigation.navigate(Routes.PERPS.TUTORIAL, params);
+    },
+    [navigation],
+  );
+
   // Utility navigation handlers
   const navigateBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -144,6 +162,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToMarketDetails,
     navigateToHome,
     navigateToMarketList,
+    navigateToOrder,
+    navigateToTutorial,
 
     // Utility navigation
     navigateBack,

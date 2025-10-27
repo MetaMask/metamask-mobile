@@ -54,6 +54,13 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
 
+// usePerpsNavigation mock functions
+const mockNavigateToHome = jest.fn();
+const mockNavigateToActivity = jest.fn();
+const mockNavigateToOrder = jest.fn();
+const mockNavigateToTutorial = jest.fn();
+const mockNavigateBack = jest.fn();
+
 // Mock notification feature flag
 const mockIsNotificationsFeatureEnabled = jest.fn();
 
@@ -245,6 +252,14 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsNetworkManagement: jest.fn(() => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+  })),
+  usePerpsNavigation: jest.fn(() => ({
+    navigateToHome: mockNavigateToHome,
+    navigateToActivity: mockNavigateToActivity,
+    navigateToOrder: mockNavigateToOrder,
+    navigateToTutorial: mockNavigateToTutorial,
+    navigateBack: mockNavigateBack,
+    canGoBack: mockCanGoBack(),
   })),
 }));
 
@@ -955,8 +970,8 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(longButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+      expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
       });
@@ -990,8 +1005,8 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(shortButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+      expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
       });
