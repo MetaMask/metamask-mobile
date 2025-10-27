@@ -15,6 +15,7 @@ import {
 
 import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -163,7 +164,6 @@ const CollectibleContracts = ({
   selectedAddress,
   chainId,
   networkType,
-  navigation,
   collectibleContracts,
   collectibles: allCollectibles,
   isNftFetchingProgress,
@@ -178,6 +178,8 @@ const CollectibleContracts = ({
   if (isFirstRender.current) {
     trace({ name: TraceName.CollectibleContractsComponent });
   }
+
+  const navigation = useNavigation();
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworks = useSelector(selectNetworkConfigurations);
@@ -663,11 +665,6 @@ CollectibleContracts.propTypes = {
    * still in progress
    */
   isNftFetchingProgress: PropTypes.bool,
-  /**
-   * Navigation object required to push
-   * the Asset detail view
-   */
-  navigation: PropTypes.object,
   /**
    * Object of collectibles
    */

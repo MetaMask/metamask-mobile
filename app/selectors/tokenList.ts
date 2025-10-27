@@ -18,7 +18,7 @@ import { sortAssets } from '../components/UI/Tokens/util';
 import { TraceName, endTrace, trace } from '../util/trace';
 import { getTraceTags } from '../util/sentry/tags';
 import { store } from '../store';
-import { createDeepEqualSelector } from './util';
+import { createDeepEqualOutputSelector } from './util';
 
 const _selectSortedTokenKeys = createSelector(
   [
@@ -66,9 +66,10 @@ const _selectSortedTokenKeys = createSelector(
   },
 );
 
-// Deep equal selector is necessary, because prices can change little bit but order of tokens stays the same.
-// So if the previous keys are still valid (deep eq the current list), then we can use the memoized result
-export const selectSortedTokenKeys = createDeepEqualSelector(
+// Deep equal OUTPUT selector ensures stable references when content is identical.
+// This prevents re-renders in components even when prices change but token list stays the same.
+// Uses both input AND output deep equality for optimal performance.
+export const selectSortedTokenKeys = createDeepEqualOutputSelector(
   _selectSortedTokenKeys,
   (keys) => keys.filter(({ address, chainId }) => address && chainId),
 );

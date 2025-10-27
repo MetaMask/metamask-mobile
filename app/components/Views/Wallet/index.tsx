@@ -227,7 +227,6 @@ interface WalletProps {
   hideNftFetchingLoadingIndicator: () => void;
 }
 interface WalletTokensTabViewProps {
-  navigation: WalletProps['navigation'];
   onChangeTab: (changeTabProperties: {
     i: number;
     ref: React.ReactNode;
@@ -258,13 +257,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     [isPredictFlagEnabled, isEvmSelected],
   );
 
-  const {
-    navigation,
-    onChangeTab,
-    defiEnabled,
-    collectiblesEnabled,
-    navigationParams,
-  } = props;
+  const { onChangeTab, defiEnabled, collectiblesEnabled, navigationParams } =
+    props;
+  const navigation = useNavigation();
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const tabsListRef = useRef<TabsListRef>(null);
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
@@ -288,45 +283,40 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
-      navigation,
     }),
-    [navigation],
+    [], // No dependencies needed - strings are static
   );
 
   const perpsTabProps = useMemo(
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
-      navigation,
     }),
-    [navigation],
+    [], // No dependencies needed - strings are static
   );
 
   const predictTabProps = useMemo(
     () => ({
       key: 'predict-tab',
       tabLabel: strings('wallet.predict'),
-      navigation,
     }),
-    [navigation],
+    [], // No dependencies needed - strings are static
   );
 
   const defiPositionsTabProps = useMemo(
     () => ({
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
-      navigation,
     }),
-    [navigation],
+    [], // No dependencies needed - strings are static
   );
 
   const nftsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
-      navigation,
     }),
-    [navigation],
+    [], // No dependencies needed - strings are static
   );
 
   // Handle tab changes and track current index
@@ -1330,7 +1320,6 @@ const Wallet = ({
           {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
           <WalletTokensTabView
-            navigation={navigation}
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
             collectiblesEnabled={collectiblesEnabled}
@@ -1349,7 +1338,6 @@ const Wallet = ({
       isMultichainAccountsState2Enabled,
       turnOnBasicFunctionality,
       onChangeTab,
-      navigation,
       goToBridge,
       goToSwaps,
       displayBuyButton,
@@ -1399,4 +1387,28 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(hideNftFetchingLoadingIndicatorAction()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
+const WalletConnected = connect(mapStateToProps, mapDispatchToProps)(Wallet);
+
+// Enable Why Did You Render in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { shouldEnableWhyDidYouRender } = require('../../../../wdyr');
+  if (shouldEnableWhyDidYouRender()) {
+    (
+      WalletConnected as typeof Wallet & { whyDidYouRender?: unknown }
+    ).whyDidYouRender = {
+      logOnDifferentValues: true,
+      customName: 'Wallet (Connected)',
+    };
+    (
+      WalletTokensTabView as typeof WalletTokensTabView & {
+        whyDidYouRender?: unknown;
+      }
+    ).whyDidYouRender = {
+      logOnDifferentValues: true,
+      customName: 'WalletTokensTabView',
+    };
+  }
+}
+
+export default WalletConnected;

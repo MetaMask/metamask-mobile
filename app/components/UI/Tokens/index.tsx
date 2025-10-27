@@ -43,6 +43,14 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
+// Constant empty array to prevent unnecessary re-renders when setting state
+// Using a constant reference prevents React from detecting a "change" when setting to empty
+const EMPTY_TOKEN_KEYS_ARRAY: {
+  address: string;
+  chainId: string;
+  isStaked: boolean;
+}[] = [];
+
 const Tokens = memo(() => {
   const navigation =
     useNavigation<
@@ -72,10 +80,10 @@ const Tokens = memo(() => {
   const [isTokensLoading, setIsTokensLoading] = useState(true);
   const [renderedTokenKeys, setRenderedTokenKeys] = useState<
     typeof sortedTokenKeys
-  >([]);
+  >(EMPTY_TOKEN_KEYS_ARRAY);
   const [progressiveTokens, setProgressiveTokens] = useState<
     typeof sortedTokenKeys
-  >([]);
+  >(EMPTY_TOKEN_KEYS_ARRAY);
   const lastTokenDataRef = useRef<typeof sortedTokenKeys>();
 
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -85,15 +93,12 @@ const Tokens = memo(() => {
     selectMultichainAccountsState2Enabled,
   );
 
-  // Memoize selector computation for better performance
+  // Use the appropriate selector based on feature flag
+  // Both selectors use createDeepEqualOutputSelector for stable references
   const sortedTokenKeys = useSelector(
-    useMemo(
-      () =>
-        isMultichainAccountsState2Enabled
-          ? selectSortedAssetsBySelectedAccountGroup
-          : selectSortedTokenKeys,
-      [isMultichainAccountsState2Enabled],
-    ),
+    isMultichainAccountsState2Enabled
+      ? selectSortedAssetsBySelectedAccountGroup
+      : selectSortedTokenKeys,
   );
 
   // High-performance async rendering with progressive loading
@@ -109,7 +114,7 @@ const Tokens = memo(() => {
 
     if (sortedTokenKeys?.length) {
       setIsTokensLoading(true);
-      setProgressiveTokens([]);
+      setProgressiveTokens(EMPTY_TOKEN_KEYS_ARRAY);
 
       // Use InteractionManager for better performance than setTimeout
       InteractionManager.runAfterInteractions(() => {
@@ -152,9 +157,9 @@ const Tokens = memo(() => {
       return;
     }
 
-    // No tokens to render
-    setRenderedTokenKeys([]);
-    setProgressiveTokens([]);
+    // No tokens to render - use constant empty array to prevent re-render
+    setRenderedTokenKeys(EMPTY_TOKEN_KEYS_ARRAY);
+    setProgressiveTokens(EMPTY_TOKEN_KEYS_ARRAY);
     setIsTokensLoading(false);
   }, [sortedTokenKeys]);
 
@@ -297,5 +302,19 @@ const Tokens = memo(() => {
 });
 
 Tokens.displayName = 'Tokens';
+
+// Enable Why Did You Render in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { shouldEnableWhyDidYouRender } = require('../../../../wdyr');
+  if (shouldEnableWhyDidYouRender()) {
+    (Tokens as typeof Tokens & { whyDidYouRender?: unknown }).whyDidYouRender =
+      {
+        logOnDifferentValues: true,
+        customName: 'Tokens',
+        trackHooks: true, // This will show which specific hooks are changing
+      };
+  }
+}
 
 export default Tokens;
