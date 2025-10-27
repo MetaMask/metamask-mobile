@@ -36,12 +36,22 @@ import {
   BridgeStatusControllerEvents,
 } from '@metamask/bridge-status-controller';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
+import {
+  AccountTrackerControllerGetStateAction,
+  CurrencyRateControllerActions,
+} from '@metamask/assets-controllers';
+import {
+  TransactionPayControllerGetStateAction,
+  TransactionPayControllerGetStrategyAction,
+} from '@metamask/transaction-pay-controller';
 
 type MessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
+  | AccountTrackerControllerGetStateAction
   | ApprovalControllerActions
   | BridgeStatusControllerActions
+  | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | KeyringControllerSignEip7702AuthorizationAction
@@ -49,7 +59,9 @@ type MessengerActions =
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction
-  | TransactionControllerGetStateAction;
+  | TransactionControllerGetStateAction
+  | TransactionPayControllerGetStateAction
+  | TransactionPayControllerGetStrategyAction;
 
 type MessengerEvents =
   | BridgeStatusControllerEvents
@@ -106,17 +118,21 @@ export function getTransactionControllerInitMessenger(
       'SmartTransactionsController:smartTransactionConfirmationDone',
     ],
     allowedActions: [
+      'AccountTrackerController:getState',
       'ApprovalController:addRequest',
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
       'BridgeStatusController:getState',
       'BridgeStatusController:submitTx',
+      'CurrencyRateController:getState',
       'DelegationController:signDelegation',
       'NetworkController:getEIP1559Compatibility',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
       'TransactionController:getState',
+      'TransactionPayController:getState',
+      'TransactionPayController:getStrategy',
     ],
   });
 }
