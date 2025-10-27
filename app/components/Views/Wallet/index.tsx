@@ -32,7 +32,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
-import { TokensTabView } from '../../UI/Tokens';
+import TokensTabView from '../../UI/Tokens/TokensTabView/TokensTabView';
 
 import {
   NavigationProp,
@@ -392,7 +392,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Build tabs array dynamically based on enabled features
   const tabsToRender = useMemo(() => {
-    const tabs = [<TokensTabView {...tokensTabProps} key={tokensTabProps.key} />];
+    const tabs = [
+      <TokensTabView {...tokensTabProps} key={tokensTabProps.key} />,
+    ];
 
     if (isPerpsEnabled) {
       tabs.push(
