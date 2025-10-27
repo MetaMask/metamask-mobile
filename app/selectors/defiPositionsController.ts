@@ -7,9 +7,17 @@ import { selectEnabledNetworksByNamespace } from './networkEnablementController'
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { EVM_SCOPE } from '../components/UI/Earn/constants/networks';
 
+const NO_DATA: NonNullable<
+  DeFiPositionsControllerState['allDeFiPositions'][string]
+> = {};
+
 const selectDeFiPositionsControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.DeFiPositionsController;
 
+/**
+ * @deprecated This selector is deprecated and will be removed in a future release.
+ * Use selectDefiPositionsByEnabledNetworks instead.
+ */
 export const selectDeFiPositionsByAddress = createDeepEqualSelector(
   selectDeFiPositionsControllerState,
   selectSelectedInternalAccountByScope,
@@ -22,7 +30,7 @@ export const selectDeFiPositionsByAddress = createDeepEqualSelector(
     const selectedEvmAccount = selectedInternalAccountByScope(EVM_SCOPE);
 
     if (!selectedEvmAccount) {
-      return {};
+      return NO_DATA;
     }
 
     return defiPositionsControllerState?.allDeFiPositions[
@@ -44,23 +52,23 @@ export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
   ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined => {
     const selectedEvmAccount = selectedInternalAccountByScope(EVM_SCOPE);
     if (!selectedEvmAccount) {
-      return {};
+      return NO_DATA;
     }
 
     const defiPositionByAddress =
-      defiPositionsControllerState.allDeFiPositions[
+      defiPositionsControllerState?.allDeFiPositions[
         selectedEvmAccount.address
-      ] ?? {};
+      ];
 
-    if (Object.keys(defiPositionByAddress).length === 0) {
-      return {};
+    if (defiPositionByAddress == null) {
+      return defiPositionByAddress;
     }
 
     const defiPositionByEnabledNetworks =
       enabledNetworks[KnownCaipNamespace.Eip155];
 
     if (!defiPositionByEnabledNetworks) {
-      return {};
+      return NO_DATA;
     }
 
     const enabledChainIdsSet = new Set(
@@ -70,7 +78,7 @@ export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
     );
 
     if (enabledChainIdsSet.size === 0) {
-      return {};
+      return NO_DATA;
     }
 
     const filteredDefiPositionByAddress = Object.keys(defiPositionByAddress)
