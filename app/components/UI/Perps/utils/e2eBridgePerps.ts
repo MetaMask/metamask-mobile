@@ -200,7 +200,7 @@ function startE2EPerpsCommandPolling(): void {
         return;
       }
 
-      const data = ((await response) as AxiosResponse).data as
+      const data = ((await response) as AxiosResponse).data?.queue as
         | (
             | {
                 type: 'push-price';
