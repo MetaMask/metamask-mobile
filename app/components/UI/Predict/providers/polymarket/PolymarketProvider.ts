@@ -586,6 +586,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async isEligible(): Promise<boolean> {
+    return true;
     const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
     let eligible = false;
     try {

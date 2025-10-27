@@ -7,8 +7,5 @@ export const FEATURE_FLAG_NAME = 'predictEnabled';
 
 export const selectPredictEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFlags) =>
-    hasProperty(remoteFlags, FEATURE_FLAG_NAME)
-      ? Boolean(remoteFlags[FEATURE_FLAG_NAME])
-      : OVERRIDE_PREDICT_ENABLED_VALUE,
+  (remoteFlags) => true,
 );
