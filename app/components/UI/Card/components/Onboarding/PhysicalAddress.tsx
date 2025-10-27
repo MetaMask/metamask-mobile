@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -16,16 +16,23 @@ import OnboardingStep from './OnboardingStep';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   selectOnboardingId,
   selectSelectedCountry,
+  setIsAuthenticatedCard,
+  setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { CardError } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import SelectComponent from '../../../SelectComponent';
+import { storeCardBaanxToken } from '../../util/cardTokenVault';
+import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 export const AddressFields = ({
   addressLine1,
@@ -59,10 +66,10 @@ export const AddressFields = ({
     }
     return [...registrationSettings.usStates]
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((state) => ({
-        key: state.postalAbbreviation,
-        value: state.postalAbbreviation,
-        label: state.name,
+      .map((usState) => ({
+        key: usState.postalAbbreviation,
+        value: usState.postalAbbreviation,
+        label: usState.name,
       }));
   }, [registrationSettings]);
 
@@ -140,17 +147,24 @@ export const AddressFields = ({
       </Box>
       {/* State */}
       {selectedCountry === 'US' && (
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <SelectComponent
-            options={selectOptions}
-            selectedValue={state}
-            onValueChange={handleStateChange}
-            label={strings('card.card_onboarding.physical_address.state_label')}
-            defaultValue={strings(
-              'card.card_onboarding.physical_address.state_placeholder',
-            )}
-            testID="state-select"
-          />
+        <Box>
+          <Label>
+            {strings('card.card_onboarding.physical_address.state_label')}
+          </Label>
+          <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+            <SelectComponent
+              options={selectOptions}
+              selectedValue={state}
+              onValueChange={handleStateChange}
+              label={strings(
+                'card.card_onboarding.physical_address.state_label',
+              )}
+              defaultValue={strings(
+                'card.card_onboarding.physical_address.state_placeholder',
+              )}
+              testID="state-select"
+            />
+          </Box>
         </Box>
       )}
       {/* ZIP Code */}
@@ -181,11 +195,12 @@ export const AddressFields = ({
 
 const PhysicalAddress = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const tw = useTailwind();
   const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
@@ -193,7 +208,6 @@ const PhysicalAddress = () => {
   const [zipCode, setZipCode] = useState('');
   const [isSameMailingAddress, setIsSameMailingAddress] = useState(true);
   const [electronicConsent, setElectronicConsent] = useState(false);
-
   const {
     registerAddress,
     isLoading: registerLoading,
@@ -273,7 +287,7 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry === 'US') ||
       !zipCode ||
-      !electronicConsent,
+      (!electronicConsent && selectedCountry === 'US'),
     [
       registerLoading,
       registerIsError,
@@ -298,13 +312,19 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry === 'US') ||
       !zipCode ||
-      !electronicConsent
+      (!electronicConsent && selectedCountry === 'US')
     ) {
       return;
     }
-    try {
-      await registerUserConsent(onboardingId, user.id);
 
+    try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+          .addProperties({
+            action: OnboardingActions.PHYSICAL_ADDRESS_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -314,13 +334,29 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
+      await registerUserConsent(onboardingId, user.id);
 
       if (updatedUser) {
         setUser(updatedUser);
       }
 
       if (accessToken) {
-        // Registration complete
+        // Store the access token for immediate authentication
+        const location = mapCountryToLocation(selectedCountry);
+        const accessTokenExpiresIn = extractTokenExpiration(accessToken);
+
+        const storeResult = await storeCardBaanxToken({
+          accessToken,
+          accessTokenExpiresAt: accessTokenExpiresIn,
+          location,
+        });
+
+        if (storeResult.success) {
+          // Update Redux state to reflect authentication
+          dispatch(setIsAuthenticatedCard(true));
+          dispatch(setUserCardLocation(location));
+        }
+
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
       }
 
@@ -342,6 +378,16 @@ const PhysicalAddress = () => {
       // Allow error message to display
     }
   };
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+        .addProperties({
+          page: OnboardingScreens.PHYSICAL_ADDRESS,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
     <>
@@ -372,15 +418,17 @@ const PhysicalAddress = () => {
       )}
 
       {/* Check box 2: Electronic Consent */}
-      <Checkbox
-        isChecked={electronicConsent}
-        onPress={handleElectronicConsentToggle}
-        label={strings(
-          'card.card_onboarding.physical_address.electronic_consent',
-        )}
-        style={tw.style('h-auto')}
-        testID="physical-address-electronic-consent-checkbox"
-      />
+      {selectedCountry === 'US' && (
+        <Checkbox
+          isChecked={electronicConsent}
+          onPress={handleElectronicConsentToggle}
+          label={strings(
+            'card.card_onboarding.physical_address.electronic_consent',
+          )}
+          style={tw.style('h-auto')}
+          testID="physical-address-electronic-consent-checkbox"
+        />
+      )}
     </>
   );
 
