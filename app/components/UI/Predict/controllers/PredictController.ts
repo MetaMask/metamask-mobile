@@ -1307,6 +1307,15 @@ export class PredictController extends BaseController<
           ? error.message
           : PREDICT_ERROR_CODES.WITHDRAW_FAILED;
 
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        // ignore error, as the user cancelled the tx
+        return {
+          success: true,
+          response: 'User cancelled transaction',
+        };
+      }
+
       // Update error state for Sentry integration
       this.update((state) => {
         state.lastError = errorMessage;
