@@ -110,10 +110,7 @@ export function useDisplayNames(
       nftNames[index] || {};
     const accountName = accountNames[index];
     const subtitle = accountWalletNames[index];
-    const ensName = getResolvedENSName(
-      variation.toLowerCase(),
-      value.toLowerCase(),
-    );
+    const ensName = getResolvedENSName(variation, value);
 
     const name =
       accountName ||

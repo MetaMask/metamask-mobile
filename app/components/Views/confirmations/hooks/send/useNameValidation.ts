@@ -30,11 +30,7 @@ export const useNameValidation = () => {
 
         if (resolvedAddress && isEvmSendType) {
           // Set short living cache of ENS resolution for the given chain and address for confirmation screen
-          setResolvedAddress(
-            chainId.toLowerCase(),
-            to.toLowerCase(),
-            resolvedAddress.toLowerCase(),
-          );
+          setResolvedAddress(chainId, to, resolvedAddress);
         }
 
         return {

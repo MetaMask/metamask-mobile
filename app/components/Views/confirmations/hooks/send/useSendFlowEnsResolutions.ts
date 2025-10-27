@@ -20,23 +20,49 @@ const isCacheEntryValid = (entry: CacheEntry): boolean =>
 export const useSendFlowEnsResolutions = () => {
   const setResolvedAddress = useCallback(
     (chainId: string, ensName: string, address: string) => {
-      ensResolutionCache.set(createCacheKey(chainId, address), {
-        ensName,
-        timestamp: Date.now(),
-      });
+      if (
+        !isValidString(chainId) ||
+        !isValidString(address) ||
+        !isValidString(ensName)
+      ) {
+        return;
+      }
+
+      const lowerCaseChainId = chainId.toLowerCase();
+      const lowerCaseAddress = address.toLowerCase();
+      const lowerCaseEnsName = ensName.toLowerCase();
+
+      ensResolutionCache.set(
+        createCacheKey(lowerCaseChainId, lowerCaseAddress),
+        {
+          ensName: lowerCaseEnsName,
+          timestamp: Date.now(),
+        },
+      );
     },
     [],
   );
 
   const getResolvedENSName = useCallback(
     (chainId: string, address: string): string | undefined => {
-      const entry = ensResolutionCache.get(createCacheKey(chainId, address));
+      if (!isValidString(chainId) || !isValidString(address)) {
+        return undefined;
+      }
+
+      const lowerCaseChainId = chainId.toLowerCase();
+      const lowerCaseAddress = address.toLowerCase();
+
+      const entry = ensResolutionCache.get(
+        createCacheKey(lowerCaseChainId, lowerCaseAddress),
+      );
       if (entry && isCacheEntryValid(entry)) {
         return entry.ensName;
       }
 
       if (entry) {
-        ensResolutionCache.delete(createCacheKey(chainId, address));
+        ensResolutionCache.delete(
+          createCacheKey(lowerCaseChainId, lowerCaseAddress),
+        );
       }
       return undefined;
     },
@@ -48,3 +74,7 @@ export const useSendFlowEnsResolutions = () => {
     getResolvedENSName,
   };
 };
+
+function isValidString(value: unknown) {
+  return typeof value === 'string' && value.length > 0;
+}
