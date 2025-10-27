@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useWithdrawValidation } from './useWithdrawValidation';
 import Engine from '../../../../core/Engine';
 import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
+import { useWithdrawValidation } from './useWithdrawValidation';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -134,7 +134,7 @@ describe('useWithdrawValidation', () => {
     // Default minimum is 1.01
     expect(result.current.isBelowMinimum).toBe(true);
     expect(result.current.getMinimumAmount()).toBe(
-      parseFloat(WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT),
+      Number.parseFloat(WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT),
     );
   });
 

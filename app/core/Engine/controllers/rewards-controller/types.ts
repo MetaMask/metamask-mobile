@@ -137,9 +137,13 @@ export interface EstimatePointsContextDto {
   swapContext?: EstimateSwapContextDto;
 
   /**
-   * PERPS context data, must be present for PERPS activity
+   * PERPS context data, must be present for PERPS activity.
+   * Can be a single position or an array of positions for batch estimation.
+   * When an array is provided, the backend returns aggregated points (sum) and average bonus.
+   * @example Single position: { type: 'CLOSE_POSITION', coin: 'USDC', usdFeeValue: '1.00' }
+   * @example Batch positions: [{ type: 'CLOSE_POSITION', coin: 'USDC', usdFeeValue: '1.00' }, ...]
    */
-  perpsContext?: EstimatePerpsContextDto;
+  perpsContext?: EstimatePerpsContextDto | EstimatePerpsContextDto[];
 }
 
 /**
@@ -808,7 +812,7 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
  */
 export interface RewardsControllerGetSeasonMetadataAction {
   type: 'RewardsController:getSeasonMetadata';
-  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState>;
+  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState | null>;
 }
 
 /**

@@ -227,6 +227,7 @@ describe('Engine', () => {
         claimTransaction: null,
         claimablePositions: [],
         depositTransaction: null,
+        withdrawTransaction: null,
         isOnboarded: {},
       },
       GatorPermissionsController: {
