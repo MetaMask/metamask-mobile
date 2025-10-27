@@ -113,3 +113,11 @@ export const PredictCashOutSelectorsIDs = {
   // Cash out buttons
   SELL_PREVIEW_CASH_OUT_BUTTON: 'predict-sell-preview-cash-out-button',
 } as const;
+
+// ========================================
+// PREDICT BALANCE SELECTORS
+// ========================================
+
+export const PredictBalanceSelectorsIDs = {
+  BALANCE_CARD: 'predict-balance-card',
+} as const;
