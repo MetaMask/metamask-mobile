@@ -222,9 +222,9 @@ const PerpsHomeView = () => {
           isLoading={isLoading.markets}
         />
 
-        {/* Perps Markets List (Crypto) - Renamed from Trending */}
+        {/* Crypto Markets List */}
         <PerpsMarketTypeSection
-          title={strings('perps.home.perps')}
+          title={strings('perps.home.crypto')}
           markets={perpsMarkets}
           marketType="crypto"
           sortBy={sortBy}

@@ -167,7 +167,7 @@ const PerpsMarketListView = ({
       tabs.push(
         <MarketTypeTabContent
           key="crypto-tab"
-          tabLabel={strings('perps.home.perps')}
+          tabLabel={strings('perps.home.crypto')}
         />,
       );
     }
