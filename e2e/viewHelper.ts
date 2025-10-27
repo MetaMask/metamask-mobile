@@ -11,7 +11,6 @@ import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/Onboarding/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/Onboarding/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
-import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
@@ -240,7 +239,7 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {
     description: 'Manual Backup Step 1 View should be visible',
   });
-  await ProtectYourWalletView.tapOnRemindMeLaterButton();
+  await ManualBackupStep1View.tapOnRemindMeLaterButton();
 
   // This should be removed once we implement mockAll
   await device.disableSynchronization();
