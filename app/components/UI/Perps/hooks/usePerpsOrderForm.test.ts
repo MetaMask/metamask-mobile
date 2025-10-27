@@ -7,16 +7,19 @@ import { usePerpsOrderForm } from './usePerpsOrderForm';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
+import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
 } from '../providers/PerpsStreamManager';
+import type { Position } from '../controllers/types';
 
 jest.mock('./usePerpsNetwork');
 jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('./stream/usePerpsLivePrices');
+jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
 
 // Create a mock stream manager for testing
@@ -89,6 +92,27 @@ const createWrapper = () => {
   };
 };
 
+// Helper to create mock positions
+const createMockPosition = (coin: string, leverageValue: number): Position => ({
+  coin,
+  size: '1.5',
+  entryPrice: '50000',
+  positionValue: '75000',
+  unrealizedPnl: '0',
+  marginUsed: '7500',
+  leverage: { type: 'isolated', value: leverageValue },
+  liquidationPrice: '45000',
+  maxLeverage: 50,
+  returnOnEquity: '0',
+  cumulativeFunding: {
+    allTime: '0',
+    sinceOpen: '0',
+    sinceChange: '0',
+  },
+  takeProfitCount: 0,
+  stopLossCount: 0,
+});
+
 describe('usePerpsOrderForm', () => {
   const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
     typeof usePerpsNetwork
@@ -99,6 +123,8 @@ describe('usePerpsOrderForm', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
     typeof usePerpsLivePrices
   >;
+  const mockUsePerpsLivePositions =
+    usePerpsLivePositions as jest.MockedFunction<typeof usePerpsLivePositions>;
   const mockUsePerpsMarketData = usePerpsMarketData as jest.MockedFunction<
     typeof usePerpsMarketData
   >;
@@ -119,6 +145,10 @@ describe('usePerpsOrderForm', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       BTC: { price: '50000', timestamp: Date.now(), coin: 'BTC' },
       ETH: { price: '3000', timestamp: Date.now(), coin: 'ETH' },
+    });
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
     });
     mockUsePerpsMarketData.mockReturnValue({
       marketData: {
@@ -150,6 +180,213 @@ describe('usePerpsOrderForm', () => {
         limitPrice: undefined,
         type: 'market',
       });
+    });
+
+    it('should prioritize existing position leverage over saved config', () => {
+      // Mock existing position with 10x leverage
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [createMockPosition('BTC', 10)],
+        isInitialLoading: false,
+      });
+
+      // Create a wrapper with saved config for BTC at 5x leverage
+      const mockStoreWithSavedConfig = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: { leverage: 5 },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+
+      const WrapperWithSavedConfig = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithSavedConfig,
+          children: streamProvider,
+        });
+      };
+
+      // Render hook - should use existing position leverage from mocked positions
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+          }),
+        { wrapper: WrapperWithSavedConfig },
+      );
+
+      // Should use existing position leverage (10x), not saved config (5x) or default (3x)
+      expect(result.current.orderForm.leverage).toBe(10);
+    });
+
+    it('should use saved config when no existing position leverage', () => {
+      // Create a wrapper with saved config for BTC at 5x leverage
+      const mockStoreWithSavedConfig = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: { leverage: 5 },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+
+      const WrapperWithSavedConfig = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithSavedConfig,
+          children: streamProvider,
+        });
+      };
+
+      // Render without existing position leverage
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+          }),
+        { wrapper: WrapperWithSavedConfig },
+      );
+
+      // Should use saved config (5x), not default (3x)
+      expect(result.current.orderForm.leverage).toBe(5);
+    });
+
+    it('should prioritize navigation param over existing position leverage', () => {
+      // Mock existing position with 10x leverage
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [createMockPosition('BTC', 10)],
+        isInitialLoading: false,
+      });
+
+      // Render with both navigation param (12x) and existing position leverage (10x)
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialLeverage: 12,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Should use navigation param (12x), highest priority
+      expect(result.current.orderForm.leverage).toBe(12);
+    });
+
+    it('should update leverage when existing position loads asynchronously', () => {
+      // Initial render without existing position (positions haven't loaded via WebSocket yet)
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Initially should use default leverage (3x) since no position loaded yet
+      expect(result.current.orderForm.leverage).toBe(3);
+
+      // Simulate position loading asynchronously with 10x leverage
+      act(() => {
+        mockUsePerpsLivePositions.mockReturnValue({
+          positions: [createMockPosition('BTC', 10)],
+          isInitialLoading: false,
+        });
+      });
+
+      // Re-render to pick up the new mock value
+      const { result: result2 } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Should update to 10x when position loads
+      expect(result2.current.orderForm.leverage).toBe(10);
+    });
+
+    it('should not update leverage if navigation param is provided even when position loads', () => {
+      // Initial render with navigation param but no existing position
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialLeverage: 12, // explicit navigation param
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Should use navigation param (12x)
+      expect(result.current.orderForm.leverage).toBe(12);
+
+      // Simulate position loading asynchronously with 10x leverage
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [createMockPosition('BTC', 10)],
+        isInitialLoading: false,
+      });
+
+      // Re-render to simulate async position load
+      const { result: result2 } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialLeverage: 12,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Should still be 12x (navigation param takes priority)
+      expect(result2.current.orderForm.leverage).toBe(12);
     });
 
     it('should initialize with provided values', () => {
