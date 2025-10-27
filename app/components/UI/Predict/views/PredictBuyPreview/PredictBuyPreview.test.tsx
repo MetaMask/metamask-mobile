@@ -2022,4 +2022,130 @@ describe('PredictBuyPreview', () => {
       ).toBeOnTheScreen();
     });
   });
+
+  describe('additional branch coverage', () => {
+    it('uses default entry point when entryPoint is undefined', () => {
+      const routeWithoutEntryPoint = {
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          entryPoint: undefined,
+        },
+      };
+
+      mockUseRoute.mockReturnValue(routeWithoutEntryPoint);
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Component renders successfully with default entry point
+      expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
+    });
+
+    it('handles missing groupItemTitle in outcome', () => {
+      const routeWithoutGroupTitle = {
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcome: {
+            ...mockRoute.params.outcome,
+            groupItemTitle: undefined,
+          },
+        },
+      };
+
+      mockUseRoute.mockReturnValue(routeWithoutGroupTitle);
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Component renders without group title prefix
+      expect(getByText('Yes at 50¢')).toBeOnTheScreen();
+    });
+
+    it('handles outcome with No token', () => {
+      const routeWithNoToken = {
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcomeToken: {
+            id: 'outcome-token-790',
+            title: 'No',
+            price: 0.6,
+          },
+        },
+      };
+
+      mockUseRoute.mockReturnValue(routeWithNoToken);
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Renders No token (uses preview sharePrice 0.5, not outcomeToken price)
+      expect(getByText('No at 50¢')).toBeOnTheScreen();
+    });
+
+    it('applies error color styling for No token in place bet button', () => {
+      const routeWithNoToken = {
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcomeToken: {
+            id: 'outcome-token-790',
+            title: 'No',
+            price: 0.5,
+          },
+        },
+      };
+
+      mockUseRoute.mockReturnValue(routeWithNoToken);
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter valid amount
+      act(() => {
+        capturedOnChange?.({
+          value: '100',
+          valueAsNumber: 100,
+        });
+      });
+
+      // Press done to show button
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // No button rendered with error color styling
+      expect(getByText('No · 50¢')).toBeOnTheScreen();
+    });
+
+    it('handles outcome token title that is neither Yes nor No', () => {
+      const routeWithCustomToken = {
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcomeToken: {
+            id: 'outcome-token-custom',
+            title: 'Maybe',
+            price: 0.75,
+          },
+        },
+      };
+
+      mockUseRoute.mockReturnValue(routeWithCustomToken);
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Renders custom token (uses preview sharePrice 0.5, not outcomeToken price)
+      expect(getByText('Maybe at 50¢')).toBeOnTheScreen();
+    });
+  });
 });
