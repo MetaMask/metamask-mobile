@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { getVersion } from 'react-native-device-info';
+import compareVersions from 'compare-versions';
+
 export interface FeatureFlagInfo {
   key: string;
   value: any;
@@ -58,4 +61,16 @@ export const getFeatureFlagDescription = (key: string): string | undefined => {
     minimumAppVersion: 'Minimum app version requirements',
   };
   return descriptions[key];
+};
+
+export const isMinimumRequiredVersionSupported = (
+  minRequiredVersion: string,
+) => {
+  if (!minRequiredVersion) return false;
+  try {
+    const currentVersion = getVersion();
+    return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
+  } catch {
+    return false;
+  }
 };
