@@ -42,6 +42,15 @@ class MobileBrowserScreen {
         const element = await this.chromeHomePageSearchBox;
         await AppwrightGestures.tap(element)
     }
+
+    async tapUrlBar() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.chromeUrlBar;
+        await AppwrightGestures.tap(element)
+    }
 }
   
   export default new MobileBrowserScreen();
