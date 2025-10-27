@@ -2600,7 +2600,7 @@ export class PerpsController extends BaseController<
     // Generate withdrawal request ID for tracking (outside try block for catch access)
     const currentWithdrawalId = `withdraw-${Date.now()}-${Math.random()
       .toString(36)
-      .substr(2, 9)}`;
+      .substring(2, 11)}`;
 
     try {
       trace({

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData, MarketTypeFilter } from '../controllers/types';
 import type { SortField, SortDirection } from '../utils/sortMarkets';
 import { PERPS_CONSTANTS, type SortOptionId } from '../constants/perpsConfig';
 import {
@@ -32,7 +32,7 @@ interface UsePerpsMarketListViewParams {
    * Initial market type filter
    * @default 'all'
    */
-  defaultMarketTypeFilter?: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all';
+  defaultMarketTypeFilter?: MarketTypeFilter;
   /**
    * Show markets with $0.00 volume
    * @default false
@@ -80,10 +80,8 @@ interface UsePerpsMarketListViewReturn {
    * Market type filter state (not persisted, UI-only)
    */
   marketTypeFilterState: {
-    marketTypeFilter: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all';
-    setMarketTypeFilter: (
-      filter: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all',
-    ) => void;
+    marketTypeFilter: MarketTypeFilter;
+    setMarketTypeFilter: (filter: MarketTypeFilter) => void;
   };
   /**
    * Market counts by type (for hiding empty tabs)
@@ -158,9 +156,9 @@ export const usePerpsMarketListView = ({
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
 
   // Market type filter state (can be changed in UI, not persisted)
-  const [marketTypeFilter, setMarketTypeFilter] = useState<
-    'crypto' | 'equity' | 'commodity' | 'forex' | 'all'
-  >(defaultMarketTypeFilter);
+  const [marketTypeFilter, setMarketTypeFilter] = useState<MarketTypeFilter>(
+    defaultMarketTypeFilter,
+  );
 
   // Filter out markets with no valid volume
   const marketsWithVolume = useMemo(
