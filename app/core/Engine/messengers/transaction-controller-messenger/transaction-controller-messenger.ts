@@ -12,6 +12,7 @@ import {
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
 import {
+  TransactionControllerAddTransactionAction,
   TransactionControllerGetStateAction,
   TransactionControllerMessenger,
   TransactionControllerStateChangeEvent,
@@ -22,6 +23,7 @@ import {
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
+  TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import {
   SmartTransactionsControllerSmartTransactionEvent,
@@ -59,7 +61,9 @@ type MessengerActions =
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction
+  | TransactionControllerAddTransactionAction
   | TransactionControllerGetStateAction
+  | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction;
 
@@ -127,10 +131,13 @@ export function getTransactionControllerInitMessenger(
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
       'DelegationController:signDelegation',
+      'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
+      'TransactionController:addTransaction',
       'TransactionController:getState',
+      'TransactionController:updateTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
     ],
