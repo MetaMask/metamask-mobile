@@ -739,6 +739,22 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(screen.getAllByText('40x').length).toBeGreaterThan(0);
     });
 
+    it('shows both 2x and 3x buttons when maxLeverage is 3', () => {
+      // Arrange - maxLeverage: 3, should show [2, 3] to give users more choice
+      const props = { ...defaultProps, maxLeverage: 3, leverage: 2 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Both buttons should be present (text appears in slider labels too)
+      const twoXElements = screen.getAllByText('2x');
+      const threeXElements = screen.getAllByText('3x');
+      expect(twoXElements.length).toBeGreaterThan(0);
+      expect(threeXElements.length).toBeGreaterThan(0);
+      // 5x should not appear in slider labels or buttons (initial leverage is now 2x)
+      expect(screen.queryByText('5x')).toBeNull();
+    });
+
     it('includes only 2x option when maxLeverage is 2', () => {
       // Arrange
       const props = { ...defaultProps, maxLeverage: 2, leverage: 2 };
@@ -1000,11 +1016,7 @@ describe('PerpsLeverageBottomSheet', () => {
     it('resets temp leverage when modal closes and reopens with new value', () => {
       // Arrange
       const { rerender } = render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          isVisible
-          leverage={5}
-        />,
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible leverage={5} />,
       );
       expect(screen.getByText('Set 5x')).toBeOnTheScreen();
 
@@ -1018,11 +1030,7 @@ describe('PerpsLeverageBottomSheet', () => {
       );
       // Reopen with new leverage
       rerender(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          isVisible
-          leverage={10}
-        />,
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible leverage={10} />,
       );
 
       // Assert - Component uses new initial leverage value
@@ -1127,11 +1135,7 @@ describe('PerpsLeverageBottomSheet', () => {
     it('uses new leverage value when closed and reopened', () => {
       // Arrange
       const { rerender } = render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          isVisible
-          leverage={5}
-        />,
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible leverage={5} />,
       );
       expect(screen.getByText('Set 5x')).toBeOnTheScreen();
 
@@ -1144,11 +1148,7 @@ describe('PerpsLeverageBottomSheet', () => {
         />,
       );
       rerender(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          isVisible
-          leverage={10}
-        />,
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible leverage={10} />,
       );
 
       // Assert - Component uses new leverage value

@@ -148,7 +148,6 @@ function TokenSelectorModal() {
         DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
         <ListItemSelect
-          shouldEnableAndroidPressIn
           isSelected={selectedCryptoCurrency?.assetId === token.assetId}
           onPress={() => handleSelectAssetIdCallback(token.assetId)}
           accessibilityRole="button"

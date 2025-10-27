@@ -19,9 +19,12 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictEligibility } from '../../hooks/usePredictEligibility';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PredictMarket as PredictMarketType } from '../../types';
+import {
+  PredictMarket as PredictMarketType,
+  PredictOutcomeToken,
+} from '../../types';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
@@ -29,7 +32,6 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
@@ -47,10 +49,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
 
-  const { isEligible } = usePredictEligibility({
+  const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,
+    navigation,
   });
-  const { hasNoBalance } = usePredictBalance();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -71,56 +73,21 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const yesPercentage = getYesPercentage();
 
-  const handleYes = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[0],
-        entryPoint,
+  const handleBuy = (token: PredictOutcomeToken) => {
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken: token,
+            entryPoint,
+          },
+        });
       },
-    });
-  };
-
-  const handleNo = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[1],
-        entryPoint,
-      },
-    });
+      { checkBalance: true },
+    );
   };
 
   interface SemiCircleYesPercentageProps {
@@ -263,7 +230,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 {strings('predict.buy_yes')}
               </Text>
             }
-            onPress={handleYes}
+            onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
           />
           <Button
@@ -275,7 +242,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 {strings('predict.buy_no')}
               </Text>
             }
-            onPress={handleNo}
+            onPress={() => handleBuy(outcome.tokens[1])}
             style={styles.buttonNo}
           />
         </View>
