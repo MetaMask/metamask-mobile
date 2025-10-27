@@ -154,7 +154,6 @@ function RegionSelectorModal() {
 
       return (
         <ListItemSelect
-          shouldEnableAndroidPressIn
           isSelected={isSelected}
           onPress={() => {
             handleOnRegionPressCallback(region);
