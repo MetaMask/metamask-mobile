@@ -2826,17 +2826,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_main_dev_nightly:
-    envs:
-      - IS_DEV_BUILD: 'false'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: 'prod'
-      - BUILD_COMMAND: 'yarn build:android:main:dev'
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_devbuild:
     after_run:
