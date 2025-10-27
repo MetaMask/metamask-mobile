@@ -118,7 +118,6 @@ const createStyles = (colors: Colors) =>
       fontSize: 28,
       color: colors.text.default,
     },
-    // Dynamic Grid Styles (from ImportFromSecretRecoveryPhrase)
     seedPhraseRoot: {
       flexDirection: 'column',
       gap: 4,
