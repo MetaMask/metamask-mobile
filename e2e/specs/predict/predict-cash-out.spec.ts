@@ -19,6 +19,7 @@ import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -30,6 +31,13 @@ Test Scenario: Cash out on open position - Spurs vs. Pelicans
   5. Verify balance updated to $58.66 and position removed from current positions
   6. Verify final balance consistency across views
   */
+const positionDetails = {
+  name: 'Spurs vs. Pelicans',
+  cashOutValue: '$30.75',
+  initialBalance: '$28.16',
+  newBalance: '$58.66',
+};
+
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
@@ -55,9 +63,9 @@ describe(SmokeTrade('Predictions'), () => {
           WalletView.PredictionsTabContainer,
         );
         // Current balance prior to cashing out
-        await Assertions.expectTextDisplayed('$28.16');
+        await Assertions.expectTextDisplayed(positionDetails.initialBalance);
 
-        await WalletView.tapOnPredictionsPosition('Spurs vs. Pelicans');
+        await WalletView.tapOnPredictionsPosition(positionDetails.name);
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
@@ -80,11 +88,16 @@ describe(SmokeTrade('Predictions'), () => {
         await TabBarComponent.tapActivity();
 
         await ActivitiesView.tapOnPredictionsTab();
-        // await ActivitiesView.tapCashedOutPosition('Spurs vs. Pelicans');
+        // await ActivitiesView.tapCashedOutPosition(positionDetails.name);
         await Assertions.expectTextDisplayed('Cashed out');
-
+        await ActivitiesView.tapCashedOutPosition(positionDetails.name);
+        await Assertions.expectElementToBeVisible(
+          PredictActivityDetails.container,
+        );
+        await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
+        await PredictActivityDetails.tapBackButton();
         await TabBarComponent.tapWallet();
-        await Assertions.expectTextDisplayed('$58.66');
+        await Assertions.expectTextDisplayed(positionDetails.newBalance);
 
         await WalletView.tapOnPredictionsTab();
 
@@ -94,16 +107,16 @@ describe(SmokeTrade('Predictions'), () => {
             WalletView.getPredictCurrentPositionCardByIndex(i);
           await Assertions.expectElementToNotHaveText(
             positionCard,
-            'Spurs vs. Pelicans',
+            positionDetails.name,
             {
-              description: `Position card at index ${i} should not have text "Spurs vs. Pelicans"`,
+              description: `Position card at index ${i} should not have text "${positionDetails.name}"`,
             },
           );
         }
 
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
-        await Assertions.expectTextDisplayed('$58.66');
+        await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );
   });
