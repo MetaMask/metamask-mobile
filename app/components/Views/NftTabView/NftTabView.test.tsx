@@ -4,7 +4,6 @@ import NftTabView from './NftTabView';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { strings } from '../../../../locales/i18n';
 
 // Mock external dependencies
 jest.mock('../../../hooks/useMetrics', () => ({
