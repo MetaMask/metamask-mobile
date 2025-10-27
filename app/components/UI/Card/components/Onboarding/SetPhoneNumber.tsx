@@ -42,12 +42,12 @@ const SetPhoneNumber = () => {
     const uniqueCallingCodes = new Map();
 
     registrationSettings.countries.forEach((country) => {
-      const callingCode = `+${country.callingCode}`;
+      const callingCode = country.callingCode;
       if (!uniqueCallingCodes.has(callingCode)) {
         uniqueCallingCodes.set(callingCode, {
           key: country.iso3166alpha2,
           value: callingCode,
-          label: callingCode,
+          label: `+${callingCode}`,
         });
       }
     });
@@ -60,14 +60,12 @@ const SetPhoneNumber = () => {
 
   const initialSelectedCountryAreaCode = useMemo(() => {
     if (!registrationSettings?.countries) {
-      return '+1';
+      return '1';
     }
     const selectedCountryWithCallingCode = registrationSettings.countries.find(
       (country) => country.iso3166alpha2 === selectedCountry,
     );
-    return selectedCountryWithCallingCode?.callingCode
-      ? `+${selectedCountryWithCallingCode.callingCode}`
-      : '+1';
+    return selectedCountryWithCallingCode?.callingCode || '1';
   }, [selectedCountry, registrationSettings]);
 
   const [phoneNumber, setPhoneNumber] = useState('');
