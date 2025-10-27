@@ -131,6 +131,10 @@ describe('PredictNewButton', () => {
     );
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('renders the button with correct text', () => {
       renderWithProvider(<PredictNewButton />);

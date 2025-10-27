@@ -335,6 +335,10 @@ describe('PredictMarketList', () => {
     );
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('renders the scrollable tab view when search is not visible', () => {
       render(<PredictMarketList isSearchVisible={false} searchQuery="" />);
