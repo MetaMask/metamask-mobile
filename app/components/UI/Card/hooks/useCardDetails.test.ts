@@ -49,6 +49,8 @@ describe('useCardDetails', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: mockLogoutFromProvider,
     });
   });
@@ -238,6 +240,8 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: true,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
@@ -254,6 +258,8 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
@@ -291,6 +297,8 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: true,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
       mockGetCardDetails.mockResolvedValue(mockCardDetailsResponse);
@@ -305,6 +313,8 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: mockSDK,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
       rerender();
@@ -322,6 +332,8 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 
@@ -660,6 +672,8 @@ describe('useCardDetails', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 
