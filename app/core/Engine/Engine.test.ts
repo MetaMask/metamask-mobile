@@ -251,7 +251,7 @@ describe('Engine', () => {
           lastUpdated: 0,
           activeWithdrawalId: undefined,
         },
-        marketSortPreference: 'volume',
+        marketFilterPreferences: 'volume',
         tradeConfigurations: {
           mainnet: {},
           testnet: {},
