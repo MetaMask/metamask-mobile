@@ -1,7 +1,7 @@
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
-} from '@metamask/base-controller/next';
+} from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 

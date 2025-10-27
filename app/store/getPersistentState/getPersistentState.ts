@@ -1,4 +1,4 @@
-import { StateConstraint, StateMetadata } from '@metamask/base-controller/next';
+import { StateConstraint, StateMetadata } from '@metamask/base-controller';
 import { Json } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 

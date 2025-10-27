@@ -27,7 +27,7 @@ import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
-import { StateConstraint } from '@metamask/base-controller/next';
+import { StateConstraint } from '@metamask/base-controller';
 
 export class EngineService {
   private engineInitialized = false;

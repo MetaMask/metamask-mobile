@@ -3,7 +3,7 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
   StateMetadata,
-} from '@metamask/base-controller/next';
+} from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';

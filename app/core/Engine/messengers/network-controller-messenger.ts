@@ -13,7 +13,7 @@ import {
   RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../types';
-import { ControllerStateChangeEvent } from '@metamask/base-controller/next';
+import { ControllerStateChangeEvent } from '@metamask/base-controller';
 
 /**
  * Get the messenger for the network controller. This is scoped to the

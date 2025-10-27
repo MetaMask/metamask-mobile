@@ -1,4 +1,4 @@
-import { BaseController, StateMetadata } from '@metamask/base-controller/next';
+import { BaseController, StateMetadata } from '@metamask/base-controller';
 import { maxBy } from 'lodash';
 import {
   type RewardsControllerState,

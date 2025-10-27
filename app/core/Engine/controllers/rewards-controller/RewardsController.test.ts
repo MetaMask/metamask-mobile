@@ -5,7 +5,7 @@ import {
   wrapWithCache,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import { deriveStateFromMetadata } from '@metamask/base-controller/next';
+import { deriveStateFromMetadata } from '@metamask/base-controller';
 import {
   RewardClaimStatus,
   type RewardsAccountState,

@@ -360,7 +360,7 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
-} from '@metamask/base-controller/next';
+} from '@metamask/base-controller';
 import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
 
 type NftDetectionControllerActions = ControllerGetStateAction<

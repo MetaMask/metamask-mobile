@@ -1,5 +1,5 @@
 import { getPersistentState } from './getPersistentState';
-import { StateMetadata } from '@metamask/base-controller/next';
+import { StateMetadata } from '@metamask/base-controller';
 
 describe('getPersistentState', () => {
   it('return empty state', () => {
