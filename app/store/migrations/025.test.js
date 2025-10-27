@@ -51,6 +51,7 @@ describe('Migration #25', () => {
               '0xa869': false,
               '0xaa37dc': false,
               '0x89': false,
+              '0x8f': false,
               '0x13881': false,
               '0xa86a': false,
               '0xfa': false,
