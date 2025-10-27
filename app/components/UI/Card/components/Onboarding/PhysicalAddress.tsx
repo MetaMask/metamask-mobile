@@ -30,7 +30,6 @@ import SelectComponent from '../../../SelectComponent';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
@@ -288,7 +287,7 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry === 'US') ||
       !zipCode ||
-      !electronicConsent,
+      (!electronicConsent && selectedCountry === 'US'),
     [
       registerLoading,
       registerIsError,
@@ -313,10 +312,11 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry === 'US') ||
       !zipCode ||
-      !electronicConsent
+      (!electronicConsent && selectedCountry === 'US')
     ) {
       return;
     }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
@@ -325,8 +325,6 @@ const PhysicalAddress = () => {
           })
           .build(),
       );
-      await registerUserConsent(onboardingId, user.id);
-
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -336,6 +334,7 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
+      await registerUserConsent(onboardingId, user.id);
 
       if (updatedUser) {
         setUser(updatedUser);
@@ -356,11 +355,6 @@ const PhysicalAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
-        } else {
-          Logger.log(
-            'PhysicalAddress: Failed to store access token',
-            storeResult.error,
-          );
         }
 
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
@@ -424,15 +418,17 @@ const PhysicalAddress = () => {
       )}
 
       {/* Check box 2: Electronic Consent */}
-      <Checkbox
-        isChecked={electronicConsent}
-        onPress={handleElectronicConsentToggle}
-        label={strings(
-          'card.card_onboarding.physical_address.electronic_consent',
-        )}
-        style={tw.style('h-auto')}
-        testID="physical-address-electronic-consent-checkbox"
-      />
+      {selectedCountry === 'US' && (
+        <Checkbox
+          isChecked={electronicConsent}
+          onPress={handleElectronicConsentToggle}
+          label={strings(
+            'card.card_onboarding.physical_address.electronic_consent',
+          )}
+          style={tw.style('h-auto')}
+          testID="physical-address-electronic-consent-checkbox"
+        />
+      )}
     </>
   );
 
