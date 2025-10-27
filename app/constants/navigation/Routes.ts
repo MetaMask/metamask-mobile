@@ -251,6 +251,7 @@ const Routes = {
     MARKET_DETAILS: 'PerpsMarketDetails',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
+    HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
     MODALS: {
       ROOT: 'PerpsModals',
@@ -365,6 +366,7 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
+      WEBVIEW: 'CardOnboardingWebview',
     },
   },
   SEND: {
