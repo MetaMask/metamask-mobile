@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
 
   return StyleSheet.create({
     container: {
-      height: '100%',
+      flex: 1,
       backgroundColor: colors.background.default,
     },
     header: {
@@ -28,19 +28,20 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    carouselWrapper: {
+    contentContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },
-    // TOOD: Fix jank class naming
     carouselInnerContainer: {
-      width: '100%',
-      height: 370,
+      width: 340,
+      height: 340,
+      alignSelf: 'center',
     },
     cardWrapper: {
       flex: 1,
       justifyContent: 'center',
+      alignItems: 'center',
     },
     progressContainer: {
       flexDirection: 'row',
@@ -62,12 +63,13 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       backgroundColor: darkTheme.colors.text.default,
     },
     cardContainer: {
+      width: 340,
+      height: 340,
       backgroundColor: darkTheme.colors.accent04.dark,
       borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.info.default,
       padding: 20,
-      marginHorizontal: 24,
       overflow: 'hidden',
     },
     backgroundImage: {
@@ -121,7 +123,6 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
     pnlText: {
       fontSize: 40,
       fontWeight: '600',
-      marginBottom: 8,
     },
     pnlPositive: {
       color: darkTheme.colors.success.default,
@@ -130,7 +131,6 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       color: darkTheme.colors.error.default,
     },
     priceRowsContainer: {
-      gap: 4,
       marginBottom: 16,
     },
     priceRow: {
@@ -149,7 +149,6 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
     },
     buttonsContainer: {
       padding: 16,
-      gap: 12,
     },
   });
 };

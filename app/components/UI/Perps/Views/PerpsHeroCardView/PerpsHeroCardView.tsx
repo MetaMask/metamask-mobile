@@ -47,8 +47,9 @@ import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_
 import type { Position } from '../../controllers/types';
 import { darkTheme } from '@metamask/design-tokens';
 import styleSheet from './PerpsHeroCardView.styles';
+import Logger from '../../../../../util/Logger';
 
-// To add a new card, add the image to the array and update the viewShotRefs array.
+// To add a new card, add the image to the array.
 const CARD_IMAGES: ImageSourcePropType[] = [
   NegativePnlCharacter1,
   NegativePnlCharacter2,
@@ -127,7 +128,10 @@ const PerpsHeroCardView: React.FC = () => {
       }
       return null;
     } catch (error) {
-      // Error capturing card - fail silently
+      Logger.error(error as Error, {
+        message: 'Error capturing Perps Hero Card',
+        context: 'PerpsHeroCardView.captureCard',
+      });
       return null;
     }
   };
@@ -145,7 +149,10 @@ const PerpsHeroCardView: React.FC = () => {
         });
       }
     } catch (error) {
-      // User cancelled or error occurred - fail silently
+      Logger.error(error as Error, {
+        message: 'Error sharing Perps Hero Card',
+        context: 'PerpsHeroCardView.handleShare',
+      });
     }
   };
 
@@ -179,7 +186,7 @@ const PerpsHeroCardView: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.carouselWrapper}>
+      <View style={styles.contentContainer}>
         {/* Carousel */}
         {/* ScrollableTabView fills empty space by default, we need to constrain it  */}
         <View style={styles.carouselInnerContainer}>
