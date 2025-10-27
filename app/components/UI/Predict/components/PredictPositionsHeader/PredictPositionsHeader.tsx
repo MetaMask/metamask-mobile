@@ -5,8 +5,6 @@ import {
   BoxJustifyContent,
   Button,
   ButtonVariant,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -40,6 +38,10 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 // NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
 const BUTTON_COLOR = '#4459FF';
@@ -163,7 +165,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
               justifyContent={BoxJustifyContent.Center}
               twClassName="gap-2"
             >
-              <Text variant={TextVariant.BodyMd}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Inverse}>
                 {strings('predict.claim_amount_text', {
                   amount: totalClaimableAmount.toFixed(2),
                 })}
@@ -193,8 +195,8 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
                     alignItems={BoxAlignItems.Center}
                   >
                     <Text
-                      variant={TextVariant.BodyMd}
-                      twClassName="text-alternative"
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
                       testID="markets-won-count"
                     >
                       {strings('predict.available_balance')}
@@ -206,8 +208,9 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
                     twClassName="flex-row items-center"
                   >
                     <Text
-                      variant={TextVariant.BodyMd}
-                      twClassName="text-primary mr-1"
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Primary}
+                      className="mr-1"
                       testID="claimable-amount"
                     >
                       {formatPrice(balance, { maximumDecimals: 2 })}
@@ -223,7 +226,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
             )}
             {hasUnrealizedPnL && (
               <>
-                <Box twClassName="h-px bg-alternative" />
+                <Box twClassName="h-[2px] bg-default" />
                 <Box
                   twClassName="px-4 pb-3 mt-3"
                   flexDirection={BoxFlexDirection.Row}
@@ -235,18 +238,18 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
                     alignItems={BoxAlignItems.Center}
                   >
                     <Text
-                      variant={TextVariant.BodyMd}
-                      twClassName="text-alternative"
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
                     >
                       {strings('predict.unrealized_pnl_label')}
                     </Text>
                   </Box>
                   <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName={
+                    variant={TextVariant.BodyMD}
+                    color={
                       unrealizedAmount >= 0
-                        ? 'text-success-default'
-                        : 'text-error-default'
+                        ? TextColor.Success
+                        : TextColor.Error
                     }
                   >
                     {strings('predict.unrealized_pnl_value', {
