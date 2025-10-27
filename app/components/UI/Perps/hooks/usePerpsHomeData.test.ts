@@ -19,12 +19,17 @@ import {
 } from './stream';
 import { usePerpsHomeData } from './usePerpsHomeData';
 import { usePerpsMarkets } from './usePerpsMarkets';
+import {
+  selectPerpsWatchlistMarkets,
+  selectPerpsMarketFilterPreferences,
+} from '../selectors/perpsController';
 
 // Mock dependencies
 jest.mock('./stream');
 jest.mock('./usePerpsMarkets');
 jest.mock('../utils/sortMarkets');
 jest.mock('react-redux');
+jest.mock('../selectors/perpsController');
 
 // Type mock functions
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.MockedFunction<
@@ -41,6 +46,14 @@ const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
 >;
 const mockSortMarkets = sortMarkets as jest.MockedFunction<typeof sortMarkets>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockSelectPerpsWatchlistMarkets =
+  selectPerpsWatchlistMarkets as jest.MockedFunction<
+    typeof selectPerpsWatchlistMarkets
+  >;
+const mockSelectPerpsMarketFilterPreferences =
+  selectPerpsMarketFilterPreferences as jest.MockedFunction<
+    typeof selectPerpsMarketFilterPreferences
+  >;
 
 // Test data helper functions
 const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
@@ -189,17 +202,20 @@ describe('usePerpsHomeData', () => {
     // Mock sortMarkets to return markets as-is by default
     mockSortMarkets.mockImplementation(({ markets }) => markets);
 
-    // Mock Redux selectors
-    let selectorCallCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      selectorCallCount++;
-      // First call: watchlist markets
-      if (selectorCallCount % 2 === 1) {
-        return ['BTC', 'ETH'];
+    // Mock Redux selectors - call the appropriate mocked selector based on which selector is passed
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsWatchlistMarkets) {
+        return mockSelectPerpsWatchlistMarkets({} as never);
       }
-      // Second call: sort preference
-      return 'volume';
+      if (selector === selectPerpsMarketFilterPreferences) {
+        return mockSelectPerpsMarketFilterPreferences({} as never);
+      }
+      throw new Error(`Unmocked selector called: ${selector.name || selector}`);
     });
+
+    // Set default return values for the selectors
+    mockSelectPerpsWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
+    mockSelectPerpsMarketFilterPreferences.mockReturnValue('volume');
   });
 
   describe('Initial state and data loading', () => {
@@ -334,14 +350,7 @@ describe('usePerpsHomeData', () => {
   describe('Watchlist filtering', () => {
     it('filters markets by watchlist symbols', () => {
       // Mock selector to return only BTC in watchlist
-      let selectorCallCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        selectorCallCount++;
-        if (selectorCallCount % 2 === 1) {
-          return ['BTC'];
-        }
-        return 'volume';
-      });
+      mockSelectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
 
       const { result } = renderHook(() => usePerpsHomeData());
 
@@ -350,14 +359,7 @@ describe('usePerpsHomeData', () => {
     });
 
     it('returns empty array when watchlist is empty', () => {
-      let selectorCallCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        selectorCallCount++;
-        if (selectorCallCount % 2 === 1) {
-          return [];
-        }
-        return 'volume';
-      });
+      mockSelectPerpsWatchlistMarkets.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsHomeData());
 
@@ -411,14 +413,9 @@ describe('usePerpsHomeData', () => {
     });
 
     it('uses default direction when sort option not found', () => {
-      let selectorCallCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        selectorCallCount++;
-        if (selectorCallCount % 2 === 1) {
-          return ['BTC'];
-        }
-        return 'unknown-sort-option';
-      });
+      mockSelectPerpsMarketFilterPreferences.mockReturnValue(
+        'unknown-sort-option' as never,
+      );
 
       renderHook(() => usePerpsHomeData());
 
@@ -771,14 +768,7 @@ describe('usePerpsHomeData', () => {
 
       expect(result.current.watchlistMarkets).toHaveLength(2);
 
-      let selectorCallCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        selectorCallCount++;
-        if (selectorCallCount % 2 === 1) {
-          return ['SOL'];
-        }
-        return 'volume';
-      });
+      mockSelectPerpsWatchlistMarkets.mockReturnValue(['SOL']);
 
       rerender();
 
