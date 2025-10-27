@@ -108,7 +108,7 @@ jobs:
         scripts:
           - lint
           - lint:tsc
-          - format:check:changed
+          - format:check
           - audit:ci
           - test:depcheck
           - test:tgz-check
