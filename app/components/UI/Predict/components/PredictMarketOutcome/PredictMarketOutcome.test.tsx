@@ -25,6 +25,12 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
 }));
 
+// Mock usePredictEligibility hook
+const mockUsePredictEligibility = jest.fn();
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => mockUsePredictEligibility(),
+}));
+
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
   marketId: 'test-market-1',
@@ -75,6 +81,11 @@ const initialState = {
 describe('PredictMarketOutcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock implementation - user is eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
+      refreshEligibility: jest.fn(),
+    });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
       hasNoBalance: false,
@@ -221,6 +232,100 @@ describe('PredictMarketOutcome', () => {
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('navigates to unavailable modal when user is not eligible - Yes button', () => {
+    // Mock user is not eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes • 65.00¢');
+    fireEvent.press(yesButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+  });
+
+  it('navigates to unavailable modal when user is not eligible - No button', () => {
+    // Mock user is not eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButton = getByText('No • 35.00¢');
+    fireEvent.press(noButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+  });
+
+  it('checks eligibility before balance for Yes button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes • 65.00¢');
+    fireEvent.press(yesButton);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('checks eligibility before balance for No button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButton = getByText('No • 35.00¢');
+    fireEvent.press(noButton);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
       screen: 'PredictAddFundsSheet',
     });
   });

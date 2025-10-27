@@ -270,6 +270,9 @@ exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by def
           accessible={true}
           activeOpacity={1}
           disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -578,6 +581,9 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
           accessible={true}
           activeOpacity={1}
           disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -886,6 +892,9 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
           accessible={true}
           activeOpacity={1}
           disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",

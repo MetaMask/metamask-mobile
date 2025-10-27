@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -28,19 +28,14 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectDestAddress,
-  selectIsSwap,
 } from '../../../../../core/redux/slices/bridge';
-import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import { areAddressesEqual } from '../../../../../util/address';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
+import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 
 if (
   Platform.OS === 'android' &&
@@ -68,13 +63,6 @@ const QuoteDetailsCard: React.FC = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const destAddress = useSelector(selectDestAddress);
-  const isSwap = useSelector(selectIsSwap);
-  const internalAccounts = useSelector(selectInternalAccounts);
-  const accountToGroupMap = useSelector(selectAccountToGroupMap);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -85,39 +73,9 @@ const QuoteDetailsCard: React.FC = () => {
     isQuoteLoading,
   });
 
-  // Get the display name for the destination account
-  const destinationDisplayName = useMemo(() => {
-    if (!destAddress) return undefined;
-
-    const internalAccount = internalAccounts.find((account) =>
-      areAddressesEqual(account.address, destAddress),
-    );
-
-    if (!internalAccount) return undefined;
-
-    // Use account group name if available, otherwise use account name
-    if (isMultichainAccountsState2Enabled) {
-      const accountGroup = accountToGroupMap[internalAccount.id];
-      return accountGroup?.metadata.name || internalAccount.metadata.name;
-    }
-
-    return internalAccount.metadata.name;
-  }, [
-    destAddress,
-    internalAccounts,
-    accountToGroupMap,
-    isMultichainAccountsState2Enabled,
-  ]);
-
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
-    });
-  };
-
-  const handleRecipientPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL,
     });
   };
 
@@ -307,43 +265,7 @@ const QuoteDetailsCard: React.FC = () => {
           />
         )}
 
-        {!isSwap && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.recipient'),
-                variant: TextVariant.BodyMDMedium,
-              },
-            }}
-            value={{
-              label: (
-                <TouchableOpacity
-                  onPress={handleRecipientPress}
-                  activeOpacity={0.6}
-                  testID="recipient-selector-button"
-                  style={styles.slippageButton}
-                >
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={styles.recipientText}
-                  >
-                    {destAddress
-                      ? destinationDisplayName ||
-                        strings('bridge.external_account')
-                      : strings('bridge.select_recipient')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              ),
-            }}
-          />
-        )}
+        <QuoteDetailsRecipientKeyValueRow />
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (
