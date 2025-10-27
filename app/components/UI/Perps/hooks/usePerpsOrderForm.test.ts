@@ -311,14 +311,14 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(12);
     });
 
-    it('should update leverage when existing position loads asynchronously', () => {
+    it('should update leverage when existing position loads asynchronously', async () => {
       // Initial render without existing position (positions haven't loaded via WebSocket yet)
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
 
-      const { result } = renderHook(
+      const { result, rerender } = renderHook(
         () =>
           usePerpsOrderForm({
             initialAsset: 'BTC',
@@ -337,17 +337,11 @@ describe('usePerpsOrderForm', () => {
         });
       });
 
-      // Re-render to pick up the new mock value
-      const { result: result2 } = renderHook(
-        () =>
-          usePerpsOrderForm({
-            initialAsset: 'BTC',
-          }),
-        { wrapper: createWrapper() },
-      );
+      // Re-render the existing hook instance to trigger useEffect
+      rerender({});
 
       // Should update to 10x when position loads
-      expect(result2.current.orderForm.leverage).toBe(10);
+      expect(result.current.orderForm.leverage).toBe(10);
     });
 
     it('should not update leverage if navigation param is provided even when position loads', () => {
@@ -357,7 +351,7 @@ describe('usePerpsOrderForm', () => {
         isInitialLoading: false,
       });
 
-      const { result } = renderHook(
+      const { result, rerender } = renderHook(
         () =>
           usePerpsOrderForm({
             initialAsset: 'BTC',
@@ -375,18 +369,11 @@ describe('usePerpsOrderForm', () => {
         isInitialLoading: false,
       });
 
-      // Re-render to simulate async position load
-      const { result: result2 } = renderHook(
-        () =>
-          usePerpsOrderForm({
-            initialAsset: 'BTC',
-            initialLeverage: 12,
-          }),
-        { wrapper: createWrapper() },
-      );
+      // Re-render the existing hook instance to trigger useEffect
+      rerender({});
 
       // Should still be 12x (navigation param takes priority)
-      expect(result2.current.orderForm.leverage).toBe(12);
+      expect(result.current.orderForm.leverage).toBe(12);
     });
 
     it('should initialize with provided values', () => {
