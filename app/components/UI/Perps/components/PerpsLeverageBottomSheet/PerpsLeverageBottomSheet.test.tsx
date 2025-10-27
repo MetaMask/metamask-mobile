@@ -1,5 +1,5 @@
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
 
 // Mock dependencies - only what's absolutely necessary
@@ -20,6 +20,9 @@ jest.mock('react-native-gesture-handler', () => ({
       runOnJS: jest.fn().mockReturnThis(),
     }),
     Tap: jest.fn().mockReturnValue({
+      onEnd: jest.fn().mockReturnThis(),
+    }),
+    LongPress: jest.fn().mockReturnValue({
       onEnd: jest.fn().mockReturnThis(),
     }),
     Simultaneous: jest.fn(),
@@ -894,6 +897,65 @@ describe('PerpsLeverageBottomSheet', () => {
 
       // Assert - Should render null when not visible
       expect(screen.queryByText('perps.order.leverage_modal.title')).toBeNull();
+    });
+  });
+
+  describe('Gesture Handlers', () => {
+    it('initializes tap gesture with onEnd handler', () => {
+      // Arrange
+      const { Gesture } = jest.requireMock('react-native-gesture-handler');
+      const mockTapGesture = {
+        onEnd: jest.fn().mockReturnThis(),
+      };
+      Gesture.Tap.mockReturnValue(mockTapGesture);
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Assert
+      expect(Gesture.Tap).toHaveBeenCalled();
+      expect(mockTapGesture.onEnd).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('initializes long press gesture with onEnd handler', () => {
+      // Arrange
+      const { Gesture } = jest.requireMock('react-native-gesture-handler');
+      const mockLongPressGesture = {
+        onEnd: jest.fn().mockReturnThis(),
+      };
+      Gesture.LongPress.mockReturnValue(mockLongPressGesture);
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Assert
+      expect(Gesture.LongPress).toHaveBeenCalled();
+      expect(mockLongPressGesture.onEnd).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
+    });
+
+    it('composes tap, pan, and long press gestures simultaneously', () => {
+      // Arrange
+      const { Gesture } = jest.requireMock('react-native-gesture-handler');
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Assert
+      expect(Gesture.Simultaneous).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('renders slider with gesture detector', () => {
+      // Act
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Assert - Component renders without crashes when gestures are configured
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
     });
   });
 
