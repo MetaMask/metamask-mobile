@@ -7,7 +7,10 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { swapsUtils } from '@metamask/swaps-controller';
 
 import EditPermission from '../../../Views/confirmations/legacy/components/ApproveTransactionReview/EditPermission';
-import { fromTokenMinimalUnitString, hexToBN } from '../../../../util/number';
+import {
+  fromTokenMinimalUnitString,
+  hexToBN,
+} from '../../../../util/number/legacy';
 import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,

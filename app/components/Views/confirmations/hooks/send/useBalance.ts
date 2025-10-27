@@ -1,7 +1,7 @@
 import BN from 'bnjs4';
 import { useMemo } from 'react';
 
-import { hexToBN } from '../../../../../util/number';
+import { hexToBN } from '../../../../../util/number/legacy';
 import { AssetType, TokenStandard } from '../../types/token';
 import { formatToFixedDecimals, fromHexWithDecimals } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';

@@ -1,7 +1,7 @@
 'use strict';
 
 import Engine from './Engine';
-import { hexToBN, renderFromWei } from '../util/number';
+import { hexToBN, renderFromWei } from '../util/number/legacy';
 import Device from '../util/device';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';

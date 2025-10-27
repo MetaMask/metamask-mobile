@@ -13,7 +13,7 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import Card from '../../../../../../component-library/components/Cards/Card';
-import { renderFromWei } from '../../../../../../util/number';
+import { renderFromWei } from '../../../../../../util/number/legacy';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './YouReceiveCard.styles';
 import ethLogo from '../../../../../../images/ethereum.png';

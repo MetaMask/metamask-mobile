@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useGasTokenFiatAmount } from './useGasTokenFiatAmount';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { toWei, weiToFiat } from '../../../../util/number';
+import { toWei, weiToFiat } from '../../../../util/number/legacy';
 import { hexToDecimal } from '../../../../util/conversions';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Quote } from '@metamask/swaps-controller/dist/types';
@@ -15,7 +15,7 @@ jest.mock('@metamask/swaps-controller', () => ({
   },
 }));
 
-jest.mock('../../../../util/number', () => ({
+jest.mock('../../../../util/number/legacy', () => ({
   toWei: jest.fn(),
   weiToFiat: jest.fn(),
 }));

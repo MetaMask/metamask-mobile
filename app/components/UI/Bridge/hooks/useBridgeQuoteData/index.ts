@@ -16,7 +16,7 @@ import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   fromTokenMinimalUnit,
   isNumberValue,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
