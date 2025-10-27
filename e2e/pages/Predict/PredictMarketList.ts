@@ -1,5 +1,4 @@
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import { Gestures, Matchers } from '../../framework';
 import {
   PredictMarketListSelectorsIDs,
   getPredictMarketListSelector,
