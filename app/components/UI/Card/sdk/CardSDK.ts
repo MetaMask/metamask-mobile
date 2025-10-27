@@ -388,14 +388,11 @@ export class CardSDK {
 
   private getBaanxApiBaseUrl() {
     // always using url from env var if set
-    if (process.env.BAANX_API_URL) {
-      return process.env.BAANX_API_URL;
-    }
+    if (process.env.BAANX_API_URL) return process.env.BAANX_API_URL;
     // otherwise using default per-env url
-    const defaultUrl = getDefaultBaanxApiBaseUrlForMetaMaskEnv(
+    return getDefaultBaanxApiBaseUrlForMetaMaskEnv(
       process.env.METAMASK_ENVIRONMENT,
     );
-    return defaultUrl;
   }
 
   private async makeRequest(
