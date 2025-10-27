@@ -238,6 +238,7 @@ exports[`EditAccountName should render correctly 1`] = `
       activeOpacity={1}
       onPress={[MockFunction]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -278,6 +279,7 @@ exports[`EditAccountName should render correctly 1`] = `
       disabled={false}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",

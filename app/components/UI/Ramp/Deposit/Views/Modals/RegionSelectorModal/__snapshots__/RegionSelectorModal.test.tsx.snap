@@ -2557,6 +2557,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   disabled={true}
+                                  onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
@@ -7580,6 +7581,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   accessibilityRole="button"
                                   accessible={true}
                                   disabled={true}
+                                  onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
