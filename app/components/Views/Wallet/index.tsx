@@ -15,7 +15,6 @@ import {
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
