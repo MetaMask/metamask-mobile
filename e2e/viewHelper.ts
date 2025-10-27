@@ -12,6 +12,7 @@ import SkipAccountSecurityModal from './pages/Onboarding/SkipAccountSecurityModa
 import ProtectYourWalletModal from './pages/Onboarding/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
+import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
@@ -24,7 +25,6 @@ import TestDApp from './pages/Browser/TestDApp';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './framework/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
-import { ManualBackUpStepsSelectorsIDs } from './selectors/Onboarding/ManualBackUpSteps.selectors';
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
 
@@ -237,12 +237,7 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Manual Backup Step 1 screen
-  const manualBackupStep1Container = Matchers.getElementByID(
-    ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER,
-  );
-  await Assertions.expectElementToBeVisible(manualBackupStep1Container, {
-    description: 'Manual Backup Step 1 View should be visible',
-  });
+  await ManualBackupStep1View.isVisible();
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
   // This should be removed once we implement mockAll
