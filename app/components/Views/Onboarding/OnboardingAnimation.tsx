@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, Animated, Easing, StyleSheet, Alert } from 'react-native';
+import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
+import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
 import { isE2E } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
 
@@ -91,31 +92,22 @@ const OnboardingAnimation = ({
       return;
     }
 
-    // MUST wait for Rive artboard to initialize
-    setTimeout(() => {
-      try {
-        console.log('Rive ref exists:', !!logoRef.current);
-        if (logoRef.current) {
-          const isDarkMode = themeAppearance === 'dark';
-          console.log('Triggering Rive with dark mode:', isDarkMode);
-          logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
-          logoRef.current.fireState('WordmarkBuildUp', 'Start');
-          setTimeout(() => {
-            moveLogoUp();
-          }, 1000);
+    try {
+      if (logoRef.current) {
+        const isDarkMode = themeAppearance === 'dark';
+        logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
+        logoRef.current.fireState('WordmarkBuildUp', 'Start');
+        setTimeout(() => {
+          moveLogoUp();
+        }, 1000);
 
-          setTimeout(() => {
-            setStartFoxAnimation(true);
-          }, 1200);
-        } else {
-          Alert.alert('Rive Error', 'Animation ref is null after 1s delay');
-        }
-      } catch (error) {
-        Logger.error(error as Error, 'Error triggering Rive animation');
-        console.error('Rive animation error:', error);
-        Alert.alert('Rive Error', JSON.stringify(error));
+        setTimeout(() => {
+          setStartFoxAnimation(true);
+        }, 1200);
       }
-    }, 1000);
+    } catch (error) {
+      Logger.error(error as Error, 'Error triggering Rive animation');
+    }
   }, [
     themeAppearance,
     moveLogoUp,
@@ -145,8 +137,7 @@ const OnboardingAnimation = ({
           <Rive
             ref={logoRef}
             style={styles.image}
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            source={require('../../../animations/metamask_wordmark_animation_build-up.riv')}
+            source={MetaMaskWordmarkAnimation}
             fit={Fit.Contain}
             alignment={Alignment.Center}
             autoplay={false}

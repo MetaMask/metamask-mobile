@@ -20,14 +20,28 @@ const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src'
 const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 const IOS_INFO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'MetaMask', 'Info.plist');
 
+// Configuration map for each environment
+const CONFIG_MAP = {
+  production: {
+    channel: 'production',
+    runtimeVersion: RUNTIME_VERSION,
+    updatesEnabled: false,
+  },
+  rc: {
+    channel: 'preview',
+    runtimeVersion: RUNTIME_VERSION,
+    // Disabling updates for RC builds for now due to Rive Animation issue
+    updatesEnabled: false,
+  },
+};
+
 /**
- * Determines the channel name based on the environment
+ * Gets the configuration for a given environment
  * @param {string} environment - The METAMASK_ENVIRONMENT value
- * @returns {string} - The channel name ('production' or 'preview')
+ * @returns {Object} - The configuration object with channel, runtimeVersion, and updatesEnabled
  */
-function getChannelForEnvironment(environment) {
-  // Production environment uses 'production' channel, all others use 'preview'
-  return environment === 'production' ? 'production' : 'preview';
+function getConfigForEnvironment(environment) {
+  return environment === 'production' ? CONFIG_MAP.production : CONFIG_MAP.rc;
 }
 
 /**
@@ -195,14 +209,13 @@ function main() {
 
   console.log(`Environment: ${environment}`);
 
-  // Determine channel name (left here in case other tooling uses it downstream)
-  const channelName = getChannelForEnvironment(environment);
-  console.log(`Channel (unchanged): ${channelName}`);
-  console.log('');
+  // Get configuration for this environment
+  const { channel, runtimeVersion, updatesEnabled } = getConfigForEnvironment(environment);
 
-  // Determine updates enabled flag (production => false, others => true)
-  const updatesEnabled = environment !== 'production';
+  console.log(`Channel: ${channel}`);
+  console.log(`Runtime Version: ${runtimeVersion}`);
   console.log(`Updates Enabled: ${updatesEnabled}`);
+  console.log('');
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
@@ -222,14 +235,14 @@ function main() {
 
   // Update files
   try {
-    updateAndroidManifest(ANDROID_MANIFEST_PATH, channelName, RUNTIME_VERSION, updatesEnabled);
-    updatePlistFile(IOS_EXPO_PLIST_PATH, channelName, RUNTIME_VERSION, 'Expo.plist', updatesEnabled);
-    updatePlistFile(IOS_INFO_PLIST_PATH, channelName, RUNTIME_VERSION, 'Info.plist', updatesEnabled);
+    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled);
+    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled);
+    updatePlistFile(IOS_INFO_PLIST_PATH, channel, runtimeVersion, 'Info.plist', updatesEnabled);
 
     console.log('');
     console.log('✓ All files updated successfully!');
-    console.log(`  Runtime Version: ${RUNTIME_VERSION}`);
-    console.log(`  Channel (unchanged): ${channelName}`);
+    console.log(`  Runtime Version: ${runtimeVersion}`);
+    console.log(`  Channel: ${channel}`);
     console.log('');
   } catch (error) {
     console.error('❌ Error updating files:', error.message);
@@ -243,8 +256,9 @@ if (require.main === module) {
 }
 
 module.exports = {
-  getChannelForEnvironment,
+  getConfigForEnvironment,
   updateAndroidManifest,
   updatePlistFile,
+  CONFIG_MAP,
 };
 
