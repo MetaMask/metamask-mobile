@@ -74,7 +74,7 @@ jest.mock('redux-persist-filesystem-storage', () => ({
 }));
 jest.mock('../../util/device');
 jest.mock('../../util/Logger');
-jest.mock('@metamask/base-controller/next', () => ({
+jest.mock('@metamask/base-controller', () => ({
   getPersistentState: (
     state: Record<string, unknown>,
     metadata: ControllerMetadata | undefined,

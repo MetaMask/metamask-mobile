@@ -3,7 +3,7 @@ import {
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
 import { keyringSnapPermissionsBuilder } from '../../SnapKeyring/keyringSnapsPermissions';
-import { ControllerGetStateAction } from '@metamask/base-controller/next';
+import { ControllerGetStateAction } from '@metamask/base-controller';
 import { Messenger } from '@metamask/messenger';
 import {
   ClearSnapState,
