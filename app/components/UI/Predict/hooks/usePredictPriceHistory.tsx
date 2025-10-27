@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -108,6 +109,27 @@ export const usePredictPriceHistory = (
             `usePredictPriceHistory: Error fetching price history for market ${marketId}`,
             err,
           );
+
+          // Capture exception with price history loading context (single market)
+          captureException(
+            err instanceof Error ? err : new Error(String(err)),
+            {
+              tags: {
+                component: 'usePredictPriceHistory',
+                action: 'price_history_load_single',
+                operation: 'data_fetching',
+              },
+              extra: {
+                priceHistoryContext: {
+                  marketId,
+                  providerId,
+                  interval,
+                  fidelity,
+                },
+              },
+            },
+          );
+
           return { index, data: [], error: errorMessage };
         }
       });
@@ -131,6 +153,23 @@ export const usePredictPriceHistory = (
         err instanceof Error ? err.message : 'Failed to fetch price histories';
 
       DevLogger.log('usePredictPriceHistory: Error in batch fetching', err);
+
+      // Capture exception with price history batch loading context
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        tags: {
+          component: 'usePredictPriceHistory',
+          action: 'price_history_load_batch',
+          operation: 'data_fetching',
+        },
+        extra: {
+          priceHistoryContext: {
+            marketCount: marketIds.length,
+            providerId,
+            interval,
+            fidelity,
+          },
+        },
+      });
 
       if (isMountedRef.current) {
         setErrors(new Array(marketIds.length).fill(errorMessage));

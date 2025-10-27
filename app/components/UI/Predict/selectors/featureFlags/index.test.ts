@@ -21,6 +21,10 @@ describe('selectPredictEnabledFlag', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it.each([
     { flag: true, expected: true },
     { flag: false, expected: false },

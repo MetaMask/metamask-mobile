@@ -97,6 +97,7 @@ exports[`ActionView should render correctly 1`] = `
           activeOpacity={1}
           disabled={false}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -137,6 +138,7 @@ exports[`ActionView should render correctly 1`] = `
           disabled={false}
           loading={false}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
