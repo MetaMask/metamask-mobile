@@ -1456,6 +1456,13 @@ export class PredictController extends BaseController<
         providerId: params.providerId,
       });
 
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('prepareWithdraw', {
+          providerId: params.providerId,
+        }),
+      );
+
       return {
         success: false,
         error: errorMessage,
