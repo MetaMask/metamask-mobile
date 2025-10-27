@@ -23,7 +23,7 @@ const DEFAULT_CANDLE_PERIODS = [
 // Helper function to get the display label for a candle period
 const getCandlePeriodLabel = (period: CandlePeriod | string): string => {
   const candlePeriod = CANDLE_PERIODS.find(
-    (p) => p.value.toLowerCase() === period.toLowerCase(),
+    (p) => p.value?.toLowerCase() === period?.toLowerCase(),
   );
   return candlePeriod?.label || period;
 };
@@ -45,7 +45,7 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
 
   // Check if the selected period is in the "More" category (not in default periods)
   const isMorePeriodSelected = !DEFAULT_CANDLE_PERIODS.some(
-    (period) => period.value.toLowerCase() === selectedPeriod.toLowerCase(),
+    (period) => period.value?.toLowerCase() === selectedPeriod?.toLowerCase(),
   );
 
   return (
@@ -53,7 +53,7 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
       {/* Candle Period Buttons */}
       {DEFAULT_CANDLE_PERIODS.map((period) => {
         const isSelected =
-          selectedPeriod.toLowerCase() === period.value.toLowerCase();
+          selectedPeriod?.toLowerCase() === period.value?.toLowerCase();
 
         return (
           <Pressable
