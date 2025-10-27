@@ -39,13 +39,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="Home"
   />
   <Screen
-    component={
-      {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": [Function],
-      }
-    }
+    component={[Function]}
     name="TokensFullView"
     options={
       {

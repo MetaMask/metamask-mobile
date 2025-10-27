@@ -87,6 +87,14 @@ const createStyles = (colors: Colors) =>
       alignContent: 'center',
     },
 
+    stakeButton: {
+      flexDirection: 'row',
+    },
+    dot: {
+      marginLeft: 2,
+      marginRight: 2,
+    },
+
     // Portfolio Balance Styles
     portfolioBalance: {
       marginHorizontal: 16,
