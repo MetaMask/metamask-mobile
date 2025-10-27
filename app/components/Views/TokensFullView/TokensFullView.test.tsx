@@ -54,9 +54,9 @@ describe('TokensFullView', () => {
     });
 
     // Act & Assert
-    expect(getByTestId('header-base')).toBeOnTheScreen();
+    expect(getByTestId('header')).toBeOnTheScreen();
     expect(getByTestId('header-title')).toBeOnTheScreen();
-    expect(getByTestId('back-button')).toBeOnTheScreen();
+    expect(getByTestId('tokens-component')).toBeOnTheScreen();
   });
 
   it('renders tokens component with isFullView prop', () => {
@@ -76,8 +76,10 @@ describe('TokensFullView', () => {
     });
 
     // Act
-    const backButton = getByTestId('back-button');
-    backButton.props.onPress();
+    const backButton = getByTestId('header').find(
+      (element) => element.type?.toString() === 'TouchableOpacity',
+    );
+    backButton?.props.onPress();
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);
