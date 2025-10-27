@@ -184,6 +184,15 @@ pipelines:
       # deploy_ios_to_store:
       #   depends_on:
       #   - build_ios_main_exp
+  nightly_dev_builds_pipeline:
+    workflows:
+      bump_version_code: {}
+      build_android_main_dev:
+        depends_on:
+        - bump_version_code
+      build_ios_main_dev:
+        depends_on:
+        - bump_version_code
   nightly_rc_builds_pipeline:
     workflows:
       bump_version_code: {}
