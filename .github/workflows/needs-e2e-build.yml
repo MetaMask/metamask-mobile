@@ -109,7 +109,6 @@ jobs:
               - 'sonar-project.properties'         # SonarQube config
               - 'scripts/*'                        # Build/utility scripts
               - 'scripts/*/**'                     # Subdirectories in scripts/   
-              - '!scripts/build.sh'                # But NOT build.sh
               - 'patches/**'                       # Dependency patches
               - 'ppom/**'                          # PPOM sub-project
 
