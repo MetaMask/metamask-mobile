@@ -77,6 +77,26 @@ jest.mock('../../utils/hyperLiquidValidation', () => ({
   })),
 }));
 
+// Mock adapter functions
+jest.mock('../../utils/hyperLiquidAdapter', () => {
+  const actual = jest.requireActual('../../utils/hyperLiquidAdapter');
+  return {
+    ...actual,
+    adaptHyperLiquidLedgerUpdateToUserHistoryItem: jest.fn((updates) => {
+      // Return mock history items based on input
+      if (!updates || !Array.isArray(updates) || updates.length === 0) {
+        return [];
+      }
+      return updates.map((_update: unknown) => ({
+        type: 'deposit' as const,
+        amount: '100',
+        timestamp: Date.now(),
+        hash: '0x123',
+      }));
+    }),
+  };
+});
+
 const MockedHyperLiquidClientService =
   HyperLiquidClientService as jest.MockedClass<typeof HyperLiquidClientService>;
 const MockedHyperLiquidWalletService =
@@ -181,6 +201,37 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
     },
     dailyUserVlm: [],
   }),
+  userNonFundingLedgerUpdates: jest.fn().mockResolvedValue([
+    {
+      delta: { type: 'deposit', usdc: '100' },
+      time: Date.now(),
+      hash: '0x123abc',
+    },
+    {
+      delta: { type: 'withdraw', usdc: '50' },
+      time: Date.now() - 3600000,
+      hash: '0x456def',
+    },
+  ]),
+  portfolio: jest.fn().mockResolvedValue([
+    null,
+    [
+      null,
+      {
+        accountValueHistory: [
+          [Date.now() - 86400000, '10000'], // 24h ago
+          [Date.now() - 172800000, '9500'], // 48h ago
+          [Date.now() - 259200000, '9000'], // 72h ago
+        ],
+      },
+    ],
+  ]),
+  spotMeta: jest.fn().mockResolvedValue({
+    tokens: [
+      { name: 'USDC', tokenId: '0xdef456' },
+      { name: 'USDT', tokenId: '0x789abc' },
+    ],
+  }),
   ...overrides,
 });
 
@@ -207,6 +258,9 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
     status: 'ok',
   }),
   setReferrer: jest.fn().mockResolvedValue({
+    status: 'ok',
+  }),
+  sendAsset: jest.fn().mockResolvedValue({
     status: 'ok',
   }),
   ...overrides,
@@ -4882,6 +4936,451 @@ describe('HyperLiquidProvider', () => {
       expect(
         mockFrontendOpenOrders.mock.calls.some((call) => call[0].dex === 'xyz'),
       ).toBe(true);
+    });
+  });
+
+  describe('getUserHistory', () => {
+    it('returns user history items successfully', async () => {
+      // Arrange
+      const mockLedgerUpdates = [
+        {
+          delta: { type: 'deposit', usdc: '100' },
+          time: Date.now(),
+          hash: '0x123',
+        },
+        {
+          delta: { type: 'withdraw', usdc: '50' },
+          time: Date.now() - 3600000,
+          hash: '0x456',
+        },
+      ];
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userNonFundingLedgerUpdates: jest
+            .fn()
+            .mockResolvedValue(mockLedgerUpdates),
+        }),
+      );
+
+      // Act
+      const result = await provider.getUserHistory();
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+      expect(mockClientService.getInfoClient).toHaveBeenCalled();
+    });
+
+    it('returns empty array on API error', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userNonFundingLedgerUpdates: jest
+            .fn()
+            .mockRejectedValue(new Error('API Error')),
+        }),
+      );
+
+      // Act
+      const result = await provider.getUserHistory();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('handles custom time range parameters', async () => {
+      // Arrange
+      const startTime = Date.now() - 86400000; // 24h ago
+      const endTime = Date.now();
+      const mockInfoClient = createMockInfoClient();
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+
+      // Act
+      await provider.getUserHistory({ startTime, endTime });
+
+      // Assert
+      expect(mockInfoClient.userNonFundingLedgerUpdates).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startTime,
+          endTime,
+        }),
+      );
+    });
+
+    it('uses default account when no accountId provided', async () => {
+      // Arrange
+      const mockInfoClient = createMockInfoClient();
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClient);
+
+      // Act
+      await provider.getUserHistory();
+
+      // Assert
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        undefined,
+      );
+      expect(mockInfoClient.userNonFundingLedgerUpdates).toHaveBeenCalled();
+    });
+  });
+
+  describe('getHistoricalPortfolio', () => {
+    it('returns historical portfolio value from 24h ago', async () => {
+      // Arrange
+      const yesterday = Date.now() - 86400000;
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          portfolio: jest.fn().mockResolvedValue([
+            null,
+            [
+              null,
+              {
+                accountValueHistory: [
+                  [yesterday, '10000'],
+                  [yesterday - 86400000, '9500'],
+                ],
+              },
+            ],
+          ]),
+        }),
+      );
+
+      // Act
+      const result = await provider.getHistoricalPortfolio();
+
+      // Assert
+      expect(result.accountValue1dAgo).toBeDefined();
+      expect(result.timestamp).toBeDefined();
+    });
+
+    it('finds closest entry before target timestamp', async () => {
+      // Arrange
+      const now = Date.now();
+      const closestTime = now - 87000000; // Slightly older than 24h
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          portfolio: jest.fn().mockResolvedValue([
+            null,
+            [
+              null,
+              {
+                accountValueHistory: [
+                  [closestTime, '10000'], // This should be selected
+                  [now - 172800000, '9500'], // Too old
+                ],
+              },
+            ],
+          ]),
+        }),
+      );
+
+      // Act
+      const result = await provider.getHistoricalPortfolio();
+
+      // Assert
+      expect(result.accountValue1dAgo).toBe('10000');
+      expect(result.timestamp).toBe(closestTime);
+    });
+
+    it('returns fallback when no historical data exists', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          portfolio: jest.fn().mockResolvedValue([
+            null,
+            [
+              null,
+              {
+                accountValueHistory: [],
+              },
+            ],
+          ]),
+        }),
+      );
+
+      // Act
+      const result = await provider.getHistoricalPortfolio();
+
+      // Assert
+      expect(result.accountValue1dAgo).toBe('0');
+      expect(result.timestamp).toBe(0);
+    });
+
+    it('handles empty portfolio data gracefully', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          portfolio: jest.fn().mockResolvedValue(null),
+        }),
+      );
+
+      // Act
+      const result = await provider.getHistoricalPortfolio();
+
+      // Assert
+      expect(result.accountValue1dAgo).toBe('0');
+      expect(result.timestamp).toBe(0);
+    });
+
+    it('returns zero values on error', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          portfolio: jest
+            .fn()
+            .mockRejectedValue(new Error('Portfolio API error')),
+        }),
+      );
+
+      // Act
+      const result = await provider.getHistoricalPortfolio();
+
+      // Assert
+      expect(result.accountValue1dAgo).toBe('0');
+      expect(result.timestamp).toBe(0);
+    });
+  });
+
+  describe('getAvailableHip3Dexs', () => {
+    it('returns HIP-3 DEX names when equity enabled', async () => {
+      // Arrange - use existing provider with updated mock
+      const mockInfoClientWithDexs = createMockInfoClient({
+        perpDexs: jest
+          .fn()
+          .mockResolvedValue([
+            null,
+            { name: 'dex1', url: 'https://dex1.com' },
+            { name: 'dex2', url: 'https://dex2.com' },
+          ]),
+      });
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(mockInfoClientWithDexs);
+
+      // Create a provider instance with equity enabled for this specific test
+      const testProvider = new HyperLiquidProvider({ equityEnabled: true });
+
+      // Override the private cachedValidatedDexs to simulate already validated state
+      // This avoids the complex initialization flow
+      Object.defineProperty(testProvider, 'cachedValidatedDexs', {
+        value: null, // Force re-evaluation
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      const result = await testProvider.getAvailableHip3Dexs();
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(mockInfoClientWithDexs.perpDexs).toHaveBeenCalled();
+    });
+
+    it('returns empty array when equity disabled', async () => {
+      // Arrange
+      const disabledProvider = new HyperLiquidProvider({
+        equityEnabled: false,
+      });
+
+      // Act
+      const result = await disabledProvider.getAvailableHip3Dexs();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when perpDexs returns invalid data', async () => {
+      // Arrange
+      const hip3Provider = new HyperLiquidProvider({ equityEnabled: true });
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          perpDexs: jest.fn().mockResolvedValue(null),
+        }),
+      );
+
+      // Act
+      const result = await hip3Provider.getAvailableHip3Dexs();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('transferBetweenDexs', () => {
+    beforeEach(() => {
+      // Add spotMeta to mock for getUsdcTokenId
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          spotMeta: jest.fn().mockResolvedValue({
+            tokens: [{ name: 'USDC', tokenId: '0xabc123' }],
+          }),
+        }),
+      );
+    });
+
+    it('transfers USDC between DEXs successfully', async () => {
+      // Arrange
+      const transferParams = {
+        sourceDex: 'dex1',
+        destinationDex: 'dex2',
+        amount: '100',
+      };
+
+      // Act
+      const result = await provider.transferBetweenDexs(transferParams);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(
+        mockClientService.getExchangeClient().sendAsset,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceDex: 'dex1',
+          destinationDex: 'dex2',
+          amount: '100',
+          token: expect.any(String),
+        }),
+      );
+    });
+
+    it('rejects transfer with zero amount', async () => {
+      // Arrange
+      const transferParams = {
+        sourceDex: 'dex1',
+        destinationDex: 'dex2',
+        amount: '0',
+      };
+
+      // Act
+      const result = await provider.transferBetweenDexs(transferParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('must be greater than 0');
+    });
+
+    it('rejects transfer when source equals destination', async () => {
+      // Arrange
+      const transferParams = {
+        sourceDex: 'dex1',
+        destinationDex: 'dex1',
+        amount: '100',
+      };
+
+      // Act
+      const result = await provider.transferBetweenDexs(transferParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('must be different');
+    });
+
+    it('handles sendAsset failure gracefully', async () => {
+      // Arrange
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          sendAsset: jest
+            .fn()
+            .mockResolvedValue({
+              status: 'error',
+              message: 'Insufficient balance',
+            }),
+        }),
+      );
+      const transferParams = {
+        sourceDex: 'dex1',
+        destinationDex: 'dex2',
+        amount: '100',
+      };
+
+      // Act
+      const result = await provider.transferBetweenDexs(transferParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('calls getUsdcTokenId to get correct token', async () => {
+      // Arrange
+      const mockSpotMeta = jest.fn().mockResolvedValue({
+        tokens: [{ name: 'USDC', tokenId: '0xspecific' }],
+      });
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(createMockInfoClient({ spotMeta: mockSpotMeta }));
+      const transferParams = {
+        sourceDex: '',
+        destinationDex: 'dex1',
+        amount: '100',
+      };
+
+      // Act
+      await provider.transferBetweenDexs(transferParams);
+
+      // Assert
+      expect(mockSpotMeta).toHaveBeenCalled();
+      expect(
+        mockClientService.getExchangeClient().sendAsset,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: 'USDC:0xspecific',
+        }),
+      );
+    });
+  });
+
+  describe('getUserNonFundingLedgerUpdates', () => {
+    it('returns non-funding ledger updates', async () => {
+      // Arrange
+      const mockUpdates = [
+        {
+          delta: { type: 'deposit', usdc: '100' },
+          time: Date.now(),
+          hash: '0x123',
+        },
+        {
+          delta: { type: 'withdraw', usdc: '50' },
+          time: Date.now() - 3600000,
+          hash: '0x456',
+        },
+      ];
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userNonFundingLedgerUpdates: jest.fn().mockResolvedValue(mockUpdates),
+        }),
+      );
+
+      // Act
+      const result = await provider.getUserNonFundingLedgerUpdates();
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(2);
+      expect(mockClientService.getInfoClient).toHaveBeenCalled();
+    });
+
+    it('returns empty array on error', async () => {
+      // Arrange
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userNonFundingLedgerUpdates: jest
+            .fn()
+            .mockRejectedValue(new Error('API Error')),
+        }),
+      );
+
+      // Act
+      const result = await provider.getUserNonFundingLedgerUpdates();
+
+      // Assert
+      expect(result).toEqual([]);
     });
   });
 
