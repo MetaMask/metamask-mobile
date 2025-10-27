@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { isEqual } from 'lodash';
 import Engine from '../../../../core/Engine';
-import type { PriceUpdate } from '../controllers/types';
-import type { CandleData, CandleStick } from '../types/perps-types';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   calculateCandleCount,
-  TimeDuration,
   CandlePeriod,
+  TimeDuration,
 } from '../constants/chartConfig';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import type { PriceUpdate } from '../controllers/types';
+import type { CandleData, CandleStick } from '../types/perps-types';
 
 interface UsePerpsPositionDataProps {
   coin: string;
@@ -24,6 +25,7 @@ export const usePerpsPositionData = ({
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [liveCandle, setLiveCandle] = useState<CandleStick | null>(null);
+  const prevMergedDataRef = useRef<CandleData | null>(null);
 
   // Helper function to get the current candle's start time based on interval
   const getCurrentCandleStartTime = useCallback(
@@ -104,7 +106,13 @@ export const usePerpsPositionData = ({
     const loadHistoricalData = async () => {
       try {
         const historicalData = await fetchHistoricalCandles();
-        setCandleData(historicalData);
+        setCandleData((prev) => {
+          // Prevent re-render if data is identical
+          if (isEqual(prev, historicalData)) {
+            return prev;
+          }
+          return historicalData;
+        });
       } catch (err) {
         console.error('Error loading historical candles:', err);
       } finally {
@@ -164,10 +172,16 @@ export const usePerpsPositionData = ({
       try {
         const newData = await fetchHistoricalCandles();
         if (newData && newData.candles.length > 0) {
-          setCandleData(newData);
-          DevLogger.log(
-            `Refreshed candle data: ${newData.candles.length} candles`,
-          );
+          setCandleData((prev) => {
+            // Prevent re-render if data is identical
+            if (isEqual(prev, newData)) {
+              return prev;
+            }
+            DevLogger.log(
+              `Refreshed candle data: ${newData.candles.length} candles`,
+            );
+            return newData;
+          });
         }
       } catch (error) {
         console.error('Error refreshing candle data:', error);
@@ -185,7 +199,7 @@ export const usePerpsPositionData = ({
     if (!priceData?.price) return;
 
     const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
-    const currentPrice = parseFloat(priceData.price.toString());
+    const currentPrice = Number.parseFloat(priceData.price.toString());
 
     setLiveCandle((prevLive) => {
       // If no previous live candle or time period changed, create new one
@@ -201,14 +215,26 @@ export const usePerpsPositionData = ({
       }
 
       // Update existing live candle with new price
-      const prevHigh = parseFloat(prevLive.high);
-      const prevLow = parseFloat(prevLive.low);
+      const prevHigh = Number.parseFloat(prevLive.high);
+      const prevLow = Number.parseFloat(prevLive.low);
+      const newHigh = Math.max(prevHigh, currentPrice).toString();
+      const newLow = Math.min(prevLow, currentPrice).toString();
+      const newClose = currentPrice.toString();
+
+      // Only create new object if values actually changed
+      if (
+        prevLive.high === newHigh &&
+        prevLive.low === newLow &&
+        prevLive.close === newClose
+      ) {
+        return prevLive; // Keep same reference to prevent unnecessary re-renders
+      }
 
       return {
         ...prevLive,
-        high: Math.max(prevHigh, currentPrice).toString(),
-        low: Math.min(prevLow, currentPrice).toString(),
-        close: currentPrice.toString(),
+        high: newHigh,
+        low: newLow,
+        close: newClose,
       };
     });
   }, [priceData, selectedInterval, getCurrentCandleStartTime]);
@@ -232,17 +258,31 @@ export const usePerpsPositionData = ({
       updatedCandles.push(liveCandle);
     }
 
-    return {
+    const mergedData = {
       ...candleData,
       candles: updatedCandles,
     };
+
+    // Use deep equality check to prevent unnecessary re-renders when candle values haven't changed
+    if (isEqual(prevMergedDataRef.current, mergedData)) {
+      return prevMergedDataRef.current as CandleData;
+    }
+
+    prevMergedDataRef.current = mergedData;
+    return mergedData;
   }, [candleData, liveCandle]);
 
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
       const historicalData = await fetchHistoricalCandles();
-      setCandleData(historicalData);
+      setCandleData((prev) => {
+        // Prevent re-render if data is identical
+        if (isEqual(prev, historicalData)) {
+          return prev;
+        }
+        return historicalData;
+      });
     } catch (err) {
       console.error('Error refreshing candle data:', err);
     } finally {

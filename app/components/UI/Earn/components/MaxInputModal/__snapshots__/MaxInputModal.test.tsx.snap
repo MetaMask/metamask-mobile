@@ -576,6 +576,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                 activeOpacity={1}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -621,6 +622,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                 activeOpacity={1}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",

@@ -349,54 +349,6 @@ describe('VerifyIdentity Component', () => {
     });
   });
 
-  describe('User State Testing', () => {
-    it('navigates to validating KYC when user verification state is PENDING', async () => {
-      const storeWithPendingUser = createTestStore({
-        user: { verificationState: 'PENDING' },
-      });
-
-      render(
-        <Provider store={storeWithPendingUser}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
-        );
-      });
-    });
-
-    it('does not auto-navigate when user verification state is not PENDING', () => {
-      const storeWithNonPendingUser = createTestStore({
-        user: { verificationState: 'VERIFIED' },
-      });
-
-      render(
-        <Provider store={storeWithNonPendingUser}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not auto-navigate when user is null', () => {
-      const storeWithNullUser = createTestStore({
-        user: null,
-      });
-
-      render(
-        <Provider store={storeWithNullUser}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Button Interaction and Navigation', () => {
     it('navigates with sessionUrl when continue button is pressed', async () => {
       const { getByTestId } = render(
@@ -410,9 +362,9 @@ describe('VerifyIdentity Component', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
+          Routes.CARD.ONBOARDING.WEBVIEW,
           {
-            sessionUrl: 'https://example.com/verify',
+            url: 'https://example.com/verify',
           },
         );
       });
@@ -454,9 +406,9 @@ describe('VerifyIdentity Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledTimes(3);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
+          Routes.CARD.ONBOARDING.WEBVIEW,
           {
-            sessionUrl: 'https://example.com/verify',
+            url: 'https://example.com/verify',
           },
         );
       });

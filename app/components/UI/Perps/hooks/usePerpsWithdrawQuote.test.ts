@@ -1,14 +1,14 @@
+import type { RootState } from '../../../../reducers';
 import {
   renderHookWithProvider,
   type DeepPartial,
 } from '../../../../util/test/renderWithProvider';
-import { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
-import type { RootState } from '../../../../reducers';
 import {
   HYPERLIQUID_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
 } from '../constants/hyperLiquidConfig';
+import { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
@@ -158,7 +158,8 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      const expectedReceiving = parseFloat(amount) - HYPERLIQUID_WITHDRAWAL_FEE;
+      const expectedReceiving =
+        Number.parseFloat(amount) - HYPERLIQUID_WITHDRAWAL_FEE;
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
         `${expectedReceiving.toFixed(2)} USDC`,
       );
@@ -173,7 +174,8 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      const expectedReceiving = parseFloat(amount) - HYPERLIQUID_WITHDRAWAL_FEE;
+      const expectedReceiving =
+        Number.parseFloat(amount) - HYPERLIQUID_WITHDRAWAL_FEE;
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
         `${expectedReceiving.toFixed(2)} USDC`,
       );

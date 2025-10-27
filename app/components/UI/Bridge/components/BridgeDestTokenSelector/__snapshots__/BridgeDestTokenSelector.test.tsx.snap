@@ -567,6 +567,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -618,6 +619,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -671,6 +673,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -724,6 +727,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -863,9 +867,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
+                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
