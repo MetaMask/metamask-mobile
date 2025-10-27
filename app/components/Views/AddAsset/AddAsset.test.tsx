@@ -141,7 +141,6 @@ describe('AddAsset component', () => {
       const buttons = getAllByRole('button');
       expect(buttons.length).toBeGreaterThan(0);
     });
-
   });
 
   describe('State management', () => {
