@@ -172,23 +172,24 @@ export const usePredictToasts = ({
       if (!isTargetTransaction) {
         return;
       }
+      console.warn('Transaction status updated:', transactionMeta);
 
-      if (
+      if (transactionMeta.status === TransactionStatus.rejected) {
+        console.warn('Transaction rejected:', transactionMeta);
+        clearTransaction();
+      } else if (
         transactionMeta.status === TransactionStatus.approved &&
         pendingToastConfig
       ) {
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
         showPendingToast({ amount, config: pendingToastConfig });
-      }
-
-      if (transactionMeta.status === TransactionStatus.confirmed) {
+      } else if (transactionMeta.status === TransactionStatus.confirmed) {
         clearTransaction();
         const amount = confirmedToastConfig.getAmount(transactionMeta);
         showConfirmedToast(amount);
         onConfirmed?.();
-      }
-
-      if (transactionMeta.status === TransactionStatus.failed) {
+      } else if (transactionMeta.status === TransactionStatus.failed) {
+        console.warn('Transaction failed:', transactionMeta);
         clearTransaction();
         showErrorToast();
       }
