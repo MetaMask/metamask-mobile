@@ -32,6 +32,12 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import BaseControlBar from '../shared/BaseControlBar';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface NFTNavigationParamList {
   AddAsset: { assetType: string };
@@ -39,9 +45,9 @@ interface NFTNavigationParamList {
 }
 
 interface NftGridProps {
-  onAddCollectible?: () => void;
   flashListProps?: Partial<FlashListProps<Nft[]>>;
   maxItems?: number;
+  isFullView?: boolean;
 }
 
 const NftRow = ({
@@ -52,11 +58,15 @@ const NftRow = ({
   onLongPress: (nft: Nft) => void;
 }) => (
   <Box twClassName="flex-row justify-between gap-3 mb-3">
-    {items.map((item, index) => (
-      <Box key={`${item.address}-${index}`} twClassName="flex-1">
-        <NftGridItem item={item} onLongPress={onLongPress} />
-      </Box>
-    ))}
+    {items.map((item, index) => {
+      // Create a truly unique key combining multiple identifiers
+      const uniqueKey = `${item.address}-${item.tokenId}-${item.chainId}-${index}`;
+      return (
+        <Box key={uniqueKey} twClassName="flex-1">
+          <NftGridItem item={item} onLongPress={onLongPress} />
+        </Box>
+      );
+    })}
     {/* Fill remaining slots if less than 3 items */}
     {items.length < 3 &&
       Array.from({ length: 3 - items.length }).map((_, index) => (
@@ -66,9 +76,9 @@ const NftRow = ({
 );
 
 const NftGrid = ({
-  onAddCollectible,
   flashListProps,
   maxItems,
+  isFullView = false,
 }: NftGridProps) => {
   const navigation =
     useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
@@ -76,6 +86,7 @@ const NftGrid = ({
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [longPressedCollectible, setLongPressedCollectible] =
     useState<Nft | null>(null);
+  const tw = useTailwind();
 
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
@@ -114,17 +125,22 @@ const NftGrid = ({
   }, [longPressedCollectible]);
 
   const goToAddCollectible = useCallback(() => {
-    if (onAddCollectible) {
-      onAddCollectible();
-    } else {
-      setIsAddNFTEnabled(false);
-      navigation.push('AddAsset', { assetType: 'collectible' });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
-      );
-      setIsAddNFTEnabled(true);
-    }
-  }, [onAddCollectible, navigation, trackEvent, createEventBuilder]);
+    setIsAddNFTEnabled(false);
+    navigation.push('AddAsset', { assetType: 'collectible' });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+    );
+    setIsAddNFTEnabled(true);
+  }, [navigation, trackEvent, createEventBuilder]);
+
+  const additionalButtons = (
+    <ButtonIcon
+      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+      size={ButtonIconSizes.Lg}
+      onPress={goToAddCollectible}
+      iconName={IconName.Add}
+    />
+  );
 
   const handleViewAllNfts = useCallback(() => {
     navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
@@ -134,8 +150,33 @@ const NftGrid = ({
   const shouldShowViewAllButton =
     maxItems && allFilteredCollectibles.length > maxItems;
 
+  // Default flashListProps for full view
+  const defaultFullViewProps = useMemo(
+    () => ({
+      contentContainerStyle: tw`px-4`,
+      scrollEnabled: true,
+    }),
+    [tw],
+  );
+
+  // Merge default props with passed props
+  const mergedFlashListProps = useMemo(() => {
+    if (isFullView) {
+      return { ...defaultFullViewProps, ...flashListProps };
+    }
+    return flashListProps;
+  }, [isFullView, defaultFullViewProps, flashListProps]);
+
   return (
     <>
+      <BaseControlBar
+        networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+        useEvmSelectionLogic={false}
+        customWrapper={'outer'}
+        additionalButtons={additionalButtons}
+        hideSort
+        style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
+      />
       <FlashList
         ListHeaderComponent={<NftGridHeader />}
         data={groupedCollectibles}
@@ -166,7 +207,7 @@ const NftGrid = ({
             )}
           </>
         }
-        {...flashListProps}
+        {...mergedFlashListProps}
       />
 
       <NftGridItemActionSheet

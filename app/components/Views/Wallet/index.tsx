@@ -16,6 +16,7 @@ import {
   View,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import {
   TabsList,
@@ -184,7 +185,7 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NftTabView from '../NftTabView';
+import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
@@ -427,7 +428,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
 
     if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
-      tabs.push(<NftTabView {...nftsTabProps} key={nftsTabProps.key} />);
+      tabs.push(
+        <Box {...nftsTabProps} twClassName="flex-1 bg-default">
+          <NftGrid isFullView={false} />
+        </Box>,
+      );
     }
 
     return tabs;
