@@ -1,6 +1,9 @@
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 
+import { getVersion } from 'react-native-device-info';
+import compareVersions from 'compare-versions';
+
 export interface FeatureFlagInfo {
   key: string;
   value: unknown;
