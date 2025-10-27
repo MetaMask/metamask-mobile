@@ -29,14 +29,6 @@ export interface PerpsMarketSortFieldBottomSheetProps {
     direction: SortDirection,
   ) => void;
   /**
-   * Whether watchlist filter is active
-   */
-  showFavoritesOnly?: boolean;
-  /**
-   * Callback when watchlist toggle is pressed
-   */
-  onFavoritesToggle?: () => void;
-  /**
    * Test ID for E2E testing
    */
   testID?: string;

@@ -28,7 +28,6 @@ import { MARKET_SORTING_CONFIG } from '../../constants/perpsConfig';
  * - Flat list of sort options
  * - Checkmark icon on selected option
  * - Auto-closes on selection
- * - Optional watchlist toggle
  *
  * @example
  * ```tsx
@@ -37,22 +36,12 @@ import { MARKET_SORTING_CONFIG } from '../../constants/perpsConfig';
  *   onClose={() => setShowSortSheet(false)}
  *   selectedOptionId="priceChange-desc"
  *   onOptionSelect={handleSortChange}
- *   showFavoritesOnly={false}
- *   onFavoritesToggle={handleFavoritesToggle}
  * />
  * ```
  */
 const PerpsMarketSortFieldBottomSheet: React.FC<
   PerpsMarketSortFieldBottomSheetProps
-> = ({
-  isVisible,
-  onClose,
-  selectedOptionId,
-  onOptionSelect,
-  showFavoritesOnly,
-  onFavoritesToggle,
-  testID,
-}) => {
+> = ({ isVisible, onClose, selectedOptionId, onOptionSelect, testID }) => {
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -116,32 +105,6 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
             </TouchableOpacity>
           );
         })}
-
-        {/* Watchlist toggle (if provided) */}
-        {onFavoritesToggle && (
-          <TouchableOpacity
-            style={[
-              styles.optionRow,
-              showFavoritesOnly && styles.optionRowSelected,
-            ]}
-            onPress={() => {
-              onFavoritesToggle();
-              onClose();
-            }}
-            testID={testID ? `${testID}-watchlist` : undefined}
-          >
-            <Text variant={TextVariant.BodyMD}>
-              {strings('perps.sort.favorites')}
-            </Text>
-            {showFavoritesOnly && (
-              <Icon
-                name={IconName.Check}
-                size={IconSize.Md}
-                testID={testID ? `${testID}-checkmark-watchlist` : undefined}
-              />
-            )}
-          </TouchableOpacity>
-        )}
       </Box>
     </BottomSheet>
   );

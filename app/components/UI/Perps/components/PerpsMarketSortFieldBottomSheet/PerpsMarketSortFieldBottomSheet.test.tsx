@@ -121,7 +121,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.sort.open_interest': 'Open Interest',
       'perps.sort.high': 'High',
       'perps.sort.low': 'Low',
-      'perps.sort.favorites': 'Watchlist',
     };
     return translations[key] || key;
   }),
@@ -130,7 +129,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('PerpsMarketSortFieldBottomSheet', () => {
   const mockOnClose = jest.fn();
   const mockOnOptionSelect = jest.fn();
-  const mockOnFavoritesToggle = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -212,39 +210,6 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         screen.getByTestId('sort-field-sheet-checkmark-priceChange-desc'),
       ).toBeOnTheScreen();
     });
-
-    it('renders watchlist option when onFavoritesToggle is provided', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          onFavoritesToggle={mockOnFavoritesToggle}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('sort-field-sheet-watchlist'),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render watchlist option when onFavoritesToggle is not provided', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      expect(
-        screen.queryByTestId('sort-field-sheet-watchlist'),
-      ).not.toBeOnTheScreen();
-    });
   });
 
   describe('Option Selection', () => {
@@ -310,62 +275,6 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         'priceChange',
         'asc',
       );
-    });
-  });
-
-  describe('Watchlist Toggle', () => {
-    it('calls onFavoritesToggle when watchlist option is pressed', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          showFavoritesOnly={false}
-          onFavoritesToggle={mockOnFavoritesToggle}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      fireEvent.press(screen.getByTestId('sort-field-sheet-watchlist'));
-
-      expect(mockOnFavoritesToggle).toHaveBeenCalledTimes(1);
-    });
-
-    it('auto-closes when watchlist is toggled', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          showFavoritesOnly={false}
-          onFavoritesToggle={mockOnFavoritesToggle}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      fireEvent.press(screen.getByTestId('sort-field-sheet-watchlist'));
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows checkmark when watchlist is active', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          showFavoritesOnly
-          onFavoritesToggle={mockOnFavoritesToggle}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('sort-field-sheet-checkmark-watchlist'),
-      ).toBeOnTheScreen();
     });
   });
 });

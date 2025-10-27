@@ -516,8 +516,6 @@ const PerpsMarketListView = ({
         onClose={() => setIsSortFieldSheetVisible(false)}
         selectedOptionId={selectedOptionId}
         onOptionSelect={handleOptionChange}
-        showFavoritesOnly={showFavoritesOnly}
-        onFavoritesToggle={handleFavoritesToggle}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
     </SafeAreaView>
