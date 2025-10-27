@@ -1263,6 +1263,195 @@ describe('HyperLiquidProvider', () => {
     });
   });
 
+  describe('Batch Operations', () => {
+    describe('cancelOrders', () => {
+      it('returns failure when no orders provided', async () => {
+        const result = await provider.cancelOrders([]);
+
+        expect(result.success).toBe(false);
+        expect(result.successCount).toBe(0);
+        expect(result.failureCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it('cancels multiple orders successfully', async () => {
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+          createMockExchangeClient({
+            cancel: jest.fn().mockResolvedValue({
+              response: {
+                data: {
+                  statuses: ['success', 'success'],
+                },
+              },
+            }),
+          }),
+        );
+
+        const params = [
+          { orderId: '123', coin: 'BTC' },
+          { orderId: '456', coin: 'ETH' },
+        ];
+
+        const result = await provider.cancelOrders(params);
+
+        expect(result.success).toBe(true);
+        expect(result.successCount).toBe(2);
+        expect(result.failureCount).toBe(0);
+        expect(result.results).toHaveLength(2);
+        expect(result.results[0].success).toBe(true);
+      });
+
+      it('handles batch cancel errors', async () => {
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+          createMockExchangeClient({
+            cancel: jest.fn().mockRejectedValue(new Error('API error')),
+          }),
+        );
+
+        const params = [{ orderId: '123', coin: 'BTC' }];
+
+        const result = await provider.cancelOrders(params);
+
+        expect(result.success).toBe(false);
+        expect(result.successCount).toBe(0);
+        expect(result.failureCount).toBe(1);
+        expect(result.results[0].success).toBe(false);
+        expect(result.results[0].error).toBe('API error');
+      });
+    });
+
+    describe('closePositions', () => {
+      it('returns failure when no positions to close', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            clearinghouseState: jest.fn().mockResolvedValue({
+              marginSummary: { totalMarginUsed: '0', accountValue: '10000' },
+              withdrawable: '10000',
+              assetPositions: [],
+              crossMarginSummary: {
+                accountValue: '10000',
+                totalMarginUsed: '0',
+              },
+            }),
+          }),
+        );
+
+        const result = await provider.closePositions({ closeAll: true });
+
+        expect(result.success).toBe(false);
+        expect(result.successCount).toBe(0);
+        expect(result.failureCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it('closes multiple positions successfully', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            clearinghouseState: jest.fn().mockResolvedValue({
+              marginSummary: { totalMarginUsed: '1500', accountValue: '11500' },
+              withdrawable: '10000',
+              assetPositions: [
+                {
+                  position: {
+                    coin: 'BTC',
+                    szi: '1.5',
+                    entryPx: '50000',
+                    positionValue: '75000',
+                    unrealizedPnl: '100',
+                    marginUsed: '1000',
+                    leverage: { type: 'cross', value: 10 },
+                    liquidationPx: '45000',
+                  },
+                  type: 'oneWay',
+                },
+                {
+                  position: {
+                    coin: 'ETH',
+                    szi: '-2.0',
+                    entryPx: '3000',
+                    positionValue: '6000',
+                    unrealizedPnl: '50',
+                    marginUsed: '500',
+                    leverage: { type: 'cross', value: 10 },
+                    liquidationPx: '3300',
+                  },
+                  type: 'oneWay',
+                },
+              ],
+              crossMarginSummary: {
+                accountValue: '11500',
+                totalMarginUsed: '1500',
+              },
+            }),
+          }),
+        );
+
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+          createMockExchangeClient({
+            order: jest.fn().mockResolvedValue({
+              response: {
+                data: {
+                  statuses: [{ filled: {} }, { filled: {} }],
+                },
+              },
+            }),
+          }),
+        );
+
+        const result = await provider.closePositions({ closeAll: true });
+
+        expect(result.success).toBe(true);
+        expect(result.successCount).toBe(2);
+        expect(result.failureCount).toBe(0);
+        expect(result.results).toHaveLength(2);
+      });
+
+      it('handles batch close errors', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            clearinghouseState: jest.fn().mockResolvedValue({
+              marginSummary: { totalMarginUsed: '1000', accountValue: '11000' },
+              withdrawable: '10000',
+              assetPositions: [
+                {
+                  position: {
+                    coin: 'BTC',
+                    szi: '1.0',
+                    entryPx: '50000',
+                    positionValue: '50000',
+                    unrealizedPnl: '100',
+                    marginUsed: '1000',
+                    leverage: { type: 'cross', value: 10 },
+                    liquidationPx: '45000',
+                  },
+                  type: 'oneWay',
+                },
+              ],
+              crossMarginSummary: {
+                accountValue: '11000',
+                totalMarginUsed: '1000',
+              },
+            }),
+          }),
+        );
+
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+          createMockExchangeClient({
+            order: jest.fn().mockRejectedValue(new Error('Order failed')),
+          }),
+        );
+
+        const result = await provider.closePositions({ closeAll: true });
+
+        expect(result.success).toBe(false);
+        expect(result.successCount).toBe(0);
+        expect(result.failureCount).toBe(1);
+        expect(result.results[0].success).toBe(false);
+        expect(result.results[0].error).toBe('Order failed');
+      });
+    });
+  });
+
   describe('updatePositionTPSL', () => {
     it('should update position TP/SL successfully', async () => {
       const updateParams = {
@@ -5285,12 +5474,10 @@ describe('HyperLiquidProvider', () => {
       // Arrange
       mockClientService.getExchangeClient = jest.fn().mockReturnValue(
         createMockExchangeClient({
-          sendAsset: jest
-            .fn()
-            .mockResolvedValue({
-              status: 'error',
-              message: 'Insufficient balance',
-            }),
+          sendAsset: jest.fn().mockResolvedValue({
+            status: 'error',
+            message: 'Insufficient balance',
+          }),
         }),
       );
       const transferParams = {
