@@ -88,7 +88,7 @@ describe('SnapControllerInit', () => {
     const request = getInitRequestMock(baseMessenger);
     const { initMessenger } = request;
 
-    const spy = jest.spyOn(initMessenger, 'call');
+    const spy = jest.spyOn(initMessenger, 'call').mockImplementation();
 
     snapControllerInit(request);
     baseMessenger.publish('KeyringController:lock');
@@ -105,7 +105,7 @@ describe('SnapControllerInit', () => {
     const request = getInitRequestMock(baseMessenger);
     const { initMessenger } = request;
 
-    const spy = jest.spyOn(initMessenger, 'call');
+    const spy = jest.spyOn(initMessenger, 'call').mockImplementation();
 
     snapControllerInit(request);
     baseMessenger.publish('KeyringController:unlock');
