@@ -135,7 +135,7 @@ describe('DeeplinkParser', () => {
 
       expect(result).toMatchObject({
         action: ACTIONS.PERPS,
-        path: 'markets/BTC',
+        path: '/markets/BTC',
         scheme: 'https:',
         isUniversalLink: true,
         isSupportedDomain: true,
@@ -307,6 +307,51 @@ describe('DeeplinkParser', () => {
       expect(result.path).toBe('/some/path');
       // Query parameters are preserved in the original URL, not in params for traditional deeplinks
       expect(result.originalUrl).toContain('amount=100');
+    });
+  });
+
+  describe('path extraction consistency', () => {
+    it('preserves leading slash for both traditional and universal deeplinks', () => {
+      // Test cases with the same path structure
+      const testCases = [
+        {
+          traditional: 'metamask://create-account/hardware',
+          universal: 'https://link.metamask.io/create-account/hardware',
+          expectedPath: '/hardware',
+        },
+        {
+          traditional: 'metamask://perps/markets/BTC',
+          universal: 'https://link.metamask.io/perps/markets/BTC',
+          expectedPath: '/markets/BTC',
+        },
+        {
+          traditional: 'metamask://rewards/claim/xyz',
+          universal: 'https://link.metamask.io/rewards/claim/xyz',
+          expectedPath: '/claim/xyz',
+        },
+      ];
+
+      testCases.forEach(({ traditional, universal, expectedPath }) => {
+        const tradResult = parser.parse(traditional);
+        const univResult = parser.parse(universal);
+
+        expect(tradResult.path).toBe(expectedPath);
+        expect(univResult.path).toBe(expectedPath);
+      });
+    });
+
+    it('returns empty string for deeplinks without path', () => {
+      const testCases = [
+        'metamask://buy',
+        'https://link.metamask.io/buy',
+        'metamask://swap',
+        'https://link.metamask.io/swap',
+      ];
+
+      testCases.forEach((url) => {
+        const result = parser.parse(url);
+        expect(result.path).toBe('');
+      });
     });
   });
 

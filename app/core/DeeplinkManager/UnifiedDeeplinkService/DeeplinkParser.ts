@@ -192,7 +192,9 @@ export class DeeplinkParser {
     // Remove the action from pathname to get the remaining path
     const pathSegments = urlObj.pathname.split('/').filter(Boolean);
     pathSegments.shift(); // Remove the action
-    return pathSegments.join('/');
+
+    // Preserve leading slash if there are remaining segments
+    return pathSegments.length > 0 ? '/' + pathSegments.join('/') : '';
   }
 
   /**
