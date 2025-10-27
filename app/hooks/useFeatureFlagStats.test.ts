@@ -178,7 +178,7 @@ describe('useFeatureFlagStats', () => {
     });
   });
 
-  it('produces NaN for "boolean nested" type due to implementation bug', () => {
+  it('counts "boolean nested" type as boolean type', () => {
     const mockFlags: FeatureFlagInfo[] = [
       createMockFeatureFlag('testFlag', 'boolean nested', {
         value: true,
@@ -194,12 +194,11 @@ describe('useFeatureFlagStats', () => {
 
     expect(result.current).toEqual({
       total: 1,
-      boolean: 0,
+      boolean: 1, // "boolean nested" is properly counted as boolean
       object: 0,
       string: 0,
       number: 0,
       array: 0,
-      'boolean nested': NaN, // Bug: trying to increment undefined property
     });
   });
 

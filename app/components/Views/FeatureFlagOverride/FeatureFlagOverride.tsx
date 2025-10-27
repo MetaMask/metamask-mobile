@@ -235,7 +235,8 @@ const FeatureFlagOverride: React.FC = () => {
       flags = flags.filter(
         (flag) =>
           flag.type === 'boolean' ||
-          flag.type === 'boolean with minimumVersion',
+          flag.type === 'boolean with minimumVersion' ||
+          flag.type === 'boolean nested',
       );
     }
 
