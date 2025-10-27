@@ -392,15 +392,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Build tabs array dynamically based on enabled features
   const tabsToRender = useMemo(() => {
-    const tabs = [
-      <Box
-        key={tokensTabProps.key}
-        twClassName="flex-1 bg-default"
-        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-      >
-        <Tokens isFullView={false} />
-      </Box>,
-    ];
+    const tabs = [<Tokens {...tokensTabProps} key={tokensTabProps.key} />];
 
     if (isPerpsEnabled) {
       tabs.push(
