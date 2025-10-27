@@ -18,8 +18,8 @@ import {
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
-  UnrealizedPnL,
   Side,
+  UnrealizedPnL,
 } from '../../types';
 import {
   AccountState,
@@ -34,6 +34,10 @@ import {
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
+  SignWithdrawParams,
+  SignWithdrawResponse,
+  PrepareWithdrawParams,
+  PrepareWithdrawResponse,
   PreviewOrderParams,
   Signer,
 } from '../types';
@@ -46,25 +50,29 @@ import {
   ROUNDING_CONFIG,
 } from './constants';
 import {
-  computeSafeAddress,
+  computeProxyAddress,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
+  getSafeUsdcAmount,
+  getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
 import {
   ApiKeyCreds,
   OrderData,
   OrderType,
-  PolymarketPosition,
   PolymarketApiActivity,
+  PolymarketPosition,
   SignatureType,
-  UtilsSide,
   TickSize,
+  UtilsSide,
 } from './types';
 import {
   createApiKey,
+  encodeErc20Transfer,
+  generateSalt,
   getBalance,
   getContractConfig,
   getL2Headers,
@@ -72,13 +80,12 @@ import {
   getOrderTypedData,
   getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
+  parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
-  parsePolymarketActivity,
-  submitClobOrder,
   previewOrder,
-  generateSalt,
   roundOrderAmount,
+  submitClobOrder,
 } from './utils';
 
 export type SignTypedMessageFn = (
@@ -263,16 +270,7 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Address is required');
     }
 
-    const predictAddress =
-      this.#accountStateByAddress.get(address)?.address ??
-      (await this.getAccountState({ ownerAddress: address })).address;
-
-    if (!predictAddress) {
-      throw new Error('Predict address not found');
-    }
-
-    // NOTE: hardcoded address for testing
-    // address = '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00';
+    const predictAddress = computeProxyAddress(address);
 
     const queryParams = new URLSearchParams({
       limit: limit.toString(),
@@ -292,6 +290,7 @@ export class PolymarketProvider implements PredictProvider {
         },
       },
     );
+
     if (!response.ok) {
       throw new Error('Failed to get positions');
     }
@@ -516,7 +515,7 @@ export class PolymarketProvider implements PredictProvider {
 
       let feeAuthorization;
       if (fees !== undefined && fees.totalFee > 0) {
-        const safeAddress = await computeSafeAddress(signer.address);
+        const safeAddress = computeProxyAddress(signer.address);
         const feeAmountInUsdc = BigInt(
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
@@ -566,12 +565,15 @@ export class PolymarketProvider implements PredictProvider {
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
     const { positions, signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
     const safeAddress =
       this.#accountStateByAddress.get(signer.address)?.address ??
       (await this.getAccountState({ ownerAddress: signer.address })).address;
-    if (!safeAddress) {
-      throw new Error('Safe address not found');
-    }
+
     const claimTransaction = await getClaimTransaction({
       signer,
       positions,
@@ -665,8 +667,8 @@ export class PolymarketProvider implements PredictProvider {
   }): Promise<AccountState> {
     const { ownerAddress } = params;
     const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
-    const address =
-      cachedAddress?.address ?? (await computeSafeAddress(ownerAddress));
+    const address = cachedAddress?.address ?? computeProxyAddress(ownerAddress);
+
     const [isDeployed, hasAllowancesResult] = await Promise.all([
       isSmartContractAddress(address, numberToHex(POLYGON_MAINNET_CHAIN_ID)),
       hasAllowances({ address }),
@@ -689,8 +691,66 @@ export class PolymarketProvider implements PredictProvider {
     }
     const cachedAddress = this.#accountStateByAddress.get(address);
     const predictAddress =
-      cachedAddress?.address ?? (await computeSafeAddress(address));
+      cachedAddress?.address ?? computeProxyAddress(address);
     const balance = await getBalance({ address: predictAddress });
     return balance;
+  }
+
+  public async prepareWithdraw(
+    params: PrepareWithdrawParams & { signer: Signer },
+  ): Promise<PrepareWithdrawResponse> {
+    const { signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      (await this.getAccountState({ ownerAddress: signer.address })).address;
+
+    const callData = encodeErc20Transfer({
+      to: signer.address,
+      value: '0x0',
+    });
+
+    return {
+      chainId: CHAIN_IDS.POLYGON,
+      transaction: {
+        params: {
+          to: MATIC_CONTRACTS.collateral as Hex,
+          data: callData as Hex,
+        },
+        type: TransactionType.predictWithdraw,
+      },
+      predictAddress: safeAddress,
+    };
+  }
+
+  public async signWithdraw(
+    params: SignWithdrawParams,
+  ): Promise<SignWithdrawResponse> {
+    const { callData, signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      computeProxyAddress(signer.address);
+
+    const signedCallData = await getWithdrawTransactionCallData({
+      data: callData,
+      signer,
+      safeAddress,
+    });
+
+    const amount = getSafeUsdcAmount(callData);
+
+    return {
+      callData: signedCallData,
+      amount,
+    };
   }
 }
