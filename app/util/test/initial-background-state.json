@@ -252,7 +252,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x8f": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
