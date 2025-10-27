@@ -77,6 +77,18 @@ const createStyles = (colors: Colors) =>
       ...fontStyles.normal,
       textTransform: 'uppercase',
     },
+    buy: {
+      alignItems: 'center',
+      marginVertical: 5,
+      marginHorizontal: 15,
+    },
+    buyTitle: {
+      marginVertical: 5,
+      textAlign: 'center',
+    },
+    buyButton: {
+      marginVertical: 5,
+    },
     assetName: {
       flexDirection: 'row',
       gap: 8,
@@ -116,20 +128,6 @@ const createStyles = (colors: Colors) =>
     networkImageContainer: {
       position: 'absolute',
       right: 0,
-    },
-
-    // TokenListFooter Styles
-    buy: {
-      alignItems: 'center',
-      marginVertical: 5,
-      marginHorizontal: 15,
-    },
-    buyTitle: {
-      marginVertical: 5,
-      textAlign: 'center',
-    },
-    buyButton: {
-      marginVertical: 5,
     },
   });
 
