@@ -137,3 +137,14 @@ export const PredictUnavailableSelectorsIDs = {
   LINK_TEXT: enContent.predict.unavailable.link,
   BUTTON_TEXT: enContent.predict.unavailable.button,
 } as const;
+
+// ========================================
+// PREDICT ACTIVITY DETAILS SELECTORS
+// ========================================
+
+export const PredictActivityDetailsSelectorsIDs = {
+  BACK_BUTTON: 'predict-activity-details-back-button',
+  CONTAINER: 'predict-activity-details-container',
+  TITLE_TEXT: 'predict-activity-details-title',
+  AMOUNT_DISPLAY: 'predict-activity-details-amount',
+} as const;
