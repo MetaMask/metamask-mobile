@@ -34,7 +34,7 @@ const MAX_REGION_RESULTS = 20;
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
   onRegionSelect?: (region: DepositRegion) => void;
-  selectedRegion?: DepositRegion;
+  selectedRegion?: DepositRegion | null;
   allRegionsSelectable?: boolean;
   updateGlobalRegion?: boolean;
   trackSelection?: boolean;

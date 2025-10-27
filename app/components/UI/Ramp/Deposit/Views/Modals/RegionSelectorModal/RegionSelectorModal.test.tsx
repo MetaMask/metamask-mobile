@@ -152,7 +152,6 @@ describe('RegionSelectorModal Component', () => {
     mockUseParams.mockReturnValue({
       regions: customRegions,
       onRegionSelect: undefined,
-      behavior: undefined,
     });
 
     const { toJSON } = renderWithProvider(RegionSelectorModal);
@@ -163,8 +162,6 @@ describe('RegionSelectorModal Component', () => {
   it('handles empty regions array from navigation params', () => {
     mockUseParams.mockReturnValue({
       regions: [],
-      onRegionSelect: undefined,
-      behavior: undefined,
     });
 
     const { toJSON } = renderWithProvider(RegionSelectorModal);
@@ -178,7 +175,6 @@ describe('RegionSelectorModal Component', () => {
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: mockOnRegionSelect,
-      behavior: undefined,
     });
 
     const { getByText } = renderWithProvider(RegionSelectorModal);

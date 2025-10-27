@@ -82,7 +82,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         ...createRegionSelectorModalNavigationDetails({
           regions,
           onRegionSelect: setPhoneRegion,
-          selectedRegion: phoneRegion ?? undefined,
+          selectedRegion: phoneRegion,
           allRegionsSelectable: true,
           updateGlobalRegion: false,
           trackSelection: false,
