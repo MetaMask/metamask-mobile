@@ -181,18 +181,6 @@ pipelines:
       build_ios_main_exp:
         depends_on:
         - bump_version_code    
-      # deploy_ios_to_store:
-      #   depends_on:
-      #   - build_ios_main_exp
-  nightly_dev_builds_pipeline:
-    workflows:
-      bump_version_code: {}
-      build_android_main_dev:
-        depends_on:
-        - bump_version_code
-      build_ios_main_dev:
-        depends_on:
-        - bump_version_code
   nightly_rc_builds_pipeline:
     workflows:
       bump_version_code: {}
@@ -202,9 +190,6 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
-      # deploy_ios_to_store:
-      #   depends_on:
-      #   - build_ios_main_rc    
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -2841,6 +2826,17 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_main_dev_nightly:
+    envs:
+      - IS_DEV_BUILD: 'false'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'prod'
+      - BUILD_COMMAND: 'yarn build:android:main:dev'
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_devbuild:
     after_run:
@@ -3444,6 +3440,15 @@ workflows:
   build_ios_main_dev:
     envs:
       - CONFIGURATION: 'Debug'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'MetaMask'
+      - INFO_PLIST_NAME: 'Info.plist'
+      - COMMAND_YARN: 'build:ios:main:dev'
+    after_run:
+      - _ios_build_template
+  build_ios_main_dev_nightly:
+    envs:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
