@@ -74,11 +74,7 @@ const ResourceToggle = ({
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Full}
               labelTextVariant={TextVariant.BodyMDMedium}
-              labelColor={
-                value === 'energy'
-                  ? theme.colors.primary.default
-                  : theme.colors.text.default
-              }
+              labelColor={theme.colors.text.default}
               style={styles.buttonBase}
               testID={testIDEnergy}
               accessibilityLabel={energyLabel}
@@ -92,11 +88,7 @@ const ResourceToggle = ({
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Full}
               labelTextVariant={TextVariant.BodyMDMedium}
-              labelColor={
-                value === 'bandwidth'
-                  ? theme.colors.primary.default
-                  : theme.colors.text.default
-              }
+              labelColor={theme.colors.text.default}
               style={styles.buttonBase}
               testID={testIDBandwidth}
               accessibilityLabel={bandwidthLabel}
