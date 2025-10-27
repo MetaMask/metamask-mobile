@@ -27,7 +27,12 @@ export const navigateWithLogging = (
     return;
   }
 
-  navigation.navigate(config.view, config.params);
+  navigation.navigate(
+    config.view,
+    config.screen || config.params
+      ? { screen: config.screen, ...config.params }
+      : undefined,
+  );
 };
 
 /**
@@ -39,7 +44,7 @@ export const constructUrl = (
   scheme: string,
 ): string => {
   const baseUrl =
-    scheme === 'https:' ? 'https://link.metamask.io' : 'metamask://';
+    scheme === 'https:' ? 'https://link.metamask.io/' : 'metamask://';
   return `${baseUrl}${action}${path}`;
 };
 

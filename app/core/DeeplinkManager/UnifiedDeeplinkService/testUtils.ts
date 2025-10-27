@@ -23,7 +23,9 @@ export const createMockNavigation = () =>
     getId: jest.fn(),
   } as unknown as NavigationProp<ParamListBase>);
 
-export const createDefaultParams = (): DeeplinkUrlParams => ({
+export const createDefaultParams = (
+  overrides: Partial<DeeplinkUrlParams> = {},
+): DeeplinkUrlParams => ({
   pubkey: '',
   uri: '',
   redirect: '',
@@ -40,6 +42,7 @@ export const createDefaultParams = (): DeeplinkUrlParams => ({
   utm_term: '',
   utm_content: '',
   hr: false,
+  ...overrides,
 });
 
 export const createDeeplinkParams = (

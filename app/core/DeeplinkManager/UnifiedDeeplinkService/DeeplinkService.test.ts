@@ -20,6 +20,8 @@ jest.mock('../ParseManager/utils/verifySignature', () => ({
   MISSING: 'MISSING',
 }));
 
+const { INVALID } = jest.requireMock('../ParseManager/utils/verifySignature');
+
 // Mock AppConstants
 jest.mock('../../AppConstants', () => ({
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
@@ -395,6 +397,84 @@ describe('DeeplinkService', () => {
 
       expect(result.success).toBe(true);
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('additional edge cases', () => {
+    beforeEach(() => {
+      // Register test action
+      actionRegistry.register({
+        name: 'test',
+        handler: jest.fn().mockResolvedValue(undefined),
+        supportedSchemes: ['*'],
+      });
+    });
+
+    it('handles universal link with invalid signature', async () => {
+      mockVerifyDeeplinkSignature.mockResolvedValue(INVALID);
+      mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
+        expect(params.linkType).toBe(DeepLinkModalLinkType.PUBLIC);
+        if ('onContinue' in params) {
+          params.onContinue();
+        }
+      });
+
+      const url = 'https://link.metamask.io/test?sig=invalid';
+      const result = await service.handleDeeplink(url);
+
+      expect(result.success).toBe(true);
+      expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalled();
+    });
+
+    it('handles dapp action with browserCallBack', async () => {
+      actionRegistry.register({
+        name: ACTIONS.DAPP,
+        handler: jest.fn().mockImplementation((params) => {
+          expect(params.params.browserCallBack).toBeDefined();
+          return Promise.resolve(undefined);
+        }),
+        supportedSchemes: ['*'],
+      });
+
+      const browserCallBack = jest.fn();
+      const url = 'metamask://dapp/example.com';
+      const result = await service.handleDeeplink(url, {
+        browserCallBack,
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('initializes instance when not initialized', async () => {
+      // Reset the singleton
+      // @ts-expect-error - Accessing private static member for testing
+      DeeplinkService.instance = null;
+
+      const newService = DeeplinkService.getInstance();
+      expect(newService).toBeInstanceOf(DeeplinkService);
+
+      // Restore for other tests
+      // @ts-expect-error - Accessing private static member for testing
+      DeeplinkService.instance = service;
+    });
+
+    it('handles signature verification error gracefully', async () => {
+      mockVerifyDeeplinkSignature.mockRejectedValue(
+        new Error('Verification failed'),
+      );
+      mockHandleDeepLinkModalDisplay.mockImplementation((params) => {
+        expect(params.linkType).toBe(DeepLinkModalLinkType.PUBLIC);
+        if ('onContinue' in params) {
+          params.onContinue();
+        }
+      });
+
+      const url = 'https://link.metamask.io/test?sig=error';
+      const result = await service.handleDeeplink(url);
+
+      expect(result.success).toBe(true);
+      expect(mockVerifyDeeplinkSignature).toHaveBeenCalled();
     });
   });
 });

@@ -42,7 +42,11 @@ export const isValidEthereumAddress = (address: string): boolean =>
  */
 export const isValidChainId = (chainId: string): boolean => {
   const numericChainId = parseInt(chainId, 10);
-  return !isNaN(numericChainId) && numericChainId > 0;
+  return (
+    !isNaN(numericChainId) &&
+    numericChainId > 0 &&
+    chainId === numericChainId.toString()
+  );
 };
 
 /**
