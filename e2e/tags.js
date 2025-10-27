@@ -35,6 +35,34 @@ const tags = {
   regressionSampleFeature: 'RegressionSampleFeature:',
 };
 
+/**
+ * AI E2E Tag Selector Configuration
+ *
+ * Single source of truth for AI-powered E2E tag selection.
+ * Each entry defines a smoke test tag and what it covers.
+ *
+ * When adding a new smoke tag for AI selection:
+ * 1. Add the tag to the `tags` object above
+ * 2. Add an entry here with the tag name and description
+ */
+const aiE2EConfig = [
+  { tag: 'SmokeAccounts', description: 'Multi-account, account management' },
+  { tag: 'SmokeConfirmations', description: 'Transaction confirmations, send/receive, signatures' },
+  { tag: 'SmokeConfirmationsRedesigned', description: 'New confirmation UI as well as all confirmation flows' },
+  { tag: 'SmokeIdentity', description: 'User identity, authentication' },
+  { tag: 'SmokeNetworkAbstractions', description: 'Network layer, multi-chain' },
+  { tag: 'SmokeNetworkExpansion', description: 'New networks, network config (Solana, Bitcoin, etc)' },
+  { tag: 'SmokeTrade', description: 'Token swaps, DEX trading' },
+  { tag: 'SmokeWalletPlatform', description: 'Core wallet, accounts, network switching' },
+  { tag: 'SmokeCore', description: 'Core wallet functionality' },
+  { tag: 'SmokeWalletUX', description: 'Wallet user experience and UI' },
+  { tag: 'SmokeAssets', description: 'Asset management and display' },
+  { tag: 'SmokeSwaps', description: 'Token swap functionality' },
+  { tag: 'SmokeStake', description: 'Staking features' },
+  { tag: 'SmokeCard', description: 'Card-related features' },
+  { tag: 'SmokeNotifications', description: 'Notification system' },
+];
+
 const RegressionAccounts = (testName) =>
   `${tags.regressionAccounts} ${testName}`;
 const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
@@ -123,4 +151,5 @@ export {
   SmokeRewards,
   RegressionSampleFeature,
   tags,
+  aiE2EConfig,
 };
