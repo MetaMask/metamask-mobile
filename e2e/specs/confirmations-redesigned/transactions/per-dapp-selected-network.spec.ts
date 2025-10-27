@@ -7,6 +7,7 @@ import ConfirmationUITypes from '../../../pages/Browser/Confirmations/Confirmati
 import TestDApp from '../../../pages/Browser/TestDApp.ts';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal.ts';
 import NetworkListModal from '../../../pages/Network/NetworkListModal.ts';
+import NetworkNonPemittedBottomSheet from '../../../pages/Network/NetworkNonPemittedBottomSheet';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
 import WalletView from '../../../pages/wallet/WalletView.ts';
 import {
@@ -18,6 +19,7 @@ import { loginToApp } from '../../../viewHelper.ts';
 import { DappVariants } from '../../../framework/Constants.ts';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers.ts';
 import { Mockttp } from 'mockttp';
 
 const LOCAL_CHAIN_ID = '0x539';
@@ -46,6 +48,41 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
       mockServer,
       Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
+
+    // Mock PPOM version endpoint
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: 'https://static.metafi.codefi.network/api/v1/confirmations/ppom/ppom_version.json',
+      response: {
+        version: '0.0.126',
+        signature_version: '0.0.13815',
+      },
+      responseCode: 200,
+    });
+
+    // Mock PPOM stale endpoint for mainnet (0x1)
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: /https:\/\/static\.metafi\.codefi\.network\/api\/v1\/confirmations\/ppom\/stale\/0x1\/.*/,
+      response: {},
+      responseCode: 200,
+    });
+
+    // Mock PPOM stale_diff endpoint for mainnet (0x1)
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: /https:\/\/static\.metafi\.codefi\.network\/api\/v1\/confirmations\/ppom\/stale_diff\/0x1\/.*/,
+      response: {},
+      responseCode: 200,
+    });
+
+    // Mock PPOM config endpoint for mainnet (0x1)
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: /https:\/\/static\.metafi\.codefi\.network\/api\/v1\/confirmations\/ppom\/config\/0x1\/.*/,
+      response: {},
+      responseCode: 200,
+    });
   };
 
   // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
@@ -84,6 +121,9 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
           // Make sure the dapp is connected to the predefined network in configuration (LOCAL_CHAIN_ID)
           // by checking chainId text in the test dapp
           await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
+
+          // accept the network change
+          await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
           // Change the network to Ethereum Main Network in app
           await changeNetworkFromNetworkListModalGNSDisabled(
@@ -126,6 +166,41 @@ describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
       mockServer,
       Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
+
+    // Mock PPOM version endpoint
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: 'https://static.metafi.codefi.network/api/v1/confirmations/ppom/ppom_version.json',
+      response: {
+        version: '0.0.126',
+        signature_version: '0.0.13815',
+      },
+      responseCode: 200,
+    });
+
+    // Mock PPOM stale endpoint for mainnet (0x1)
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: /https:\/\/static\.metafi\.codefi\.network\/api\/v1\/confirmations\/ppom\/stale\/0x1\/.*/,
+      response: {},
+      responseCode: 200,
+    });
+
+    // Mock PPOM stale_diff endpoint for mainnet (0x1)
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: /https:\/\/static\.metafi\.codefi\.network\/api\/v1\/confirmations\/ppom\/stale_diff\/0x1\/.*/,
+      response: {},
+      responseCode: 200,
+    });
+
+    // Mock PPOM config endpoint for mainnet (0x1)
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: /https:\/\/static\.metafi\.codefi\.network\/api\/v1\/confirmations\/ppom\/config\/0x1\/.*/,
+      response: {},
+      responseCode: 200,
+    });
   };
 
   // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
@@ -169,6 +244,7 @@ describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
           await changeNetworkFromNetworkListModal('Ethereum Main Network');
 
           await TabBarComponent.tapBrowser();
+
           // Assert the dapp is still connected the previously selected network (LOCAL_CHAIN_ID)
           await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 

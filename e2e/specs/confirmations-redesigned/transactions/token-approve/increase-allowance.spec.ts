@@ -12,6 +12,7 @@ import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
@@ -106,7 +107,10 @@ describe(
           // Accept confirmation
           await FooterActions.tapConfirmButton();
 
-          // Check activity tab
+          // accept the network change
+          await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
+
+          // // Check activity tab
           await TabBarComponent.tapActivity();
           await Assertions.expectTextDisplayed('Increase Allowance');
           await Assertions.expectTextDisplayed('Confirmed');
