@@ -92,7 +92,7 @@ async function resolveInterstitialAction(
     return InterstitialState.ACCEPTED;
   }
 
-  return new Promise<InterstitialState>((resolve) => {
+  return new Promise<InterstitialState>(async (resolve) => {
     const [, actionName] = validatedUrl.pathname.split('/');
     const sanitizedAction = actionName?.replace(/-/g, ' ');
     const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
@@ -114,7 +114,7 @@ async function resolveInterstitialAction(
             onBack: () => resolve(InterstitialState.REJECTED),
           };
 
-    handleDeepLinkModalDisplay(modalParams, {
+    await handleDeepLinkModalDisplay(modalParams, {
       url,
       route: isSupportedAction(action)
         ? mapSupportedActionToRoute(action)

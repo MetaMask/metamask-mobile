@@ -1251,4 +1251,83 @@ describe('handleUniversalLinks', () => {
       expect(handled).toHaveBeenCalled();
     });
   });
+
+  describe('async handleDeepLinkModalDisplay behavior', () => {
+    it('waits for handleDeepLinkModalDisplay to complete before resolving interstitial action', async () => {
+      let modalDisplayComplete = false;
+      let callbackExecuted = false;
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          // Simulate async operations (like analytics tracking)
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          modalDisplayComplete = true;
+
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+            callbackExecuted = true;
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1`;
+      urlObj = {
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(modalDisplayComplete).toBe(true);
+      expect(callbackExecuted).toBe(true);
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('waits for handleDeepLinkModalDisplay to complete before handling rejection', async () => {
+      let modalDisplayComplete = false;
+      let callbackExecuted = false;
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          // Simulate async operations (like analytics tracking)
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          modalDisplayComplete = true;
+
+          if (callbackParams.linkType === 'invalid') {
+            callbackParams.onBack();
+            callbackExecuted = true;
+          }
+        },
+      );
+
+      url = 'https://invalid-domain.com/some-action';
+      urlObj = {
+        hostname: 'invalid-domain.com',
+        pathname: '/some-action',
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(modalDisplayComplete).toBe(true);
+      expect(callbackExecuted).toBe(true);
+      expect(result).toBe(false);
+      expect(handled).toHaveBeenCalled();
+    });
+  });
 });
