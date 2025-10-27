@@ -1039,8 +1039,8 @@ export class RewardsController extends BaseController<
               .split(':')[2]
               ?.toLowerCase()}` as CaipAccountId)
           : account?.startsWith('eip155')
-          ? (account.toLowerCase() as CaipAccountId)
-          : (account as CaipAccountId);
+            ? (account.toLowerCase() as CaipAccountId)
+            : (account as CaipAccountId);
 
       this.update((state: RewardsControllerState) => {
         // Create account state if it doesn't exist
@@ -1542,6 +1542,8 @@ export class RewardsController extends BaseController<
    * Estimate points for a given activity
    * @param request - The estimate points request containing activity type and context
    * @returns Promise<EstimatedPointsDto> - The estimated points and bonus information
+   * @note For PERPS activities, perpsContext can be a single position or an array for batch estimation.
+   * When an array is provided, returns aggregated points (sum) and average bonus.
    */
   async estimatePoints(
     request: EstimatePointsDto,
@@ -1612,8 +1614,8 @@ export class RewardsController extends BaseController<
           type === 'current'
             ? discoverSeasons.current
             : type === 'next'
-            ? discoverSeasons.next
-            : null;
+              ? discoverSeasons.next
+              : null;
 
         // If found with valid start date, fetch metadata and populate cache
         if (seasonInfo?.startDate) {

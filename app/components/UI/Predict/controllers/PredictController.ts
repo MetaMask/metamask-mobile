@@ -1052,15 +1052,7 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
-        transactions: [
-          {
-            params: {
-              to: signer.address as Hex,
-              value: '0x1',
-            },
-          },
-          ...transactions,
-        ],
+        transactions,
       });
 
       const predictClaim: PredictClaim = {
@@ -1326,16 +1318,7 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        transactions: [
-          // TODO: remove this dummy transaction when confirmation handling is implemented
-          {
-            params: {
-              to: signer.address as Hex,
-              value: '0x1',
-            },
-          },
-          transaction,
-        ],
+        transactions: [transaction],
       });
 
       this.update((state) => {
