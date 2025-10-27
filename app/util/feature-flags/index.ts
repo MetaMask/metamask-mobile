@@ -10,6 +10,7 @@ export interface FeatureFlagInfo {
     | 'number'
     | 'array'
     | 'boolean with minimumVersion'
+    | 'boolean nested'
     | 'object';
   description: string | undefined;
   isOverridden: boolean;
@@ -30,6 +31,8 @@ export const getFeatureFlagType = (value: any): FeatureFlagInfo['type'] => {
   ) {
     return 'boolean with minimumVersion';
   }
+  if (typeof value === 'object' && typeof value.value === 'boolean')
+    return 'boolean nested';
   if (typeof value === 'object' && value !== null) return 'object';
   return 'string';
 };
