@@ -13,7 +13,10 @@ import CreatePasswordScreen from '../../../../../wdio/screen-objects/Onboarding/
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import { login, onboardingFlowImportSRP } from '../../../../utils/Flows.js';
+import {
+  login,
+  onboardingFlowImportSRP,
+} from '../../../../utils/flows/Flows.js';
 import SendScreen from '../../../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';

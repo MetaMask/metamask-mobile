@@ -1,17 +1,21 @@
 import { test } from 'appwright';
 
-import { login } from '../../utils/Flows.js';
+import { login } from '../../utils/flows/Flows.js';
+import { launchMobileBrowser } from '../../utils/flows/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 
-test('@metamask/sdk-connect - IOSSafari test', async ({ device }) => {
+test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
   WalletMainScreen.device = device;
+
+  const isAndroid = AppwrightSelectors.isAndroid(device);
 
   await login(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
 
-  // POC using safari
-  await device.activateApp('com.apple.mobilesafari');
+  // Launch mobile browser and navigate to the dapp
+  await launchMobileBrowser(device);
 
   // Connect to the dapp
 
