@@ -131,6 +131,137 @@ const PerpsHeroCardView: React.FC = () => {
     navigation.goBack();
   };
 
+  const pnlSign = data.pnl >= 0 ? '+' : '';
+  const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
+  const directionText =
+    data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
+  const directionBadgeText = data.leverage
+    ? `${directionText} ${data.leverage}x`
+    : directionText;
+
+  const carouselCards = useMemo(
+    () =>
+      CARD_IMAGES.map(({ image, id: imageId }, index) => (
+        <View
+          key={imageId}
+          ref={(ref) => {
+            viewShotRefs.current[index] = ref;
+          }}
+          style={styles.cardContainer}
+        >
+          {/* Background Image */}
+          <Image
+            source={image}
+            style={styles.backgroundImage}
+            resizeMode="contain"
+          />
+
+          {/* Top Row: Logo + Referral Tag */}
+          <View style={styles.heroCardTopRow}>
+            <Image
+              source={MetaMaskLogo}
+              style={styles.metamaskLogo}
+              resizeMode="contain"
+            />
+            {rewardsReferralCode !== null && (
+              <RewardsReferralCodeTag
+                referralCode={rewardsReferralCode}
+                backgroundColor={darkTheme.colors.background.mutedHover}
+                fontColor={darkTheme.colors.accent04.light}
+              />
+            )}
+          </View>
+
+          {/* Asset Info Row */}
+          <View style={styles.heroCardAssetRow}>
+            <PerpsTokenLogo
+              symbol={data.asset}
+              size={14.5}
+              style={styles.assetIcon}
+            />
+            <Text variant={TextVariant.BodySMMedium} style={styles.assetName}>
+              {data.asset}
+            </Text>
+            <View style={styles.directionBadge}>
+              <Text
+                variant={TextVariant.BodyXSMedium}
+                style={styles.directionBadgeText}
+              >
+                {directionBadgeText}
+              </Text>
+            </View>
+          </View>
+
+          {/* P&L Percentage */}
+          <RNText
+            style={[
+              styles.pnlText,
+              data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
+            ]}
+          >
+            {pnlDisplay}
+          </RNText>
+
+          {/* Price Rows Container */}
+          <View style={styles.priceRowsContainer}>
+            {/* Entry Price */}
+            <View style={styles.priceRow}>
+              <Text
+                style={styles.priceLabel}
+                variant={TextVariant.BodyXSMedium}
+              >
+                {strings('perps.pnl_hero_card.entry_price')}
+              </Text>
+              <Text
+                style={styles.priceValue}
+                variant={TextVariant.BodySMMedium}
+              >
+                {formatPerpsFiat(data.entryPrice, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                })}
+              </Text>
+            </View>
+
+            {/* Mark Price */}
+            <View style={styles.priceRow}>
+              <Text
+                style={styles.priceLabel}
+                variant={TextVariant.BodyXSMedium}
+              >
+                {strings('perps.pnl_hero_card.mark_price')}
+              </Text>
+              <Text
+                style={styles.priceValue}
+                variant={TextVariant.BodySMMedium}
+              >
+                {data.markPrice}
+              </Text>
+            </View>
+          </View>
+
+          {/* Bottom Row: QR Code */}
+          {rewardsReferralCode !== null && (
+            <View style={styles.qrCodeContainer}>
+              <RewardsReferralQRCode
+                referralCode={rewardsReferralCode}
+                size={100}
+              />
+            </View>
+          )}
+        </View>
+      )),
+    [
+      styles,
+      rewardsReferralCode,
+      data.asset,
+      data.roe,
+      data.entryPrice,
+      data.markPrice,
+      directionBadgeText,
+      pnlDisplay,
+    ],
+  );
+
   const captureCard = async (): Promise<string | null> => {
     try {
       const currentRef = viewShotRefs.current[currentTab];
@@ -150,14 +281,6 @@ const PerpsHeroCardView: React.FC = () => {
       return null;
     }
   };
-
-  const pnlSign = data.pnl >= 0 ? '+' : '';
-  const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
-  const directionText =
-    data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
-  const directionBadgeText = data.leverage
-    ? `${directionText} ${data.leverage}x`
-    : directionText;
 
   const handleShare = async () => {
     setIsSharing(true);
@@ -263,118 +386,7 @@ const PerpsHeroCardView: React.FC = () => {
             initialPage={0}
             prerenderingSiblingsNumber={1}
           >
-            {CARD_IMAGES.map(({ image, id: imageId }, index) => (
-              <View
-                key={imageId}
-                ref={(ref) => {
-                  viewShotRefs.current[index] = ref;
-                }}
-                style={styles.cardContainer}
-              >
-                {/* Background Image */}
-                <Image
-                  source={image}
-                  style={styles.backgroundImage}
-                  resizeMode="contain"
-                />
-
-                {/* Top Row: Logo + Referral Tag */}
-                <View style={styles.heroCardTopRow}>
-                  <Image
-                    source={MetaMaskLogo}
-                    style={styles.metamaskLogo}
-                    resizeMode="contain"
-                  />
-                  {rewardsReferralCode !== null && (
-                    <RewardsReferralCodeTag
-                      referralCode={rewardsReferralCode}
-                      backgroundColor={darkTheme.colors.background.mutedHover}
-                      fontColor={darkTheme.colors.accent04.light}
-                    />
-                  )}
-                </View>
-
-                {/* Asset Info Row */}
-                <View style={styles.heroCardAssetRow}>
-                  <PerpsTokenLogo
-                    symbol={data.asset}
-                    size={14.5}
-                    style={styles.assetIcon}
-                  />
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    style={styles.assetName}
-                  >
-                    {data.asset}
-                  </Text>
-                  <View style={styles.directionBadge}>
-                    <Text
-                      variant={TextVariant.BodyXSMedium}
-                      style={styles.directionBadgeText}
-                    >
-                      {directionBadgeText}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* P&L Percentage */}
-                <RNText
-                  style={[
-                    styles.pnlText,
-                    data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
-                  ]}
-                >
-                  {pnlDisplay}
-                </RNText>
-
-                {/* Price Rows Container */}
-                <View style={styles.priceRowsContainer}>
-                  {/* Entry Price */}
-                  <View style={styles.priceRow}>
-                    <Text
-                      style={styles.priceLabel}
-                      variant={TextVariant.BodyXSMedium}
-                    >
-                      {strings('perps.pnl_hero_card.entry_price')}
-                    </Text>
-                    <Text
-                      style={styles.priceValue}
-                      variant={TextVariant.BodySMMedium}
-                    >
-                      {formatPerpsFiat(data.entryPrice, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      })}
-                    </Text>
-                  </View>
-
-                  {/* Mark Price */}
-                  <View style={styles.priceRow}>
-                    <Text
-                      style={styles.priceLabel}
-                      variant={TextVariant.BodyXSMedium}
-                    >
-                      {strings('perps.pnl_hero_card.mark_price')}
-                    </Text>
-                    <Text
-                      style={styles.priceValue}
-                      variant={TextVariant.BodySMMedium}
-                    >
-                      {data.markPrice}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Bottom Row: QR Code */}
-                {rewardsReferralCode !== null && (
-                  <View style={styles.qrCodeContainer}>
-                    <RewardsReferralQRCode
-                      referralCode={rewardsReferralCode}
-                      size={100}
-                    />
-                  </View>
-                )}
-              </View>
-            ))}
+            {carouselCards}
           </ScrollableTabView>
         </View>
 

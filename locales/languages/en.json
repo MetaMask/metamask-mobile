@@ -1702,7 +1702,7 @@
       "entry_price": "Entry",
       "mark_price": "Mark",
       "share_button": "Share",
-      "share_message": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
+      "share_message": "Trade {{asset}}-USD perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
       "referral_link": "link.metamask.io/rewards/referrals={{code}}",
       "share_failed": "Failed to share card",
       "export_success": "Card exported successfully"
