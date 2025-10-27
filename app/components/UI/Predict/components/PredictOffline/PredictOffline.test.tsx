@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import PredictErrorState from './PredictErrorState';
+import PredictOffline from './PredictOffline';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 // Mock dependencies
@@ -117,10 +117,10 @@ jest.mock('../../../../../component-library/hooks', () => ({
   })),
 }));
 
-describe('PredictErrorState', () => {
+describe('PredictOffline', () => {
   describe('Component Rendering', () => {
     it('renders the error state with default message', () => {
-      renderWithProvider(<PredictErrorState />);
+      renderWithProvider(<PredictOffline />);
 
       expect(
         screen.getByText('Unable to connect to predictions'),
@@ -134,13 +134,13 @@ describe('PredictErrorState', () => {
     });
 
     it('renders with custom test ID', () => {
-      renderWithProvider(<PredictErrorState testID="custom-error-state" />);
+      renderWithProvider(<PredictOffline testID="custom-error-state" />);
 
       expect(screen.getByTestId('custom-error-state')).toBeOnTheScreen();
     });
 
     it('renders with default test ID when not provided', () => {
-      renderWithProvider(<PredictErrorState />);
+      renderWithProvider(<PredictOffline />);
 
       expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
     });
@@ -148,7 +148,7 @@ describe('PredictErrorState', () => {
 
   describe('Message Display', () => {
     it('displays error description', () => {
-      renderWithProvider(<PredictErrorState />);
+      renderWithProvider(<PredictOffline />);
 
       expect(
         screen.getByText(
@@ -158,7 +158,7 @@ describe('PredictErrorState', () => {
     });
 
     it('displays error title', () => {
-      renderWithProvider(<PredictErrorState />);
+      renderWithProvider(<PredictOffline />);
 
       expect(
         screen.getByText('Unable to connect to predictions'),
@@ -170,7 +170,7 @@ describe('PredictErrorState', () => {
     it('renders retry button when onRetry callback is provided', () => {
       const onRetry = jest.fn();
 
-      renderWithProvider(<PredictErrorState onRetry={onRetry} />);
+      renderWithProvider(<PredictOffline onRetry={onRetry} />);
 
       expect(screen.getByText('Retry')).toBeOnTheScreen();
     });
@@ -178,7 +178,7 @@ describe('PredictErrorState', () => {
     it('calls onRetry callback when retry button is pressed', () => {
       const onRetry = jest.fn();
 
-      renderWithProvider(<PredictErrorState onRetry={onRetry} />);
+      renderWithProvider(<PredictOffline onRetry={onRetry} />);
 
       const retryButton = screen.getByText('Retry');
       fireEvent.press(retryButton);
@@ -187,7 +187,7 @@ describe('PredictErrorState', () => {
     });
 
     it('does not render retry button when onRetry callback is not provided', () => {
-      renderWithProvider(<PredictErrorState />);
+      renderWithProvider(<PredictOffline />);
 
       expect(screen.queryByText('Retry')).not.toBeOnTheScreen();
     });
@@ -195,7 +195,7 @@ describe('PredictErrorState', () => {
 
   describe('Icon Display', () => {
     it('displays warning icon', () => {
-      renderWithProvider(<PredictErrorState />);
+      renderWithProvider(<PredictOffline />);
 
       const icon = screen.getByTestId('icon');
 
@@ -205,7 +205,7 @@ describe('PredictErrorState', () => {
 
   describe('Edge Cases', () => {
     it('renders without retry button when onRetry is undefined', () => {
-      renderWithProvider(<PredictErrorState onRetry={undefined} />);
+      renderWithProvider(<PredictOffline onRetry={undefined} />);
 
       expect(screen.queryByText('Retry')).not.toBeOnTheScreen();
     });
@@ -216,7 +216,7 @@ describe('PredictErrorState', () => {
       const onRetry = jest.fn();
 
       renderWithProvider(
-        <PredictErrorState onRetry={onRetry} testID="network-error" />,
+        <PredictOffline onRetry={onRetry} testID="network-error" />,
       );
 
       expect(screen.getByTestId('network-error')).toBeOnTheScreen();

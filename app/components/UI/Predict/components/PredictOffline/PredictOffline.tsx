@@ -11,9 +11,9 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import styleSheet from './PredictErrorState.styles';
+import styleSheet from './PredictOffline.styles';
 
-interface PredictErrorStateProps {
+interface PredictOfflineProps {
   /**
    * Optional callback when retry button is pressed
    */
@@ -24,7 +24,7 @@ interface PredictErrorStateProps {
   testID?: string;
 }
 
-const PredictErrorState: React.FC<PredictErrorStateProps> = ({
+const PredictOffline: React.FC<PredictOfflineProps> = ({
   onRetry,
   testID = 'predict-error-state',
 }) => {
@@ -65,4 +65,4 @@ const PredictErrorState: React.FC<PredictErrorStateProps> = ({
   );
 };
 
-export default PredictErrorState;
+export default PredictOffline;

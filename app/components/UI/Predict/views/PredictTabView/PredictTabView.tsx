@@ -8,7 +8,7 @@ import PredictPositions, {
   PredictPositionsHandle,
 } from '../../components/PredictPositions/PredictPositions';
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
-import PredictErrorState from '../../components/PredictErrorState';
+import PredictOffline from '../../components/PredictOffline/PredictOffline';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
@@ -57,7 +57,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   return (
     <View style={tw.style('flex-1 bg-default')}>
       {hasError ? (
-        <PredictErrorState onRetry={handleRefresh} />
+        <PredictOffline onRetry={handleRefresh} />
       ) : (
         <ScrollView
           testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
