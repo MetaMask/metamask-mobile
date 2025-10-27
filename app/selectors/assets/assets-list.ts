@@ -16,7 +16,10 @@ import { formatWithThreshold } from '../../util/assets';
 import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { selectTokenSortConfig } from '../preferencesController';
-import { createDeepEqualSelector } from '../util';
+import {
+  createDeepEqualSelector,
+  createDeepEqualOutputSelector,
+} from '../util';
 import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
 import {
   selectCurrencyRates,
@@ -180,76 +183,77 @@ const selectEnabledNetworks = createDeepEqualSelector(
     ),
 );
 
-export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    selectEnabledNetworks,
-    selectTokenSortConfig,
-    selectStakedAssets,
-  ],
-  (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
-    const assets = Object.entries(bip44Assets)
-      .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets)
-      .filter((asset) => {
-        // We need to filter out Tron energy and bandwidth from this list
-        if (
-          asset.chainId?.includes('tron:') &&
-          (asset.name === 'Energy' || asset.name === 'Bandwidth')
-        ) {
-          return false;
-        }
-        return true;
-      });
+export const selectSortedAssetsBySelectedAccountGroup =
+  createDeepEqualOutputSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      selectEnabledNetworks,
+      selectTokenSortConfig,
+      selectStakedAssets,
+    ],
+    (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
+      const assets = Object.entries(bip44Assets)
+        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
+        .flatMap(([_, chainAssets]) => chainAssets)
+        .filter((asset) => {
+          // We need to filter out Tron energy and bandwidth from this list
+          if (
+            asset.chainId?.includes('tron:') &&
+            (asset.name === 'Energy' || asset.name === 'Bandwidth')
+          ) {
+            return false;
+          }
+          return true;
+        });
 
-    const stakedAssetsArray = [];
-    for (const asset of assets) {
-      if (asset.isNative) {
-        const stakedAsset = stakedAssets.find(
-          (item) =>
-            item.chainId === asset.chainId &&
-            item.accountId === asset.accountId,
-        );
-        if (stakedAsset) {
-          stakedAssetsArray.push({
-            ...stakedAsset.stakedAsset,
-          } as Asset);
+      const stakedAssetsArray = [];
+      for (const asset of assets) {
+        if (asset.isNative) {
+          const stakedAsset = stakedAssets.find(
+            (item) =>
+              item.chainId === asset.chainId &&
+              item.accountId === asset.accountId,
+          );
+          if (stakedAsset) {
+            stakedAssetsArray.push({
+              ...stakedAsset.stakedAsset,
+            } as Asset);
+          }
         }
       }
-    }
 
-    assets.push(...stakedAssetsArray);
+      assets.push(...stakedAssetsArray);
 
-    // Current sorting options
-    // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
-    // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
-    const tokensSorted = sortAssets(
-      assets.map((asset) => ({
-        ...asset,
-        tokenFiatAmount: asset.fiat?.balance.toString(),
-      })),
-      tokenSortConfig,
-    );
+      // Current sorting options
+      // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
+      // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
+      const tokensSorted = sortAssets(
+        assets.map((asset) => ({
+          ...asset,
+          tokenFiatAmount: asset.fiat?.balance.toString(),
+        })),
+        tokenSortConfig,
+      );
 
-    // Remove duplicates by creating a unique key for deduplication
-    const uniqueTokensMap = new Map();
+      // Remove duplicates by creating a unique key for deduplication
+      const uniqueTokensMap = new Map();
 
-    tokensSorted.forEach(
-      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-        const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
-        if (!uniqueTokensMap.has(uniqueKey)) {
-          uniqueTokensMap.set(uniqueKey, {
-            address: assetId || '',
-            chainId: chainId?.toString() || '',
-            isStaked: Boolean(isStaked),
-          });
-        }
-      },
-    );
+      tokensSorted.forEach(
+        ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
+          const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
+          if (!uniqueTokensMap.has(uniqueKey)) {
+            uniqueTokensMap.set(uniqueKey, {
+              address: assetId || '',
+              chainId: chainId?.toString() || '',
+              isStaked: Boolean(isStaked),
+            });
+          }
+        },
+      );
 
-    return Array.from(uniqueTokensMap.values());
-  },
-);
+      return Array.from(uniqueTokensMap.values());
+    },
+  );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(
