@@ -50,7 +50,7 @@ const ConfirmEmail = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(60);
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -300,7 +300,7 @@ const ConfirmEmail = () => {
             !selectedCountry ||
             emailVerificationIsLoading
           }
-          testID="resend-verification-text"
+          testID="confirm-email-resend-verification"
         >
           {resendCooldown > 0
             ? strings('card.card_onboarding.confirm_email.resend_cooldown', {

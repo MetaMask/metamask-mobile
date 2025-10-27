@@ -68,6 +68,7 @@ const ConfirmPhoneNumber = () => {
   const inputRef = useRef<TextInput>(null);
   const [resendCooldown, setResendCooldown] = useState(60);
   const [confirmCode, setConfirmCode] = useState('');
+  const resendInProgressRef = useRef(false);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
@@ -123,7 +124,7 @@ const ConfirmPhoneNumber = () => {
       });
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS);
+        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
       }
     } catch (error) {
       if (
@@ -168,11 +169,19 @@ const ConfirmPhoneNumber = () => {
       resendCooldown > 0 ||
       !phoneNumber ||
       !phoneCountryCode ||
-      !contactVerificationId
+      !contactVerificationId ||
+      phoneVerificationIsLoading
     ) {
       return;
     }
+    if (resendInProgressRef.current) {
+      return;
+    }
     try {
+      resendInProgressRef.current = true;
+      // Set cooldown immediately to guard against rapid multi-presses
+      setResendCooldown(60);
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
           .addProperties({
@@ -186,15 +195,17 @@ const ConfirmPhoneNumber = () => {
         phoneNumber,
         contactVerificationId,
       });
-      setResendCooldown(60);
     } catch {
       // Allow error message to display
+    } finally {
+      resendInProgressRef.current = false;
     }
   }, [
     resendCooldown,
     phoneNumber,
     phoneCountryCode,
     contactVerificationId,
+    phoneVerificationIsLoading,
     sendPhoneVerification,
     trackEvent,
     createEventBuilder,
