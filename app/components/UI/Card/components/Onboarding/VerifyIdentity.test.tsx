@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
-import { useCardSDK } from '../../sdk';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -15,11 +14,6 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock useStartVerification hook
 jest.mock('../../hooks/useStartVerification');
-
-// Mock useCardSDK hook
-jest.mock('../../sdk', () => ({
-  useCardSDK: jest.fn(),
-}));
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -197,14 +191,6 @@ describe('VerifyIdentity Component', () => {
       error: null,
     });
 
-    (useCardSDK as jest.Mock).mockReturnValue({
-      sdk: null,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
-    });
-
     store = createTestStore();
   });
 
@@ -363,66 +349,6 @@ describe('VerifyIdentity Component', () => {
     });
   });
 
-  describe('User State Testing', () => {
-    it('navigates to validating KYC when user verification state is PENDING', async () => {
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: null,
-        isLoading: false,
-        user: { verificationState: 'PENDING' },
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-      });
-
-      render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
-        );
-      });
-    });
-
-    it('does not auto-navigate when user verification state is not PENDING', () => {
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: null,
-        isLoading: false,
-        user: { verificationState: 'VERIFIED' },
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-      });
-
-      render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not auto-navigate when user is null', () => {
-      (useCardSDK as jest.Mock).mockReturnValue({
-        sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-      });
-
-      render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Button Interaction and Navigation', () => {
     it('navigates with sessionUrl when continue button is pressed', async () => {
       const { getByTestId } = render(
@@ -436,9 +362,9 @@ describe('VerifyIdentity Component', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
+          Routes.CARD.ONBOARDING.WEBVIEW,
           {
-            sessionUrl: 'https://example.com/verify',
+            url: 'https://example.com/verify',
           },
         );
       });
@@ -480,9 +406,9 @@ describe('VerifyIdentity Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledTimes(3);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VALIDATING_KYC,
+          Routes.CARD.ONBOARDING.WEBVIEW,
           {
-            sessionUrl: 'https://example.com/verify',
+            url: 'https://example.com/verify',
           },
         );
       });

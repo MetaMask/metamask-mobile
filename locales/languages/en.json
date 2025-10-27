@@ -1,4 +1,4 @@
-{  
+{
   "sample_feature": {
     "title": "Sample Feature",
     "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
@@ -6004,7 +6004,7 @@
       },
       "set_phone_number": {
         "title": "Phone number",
-        "description": "We'll send your confirmation code to this number.",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Phone number",
         "phone_number_placeholder": "Enter your phone number",
         "country_area_code_label": "Country area code",

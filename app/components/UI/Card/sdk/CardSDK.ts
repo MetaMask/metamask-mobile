@@ -1553,6 +1553,7 @@ export class CardSDK {
           body: JSON.stringify(request),
           headers: {
             'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
           },
         },
         false, // not authenticated
@@ -1617,6 +1618,7 @@ export class CardSDK {
           body: JSON.stringify(request),
           headers: {
             'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
           },
         },
         false, // not authenticated
