@@ -32,6 +32,9 @@ export const PredictEventProperties = {
 
   // Position specific
   OPEN_POSITIONS_COUNT: 'open_positions_count',
+
+  // Activity specific
+  ACTIVITY_TYPE: 'activity_type',
 } as const;
 
 /**
@@ -52,6 +55,12 @@ export const PredictEventValues = {
     ABOUT: 'about',
     POSITIONS: 'positions',
     OUTCOMES: 'outcomes',
+  },
+  ACTIVITY_TYPE: {
+    ACTIVITY_LIST: 'activity_list',
+    PREDICTED: 'predicted',
+    CASHED_OUT: 'cashed_out',
+    CLAIMED: 'claimed',
   },
 } as const;
 

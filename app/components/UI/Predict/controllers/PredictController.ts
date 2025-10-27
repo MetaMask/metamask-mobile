@@ -886,6 +886,28 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * Track Predict Activity Viewed event
+   * @public
+   */
+  public trackActivityViewed({ activityType }: { activityType: string }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.ACTIVITY_TYPE]: activityType,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_ACTIVITY_VIEWED', {
+      analyticsProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.providers.get(params.providerId);

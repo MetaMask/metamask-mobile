@@ -362,6 +362,7 @@ const ActivityView = () => {
           {isPredictEnabled && (
             <PredictTransactionsView
               tabLabel={strings('predict.transactions.title')}
+              isVisible={isPredictTabActive}
             />
           )}
         </ScrollableTabView>
