@@ -11,7 +11,8 @@ import { PredictEventValues } from '../constants/eventNames';
 export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.PREDICT_FEED
   | typeof PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS
-  | typeof PredictEventValues.ENTRY_POINT.SEARCH;
+  | typeof PredictEventValues.ENTRY_POINT.SEARCH
+  | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS;
 
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
