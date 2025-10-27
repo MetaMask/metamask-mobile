@@ -25,9 +25,6 @@ const createStyles = (colors: Colors) =>
     emptyTokensViewText: {
       fontFamily: 'Geist Medium',
     },
-    badge: {
-      marginTop: 8,
-    },
     balances: {
       flex: 1,
       justifyContent: 'center',
@@ -116,6 +113,9 @@ const createStyles = (colors: Colors) =>
     networkImageContainer: {
       position: 'absolute',
       right: 0,
+    },
+    badge: {
+      marginTop: 8,
     },
   });
 
