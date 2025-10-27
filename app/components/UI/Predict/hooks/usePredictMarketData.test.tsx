@@ -134,6 +134,10 @@ describe('usePredictMarketData', () => {
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it.skip('should fetch market data successfully', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 

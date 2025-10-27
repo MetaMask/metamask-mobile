@@ -101,7 +101,7 @@ describe('getErrorMessage', () => {
         description: 'invalid email format message',
       },
       {
-        errorMessage: 'Invalid verification code',
+        errorMessage: 'no valid verification code',
         expectedStringKey:
           'card.card_onboarding.errors.invalid_verification_code',
         description: 'invalid verification code message',

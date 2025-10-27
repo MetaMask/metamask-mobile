@@ -149,6 +149,10 @@ describe('safe utils', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('computeProxyAddress', () => {
     it('computes proxy address from signer address', () => {
       const signer = buildSigner();
