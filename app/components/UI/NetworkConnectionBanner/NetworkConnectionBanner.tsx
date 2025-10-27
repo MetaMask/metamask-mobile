@@ -114,9 +114,19 @@ const UpdateRpcButton = ({
   return (
     <Pressable
       accessibilityRole="button"
-      style={({ pressed }) => [
-        tw`flex-row items-center ${pressed ? 'bg-pressed' : 'bg-transparent'}`,
-      ]}
+      style={({ pressed }) =>
+        tw.style(
+          'flex-row items-center',
+          pressed ? 'bg-pressed' : 'bg-transparent',
+          // Not sure why there are differences between platforms here, and
+          // why the spacing changes when other text around the button is
+          // present.
+          !isOnlyChild &&
+            (Platform.OS === 'ios'
+              ? 'translate-y-[12px]'
+              : 'translate-y-[6px]'),
+        )
+      }
       onPress={updateRpc}
     >
       {({ pressed }) => (
@@ -124,15 +134,7 @@ const UpdateRpcButton = ({
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           style={tw.style(
-            // Not sure why there are differences between platforms here, and
-            // why the spacing changes when other text around the button is
-            // present.
-            isOnlyChild
-              ? undefined
-              : Platform.OS === 'ios'
-              ? 'translate-y-[12px]'
-              : 'translate-y-[6px]',
-            'vertical-align-middle',
+            'inline-block vertical-align-middle',
             pressed
               ? 'text-primary-default-pressed underline'
               : 'text-primary-default no-underline',
