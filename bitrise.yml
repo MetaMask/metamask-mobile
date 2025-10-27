@@ -3436,15 +3436,6 @@ workflows:
       - COMMAND_YARN: 'build:ios:main:dev'
     after_run:
       - _ios_build_template
-  build_ios_main_dev_nightly:
-    envs:
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: 'MetaMask'
-      - INFO_PLIST_NAME: 'Info.plist'
-      - COMMAND_YARN: 'build:ios:main:dev'
-    after_run:
-      - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_simbuild:
     envs:
