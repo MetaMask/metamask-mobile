@@ -7,6 +7,10 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import {
+  isNftFetchingProgressSelector,
+  multichainCollectiblesByEnabledNetworksSelector,
+} from '../../../reducers/collectibles';
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
@@ -430,9 +434,15 @@ describe('NftGrid', () => {
 
   it('navigates to AddAsset when add collectible button is pressed', async () => {
     const mockCollectibles = { '0x1': [mockNft] };
-    mockUseSelector
-      .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === isNftFetchingProgressSelector) {
+        return false;
+      }
+      if (selector === multichainCollectiblesByEnabledNetworksSelector) {
+        return mockCollectibles;
+      }
+      return {};
+    });
     const store = mockStore(initialState);
 
     const { getByTestId } = render(
@@ -445,10 +455,8 @@ describe('NftGrid', () => {
       jest.advanceTimersByTime(100);
     });
 
-    await waitFor(() => {
-      const addButton = getByTestId('import-token-button');
-      fireEvent.press(addButton);
-    });
+    const addButton = getByTestId('import-token-button');
+    fireEvent.press(addButton);
 
     expect(mockPush).toHaveBeenCalledWith('AddAsset', {
       assetType: 'collectible',

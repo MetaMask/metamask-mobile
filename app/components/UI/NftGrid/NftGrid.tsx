@@ -222,6 +222,7 @@ const NftGrid = ({
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllNfts}
             isFullWidth
+            testID="view-all-nfts-button"
           >
             {strings('wallet.view_all_nfts')}
           </Button>

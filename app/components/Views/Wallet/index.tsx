@@ -16,7 +16,6 @@ import {
   View,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import {
   TabsList,
