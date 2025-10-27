@@ -13,6 +13,7 @@ import TextComponent, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
+import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem, TokenListItemBip44 } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
@@ -134,6 +135,7 @@ const TokenListComponent = ({
           return `${item.address}-${item.chainId}-${staked}-${idx}`;
         }}
         decelerationRate="fast"
+        ListFooterComponent={<TokenListFooter />}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}

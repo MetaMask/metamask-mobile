@@ -3,10 +3,13 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { Box } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import Tokens from '../index';
+import HeaderBase from '../../../component-library/components/HeaderBase';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../locales/i18n';
+import Tokens from '../../UI/Tokens';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -26,12 +29,19 @@ const TokensFullView = () => {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
-      <Box twClassName="flex-1 bg-default">
-        <BottomSheetHeader onBack={handleBackPress}>
-          {strings('wallet.tokens')}
-        </BottomSheetHeader>
-        <Tokens isFullView />
-      </Box>
+      <HeaderBase
+        startAccessory={
+          <ButtonIcon
+            size={ButtonIconSizes.Lg}
+            onPress={handleBackPress}
+            iconName={IconName.ArrowLeft}
+          />
+        }
+        includesTopInset
+      >
+        {strings('wallet.tokens')}
+      </HeaderBase>
+      <Tokens isFullView />
     </SafeAreaView>
   );
 };

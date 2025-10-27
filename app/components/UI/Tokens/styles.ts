@@ -117,6 +117,20 @@ const createStyles = (colors: Colors) =>
       position: 'absolute',
       right: 0,
     },
+
+    // TokenListFooter Styles
+    buy: {
+      alignItems: 'center',
+      marginVertical: 5,
+      marginHorizontal: 15,
+    },
+    buyTitle: {
+      marginVertical: 5,
+      textAlign: 'center',
+    },
+    buyButton: {
+      marginVertical: 5,
+    },
   });
 
 export default createStyles;

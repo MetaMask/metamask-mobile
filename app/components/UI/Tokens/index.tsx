@@ -39,7 +39,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
-  TokensFullView: undefined;
   [key: string]: undefined | object;
 }
 
@@ -284,9 +283,8 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
                 isFullView
                   ? {
                       contentContainerStyle: tw`px-4`,
-                      scrollEnabled: true,
                     }
-                  : { scrollEnabled: true }
+                  : undefined
               }
             />
           )}
@@ -298,14 +296,6 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           setShowScamWarningModal={setShowScamWarningModal}
         />
       )}
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
-      />
       <ActionSheet
         ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}
