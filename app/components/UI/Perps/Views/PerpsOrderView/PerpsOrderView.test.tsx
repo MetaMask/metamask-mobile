@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
@@ -2646,10 +2646,6 @@ describe('PerpsOrderView', () => {
       // Scenario: User has saved config at 5x, but existing position at 10x
       // Expected: Form should initialize with 10x (not 5x)
 
-      interface SubscribeParams {
-        callback: (positions: MockPosition[]) => void;
-      }
-
       // Create a custom test wrapper with position data
       const TestWrapperWithPositionsAndConfig = ({
         children,
@@ -2758,13 +2754,7 @@ describe('PerpsOrderView', () => {
 
       // Create a component that exposes the tooltip close handler
       const TestComponent = () => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const [selectedTooltip, setSelectedTooltip] = useState<string | null>(
-          'points',
-        );
-
         const handleTooltipClose = useCallback(() => {
-          setSelectedTooltip(null);
           mockSetSelectedTooltip(null);
         }, []);
 
