@@ -92,7 +92,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const insets = useSafeAreaInsets();
 
-  const { marketId } = route.params || {};
+  const { marketId, entryPoint } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
@@ -321,11 +321,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         marketId: market.id,
         marketTitle: market.title,
         marketCategory: market.categories?.[0],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+        entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
       });
     },
-    [market],
+    [market, entryPoint],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];

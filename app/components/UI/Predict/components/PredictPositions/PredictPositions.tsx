@@ -16,6 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictNewButton from '../PredictNewButton';
 import PredictPosition from '../PredictPosition/PredictPosition';
 import PredictPositionEmpty from '../PredictPositionEmpty';
@@ -63,6 +64,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
               headerShown: false,
             },
           });
@@ -81,6 +83,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
               headerShown: false,
             },
           });
