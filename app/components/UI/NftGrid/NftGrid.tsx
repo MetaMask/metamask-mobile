@@ -168,7 +168,7 @@ const NftGrid = ({
   }, [isFullView, defaultFullViewProps, flashListProps]);
 
   return (
-    <Box testID="nft-grid">
+    <>
       <BaseControlBar
         networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
         useEvmSelectionLogic={false}
@@ -227,7 +227,7 @@ const NftGrid = ({
           </Button>
         </Box>
       )}
-    </Box>
+    </>
   );
 };
 
