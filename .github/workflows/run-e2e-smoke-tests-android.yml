@@ -143,7 +143,6 @@ jobs:
       - wallet-platform-android-smoke
       - identity-android-smoke
       - accounts-android-smoke
-      - prediction-market-android-smoke
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
       - confirmations-redesigned-android-smoke

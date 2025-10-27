@@ -144,7 +144,6 @@ jobs:
       - wallet-platform-ios-smoke
       - identity-ios-smoke
       - accounts-ios-smoke
-      - prediction-market-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
 
