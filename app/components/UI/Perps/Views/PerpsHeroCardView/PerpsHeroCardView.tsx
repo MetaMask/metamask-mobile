@@ -55,6 +55,8 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { buildReferralUrl } from '../../../Rewards/utils';
+import { usePerpsToasts } from '../../hooks';
+import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
 
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
@@ -85,6 +87,8 @@ const PerpsHeroCardView: React.FC = () => {
   const rewardsReferralCode = useSelector(selectReferralCode);
 
   const { track } = usePerpsEventTracking();
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const data = useMemo(() => {
     const isLong = Number.parseFloat(position.size) >= 0;
@@ -171,6 +175,8 @@ const PerpsHeroCardView: React.FC = () => {
       [PerpsEventProperties.TAB_NUMBER]: currentTab,
     };
 
+    let result: ShareOpenResult | null = null;
+
     try {
       const imageUri = await captureCard();
       if (imageUri) {
@@ -179,9 +185,9 @@ const PerpsHeroCardView: React.FC = () => {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
         });
 
-        const result = await Share.open({
+        result = await Share.open({
+          failOnCancel: false,
           url: imageUri,
-          // message: strings('perps.pnl_hero_card.header_title'),
           message: strings('perps.pnl_hero_card.share_message', {
             asset: data.asset,
             code: rewardsReferralCode,
@@ -192,21 +198,29 @@ const PerpsHeroCardView: React.FC = () => {
           // File mime type (required for sharing file with Instagram)
           type: 'image/png',
         });
-        track(MetaMetricsEvents.SHARE_ACTION, {
-          ...sharedEventProperties,
-          [PerpsEventProperties.STATUS]: result?.success
-            ? PerpsEventValues.STATUS.COMPLETED
-            : PerpsEventValues.STATUS.FAILED,
-        });
+
+        if (result?.success) {
+          track(MetaMetricsEvents.SHARE_ACTION, {
+            ...sharedEventProperties,
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUCCESS,
+          });
+          showToast(PerpsToastOptions.contentSharing.pnlHeroCard.shareSuccess);
+        }
       }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
+
       track(MetaMetricsEvents.SHARE_ACTION, {
         ...sharedEventProperties,
-        [PerpsEventProperties.ASSET]: PerpsEventValues.STATUS.FAILED,
+        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
         [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
       });
+
+      // Don't show error toast if user dismissed the share dialog
+      if (!result?.success && !result?.dismissedAction) {
+        showToast(PerpsToastOptions.contentSharing.pnlHeroCard.shareFailed);
+      }
 
       Logger.error(error as Error, {
         message: 'Error sharing Perps Hero Card',
@@ -218,7 +232,7 @@ const PerpsHeroCardView: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeAreaContainer} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.closeButton} />
@@ -239,136 +253,135 @@ const PerpsHeroCardView: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.contentContainer}>
+      <View style={styles.carouselWrapper}>
         {/* Carousel */}
         {/* ScrollableTabView fills empty space by default, we need to constrain it  */}
-        <View style={styles.carouselInnerContainer}>
+        <View style={styles.carousel}>
           <ScrollableTabView
             renderTabBar={() => <View />}
             onChangeTab={handleTabChange}
             initialPage={0}
             prerenderingSiblingsNumber={1}
           >
-            {CARD_IMAGES.map(({ image }, index) => (
-              <View key={index} style={styles.cardWrapper}>
-                <View
-                  ref={(ref) => {
-                    viewShotRefs.current[index] = ref;
-                  }}
-                  style={styles.cardContainer}
-                >
-                  {/* Background Image */}
+            {CARD_IMAGES.map(({ image, id: imageId }, index) => (
+              <View
+                key={imageId}
+                ref={(ref) => {
+                  viewShotRefs.current[index] = ref;
+                }}
+                style={styles.cardContainer}
+              >
+                {/* Background Image */}
+                <Image
+                  source={image}
+                  style={styles.backgroundImage}
+                  resizeMode="contain"
+                />
+
+                {/* Top Row: Logo + Referral Tag */}
+                <View style={styles.heroCardTopRow}>
                   <Image
-                    source={image}
-                    style={styles.backgroundImage}
+                    source={MetaMaskLogo}
+                    style={styles.metamaskLogo}
                     resizeMode="contain"
                   />
-
-                  {/* Top Row: Logo + Referral Tag */}
-                  <View style={styles.topRow}>
-                    <Image
-                      source={MetaMaskLogo}
-                      style={styles.logo}
-                      resizeMode="contain"
-                    />
-                    {rewardsReferralCode !== null && (
-                      <RewardsReferralCodeTag
-                        referralCode={rewardsReferralCode}
-                        backgroundColor={darkTheme.colors.background.mutedHover}
-                        fontColor={darkTheme.colors.accent04.light}
-                      />
-                    )}
-                  </View>
-
-                  {/* Asset Info Row */}
-                  <View style={styles.assetRow}>
-                    <PerpsTokenLogo
-                      symbol={data.asset}
-                      size={14.5}
-                      style={styles.assetIcon}
-                    />
-                    <Text
-                      variant={TextVariant.BodySMMedium}
-                      style={styles.assetName}
-                    >
-                      {data.asset}
-                    </Text>
-                    <View style={styles.directionBadge}>
-                      <Text
-                        variant={TextVariant.BodyXSMedium}
-                        style={styles.directionBadgeText}
-                      >
-                        {directionBadgeText}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* P&L Percentage */}
-                  <RNText
-                    style={[
-                      styles.pnlText,
-                      data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
-                    ]}
-                  >
-                    {pnlDisplay}
-                  </RNText>
-
-                  {/* Price Rows Container */}
-                  <View style={styles.priceRowsContainer}>
-                    {/* Entry Price */}
-                    <View style={styles.priceRow}>
-                      <Text
-                        style={styles.priceLabel}
-                        variant={TextVariant.BodyXSMedium}
-                      >
-                        {strings('perps.pnl_hero_card.entry_price')}
-                      </Text>
-                      <Text
-                        style={styles.priceValue}
-                        variant={TextVariant.BodySMMedium}
-                      >
-                        {formatPerpsFiat(data.entryPrice, {
-                          ranges: PRICE_RANGES_MINIMAL_VIEW,
-                        })}
-                      </Text>
-                    </View>
-
-                    {/* Mark Price */}
-                    <View style={styles.priceRow}>
-                      <Text
-                        style={styles.priceLabel}
-                        variant={TextVariant.BodyXSMedium}
-                      >
-                        {strings('perps.pnl_hero_card.mark_price')}
-                      </Text>
-                      <Text
-                        style={styles.priceValue}
-                        variant={TextVariant.BodySMMedium}
-                      >
-                        {data.markPrice}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Bottom Row: QR Code */}
                   {rewardsReferralCode !== null && (
-                    <View style={styles.qrCodeContainer}>
-                      <RewardsReferralQRCode
-                        referralCode={rewardsReferralCode}
-                        size={100}
-                      />
-                    </View>
+                    <RewardsReferralCodeTag
+                      referralCode={rewardsReferralCode}
+                      backgroundColor={darkTheme.colors.background.mutedHover}
+                      fontColor={darkTheme.colors.accent04.light}
+                    />
                   )}
                 </View>
+
+                {/* Asset Info Row */}
+                <View style={styles.heroCardAssetRow}>
+                  <PerpsTokenLogo
+                    symbol={data.asset}
+                    size={14.5}
+                    style={styles.assetIcon}
+                  />
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    style={styles.assetName}
+                  >
+                    {data.asset}
+                  </Text>
+                  <View style={styles.directionBadge}>
+                    <Text
+                      variant={TextVariant.BodyXSMedium}
+                      style={styles.directionBadgeText}
+                    >
+                      {directionBadgeText}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* P&L Percentage */}
+                <RNText
+                  style={[
+                    styles.pnlText,
+                    data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
+                  ]}
+                >
+                  {pnlDisplay}
+                </RNText>
+
+                {/* Price Rows Container */}
+                <View style={styles.priceRowsContainer}>
+                  {/* Entry Price */}
+                  <View style={styles.priceRow}>
+                    <Text
+                      style={styles.priceLabel}
+                      variant={TextVariant.BodyXSMedium}
+                    >
+                      {strings('perps.pnl_hero_card.entry_price')}
+                    </Text>
+                    <Text
+                      style={styles.priceValue}
+                      variant={TextVariant.BodySMMedium}
+                    >
+                      {formatPerpsFiat(data.entryPrice, {
+                        ranges: PRICE_RANGES_MINIMAL_VIEW,
+                      })}
+                    </Text>
+                  </View>
+
+                  {/* Mark Price */}
+                  <View style={styles.priceRow}>
+                    <Text
+                      style={styles.priceLabel}
+                      variant={TextVariant.BodyXSMedium}
+                    >
+                      {strings('perps.pnl_hero_card.mark_price')}
+                    </Text>
+                    <Text
+                      style={styles.priceValue}
+                      variant={TextVariant.BodySMMedium}
+                    >
+                      {data.markPrice}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Bottom Row: QR Code */}
+                {rewardsReferralCode !== null && (
+                  <View style={styles.qrCodeContainer}>
+                    <RewardsReferralQRCode
+                      referralCode={rewardsReferralCode}
+                      size={100}
+                    />
+                  </View>
+                )}
               </View>
             ))}
           </ScrollableTabView>
         </View>
 
-        <View style={styles.progressContainer}>
-          {Array.from({ length: CARD_IMAGES.length }).map((_, dotIndex) => (
+        <View style={styles.carouselDotIndicator}>
+          {CARD_IMAGES.map(({ id: imageId }, dotIndex) => (
             <View
-              key={dotIndex}
+              key={imageId}
               style={[
                 styles.progressDot,
                 currentTab === dotIndex && styles.progressDotActive,
@@ -379,15 +392,15 @@ const PerpsHeroCardView: React.FC = () => {
       </View>
 
       {/* Footer Button */}
-      {/* TODO: Add event tracking to see how often the share button is pressed and to see which social media platform is used */}
-      <View style={styles.buttonsContainer}>
+      <View style={styles.footerButtonContainer}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           label={strings('perps.pnl_hero_card.share_button')}
-          startIconName={IconName.Share}
+          startIconName={isSharing ? undefined : IconName.Share}
           onPress={handleShare}
+          loading={isSharing}
           isDisabled={isSharing}
         />
       </View>

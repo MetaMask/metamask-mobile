@@ -2,13 +2,17 @@ import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 import { darkTheme } from '@metamask/design-tokens';
 
+/**
+ * Note: DO NOT USE replace darkTheme.colors occurrences with theme.colors in this file.
+ * We intentionally use darkTheme in this file to ensure consistent styling regardless of device theme.
+ */
 const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
   const { theme, vars } = params;
   const { isLong } = vars;
   const { colors } = theme;
 
   return StyleSheet.create({
-    container: {
+    safeAreaContainer: {
       flex: 1,
       backgroundColor: colors.background.default,
     },
@@ -28,39 +32,15 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    contentContainer: {
+    carouselWrapper: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },
-    carouselInnerContainer: {
+    carousel: {
       width: 340,
       height: 340,
       alignSelf: 'center',
-    },
-    cardWrapper: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    progressContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingTop: 16,
-      gap: 4,
-    },
-    progressDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: darkTheme.colors.background.muted,
-    },
-    progressDotActive: {
-      width: 23,
-      height: 12,
-      borderRadius: 9,
-      backgroundColor: darkTheme.colors.text.default,
     },
     cardContainer: {
       width: 340,
@@ -79,7 +59,7 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       width: '100%',
       height: '100%',
     },
-    topRow: {
+    heroCardTopRow: {
       alignContent: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -87,14 +67,14 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       marginBottom: 16,
       width: '100%',
     },
-    logo: {
+    metamaskLogo: {
       alignContent: 'center',
       height: 23,
       width: 46,
       flexShrink: 0,
       tintColor: darkTheme.colors.text.default,
     },
-    assetRow: {
+    heroCardAssetRow: {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 16,
@@ -147,7 +127,27 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
     qrCodeContainer: {
       alignSelf: 'flex-start',
     },
-    buttonsContainer: {
+    carouselDotIndicator: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 16,
+      gap: 4,
+    },
+    progressDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: darkTheme.colors.background.muted,
+      flexDirection: 'row',
+    },
+    progressDotActive: {
+      width: 23,
+      height: 12,
+      borderRadius: 9,
+      backgroundColor: darkTheme.colors.text.default,
+    },
+    footerButtonContainer: {
       padding: 16,
     },
   });

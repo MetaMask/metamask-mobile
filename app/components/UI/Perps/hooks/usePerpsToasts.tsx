@@ -162,6 +162,12 @@ export interface PerpsToastOptionsConfig {
       };
     };
   };
+  contentSharing: {
+    pnlHeroCard: {
+      shareSuccess: PerpsToastOptions;
+      shareFailed: PerpsToastOptions;
+    };
+  };
 }
 
 const getPerpsToastLabels = (
@@ -859,6 +865,22 @@ const usePerpsToasts = (): {
                 },
               },
             }),
+          },
+        },
+      },
+      contentSharing: {
+        pnlHeroCard: {
+          shareSuccess: {
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.pnl_hero_card.export_success'),
+            ),
+          },
+          shareFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.pnl_hero_card.share_failed'),
+            ),
           },
         },
       },
