@@ -51,12 +51,12 @@ describe(SmokeTrade('Predictions'), () => {
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
-        await PredictDetailsPage.tapCashOutButton();
-
         // Set up cash out mocks before tapping cash out
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
         await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
         await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
+
+        await PredictDetailsPage.tapCashOutButton();
 
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
@@ -76,10 +76,22 @@ describe(SmokeTrade('Predictions'), () => {
         await TabBarComponent.tapWallet();
         await Assertions.expectTextDisplayed('$58.66');
 
-        await Assertions.expectTextNotDisplayed('Spurs vs. Pelicans');
+        await WalletView.tapOnPredictionsTab();
+
+        // Check that Spurs vs Pelicans is removed from current positions list
+        for (let i = 0; i < 4; i++) {
+          const positionCard =
+            WalletView.getPredictCurrentPositionCardByIndex(i);
+          await Assertions.expectElementToNotHaveText(
+            positionCard,
+            'Spurs vs. Pelicans',
+            {
+              description: `Position card at index ${i} should not have text "Spurs vs. Pelicans"`,
+            },
+          );
+        }
 
         await TabBarComponent.tapActions();
-
         await WalletActionsBottomSheet.tapPredictButton();
         await Assertions.expectTextDisplayed('$58.66');
       },
