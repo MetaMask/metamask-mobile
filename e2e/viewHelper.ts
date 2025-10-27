@@ -237,7 +237,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Manual Backup Step 1 screen
-  await ManualBackupStep1View.isVisible();
+  await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {
+    description: 'Manual Backup Step 1 View should be visible',
+  });
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
   // This should be removed once we implement mockAll
