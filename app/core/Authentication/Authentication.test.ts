@@ -293,7 +293,7 @@ describe('Authentication', () => {
     const mockCredentials = { username: 'test', password: 'test' };
     SecureKeychain.getGenericPassword = jest
       .fn()
-      .mockReturnValue(mockCredentials);
+      .mockResolvedValue(mockCredentials);
 
     // Mock Redux store to return existingUser: true
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -310,7 +310,7 @@ describe('Authentication', () => {
 
   it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user exists and there are no available biometrics options but the password does not exist in the keychain', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
-    SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
+    SecureKeychain.getGenericPassword = jest.fn().mockResolvedValue(null);
 
     // Mock Redux store to return existingUser: true
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -585,7 +585,7 @@ describe('Authentication', () => {
         const mockCredentials = { username: 'test', password: 'test' };
         SecureKeychain.getGenericPassword = jest
           .fn()
-          .mockReturnValue(mockCredentials);
+          .mockResolvedValue(mockCredentials);
 
         // App unlock should succeed even if retry fails
         await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
@@ -660,7 +660,7 @@ describe('Authentication', () => {
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
             .fn()
-            .mockReturnValue(mockCredentials);
+            .mockResolvedValue(mockCredentials);
 
           await Authentication.appTriggeredAuth();
 
@@ -673,7 +673,7 @@ describe('Authentication', () => {
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
             .fn()
-            .mockReturnValue(mockCredentials);
+            .mockResolvedValue(mockCredentials);
 
           await Authentication.appTriggeredAuth();
 
@@ -686,7 +686,7 @@ describe('Authentication', () => {
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
             .fn()
-            .mockReturnValue(mockCredentials);
+            .mockResolvedValue(mockCredentials);
 
           await Authentication.appTriggeredAuth();
 
@@ -712,7 +712,7 @@ describe('Authentication', () => {
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
             .fn()
-            .mockReturnValue(mockCredentials);
+            .mockResolvedValue(mockCredentials);
 
           await expect(
             Authentication.appTriggeredAuth(),
@@ -740,7 +740,7 @@ describe('Authentication', () => {
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
             .fn()
-            .mockReturnValue(mockCredentials);
+            .mockResolvedValue(mockCredentials);
 
           // Should not throw and should complete authentication
           await expect(
@@ -769,7 +769,7 @@ describe('Authentication', () => {
           );
 
           // Mock getGenericPassword to return null to trigger error
-          SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
+          SecureKeychain.getGenericPassword = jest.fn().mockResolvedValue(null);
 
           try {
             await Authentication.appTriggeredAuth();
