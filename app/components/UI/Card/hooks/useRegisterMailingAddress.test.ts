@@ -65,6 +65,8 @@ describe('useRegisterMailingAddress', () => {
   const mockCardSDK: ICardSDK = {
     sdk: mockSDK,
     isLoading: false,
+    user: null,
+    setUser: jest.fn(),
     logoutFromProvider: mockLogoutFromProvider,
   };
 
@@ -143,6 +145,8 @@ describe('useRegisterMailingAddress', () => {
       const mockCardSDKUndefined: ICardSDK = {
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
@@ -437,6 +441,8 @@ describe('useRegisterMailingAddress', () => {
       const mockCardSDKUndefined: ICardSDK = {
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
