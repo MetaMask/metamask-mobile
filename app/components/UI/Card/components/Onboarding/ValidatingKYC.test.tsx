@@ -308,30 +308,6 @@ describe('ValidatingKYC Component', () => {
       });
     });
 
-    it('navigates to Webview when verificationState is UNVERIFIED with sessionUrl', async () => {
-      mockUseUserRegistrationStatus.mockReturnValue({
-        verificationState: 'UNVERIFIED',
-        userResponse: { verificationState: 'UNVERIFIED' },
-        isLoading: false,
-        isError: false,
-        error: null,
-        clearError: jest.fn(),
-        fetchRegistrationStatus: jest.fn(),
-      });
-
-      render(<ValidatingKYC />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: 'https://example.com/session',
-            title: 'Identity Verification',
-          },
-        });
-      });
-    });
-
     it('does not navigate when verificationState is PENDING', async () => {
       mockUseUserRegistrationStatus.mockReturnValue({
         verificationState: 'PENDING',

@@ -1,4 +1,4 @@
-{  
+{
   "sample_feature": {
     "title": "Sample Feature",
     "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
@@ -1663,8 +1663,8 @@
         "yearly": "Yearly",
         "quarterly": "Quarterly"
     },
-    "outcomes_singular": "more outcome",
-    "outcomes_plural": "more outcomes",
+    "outcomes_singular": "outcome",
+    "outcomes_plural": "outcomes",
     "category": {
         "trending": "Trending",
         "new": "New",
@@ -2041,7 +2041,7 @@
     "privacy_policy_button": "Privacy Policy",
     "agree": "I Agree",
     "decline": "No Thanks",
-    "description_title": "Help us improve MetaMask",
+    "description_title": "Help improve MetaMask",
     "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "When we gather metrics, it will always be...",
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
@@ -6004,7 +6004,7 @@
       },
       "set_phone_number": {
         "title": "Phone number",
-        "description": "We'll send your confirmation code to this number.",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Phone number",
         "phone_number_placeholder": "Enter your phone number",
         "country_area_code_label": "Country area code",
