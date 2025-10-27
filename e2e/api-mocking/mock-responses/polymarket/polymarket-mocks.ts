@@ -1158,3 +1158,126 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (
       },
     }));
 };
+
+/**
+ * Post-cash-out mock that removes the cashed out position from positions endpoint
+ * and adds a SELL transaction to the activity endpoint
+ * This simulates the real-world behavior where after cashing out, the position is no longer in your current positions
+ * and a SELL transaction appears in your activity feed
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  // Override the positions mock to exclude the Spurs vs. Pelicans position
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
+            url,
+          ) &&
+          !url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(1000) // Higher priority to override the original positions mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      // Filter out the Spurs vs. Pelicans position (eventId: '62553')
+      const positionsWithoutSpurs =
+        POLYMARKET_CURRENT_POSITIONS_RESPONSE.filter(
+          (position) => position.eventId !== '62553',
+        );
+
+      // Filter positions by eventId if provided
+      let filteredPositions = positionsWithoutSpurs;
+      if (eventId) {
+        filteredPositions = positionsWithoutSpurs.filter(
+          (position) => position.eventId === eventId,
+        );
+      }
+
+      // Update the mock response with the actual user address
+      const dynamicResponse = filteredPositions.map((position) => ({
+        ...position,
+        proxyWallet: userAddress,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+
+  // Override the activity mock to include a SELL transaction for Spurs vs. Pelicans
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/activity\?user=0x[a-fA-F0-9]{40}$/.test(
+            url,
+          ),
+      );
+    })
+    .asPriority(1000) // Higher priority to override the original activity mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Create SELL transaction for Spurs vs. Pelicans cash out
+      const sellTransaction = {
+        proxyWallet: userAddress,
+        timestamp: Math.floor(Date.now() / 1000), // Current timestamp
+        conditionId:
+          '0x12899fadc50f47afa5f8e145380a9c6f0262d75ea12749bbbcb4f8b50f96cf6b',
+        type: 'TRADE',
+        size: 50, // Total position size
+        usdcSize: 30.75, // Current value of the position
+        transactionHash:
+          '0xa8f915c0b4c3808fb790456dd32869c8ac373f40a1f539e87b395a763de27bc6',
+        price: 0.615, // Current price from the position
+        asset:
+          '110743925263777693447488608878982152642205002490046349037358337248548507433643',
+        side: 'SELL',
+        outcomeIndex: 0,
+        title: 'Spurs vs. Pelicans',
+        slug: 'nba-sas-nop-2025-10-24',
+        icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/super+cool+basketball+in+red+and+blue+wow.png',
+        eventSlug: 'nba-sas-nop-2025-10-24',
+        outcome: 'Spurs',
+        name: 'cropMaster',
+        pseudonym: 'Nonstop-Suitcase',
+        bio: '',
+        profileImage: '',
+        profileImageOptimized: '',
+      };
+
+      // Add the SELL transaction at the beginning of the activity array
+      const activityWithSell = [
+        sellTransaction,
+        ...POLYMARKET_ACTIVITY_RESPONSE,
+      ];
+
+      // Update the mock response with the actual user address
+      const dynamicResponse = activityWithSell.map((activity) => ({
+        ...activity,
+        proxyWallet: userAddress,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+};

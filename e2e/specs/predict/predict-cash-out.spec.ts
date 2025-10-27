@@ -11,12 +11,14 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_CASH_OUT_MOCKS,
   POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS,
+  POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
@@ -42,6 +44,7 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToBeVisible(
           WalletView.PredictionsTabContainer,
         );
+        // Current balance prior to cashing out
         await Assertions.expectTextDisplayed('$28.16');
 
         await WalletView.tapOnPredictionsPosition('Spurs vs. Pelicans');
@@ -53,6 +56,7 @@ describe(SmokePredictions('Predictions'), () => {
         // Set up cash out mocks before tapping cash out
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
         await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
+        await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
 
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
@@ -62,13 +66,17 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictCashOutPage.tapCashOutButton();
 
-        await new Promise((resolve) => setTimeout(resolve, 9000));
         await PredictDetailsPage.tapBackButton();
+        await TabBarComponent.tapActivity();
 
-        // await Assertions.expectElementToBeVisible(
-        //   WalletView.PredictionsTabContainer,
-        // );
-        // await Assertions.expectTextDisplayed('$58.66');
+        await ActivitiesView.tapOnPredictionsTab();
+        // await ActivitiesView.tapCashedOutPosition('Spurs vs. Pelicans');
+        await Assertions.expectTextDisplayed('Cashed out');
+
+        await TabBarComponent.tapWallet();
+        await Assertions.expectTextDisplayed('$58.66');
+
+        await Assertions.expectTextNotDisplayed('Spurs vs. Pelicans');
 
         await TabBarComponent.tapActions();
 
