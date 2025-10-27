@@ -21,10 +21,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
 import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
+  resetOnboardingState,
   selectContactVerificationId,
   selectOnboardingId,
 } from '../../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
@@ -63,6 +64,7 @@ export const createOTPStyles = (params: { theme: Theme }) => {
 
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { setUser } = useCardSDK();
   const { styles } = useStyles(createOTPStyles, {});
   const inputRef = useRef<TextInput>(null);
@@ -139,6 +141,7 @@ const ConfirmPhoneNumber = () => {
           error.message.includes('Onboarding ID not found'))
       ) {
         // navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
     }
@@ -148,11 +151,12 @@ const ConfirmPhoneNumber = () => {
     phoneNumber,
     phoneCountryCode,
     contactVerificationId,
+    trackEvent,
+    createEventBuilder,
     verifyPhoneVerification,
     setUser,
     navigation,
-    trackEvent,
-    createEventBuilder,
+    dispatch,
   ]);
 
   const handleValueChange = useCallback(

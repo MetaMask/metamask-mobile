@@ -20,6 +20,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import useEmailVerificationVerify from '../../hooks/useEmailVerificationVerify';
 import { CardError } from '../../types';
 import {
+  resetOnboardingState,
   selectContactVerificationId,
   selectSelectedCountry,
   setContactVerificationId,
@@ -175,6 +176,7 @@ const ConfirmEmail = () => {
             },
           ],
         });
+        dispatch(resetOnboardingState());
       }
     } catch (error) {
       if (
@@ -182,6 +184,7 @@ const ConfirmEmail = () => {
         error.message.includes('Invalid or expired contact verification ID')
       ) {
         // navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
     }
