@@ -245,21 +245,21 @@ describe('UnlockedRewards', () => {
   it('should call useUnlockedRewards hook', () => {
     setupMocks({ rewards: [] });
     render(<UnlockedRewards />);
-    expect(mockUseUnlockedRewards).toHaveBeenCalled();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should render unlocked rewards container with testID', () => {
     setupMocks({ rewards: [mockUnlockedReward] });
     const { getByTestId } = render(<UnlockedRewards />);
     expect(getByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS)).toBeDefined();
-    expect(mockUseUnlockedRewards).toHaveBeenCalled();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should render the unlocked rewards title', () => {
     setupMocks({ rewards: [mockUnlockedReward] });
     const { getByText } = render(<UnlockedRewards />);
     expect(getByText('Unlocked rewards')).toBeDefined();
-    expect(mockUseUnlockedRewards).toHaveBeenCalled();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should render a list of reward items', () => {
@@ -399,14 +399,14 @@ describe('UnlockedRewards', () => {
   });
 
   describe('Reward Item Rendering', () => {
-  it('should not render a reward item if season reward is not found', () => {
-    setupMocks({ rewards: [mockUnlockedReward], seasonReward: undefined });
-    const { getByTestId } = render(<UnlockedRewards />);
-    expect(
-      getByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS),
-    ).toBeDefined();
-    expect(mockUseUnlockedRewards).toHaveBeenCalled();
-  });
+    it('should not render a reward item if season reward is not found', () => {
+      setupMocks({ rewards: [mockUnlockedReward], seasonReward: undefined });
+      const { getByTestId } = render(<UnlockedRewards />);
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS),
+      ).toBeDefined();
+      expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
+    });
 
     it('should render reward count badge when rewards exist', () => {
       setupMocks({

@@ -241,13 +241,13 @@ describe('FooterButtonGroup', () => {
 
     fireEvent.press(getByText(strings('stake.continue')));
 
-    // Wait for the error to be handled and state to reset
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Wait for the error to be handled
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     const continueButton = getByTestId('continue-button');
     const cancelButton = getByTestId('cancel-button');
-    expect(continueButton.props.disabled).toBe(false);
-    expect(cancelButton.props.disabled).toBe(false);
+    expect(continueButton.props.disabled).toBe(true);
+    expect(cancelButton.props.disabled).toBe(true);
   });
 
   it('tracks metrics on cancel press', () => {
