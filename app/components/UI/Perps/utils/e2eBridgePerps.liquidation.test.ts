@@ -14,10 +14,9 @@ const mockGetInstance = () => ({
   getMockAccountState: () => ({
     availableBalance: '8000.00',
     marginUsed: '2000.00',
-    totalBalance: '10000.00',
     unrealizedPnl: '0.00',
     returnOnEquity: '0',
-    totalValue: '10000.00',
+    totalBalance: '10000.00',
   }),
   getMockPositions: () => [
     {

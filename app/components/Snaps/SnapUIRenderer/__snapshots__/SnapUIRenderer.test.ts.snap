@@ -116,6 +116,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -289,9 +290,9 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
                         "paddingVertical": 2,
                         "textAlignVertical": "center",
@@ -447,9 +448,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
                         "paddingVertical": 2,
                         "textAlignVertical": "center",
@@ -541,9 +542,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
                         "paddingVertical": 2,
                         "textAlignVertical": "center",
@@ -698,9 +699,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
                         "paddingVertical": 2,
                         "textAlignVertical": "center",
@@ -791,9 +792,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
                         "paddingVertical": 2,
                         "textAlignVertical": "center",
@@ -1293,6 +1294,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1333,6 +1335,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1543,6 +1546,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1583,6 +1587,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1936,9 +1941,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "color": "#121314",
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 20,
                           "opacity": 1,
                           "paddingVertical": 2,
                           "textAlignVertical": "center",
@@ -2131,9 +2136,9 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
                         "paddingVertical": 2,
                         "textAlignVertical": "center",
@@ -2272,6 +2277,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         disabled={false}
         onPress={[MockFunction]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -2312,6 +2318,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

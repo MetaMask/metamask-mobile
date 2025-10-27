@@ -185,6 +185,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
