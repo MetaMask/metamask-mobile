@@ -15,6 +15,7 @@ import {
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -32,7 +33,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
-import TokensTabView from '../../UI/Tokens/TokensTabView/TokensTabView';
+import Tokens from '../../UI/Tokens';
 
 import {
   NavigationProp,
@@ -289,9 +290,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
-      navigation,
     }),
-    [navigation],
+    [],
   );
 
   const perpsTabProps = useMemo(
@@ -393,7 +393,13 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   // Build tabs array dynamically based on enabled features
   const tabsToRender = useMemo(() => {
     const tabs = [
-      <TokensTabView {...tokensTabProps} key={tokensTabProps.key} />,
+      <Box
+        key={tokensTabProps.key}
+        twClassName="flex-1 bg-default"
+        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+      >
+        <Tokens isFullView={false} />
+      </Box>,
     ];
 
     if (isPerpsEnabled) {
