@@ -104,6 +104,8 @@ jest.mock(
   '../../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
     selectAccountToGroupMap: () => ({}),
+    selectAccountToWalletMap: () => ({}),
+    selectWalletsMap: () => ({}),
     selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
     selectAccountTreeControllerState: () => ({}),
     selectAccountGroupWithInternalAccounts: () => [],
