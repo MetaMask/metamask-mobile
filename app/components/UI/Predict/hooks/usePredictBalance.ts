@@ -6,6 +6,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { usePredictTrading } from './usePredictTrading';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { selectPredictBalanceByAddress } from '../selectors/predictController';
 
 interface UsePredictBalanceOptions {
   /**
@@ -49,7 +50,6 @@ export function usePredictBalance(
 
   const { getBalance } = usePredictTrading();
 
-  const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +59,14 @@ export function usePredictBalance(
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
+
+  const balance =
+    useSelector(
+      selectPredictBalanceByAddress({
+        providerId,
+        address: selectedInternalAccountAddress || '',
+      }),
+    ) || 0;
 
   const hasNoBalance = useMemo(
     () => !isLoading && !isRefreshing && balance === 0,
@@ -89,8 +97,6 @@ export function usePredictBalance(
           address: selectedInternalAccountAddress,
           providerId,
         });
-
-        setBalance(balanceData);
 
         DevLogger.log('usePredictBalance: Loaded balance', {
           balance: balanceData,
@@ -129,8 +135,7 @@ export function usePredictBalance(
     if (loadOnMount) {
       loadBalance();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadOnMount]);
+  }, [loadOnMount, loadBalance]);
 
   // Refresh balance when screen comes into focus if enabled
   useFocusEffect(
@@ -149,8 +154,6 @@ export function usePredictBalance(
       isInitialMount.current = false;
       return;
     }
-
-    setBalance(0);
     setError(null);
     loadBalance();
   }, [selectedInternalAccountAddress, loadBalance]);
