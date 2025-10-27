@@ -2514,15 +2514,7 @@ describe('PredictController', () => {
           disableHook: true,
           disableSequential: true,
           requireApproval: true,
-          transactions: [
-            {
-              params: {
-                to: '0x1234567890123456789012345678901234567890',
-                value: '0x1',
-              },
-            },
-            mockWithdrawResponse.transaction,
-          ],
+          transactions: [mockWithdrawResponse.transaction],
         });
       });
     });
