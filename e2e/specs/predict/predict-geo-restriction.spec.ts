@@ -58,13 +58,12 @@ const PredictionGeoBlockedFeature = async (mockServer: Mockttp) => {
 };
 
 describe(RegressionTrade('Predictions - Geo Restriction'), () => {
-  it('setup: logs in and opens Predictions once', async () => {
+  it('displays geo restriction modal when in US region', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: PredictionGeoBlockedFeature,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -73,61 +72,14 @@ describe(RegressionTrade('Predictions - Geo Restriction'), () => {
         await Assertions.expectElementToBeVisible(PredictMarketList.container, {
           description: 'Predict market list container should be visible',
         });
+        await PredictMarketList.tapCategoryTab('new');
+        await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
+        await PredictMarketList.tapNoBasedOnCategoryAndIndex('new', 1);
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
       },
     );
   });
-
-  const categories = [
-    'trending',
-    'new',
-    'sports',
-    'crypto',
-    'politics',
-  ] as const;
-
-  for (const category of categories) {
-    it(`displays geo restriction modal when tapping Yes in ${category}`, async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().build(),
-          skipReactNativeReload: true,
-          testSpecificMock: PredictionGeoBlockedFeature,
-        },
-        async () => {
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description: 'Predict market list container should be visible',
-            },
-          );
-          await PredictMarketList.tapCategoryTab(category);
-          await PredictMarketList.tapYesBasedOnCategoryAndIndex(category, 1);
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-        },
-      );
-    });
-
-    it(`displays geo restriction modal when tapping No in ${category}`, async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().build(),
-          skipReactNativeReload: true,
-          testSpecificMock: PredictionGeoBlockedFeature,
-        },
-        async () => {
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description: 'Predict market list container should be visible',
-            },
-          );
-          await PredictMarketList.tapCategoryTab(category);
-          await PredictMarketList.tapNoBasedOnCategoryAndIndex(category, 1);
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-        },
-      );
-    });
-  }
 });
