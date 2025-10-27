@@ -816,6 +816,38 @@ describe('RewardsController', () => {
         'API error',
       );
     });
+
+    it('estimates points for batch PERPS positions with array', async () => {
+      const mockRequest = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          perpsContext: [
+            {
+              type: 'CLOSE_POSITION' as const,
+              coin: 'BTC',
+              usdFeeValue: '10.50',
+            },
+            {
+              type: 'CLOSE_POSITION' as const,
+              coin: 'ETH',
+              usdFeeValue: '5.25',
+            },
+          ],
+        },
+      };
+      const mockResponse = { pointsEstimate: 200, bonusBips: 100 };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      const result = await controller.estimatePoints(mockRequest);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:estimatePoints',
+        mockRequest,
+      );
+      expect(result).toEqual(mockResponse);
+    });
   });
 
   describe('getPointsEvents', () => {
