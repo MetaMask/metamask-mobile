@@ -29,6 +29,9 @@ export const PredictEventProperties = {
 
   // Market details specific
   MARKET_DETAILS_VIEWED: 'market_details_viewed',
+
+  // Position specific
+  OPEN_POSITIONS_COUNT: 'open_positions_count',
 } as const;
 
 /**

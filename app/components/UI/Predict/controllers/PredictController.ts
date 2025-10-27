@@ -860,6 +860,32 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * Track Predict position viewed analytics event
+   * @public
+   */
+  public trackPositionViewed({
+    openPositionsCount,
+  }: {
+    openPositionsCount: number;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_POSITION_VIEWED', {
+      analyticsProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.providers.get(params.providerId);

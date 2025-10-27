@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
 } from 'react';
@@ -13,6 +14,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -27,7 +29,14 @@ export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
 }
 
-const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
+interface PredictPositionsProps {
+  isVisible?: boolean;
+}
+
+const PredictPositions = forwardRef<
+  PredictPositionsHandle,
+  PredictPositionsProps
+>(({ isVisible }, ref) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -54,6 +63,15 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
       ]);
     },
   }));
+
+  // Track position viewed when tab becomes visible
+  useEffect(() => {
+    if (isVisible && !isLoading) {
+      Engine.context.PredictController.trackPositionViewed({
+        openPositionsCount: positions.length,
+      });
+    }
+  }, [isVisible, isLoading, positions.length]);
 
   const renderPosition = useCallback(
     ({ item }: { item: PredictPositionType }) => (

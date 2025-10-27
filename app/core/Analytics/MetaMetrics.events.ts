@@ -588,6 +588,7 @@ enum EVENT_NAME {
   PREDICT_ACTION_COMPLETED = 'Predict Action Completed',
   PREDICT_ACTION_FAILED = 'Predict Action Failed',
   PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
+  PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
 }
 
 enum ACTIONS {
@@ -1479,6 +1480,7 @@ const events = {
   PREDICT_MARKET_DETAILS_OPENED: generateOpt(
     EVENT_NAME.PREDICT_MARKET_DETAILS_OPENED,
   ),
+  PREDICT_POSITION_VIEWED: generateOpt(EVENT_NAME.PREDICT_POSITION_VIEWED),
 };
 
 /**

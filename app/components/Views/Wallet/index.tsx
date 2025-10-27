@@ -343,6 +343,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
+  // Calculate Predict tab visibility
+  const predictTabIndex =
+    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
+  const isPredictTabVisible = currentTabIndex === predictTabIndex;
+
   // Store the visibility update callback from PerpsTabView
   const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
     null,
@@ -409,7 +414,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
     if (isPredictEnabled) {
       tabs.push(
-        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
+        <PredictTabView
+          {...predictTabProps}
+          key={predictTabProps.key}
+          isVisible={isPredictTabVisible}
+        />,
       );
     }
 
@@ -438,6 +447,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsTabVisible,
     isPredictEnabled,
     predictTabProps,
+    isPredictTabVisible,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
