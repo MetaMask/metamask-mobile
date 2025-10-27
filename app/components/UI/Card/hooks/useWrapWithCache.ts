@@ -127,7 +127,6 @@ export const useWrapWithCache = <T>(
 
     // Cache is stale or we don't have data, fetch new data
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cacheIsValid, cachedData, fetchOnMount, fetchData]);
 
   // Determine loading state: only show loading if actively fetching AND no cached data
