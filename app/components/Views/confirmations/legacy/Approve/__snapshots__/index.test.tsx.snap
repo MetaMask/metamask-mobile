@@ -694,33 +694,6 @@ exports[`Approve renders transaction approval 1`] = `
                                                             }
                                                           }
                                                         >
-                                                          <View
-                                                            style={
-                                                              [
-                                                                {
-                                                                  "backgroundColor": "#f3f5f9",
-                                                                  "borderRadius": 30,
-                                                                  "padding": 14,
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                {
-                                                                  "height": 50,
-                                                                },
-                                                              ]
-                                                            }
-                                                          />
                                                           <TouchableOpacity
                                                             onPress={[Function]}
                                                             style={
@@ -848,6 +821,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                   activeOpacity={1}
                                                   disabled={true}
                                                   loading={false}
+                                                  onPress={[Function]}
                                                   onPressIn={[Function]}
                                                   onPressOut={[Function]}
                                                   style={

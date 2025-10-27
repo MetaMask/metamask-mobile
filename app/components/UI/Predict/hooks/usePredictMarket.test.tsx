@@ -64,11 +64,17 @@ describe('usePredictMarket', () => {
         groupItemTitle: 'Yes/No',
       },
     ],
+    liquidity: 1000000,
+    volume: 1000000,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     (Engine.context.PredictController.getMarket as jest.Mock) = mockGetMarket;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('initial state', () => {

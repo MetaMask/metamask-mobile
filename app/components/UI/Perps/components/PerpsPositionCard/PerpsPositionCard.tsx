@@ -24,7 +24,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { TP_SL_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS, TP_SL_CONFIG } from '../../constants/perpsConfig';
 import type {
   PerpsNavigationParamList,
   Position,
@@ -38,6 +38,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -189,22 +190,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
   const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
   const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
+  let fundingColorFromValue = TextColor.Default;
+  if (fundingSinceOpen > 0) {
+    fundingColorFromValue = TextColor.Error;
+  } else if (fundingSinceOpen < 0) {
+    fundingColorFromValue = TextColor.Success;
+  }
   const fundingColor = isNearZeroFunding
     ? TextColor.Default
-    : fundingSinceOpen === 0
-    ? TextColor.Default
-    : fundingSinceOpen > 0
-    ? TextColor.Error
-    : TextColor.Success;
+    : fundingColorFromValue;
+
+  const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
   const fundingDisplay = isNearZeroFunding
     ? '$0.00'
-    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
-        Math.abs(fundingSinceOpen),
-        {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        },
-      )}`;
+    : `${fundingSignPrefix}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      })}`;
 
   const positionTakeProfitCount = position.takeProfitCount || 0;
   const positionStopLossCount = position.stopLossCount || 0;
@@ -281,7 +284,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
       return (
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {price
+          {price !== undefined && price !== null
             ? formatPerpsFiat(price, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })
@@ -329,7 +332,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {position.coin} {position.leverage.value}x{' '}
+                {getPerpsDisplaySymbol(position.coin)} {position.leverage.value}
+                x{' '}
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {direction === 'long'
                     ? strings('perps.market.long_lowercase')
@@ -339,7 +343,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </View>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {formatPositionSize(absoluteSize.toString())} {position.coin}
+                {formatPositionSize(absoluteSize.toString())}{' '}
+                {getPerpsDisplaySymbol(position.coin)}
               </Text>
             </View>
           </View>
@@ -394,11 +399,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.liquidationPrice
+                  {position.liquidationPrice !== undefined &&
+                  position.liquidationPrice !== null
                     ? formatPerpsFiat(position.liquidationPrice, {
                         ranges: PRICE_RANGES_UNIVERSAL,
                       })
-                    : 'N/A'}
+                    : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
                 </Text>
               </View>
               <View style={styles.bodyItem}>

@@ -5,6 +5,7 @@ import Button from '../../../../../component-library/components/Buttons/Button';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket, Recurrence } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -56,6 +57,8 @@ const mockMarket: PredictMarket = {
       groupItemTitle: 'Bitcoin Price Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {
@@ -113,6 +116,7 @@ describe('PredictMarketMultiple', () => {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
 
@@ -124,6 +128,7 @@ describe('PredictMarketMultiple', () => {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
   });
@@ -287,6 +292,60 @@ describe('PredictMarketMultiple', () => {
       params: {
         marketId: mockMarket.id,
       },
+    });
+  });
+
+  it('checks eligibility before balance for Yes button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButtons = getAllByText('Yes');
+    fireEvent.press(yesButtons[0]);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('checks eligibility before balance for No button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButtons = getAllByText('No');
+    fireEvent.press(noButtons[0]);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
     });
   });
 
