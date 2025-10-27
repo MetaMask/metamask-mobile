@@ -358,7 +358,7 @@ const ConfirmPhoneNumber = () => {
       title={strings('card.card_onboarding.confirm_phone_number.title')}
       description={strings(
         'card.card_onboarding.confirm_phone_number.description',
-        { phoneNumber: `${phoneCountryCode} ${phoneNumber}` },
+        { phoneNumber: `+${phoneCountryCode} ${phoneNumber}` },
       )}
       formFields={renderFormFields()}
       actions={renderActions()}
