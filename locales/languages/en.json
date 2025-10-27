@@ -1662,8 +1662,8 @@
         "yearly": "Yearly",
         "quarterly": "Quarterly"
     },
-    "outcomes_singular": " outcome",
-    "outcomes_plural": " outcomes",
+    "outcomes_singular": "outcome",
+    "outcomes_plural": "outcomes",
     "category": {
         "trending": "Trending",
         "new": "New",
