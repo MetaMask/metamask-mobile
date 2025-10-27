@@ -99,7 +99,7 @@ const PerpsScreenStack = () => (
             variant: 'full',
             title: strings('perps.home.markets'),
             showBalanceActions: false,
-            showBottomNav: true,
+            showBottomNav: false,
             defaultSearchVisible: false,
           }}
         />
