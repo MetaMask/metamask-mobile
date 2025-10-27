@@ -44,6 +44,7 @@ export function TransactionDetailsSummary() {
   const {
     batchId,
     id: transactionId,
+    isIntentComplete,
     requiredTransactionIds,
   } = transactionMeta;
 
@@ -58,7 +59,7 @@ export function TransactionDetailsSummary() {
   const transactionIds = [
     ...(requiredTransactionIds ?? []),
     ...(batchTransactionIds ?? []),
-    transactionMeta.id,
+    ...(isIntentComplete ? [] : [transactionId]),
   ];
 
   const transactions = useSelector((state: RootState) =>
@@ -74,6 +75,7 @@ export function TransactionDetailsSummary() {
             key={index}
             transaction={item}
             isLast={index === transactions.length - 1}
+            parentTransaction={transactionMeta}
           />
         ))}
       </Box>
@@ -83,9 +85,11 @@ export function TransactionDetailsSummary() {
 
 function TransactionSummary({
   isLast,
+  parentTransaction,
   transaction,
 }: {
   isLast: boolean;
+  parentTransaction: TransactionMeta;
   transaction: TransactionMeta;
 }) {
   const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
@@ -115,7 +119,7 @@ function TransactionSummary({
   const targetChainName = useNetworkName(receiveChainId);
 
   const title = getLineTitle(
-    transaction,
+    parentTransaction.isIntentComplete ? parentTransaction : transaction,
     bridgeHistory.bridgeTxHistoryItem,
     approvalBridgeHistory,
     sourceChainName,

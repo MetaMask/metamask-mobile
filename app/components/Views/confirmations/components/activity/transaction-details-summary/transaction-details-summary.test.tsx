@@ -334,6 +334,35 @@ describe('TransactionDetailsSummary', () => {
     ).toBeDefined();
   });
 
+  it('renders single parent title if intent complete', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+        isIntentComplete: true,
+        requiredTransactionIds: [REQUIRED_TRANSACTION_ID_MOCK],
+        type: TransactionType.perpsDeposit,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText, queryByText } = render({
+      transactions: [
+        {
+          ...TRANSACTION_META_MOCK,
+          id: REQUIRED_TRANSACTION_ID_MOCK,
+          type: TransactionType.contractInteraction,
+        },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.perps_deposit')),
+    ).toBeDefined();
+
+    expect(
+      queryByText(strings('transaction_details.summary_title.default')),
+    ).toBeNull();
+  });
+
   it('renders submitted time', () => {
     const { getByText } = render({
       transactions: [

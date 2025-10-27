@@ -1,16 +1,19 @@
 import React from 'react';
-import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { TotalRow } from './total-row';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
-import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
+import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
+import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
-jest.mock('../../../hooks/pay/useTransactionTotalFiat');
-jest.mock('../../../hooks/pay/useIsTransactionPayLoading');
+jest.mock('../../../hooks/pay/useTransactionPayData');
 
-const TOTAL_FIAT_MOCK = '$123.456';
+const TOTAL_FIAT_MOCK = '$123.46';
 
 function render() {
   return renderWithProvider(<TotalRow />, {
@@ -18,12 +21,13 @@ function render() {
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
+      otherControllersMock,
     ),
   });
 }
 
 describe('TotalRow', () => {
-  const useTransactionTotalFiatMock = jest.mocked(useTransactionTotalFiat);
+  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
@@ -31,12 +35,11 @@ describe('TotalRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    useTransactionTotalFiatMock.mockReturnValue({
-      total: '123.456',
-      totalFormatted: TOTAL_FIAT_MOCK,
-    } as ReturnType<typeof useTransactionTotalFiat>);
+    useTransactionPayTotalsMock.mockReturnValue({
+      total: { usd: '123.456' },
+    } as TransactionPayTotals);
 
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
   });
 
   it('renders the total amount', () => {
@@ -45,7 +48,7 @@ describe('TotalRow', () => {
   });
 
   it('renders skeleton when quotes are loading', () => {
-    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const { getByTestId } = render();
 

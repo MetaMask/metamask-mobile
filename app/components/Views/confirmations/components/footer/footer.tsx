@@ -34,7 +34,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -59,7 +59,7 @@ export const Footer = () => {
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
   const isSendReq = REDESIGNED_TRANSFER_TYPES.includes(transactionType);
-  const { isLoading: isPayLoading } = useIsTransactionPayLoading();
+  const isPayLoading = useIsTransactionPayLoading();
 
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();

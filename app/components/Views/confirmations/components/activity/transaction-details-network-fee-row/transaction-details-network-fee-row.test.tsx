@@ -6,7 +6,7 @@ import { TransactionDetailsNetworkFeeRow } from './transaction-details-network-f
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
-const NETWORK_FEE_FIAT_MOCK = '$123.45';
+const NETWORK_FEE_FIAT_MOCK = '123.45';
 
 function render() {
   return renderWithProvider(<TransactionDetailsNetworkFeeRow />, {});
@@ -29,7 +29,7 @@ describe('TransactionDetailsNetworkFeeRow', () => {
 
   it('renders network fee fiat', () => {
     const { getByText } = render();
-    expect(getByText(NETWORK_FEE_FIAT_MOCK)).toBeDefined();
+    expect(getByText(`$${NETWORK_FEE_FIAT_MOCK}`)).toBeDefined();
   });
 
   it('renders nothing if no network fee fiat', () => {
@@ -41,6 +41,6 @@ describe('TransactionDetailsNetworkFeeRow', () => {
 
     const { queryByText } = render();
 
-    expect(queryByText(NETWORK_FEE_FIAT_MOCK)).toBeNull();
+    expect(queryByText(`$${NETWORK_FEE_FIAT_MOCK}`)).toBeNull();
   });
 });
