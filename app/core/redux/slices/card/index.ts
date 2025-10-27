@@ -16,9 +16,15 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
 
-export interface CardSpendingLimitSettings {
-  isFullAccess: boolean;
-  limitAmount?: string;
+export interface OnboardingState {
+  onboardingId: string | null;
+  selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
+  contactVerificationId: string | null;
+}
+
+export interface CacheState {
+  data: Record<string, unknown>;
+  timestamps: Record<string, number>;
 }
 
 export interface CardSliceState {
@@ -33,8 +39,8 @@ export interface CardSliceState {
   geoLocation: string;
   isAuthenticated: boolean;
   userCardLocation: CardLocation;
-  spendingLimitSettings: CardSpendingLimitSettings;
-  shouldShowDelegationSuccessToast: boolean;
+  onboarding: OnboardingState;
+  cache: CacheState;
 }
 
 export const initialState: CardSliceState = {
@@ -49,11 +55,15 @@ export const initialState: CardSliceState = {
   geoLocation: 'UNKNOWN',
   isAuthenticated: false,
   userCardLocation: 'international',
-  spendingLimitSettings: {
-    isFullAccess: false,
-    limitAmount: '1000',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
   },
-  shouldShowDelegationSuccessToast: false,
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 // Async thunk for loading cardholder accounts
@@ -122,17 +132,38 @@ const slice = createSlice({
     ) => {
       state.userCardLocation = action.payload ?? 'international';
     },
-    setSpendingLimitSettings: (
-      state,
-      action: PayloadAction<CardSpendingLimitSettings>,
-    ) => {
-      state.spendingLimitSettings = action.payload;
+    setOnboardingId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.onboardingId = action.payload;
     },
-    setShouldShowDelegationSuccessToast: (
+    setSelectedCountry: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.selectedCountry = action.payload;
+    },
+    setContactVerificationId: (state, action: PayloadAction<string | null>) => {
+      state.onboarding.contactVerificationId = action.payload;
+    },
+    resetOnboardingState: (state) => {
+      state.onboarding = {
+        onboardingId: null,
+        selectedCountry: null,
+        contactVerificationId: null,
+      };
+    },
+    setCacheData: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ key: string; data: unknown; timestamp: number }>,
     ) => {
-      state.shouldShowDelegationSuccessToast = action.payload;
+      const { key, data, timestamp } = action.payload;
+      state.cache.data[key] = data;
+      state.cache.timestamps[key] = timestamp;
+    },
+    clearCacheData: (state, action: PayloadAction<string>) => {
+      const key = action.payload;
+      delete state.cache.data[key];
+      delete state.cache.timestamps[key];
+    },
+    clearAllCache: (state) => {
+      state.cache.data = {};
+      state.cache.timestamps = {};
     },
   },
   extraReducers: (builder) => {
@@ -308,14 +339,19 @@ export const selectDisplayCardButton = createSelector(
   },
 );
 
-export const selectSpendingLimitSettings = createSelector(
-  [selectCardState],
-  (cardState) => cardState.spendingLimitSettings,
+export const selectOnboardingId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.onboardingId,
 );
 
-export const selectShouldShowDelegationSuccessToast = createSelector(
-  [selectCardState],
-  (cardState) => cardState.shouldShowDelegationSuccessToast,
+export const selectSelectedCountry = createSelector(
+  selectCardState,
+  (card) => card.onboarding.selectedCountry,
+);
+
+export const selectContactVerificationId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.contactVerificationId,
 );
 
 // Actions
@@ -329,6 +365,11 @@ export const {
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   setUserCardLocation,
-  setSpendingLimitSettings,
-  setShouldShowDelegationSuccessToast,
+  setOnboardingId,
+  setSelectedCountry,
+  setContactVerificationId,
+  resetOnboardingState,
+  setCacheData,
+  clearCacheData,
+  clearAllCache,
 } = actions;

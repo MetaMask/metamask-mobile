@@ -23,6 +23,10 @@ const createStyles = (theme: Theme) =>
     buttonsContainer: {
       flexDirection: 'row',
       gap: 8,
+      marginTop: 16,
+    },
+    isHidden: {
+      display: 'none',
     },
   });
 

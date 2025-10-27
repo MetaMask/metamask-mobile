@@ -1,11 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import '@testing-library/jest-native';
 import CardWarningBox from './CardWarningBox';
 import { CardWarning } from '../../types';
-import renderWithProvider, {
-  renderScreen,
-} from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -22,6 +19,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need to delegate tokens to proceed.',
       'card.card_home.warnings.need_delegation.confirm_button_label':
         'Delegate Now',
+      'card.card_home.warnings.frozen.title': 'Card Frozen',
+      'card.card_home.warnings.frozen.description':
+        'Your card has been frozen. Contact support for assistance.',
+      'card.card_home.warnings.blocked.title': 'Card Blocked',
+      'card.card_home.warnings.blocked.description':
+        'Your card has been blocked. Contact support for assistance.',
+      'card.card_home.warnings.no_card.title': 'No Card Available',
+      'card.card_home.warnings.no_card.description':
+        'You do not have a card yet. Order one to get started.',
+      'card.card_home.warnings.dismiss_button_label': 'Dismiss',
     };
     return mockStrings[key] || key;
   }),
@@ -51,12 +58,28 @@ describe('CardWarningBox', () => {
     jest.clearAllMocks();
   });
 
-  it('renders warning icon', () => {
+  it('renders warning icon for visible warnings', () => {
     const { getByTestId } = renderWithProvider(() => (
       <CardWarningBox warning={CardWarning.CloseSpendingLimit} />
     ));
 
     expect(getByTestId('icon')).toBeOnTheScreen();
+  });
+
+  it('does not render warning box for NoCard warning', () => {
+    const { queryByTestId } = renderWithProvider(() => (
+      <CardWarningBox warning={CardWarning.NoCard} />
+    ));
+
+    expect(queryByTestId('icon')).toBeNull();
+  });
+
+  it('does not render warning box for NeedDelegation warning', () => {
+    const { queryByTestId } = renderWithProvider(() => (
+      <CardWarningBox warning={CardWarning.NeedDelegation} />
+    ));
+
+    expect(queryByTestId('icon')).toBeNull();
   });
 
   it('renders CloseSpendingLimit warning with title and description', () => {
@@ -69,6 +92,28 @@ describe('CardWarningBox', () => {
       getByText(
         'You are approaching your spending limit. Consider closing it.',
       ),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders Frozen warning with title and description', () => {
+    const { getByText } = renderWithProvider(() => (
+      <CardWarningBox warning={CardWarning.Frozen} />
+    ));
+
+    expect(getByText('Card Frozen')).toBeOnTheScreen();
+    expect(
+      getByText('Your card has been frozen. Contact support for assistance.'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders Blocked warning with title and description', () => {
+    const { getByText } = renderWithProvider(() => (
+      <CardWarningBox warning={CardWarning.Blocked} />
+    ));
+
+    expect(getByText('Card Blocked')).toBeOnTheScreen();
+    expect(
+      getByText('Your card has been blocked. Contact support for assistance.'),
     ).toBeOnTheScreen();
   });
 
@@ -151,5 +196,49 @@ describe('CardWarningBox', () => {
 
     const confirmButton = getByTestId('confirm-button');
     expect(confirmButton).toBeOnTheScreen();
+  });
+
+  it('renders visible warnings with icon and content', () => {
+    const visibleWarnings = [
+      CardWarning.CloseSpendingLimit,
+      CardWarning.Frozen,
+      CardWarning.Blocked,
+    ];
+
+    visibleWarnings.forEach((warning) => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardWarningBox warning={warning} />
+      ));
+
+      expect(getByTestId('icon')).toBeOnTheScreen();
+    });
+  });
+
+  it('does not render warning box content for NoCard and NeedDelegation types', () => {
+    const hiddenWarnings = [CardWarning.NoCard, CardWarning.NeedDelegation];
+
+    hiddenWarnings.forEach((warning) => {
+      const { queryByTestId } = renderWithProvider(() => (
+        <CardWarningBox warning={warning} />
+      ));
+
+      expect(queryByTestId('icon')).toBeNull();
+    });
+  });
+
+  it('does not render confirm button for Frozen warning when onConfirm provided', () => {
+    const { queryByTestId } = renderWithProvider(() => (
+      <CardWarningBox warning={CardWarning.Frozen} onConfirm={mockOnConfirm} />
+    ));
+
+    expect(queryByTestId('confirm-button')).toBeNull();
+  });
+
+  it('does not render confirm button for Blocked warning when onConfirm provided', () => {
+    const { queryByTestId } = renderWithProvider(() => (
+      <CardWarningBox warning={CardWarning.Blocked} onConfirm={mockOnConfirm} />
+    ));
+
+    expect(queryByTestId('confirm-button')).toBeNull();
   });
 });

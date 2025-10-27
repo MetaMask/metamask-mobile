@@ -18,6 +18,7 @@ import { AllowanceState, CardTokenAllowance } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import {
+  selectIsAuthenticatedCard,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
 } from '../../../../../core/redux/slices/card';
@@ -51,6 +52,7 @@ import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { Hex } from '@metamask/utils';
 import { BAANX_MAX_LIMIT } from '../../constants';
 import createStyles from './AssetSelectionBottomSheet.styles';
+import { RootState } from '../../../../../reducers';
 
 interface SupportedTokenWithChain {
   address: string;
@@ -95,10 +97,10 @@ const AssetSelectionBottomSheet = forwardRef<
     const dispatch = useDispatch();
     const { sdk } = useCardSDK();
     const selectedAccount = useSelector(selectSelectedInternalAccount);
+    const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
     // Safely get selected address with error handling
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const selectedAccountByScope = useSelector((state: any) =>
+    const selectedAccountByScope = useSelector((state: RootState) =>
       selectSelectedInternalAccountByScope(state)('eip155:0'),
     );
     const selectedAddress = selectedAccountByScope?.address;
@@ -122,7 +124,7 @@ const AssetSelectionBottomSheet = forwardRef<
 
     // Get supported tokens from chain config API
     const getSupportedTokens = useCallback(async () => {
-      if (!sdk || !selectedAddress) return;
+      if (!sdk || !selectedAddress || !isAuthenticated) return;
 
       setIsLoading(true);
       try {
@@ -188,7 +190,7 @@ const AssetSelectionBottomSheet = forwardRef<
       } finally {
         setIsLoading(false);
       }
-    }, [sdk, selectedAddress, priorityToken]);
+    }, [sdk, selectedAddress, priorityToken, isAuthenticated]);
 
     // Load tokens when component mounts
     useEffect(() => {

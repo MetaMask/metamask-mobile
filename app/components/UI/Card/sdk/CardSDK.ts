@@ -8,6 +8,26 @@ import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
 import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
+  CardType,
+  EmailVerificationSendRequest,
+  EmailVerificationSendResponse,
+  EmailVerificationVerifyRequest,
+  EmailVerificationVerifyResponse,
+  PhoneVerificationSendRequest,
+  PhoneVerificationSendResponse,
+  PhoneVerificationVerifyRequest,
+  RegisterPersonalDetailsRequest,
+  RegisterUserResponse,
+  RegisterPhysicalAddressRequest,
+  RegisterAddressResponse,
+  RegistrationSettingsResponse,
+  StartUserVerificationResponse,
+  CreateOnboardingConsentRequest,
+  CreateOnboardingConsentResponse,
+  LinkUserToConsentRequest,
+  LinkUserToConsentResponse,
+  UserResponse,
+  StartUserVerificationRequest,
   CardAuthorizeResponse,
   CardDetailsResponse,
   CardError,
@@ -22,10 +42,8 @@ import {
   CardToken,
   CardWalletExternalPriorityResponse,
   CardWalletExternalResponse,
-  ChainConfigResponse,
-  ChainConfigNetwork,
-  CachedChainConfig,
-  CachedNetworkConfig,
+  CardNetwork,
+  DelegationSettingsResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -47,133 +65,22 @@ export class CardSDK {
   private cardBaanxApiKey: string | undefined;
   private userCardLocation: CardLocation;
   lineaChainId: CaipChainId;
-  private cachedChainConfig: CachedChainConfig | null = null;
-  private cachedNetworkConfigs: Record<string, CachedNetworkConfig> | null =
-    null;
-  private cachedTokenAddresses: Record<
-    string,
-    { address: string; timestamp: number; expiresAt: number }
-  > | null = null;
-  private cachedSpenderAddresses: Record<
-    string,
-    { address: string; timestamp: number; expiresAt: number }
-  > | null = null;
-
-  /**
-   * Cache utility for token and spender addresses
-   */
-  private getCachedAddress = (
-    cache: Record<
-      string,
-      { address: string; timestamp: number; expiresAt: number }
-    > | null,
-    key: string,
-    logContext: { method: string; key: string; [key: string]: unknown },
-  ): string | null => {
-    if (cache?.[key] && Date.now() < cache[key].expiresAt) {
-      this.logDebugInfo(logContext.method, {
-        source: 'cache',
-        ...logContext,
-        cachedAt: new Date(cache[key].timestamp).toISOString(),
-      });
-      return cache[key].address;
-    }
-    return null;
-  };
-
-  private setCachedAddress = (
-    cache: Record<
-      string,
-      { address: string; timestamp: number; expiresAt: number }
-    > | null,
-    key: string,
-    address: string,
-    durationMs: number,
-    logContext: { method: string; key: string; [key: string]: unknown },
-  ): Record<
-    string,
-    { address: string; timestamp: number; expiresAt: number }
-  > => {
-    const newCache = cache || {};
-    newCache[key] = {
-      address,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + durationMs,
-    };
-
-    this.logDebugInfo(logContext.method, {
-      source: 'api',
-      ...logContext,
-      cached: true,
-    });
-
-    return newCache;
-  };
-
-  /**
-   * Cache utility for network configurations
-   */
-  private getCachedNetworkConfig = (
-    cache: Record<string, CachedNetworkConfig> | null,
-    key: string,
-    logContext: { method: string; key: string; [key: string]: unknown },
-  ): ChainConfigNetwork | null => {
-    if (cache?.[key] && Date.now() < cache[key].expiresAt) {
-      this.logDebugInfo(logContext.method, {
-        source: 'cache',
-        ...logContext,
-        cachedAt: new Date(cache[key].timestamp).toISOString(),
-      });
-      return cache[key].config;
-    }
-    return null;
-  };
-
-  private setCachedNetworkConfig = (
-    cache: Record<string, CachedNetworkConfig> | null,
-    key: string,
-    config: ChainConfigNetwork,
-    durationMs: number,
-    logContext: { method: string; key: string; [key: string]: unknown },
-  ): Record<string, CachedNetworkConfig> => {
-    const newCache = cache || {};
-    newCache[key] = {
-      config,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + durationMs,
-    };
-
-    this.logDebugInfo(logContext.method, {
-      source: 'api',
-      ...logContext,
-      cached: true,
-    });
-
-    return newCache;
-  };
 
   constructor({
     cardFeatureFlag,
     userCardLocation,
     enableLogs = false,
-    currentChainId,
   }: {
     cardFeatureFlag: CardFeatureFlag;
     userCardLocation?: CardLocation;
     enableLogs?: boolean;
-    currentChainId?: CaipChainId;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
     this.enableLogs = enableLogs;
     this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
-    this.lineaChainId =
-      currentChainId || `eip155:${getDecimalChainId(LINEA_CHAIN_ID)}`;
+    this.lineaChainId = `eip155:${getDecimalChainId(LINEA_CHAIN_ID)}`;
     this.userCardLocation = userCardLocation ?? 'international';
-  }
-
-  get isBaanxLoginEnabled(): boolean {
-    return this.cardFeatureFlag?.isBaanxLoginEnabled ?? false;
   }
 
   get isCardEnabled(): boolean {
@@ -195,53 +102,6 @@ export class CardSDK {
       (token): token is SupportedToken =>
         token && typeof token.address === 'string' && token.enabled !== false,
     );
-  }
-
-  /**
-   * Fetches supported tokens from the Baanx API /v1/delegation/chain/config endpoint
-   * This is the source of truth for supported tokens
-   */
-  async getSupportedTokensFromChainConfig(): Promise<SupportedToken[]> {
-    try {
-      const chainConfig = await this.getChainConfig();
-
-      // Find the network that matches our current chain ID
-      const currentChainId = this.getCurrentChainId();
-      const decimalChainId = currentChainId.replace('eip155:', '');
-
-      const network = chainConfig.networks.find(
-        (net) => net.chainId === decimalChainId,
-      );
-
-      if (!network?.tokens) {
-        // Fallback to feature flag tokens when chain config doesn't have the network
-        const fallbackTokens = this.getSupportedTokensByChainId(
-          this.getCurrentChainId(),
-        );
-        return fallbackTokens;
-      }
-
-      // Convert the tokens to SupportedToken format
-      const supportedTokens: SupportedToken[] = Object.entries(
-        network.tokens,
-      ).map(([, tokenData]) => ({
-        address: tokenData.address,
-        symbol: tokenData.symbol.toUpperCase(),
-        name: tokenData.symbol.toUpperCase(),
-        decimals: tokenData.decimals,
-        enabled: true, // All tokens from chain config are enabled
-      }));
-
-      return supportedTokens;
-    } catch (error) {
-      console.error('Failed to fetch tokens from chain config:', error);
-
-      // Fallback to feature flag tokens
-      const fallbackTokens = this.getSupportedTokensByChainId(
-        this.getCurrentChainId(),
-      );
-      return fallbackTokens;
-    }
   }
 
   private get foxConnectAddresses() {
@@ -266,23 +126,12 @@ export class CardSDK {
   }
 
   private get balanceScannerInstance() {
-    // Use the current chain ID instead of hardcoded lineaChainId
-    const currentChainId = this.getCurrentChainId();
     const balanceScannerAddress =
-      this.cardFeatureFlag.chains?.[currentChainId]?.balanceScannerAddress;
-
-    this.logDebugInfo('balanceScannerInstance', {
-      currentChainId,
-      availableChains: Object.keys(this.cardFeatureFlag.chains || {}),
-      balanceScannerAddress,
-      chainConfig: this.cardFeatureFlag.chains?.[currentChainId],
-    });
+      this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
     if (!balanceScannerAddress) {
       throw new Error(
-        `Balance scanner address is not defined for chain ${currentChainId}. Available chains: ${Object.keys(
-          this.cardFeatureFlag.chains || {},
-        ).join(', ')}`,
+        'Balance scanner address is not defined for the current chain',
       );
     }
 
@@ -291,27 +140,6 @@ export class CardSDK {
       BALANCE_SCANNER_ABI,
       this.ethersProvider,
     );
-  }
-
-  private getCurrentChainId(): CaipChainId {
-    // Use the chain ID passed to the constructor (current network)
-    // This will be the actual network the user is connected to
-    this.logDebugInfo('getCurrentChainId', {
-      currentChainId: this.lineaChainId,
-      balanceScannerAddress:
-        this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress,
-    });
-    return this.lineaChainId;
-  }
-
-  private getCurrentNetwork(): 'linea' | 'solana' {
-    const chainId = this.getCurrentChainId();
-
-    if (chainId.startsWith('solana:')) {
-      return 'solana';
-    }
-
-    return 'linea';
   }
 
   private get accountsApiUrl() {
@@ -522,130 +350,6 @@ export class CardSDK {
     });
   };
 
-  getAuthenticatedTokensAllowances = async (
-    address: string,
-  ): Promise<
-    {
-      address: `0x${string}`;
-      usAllowance: ethers.BigNumber;
-      globalAllowance: ethers.BigNumber;
-    }[]
-  > => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
-    const supportedTokensAddresses: string[] = [];
-    let globalSpenderAddress: string;
-    let usSpenderAddress: string;
-
-    try {
-      const currentNetwork = this.getCurrentNetwork();
-      const networkConfig = await this.getNetworkConfig(currentNetwork);
-
-      const tokenEntries = Object.entries(networkConfig.tokens);
-      for (const [, tokenData] of tokenEntries) {
-        if (tokenData?.address) {
-          supportedTokensAddresses.push(tokenData.address);
-        }
-      }
-
-      globalSpenderAddress = networkConfig.delegationContract;
-      usSpenderAddress = networkConfig.delegationContract;
-
-      this.logDebugInfo('getAuthenticatedTokensAllowances', {
-        source: 'chainConfig',
-        tokenAddresses: supportedTokensAddresses,
-        globalSpenderAddress,
-        usSpenderAddress,
-      });
-    } catch (error) {
-      const supportedTokens = this.getSupportedTokensByChainId(
-        this.lineaChainId,
-      );
-      for (const token of supportedTokens) {
-        supportedTokensAddresses.push(token.address || '');
-      }
-
-      const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
-        this.foxConnectAddresses;
-      globalSpenderAddress = foxConnectGlobalAddress;
-      usSpenderAddress = foxConnectUsAddress;
-
-      this.logDebugInfo('getAuthenticatedTokensAllowances', {
-        fallback: 'feature flag addresses',
-        supportedTokensAddresses,
-        globalSpenderAddress,
-        usSpenderAddress,
-      });
-    }
-
-    if (supportedTokensAddresses.length === 0) {
-      return [];
-    }
-
-    const spenders: string[][] = supportedTokensAddresses.map(() => [
-      globalSpenderAddress,
-      usSpenderAddress,
-    ]);
-
-    const spendersAllowancesForTokens: [boolean, string][][] =
-      await this.balanceScannerInstance.spendersAllowancesForTokens(
-        address,
-        supportedTokensAddresses,
-        spenders,
-      );
-    this.logDebugInfo(
-      'getAuthenticatedTokensAllowances',
-      spendersAllowancesForTokens,
-    );
-
-    return supportedTokensAddresses.map((tokenAddress, index) => {
-      const [globalAllowanceTuple, usAllowanceTuple] =
-        spendersAllowancesForTokens[index];
-
-      // Debug logging
-      this.logDebugInfo('getSupportedTokensAllowances', {
-        tokenAddress,
-        globalAllowanceTuple,
-        usAllowanceTuple,
-        index,
-      });
-
-      // Handle empty or invalid allowance data
-      let globalAllowanceValue = globalAllowanceTuple[1] || '0x0';
-      let usAllowanceValue = usAllowanceTuple[1] || '0x0';
-
-      // Fix invalid hex strings before creating BigNumber
-      if (globalAllowanceValue === '0x' || globalAllowanceValue === '') {
-        this.logDebugInfo('getSupportedTokensAllowances', {
-          warning: 'Invalid global allowance value, using 0x0',
-          value: globalAllowanceValue,
-          tokenAddress,
-        });
-        globalAllowanceValue = '0x0';
-      }
-
-      if (usAllowanceValue === '0x' || usAllowanceValue === '') {
-        this.logDebugInfo('getSupportedTokensAllowances', {
-          warning: 'Invalid us allowance value, using 0x0',
-          value: usAllowanceValue,
-          tokenAddress,
-        });
-        usAllowanceValue = '0x0';
-      }
-
-      const globalAllowance = ethers.BigNumber.from(globalAllowanceValue);
-      const usAllowance = ethers.BigNumber.from(usAllowanceValue);
-
-      return {
-        address: tokenAddress as `0x${string}`,
-        usAllowance,
-        globalAllowance,
-      };
-    });
-  };
-
   getPriorityToken = async (
     address: string,
     nonZeroBalanceTokens: string[],
@@ -660,7 +364,7 @@ export class CardSDK {
         address,
         nonZeroBalanceTokens,
       });
-      return this.getFirstSupportedTokenFromChainConfig();
+      return this.getFirstSupportedTokenOrNull();
     }
 
     if (nonZeroBalanceTokens.length === 1) {
@@ -668,9 +372,7 @@ export class CardSDK {
         address,
         nonZeroBalanceTokens,
       });
-      return this.findSupportedTokenByAddressFromChainConfig(
-        nonZeroBalanceTokens[0],
-      );
+      return this.findSupportedTokenByAddress(nonZeroBalanceTokens[0]);
     }
 
     // Handle complex case with multiple tokens
@@ -1103,6 +805,13 @@ export class CardSDK {
     );
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Invalid credentials. Please try logging in again.',
+        );
+      }
+
       if (response.status === 404) {
         throw new CardError(
           CardErrorType.NO_CARD,
@@ -1124,9 +833,9 @@ export class CardSDK {
   getCardExternalWalletDetails =
     async (): Promise<CardExternalWalletDetailsResponse> => {
       const promises = [
-        this.makeRequest(`/v1/wallet/external`, { method: 'GET' }, true),
+        this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
         this.makeRequest(
-          `/v1/wallet/external/priority`,
+          '/v1/wallet/external/priority',
           { method: 'GET' },
           true,
         ),
@@ -1202,6 +911,35 @@ export class CardSDK {
       return combinedDetails.sort((a, b) => a.priority - b.priority);
     };
 
+  provisionCard = async (): Promise<{ success: boolean }> => {
+    const response = await this.makeRequest(
+      '/v1/card/order',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          type: CardType.VIRTUAL,
+        }),
+      },
+      true,
+    );
+
+    if (!response.ok) {
+      try {
+        const errorResponse = await response.json();
+        Logger.log(errorResponse, 'Failed to provision card.');
+      } catch (error) {
+        // If we can't parse response, continue without it
+      }
+
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to provision card. Please try again.',
+      );
+    }
+
+    return (await response.json()) as { success: boolean };
+  };
+
   updateWalletPriority = async (
     wallets: { id: number; priority: number }[],
   ): Promise<void> => {
@@ -1258,93 +996,23 @@ export class CardSDK {
   };
 
   /**
-   * Get platform spender address for delegation
-   */
-  getPlatformSpenderAddress = async (
-    network: 'linea' | 'solana',
-  ): Promise<string> => {
-    const logContext = {
-      method: 'getPlatformSpenderAddress',
-      key: network,
-      network,
-    };
-
-    // Check cache first
-    const cachedAddress = this.getCachedAddress(
-      this.cachedSpenderAddresses,
-      network,
-      logContext,
-    );
-    if (cachedAddress) {
-      return cachedAddress;
-    }
-
-    try {
-      // Use chain config API to get the delegation contract address
-      const spenderAddress = await this.getDelegationContractAddress(network);
-
-      // Cache the spender address for 1 hour
-      this.cachedSpenderAddresses = this.setCachedAddress(
-        this.cachedSpenderAddresses,
-        network,
-        spenderAddress,
-        60 * 60 * 1000, // 1 hour
-        { ...logContext, source: 'chainConfig' },
-      );
-
-      return spenderAddress;
-    } catch (error) {
-      Logger.log(
-        error,
-        'CardSDK: Failed to get platform spender address from chain config',
-      );
-
-      // Fallback to hardcoded addresses if chain config fails
-      try {
-        const { global: foxConnectGlobalAddress } = this.foxConnectAddresses;
-        const spenderAddress = foxConnectGlobalAddress;
-
-        if (!spenderAddress) {
-          throw new Error('FoxConnect global address not available');
-        }
-
-        // Cache the fallback address for 1 hour
-        this.cachedSpenderAddresses = this.setCachedAddress(
-          this.cachedSpenderAddresses,
-          network,
-          spenderAddress,
-          60 * 60 * 1000, // 1 hour
-          { ...logContext, source: 'foxConnectAddresses_fallback' },
-        );
-
-        return spenderAddress;
-      } catch (fallbackError) {
-        Logger.log(
-          fallbackError,
-          'CardSDK: Failed to get platform spender address from fallback',
-        );
-        throw new CardError(
-          CardErrorType.SERVER_ERROR,
-          'Failed to get platform spender address. Please try again.',
-        );
-      }
-    }
-  };
-
-  /**
    * Generate a delegation token for spending limit increase
    * This is Step 1 of the delegation process
    */
   generateDelegationToken = async (
-    network: 'linea' | 'solana',
+    network: CardNetwork,
     address: string,
   ): Promise<{
     token: string;
     expiresAt: string;
     nonce: string;
   }> => {
+    // The endpoint only accepts linea or solana.
+    // linea-us can be mapped to linea.
+    const mapNetworkPropToEndpointParam =
+      network === 'solana' ? 'solana' : 'linea';
     const response = await this.makeRequest(
-      `/v1/delegation/token?network=${network}&address=${address}`,
+      `/v1/delegation/token?network=${mapNetworkPropToEndpointParam}&address=${address}`,
       { method: 'GET' },
       true, // authenticated
     );
@@ -1385,7 +1053,7 @@ export class CardSDK {
    */
   completeEVMDelegation = async (params: {
     address: string;
-    network: 'linea' | 'solana';
+    network: CardNetwork;
     currency: string;
     amount: string;
     txHash: string;
@@ -1464,25 +1132,13 @@ export class CardSDK {
   };
 
   /**
-   * Get blockchain configuration for delegation
-   * This fetches chain IDs, token contract addresses, and delegation contract addresses
+   * Get delegation settings for a specific network (optional)
+   * This fetches chain IDs, token contract addresses, and delegation contract addresses.
+   * This needs to be cached at hook level to avoid unnecessary API calls.
    */
-  getChainConfig = async (
-    network?: 'linea' | 'solana',
-  ): Promise<ChainConfigResponse> => {
-    // Check if we have a valid cached config
-    if (
-      this.cachedChainConfig &&
-      Date.now() < this.cachedChainConfig.expiresAt
-    ) {
-      this.logDebugInfo('getChainConfig', {
-        source: 'cache',
-        network,
-        cachedAt: new Date(this.cachedChainConfig.timestamp).toISOString(),
-      });
-      return this.cachedChainConfig.config;
-    }
-
+  getDelegationSettings = async (
+    network?: CardNetwork,
+  ): Promise<DelegationSettingsResponse> => {
     try {
       const queryParams = network ? `?network=${network}` : '';
       const response = await this.makeRequest(
@@ -1501,148 +1157,35 @@ export class CardSDK {
 
         const error = new CardError(
           CardErrorType.SERVER_ERROR,
-          'Failed to get chain configuration. Please try again.',
+          'Failed to get delegation settings. Please try again.',
         );
         Logger.log(
           error,
-          `CardSDK: Failed to get chain configuration. Status: ${response.status}`,
+          `CardSDK: Failed to get delegation settings. Status: ${response.status}`,
           JSON.stringify(responseBody, null, 2),
         );
         throw error;
       }
 
-      const configData = await response.json();
-      this.logDebugInfo('getChainConfig', {
+      const responseData = await response.json();
+      this.logDebugInfo('getDelegationSettings', {
         source: 'api',
         network,
-        configData,
+        responseData,
       });
 
-      // Validate the configuration before caching
-      this.validateChainConfig(configData);
+      // Validate the response data
+      this.validateDelegationSettings(responseData);
 
-      // Cache the config for 1 hour
-      this.cachedChainConfig = {
-        config: configData,
-        timestamp: Date.now(),
-        expiresAt: Date.now() + 60 * 60 * 1000, // 1 hour
-      };
-
-      return configData;
+      return responseData;
     } catch (error) {
-      Logger.log(error, 'CardSDK: Failed to get chain configuration from API');
+      Logger.log(error, 'CardSDK: Failed to get delegation settings from API');
       throw new CardError(
         CardErrorType.SERVER_ERROR,
-        'Failed to get chain configuration. Please try again.',
+        'Failed to get delegation settings. Please try again.',
         error instanceof Error ? error : new Error(String(error)),
       );
     }
-  };
-
-  /**
-   * Get network configuration for a specific network
-   */
-  getNetworkConfig = async (
-    network: 'linea' | 'solana',
-  ): Promise<ChainConfigNetwork> => {
-    const cacheKey = `networkConfig_${network}`;
-    const logContext = { method: 'getNetworkConfig', key: cacheKey, network };
-
-    // Check cache first
-    const cachedConfig = this.getCachedNetworkConfig(
-      this.cachedNetworkConfigs,
-      cacheKey,
-      logContext,
-    );
-    if (cachedConfig) {
-      return cachedConfig;
-    }
-
-    const config = await this.getChainConfig(network);
-    const networkConfig = config.networks.find((n) => n.network === network);
-
-    if (!networkConfig) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        `Network configuration not found for ${network}`,
-      );
-    }
-
-    // Cache the network config for 5 minutes
-    this.cachedNetworkConfigs = this.setCachedNetworkConfig(
-      this.cachedNetworkConfigs,
-      cacheKey,
-      networkConfig,
-      5 * 60 * 1000, // 5 minutes
-      logContext,
-    );
-
-    return networkConfig;
-  };
-
-  /**
-   * Get token address for a specific network and currency
-   */
-  getTokenAddress = async (
-    network: 'linea' | 'solana',
-    currency: string,
-  ): Promise<string> => {
-    const cacheKey = `${network}_${currency}`;
-    const logContext = {
-      method: 'getTokenAddress',
-      key: cacheKey,
-      network,
-      currency,
-    };
-
-    // Check cache first
-    const cachedAddress = this.getCachedAddress(
-      this.cachedTokenAddresses,
-      cacheKey,
-      logContext,
-    );
-    if (cachedAddress) {
-      return cachedAddress;
-    }
-
-    const networkConfig = await this.getNetworkConfig(network);
-    const tokenAddress = networkConfig.tokens[currency]?.address;
-
-    if (!tokenAddress) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        `Token address not found for ${currency} on ${network}`,
-      );
-    }
-
-    // Cache the token address for 1 hour
-    this.cachedTokenAddresses = this.setCachedAddress(
-      this.cachedTokenAddresses,
-      cacheKey,
-      tokenAddress,
-      60 * 60 * 1000, // 1 hour
-      logContext,
-    );
-
-    return tokenAddress;
-  };
-
-  /**
-   * Get delegation contract address for a specific network
-   */
-  getDelegationContractAddress = async (
-    network: 'linea' | 'solana',
-  ): Promise<string> => {
-    const networkConfig = await this.getNetworkConfig(network);
-
-    if (!networkConfig.delegationContract) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        `Delegation contract address not found for ${network}`,
-      );
-    }
-
-    return networkConfig.delegationContract;
   };
 
   encodeApproveTransaction = (spender: string, value: string): string => {
@@ -1653,33 +1196,21 @@ export class CardSDK {
   };
 
   /**
-   * Clear cached chain configuration
+   * Validate delegation settings response
    */
-  clearChainConfigCache = (): void => {
-    this.cachedChainConfig = null;
-    this.cachedNetworkConfigs = null;
-    this.cachedTokenAddresses = null;
-    this.cachedSpenderAddresses = null;
-    this.logDebugInfo('clearChainConfigCache', {
-      message:
-        'All caches cleared (chain config, network configs, token addresses, spender addresses)',
-    });
-  };
-
-  /**
-   * Validate chain configuration response
-   */
-  private validateChainConfig = (config: ChainConfigResponse): void => {
-    if (!config.networks || !Array.isArray(config.networks)) {
+  private validateDelegationSettings = (
+    responseData: DelegationSettingsResponse,
+  ): void => {
+    if (!responseData.networks || !Array.isArray(responseData.networks)) {
       throw new CardError(
         CardErrorType.VALIDATION_ERROR,
-        'Invalid chain configuration: networks array is missing or invalid',
+        'Invalid delegation settings: networks array is missing or invalid',
       );
     }
 
-    const supportedNetworks = ['linea', 'solana'];
+    const supportedNetworks = ['linea', 'linea-us', 'solana'];
 
-    for (const network of config.networks) {
+    for (const network of responseData.networks) {
       if (!supportedNetworks.includes(network.network)) {
         continue; // Skip unsupported networks
       }
@@ -1688,7 +1219,7 @@ export class CardSDK {
       if (!network.chainId || !network.delegationContract) {
         throw new CardError(
           CardErrorType.VALIDATION_ERROR,
-          `Invalid chain configuration for ${network.network}: missing chainId or delegationContract`,
+          `Invalid delegation settings for ${network.network}: missing chainId or delegationContract`,
         );
       }
 
@@ -1696,7 +1227,7 @@ export class CardSDK {
       if (!network.tokens) {
         throw new CardError(
           CardErrorType.VALIDATION_ERROR,
-          `Invalid chain configuration for ${network.network}: tokens object is missing`,
+          `Invalid delegation settings for ${network.network}: tokens object is missing`,
         );
       }
 
@@ -1709,32 +1240,728 @@ export class CardSDK {
         ) {
           throw new CardError(
             CardErrorType.VALIDATION_ERROR,
-            `Invalid chain configuration for ${network.network}: ${tokenSymbol} token is missing or invalid`,
+            `Invalid delegation settings for ${network.network}: ${tokenSymbol} token is missing or invalid`,
           );
         }
-
-        // Validate address format
-        const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-        if (!addressRegex.test(token.address)) {
-          throw new CardError(
-            CardErrorType.VALIDATION_ERROR,
-            `Invalid chain configuration for ${network.network}: ${tokenSymbol} address format is invalid`,
-          );
-        }
-      }
-
-      // Validate delegation contract address format
-      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-      if (!addressRegex.test(network.delegationContract)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          `Invalid chain configuration for ${network.network}: delegation contract address format is invalid`,
-        );
       }
     }
   };
 
-  private mapAPINetworkToCaipChainId(network: 'linea' | 'solana'): CaipChainId {
+  emailVerificationSend = async (
+    request: EmailVerificationSendRequest,
+  ): Promise<EmailVerificationSendResponse> => {
+    this.logDebugInfo('emailVerificationSend', { email: request.email });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/email/send',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Email verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Email verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as EmailVerificationSendResponse;
+    } catch (error) {
+      this.logDebugInfo('emailVerificationSend error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to send email verification',
+        error as Error,
+      );
+    }
+  };
+
+  emailVerificationVerify = async (
+    request: EmailVerificationVerifyRequest,
+  ): Promise<EmailVerificationVerifyResponse> => {
+    this.logDebugInfo('emailVerificationVerify', {
+      email: request.email,
+      contactVerificationId: request.contactVerificationId,
+      countryOfResidence: request.countryOfResidence,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/email/verify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Email verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Email verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as EmailVerificationVerifyResponse;
+    } catch (error) {
+      this.logDebugInfo('emailVerificationVerify error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to verify email verification',
+        error as Error,
+      );
+    }
+  };
+
+  phoneVerificationSend = async (
+    request: PhoneVerificationSendRequest,
+  ): Promise<PhoneVerificationSendResponse> => {
+    try {
+      this.logDebugInfo('phoneVerificationSend request', request);
+
+      const response = await this.makeRequest(
+        '/v1/auth/register/phone/send',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Phone verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Phone verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as PhoneVerificationSendResponse;
+    } catch (error) {
+      this.logDebugInfo('phoneVerificationSend error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to send phone verification',
+        error as Error,
+      );
+    }
+  };
+
+  phoneVerificationVerify = async (
+    request: PhoneVerificationVerifyRequest,
+  ): Promise<RegisterUserResponse> => {
+    try {
+      this.logDebugInfo('phoneVerificationVerify request', request);
+
+      const response = await this.makeRequest(
+        '/v1/auth/register/phone/verify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Phone verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Phone verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterUserResponse;
+    } catch (error) {
+      this.logDebugInfo('phoneVerificationVerify error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to verify phone verification',
+        error as Error,
+      );
+    }
+  };
+
+  startUserVerification = async (
+    request: StartUserVerificationRequest,
+  ): Promise<StartUserVerificationResponse> => {
+    this.logDebugInfo('startUserVerification', request);
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/verification',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to get registration settings',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration settings',
+          );
+        }
+      }
+      const data = await response.json();
+      return data as StartUserVerificationResponse;
+    } catch (error) {
+      this.logDebugInfo('startUserVerification error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to start user verification',
+        error as Error,
+      );
+    }
+  };
+
+  registerPersonalDetails = async (
+    request: RegisterPersonalDetailsRequest,
+  ): Promise<RegisterUserResponse> => {
+    this.logDebugInfo('registerPersonalDetails', {
+      onboardingId: request.onboardingId,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/personal-details',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Personal details registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Personal details registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterUserResponse;
+    } catch (error) {
+      this.logDebugInfo('registerPersonalDetails error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to register personal details',
+        error as Error,
+      );
+    }
+  };
+
+  registerPhysicalAddress = async (
+    request: RegisterPhysicalAddressRequest,
+  ): Promise<RegisterAddressResponse> => {
+    this.logDebugInfo('registerPhysicalAddress', {
+      onboardingId: request.onboardingId,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/address',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterAddressResponse;
+    } catch (error) {
+      this.logDebugInfo('registerAddress error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to register address',
+        error as Error,
+      );
+    }
+  };
+
+  registerMailingAddress = async (
+    request: RegisterPhysicalAddressRequest,
+  ): Promise<RegisterAddressResponse> => {
+    this.logDebugInfo('registerMailingAddress', {
+      onboardingId: request.onboardingId,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/mailing-address',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterAddressResponse;
+    } catch (error) {
+      this.logDebugInfo('registerAddress error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to register address',
+        error as Error,
+      );
+    }
+  };
+
+  getRegistrationSettings = async (): Promise<RegistrationSettingsResponse> => {
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/settings',
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to get registration settings',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration settings',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getRegistrationSettings response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getRegistrationSettings error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get registration settings',
+        error as Error,
+      );
+    }
+  };
+
+  getRegistrationStatus = async (
+    onboardingId: string,
+  ): Promise<UserResponse> => {
+    try {
+      const response = await this.makeRequest(
+        `/v1/auth/register?onboardingId=${onboardingId}`,
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to get registration status',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration status',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getRegistrationStatus response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getRegistrationStatus error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get registration status',
+        error as Error,
+      );
+    }
+  };
+
+  createOnboardingConsent = async (
+    request: CreateOnboardingConsentRequest,
+  ): Promise<CreateOnboardingConsentResponse> => {
+    this.logDebugInfo('createOnboardingConsent', { request });
+
+    try {
+      const response = await this.makeRequest(
+        '/v2/consent/onboarding',
+        {
+          method: 'POST',
+          body: JSON.stringify(request),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
+          },
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to create onboarding consent',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while creating onboarding consent',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('createOnboardingConsent response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('createOnboardingConsent error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to create onboarding consent',
+        error as Error,
+      );
+    }
+  };
+
+  linkUserToConsent = async (
+    consentSetId: string,
+    request: LinkUserToConsentRequest,
+  ): Promise<LinkUserToConsentResponse> => {
+    this.logDebugInfo('linkUserToConsent', {
+      consentSetId,
+      request,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        `/v2/consent/onboarding/${consentSetId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(request),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
+          },
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to link user to consent',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while linking user to consent',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('linkUserToConsent response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('linkUserToConsent error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to link user to consent',
+        error as Error,
+      );
+    }
+  };
+
+  private mapAPINetworkToCaipChainId(network: CardNetwork): CaipChainId {
     switch (network) {
       case 'solana':
         return SOLANA_MAINNET.chainId;
@@ -1743,7 +1970,7 @@ export class CardSDK {
     }
   }
 
-  private mapAPINetworkToAssetChainId(network: 'linea' | 'solana'): string {
+  private mapAPINetworkToAssetChainId(network: CardNetwork): string {
     switch (network) {
       case 'solana':
         return SOLANA_MAINNET.chainId;
@@ -1762,38 +1989,6 @@ export class CardSDK {
       : null;
   }
 
-  private async getFirstSupportedTokenFromChainConfig(): Promise<CardToken | null> {
-    try {
-      const currentNetwork = this.getCurrentNetwork();
-      const networkConfig = await this.getNetworkConfig(currentNetwork);
-
-      // Get the first available token from chain config
-      const tokenKeys = Object.keys(networkConfig.tokens);
-      if (tokenKeys.length > 0) {
-        const firstTokenKey = tokenKeys[0];
-        const firstToken = networkConfig.tokens[firstTokenKey];
-        return {
-          address: firstToken.address,
-          decimals: firstToken.decimals,
-          symbol: firstToken.symbol,
-          name: firstToken.symbol, // Use symbol as name if name not available
-        };
-      }
-
-      this.logDebugInfo('getFirstSupportedTokenFromChainConfig', {
-        message: 'No tokens found in chain config',
-      });
-      return null;
-    } catch (error) {
-      this.logDebugInfo('getFirstSupportedTokenFromChainConfig', {
-        error: error instanceof Error ? error.message : String(error),
-        fallback: 'using feature flag',
-      });
-      // Fallback to feature flag method
-      return this.getFirstSupportedTokenOrNull();
-    }
-  }
-
   private findSupportedTokenByAddress(tokenAddress: string): CardToken | null {
     const match = this.getSupportedTokensByChainId(this.lineaChainId).find(
       (supportedToken) =>
@@ -1801,43 +1996,6 @@ export class CardSDK {
     );
 
     return match ? this.mapSupportedTokenToCardToken(match) : null;
-  }
-
-  private async findSupportedTokenByAddressFromChainConfig(
-    tokenAddress: string,
-  ): Promise<CardToken | null> {
-    try {
-      const currentNetwork = this.getCurrentNetwork();
-      const networkConfig = await this.getNetworkConfig(currentNetwork);
-
-      const tokenEntries = Object.entries(networkConfig.tokens);
-      for (const [, tokenData] of tokenEntries) {
-        if (
-          tokenData &&
-          tokenData.address.toLowerCase() === tokenAddress.toLowerCase()
-        ) {
-          return {
-            address: tokenData.address,
-            decimals: tokenData.decimals,
-            symbol: tokenData.symbol,
-            name: tokenData.symbol,
-          };
-        }
-      }
-
-      this.logDebugInfo('findSupportedTokenByAddressFromChainConfig', {
-        tokenAddress,
-        message: 'Token address not found in chain config',
-      });
-      return null;
-    } catch (error) {
-      this.logDebugInfo('findSupportedTokenByAddressFromChainConfig', {
-        error: error instanceof Error ? error.message : String(error),
-        fallback: 'using feature flag',
-      });
-      // Fallback to feature flag method
-      return this.findSupportedTokenByAddress(tokenAddress);
-    }
   }
 
   private async findPriorityTokenFromApprovalLogs(
@@ -1850,15 +2008,13 @@ export class CardSDK {
     );
 
     if (approvalLogs.length === 0) {
-      return this.getFirstSupportedTokenFromChainConfig();
+      return this.getFirstSupportedTokenOrNull();
     }
 
     const lastNonZeroApprovalToken =
       this.findLastNonZeroApprovalToken(approvalLogs);
     return lastNonZeroApprovalToken
-      ? this.findSupportedTokenByAddressFromChainConfig(
-          lastNonZeroApprovalToken,
-        )
+      ? this.findSupportedTokenByAddress(lastNonZeroApprovalToken)
       : null;
   }
 
@@ -1931,32 +2087,8 @@ export class CardSDK {
   }
 
   private mapSupportedTokenToCardToken(token: SupportedToken): CardToken {
-    if (!token) {
-      Logger.log('CardSDK: mapSupportedTokenToCardToken - token is undefined');
-      return {
-        address: null,
-        decimals: null,
-        symbol: null,
-        name: null,
-      };
-    }
-
-    // Validate that the token has a valid address before processing
-    if (!token.address || token.address === '0x' || token.address.length < 42) {
-      Logger.log(
-        'CardSDK: mapSupportedTokenToCardToken - invalid token address:',
-        token.address,
-      );
-      return {
-        address: null,
-        decimals: token.decimals || null,
-        symbol: token.symbol || null,
-        name: token.name || null,
-      };
-    }
-
     return {
-      address: token.address,
+      address: token.address || null,
       decimals: token.decimals || null,
       symbol: token.symbol || null,
       name: token.name || null,
