@@ -104,7 +104,7 @@ describe('PerpsHomeSection', () => {
       expect(getByText('Test Section')).toBeTruthy();
     });
 
-    it('shows section when empty by default with showWhenEmpty undefined', () => {
+    it('hides section when empty by default with showWhenEmpty undefined', () => {
       const { queryByText } = render(
         <PerpsHomeSection
           title="Test Section"

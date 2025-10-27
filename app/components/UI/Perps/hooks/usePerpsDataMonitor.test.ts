@@ -824,7 +824,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
   });
 
   describe('loading states', () => {
-    it('does not trigger monitoring while orders are loading', () => {
+    it('triggers monitoring after loading completes', () => {
       const onDataDetected = jest.fn();
 
       // Orders are loading (undefined)
