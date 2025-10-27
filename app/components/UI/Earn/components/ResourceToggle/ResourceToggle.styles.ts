@@ -43,9 +43,7 @@ const styleSheet = (params: { theme: Theme; vars?: { style?: ViewStyle } }) => {
       left: 3,
       bottom: 4,
       borderRadius: 12,
-      backgroundColor: colors.background.default,
-      borderWidth: 1,
-      borderColor: colors.border.default,
+      backgroundColor: colors.background.muted,
     },
   });
 };
