@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -26,6 +31,9 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { TouchableOpacity } from 'react-native';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -39,6 +47,17 @@ const SignUp = () => {
   const [isConfirmPasswordError, setIsConfirmPasswordError] = useState(false);
   const selectedCountry = useSelector(selectSelectedCountry);
   const { data: registrationSettings } = useRegistrationSettings();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+        .addProperties({
+          page: OnboardingScreens.SIGN_UP,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const {
     sendEmailVerification,
@@ -136,6 +155,13 @@ const SignUp = () => {
       return;
     }
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+          .addProperties({
+            action: OnboardingActions.SIGN_UP_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       const { contactVerificationId } = await sendEmailVerification(
         debouncedEmail,
       );
@@ -162,6 +188,8 @@ const SignUp = () => {
     navigation,
     selectedCountry,
     sendEmailVerification,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const handleCountrySelect = useCallback(
@@ -298,15 +326,29 @@ const SignUp = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-      testID="signup-continue-button"
-    />
+    <>
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        testID="signup-continue-button"
+      />
+      <TouchableOpacity
+        onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
+      >
+        <Text
+          testID="signup-i-already-have-an-account-text"
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-primary-default text-center p-4 underline"
+        >
+          {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
+        </Text>
+      </TouchableOpacity>
+    </>
   );
 
   return (

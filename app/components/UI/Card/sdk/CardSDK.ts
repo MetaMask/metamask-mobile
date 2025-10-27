@@ -81,10 +81,6 @@ export class CardSDK {
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
-  get isBaanxLoginEnabled(): boolean {
-    return this.cardFeatureFlag?.isBaanxLoginEnabled ?? false;
-  }
-
   get isCardEnabled(): boolean {
     return this.cardFeatureFlag.chains?.[this.lineaChainId]?.enabled || false;
   }
@@ -1557,6 +1553,7 @@ export class CardSDK {
           body: JSON.stringify(request),
           headers: {
             'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
           },
         },
         false, // not authenticated
@@ -1621,6 +1618,7 @@ export class CardSDK {
           body: JSON.stringify(request),
           headers: {
             'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
           },
         },
         false, // not authenticated
