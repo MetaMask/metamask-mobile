@@ -11,7 +11,16 @@ import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-response
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { POLYMARKET_MARKET_FEEDS_MOCKS } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import {
+  POLYMARKET_MARKET_FEEDS_MOCKS,
+  POLYMARKET_ALL_POSITIONS_MOCKS,
+  POLYMARKET_EVENT_DETAILS_MOCKS,
+} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import WalletView from '../../pages/wallet/WalletView';
+import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
+import { PredictMarketDetailsSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 // Enable the Predictions feature flag and force Polymarket geoblock
 const PredictionGeoBlockedFeature = async (mockServer: Mockttp) => {
@@ -55,6 +64,9 @@ const PredictionGeoBlockedFeature = async (mockServer: Mockttp) => {
     responseCode: 200,
     response: { blocked: true },
   });
+  // Also provide positions and event mocks so Positions/Claim UI renders
+  await POLYMARKET_ALL_POSITIONS_MOCKS(mockServer);
+  await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
 };
 
 describe(RegressionTrade('Predictions - Geo Restriction'), () => {
@@ -130,4 +142,77 @@ describe(RegressionTrade('Predictions - Geo Restriction'), () => {
       );
     });
   }
+
+  //Claim functionality development in progress
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('displays geo restriction modal when tapping Claim on Wallet > Predictions', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
+        testSpecificMock: PredictionGeoBlockedFeature,
+      },
+      async () => {
+        // Navigate to Predictions tab in Wallet view
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet container should be visible',
+        });
+        await WalletView.tapOnPredictionsTab();
+        await Assertions.expectElementToBeVisible(
+          WalletView.PredictionsTabContainer,
+          {
+            description: 'Predictions tab container visible',
+          },
+        );
+
+        // Tap Claim button at header
+        await WalletView.tapClaimButton();
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
+      },
+    );
+  });
+
+  //Cash out functionality development in progress
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('displays geo restriction modal when tapping Cash out in Market Details', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
+        testSpecificMock: PredictionGeoBlockedFeature,
+      },
+      async () => {
+        // From Wallet Predictions tab open first market card to details
+        await Assertions.expectElementToBeVisible(PredictMarketList.container, {
+          description: 'Predict market list container should be visible',
+        });
+        await PredictMarketList.tapMarketCard('trending', 1);
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.container,
+          {
+            description: 'Predict details page visible',
+          },
+        );
+
+        // Navigate to Positions tab and press Cash out
+        const positionsTab = Matchers.getElementByID(
+          PredictMarketDetailsSelectorsIDs.POSITIONS_TAB,
+        ) as unknown as DetoxElement;
+        await Gestures.waitAndTap(positionsTab, {
+          elemDescription: 'Tap Positions tab',
+        });
+
+        const cashOutButton = Matchers.getElementByID(
+          PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
+        ) as unknown as DetoxElement;
+        await Gestures.waitAndTap(cashOutButton, {
+          elemDescription: 'Tap Cash out button',
+        });
+
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
+      },
+    );
+  });
 });
