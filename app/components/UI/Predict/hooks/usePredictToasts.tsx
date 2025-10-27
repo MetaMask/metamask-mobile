@@ -172,10 +172,8 @@ export const usePredictToasts = ({
       if (!isTargetTransaction) {
         return;
       }
-      console.warn('Transaction status updated:', transactionMeta);
 
       if (transactionMeta.status === TransactionStatus.rejected) {
-        console.warn('Transaction rejected:', transactionMeta);
         clearTransaction();
       } else if (
         transactionMeta.status === TransactionStatus.approved &&
@@ -189,7 +187,6 @@ export const usePredictToasts = ({
         showConfirmedToast(amount);
         onConfirmed?.();
       } else if (transactionMeta.status === TransactionStatus.failed) {
-        console.warn('Transaction failed:', transactionMeta);
         clearTransaction();
         showErrorToast();
       }
