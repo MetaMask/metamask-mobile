@@ -41,16 +41,18 @@ const SetPhoneNumber = () => {
 
     const uniqueCallingCodes = new Map();
 
-    registrationSettings.countries.forEach((country) => {
-      const callingCode = country.callingCode;
-      if (!uniqueCallingCodes.has(callingCode)) {
-        uniqueCallingCodes.set(callingCode, {
-          key: country.iso3166alpha2,
-          value: callingCode,
-          label: `+${callingCode}`,
-        });
-      }
-    });
+    registrationSettings.countries
+      .filter((country) => country.canSignUp)
+      .forEach((country) => {
+        const callingCode = country.callingCode;
+        if (!uniqueCallingCodes.has(callingCode)) {
+          uniqueCallingCodes.set(callingCode, {
+            key: country.iso3166alpha2,
+            value: callingCode,
+            label: `+${callingCode}`,
+          });
+        }
+      });
 
     // Convert Map values to array and sort
     return Array.from(uniqueCallingCodes.values()).sort((a, b) =>

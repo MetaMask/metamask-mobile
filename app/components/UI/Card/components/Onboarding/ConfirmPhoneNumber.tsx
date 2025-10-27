@@ -34,7 +34,7 @@ import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 const CELL_COUNT = 6;
 
 // Styles for the OTP CodeField
-const createStyles = (params: { theme: Theme }) => {
+export const createOTPStyles = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
@@ -64,9 +64,9 @@ const createStyles = (params: { theme: Theme }) => {
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
   const { setUser } = useCardSDK();
-  const { styles } = useStyles(createStyles, {});
+  const { styles } = useStyles(createOTPStyles, {});
   const inputRef = useRef<TextInput>(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(60);
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -123,7 +123,7 @@ const ConfirmPhoneNumber = () => {
       });
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+        navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS);
       }
     } catch (error) {
       if (
@@ -186,7 +186,7 @@ const ConfirmPhoneNumber = () => {
         phoneNumber,
         contactVerificationId,
       });
-      setResendCooldown(30);
+      setResendCooldown(60);
     } catch {
       // Allow error message to display
     }
@@ -212,15 +212,13 @@ const ConfirmPhoneNumber = () => {
 
   // Cooldown timer effect
   useEffect(() => {
-    let timer: NodeJS.Timeout;
     if (resendCooldown > 0) {
-      timer = setTimeout(() => {
-        setResendCooldown(resendCooldown - 1);
+      const timer = setTimeout(() => {
+        setResendCooldown((prev) => prev - 1);
       }, 1000);
+
+      return () => clearTimeout(timer);
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
   }, [resendCooldown]);
 
   // Auto-submit when all digits are entered
@@ -299,12 +297,12 @@ const ConfirmPhoneNumber = () => {
       </Box>
 
       {/* Resend verification */}
-      <Box>
+      <Box twClassName="mt-4 items-center">
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           twClassName={`${
             resendCooldown > 0
-              ? 'text-text-muted'
+              ? 'text-text-alternative'
               : 'text-primary-default cursor-pointer'
           }`}
           onPress={resendCooldown > 0 ? undefined : handleResendVerification}
