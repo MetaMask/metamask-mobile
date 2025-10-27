@@ -110,21 +110,31 @@ export interface PerpsNavigationParams {
  * Supported actions for universal links
  * Subset of ACTIONS that are allowed via universal links for security
  */
-export enum SUPPORTED_ACTIONS {
-  DAPP = ACTIONS.DAPP,
-  BUY = ACTIONS.BUY,
-  BUY_CRYPTO = ACTIONS.BUY_CRYPTO,
-  SELL = ACTIONS.SELL,
-  SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
-  DEPOSIT = ACTIONS.DEPOSIT,
-  HOME = ACTIONS.HOME,
-  SWAP = ACTIONS.SWAP,
-  SEND = ACTIONS.SEND,
-  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
-  PERPS = ACTIONS.PERPS,
-  PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
-  PERPS_ASSET = ACTIONS.PERPS_ASSET,
-  REWARDS = ACTIONS.REWARDS,
-  WC = ACTIONS.WC,
-  ONBOARDING = ACTIONS.ONBOARDING,
-}
+export const SUPPORTED_ACTIONS = [
+  ACTIONS.DAPP,
+  ACTIONS.BUY,
+  ACTIONS.BUY_CRYPTO,
+  ACTIONS.SELL,
+  ACTIONS.SELL_CRYPTO,
+  ACTIONS.DEPOSIT,
+  ACTIONS.HOME,
+  ACTIONS.SWAP,
+  ACTIONS.SEND,
+  ACTIONS.CREATE_ACCOUNT,
+  ACTIONS.PERPS,
+  ACTIONS.PERPS_MARKETS,
+  ACTIONS.PERPS_ASSET,
+  ACTIONS.REWARDS,
+  ACTIONS.WC,
+  ACTIONS.ONBOARDING,
+] as const satisfies readonly ACTIONS[];
+
+export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];
+
+/**
+ * Helper to check if an action is supported
+ * @param action - The action to check
+ * @returns true if action is supported, false otherwise
+ */
+export const isSupportedAction = (action: string): action is SupportedAction =>
+  SUPPORTED_ACTIONS.includes(action as SupportedAction);

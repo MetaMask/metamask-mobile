@@ -13,7 +13,8 @@ import {
 } from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
-import { SUPPORTED_ACTIONS } from '../../core/DeeplinkManager/types/deepLink.types';
+import { SupportedAction } from '../../core/DeeplinkManager/types/deepLink.types';
+import { ACTIONS } from '../../constants/deeplinks';
 
 /**
  * Type for URL parameters that can contain string or boolean values
@@ -394,26 +395,26 @@ export const determineSignatureStatus = (
 };
 
 /**
- * Map SUPPORTED_ACTIONS to DeepLinkRoute
+ * Map SupportedAction to DeepLinkRoute
  */
 export const mapSupportedActionToRoute = (
-  action: SUPPORTED_ACTIONS,
+  action: SupportedAction,
 ): DeepLinkRoute => {
   switch (action) {
-    case SUPPORTED_ACTIONS.SWAP:
+    case ACTIONS.SWAP:
       return DeepLinkRoute.SWAP;
-    case SUPPORTED_ACTIONS.PERPS:
-    case SUPPORTED_ACTIONS.PERPS_MARKETS:
-    case SUPPORTED_ACTIONS.PERPS_ASSET:
+    case ACTIONS.PERPS:
+    case ACTIONS.PERPS_MARKETS:
+    case ACTIONS.PERPS_ASSET:
       return DeepLinkRoute.PERPS;
-    case SUPPORTED_ACTIONS.DEPOSIT:
+    case ACTIONS.DEPOSIT:
       return DeepLinkRoute.DEPOSIT;
-    case SUPPORTED_ACTIONS.SEND:
+    case ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;
-    case SUPPORTED_ACTIONS.BUY:
-    case SUPPORTED_ACTIONS.BUY_CRYPTO:
+    case ACTIONS.BUY:
+    case ACTIONS.BUY_CRYPTO:
       return DeepLinkRoute.BUY;
-    case SUPPORTED_ACTIONS.HOME:
+    case ACTIONS.HOME:
       return DeepLinkRoute.HOME;
     default:
       return DeepLinkRoute.INVALID;

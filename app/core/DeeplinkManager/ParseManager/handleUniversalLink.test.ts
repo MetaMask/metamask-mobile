@@ -883,8 +883,6 @@ describe('handleUniversalLinks', () => {
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
           {
             linkType: DeepLinkModalLinkType.INVALID,
-            pageTitle: 'Dapp',
-            onContinue: expect.any(Function),
             onBack: expect.any(Function),
           },
           expect.objectContaining({
@@ -925,8 +923,6 @@ describe('handleUniversalLinks', () => {
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
           {
             linkType: DeepLinkModalLinkType.UNSUPPORTED,
-            pageTitle: 'Unsupported action',
-            onContinue: expect.any(Function),
             onBack: expect.any(Function),
           },
           expect.objectContaining({
@@ -961,8 +957,6 @@ describe('handleUniversalLinks', () => {
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
           {
             linkType: DeepLinkModalLinkType.INVALID,
-            pageTitle: 'Unsupported action',
-            onContinue: expect.any(Function),
             onBack: expect.any(Function),
           },
           expect.objectContaining({
@@ -999,8 +993,6 @@ describe('handleUniversalLinks', () => {
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
           {
             linkType: DeepLinkModalLinkType.INVALID,
-            pageTitle: 'Unsupported action',
-            onContinue: expect.any(Function),
             onBack: expect.any(Function),
           },
           expect.objectContaining({

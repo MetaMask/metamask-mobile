@@ -12,16 +12,14 @@ import {
   mapSupportedActionToRoute,
   createDeepLinkUsedEventBuilder,
 } from './deepLinkAnalytics';
-import {
-  SUPPORTED_ACTIONS,
-  DeeplinkUrlParams,
-} from '../../core/DeeplinkManager/types/deepLink.types';
+import { DeeplinkUrlParams } from '../../core/DeeplinkManager/types/deepLink.types';
 import {
   DeepLinkRoute,
   InterstitialState,
   SignatureStatus,
   DeepLinkAnalyticsContext,
 } from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
+import { ACTIONS } from '../../constants/deeplinks';
 
 // Mock Logger to avoid console output during tests
 jest.mock('../Logger', () => ({
@@ -311,15 +309,15 @@ describe('deepLinkAnalytics', () => {
 
   describe('mapSupportedActionToRoute', () => {
     it('maps swap action to SWAP route', () => {
-      const swapAction = SUPPORTED_ACTIONS.SWAP;
+      const swapAction = ACTIONS.SWAP;
       const result = mapSupportedActionToRoute(swapAction);
       expect(result).toBe(DeepLinkRoute.SWAP);
     });
 
     it.each([
-      [SUPPORTED_ACTIONS.PERPS, DeepLinkRoute.PERPS],
-      [SUPPORTED_ACTIONS.PERPS_MARKETS, DeepLinkRoute.PERPS],
-      [SUPPORTED_ACTIONS.PERPS_ASSET, DeepLinkRoute.PERPS],
+      [ACTIONS.PERPS, DeepLinkRoute.PERPS],
+      [ACTIONS.PERPS_MARKETS, DeepLinkRoute.PERPS],
+      [ACTIONS.PERPS_ASSET, DeepLinkRoute.PERPS],
     ] as const)(
       'maps perps action %s to PERPS route',
       (action, expectedRoute) => {
@@ -330,20 +328,20 @@ describe('deepLinkAnalytics', () => {
     );
 
     it('maps deposit action to DEPOSIT route', () => {
-      const depositAction = SUPPORTED_ACTIONS.DEPOSIT;
+      const depositAction = ACTIONS.DEPOSIT;
       const result = mapSupportedActionToRoute(depositAction);
       expect(result).toBe(DeepLinkRoute.DEPOSIT);
     });
 
     it('maps send action to TRANSACTION route', () => {
-      const sendAction = SUPPORTED_ACTIONS.SEND;
+      const sendAction = ACTIONS.SEND;
       const result = mapSupportedActionToRoute(sendAction);
       expect(result).toBe(DeepLinkRoute.TRANSACTION);
     });
 
     it.each([
-      [SUPPORTED_ACTIONS.BUY, DeepLinkRoute.BUY],
-      [SUPPORTED_ACTIONS.BUY_CRYPTO, DeepLinkRoute.BUY],
+      [ACTIONS.BUY, DeepLinkRoute.BUY],
+      [ACTIONS.BUY_CRYPTO, DeepLinkRoute.BUY],
     ] as const)('maps buy action %s to BUY route', (action, expectedRoute) => {
       // Arrange & Act
       const result = mapSupportedActionToRoute(action);
@@ -351,15 +349,15 @@ describe('deepLinkAnalytics', () => {
     });
 
     it('maps home action to HOME route', () => {
-      const homeAction = SUPPORTED_ACTIONS.HOME;
+      const homeAction = ACTIONS.HOME;
       const result = mapSupportedActionToRoute(homeAction);
       expect(result).toBe(DeepLinkRoute.HOME);
     });
 
     it.each([
-      [SUPPORTED_ACTIONS.DAPP, DeepLinkRoute.INVALID],
-      [SUPPORTED_ACTIONS.WC, DeepLinkRoute.INVALID],
-      [SUPPORTED_ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.INVALID],
+      [ACTIONS.DAPP, DeepLinkRoute.INVALID],
+      [ACTIONS.WC, DeepLinkRoute.INVALID],
+      [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.INVALID],
     ] as const)(
       'maps unsupported action %s to INVALID route',
       (action, expectedRoute) => {

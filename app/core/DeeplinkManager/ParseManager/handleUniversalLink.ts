@@ -12,9 +12,11 @@ import {
 } from './utils/verifySignature';
 import {
   DeepLinkModalLinkType,
-  SUPPORTED_ACTIONS,
+  SupportedAction,
+  isSupportedAction,
 } from '../types/deepLink.types';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+import { DeepLinkModalParams } from '../../../components/UI/DeepLinkModal';
 import { capitalize } from '../../../util/general';
 import {
   createDeepLinkUsedEventBuilder,
@@ -24,6 +26,7 @@ import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
   InterstitialState,
+  DeepLinkRoute,
 } from '../types/deepLinkAnalytics.types';
 import { MetaMetrics } from '../../Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
@@ -37,13 +40,12 @@ const {
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
-
 /**
  * Actions that should not show the deep link modal
  */
-const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
+const WHITELISTED_ACTIONS: SupportedAction[] = [ACTIONS.WC];
 const interstitialWhitelist = [
-  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
+  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}`,
 ] as const;
 
 /**
@@ -75,12 +77,13 @@ async function determineSignatureStatus(
  * Resolves the interstitial action based on whitelisting and user interaction
  */
 async function resolveInterstitialAction(
-  action: SUPPORTED_ACTIONS,
+  action: string,
   validatedUrl: URL,
   url: string,
   linkType: () => DeepLinkModalLinkType,
 ): Promise<InterstitialState> {
-  if (WHITELISTED_ACTIONS.includes(action)) {
+  // Check if action is supported and whitelisted
+  if (isSupportedAction(action) && WHITELISTED_ACTIONS.includes(action)) {
     return InterstitialState.ACCEPTED;
   }
 
@@ -94,23 +97,34 @@ async function resolveInterstitialAction(
     const sanitizedAction = actionName?.replace(/-/g, ' ');
     const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
-    handleDeepLinkModalDisplay(
-      {
-        linkType: linkType(),
-        pageTitle,
-        onContinue: () => resolve(InterstitialState.ACCEPTED),
-        onBack: () => resolve(InterstitialState.REJECTED),
-      },
-      {
-        url,
-        route: mapSupportedActionToRoute(action),
-        urlParams: extractURLParams(url).params,
-        signatureStatus: SignatureStatus.MISSING,
-        interstitialShown: false,
-        interstitialDisabled: false,
-        interstitialAction: undefined,
-      },
-    );
+    const modalLinkType = linkType();
+
+    // Build params based on link type - INVALID and UNSUPPORTED don't have onContinue/pageTitle
+    const modalParams: DeepLinkModalParams =
+      modalLinkType === DeepLinkModalLinkType.INVALID ||
+      modalLinkType === DeepLinkModalLinkType.UNSUPPORTED
+        ? {
+            linkType: modalLinkType,
+            onBack: () => resolve(InterstitialState.REJECTED),
+          }
+        : {
+            linkType: modalLinkType,
+            pageTitle,
+            onContinue: () => resolve(InterstitialState.ACCEPTED),
+            onBack: () => resolve(InterstitialState.REJECTED),
+          };
+
+    handleDeepLinkModalDisplay(modalParams, {
+      url,
+      route: isSupportedAction(action)
+        ? mapSupportedActionToRoute(action)
+        : DeepLinkRoute.INVALID,
+      urlParams: extractURLParams(url).params,
+      signatureStatus: SignatureStatus.MISSING,
+      interstitialShown: false,
+      interstitialDisabled: false,
+      interstitialAction: undefined,
+    });
   });
 }
 
@@ -142,16 +156,14 @@ async function handleUniversalLink({
   let isPrivateLink = false;
   let isInvalidLink = false;
 
-  const action: SUPPORTED_ACTIONS = validatedUrl.pathname.split(
-    '/',
-  )[1] as SUPPORTED_ACTIONS;
+  const action = validatedUrl.pathname.split('/')[1];
 
   const isSupportedDomain =
     urlObj.hostname === MM_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
-  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+  const isActionSupported = isSupportedAction(action);
   if (!isSupportedDomain) {
     isInvalidLink = true;
   }
@@ -243,7 +255,9 @@ async function handleUniversalLink({
     // Create analytics context
     const analyticsContext: DeepLinkAnalyticsContext = {
       url,
-      route: mapSupportedActionToRoute(action), // Proper mapping function
+      route: isSupportedAction(action)
+        ? mapSupportedActionToRoute(action)
+        : DeepLinkRoute.INVALID,
       urlParams: params,
       signatureStatus,
       interstitialShown: wasInterstitialShown, // Modal was shown if user accepted or rejected
@@ -269,55 +283,46 @@ async function handleUniversalLink({
   }
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
-  if (
-    action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
-    action === SUPPORTED_ACTIONS.BUY
-  ) {
+  if (action === ACTIONS.BUY_CRYPTO || action === ACTIONS.BUY) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleBuyCrypto(rampPath);
-  } else if (
-    action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
-    action === SUPPORTED_ACTIONS.SELL
-  ) {
+  } else if (action === ACTIONS.SELL_CRYPTO || action === ACTIONS.SELL) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleSellCrypto(rampPath);
-  } else if (action === SUPPORTED_ACTIONS.DEPOSIT) {
+  } else if (action === ACTIONS.DEPOSIT) {
     const depositCashPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleDepositCash(depositCashPath);
-  } else if (action === SUPPORTED_ACTIONS.HOME) {
+  } else if (action === ACTIONS.HOME) {
     const homePath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleOpenHome(homePath);
     return;
-  } else if (action === SUPPORTED_ACTIONS.SWAP) {
+  } else if (action === ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleSwap(swapPath);
     return;
-  } else if (action === SUPPORTED_ACTIONS.DAPP) {
+  } else if (action === ACTIONS.DAPP) {
     const deeplinkUrl = urlObj.href.replace(
       `${BASE_URL_ACTION}/`,
       PREFIXES[ACTIONS.DAPP],
     );
     instance._handleBrowserUrl(deeplinkUrl, browserCallBack);
-  } else if (action === SUPPORTED_ACTIONS.SEND) {
+  } else if (action === ACTIONS.SEND) {
     const deeplinkUrl = urlObj.href
       .replace(`${BASE_URL_ACTION}/`, PREFIXES[ACTIONS.SEND])
       .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
     return;
-  } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
+  } else if (action === ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleCreateAccount(deeplinkUrl);
-  } else if (
-    action === SUPPORTED_ACTIONS.PERPS ||
-    action === SUPPORTED_ACTIONS.PERPS_MARKETS
-  ) {
+  } else if (action === ACTIONS.PERPS || action === ACTIONS.PERPS_MARKETS) {
     const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handlePerps(perpsPath);
-  } else if (action === SUPPORTED_ACTIONS.REWARDS) {
+  } else if (action === ACTIONS.REWARDS) {
     const rewardsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleRewards(rewardsPath);
-  } else if (action === SUPPORTED_ACTIONS.WC) {
+  } else if (action === ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;
 
@@ -325,7 +330,7 @@ async function handleUniversalLink({
       instance.parse(wcURL, { origin: source });
     }
     return;
-  } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
+  } else if (action === ACTIONS.ONBOARDING) {
     const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleFastOnboarding(onboardingPath);
   }
