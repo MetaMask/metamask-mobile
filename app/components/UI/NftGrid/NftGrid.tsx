@@ -175,7 +175,7 @@ const NftGrid = ({
         customWrapper={'outer'}
         additionalButtons={additionalButtons}
         hideSort
-        style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
+        style={isFullView ? tw`px-4` : tw`pb-3`}
       />
       <FlashList
         ListHeaderComponent={<NftGridHeader />}
