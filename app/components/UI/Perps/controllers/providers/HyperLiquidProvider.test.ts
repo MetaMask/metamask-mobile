@@ -1383,6 +1383,16 @@ describe('HyperLiquidProvider', () => {
                 totalMarginUsed: '1500',
               },
             }),
+            meta: jest.fn().mockResolvedValue({
+              universe: [
+                { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+                { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+              ],
+            }),
+            allMids: jest.fn().mockResolvedValue({
+              BTC: '50000',
+              ETH: '3000',
+            }),
           }),
         );
 
@@ -1404,6 +1414,8 @@ describe('HyperLiquidProvider', () => {
         expect(result.successCount).toBe(2);
         expect(result.failureCount).toBe(0);
         expect(result.results).toHaveLength(2);
+        expect(result.results[0].coin).toBe('BTC');
+        expect(result.results[1].coin).toBe('ETH');
       });
 
       it('handles batch close errors', async () => {
@@ -5642,6 +5654,28 @@ describe('HyperLiquidProvider', () => {
         await expect(testableProvider.getUsdcTokenId()).rejects.toThrow(
           'USDC token not found in spot metadata',
         );
+      });
+    });
+
+    describe('findSourceDexWithBalance', () => {
+      it('finds main DEX with sufficient balance', async () => {
+        jest
+          .spyOn(testableProvider, 'getBalanceForDex')
+          .mockResolvedValue(1000);
+        const result = await testableProvider.findSourceDexWithBalance({
+          targetDex: 'xyz',
+          requiredAmount: 500,
+        });
+        expect(result).toEqual({ sourceDex: '', available: 1000 });
+      });
+
+      it('returns null when insufficient balance', async () => {
+        jest.spyOn(testableProvider, 'getBalanceForDex').mockResolvedValue(100);
+        const result = await testableProvider.findSourceDexWithBalance({
+          targetDex: 'xyz',
+          requiredAmount: 500,
+        });
+        expect(result).toBeNull();
       });
     });
   });
