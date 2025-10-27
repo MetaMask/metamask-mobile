@@ -37,9 +37,9 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
-jest.mock('../../../../util/transactions/hooks/pay-hook');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
+jest.mock('@metamask/transaction-pay-controller');
 
 jest.mock('../../../../util/transactions', () => ({
   getTransactionById: jest.fn((_id) => ({
