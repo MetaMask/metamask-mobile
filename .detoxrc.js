@@ -65,7 +65,7 @@ module.exports = {
     },
     'ios.sim.main.ci': {
       device: 'ios.simulator',
-      app: 'ios.main.release',
+      app: 'ios.debug',
     },
     'ios.sim.flask.ci': {
       device: 'ios.simulator',
