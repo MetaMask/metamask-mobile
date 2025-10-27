@@ -19,7 +19,10 @@ export const useFeatureFlagStats = (): Record<string, number> => {
     };
 
     featureFlagsList.forEach((flag: FeatureFlagInfo) => {
-      if (flag.type === 'boolean with minimumVersion') {
+      if (
+        flag.type === 'boolean with minimumVersion' ||
+        flag.type === 'boolean nested'
+      ) {
         stats.boolean++;
       } else {
         stats[flag.type]++;

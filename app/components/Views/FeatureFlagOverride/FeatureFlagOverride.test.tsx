@@ -47,7 +47,8 @@ jest.mock('../../UI/Navbar', () => ({
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: jest.fn(() => {
-    const tw = jest.fn((classNames) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tw: jest.MockedFunction<any> = jest.fn((classNames) => {
       if (typeof classNames === 'string') return { testID: classNames };
       if (Array.isArray(classNames)) return {};
       return {};
