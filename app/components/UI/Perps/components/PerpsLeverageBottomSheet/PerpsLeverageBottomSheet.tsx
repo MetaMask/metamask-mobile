@@ -99,7 +99,7 @@ const LeverageSlider: React.FC<{
   value: number;
   onValueChange: (value: number) => void;
   onDragStart?: () => void;
-  onDragEnd?: (value: number) => void;
+  onDragEnd: (value: number) => void;
   minValue: number;
   maxValue: number;
   colors: Theme['colors'];
@@ -233,9 +233,7 @@ const LeverageSlider: React.FC<{
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
-      if (onDragEnd) {
-        runOnJS(onDragEnd)(currentValue);
-      }
+      runOnJS(onDragEnd)(currentValue);
     })
     .onFinalize(() => {
       isPressed.value = false;
@@ -249,9 +247,7 @@ const LeverageSlider: React.FC<{
     runOnJS(updateValue)(newValue);
     runOnJS(checkThresholdCrossing)(newValue);
     runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-    if (onDragEnd) {
-      runOnJS(onDragEnd)(newValue);
-    }
+    runOnJS(onDragEnd)(newValue);
   };
 
   const tapGesture = Gesture.Tap().onEnd(handleHoldEnd);
