@@ -19,7 +19,7 @@ const styleSheet = (params: { theme: Theme; vars?: { style?: ViewStyle } }) => {
       position: 'relative',
       width: '100%',
       alignSelf: 'stretch',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
       borderRadius: 16,
       padding: 6,
       borderWidth: 1,
