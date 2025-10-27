@@ -1,7 +1,7 @@
-import { renderScreen } from '../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import TokensFullView from './TokensFullView';
 import { useNavigation } from '@react-navigation/native';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 
 // Mock external dependencies that are not under test
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
