@@ -12,7 +12,7 @@ import SensitiveText, {
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
-import Loader from '../../../../../component-library/components-temp/Loader/Loader';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 
@@ -80,7 +80,8 @@ export const PortfolioBalance = React.memo(() => {
           </TouchableOpacity>
         ) : (
           <View style={styles.loaderWrapper}>
-            <Loader />
+            <Skeleton width={100} height={40} />
+            <Skeleton width={100} height={20} />
           </View>
         )}
       </View>
