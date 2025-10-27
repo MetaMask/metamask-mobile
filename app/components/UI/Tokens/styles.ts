@@ -4,7 +4,6 @@ import { Colors } from 'app/util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    // Bottom Sheet Styles
     bottomSheetTitle: {
       alignSelf: 'center',
       paddingTop: 16,
@@ -26,12 +25,6 @@ const createStyles = (colors: Colors) =>
     emptyTokensViewText: {
       fontFamily: 'Geist Medium',
     },
-    ethLogo: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      overflow: 'hidden',
-    },
     badge: {
       marginTop: 8,
     },
@@ -44,6 +37,12 @@ const createStyles = (colors: Colors) =>
       color: colors.text.alternative,
       ...fontStyles.normal,
       textTransform: 'uppercase',
+    },
+    ethLogo: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      overflow: 'hidden',
     },
     buy: {
       alignItems: 'center',
@@ -104,15 +103,15 @@ const createStyles = (colors: Colors) =>
       alignSelf: 'center',
       marginTop: 4,
     },
+    controlIconButton: {
+      backgroundColor: colors.background.default,
+    },
     balanceContainer: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     loaderWrapper: {
       paddingLeft: 40,
-    },
-    controlIconButton: {
-      backgroundColor: colors.background.default,
     },
     networkImageContainer: {
       position: 'absolute',
