@@ -495,7 +495,7 @@ describe('FeatureFlagOverrideContext', () => {
       const updatedFlags = { flag1: true, flag2: false };
       mockUseSelector.mockReturnValue(updatedFlags);
 
-      rerender();
+      rerender(null);
 
       expect(result.current.getFeatureFlag('flag1').value).toBe(true);
       expect(result.current.getFeatureFlag('flag2').value).toBe(false);
@@ -520,7 +520,7 @@ describe('FeatureFlagOverrideContext', () => {
       const updatedFlags = { flag1: true, flag2: 'new' };
       mockUseSelector.mockReturnValue(updatedFlags);
 
-      rerender();
+      rerender(null);
 
       // Override should be preserved
       expect(result.current.getFeatureFlag('flag1').value).toBe(false);

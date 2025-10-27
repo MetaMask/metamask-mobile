@@ -292,7 +292,7 @@ describe('useFeatureFlagStats', () => {
 
     const firstResult = result.current;
 
-    rerender();
+    rerender(null);
 
     const secondResult = result.current;
 
@@ -323,7 +323,7 @@ describe('useFeatureFlagStats', () => {
       featureFlagsList: newFlags,
     } as any);
 
-    rerender();
+    rerender(null);
 
     expect(result.current.total).toBe(2);
     expect(result.current.boolean).toBe(1);
