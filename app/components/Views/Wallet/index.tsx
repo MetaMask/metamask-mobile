@@ -428,9 +428,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
 
     if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
-      tabs.push(
-        <NftGrid {...nftsTabProps} key={nftsTabProps.key} maxItems={18} />,
-      );
+      tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
     }
 
     return tabs;
