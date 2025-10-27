@@ -139,7 +139,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           const { tabBarButton } = descriptors[route.key].options;
           // If tabBarButton is a function that returns null, don't render this tab
           if (typeof tabBarButton === 'function') {
-            return tabBarButton({}) !== null;
+            return tabBarButton({ children: null }) !== null;
           }
           return true;
         })
