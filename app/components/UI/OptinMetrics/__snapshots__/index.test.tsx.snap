@@ -255,11 +255,12 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
+                                  "marginTop": 8,
                                 }
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help us improve MetaMask
+                              Help improve MetaMask
                             </Text>
                             <View
                               style={
@@ -539,6 +540,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -945,11 +947,12 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
+                                  "marginTop": 8,
                                 }
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help us improve MetaMask
+                              Help improve MetaMask
                             </Text>
                             <View
                               style={
@@ -1229,6 +1232,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -1747,11 +1751,12 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
+                                  "marginTop": 8,
                                 }
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help us improve MetaMask
+                              Help improve MetaMask
                             </Text>
                             <View
                               style={
@@ -2031,6 +2036,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",

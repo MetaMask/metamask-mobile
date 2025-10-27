@@ -595,6 +595,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -630,6 +631,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

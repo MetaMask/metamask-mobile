@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import Checkbox from '../../Checkbox';
@@ -13,7 +13,6 @@ import ListItem from '../../List/ListItem/ListItem';
 import styleSheet from './ListItemMultiSelect.styles';
 import { ListItemMultiSelectProps } from './ListItemMultiSelect.types';
 import { DEFAULT_LISTITEMMULTISELECT_GAP } from './ListItemMultiSelect.constants';
-import TempTouchableOpacity from '../../../components-temp/TempTouchableOpacity';
 
 const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   style,
@@ -21,30 +20,32 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
-  shouldEnableAndroidPressIn = false,
+  onPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
   return (
-    <TempTouchableOpacity
+    <TouchableOpacity
       style={styles.base}
       disabled={isDisabled}
-      shouldEnableAndroidPressIn={shouldEnableAndroidPressIn}
+      onPress={onPress}
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
-        <Checkbox
-          style={styles.checkbox}
-          isChecked={isSelected}
-          isDisabled={isDisabled}
-        />
+        <View pointerEvents={'auto'}>
+          <Checkbox
+            style={styles.checkbox}
+            isChecked={isSelected}
+            isDisabled={isDisabled}
+          />
+        </View>
         {children}
       </ListItem>
       {isSelected && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
-    </TempTouchableOpacity>
+    </TouchableOpacity>
   );
 };
 

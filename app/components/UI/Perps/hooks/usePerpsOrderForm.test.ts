@@ -87,11 +87,10 @@ describe('usePerpsOrderForm', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         availableBalance: '1000',
-        totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalValue: '1000',
+        totalBalance: '1000',
       },
       isInitialLoading: false,
     });
@@ -174,11 +173,10 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '2', // $2 available balance
-          totalBalance: '2',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '2',
+          totalBalance: '2',
         },
         isInitialLoading: false,
       });
@@ -199,11 +197,10 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '5', // $5 available balance
-          totalBalance: '5',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '5',
+          totalBalance: '5',
         },
         isInitialLoading: false,
       });
@@ -227,11 +224,10 @@ describe('usePerpsOrderForm', () => {
       const mockAccount = {
         account: {
           availableBalance: '10', // $10 balance = $30 max with 3x leverage
-          totalBalance: '10',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '10',
+          totalBalance: '10',
         },
         isInitialLoading: false,
       };
@@ -269,11 +265,10 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '2', // $2 balance = $6 max with 3x leverage (less than $10 default)
-          totalBalance: '2',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '2',
+          totalBalance: '2',
         },
         isInitialLoading: false,
       });
@@ -288,11 +283,10 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
-          totalBalance: '100',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '100',
+          totalBalance: '100',
         },
         isInitialLoading: false,
       });
@@ -481,11 +475,10 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
-          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
+          totalBalance: '0',
         },
         isInitialLoading: false,
       });

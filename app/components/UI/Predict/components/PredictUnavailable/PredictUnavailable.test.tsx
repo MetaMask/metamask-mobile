@@ -191,6 +191,10 @@ describe('PredictUnavailable', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('returns null when not visible', () => {
       const ref = React.createRef<PredictUnavailableRef>();
