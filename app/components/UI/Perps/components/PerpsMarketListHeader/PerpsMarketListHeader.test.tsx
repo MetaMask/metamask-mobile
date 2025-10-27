@@ -29,7 +29,7 @@ describe('PerpsMarketListHeader', () => {
     mockUseNavigation.mockReturnValue({
       goBack: mockGoBack,
       canGoBack: mockCanGoBack,
-    } as ReturnType<typeof useNavigation>);
+    } as Partial<ReturnType<typeof useNavigation>> as ReturnType<typeof useNavigation>);
     mockCanGoBack.mockReturnValue(true);
   });
 

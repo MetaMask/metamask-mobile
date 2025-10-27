@@ -30,7 +30,7 @@ describe('usePerpsNavigation', () => {
       navigate: mockNavigate,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
-    } as ReturnType<typeof useNavigation>);
+    } as Partial<ReturnType<typeof useNavigation>> as ReturnType<typeof useNavigation>);
     mockUseSelector.mockReturnValue(false); // isRewardsEnabled = false
   });
 
@@ -168,7 +168,7 @@ describe('usePerpsNavigation', () => {
 
     it('navigates to market list with params', () => {
       const { result } = renderHook(() => usePerpsNavigation());
-      const params = { sortBy: 'volume' };
+      const params = { source: 'test', variant: 'full' as const };
 
       result.current.navigateToMarketList(params);
 

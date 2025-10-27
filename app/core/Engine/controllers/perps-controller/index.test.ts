@@ -125,7 +125,7 @@ describe('perps controller init', () => {
         testnet: {},
         mainnet: {},
       },
-      marketSortPreference: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+      marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
       withdrawInProgress: false,
       lastWithdrawResult: null,
       withdrawalRequests: [],

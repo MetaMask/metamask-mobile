@@ -1,3 +1,5 @@
+import type { SortOptionId } from '../../../../constants/perpsConfig';
+
 /**
  * Props for PerpsMarketFiltersBar component
  */
@@ -5,7 +7,7 @@ export interface PerpsMarketFiltersBarProps {
   /**
    * Currently selected sort option ID
    */
-  selectedOptionId: string;
+  selectedOptionId: SortOptionId;
 
   /**
    * Callback when sort dropdown is pressed

@@ -98,7 +98,7 @@ describe('PerpsBottomTabBar', () => {
     jest.clearAllMocks();
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
-    } as ReturnType<typeof useNavigation>);
+    } as Partial<ReturnType<typeof useNavigation>> as ReturnType<typeof useNavigation>);
     mockUseSelector.mockReturnValue(false); // isRewardsEnabled = false
   });
 
