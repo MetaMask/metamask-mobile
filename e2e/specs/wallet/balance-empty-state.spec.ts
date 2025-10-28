@@ -5,11 +5,13 @@ import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkManager from '../../pages/wallet/NetworkManager';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
+import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
   beforeAll(async () => {
@@ -55,6 +57,8 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withDefaultFixture() // Zero balance on all networks
+          .withSolanaFixture() // Add Solana support
+          .ensureSolanaModalSuppressed() // Suppress Solana intro modal
           .build(),
         restartDevice: true,
       },
@@ -104,6 +108,21 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
         await Assertions.expectElementToNotBeVisible(WalletView.totalBalance, {
           description: 'Total balance should remain hidden on mainnet',
+        });
+
+        // When: User switches to Solana Mainnet (should also have zero balance)
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
+        await NetworkManager.closeNetworkManager();
+
+        // Then: Empty state should still be visible on Solana
+        await Assertions.expectElementToBeVisible(emptyStateContainer, {
+          description:
+            'Empty state should remain visible on Solana network with zero balance',
+        });
+        await Assertions.expectElementToNotBeVisible(WalletView.totalBalance, {
+          description: 'Total balance should remain hidden on Solana',
         });
 
         // When: User switches to Ganache (local test network with funded accounts)
