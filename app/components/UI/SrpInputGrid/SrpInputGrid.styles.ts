@@ -1,5 +1,5 @@
 import { StyleSheet, Platform, TextStyle } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as commonColors } from '../../../styles/common';
 import { Colors } from '../../../util/theme/models';
 
 /**
@@ -39,6 +39,7 @@ export const createStyles = (colors: Colors) =>
       paddingHorizontal: 0,
       display: 'flex' as const,
       flex: 1,
+      backgroundColor: commonColors.transparent,
     },
     seedPhraseInputItem: {
       width: '31.33%',

@@ -60,7 +60,7 @@ exports[`SrpInputGrid renders correctly with custom uniqueId 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "transparent",
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 0,
@@ -108,7 +108,6 @@ exports[`SrpInputGrid renders correctly with custom uniqueId 1`] = `
               spellCheck={false}
               style={
                 {
-                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#686e7d",
@@ -218,7 +217,7 @@ exports[`SrpInputGrid renders correctly with disabled state 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "transparent",
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 0,
@@ -266,7 +265,6 @@ exports[`SrpInputGrid renders correctly with disabled state 1`] = `
               spellCheck={false}
               style={
                 {
-                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#686e7d",
@@ -376,7 +374,7 @@ exports[`SrpInputGrid renders correctly with empty seed phrase 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "transparent",
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 0,
@@ -424,7 +422,6 @@ exports[`SrpInputGrid renders correctly with empty seed phrase 1`] = `
               spellCheck={false}
               style={
                 {
-                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#686e7d",
@@ -534,7 +531,7 @@ exports[`SrpInputGrid renders correctly with error message 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "transparent",
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 0,
@@ -582,7 +579,6 @@ exports[`SrpInputGrid renders correctly with error message 1`] = `
               spellCheck={false}
               style={
                 {
-                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#686e7d",
@@ -790,7 +786,6 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
               spellCheck={false}
               style={
                 {
-                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#121314",
@@ -924,7 +919,6 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
               spellCheck={false}
               style={
                 {
-                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#121314",
@@ -1058,7 +1052,6 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
               spellCheck={false}
               style={
                 {
-                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#121314",

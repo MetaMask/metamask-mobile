@@ -46,7 +46,6 @@ const styleSheet = (params: {
         color: theme.colors.text.default,
         borderWidth: 1,
         borderColor: colors.transparent,
-        backgroundColor: theme.colors.background.default,
         height: 24,
         ...stateObj,
         paddingVertical: 0,

@@ -573,7 +573,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
+                                          "backgroundColor": "transparent",
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 8,
                                           "borderWidth": 0,
@@ -621,7 +621,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           spellCheck={false}
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#686e7d",
