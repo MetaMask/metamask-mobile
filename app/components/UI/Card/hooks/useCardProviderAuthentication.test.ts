@@ -52,9 +52,6 @@ const mockSetUserCardLocation = setUserCardLocation as jest.MockedFunction<
 
 describe('useCardProviderAuthentication', () => {
   const mockSdk = {
-    get isBaanxLoginEnabled() {
-      return true;
-    },
     get isCardEnabled() {
       return true;
     },
@@ -88,6 +85,8 @@ describe('useCardProviderAuthentication', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSdk as unknown as CardSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
     mockStrings.mockImplementation((key: string) => `mocked_${key}`);
@@ -395,6 +394,8 @@ describe('useCardProviderAuthentication', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -703,6 +704,8 @@ describe('useCardProviderAuthentication', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 

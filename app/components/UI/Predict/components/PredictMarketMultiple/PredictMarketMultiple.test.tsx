@@ -295,6 +295,60 @@ describe('PredictMarketMultiple', () => {
     });
   });
 
+  it('checks eligibility before balance for Yes button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButtons = getAllByText('Yes');
+    fireEvent.press(yesButtons[0]);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('checks eligibility before balance for No button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButtons = getAllByText('No');
+    fireEvent.press(noButtons[0]);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
   it('handle market with exactly 3 outcomes showing no additional text', () => {
     const marketWithThreeOutcomes: PredictMarket = {
       ...mockMarket,
@@ -330,7 +384,7 @@ describe('PredictMarketMultiple', () => {
       { state: initialState },
     );
 
-    expect(getByText('+1 more outcome')).toBeOnTheScreen();
+    expect(getByText(/\+1\s+(more\s+)?outcome/)).toBeOnTheScreen();
   });
 
   it('handle market with more than 4 outcomes showing plural text', () => {
@@ -350,6 +404,6 @@ describe('PredictMarketMultiple', () => {
       { state: initialState },
     );
 
-    expect(getByText('+2 more outcomes')).toBeOnTheScreen();
+    expect(getByText(/\+2\s+(more\s+)?outcomes/)).toBeOnTheScreen();
   });
 });

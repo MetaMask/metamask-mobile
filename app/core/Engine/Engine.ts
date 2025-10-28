@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
+///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   AppState,
@@ -342,6 +345,9 @@ export class Engine {
         RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+        SamplePetnamesController: samplePetnamesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
@@ -460,8 +466,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-    // Notify Snaps that the app is active when the Engine is initialized.
-    this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
@@ -526,6 +530,9 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController: controllersByName.SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -652,12 +659,19 @@ export class Engine {
         if (state !== 'active' && state !== 'background') {
           return;
         }
+
+        const { isUnlocked } = this.controllerMessenger.call(
+          'KeyringController:getState',
+        );
+
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
-        return this.controllerMessenger.call(
-          'SnapController:setClientActive',
-          state === 'active',
-        );
+        if (isUnlocked) {
+          return this.controllerMessenger.call(
+            'SnapController:setClientActive',
+            state === 'active',
+          );
+        }
       },
     );
     ///: END:ONLY_INCLUDE_IF
@@ -1243,6 +1257,9 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTrackerController,
       AccountTreeController,
@@ -1302,6 +1319,9 @@ export default {
     } = instance.datamodel.state;
 
     return {
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTrackerController,
       AccountTreeController,

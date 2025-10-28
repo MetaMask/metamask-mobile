@@ -387,8 +387,16 @@ describe('PerpsController', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
-          context: 'PerpsController.constructor',
-          operation: 'readRemoteFeatureFlags',
+          tags: expect.objectContaining({
+            feature: 'perps',
+          }),
+          context: expect.objectContaining({
+            name: 'PerpsController',
+            data: expect.objectContaining({
+              method: 'constructor',
+              operation: 'readRemoteFeatureFlags',
+            }),
+          }),
         }),
       );
 
@@ -484,11 +492,10 @@ describe('PerpsController', () => {
     it('should get account state successfully', async () => {
       const mockAccountState = {
         availableBalance: '1000',
-        totalBalance: '1500',
         marginUsed: '500',
         unrealizedPnl: '100',
         returnOnEquity: '20.0',
-        totalValue: '1600',
+        totalBalance: '1600',
       };
 
       (controller as any).isInitialized = true;
@@ -1750,16 +1757,17 @@ describe('PerpsController', () => {
       expect(result.orderId).toBe('order123');
 
       // Verify that Logger.error was called for the data lake failure
-      // The new implementation uses getErrorContext() which has different structure
+      // The new implementation uses LoggerErrorOptions format
       const errorCalls = (Logger.error as jest.Mock).mock.calls;
 
       const hasDataLakeError = errorCalls.some((call) => {
         const secondArg = call[1];
         return (
           typeof secondArg === 'object' &&
-          secondArg.context === 'PerpsController.reportOrderToDataLake' &&
-          secondArg.coin === 'BTC' &&
-          secondArg.action === 'open'
+          secondArg.context?.name === 'PerpsController' &&
+          secondArg.context?.data?.method === 'reportOrderToDataLake' &&
+          secondArg.context?.data?.coin === 'BTC' &&
+          secondArg.context?.data?.action === 'open'
         );
       });
       expect(hasDataLakeError).toBe(true);
@@ -1793,6 +1801,43 @@ describe('PerpsController', () => {
 
       // Check that MetaMetrics was called (the mock might be called with empty object)
       expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('getAvailableDexs', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(controller, 'getActiveProvider').mockReturnValue(mockProvider);
+    });
+
+    it('returns available HIP-3 DEXs from provider', async () => {
+      const mockDexs = ['dex1', 'dex2', 'dex3'];
+      mockProvider.getAvailableDexs = jest.fn().mockResolvedValue(mockDexs);
+
+      const result = await controller.getAvailableDexs();
+
+      expect(result).toEqual(mockDexs);
+      expect(mockProvider.getAvailableDexs).toHaveBeenCalledWith(undefined);
+    });
+
+    it('passes filter parameters to provider', async () => {
+      const mockDexs = ['dex1'];
+      const filterParams = { validated: true };
+      mockProvider.getAvailableDexs = jest.fn().mockResolvedValue(mockDexs);
+
+      const result = await controller.getAvailableDexs(filterParams);
+
+      expect(result).toEqual(mockDexs);
+      expect(mockProvider.getAvailableDexs).toHaveBeenCalledWith(filterParams);
+    });
+
+    it('throws error when provider does not support HIP-3', async () => {
+      // Cast to any to test undefined case
+      (mockProvider.getAvailableDexs as any) = undefined;
+
+      await expect(controller.getAvailableDexs()).rejects.toThrow(
+        'Provider does not support HIP-3 DEXs',
+      );
     });
   });
 });

@@ -32,12 +32,14 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       return { parsedAmount: 0, isValid: false };
     }
 
-    const parsed = parseFloat(trimmedAmount);
+    const parsed = Number.parseFloat(trimmedAmount);
     // Check if the input is a valid positive number
     // Using Number() for stricter parsing - it returns NaN for '123abc'
     const strictParsed = Number(trimmedAmount);
     const valid =
-      !isNaN(strictParsed) && isFinite(strictParsed) && strictParsed > 0;
+      !Number.isNaN(strictParsed) &&
+      Number.isFinite(strictParsed) &&
+      strictParsed > 0;
 
     return { parsedAmount: parsed, isValid: valid };
   }, [amount]);
@@ -93,7 +95,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       return false;
     }
 
-    const minAmount = parseFloat(
+    const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
         WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );
@@ -106,7 +108,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       return null;
     }
 
-    const minAmount = parseFloat(
+    const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
         WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );

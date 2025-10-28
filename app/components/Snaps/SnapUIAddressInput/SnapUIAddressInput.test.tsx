@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { SnapUIAddressInput } from './SnapUIAddressInput';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { useDisplayName } from '../SnapUIAddress/useDisplayName';
@@ -8,6 +8,28 @@ import { AvatarAccountType } from '../../../component-library/components/Avatars
 import { SNAP_UI_AVATAR_TEST_ID } from '../SnapUIAvatar/SnapUIAvatar';
 
 const mockInitialState = {
+  engine: {
+    backgroundState: {
+      KeyringController: {
+        keyrings: [],
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+      },
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            foo: {
+              address: '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb',
+              metadata: {
+                name: 'My Account',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
   },
@@ -39,8 +61,9 @@ describe('SnapUIAddressInput', () => {
   });
 
   it('will render', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <SnapUIAddressInput name="testAddress" chainId={testChainId} />,
+      { state: mockInitialState },
     );
 
     expect(getByTestId('testAddress-snap-address-input')).toBeTruthy();
@@ -169,6 +192,7 @@ describe('SnapUIAddressInput', () => {
         chainId="eip155:0"
         displayAvatar={false}
       />,
+      { state: mockInitialState },
     );
 
     expect(toJSON()).toMatchSnapshot();
@@ -220,6 +244,7 @@ describe('SnapUIAddressInput', () => {
 
     const { getByTestId, toJSON } = renderWithProvider(
       <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
+      { state: mockInitialState },
     );
 
     const input = getByTestId('testAddress-snap-address-input');

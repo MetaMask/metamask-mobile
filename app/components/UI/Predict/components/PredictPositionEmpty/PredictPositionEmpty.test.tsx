@@ -148,6 +148,10 @@ describe('PredictPositionEmpty', () => {
     );
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('renders the empty state with all required elements', () => {
       renderWithProvider(<PredictPositionEmpty />);
@@ -176,15 +180,12 @@ describe('PredictPositionEmpty', () => {
       const browseButton = screen.getByText('Browse markets');
       fireEvent.press(browseButton);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.PREDICT.ROOT,
-          params: {
-            screen: Routes.PREDICT.MARKET_LIST,
-          },
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        {
+          screen: Routes.PREDICT.MARKET_LIST,
         },
-      });
+      );
     });
   });
 

@@ -18,11 +18,6 @@ export interface ListItemMultiSelectProps
    * Optional prop to determine if the item is disabled.
    */
   isDisabled?: boolean;
-  /**
-   * Optional prop to enable Android press handling.
-   * @default false
-   */
-  shouldEnableAndroidPressIn?: boolean;
 }
 
 /**
