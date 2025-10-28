@@ -128,7 +128,20 @@ jobs:
           export NODE_OPTIONS="--max-old-space-size=8192"
           # Use dedicated dual versions properties file for ARM architectures
           cp android/gradle.properties.github.dual-versions android/gradle.properties
+          echo "Running: yarn build:android:main:e2e"
           yarn build:android:main:e2e
+          
+          echo ""
+          echo "✅ Build command completed. Exit code: $?"
+          echo "Checking if APK was created..."
+          if [ -f "android/app/build/outputs/apk/prod/release/app-prod-release.apk" ]; then
+            echo "✅ APK found at expected location"
+            ls -lh android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          else
+            echo "❌ APK not found at expected location"
+            echo "Searching for APK files..."
+            find android -name "*.apk" -type f 2>/dev/null | head -10 || echo "No APK files found"
+          fi
         shell: bash
         env:
           PLATFORM: android
@@ -167,43 +180,73 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      - name: Debug - Find APK output location
+      - name: Debug - Check build output and find APK
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
-          echo "Searching for APK files..."
           echo "Current directory: $(pwd)"
-          echo "Looking in android/app/build/outputs/apk/"
-          find android/app/build/outputs/apk -name "*.apk" -type f 2>/dev/null || echo "No APK files found in expected location"
           echo ""
-          echo "Looking for APK files in android/build:"
-          find android -name "*.apk" -type f 2>/dev/null | head -10
+          echo "Checking android directory structure..."
+          ls -la android/app/build 2>/dev/null || echo "android/app/build does not exist"
           echo ""
-          echo "Checking if android/app/build/outputs/apk exists:"
-          ls -la android/app/build/outputs/apk/ 2>/dev/null || echo "Directory does not exist"
+          echo "Checking if outputs directory exists..."
+          ls -la android/app/build/outputs 2>/dev/null || echo "android/app/build/outputs does not exist"
+          echo ""
+          echo "Searching for all APK files in android directory..."
+          find android -name "*.apk" -type f 2>/dev/null | while read file; do
+            echo "Found: $file ($(du -h "$file" | cut -f1))"
+          done || echo "No APK files found"
+          echo ""
+          echo "Checking for AAB files (in case APK build wasn't run)..."
+          find android -name "*.aab" -type f 2>/dev/null | head -5 || echo "No AAB files found"
+          echo ""
+          echo "Checking Gradle build directory..."
+          ls -la android/app/build/outputs/apk 2>/dev/null || echo "apk directory does not exist"
+          if [ -d "android/app/build/outputs/apk" ]; then
+            echo "apk directory exists, listing contents:"
+            find android/app/build/outputs/apk -type f | head -20
+          fi
 
       - name: Copy and rename APK for artifact
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
-          # Find the actual APK file location
+          echo "🔍 Searching for APK files..."
+          
+          # First check expected location
           APK_FILE=$(find android/app/build/outputs/apk/prod/release -name "*.apk" -type f 2>/dev/null | head -1)
           
+          # If not found, search more broadly
           if [ -z "$APK_FILE" ]; then
-            echo "❌ Error: No APK file found in expected location"
-            echo "Searching in all of android directory..."
-            APK_FILE=$(find android -name "*.apk" -type f 2>/dev/null | grep -i "prod.*release" | head -1)
-            echo "Found APK at: $APK_FILE"
+            echo "APK not in expected location, searching in all android/app/build/outputs/"
+            APK_FILE=$(find android/app/build/outputs -name "*.apk" -type f 2>/dev/null | grep -i "prod.*release" | head -1)
           fi
           
+          # If still not found, search entire android directory
           if [ -z "$APK_FILE" ]; then
+            echo "APK still not found, searching entire android directory..."
+            APK_FILE=$(find android -name "app-prod-release*.apk" -type f 2>/dev/null | head -1)
+          fi
+          
+          # If still not found, try finding any release APK
+          if [ -z "$APK_FILE" ]; then
+            echo "Searching for any release APK..."
+            APK_FILE=$(find android -name "*-release*.apk" -type f 2>/dev/null | grep -v "debug" | head -1)
+          fi
+          
+          # Final check
+          if [ -z "$APK_FILE" ] || [ ! -f "$APK_FILE" ]; then
             echo "❌ Error: Could not find APK file anywhere"
+            echo "Listing android/app/build structure:"
+            ls -laR android/app/build/outputs 2>/dev/null | head -50
             exit 1
           fi
           
-          echo "Found APK at: $APK_FILE"
+          echo "✅ Found APK at: $APK_FILE"
+          echo "File size: $(du -h "$APK_FILE" | cut -f1)"
+          
           # Create artifacts directory and copy APK with unique name
           mkdir -p ./upload-artifacts
           cp "$APK_FILE" ./upload-artifacts/app-prod-release-${{ matrix.build_type }}.apk
-          echo "APK copied as app-prod-release-${{ matrix.build_type }}.apk"
+          echo "✅ APK copied as app-prod-release-${{ matrix.build_type }}.apk"
           ls -lh ./upload-artifacts/
 
       - name: Upload Android APK - ${{ matrix.build_type }}
