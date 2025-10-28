@@ -302,7 +302,6 @@ export interface RegistrationSettingsResponse {
       termsAndConditions: string;
       accountOpeningDisclosure: string;
       noticeOfPrivacy: string;
-      eSignConsentDisclosure: string;
     };
     intl: {
       termsAndConditions: string;
@@ -327,18 +326,26 @@ export interface ConsentMetadata {
   ipAddress?: string;
   userAgent?: string;
   timestamp?: string;
+  clientId?: string;
+  version?: string;
+}
+
+export interface Consent {
+  consentType:
+    | 'eSignAct'
+    | 'termsAndPrivacy'
+    | 'marketingNotifications'
+    | 'smsNotifications'
+    | 'emailNotifications';
+  consentStatus: 'granted' | 'denied';
+  metadata: ConsentMetadata;
 }
 
 export interface CreateOnboardingConsentRequest {
+  policyType: 'US' | 'global';
   onboardingId: string;
-  policy: string;
-  consents: {
-    eSignAct?: string;
-    termsAndPrivacy: string;
-    marketingNotifications: string;
-    smsNotifications: string;
-    emailNotifications: string;
-  };
+  tenantId: string;
+  consents: Consent[];
   metadata?: ConsentMetadata;
 }
 
