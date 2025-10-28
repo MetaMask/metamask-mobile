@@ -170,7 +170,10 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
 
   return (
     <View
-      style={styles.wrapper}
+      style={[
+        styles.wrapper,
+        isHomepageRedesignV1Enabled && { flex: undefined },
+      ]}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />

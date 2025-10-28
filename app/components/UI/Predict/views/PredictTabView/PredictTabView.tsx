@@ -61,7 +61,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   }, []);
 
   return (
-    <View style={tw.style('flex-1 bg-default')}>
+    <View
+      style={tw.style(
+        isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+      )}
+    >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />
       ) : (

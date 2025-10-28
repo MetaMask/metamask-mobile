@@ -208,7 +208,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
+    <SafeAreaView
+      style={[
+        styles.wrapper,
+        isHomepageRedesignV1Enabled && { flex: undefined },
+      ]}
+      edges={['left', 'right']}
+    >
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
@@ -216,10 +222,21 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasOrders={hasOrders}
         />
         <ScrollView
-          style={styles.content}
+          style={[
+            styles.content,
+            isHomepageRedesignV1Enabled && { flex: undefined },
+          ]}
           scrollEnabled={!isHomepageRedesignV1Enabled}
         >
-          <View style={styles.contentContainer}>
+          <View
+            style={[
+              styles.contentContainer,
+              isHomepageRedesignV1Enabled && {
+                flexGrow: undefined,
+                minHeight: isInitialLoading ? 100 : undefined,
+              },
+            ]}
+          >
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
                 onAction={handleNewTrade}

@@ -123,7 +123,11 @@ const TokenListComponent = ({
   );
 
   return displayTokenKeys?.length ? (
-    <Box twClassName="flex-1 bg-default">
+    <Box
+      twClassName={
+        isHomepageRedesignV1Enabled ? 'h-full bg-default' : 'flex-1 bg-default'
+      }
+    >
       <FlashList
         ref={listRef}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}

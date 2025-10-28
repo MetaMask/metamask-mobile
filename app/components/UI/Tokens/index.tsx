@@ -264,32 +264,22 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  const shouldUseAutoHeight = !isFullView && isHomepageRedesignV1Enabled;
-
   const estimatedTokenItemHeight = 64;
 
   const calculatedListHeight = useMemo(() => {
-    if (!shouldUseAutoHeight) return undefined;
+    if (!isHomepageRedesignV1Enabled || isFullView) return undefined;
 
     const displayTokenCount = maxItems
       ? Math.min(renderedTokenKeys.length, maxItems)
       : renderedTokenKeys.length;
     const contentHeight = displayTokenCount * estimatedTokenItemHeight;
-    const footerHeight = 60;
-    const emptyStateHeight = displayTokenCount === 0 ? 200 : 0;
-    const viewAllButtonHeight =
-      maxItems && renderedTokenKeys.length > maxItems ? 80 : 0;
-    const padding = 20;
+    const footerHeight =
+      maxItems && renderedTokenKeys.length > maxItems ? 80 : 16;
 
-    return (
-      contentHeight +
-      footerHeight +
-      emptyStateHeight +
-      viewAllButtonHeight +
-      padding
-    );
+    return contentHeight + footerHeight;
   }, [
-    shouldUseAutoHeight,
+    isHomepageRedesignV1Enabled,
+    isFullView,
     maxItems,
     renderedTokenKeys.length,
     estimatedTokenItemHeight,
@@ -317,7 +307,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   return (
     <Box
-      twClassName="flex-1 bg-default"
+      twClassName={
+        isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default'
+      }
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <TokenListControlBar
@@ -327,21 +319,19 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
       {!isTokensLoading &&
       renderedTokenKeys.length === 0 &&
       progressiveTokens.length === 0 ? (
-        <Box twClassName="flex-1 bg-default" />
+        <Box
+          twClassName={
+            isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default'
+          }
+        />
       ) : (
         <>
           {isTokensLoading && progressiveTokens.length === 0 && (
             <Loader size="large" />
           )}
           {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) &&
-            (shouldUseAutoHeight ? (
-              <Box
-                style={
-                  calculatedListHeight
-                    ? { height: calculatedListHeight }
-                    : undefined
-                }
-              >
+            (calculatedListHeight ? (
+              <Box style={{ height: calculatedListHeight }}>
                 <TokenList
                   tokenKeys={
                     isTokensLoading ? progressiveTokens : renderedTokenKeys

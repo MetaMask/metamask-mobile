@@ -470,6 +470,18 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     enabledNetworksIsSolana,
   ]);
 
+  // Reset currentTabIndex when tabs structure changes
+  useEffect(() => {
+    // When tabs structure changes (e.g., network switch disables DeFi),
+    // TabsList will remount with initialActiveIndex=0, so sync our state
+    setCurrentTabIndex(0);
+
+    // Notify parent if tab changed
+    if (tabsToRender[0]) {
+      onChangeTab({ i: 0, ref: tabsToRender[0] });
+    }
+  }, [tabsKey, tabsToRender, onChangeTab]);
+
   return (
     <View style={styles.tabContainer}>
       <TabsList
