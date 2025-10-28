@@ -30,8 +30,7 @@ const CONFIG_MAP = {
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
-    // Disabling updates for RC builds for now due to Rive Animation issue
-    updatesEnabled: false,
+    updatesEnabled: true,
   },
 };
 
