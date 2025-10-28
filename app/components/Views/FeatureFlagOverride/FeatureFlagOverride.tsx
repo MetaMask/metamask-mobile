@@ -18,7 +18,10 @@ import {
 
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
-import { FeatureFlagInfo } from '../../../util/feature-flags';
+import {
+  FeatureFlagInfo,
+  isMinimumRequiredVersionSupported,
+} from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 
@@ -31,6 +34,10 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
+  const isVersionSupported = useMemo(
+    () => isMinimumRequiredVersionSupported(localValue.minimumVersion),
+    [localValue.minimumVersion],
+  );
 
   const handleResetOverride = () => {
     setLocalValue(flag.originalValue);
@@ -44,7 +51,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box twClassName="items-end">
             <Switch
               value={localValue.enabled}
-              disabled
+              disabled //={!isVersionSupported} TODO: Uncomment this when we support overrides for minimum version
               onValueChange={(newValue: boolean) => {
                 setLocalValue({ ...localValue, enabled: newValue });
                 onToggle(flag.key, newValue);
@@ -61,6 +68,11 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               color={TextColor.TextAlternative}
               twClassName="text-right max-w-[100px] flex-wrap"
             >
+              <Box
+                twClassName={`w-2 h-2 rounded-full flex items-center justify-center ${
+                  isVersionSupported ? 'bg-success-default' : 'bg-error-default'
+                }`}
+              />{' '}
               Minimum Version: {localValue.minimumVersion}
             </Text>
           </Box>
