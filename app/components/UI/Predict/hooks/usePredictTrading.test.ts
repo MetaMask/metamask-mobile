@@ -15,6 +15,7 @@ jest.mock('../../../../core/Engine', () => ({
       calculateBetAmounts: jest.fn(),
       calculateCashOutAmounts: jest.fn(),
       getBalance: jest.fn(),
+      deposit: jest.fn(),
     },
   },
 }));
@@ -62,12 +63,11 @@ describe('usePredictTrading', () => {
       expect(response).toEqual(mockPositions);
     });
 
-    it('handles errors from PredictController.getPositions', async () => {
+    it('throws error when PredictController.getPositions fails', async () => {
       const mockError = new Error('Failed to fetch predict positions');
       (
         Engine.context.PredictController.getPositions as jest.Mock
       ).mockRejectedValue(mockError);
-
       const { result } = renderHook(() => usePredictTrading());
 
       await expect(
@@ -158,14 +158,12 @@ describe('usePredictTrading', () => {
       expect(response).toEqual(mockSellResult);
     });
 
-    it('handles errors from PredictController.placeOrder', async () => {
+    it('throws error when PredictController.placeOrder fails', async () => {
       const mockError = new Error('Failed to place order');
       (
         Engine.context.PredictController.placeOrder as jest.Mock
       ).mockRejectedValue(mockError);
-
       const { result } = renderHook(() => usePredictTrading());
-
       const mockPreview = {
         marketId: 'market-1',
         outcomeId: 'outcome-789',
@@ -216,12 +214,11 @@ describe('usePredictTrading', () => {
       expect(response).toEqual(mockClaimResult);
     });
 
-    it('handles errors from PredictController.claim', async () => {
+    it('throws error when PredictController.claim fails', async () => {
       const mockError = new Error('Failed to claim winnings');
       (
         Engine.context.PredictController.claimWithConfirmation as jest.Mock
       ).mockRejectedValue(mockError);
-
       const { result } = renderHook(() => usePredictTrading());
 
       await expect(
@@ -252,12 +249,11 @@ describe('usePredictTrading', () => {
       expect(response).toBe(mockBalance);
     });
 
-    it('handles errors from PredictController.getBalance', async () => {
+    it('throws error when PredictController.getBalance fails', async () => {
       const mockError = new Error('Failed to fetch balance');
       (
         Engine.context.PredictController.getBalance as jest.Mock
       ).mockRejectedValue(mockError);
-
       const { result } = renderHook(() => usePredictTrading());
 
       await expect(

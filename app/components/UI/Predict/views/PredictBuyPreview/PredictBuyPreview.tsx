@@ -133,7 +133,7 @@ const PredictBuyPreview = () => {
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
-    ? `${outcome.groupItemTitle} • `
+    ? `${outcome.groupItemTitle} · `
     : '';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
@@ -154,7 +154,7 @@ const PredictBuyPreview = () => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full gap-4 p-4 border-b border-muted"
+      twClassName="w-full gap-4 p-4"
     >
       <TouchableOpacity testID="back-button" onPress={() => goBack()}>
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
@@ -170,7 +170,7 @@ const PredictBuyPreview = () => {
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.HeadingSM}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -315,9 +315,15 @@ const PredictBuyPreview = () => {
               />
             ) : (
               <Button
-                label={`${outcomeToken?.title} • ${formatCents(
-                  outcomeToken?.price ?? 0,
-                )}`}
+                label={
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Success}
+                  >
+                    {outcomeToken?.title} ·{' '}
+                    {formatCents(outcomeToken?.price ?? 0)}
+                  </Text>
+                }
                 variant={ButtonVariants.Secondary}
                 onPress={onPlaceBet}
                 style={tw.style(
@@ -333,11 +339,12 @@ const PredictBuyPreview = () => {
                 loading={isLoading}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
+                labelTextVariant={TextVariant.BodyMD}
               />
             )}
           </Box>
           <Box twClassName="text-center items-center">
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
               {strings('predict.order.payments_made_in_usdc')}
             </Text>
           </Box>
