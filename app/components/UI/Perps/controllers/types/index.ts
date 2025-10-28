@@ -450,10 +450,7 @@ export interface PerpsControllerConfig {
    * HIP-3 equity perps master switch passed from client
    * Controls whether HIP-3 (builder-deployed) DEXs are enabled
    */
-  fallbackEquityEnabled?: {
-    enabled: boolean;
-    minimumVersion: string;
-  };
+  fallbackEquityEnabled?: boolean;
   /**
    * HIP-3 DEX whitelist passed from client
    * Empty array = auto-discover all DEXs, non-empty = whitelist specific DEXs
