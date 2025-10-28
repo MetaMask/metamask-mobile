@@ -2,7 +2,6 @@ import { useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectBridgeQuotes,
-  selectIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
 import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
@@ -53,14 +52,10 @@ export const useBridgeQuoteEvents = ({
     hasTxAlert,
     isPriceImpactWarningVisible,
   ]);
-  const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   // Emit QuotesReceived event each time quotes are fetched successfully
   useEffect(() => {
-    const quotesFinishedLoading =
-      !isLoading && quotesRefreshCount > 0 && !quoteFetchError;
-    const tradeSubmittedWhileQuotesAreLoading = isSubmittingTx && isLoading;
-    if (quotesFinishedLoading || tradeSubmittedWhileQuotesAreLoading) {
+    if (!isLoading && quotesRefreshCount > 0 && !quoteFetchError) {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.QuotesReceived,
         {
@@ -82,5 +77,5 @@ export const useBridgeQuoteEvents = ({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quotesRefreshCount, isSubmittingTx]);
+  }, [quotesRefreshCount]);
 };

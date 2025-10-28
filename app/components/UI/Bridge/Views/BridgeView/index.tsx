@@ -205,6 +205,7 @@ const BridgeView = () => {
   });
 
   const isSubmitDisabled =
+    isLoading ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
@@ -437,10 +438,10 @@ const BridgeView = () => {
                     feePercentage,
                   })
                 : !hasFee && isNoFeeDestinationAsset
-                ? strings('bridge.no_mm_fee_disclaimer', {
-                    destTokenSymbol: destToken?.symbol,
-                  })
-                : ''}
+                  ? strings('bridge.no_mm_fee_disclaimer', {
+                      destTokenSymbol: destToken?.symbol,
+                    })
+                  : ''}
               {approval
                 ? ` ${strings('bridge.approval_needed', approval)}`
                 : ''}{' '}
