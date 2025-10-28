@@ -488,7 +488,7 @@ describe('EarnInputView', () => {
   });
 
   describe('when erc20 token is selected', () => {
-    it('renders the correct USDC token', async () => {
+    it('renders the correct "Supply <token name>" for stablecoin lending', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       selectConversionRateMock.mockReturnValueOnce(1);
@@ -536,7 +536,8 @@ describe('EarnInputView', () => {
       });
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Deposit',
+        'Supply USDC',
+        expect.anything(),
         expect.anything(),
         expect.anything(),
         expect.anything(),
@@ -1074,7 +1075,7 @@ describe('EarnInputView', () => {
   });
 
   describe('title bar', () => {
-    it('displays "deposit" for all assets', () => {
+    it('displays "Stake <token name>" for staking', () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       render(EarnInputView, {
@@ -1087,7 +1088,8 @@ describe('EarnInputView', () => {
       });
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Deposit',
+        'Stake ETH',
+        expect.anything(),
         expect.anything(),
         expect.anything(),
         expect.anything(),
