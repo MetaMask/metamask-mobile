@@ -134,12 +134,7 @@ export function usePredictPlaceOrder(
         const orderResult = await controllerPlaceOrder(orderParams);
 
         if (!orderResult.success) {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.Loading,
-            labelOptions: [{ label: strings('predict.order.order_failed') }],
-            hasNoTimeout: false,
-          });
+          // Error will be caught and toast shown in catch block
           throw new Error(orderResult.error);
         }
 
@@ -188,6 +183,18 @@ export function usePredictPlaceOrder(
 
         setError(errorMessage);
         onError?.(errorMessage);
+
+        // Show error toast to user
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          labelOptions: [
+            { label: strings('predict.order.order_failed'), isBold: true },
+            { label: '\n', isBold: false },
+            { label: errorMessage, isBold: false },
+          ],
+          hasNoTimeout: false,
+        });
       } finally {
         setIsLoading(false);
       }
