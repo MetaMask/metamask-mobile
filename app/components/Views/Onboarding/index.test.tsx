@@ -1,22 +1,26 @@
-// Mock react-native components for testing
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return { ...RN };
-});
+// Mock Logger
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
+
+// Mock animation components - using existing mocks
+jest.mock('./FoxAnimation');
+jest.mock('./OnboardingAnimation');
 
 import React from 'react';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import Onboarding from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import Device from '../../../util/device';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import {
   InteractionManager,
   BackHandler,
   Animated,
   Platform,
 } from 'react-native';
+import { renderScreen } from '../../../util/test/renderWithProvider';
+import Onboarding from './';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import Device from '../../../util/device';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
@@ -24,25 +28,10 @@ import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 
-jest.mock('@react-native-community/netinfo', () => ({
-  __esModule: true,
-  default: {
-    fetch: jest.fn(),
-    addEventListener: jest.fn(() => jest.fn()), // unsubscribe fn
-  },
-  NetInfoStateType: {
-    none: 'none',
-    wifi: 'wifi',
-    cellular: 'cellular',
-    unknown: 'unknown',
-  },
-}));
+// Mock netinfo - using existing mock
+jest.mock('@react-native-community/netinfo');
 
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
-jest.mock('@react-native-community/netinfo', () => ({
-  fetch: jest.fn(),
-  addEventListener: jest.fn(),
-}));
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
 
@@ -188,17 +177,6 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   },
 }));
 
-jest.mock('react-native', () => {
-  const actualRN = jest.requireActual('react-native');
-  return {
-    ...actualRN,
-    Platform: {
-      ...actualRN.Platform,
-      OS: 'ios',
-    },
-  };
-});
-
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockNav = {
@@ -240,6 +218,16 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
+
+// Mock React Navigation hooks
+const mockRoute = {
+  params: {},
+};
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNav,
+  useRoute: () => mockRoute,
+}));
 
 describe('Onboarding', () => {
   beforeEach(() => {
@@ -585,13 +573,13 @@ describe('Onboarding', () => {
         expect(getByText('Unlock')).toBeTruthy();
       });
 
+      jest.advanceTimersByTime(600);
+
       const unlockButton = getByText('Unlock');
 
       await act(async () => {
         fireEvent.press(unlockButton);
       });
-
-      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(Authentication.resetVault).toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
@@ -610,13 +598,13 @@ describe('Onboarding', () => {
         expect(getByText('Unlock')).toBeTruthy();
       });
 
+      jest.advanceTimersByTime(600);
+
       const unlockButton = getByText('Unlock');
 
       await act(async () => {
         fireEvent.press(unlockButton);
       });
-
-      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(Authentication.lockApp).toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);
@@ -676,13 +664,13 @@ describe('Onboarding', () => {
       });
 
       await act(async () => {
-        jest.advanceTimersByTime(2000);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(animatedTimingSpy).toHaveBeenCalled();
 
       await act(async () => {
-        jest.advanceTimersByTime(4000);
+        jest.advanceTimersByTime(2000);
       });
 
       expect(animatedTimingSpy.mock.calls.length).toBeGreaterThan(0);
@@ -750,7 +738,7 @@ describe('Onboarding', () => {
         'mockGoogleHandler',
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
         expect.objectContaining({
           accountName: 'test@example.com',
           oauthLoginSuccess: true,
@@ -854,7 +842,7 @@ describe('Onboarding', () => {
       );
       // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
         expect.objectContaining({
           accountName: 'test@icloud.com',
           oauthLoginSuccess: true,
@@ -903,7 +891,7 @@ describe('Onboarding', () => {
         'mockAppleHandler',
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        'Rehydrate',
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
@@ -1331,7 +1319,7 @@ describe('Onboarding', () => {
       expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
     });
 
-    it('should disable social login metrics when non-OAuth user imports wallet', async () => {
+    it('should disable social login metrics when OAuth user imports wallet', async () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(true);
       mockEnableSocialLogin.mockClear();
 

@@ -6,7 +6,6 @@ import { usePerpsOrderFills } from './usePerpsOrderFills';
 import type { OrderFill, GetOrderFillsParams } from '../controllers/types';
 import { CaipAccountId, Hex } from '@metamask/utils';
 
-// Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -16,7 +15,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// Mock data
 const mockOrderFills: OrderFill[] = [
   {
     orderId: 'fill-1',

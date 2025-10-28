@@ -121,13 +121,17 @@ export const getSmartTransactionMetricsProperties = async (
       controllerMessenger,
     );
   }
-  if (!smartTransaction?.statusMetadata) {
+  if (!smartTransaction) {
     return {};
+  }
+  if (!smartTransaction?.statusMetadata) {
+    return { is_smart_transaction: true };
   }
   const { timedOut, proxied } = smartTransaction.statusMetadata;
   return {
     smart_transaction_timed_out: timedOut,
     smart_transaction_proxied: proxied,
+    is_smart_transaction: true,
   };
 };
 

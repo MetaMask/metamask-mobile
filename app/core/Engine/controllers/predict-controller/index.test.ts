@@ -63,7 +63,11 @@ describe('predict controller init', () => {
       eligibility: {},
       lastError: null,
       lastUpdateTimestamp: Date.now(),
-      claimTransactions: {},
+      balances: {},
+      claimTransaction: null,
+      claimablePositions: [],
+      depositTransaction: null,
+      withdrawTransaction: null,
       isOnboarded: {},
     };
 

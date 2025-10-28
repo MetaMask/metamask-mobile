@@ -13,9 +13,10 @@ import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
-import PerpsBalanceModal from '../Views/PerpsBalanceModal';
 import PerpsGTMModal from '../components/PerpsGTMModal';
+import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
+import { HIP3DebugView } from '../Debug';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -33,10 +34,6 @@ const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
       component={PerpsQuoteExpiredModal}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.BALANCE_MODAL}
-      component={PerpsBalanceModal}
     />
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.GTM_MODAL}
@@ -111,6 +108,28 @@ const PerpsScreenStack = () => (
           component={PerpsClosePositionView}
           options={{
             title: strings('perps.close_position.title'),
+            headerShown: false,
+          }}
+        />
+
+        {/* Debug tools - only available in development builds */}
+        {__DEV__ && (
+          <Stack.Screen
+            name={Routes.PERPS.HIP3_DEBUG}
+            component={HIP3DebugView}
+            options={{
+              title: 'HIP-3 Debug Tools',
+              headerShown: true,
+            }}
+          />
+        )}
+
+        {/* TP/SL View - Regular screen */}
+        <Stack.Screen
+          name={Routes.PERPS.TPSL}
+          component={PerpsTPSLView}
+          options={{
+            title: strings('perps.tpsl.title'),
             headerShown: false,
           }}
         />

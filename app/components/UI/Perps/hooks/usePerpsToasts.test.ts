@@ -8,7 +8,6 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 
-// Mock dependencies
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -128,7 +127,7 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toEqual([
           { label: 'Your Perps account was funded', isBold: true },
           { label: '\n', isBold: false },
-          { label: '$100.00 available to trade', isBold: false },
+          { label: '$100 available to trade', isBold: false },
         ]);
       });
 

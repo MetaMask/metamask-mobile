@@ -1,9 +1,16 @@
-import { Messenger } from '@metamask/base-controller';
+import {
+  ControllerStateChangeEvent,
+  Messenger,
+} from '@metamask/base-controller';
 import { ErrorReportingServiceCaptureExceptionAction } from '@metamask/error-reporting-service';
 import {
   NetworkControllerRpcEndpointDegradedEvent,
   NetworkControllerRpcEndpointUnavailableEvent,
 } from '@metamask/network-controller';
+import {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerState,
+} from '@metamask/remote-feature-flag-controller';
 
 type AllowedActions = ErrorReportingServiceCaptureExceptionAction;
 
@@ -28,11 +35,15 @@ export function getNetworkControllerMessenger(
   });
 }
 
-type AllowedInitializationActions = never;
+type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
 
 type AllowedInitializationEvents =
   | NetworkControllerRpcEndpointDegradedEvent
-  | NetworkControllerRpcEndpointUnavailableEvent;
+  | NetworkControllerRpcEndpointUnavailableEvent
+  | ControllerStateChangeEvent<
+      'RemoteFeatureFlagController',
+      RemoteFeatureFlagControllerState
+    >;
 
 export type NetworkControllerInitMessenger = ReturnType<
   typeof getNetworkControllerInitMessenger
@@ -54,10 +65,11 @@ export function getNetworkControllerInitMessenger(
 ) {
   return messenger.getRestricted({
     name: 'NetworkControllerInit',
-    allowedActions: [],
+    allowedActions: ['RemoteFeatureFlagController:getState'],
     allowedEvents: [
       'NetworkController:rpcEndpointDegraded',
       'NetworkController:rpcEndpointUnavailable',
+      'RemoteFeatureFlagController:stateChange',
     ],
   });
 }

@@ -72,7 +72,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const routeParams = useMemo(() => route?.params, [route?.params]);
   const {
     onSelectAccount,
-    checkBalanceError,
     disablePrivacyMode,
     navigateToAddAccountActions,
     isEvmOnly,
@@ -114,10 +113,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
     () => ({
-      checkBalanceError,
       isLoading: reloadAccounts,
     }),
-    [checkBalanceError, reloadAccounts],
+    [reloadAccounts],
   );
 
   const {

@@ -37,7 +37,7 @@ enum SUPPORTED_ACTIONS {
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
   REWARDS = ACTIONS.REWARDS,
   WC = ACTIONS.WC,
-
+  ONBOARDING = ACTIONS.ONBOARDING,
   // MetaMask SDK specific actions
   ANDROID_SDK = ACTIONS.ANDROID_SDK,
   CONNECT = ACTIONS.CONNECT,
@@ -118,14 +118,11 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
-  if (
-    !Object.values(SUPPORTED_ACTIONS).includes(action) ||
-    !isSupportedDomain
-  ) {
+  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+  if (!isSupportedDomain) {
     isInvalidLink = true;
   }
-
-  if (hasSignature(validatedUrl) && !isInvalidLink) {
+  if (hasSignature(validatedUrl) && isSupportedDomain) {
     try {
       const signatureResult = await verifyDeeplinkSignature(validatedUrl);
       switch (signatureResult) {
@@ -154,12 +151,27 @@ async function handleUniversalLink({
   }
 
   const linkType = () => {
+    // Invalid domain
     if (isInvalidLink) {
       return DeepLinkModalLinkType.INVALID;
     }
+
+    // Unsupported action with valid signature
+    if (!isActionSupported && isPrivateLink) {
+      return DeepLinkModalLinkType.UNSUPPORTED;
+    }
+
+    // Unsupported action without valid signature
+    if (!isActionSupported) {
+      return DeepLinkModalLinkType.INVALID;
+    }
+
+    // Supported action with valid signature
     if (isPrivateLink) {
       return DeepLinkModalLinkType.PRIVATE;
     }
+
+    // Supported action without signature
     return DeepLinkModalLinkType.PUBLIC;
   };
 
@@ -249,6 +261,9 @@ async function handleUniversalLink({
       instance.parse(wcURL, { origin: source });
     }
     return;
+  } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
+    const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleFastOnboarding(onboardingPath);
   }
 }
 

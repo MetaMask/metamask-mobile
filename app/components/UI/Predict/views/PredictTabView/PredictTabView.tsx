@@ -1,187 +1,84 @@
-import {
-  Box,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { default as React, useCallback, useRef } from 'react';
-import { Alert, RefreshControl, View } from 'react-native';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import Routes from '../../../../../constants/navigation/Routes';
-import MarketsWonCard from '../../components/MarketsWonCard';
-import PredictNewButton from '../../components/PredictNewButton';
-import PredictPosition from '../../components/PredictPosition';
-import PredictPositionEmpty from '../../components/PredictPositionEmpty';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
-import {
-  PredictPositionStatus,
-  PredictPosition as PredictPositionType,
-} from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
-import { usePredictClaim } from '../../hooks/usePredictClaim';
-import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
+import { default as React, useRef, useState, useCallback } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import PredictPositionsHeader, {
+  PredictPositionsHeaderHandle,
+} from '../../components/PredictPositionsHeader';
+import PredictPositions, {
+  PredictPositionsHandle,
+} from '../../components/PredictPositions/PredictPositions';
+import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
+import PredictOffline from '../../components/PredictOffline';
+import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
+import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
+import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
 
 interface PredictTabViewProps {}
 
 const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const tw = useTailwind();
-  const { positions, isRefreshing, loadPositions, isLoading, error } =
-    usePredictPositions({
-      loadOnMount: true,
-    });
-  const {
-    positions: claimablePositions,
-    loadPositions: loadClaimablePositions,
-  } = usePredictPositions({
-    loadOnMount: true,
-    claimable: true,
-  });
-  const { claim, loading: isClaiming } = usePredictClaim({
-    onComplete: () => {
-      loadPositions({ isRefresh: true });
-      loadClaimablePositions({ isRefresh: true });
-      Alert.alert('Claimed');
-    },
-    onError: (claimError) => {
-      Alert.alert('Error claiming winnings', claimError.message);
-    },
-  });
-  const listRef = useRef<FlashListRef<PredictPositionType>>(null);
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [positionsError, setPositionsError] = useState<string | null>(null);
+  const [headerError, setHeaderError] = useState<string | null>(null);
 
-  const handleClaimPress = useCallback(() => {
-    claim({
-      positions: claimablePositions,
-    });
-  }, [claim, claimablePositions]);
+  const predictPositionsRef = useRef<PredictPositionsHandle>(null);
+  const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
 
-  const renderMarketsWonCard = useCallback(() => {
-    if (claimablePositions.length === 0) return <PredictOnboarding />;
+  usePredictDepositToasts();
+  usePredictClaimToasts();
+  usePredictWithdrawToasts();
 
-    const wonPositions = claimablePositions.filter(
-      (position) => position.status === PredictPositionStatus.WON,
-    );
+  const hasError = Boolean(positionsError || headerError);
 
-    const totalClaimableAmount = wonPositions.reduce(
-      (sum: number, position: PredictPositionType) => sum + position.cashPnl,
-      0,
-    );
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    // Clear errors before refreshing
+    setPositionsError(null);
+    setHeaderError(null);
+    try {
+      await Promise.all([
+        predictPositionsRef.current?.refresh(),
+        predictPositionsHeaderRef.current?.refresh(),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
 
-    // TODO: replace with actual data
-    const unrealizedAmount = 8.63;
-    const unrealizedPercent = 3.9;
+  const handlePositionsError = useCallback((error: string | null) => {
+    setPositionsError(error);
+  }, []);
 
-    return (
-      <>
-        <PredictOnboarding />
-        <MarketsWonCard
-          numberOfMarketsWon={wonPositions.length}
-          totalClaimableAmount={totalClaimableAmount}
-          unrealizedAmount={unrealizedAmount}
-          unrealizedPercent={unrealizedPercent}
-          onClaimPress={handleClaimPress}
-          isLoading={isClaiming}
-        />
-      </>
-    );
-  }, [claimablePositions, handleClaimPress, isClaiming]);
-
-  const renderItem = useCallback(
-    ({ item }: { item: PredictPositionType }) => (
-      <PredictPosition
-        position={item}
-        onPress={() => {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.MARKET_DETAILS,
-            params: {
-              marketId: item.marketId,
-              headerShown: false,
-            },
-          });
-        }}
-      />
-    ),
-    [navigation],
-  );
-
-  const renderLoadingState = () => (
-    <Box style={tw.style('flex-1 px-4 py-4')}>
-      <Skeleton
-        testID="skeleton-loading-1"
-        height={40}
-        width={'100%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-1"
-        height={40}
-        width={'80%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-2"
-        height={40}
-        width={'60%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-3"
-        height={40}
-        width={'40%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-4"
-        height={40}
-        width={'20%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-    </Box>
-  );
-
-  const renderErrorState = () => (
-    <View style={tw.style('flex-1 justify-center items-center px-6 py-12')}>
-      <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
-        {error}
-      </Text>
-    </View>
-  );
-
-  if (isLoading || (isRefreshing && positions.length === 0)) {
-    return (
-      <View style={tw.style('flex-1 bg-default')}>{renderLoadingState()}</View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={tw.style('flex-1 bg-default')}>{renderErrorState()}</View>
-    );
-  }
+  const handleHeaderError = useCallback((error: string | null) => {
+    setHeaderError(error);
+  }, []);
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <FlashList
-        ref={listRef}
-        data={positions}
-        renderItem={renderItem}
-        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => loadPositions({ isRefresh: true })}
+      {hasError ? (
+        <PredictOffline onRetry={handleRefresh} />
+      ) : (
+        <ScrollView
+          testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        >
+          <PredictPositionsHeader
+            ref={predictPositionsHeaderRef}
+            onError={handleHeaderError}
           />
-        }
-        removeClippedSubviews
-        decelerationRate={0}
-        ListHeaderComponent={renderMarketsWonCard}
-        ListEmptyComponent={<PredictPositionEmpty />}
-        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
-      />
+          <PredictPositions
+            ref={predictPositionsRef}
+            onError={handlePositionsError}
+          />
+          <PredictAddFundsSheet />
+        </ScrollView>
+      )}
     </View>
   );
 };

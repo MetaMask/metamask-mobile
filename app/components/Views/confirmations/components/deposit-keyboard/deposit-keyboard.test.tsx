@@ -36,8 +36,9 @@ describe('DepositKeyboard', () => {
     expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
   });
 
-  it('shows done button if input is not empty', () => {
+  it('shows done button if hasInput set', () => {
     const { getByTestId } = render({
+      hasInput: true,
       value: '1',
     });
 
@@ -49,6 +50,7 @@ describe('DepositKeyboard', () => {
 
     const { getByTestId } = render({
       onDonePress: onDonePressMock,
+      hasInput: true,
       value: '1',
     });
 

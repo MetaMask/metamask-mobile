@@ -277,17 +277,19 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   },
 );
 
-export const selectMultichainTokenListForAccountIdAnyChain =
+export const selectMultichainTokenListForAccountAnyChain =
   createDeepEqualSelector(
     selectMultichainBalances,
     selectMultichainAssets,
     selectMultichainAssetsMetadata,
     selectMultichainAssetsRates,
-    (_: RootState, accountId: string | undefined) => accountId,
-    (multichainBalances, assets, assetsMetadata, assetsRates, accountId) => {
-      if (!accountId) {
+    (_: RootState, account: InternalAccount | undefined) => account,
+    (multichainBalances, assets, assetsMetadata, assetsRates, account) => {
+      if (!account) {
         return [];
       }
+
+      const accountId = account.id;
 
       const assetIds = assets?.[accountId] || [];
       const balances = multichainBalances?.[accountId];
@@ -332,6 +334,7 @@ export const selectMultichainTokenListForAccountIdAnyChain =
           aggregators: [],
           isETH: false,
           ticker: metadata.symbol,
+          accountType: account.type,
         });
       }
 

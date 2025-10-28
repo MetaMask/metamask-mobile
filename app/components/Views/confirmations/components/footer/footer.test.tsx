@@ -22,6 +22,8 @@ import {
   transactionIdMock,
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -66,6 +68,8 @@ jest.mock('../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: jest.fn(),
 }));
 
+jest.mock('../../hooks/pay/useIsTransactionPayLoading');
+
 const mockTrackAlertMetrics = jest.fn();
 
 (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
@@ -86,21 +90,30 @@ const mockAlerts = [
 
 describe('Footer', () => {
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
+
   beforeEach(() => {
     jest.clearAllMocks();
+
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: true,
       isTransactionValueUpdating: false,
       setIsFooterVisible: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
+
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
       hasDangerAlerts: false,
     });
+
     (useAlertsConfirmed as jest.Mock).mockReturnValue({
       hasUnconfirmedDangerAlerts: false,
     });
+
+    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
   });
 
   it('should render correctly', () => {
@@ -204,6 +217,8 @@ describe('Footer', () => {
   });
 
   it('disables confirm button if quotes are loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+
     const state = merge(
       {},
       simpleSendTransactionControllerMock,
@@ -241,6 +256,26 @@ describe('Footer', () => {
     expect(
       queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeNull();
+  });
+
+  it('renders predict claim footer if transaction type matches', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: merge({}, stakingDepositConfirmationState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type: TransactionType.predictClaim,
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+
+    expect(getByTestId('predict-claim-footer')).toBeDefined();
   });
 
   describe('Confirm Alert Modal', () => {
@@ -364,18 +399,13 @@ describe('Footer', () => {
         hasUnconfirmedDangerAlerts: true,
       });
 
+      useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+
       const { getByText } = renderWithProvider(<Footer />, {
         state: merge(
           {},
           simpleSendTransactionControllerMock,
           transactionApprovalControllerMock,
-          {
-            confirmationMetrics: {
-              isTransactionBridgeQuotesLoadingById: {
-                [transactionIdMock]: true,
-              },
-            },
-          },
         ),
       });
 

@@ -1,14 +1,11 @@
 import { IConnectionStore } from '../types/connection-store';
 import { ConnectionInfo } from '../types/connection-info';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 import logger from '../services/logger';
 
 /**
  * An implementation of IConnectionStore to persist
  * the metadata of established dApp connections.
- * Uses StorageWrapper for better performance, with fallback to AsyncStorage
- * for batch operations (getAllKeys, multiGet) that aren't available in StorageWrapper.
  */
 export class ConnectionStore implements IConnectionStore {
   private readonly prefix: string;
@@ -43,18 +40,22 @@ export class ConnectionStore implements IConnectionStore {
 
       // Expiration check
       if (connectionInfo.expiresAt < Date.now()) {
-        await this.delete(id).catch(() => {
-          logger.error('Failed to delete expired connection:', id);
-        });
+        await this.delete(id)
+          .then(() => logger.debug('Deleted expired connection', id))
+          .catch(() =>
+            logger.error('Failed to delete expired connection:', id),
+          );
         return null;
       }
 
       return connectionInfo;
-    } catch (error) {
+    } catch {
       // Corrupted data, clean it up
-      await this.delete(id).catch(() => {
-        logger.error('Failed to delete corrupted connection:', id);
-      });
+      await this.delete(id)
+        .then(() => logger.debug('Deleted corrupted connection', id))
+        .catch(() =>
+          logger.error('Failed to delete corrupted connection:', id),
+        );
       return null;
     }
   }
@@ -72,14 +73,14 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async list(): Promise<ConnectionInfo[]> {
-    const keys = await AsyncStorage.getAllKeys();
+    const keys = await StorageWrapper.getAllKeys();
     const connectionKeys = keys.filter((key) => key.startsWith(this.prefix));
 
     if (connectionKeys.length === 0) {
       return [];
     }
 
-    const items = await AsyncStorage.multiGet(connectionKeys);
+    const items = await StorageWrapper.multiGet(connectionKeys);
 
     const connInfos = await Promise.all(
       items.map(([key, json]) =>

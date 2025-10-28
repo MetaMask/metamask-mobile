@@ -18,8 +18,13 @@ import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
+import { MultichainAccountServiceMultichainAccountGroupUpdatedEvent } from '@metamask/multichain-account-service';
+import {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 
-type Actions =
+export type Actions =
   | AccountsControllerListMultichainAccountsAction
   | AccountsControllerGetAccountAction
   | AccountsControllerGetAccountByAddressAction
@@ -31,10 +36,8 @@ type Actions =
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerFindNetworkClientIdByChainIdAction;
 
-type Events =
+export type Events =
   | KeyringControllerStateChangeEvent
-  | AccountsControllerAccountAddedEvent
-  | AccountsControllerAccountRemovedEvent
   | AccountsControllerAccountAddedEvent
   | AccountsControllerAccountRemovedEvent;
 
@@ -74,17 +77,36 @@ export function getMultichainAccountServiceMessenger(
   });
 }
 
+export type AllowedInitializationEvents =
+  | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
+
+export type AllowedInitializationActions =
+  RemoteFeatureFlagControllerGetStateAction;
+
+export type MultichainAccountServiceInitMessenger = ReturnType<
+  typeof getMultichainAccountServiceInitMessenger
+>;
+
 /**
- * Get a restricted messenger for the multichain account service. This is scoped to the
- * actions and events that this service is allowed to handle.
+ * Get a messenger restricted to the actions and events that the
+ * MultichainAccountService requires during initialization.
  *
- * @param messenger - The service messenger to restrict.
- * @returns The restricted service messenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  messenger: Messenger<Actions, Events>,
+  messenger: Messenger<
+    AllowedInitializationActions,
+    AllowedInitializationEvents
+  >,
 ) {
-  // Our `init` method needs the same actions, so just re-use the same messenger
-  // function here.
-  return getMultichainAccountServiceMessenger(messenger);
+  return messenger.getRestricted({
+    name: 'MultichainAccountServiceInit',
+    allowedActions: ['RemoteFeatureFlagController:getState'],
+    allowedEvents: [
+      'MultichainAccountService:multichainAccountGroupUpdated',
+      'RemoteFeatureFlagController:stateChange',
+    ],
+  });
 }

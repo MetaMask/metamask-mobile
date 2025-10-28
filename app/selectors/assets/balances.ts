@@ -150,8 +150,42 @@ export const selectBalanceForAllWallets = createSelector(
     ),
 );
 
+export const selectBalanceForAllWalletsAndChains = createSelector(
+  [
+    selectAccountTreeStateForBalances,
+    selectAccountsStateForBalances,
+    selectTokenBalancesStateForBalances,
+    selectTokenRatesStateForBalances,
+    selectMultichainAssetsRatesStateForBalances,
+    selectMultichainBalancesStateForBalances,
+    selectTokensStateForBalances,
+    selectCurrencyRateStateForBalances,
+  ],
+  (
+    accountTreeState,
+    accountsState,
+    tokenBalancesState,
+    tokenRatesState,
+    multichainRatesState,
+    multichainBalancesState,
+    tokensState,
+    currencyRateState,
+  ) =>
+    calculateBalanceForAllWallets(
+      accountTreeState,
+      accountsState,
+      tokenBalancesState,
+      tokenRatesState,
+      multichainRatesState,
+      multichainBalancesState,
+      tokensState,
+      currencyRateState,
+      undefined,
+    ),
+);
+
 export const selectBalanceByAccountGroup = (groupId: string) =>
-  createSelector([selectBalanceForAllWallets], (allBalances) => {
+  createSelector([selectBalanceForAllWalletsAndChains], (allBalances) => {
     const walletId = groupId.split('/')[0];
     const wallet = allBalances.wallets[walletId] ?? null;
     const { userCurrency } = allBalances;
@@ -165,6 +199,7 @@ export const selectBalanceByAccountGroup = (groupId: string) =>
     }
     return wallet.groups[groupId];
   });
+
 export const selectBalanceByWallet = (walletId: string) =>
   createSelector([selectBalanceForAllWallets], (allBalances) => {
     const wallet = allBalances.wallets[walletId] ?? null;

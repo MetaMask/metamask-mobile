@@ -123,7 +123,7 @@ const EmptyRecordConstant = {};
 interface LoginRouteParams {
   locked: boolean;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: unknown;
+  onboardingTraceCtx?: TraceContext;
 }
 
 interface LoginProps {

@@ -58,6 +58,9 @@
       }
     }
   },
+  "DelegationController": {
+    "delegations": {}
+  },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
@@ -207,7 +210,9 @@
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0,
-    "urlScanCache": {}
+    "tokenScanCache": {},
+    "urlScanCache": {},
+    "whitelistPaths": {}
   },
   "PreferencesController": {
     "featureFlags": {},
@@ -635,6 +640,9 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
+  },
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
@@ -650,7 +658,8 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "claimTransactions": {},
+    "claimTransaction": null,
+    "depositTransaction": null,
     "isOnboarded": {}
   }
 }

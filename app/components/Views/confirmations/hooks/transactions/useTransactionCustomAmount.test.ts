@@ -6,31 +6,84 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { act } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
-import { useTokenAmount } from '../useTokenAmount';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useUpdateTokenAmount } from './useUpdateTokenAmount';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  TransactionToken,
+  useTransactionRequiredTokens,
+} from '../pay/useTransactionRequiredTokens';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../tokens/useTokenFiatRates');
-jest.mock('../useTokenAmount');
+jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../pay/useTransactionPayToken');
+jest.mock('../useTokenAmount');
+jest.mock('../../../../../util/navigation/navUtils');
+jest.mock('../pay/useTransactionRequiredTokens');
 
-function runHook() {
+jest.useFakeTimers();
+
+const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
+const TOKEN_TRANSFER_DATA =
+  '0xa9059cbb0000000000000000000000005a52e96bacdabb82fd05763e25335261b270efcb0000000000000000000000000000000000000000000000004563918244f40000';
+
+function runHook({
+  transactionMeta,
+}: { transactionMeta?: Partial<TransactionMeta> } = {}) {
   return renderHookWithProvider(useTransactionCustomAmount, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
+      transactionMeta
+        ? {
+            engine: {
+              backgroundState: {
+                TransactionController: {
+                  transactions: [transactionMeta],
+                },
+              },
+            },
+          }
+        : {},
+      {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: 'tst',
+              currencyRates: {
+                ETH: {
+                  conversionDate: 1732887955.694,
+                  conversionRate: 1,
+                  usdConversionRate: 2,
+                },
+              },
+            },
+          },
+        },
+      },
     ),
   });
 }
 
 describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
-  const useTokenAmountMock = jest.mocked(useTokenAmount);
+  const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useParamsMock = jest.mocked(useParams);
+  const useTransactionRequiredTokensMock = jest.mocked(
+    useTransactionRequiredTokens,
+  );
 
   const updateTokenAmountMock: ReturnType<
-    typeof useTokenAmount
+    typeof useUpdateTokenAmount
   >['updateTokenAmount'] = jest.fn();
 
   beforeEach(() => {
@@ -38,13 +91,20 @@ describe('useTransactionCustomAmount', () => {
 
     useTokenFiatRateMock.mockReturnValue(2);
 
-    useTokenAmountMock.mockReturnValue({
+    useUpdateTokenAmountMock.mockReturnValue({
       updateTokenAmount: updateTokenAmountMock,
-    } as ReturnType<typeof useTokenAmount>);
+    } as ReturnType<typeof useUpdateTokenAmountMock>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { tokenFiatAmount: 1234.56 },
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        chainId: '0x1' as Hex,
+        tokenFiatAmount: 1234.56,
+      },
     } as ReturnType<typeof useTransactionPayToken>);
+
+    useParamsMock.mockReturnValue({});
+    useTransactionRequiredTokensMock.mockReturnValue([]);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -65,6 +125,33 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(result.current.amountHuman).toBe('61.725');
+  });
+
+  it('returns amount human calculated from nested call address', async () => {
+    const { result } = runHook({
+      transactionMeta: {
+        txParams: {
+          data: '0x4567',
+          from: '0xabc',
+        },
+        nestedTransactions: [
+          {
+            data: TOKEN_TRANSFER_DATA,
+            to: '0x123',
+          },
+        ],
+      },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    expect(useTokenFiatRateMock).toHaveBeenCalledWith(
+      '0x123',
+      expect.anything(),
+      undefined,
+    );
   });
 
   it('returns amount fiat as zero if value empty', async () => {
@@ -126,13 +213,168 @@ describe('useTransactionCustomAmount', () => {
     expect(updateTokenAmountMock).toHaveBeenCalledWith('61.725');
   });
 
-  it('updatePendingAmountPercentage updates amount fiat to percentage of token balance', async () => {
+  it('returns default amount from params if available', async () => {
+    useParamsMock.mockReturnValue({ amount: '43.21' });
+
     const { result } = runHook();
 
+    expect(result.current.amountFiat).toBe('43.21');
+  });
+
+  it('returns isInputChanged as true after amount changed and debounce', async () => {
+    const { result } = runHook();
+
+    expect(result.current.isInputChanged).toBe(false);
+
     await act(async () => {
-      result.current.updatePendingAmountPercentage(43);
+      result.current.updatePendingAmount('123.45');
     });
 
-    expect(result.current.amountFiat).toBe('530.86');
+    expect(result.current.isInputChanged).toBe(false);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.isInputChanged).toBe(true);
+  });
+
+  it('returns hasInput as true after amount changed and debounce', async () => {
+    const { result } = runHook();
+
+    expect(result.current.hasInput).toBe(false);
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    expect(result.current.hasInput).toBe(false);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.hasInput).toBe(true);
+
+    await act(async () => {
+      result.current.updatePendingAmount('0');
+    });
+
+    expect(result.current.hasInput).toBe(true);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.hasInput).toBe(false);
+  });
+
+  describe('updatePendingAmountPercentage updates amount fiat', () => {
+    it('to percentage of token balance', async () => {
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(43);
+      });
+
+      expect(result.current.amountFiat).toBe('530.86');
+    });
+
+    it('to percentage of token balance converted to usd if overridden', async () => {
+      const { result } = runHook({
+        transactionMeta: { type: TransactionType.predictDeposit },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(43);
+      });
+
+      expect(result.current.amountFiat).toBe('1061.72');
+    });
+
+    it('minus buffers if 100', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        {},
+        {},
+      ] as TransactionToken[]);
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1141.96');
+    });
+
+    it('minus additional buffer if 100 and pay token is native', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        {},
+        {},
+      ] as TransactionToken[]);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: NATIVE_TOKEN_ADDRESS as Hex,
+          tokenFiatAmount: 1234.56,
+        },
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1111.1');
+    });
+
+    it('minus no buffer if 100 but pay token matches required token', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        {
+          address: TOKEN_ADDRESS_MOCK,
+        },
+        {},
+      ] as TransactionToken[]);
+
+      useParamsMock.mockReturnValue({ amount: '43.21' });
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1234.56');
+    });
+
+    it('minus no buffer if 100 but all required tokens have sufficient balance and skipIfBalance', async () => {
+      useTransactionRequiredTokensMock.mockReturnValue([
+        { skipIfBalance: true, amountRaw: '1', balanceRaw: '1' },
+        { skipIfBalance: true, amountRaw: '1', balanceRaw: '1' },
+      ] as TransactionToken[]);
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1234.56');
+    });
+
+    it('to percentage of predict balance', async () => {
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(43);
+      });
+
+      expect(result.current.amountFiat).toBe('529.92');
+    });
   });
 });

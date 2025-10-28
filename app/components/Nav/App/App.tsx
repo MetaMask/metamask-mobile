@@ -16,7 +16,6 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
-import SocialLoginSuccessNewUser from '../../Views/SocialLoginSuccessNewUser';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -156,6 +155,7 @@ import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -176,11 +176,20 @@ const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
 const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
+const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
+
+const SocialLoginSuccessExistingUser = () => (
+  <SocialLoginIosUser type="existing" />
+);
+
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
       component={OnboardingSuccess} // Used in SRP flow
+      options={{
+        headerShown: false,
+      }}
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -209,7 +218,7 @@ const OnboardingNav = () => (
   <Stack.Navigator initialRouteName={'Onboarding'}>
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen
-      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS}
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
       component={SocialLoginSuccessNewUser}
       options={{ headerShown: false }}
     />
@@ -228,6 +237,7 @@ const OnboardingNav = () => (
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
       component={OnboardingSuccess} // Used in SRP flow
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -248,6 +258,11 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="AccountStatus"
       component={AccountStatus}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+      component={SocialLoginSuccessExistingUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen

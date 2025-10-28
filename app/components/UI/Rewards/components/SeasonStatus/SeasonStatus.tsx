@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   BoxFlexDirection,
@@ -29,9 +29,11 @@ import {
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
-import { Image } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
+import RewardsImageModal from '../RewardsImageModal';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 const SeasonStatus: React.FC = () => {
   const tw = useTailwind();
@@ -47,6 +49,16 @@ const SeasonStatus: React.FC = () => {
   const theme = useTheme();
 
   const { fetchSeasonStatus } = useSeasonStatus({ onlyForExplicitFetch: true });
+
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
+
+  const handleImagePress = () => {
+    setIsImageExpanded(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsImageExpanded(false);
+  };
 
   const progress = React.useMemo(() => {
     if (!currentTier || !balanceTotal) {
@@ -123,22 +135,32 @@ const SeasonStatus: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           twClassName="gap-4 items-center"
         >
-          {/* Tier image */}
-          {currentTier?.image ? (
-            <RewardsThemeImageComponent
-              themeImage={currentTier.image}
-              style={tw.style('h-15 w-15')}
-            />
-          ) : (
-            <Image source={fallbackTierImage} style={tw.style('h-15 w-15')} />
-          )}
+          {/* Tier image - tappable to expand */}
+          <TouchableOpacity onPress={handleImagePress} activeOpacity={0.7}>
+            {currentTier?.image ? (
+              <RewardsThemeImageComponent
+                themeImage={currentTier.image}
+                style={tw.style('h-15 w-15')}
+              />
+            ) : (
+              <Image source={fallbackTierImage} style={tw.style('h-15 w-15')} />
+            )}
+          </TouchableOpacity>
 
           {/* Tier name */}
           <Box flexDirection={BoxFlexDirection.Column}>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-alternative"
+              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL}
+            >
               {strings('rewards.level')} {currentTierOrder}
             </Text>
-            <Text variant={TextVariant.BodyMd} twClassName="text-default">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-default"
+              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME}
+            >
               {tierName}
             </Text>
           </Box>
@@ -220,6 +242,7 @@ const SeasonStatus: React.FC = () => {
                 fontWeight: FontWeight.Bold,
                 marginTop: 2,
               })}
+              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS}
             >
               {formatNumber(balanceTotal)}
             </Text>
@@ -242,6 +265,14 @@ const SeasonStatus: React.FC = () => {
           </Text>
         )}
       </Box>
+
+      {/* Full-screen image modal */}
+      <RewardsImageModal
+        visible={isImageExpanded}
+        onClose={handleCloseModal}
+        themeImage={currentTier?.image}
+        fallbackImage={fallbackTierImage}
+      />
     </Box>
   );
 };

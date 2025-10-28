@@ -68,7 +68,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
         with:
           platform: ios
           setup-simulator: false
@@ -219,8 +219,10 @@ jobs:
         continue-on-error: true
 
       # Upload source map file for crash debugging and error tracking if exists
+      # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
       - name: Upload iOS Source Map
         id: upload-sourcemap
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: index.js.map

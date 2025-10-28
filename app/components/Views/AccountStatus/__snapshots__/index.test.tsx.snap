@@ -596,7 +596,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
                 }
               }
             >
-              A wallet using "test@example.com" already exists. Do you want to try logging in instead?
+              A wallet using "test@example.com" already exists. Do you want to unlock this wallet?
             </Text>
           </View>
         </View>
@@ -646,7 +646,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             }
           }
         >
-          Log in
+          Unlock wallet
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -769,7 +769,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
                 }
               }
             >
-              A wallet using "[missing {{accountName}} value]" already exists. Do you want to try logging in instead?
+              A wallet using "[missing {{accountName}} value]" already exists. Do you want to unlock this wallet?
             </Text>
           </View>
         </View>
@@ -819,7 +819,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             }
           }
         >
-          Log in
+          Unlock wallet
         </Text>
       </TouchableOpacity>
       <TouchableOpacity

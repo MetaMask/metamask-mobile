@@ -1,4 +1,7 @@
+import React from 'react';
 import { act, renderHook } from '@testing-library/react-hooks';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { usePerpsTPSLForm } from './usePerpsTPSLForm';
 import type { Position } from '../controllers/types';
 
@@ -10,11 +13,23 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock usePerpsOrderFees hook
+jest.mock('./usePerpsOrderFees', () => ({
+  usePerpsOrderFees: jest.fn(() => ({
+    totalFee: 10,
+    metaMaskFee: 5,
+    protocolFee: 5,
+    feeRate: 0.0001,
+    isLoading: false,
+  })),
+}));
+
 // Mock formatPrice and formatPerpsFiat utilities
 jest.mock('../utils/formatUtils', () => ({
   formatPrice: (price: string) => price, // Simple pass-through for testing
   formatPerpsFiat: (price: string) => price, // Simple pass-through for testing
-  PRICE_RANGES_POSITION_VIEW: {}, // Mock the constant
+  PRICE_RANGES_UNIVERSAL: {},
+  PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
 // Mock i18n strings
@@ -28,6 +43,19 @@ jest.mock('../../../../../locales/i18n', () => ({
     return strings[key] || key;
   },
 }));
+
+// Test wrapper with Redux Provider
+const createWrapper = () => {
+  const mockStore = configureStore({
+    reducer: {
+      test: (state = {}) => state,
+    },
+  });
+  return function TestWrapper({ children }: { children: React.ReactNode }) {
+    // eslint-disable-next-line react/no-children-prop
+    return React.createElement(Provider, { store: mockStore, children });
+  };
+};
 
 describe('usePerpsTPSLForm', () => {
   const mockPosition: Position = {
@@ -65,7 +93,9 @@ describe('usePerpsTPSLForm', () => {
 
   describe('initialization', () => {
     it('should initialize with empty state when no initial values provided', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.formState.takeProfitPrice).toBe('');
       expect(result.current.formState.stopLossPrice).toBe('');
@@ -84,7 +114,9 @@ describe('usePerpsTPSLForm', () => {
         initialStopLossPrice: '45000',
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.formState.takeProfitPrice).toBe('55000');
       expect(result.current.formState.stopLossPrice).toBe('45000');
@@ -96,7 +128,9 @@ describe('usePerpsTPSLForm', () => {
         liquidationPrice: '42000',
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Liquidation price should be used in validation
       expect(result.current.validation.stopLossLiquidationError).toBe('');
@@ -111,7 +145,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Verify the hook works (direction is used internally for calculations)
       expect(result.current.formState.takeProfitPrice).toBe('');
@@ -133,7 +169,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Test that leverage is being used by triggering percentage button
       act(() => {
@@ -148,7 +186,9 @@ describe('usePerpsTPSLForm', () => {
   describe('input handlers', () => {
     describe('price input handlers', () => {
       it('should handle take profit price input correctly', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleTakeProfitPriceChange('55000');
@@ -160,7 +200,9 @@ describe('usePerpsTPSLForm', () => {
       });
 
       it('should handle stop loss price input correctly', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleStopLossPriceChange('45000');
@@ -172,7 +214,9 @@ describe('usePerpsTPSLForm', () => {
       });
 
       it('should sanitize price input to allow only numbers and decimal point', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleTakeProfitPriceChange('55000.50abc');
@@ -182,7 +226,9 @@ describe('usePerpsTPSLForm', () => {
       });
 
       it('should prevent multiple decimal points in price input', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleTakeProfitPriceChange('55000.50.25');
@@ -193,7 +239,9 @@ describe('usePerpsTPSLForm', () => {
       });
 
       it('should calculate percentage when price is entered', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleTakeProfitPriceChange('55000');
@@ -208,7 +256,9 @@ describe('usePerpsTPSLForm', () => {
 
     describe('percentage input handlers', () => {
       it('should handle take profit percentage input correctly', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleTakeProfitPercentageChange('50');
@@ -219,7 +269,9 @@ describe('usePerpsTPSLForm', () => {
       });
 
       it('should handle stop loss percentage input correctly', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleStopLossPercentageChange('25');
@@ -230,7 +282,9 @@ describe('usePerpsTPSLForm', () => {
       });
 
       it('should sanitize percentage input to allow only numbers and decimal point', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleTakeProfitPercentageChange('50.5abc');
@@ -240,7 +294,9 @@ describe('usePerpsTPSLForm', () => {
       });
 
       it('should calculate price when percentage is entered', () => {
-        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+        const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+          wrapper: createWrapper(),
+        });
 
         act(() => {
           result.current.handlers.handleTakeProfitPercentageChange('10');
@@ -256,7 +312,9 @@ describe('usePerpsTPSLForm', () => {
 
   describe('focus/blur handlers', () => {
     it('should set focus state and source of truth on focus', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPriceFocus();
@@ -267,7 +325,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should clear focus state and format price on blur', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Set up initial state
       act(() => {
@@ -285,7 +345,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should update opposite field on blur when value is valid', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Set up price and focus
       act(() => {
@@ -304,7 +366,9 @@ describe('usePerpsTPSLForm', () => {
 
   describe('button handlers', () => {
     it('should handle take profit percentage buttons', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.buttons.handleTakeProfitPercentageButton(25);
@@ -317,7 +381,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should handle stop loss percentage buttons', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.buttons.handleStopLossPercentageButton(10);
@@ -330,7 +396,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should handle take profit off button', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Set up some values first
       act(() => {
@@ -349,7 +417,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should handle stop loss off button', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Set up some values first
       act(() => {
@@ -388,7 +458,9 @@ describe('usePerpsTPSLForm', () => {
 
   describe('validation', () => {
     it('should validate TPSL prices correctly for long positions', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Set valid prices for long position (TP > current, SL < current but > liquidation)
       act(() => {
@@ -407,7 +479,9 @@ describe('usePerpsTPSLForm', () => {
         direction: 'short' as const,
         liquidationPrice: '55000', // Higher liquidation price for short position
       };
-      const { result } = renderHook(() => usePerpsTPSLForm(shortParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(shortParams), {
+        wrapper: createWrapper(),
+      });
 
       // Set valid prices for short position (TP < current, SL > current but < liquidation)
       act(() => {
@@ -421,7 +495,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should show error for invalid take profit price on long position', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('45000'); // Below current
@@ -431,7 +507,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should show error for invalid stop loss price on long position', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleStopLossPriceChange('55000'); // Above current
@@ -445,7 +523,9 @@ describe('usePerpsTPSLForm', () => {
         ...defaultParams,
         initialTakeProfitPrice: '55000',
       };
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.validation.hasChanges).toBe(false);
 
@@ -463,7 +543,9 @@ describe('usePerpsTPSLForm', () => {
           direction: 'long' as const,
           liquidationPrice: '45000',
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // Set stop loss above liquidation price (valid for long)
         act(() => {
@@ -479,7 +561,9 @@ describe('usePerpsTPSLForm', () => {
           direction: 'long' as const,
           liquidationPrice: '45000',
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // Set stop loss below liquidation price (invalid for long)
         act(() => {
@@ -497,7 +581,9 @@ describe('usePerpsTPSLForm', () => {
           direction: 'short' as const,
           liquidationPrice: '55000',
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // Set stop loss below liquidation price (valid for short)
         act(() => {
@@ -513,7 +599,9 @@ describe('usePerpsTPSLForm', () => {
           direction: 'short' as const,
           liquidationPrice: '55000',
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // Set stop loss above liquidation price (invalid for short)
         act(() => {
@@ -530,7 +618,9 @@ describe('usePerpsTPSLForm', () => {
           ...defaultParams,
           liquidationPrice: undefined,
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // Set any stop loss price
         act(() => {
@@ -545,7 +635,9 @@ describe('usePerpsTPSLForm', () => {
           ...defaultParams,
           liquidationPrice: '45000',
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // No stop loss set
         expect(result.current.validation.stopLossLiquidationError).toBe('');
@@ -557,7 +649,9 @@ describe('usePerpsTPSLForm', () => {
           direction: 'long' as const,
           liquidationPrice: '$45,000.00',
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // Set stop loss below formatted liquidation price (invalid for long)
         act(() => {
@@ -575,7 +669,9 @@ describe('usePerpsTPSLForm', () => {
           direction: 'long' as const,
           liquidationPrice: '45000.001', // Very close to 45000
         };
-        const { result } = renderHook(() => usePerpsTPSLForm(params));
+        const { result } = renderHook(() => usePerpsTPSLForm(params), {
+          wrapper: createWrapper(),
+        });
 
         // Set stop loss at 45000 (should be considered below liquidation due to rounding)
         act(() => {
@@ -594,7 +690,9 @@ describe('usePerpsTPSLForm', () => {
         direction: 'long' as const,
         liquidationPrice: '45000',
       };
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Set valid TP and SL prices but SL below liquidation
       act(() => {
@@ -617,7 +715,9 @@ describe('usePerpsTPSLForm', () => {
         direction: 'long' as const,
         liquidationPrice: '45000',
       };
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Set all valid prices
       act(() => {
@@ -634,7 +734,9 @@ describe('usePerpsTPSLForm', () => {
 
   describe('display helpers', () => {
     it('should format percentage display based on focus state', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('10.00');
@@ -656,7 +758,9 @@ describe('usePerpsTPSLForm', () => {
 
   describe('source of truth management', () => {
     it('should prevent percentage updates when percentage field is focused', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Focus percentage field first
       act(() => {
@@ -681,7 +785,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should prevent price updates when price field is focused', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Focus price field first
       act(() => {
@@ -753,7 +859,9 @@ describe('usePerpsTPSLForm', () => {
   describe('edge cases', () => {
     it('should handle zero current price gracefully', () => {
       const params = { ...defaultParams, currentPrice: 0 };
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.formState.takeProfitPrice).toBe('');
       expect(result.current.formState.stopLossPrice).toBe('');
@@ -761,14 +869,18 @@ describe('usePerpsTPSLForm', () => {
 
     it('should handle missing direction gracefully', () => {
       const params = { ...defaultParams, direction: undefined };
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should not crash
       expect(result.current.formState.takeProfitPrice).toBe('');
     });
 
     it('should handle empty string input', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('');
@@ -783,7 +895,9 @@ describe('usePerpsTPSLForm', () => {
         ...defaultParams,
         liquidationPrice: 'invalid',
       };
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleStopLossPriceChange('44000');
@@ -799,7 +913,9 @@ describe('usePerpsTPSLForm', () => {
         ...defaultParams,
         liquidationPrice: '',
       };
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleStopLossPriceChange('44000');
@@ -818,7 +934,9 @@ describe('usePerpsTPSLForm', () => {
         initialStopLossPrice: '45000',
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should calculate initial percentages
       expect(result.current.formState.takeProfitPercentage).not.toBe('');
@@ -832,7 +950,9 @@ describe('usePerpsTPSLForm', () => {
         initialTakeProfitPrice: '55000',
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should not calculate when not visible
       expect(result.current.formState.takeProfitPercentage).toBe('');
@@ -847,7 +967,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('10');
@@ -866,7 +988,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('10');
@@ -888,7 +1012,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('10');
@@ -905,7 +1031,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should not crash and should fallback to currentPrice
       expect(result.current.formState.takeProfitPrice).toBe('');
@@ -921,7 +1049,9 @@ describe('usePerpsTPSLForm', () => {
         orderType: 'limit' as const,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // For long position, TP should be above entryPrice (52000), not currentPrice (50000)
       act(() => {
@@ -942,7 +1072,9 @@ describe('usePerpsTPSLForm', () => {
         orderType: 'market' as const,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should validate against currentPrice
       act(() => {
@@ -965,7 +1097,9 @@ describe('usePerpsTPSLForm', () => {
         orderType: 'limit' as const,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should validate against position's entry price
       act(() => {
@@ -991,7 +1125,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Set stop loss below liquidation price
       act(() => {
@@ -1011,7 +1147,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Set stop loss below liquidation price
       act(() => {
@@ -1034,7 +1172,9 @@ describe('usePerpsTPSLForm', () => {
         orderType: 'limit' as const,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('45000'); // Invalid for long
@@ -1053,7 +1193,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('51000'); // Invalid
@@ -1072,7 +1214,9 @@ describe('usePerpsTPSLForm', () => {
         orderType: 'market' as const,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('45000'); // Invalid for long
@@ -1086,7 +1230,9 @@ describe('usePerpsTPSLForm', () => {
 
   describe('formatPerpsFiat integration in button handlers', () => {
     it('should use formatPerpsFiat for take profit button prices', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.buttons.handleTakeProfitPercentageButton(25);
@@ -1098,7 +1244,9 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should use formatPerpsFiat for stop loss button prices', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.buttons.handleStopLossPercentageButton(10);
@@ -1111,7 +1259,9 @@ describe('usePerpsTPSLForm', () => {
 
     it('should strip non-numeric characters from formatted prices', () => {
       // Test that the regex replacement works correctly
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.buttons.handleTakeProfitPercentageButton(25);
@@ -1138,7 +1288,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('10');
@@ -1156,7 +1308,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('10');
@@ -1174,7 +1328,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('10');
@@ -1194,7 +1350,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should not crash
       expect(result.current.formState.takeProfitPrice).toBe('');
@@ -1210,7 +1368,9 @@ describe('usePerpsTPSLForm', () => {
         isVisible: true,
       };
 
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
 
       // Should not calculate initial percentages with invalid prices
       expect(result.current.formState.takeProfitPercentage).toBe('');
@@ -1243,7 +1403,9 @@ describe('usePerpsTPSLForm', () => {
   describe('Signed Input Handling', () => {
     it('handles positive sign input correctly', () => {
       // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Act
       act(() => {
@@ -1256,7 +1418,9 @@ describe('usePerpsTPSLForm', () => {
 
     it('handles negative sign input correctly', () => {
       // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Act
       act(() => {
@@ -1269,7 +1433,9 @@ describe('usePerpsTPSLForm', () => {
 
     it('handles duplicate signs correctly', () => {
       // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Act - Test double negative signs
       act(() => {
@@ -1282,7 +1448,9 @@ describe('usePerpsTPSLForm', () => {
 
     it('handles en-dash and em-dash characters', () => {
       // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Act - Test en-dash (–) conversion
       act(() => {
@@ -1295,7 +1463,9 @@ describe('usePerpsTPSLForm', () => {
 
     it('handles mixed signs by keeping only the first sign', () => {
       // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Act - Test mixed signs (+-) should keep first sign
       act(() => {
@@ -1316,7 +1486,9 @@ describe('usePerpsTPSLForm', () => {
 
     it('allows backspacing through signs', () => {
       // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
 
       // Set initial value
       act(() => {

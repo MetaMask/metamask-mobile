@@ -32,7 +32,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
     outputs:
@@ -54,7 +54,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
         with:
           platform: android
           setup-simulator: false
@@ -84,7 +84,7 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
@@ -132,7 +132,7 @@ jobs:
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          cp android/gradle.properties.github android/gradle.properties
+          # cp android/gradle.properties.github android/gradle.properties - Build for all apps to stabilize e2e 
           yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
         env:

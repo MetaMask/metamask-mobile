@@ -77,6 +77,9 @@ public class RNTar extends ReactContextBaseJavaModule {
         throw new IOException("The output directory is not readable and/or writable.");
       }
 
+      File outPathFile = new File(outputPath);
+      String outPathCanonical = outPathFile.getCanonicalPath() + File.separator;
+
       // Set up the input streams for reading the .tgz file
       try (FileInputStream fileInputStream = new FileInputStream(tgzPath);
            GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
@@ -87,6 +90,10 @@ public class RNTar extends ReactContextBaseJavaModule {
         // Loop through the entries in the .tgz file
         while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
           File outputFile = new File(outputPath, entry.getName());
+
+          if (!outputFile.getCanonicalPath().startsWith(outPathCanonical)) {
+            throw new IOException("Tarball failed to extract due to invalid paths.");
+          }
 
           // If it is a directory, create the output directory
           if (entry.isDirectory()) {
