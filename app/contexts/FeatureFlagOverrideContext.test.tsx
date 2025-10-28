@@ -27,19 +27,15 @@ jest.mock('../util/feature-flags', () => ({
   isMinimumRequiredVersionSupported: jest.fn(),
 }));
 
-const mockToastRef = {
-  current: {
-    showToast: jest.fn(),
-  },
-};
-
-jest.mock('../component-library/components/Toast', () => ({
-  ToastContext: {
-    Provider: ({ children }: any) => children,
-    Consumer: ({ children }: any) => children(mockToastRef),
-    displayName: 'ToastContext',
-  },
-}));
+// Mock the ToastContext to avoid dependency issues
+jest.mock('../component-library/components/Toast', () => {
+  const React = jest.requireActual('react');
+  return {
+    ToastContext: React.createContext({
+      toastRef: { current: { showToast: jest.fn() } },
+    }),
+  };
+});
 
 describe('FeatureFlagOverrideContext', () => {
   let mockUseSelector: jest.MockedFunction<typeof useSelector>;
@@ -62,7 +58,6 @@ describe('FeatureFlagOverrideContext', () => {
 
     // Default mock implementations
     mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
-    mockToastRef.current.showToast.mockClear();
     mockGetFeatureFlagDescription.mockImplementation(
       (key: string) => `Description for ${key}`,
     );
@@ -190,9 +185,7 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.hasOverride('newFlag')).toBe(true);
       expect(result.current.getOverride('newFlag')).toBe('new value');
       expect(result.current.getFeatureFlag('newFlag')).toBe('new value');
-      expect(
-        result.current.featureFlags.newFlag.originalValue,
-      ).toBeUndefined();
+      expect(result.current.featureFlags.newFlag.originalValue).toBeUndefined();
       expect(result.current.featureFlags.newFlag.isOverridden).toBe(true);
     });
 
@@ -635,7 +628,74 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.getFeatureFlag('testFlag')).toBe(true);
     });
 
-    it('returns enabled value for boolean with minimumVersion flags when version is not supported', () => {
+    it('returns false for boolean with minimumVersion flags when enabled is false and version is supported', () => {
+      const mockFlags = {
+        testFlag: { enabled: false, minimumVersion: '1.0.0' },
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
+    });
+
+    it('returns false for boolean with minimumVersion flags when version is not supported in non-production', () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'development',
+        configurable: true,
+      });
+
+      const mockFlags = {
+        testFlag: { enabled: true, minimumVersion: '99.0.0' },
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
+
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: originalNodeEnv,
+        configurable: true,
+      });
+    });
+
+    it('returns false for boolean with minimumVersion flags when version is not supported in production', () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'production',
+        configurable: true,
+      });
+
+      const mockFlags = {
+        testFlag: { enabled: true, minimumVersion: '99.0.0' },
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      expect(result.current.getFeatureFlag('testFlag')).toBe(false);
+
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: originalNodeEnv,
+        configurable: true,
+      });
+    });
+
+    it('returns enabled value for boolean with minimumVersion flags when enabled is false', () => {
       const mockFlags = {
         testFlag: { enabled: false, minimumVersion: '99.0.0' },
       };
@@ -648,8 +708,6 @@ describe('FeatureFlagOverrideContext', () => {
       });
 
       expect(result.current.getFeatureFlag('testFlag')).toBe(false);
-      // Toast should be shown in non-production environment, but we don't test that here
-      // since it's an implementation detail and would require mocking NODE_ENV
     });
 
     it('returns flag value directly for non-boolean with minimumVersion flags', () => {
@@ -744,6 +802,64 @@ describe('FeatureFlagOverrideContext', () => {
 
       expect(result.current.getFeatureFlag('')).toBe('overridden empty');
       expect(result.current.hasOverride('')).toBe(true);
+    });
+
+    describe('Version Support Logic', () => {
+      it('returns false for unsupported minimumVersion in development environment', () => {
+        const originalNodeEnv = process.env.NODE_ENV;
+        Object.defineProperty(process.env, 'NODE_ENV', {
+          value: 'development',
+          configurable: true,
+        });
+
+        const mockFlags = {
+          myFeatureFlag: { enabled: true, minimumVersion: '10.0.0' },
+        };
+        mockUseSelector.mockReturnValue(mockFlags);
+        mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+        mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
+
+        const { result } = renderHook(() => useFeatureFlagOverride(), {
+          wrapper: createWrapper,
+        });
+
+        expect(result.current.getFeatureFlag('myFeatureFlag')).toBe(false);
+
+        Object.defineProperty(process.env, 'NODE_ENV', {
+          value: originalNodeEnv,
+          configurable: true,
+        });
+      });
+
+      it('returns enabled value when feature flag version is supported', () => {
+        const mockFlags = {
+          supportedFlag: { enabled: true, minimumVersion: '1.0.0' },
+        };
+        mockUseSelector.mockReturnValue(mockFlags);
+        mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+        mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
+
+        const { result } = renderHook(() => useFeatureFlagOverride(), {
+          wrapper: createWrapper,
+        });
+
+        expect(result.current.getFeatureFlag('supportedFlag')).toBe(true);
+      });
+
+      it('returns flag value directly for non-boolean with minimumVersion flag types', () => {
+        const mockFlags = {
+          stringFlag: 'test value',
+        };
+        mockUseSelector.mockReturnValue(mockFlags);
+        mockGetFeatureFlagType.mockReturnValue('string');
+        mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
+
+        const { result } = renderHook(() => useFeatureFlagOverride(), {
+          wrapper: createWrapper,
+        });
+
+        expect(result.current.getFeatureFlag('stringFlag')).toBe('test value');
+      });
     });
   });
 });

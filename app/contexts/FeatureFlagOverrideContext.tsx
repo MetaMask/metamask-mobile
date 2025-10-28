@@ -167,6 +167,7 @@ export const FeatureFlagOverrideProvider: React.FC<
           iconName: 'Warning' as any,
           hasNoTimeout: false,
         });
+        return false;
       }
       return flag.value.enabled;
     }
