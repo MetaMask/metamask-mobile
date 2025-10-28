@@ -55,7 +55,7 @@ module.exports = function (baseConfig) {
     mergeConfig(defaultConfig, {
       resolver: {
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
-        sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs', '.riv'],
+        sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs', 'riv'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
         extraNodeModules: {
           ...defaultConfig.resolver.extraNodeModules,
