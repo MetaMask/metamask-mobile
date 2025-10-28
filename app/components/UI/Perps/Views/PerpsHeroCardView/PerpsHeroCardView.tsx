@@ -57,6 +57,10 @@ import {
 import { buildReferralUrl } from '../../../Rewards/utils';
 import { usePerpsToasts } from '../../hooks';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
+import {
+  PerpsHeroCardViewSelectorsIDs,
+  getPerpsHeroCardViewSelector,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
@@ -148,6 +152,7 @@ const PerpsHeroCardView: React.FC = () => {
             viewShotRefs.current[index] = ref;
           }}
           style={styles.cardContainer}
+          testID={getPerpsHeroCardViewSelector.cardContainer(index)}
         >
           {/* Background Image */}
           <Image
@@ -164,11 +169,15 @@ const PerpsHeroCardView: React.FC = () => {
               resizeMode="contain"
             />
             {rewardsReferralCode !== null && (
-              <RewardsReferralCodeTag
-                referralCode={rewardsReferralCode}
-                backgroundColor={darkTheme.colors.background.mutedHover}
-                fontColor={darkTheme.colors.accent04.light}
-              />
+              <View
+                testID={getPerpsHeroCardViewSelector.referralCodeTag(index)}
+              >
+                <RewardsReferralCodeTag
+                  referralCode={rewardsReferralCode}
+                  backgroundColor={darkTheme.colors.background.mutedHover}
+                  fontColor={darkTheme.colors.accent04.light}
+                />
+              </View>
             )}
           </View>
 
@@ -179,13 +188,21 @@ const PerpsHeroCardView: React.FC = () => {
               size={14.5}
               style={styles.assetIcon}
             />
-            <Text variant={TextVariant.BodySMMedium} style={styles.assetName}>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              style={styles.assetName}
+              testID={getPerpsHeroCardViewSelector.assetSymbol(index)}
+            >
               {data.asset}
             </Text>
-            <View style={styles.directionBadge}>
+            <View
+              style={styles.directionBadge}
+              testID={getPerpsHeroCardViewSelector.directionBadge(index)}
+            >
               <Text
                 variant={TextVariant.BodyXSMedium}
                 style={styles.directionBadgeText}
+                testID={getPerpsHeroCardViewSelector.directionBadgeText(index)}
               >
                 {directionBadgeText}
               </Text>
@@ -198,6 +215,7 @@ const PerpsHeroCardView: React.FC = () => {
               styles.pnlText,
               data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
             ]}
+            testID={getPerpsHeroCardViewSelector.pnlText(index)}
           >
             {pnlDisplay}
           </RNText>
@@ -241,7 +259,10 @@ const PerpsHeroCardView: React.FC = () => {
 
           {/* Bottom Row: QR Code */}
           {rewardsReferralCode !== null && (
-            <View style={styles.qrCodeContainer}>
+            <View
+              style={styles.qrCodeContainer}
+              testID={getPerpsHeroCardViewSelector.qrCode(index)}
+            >
               <RewardsReferralQRCode
                 referralCode={rewardsReferralCode}
                 size={100}
@@ -355,18 +376,27 @@ const PerpsHeroCardView: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeAreaContainer} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.safeAreaContainer}
+      edges={['top', 'bottom']}
+      testID={PerpsHeroCardViewSelectorsIDs.CONTAINER}
+    >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={styles.header} testID={PerpsHeroCardViewSelectorsIDs.HEADER}>
         <View style={styles.closeButton} />
         <Text
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
           style={styles.headerTitle}
+          testID={PerpsHeroCardViewSelectorsIDs.HEADER_TITLE}
         >
           {strings('perps.pnl_hero_card.header_title')}
         </Text>
-        <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+        <TouchableOpacity
+          onPress={handleClose}
+          style={styles.closeButton}
+          testID={PerpsHeroCardViewSelectorsIDs.CLOSE_BUTTON}
+        >
           <ButtonIcon
             size={ButtonIconSizes.Md}
             iconName={IconName.Close}
@@ -376,10 +406,16 @@ const PerpsHeroCardView: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.carouselWrapper}>
+      <View
+        style={styles.carouselWrapper}
+        testID={PerpsHeroCardViewSelectorsIDs.CAROUSEL_WRAPPER}
+      >
         {/* Carousel */}
         {/* ScrollableTabView fills empty space by default, we need to constrain it  */}
-        <View style={styles.carousel}>
+        <View
+          style={styles.carousel}
+          testID={PerpsHeroCardViewSelectorsIDs.CAROUSEL}
+        >
           <ScrollableTabView
             renderTabBar={() => <View />}
             onChangeTab={handleTabChange}
@@ -390,7 +426,10 @@ const PerpsHeroCardView: React.FC = () => {
           </ScrollableTabView>
         </View>
 
-        <View style={styles.carouselDotIndicator}>
+        <View
+          style={styles.carouselDotIndicator}
+          testID={PerpsHeroCardViewSelectorsIDs.DOT_INDICATOR}
+        >
           {CARD_IMAGES.map(({ id: imageId }, dotIndex) => (
             <View
               key={imageId}
@@ -414,6 +453,7 @@ const PerpsHeroCardView: React.FC = () => {
           onPress={handleShare}
           loading={isSharing}
           isDisabled={isSharing}
+          testID={PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON}
         />
       </View>
     </SafeAreaView>

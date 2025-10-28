@@ -1101,4 +1101,127 @@ describe('PerpsPositionCard', () => {
       expect(mockOnTpslCountPress).not.toHaveBeenCalled();
     });
   });
+
+  describe('share button functionality', () => {
+    it('renders share button when expanded is true', () => {
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+
+      expect(shareButton).toBeOnTheScreen();
+    });
+
+    it('does not render share button when expanded is false', () => {
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+
+      const shareButton = screen.queryByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+
+      expect(shareButton).toBeNull();
+    });
+
+    it('navigates to PNL_HERO_CARD route when share button pressed', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PNL_HERO_CARD,
+        expect.objectContaining({
+          position: mockPosition,
+        }),
+      );
+    });
+
+    it('passes position prop to route params', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          position: mockPosition,
+        }),
+      );
+    });
+
+    it('passes marketData.price as marketPrice param', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            symbol: 'ETH',
+            price: '$2500.50',
+          },
+        ],
+        error: null,
+        isLoading: false,
+      });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PNL_HERO_CARD,
+        expect.objectContaining({
+          marketPrice: '$2500.50',
+        }),
+      );
+    });
+
+    it('works when marketData.price is undefined', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            symbol: 'ETH',
+            price: undefined,
+          },
+        ],
+        error: null,
+        isLoading: false,
+      });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PNL_HERO_CARD,
+        expect.objectContaining({
+          position: mockPosition,
+          marketPrice: undefined,
+        }),
+      );
+    });
+  });
 });

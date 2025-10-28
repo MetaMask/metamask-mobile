@@ -74,6 +74,11 @@ export const createTransactionDetailStyles = (theme: Theme) => {
       borderBottomWidth: 1,
       borderBottomColor: colors.border.muted,
     },
+    // Block explorer button
+    blockExplorerButton: {
+      marginTop: 16,
+      marginBottom: 16,
+    },
     // Status-specific styles
     profitValue: {
       color: colors.success.default,
