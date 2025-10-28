@@ -18,7 +18,7 @@ do
   # Check if remote branch exists, otherwise compare against main
   if [ "$remote_sha" = "0000000000000000000000000000000000000000" ] || ! git rev-parse "$remote_sha" >/dev/null 2>&1; then
     # For new branches, compare against origin/main or main
-    remote_sha=$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null || echo "")
+    remote_sha=$(git merge-base "$local_sha" origin/main 2>/dev/null || git merge-base "$local_sha" main 2>/dev/null || echo "")
     if [ -z "$remote_sha" ]; then
       echo "⚠️  Cannot determine base commit for comparison. Skipping validation."
       echo "💡 First push to a new repository? Run validation manually with:"
