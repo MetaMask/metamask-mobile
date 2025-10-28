@@ -1956,7 +1956,7 @@ describe('PolymarketProvider', () => {
       ).rejects.toThrow('Failed to fetch unrealized P&L');
     });
 
-    it('throws error when API returns empty array', async () => {
+    it('returns undefined when API returns empty array', async () => {
       const provider = createProvider();
 
       (globalThis.fetch as jest.Mock).mockResolvedValue({
@@ -1964,11 +1964,11 @@ describe('PolymarketProvider', () => {
         json: jest.fn().mockResolvedValue([]),
       });
 
-      await expect(
-        provider.getUnrealizedPnL({
-          address: '0x1234567890123456789012345678901234567890',
-        }),
-      ).rejects.toThrow('No unrealized P&L data found');
+      const result = await provider.getUnrealizedPnL({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+
+      expect(result).toBeUndefined();
     });
 
     it('throws error when API returns non-array response', async () => {
