@@ -218,7 +218,10 @@ const GasFeesDetailsRow = ({
     });
   };
 
-  const confirmGasFeeTokenTooltip = gasFeeToken
+  const showGasFeeTokenInfo =
+    gasFeeToken?.metaMaskFee && gasFeeToken?.metaMaskFee !== '0x0';
+
+  const confirmGasFeeTokenTooltip = showGasFeeTokenInfo
     ? strings('transactions.confirm_gas_fee_token_tooltip', {
         metamaskFeeFiat,
       })
@@ -258,7 +261,7 @@ const GasFeesDetailsRow = ({
                 color={TextColor.Alternative}
                 style={styles.gasFeeTokenText}
               >
-                {gasFeeToken
+                {showGasFeeTokenInfo
                   ? strings('transactions.confirm_gas_fee_token_metamask_fee', {
                       metamaskFeeFiat,
                     })

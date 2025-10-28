@@ -73,8 +73,8 @@ describe('useMultichainAccountsIntroModal', () => {
   it('navigates on app update when feature is enabled and not seen', async () => {
     // Mock app update (has last app version different from current)
     mockStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === CURRENT_APP_VERSION) return Promise.resolve('1.1.0');
-      if (key === LAST_APP_VERSION) return Promise.resolve('1.0.0'); // Previous version = update
+      if (key === CURRENT_APP_VERSION) return Promise.resolve('7.57.0');
+      if (key === LAST_APP_VERSION) return Promise.resolve('7.56.0'); // Previous version = update
       return Promise.resolve(null);
     });
 
@@ -110,8 +110,8 @@ describe('useMultichainAccountsIntroModal', () => {
   it('does not navigate when modal has already been seen', async () => {
     // Mock app update
     mockStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === CURRENT_APP_VERSION) return Promise.resolve('1.1.0');
-      if (key === LAST_APP_VERSION) return Promise.resolve('1.0.0');
+      if (key === CURRENT_APP_VERSION) return Promise.resolve('7.57.0');
+      if (key === LAST_APP_VERSION) return Promise.resolve('7.56.0');
       return Promise.resolve(null);
     });
 
@@ -145,8 +145,8 @@ describe('useMultichainAccountsIntroModal', () => {
   it('does not navigate when feature is disabled', async () => {
     // Mock app update
     mockStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === CURRENT_APP_VERSION) return Promise.resolve('1.1.0');
-      if (key === LAST_APP_VERSION) return Promise.resolve('1.0.0');
+      if (key === CURRENT_APP_VERSION) return Promise.resolve('7.57.0');
+      if (key === LAST_APP_VERSION) return Promise.resolve('7.56.0');
       return Promise.resolve(null);
     });
 
@@ -206,5 +206,79 @@ describe('useMultichainAccountsIntroModal', () => {
 
     expect(result.current.isMultichainAccountsState2Enabled).toBe(true);
     expect(result.current.hasSeenIntroModal).toBe(false);
+  });
+
+  describe('isMultichainAccountsUpdate version logic', () => {
+    const createInitialState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccountsState2: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '1.0.0',
+              },
+            },
+          },
+        },
+      },
+      user: {
+        multichainAccountsIntroModalSeen: false,
+      },
+    });
+
+    it.each([
+      ['7.56.0', '7.57.0'], // exact boundary
+      ['7.55.0', '7.57.0'], // below boundary
+      ['6.0.0', '7.57.0'], // major version jump
+      ['7.56.0', '7.58.0'], // crossing boundary
+      ['6.99.0', '8.0.0'], // major version crossing
+      ['7', '7.57.0'], // missing minor version
+      ['7.56.0-beta', '7.57.0'], // malformed version
+    ])(
+      'navigates when updating from %s to %s',
+      async (lastVersion, currentVersion) => {
+        mockStorageWrapper.getItem.mockImplementation((key: string) => {
+          if (key === CURRENT_APP_VERSION)
+            return Promise.resolve(currentVersion);
+          if (key === LAST_APP_VERSION) return Promise.resolve(lastVersion);
+          return Promise.resolve(null);
+        });
+
+        renderHookWithProviders(createInitialState());
+
+        await new Promise(setImmediate);
+
+        expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+          screen: 'MultichainAccountsIntroModal',
+        });
+      },
+    );
+
+    it.each([
+      ['7.57.0', '7.58.0'], // already past boundary
+      ['7.58.0', '7.59.0'], // both past boundary
+      ['8.0.0', '8.1.0'], // major version past
+      ['7.60.0', '8.0.0'], // both past boundary
+      ['7.56.0', '6.0.0'], // downgrade
+      ['', '7.57.0'], // empty version
+    ])(
+      'does not navigate when updating from %s to %s',
+      async (lastVersion, currentVersion) => {
+        mockStorageWrapper.getItem.mockImplementation((key: string) => {
+          if (key === CURRENT_APP_VERSION)
+            return Promise.resolve(currentVersion);
+          if (key === LAST_APP_VERSION) return Promise.resolve(lastVersion);
+          return Promise.resolve(null);
+        });
+
+        renderHookWithProviders(createInitialState());
+
+        await new Promise(setImmediate);
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+      },
+    );
   });
 });
