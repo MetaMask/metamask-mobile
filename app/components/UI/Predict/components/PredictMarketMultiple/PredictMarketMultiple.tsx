@@ -151,9 +151,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mb-2 gap-3"
+            twClassName="mb-3 gap-4"
           >
-            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
               {market.outcomes[0]?.image && (
                 <Box twClassName="w-full h-full">
                   <Image
@@ -166,9 +166,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             </Box>
             <Box twClassName="flex-1">
               <Text
-                variant={TextVariant.HeadingMD}
+                variant={TextVariant.HeadingSM}
                 color={TextColor.Default}
-                style={tw.style('font-medium')}
+                style={tw.style('font-medium leading-[24px]')}
               >
                 {market.title}
               </Text>
@@ -185,14 +185,19 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 twClassName="py-1 gap-4"
               >
                 <Box twClassName="flex-1">
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Default}
+                    numberOfLines={2}
+                    style={tw.style('leading-[18px]')}
+                  >
                     {outcome.groupItemTitle}
                   </Text>
                 </Box>
 
                 <Box>
                   <Text
-                    variant={TextVariant.BodySM}
+                    variant={TextVariant.BodySMMedium}
                     color={TextColor.Alternative}
                   >
                     {getFirstOutcomePrice(
@@ -242,7 +247,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mt-4"
+            twClassName="mt-3"
           >
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {market.outcomes.length > 3
@@ -256,7 +261,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+              twClassName="gap-4"
             >
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
@@ -268,7 +273,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 >
                   <Icon
                     name={IconName.Refresh}
-                    size={IconSize.Sm}
+                    size={IconSize.Md}
                     color={TextColor.Alternative}
                     style={tw.style('mr-1')}
                   />

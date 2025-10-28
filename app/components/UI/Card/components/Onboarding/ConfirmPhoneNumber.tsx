@@ -21,10 +21,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
 import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
+  resetOnboardingState,
   selectContactVerificationId,
   selectOnboardingId,
 } from '../../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
@@ -34,7 +35,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 const CELL_COUNT = 6;
 
 // Styles for the OTP CodeField
-const createStyles = (params: { theme: Theme }) => {
+export const createOTPStyles = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
@@ -63,11 +64,13 @@ const createStyles = (params: { theme: Theme }) => {
 
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { setUser } = useCardSDK();
-  const { styles } = useStyles(createStyles, {});
+  const { styles } = useStyles(createOTPStyles, {});
   const inputRef = useRef<TextInput>(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(60);
   const [confirmCode, setConfirmCode] = useState('');
+  const resendInProgressRef = useRef(false);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
@@ -138,6 +141,7 @@ const ConfirmPhoneNumber = () => {
           error.message.includes('Onboarding ID not found'))
       ) {
         // navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
     }
@@ -147,11 +151,12 @@ const ConfirmPhoneNumber = () => {
     phoneNumber,
     phoneCountryCode,
     contactVerificationId,
+    trackEvent,
+    createEventBuilder,
     verifyPhoneVerification,
     setUser,
     navigation,
-    trackEvent,
-    createEventBuilder,
+    dispatch,
   ]);
 
   const handleValueChange = useCallback(
@@ -168,11 +173,19 @@ const ConfirmPhoneNumber = () => {
       resendCooldown > 0 ||
       !phoneNumber ||
       !phoneCountryCode ||
-      !contactVerificationId
+      !contactVerificationId ||
+      phoneVerificationIsLoading
     ) {
       return;
     }
+    if (resendInProgressRef.current) {
+      return;
+    }
     try {
+      resendInProgressRef.current = true;
+      // Set cooldown immediately to guard against rapid multi-presses
+      setResendCooldown(60);
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
@@ -185,15 +198,17 @@ const ConfirmPhoneNumber = () => {
         phoneNumber,
         contactVerificationId,
       });
-      setResendCooldown(30);
     } catch {
       // Allow error message to display
+    } finally {
+      resendInProgressRef.current = false;
     }
   }, [
     resendCooldown,
     phoneNumber,
     phoneCountryCode,
     contactVerificationId,
+    phoneVerificationIsLoading,
     sendPhoneVerification,
     trackEvent,
     createEventBuilder,
@@ -211,15 +226,13 @@ const ConfirmPhoneNumber = () => {
 
   // Cooldown timer effect
   useEffect(() => {
-    let timer: NodeJS.Timeout;
     if (resendCooldown > 0) {
-      timer = setTimeout(() => {
-        setResendCooldown(resendCooldown - 1);
+      const timer = setTimeout(() => {
+        setResendCooldown((prev) => prev - 1);
       }, 1000);
+
+      return () => clearTimeout(timer);
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
   }, [resendCooldown]);
 
   // Auto-submit when all digits are entered
@@ -298,12 +311,12 @@ const ConfirmPhoneNumber = () => {
       </Box>
 
       {/* Resend verification */}
-      <Box>
+      <Box twClassName="mt-4 items-center">
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           twClassName={`${
             resendCooldown > 0
-              ? 'text-text-muted'
+              ? 'text-text-alternative'
               : 'text-primary-default cursor-pointer'
           }`}
           onPress={resendCooldown > 0 ? undefined : handleResendVerification}
@@ -357,7 +370,7 @@ const ConfirmPhoneNumber = () => {
       title={strings('card.card_onboarding.confirm_phone_number.title')}
       description={strings(
         'card.card_onboarding.confirm_phone_number.description',
-        { phoneNumber: `${phoneCountryCode} ${phoneNumber}` },
+        { phoneNumber: `+${phoneCountryCode} ${phoneNumber}` },
       )}
       formFields={renderFormFields()}
       actions={renderActions()}

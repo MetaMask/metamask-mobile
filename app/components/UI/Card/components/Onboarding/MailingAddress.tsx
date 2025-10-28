@@ -10,6 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { AddressFields } from './PhysicalAddress';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
   setIsAuthenticatedCard,
@@ -22,7 +23,6 @@ import { CardError } from '../../types';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
@@ -167,11 +167,6 @@ const MailingAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
-        } else {
-          Logger.log(
-            'MailingAddress: Failed to store access token',
-            storeResult.error,
-          );
         }
 
         // Registration complete
@@ -185,6 +180,7 @@ const MailingAddress = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }

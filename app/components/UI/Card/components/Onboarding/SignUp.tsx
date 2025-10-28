@@ -77,6 +77,7 @@ const SignUp = () => {
     }
     return [...registrationSettings.countries]
       .sort((a, b) => a.name.localeCompare(b.name))
+      .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
         value: country.iso3166alpha2,

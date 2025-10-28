@@ -18,6 +18,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
   setIsAuthenticatedCard,
@@ -30,7 +31,6 @@ import SelectComponent from '../../../SelectComponent';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
@@ -288,7 +288,7 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry === 'US') ||
       !zipCode ||
-      !electronicConsent,
+      (!electronicConsent && selectedCountry === 'US'),
     [
       registerLoading,
       registerIsError,
@@ -313,10 +313,11 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry === 'US') ||
       !zipCode ||
-      !electronicConsent
+      (!electronicConsent && selectedCountry === 'US')
     ) {
       return;
     }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -325,8 +326,6 @@ const PhysicalAddress = () => {
           })
           .build(),
       );
-      await registerUserConsent(onboardingId, user.id);
-
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -336,6 +335,7 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
+      await registerUserConsent(onboardingId, user.id);
 
       if (updatedUser) {
         setUser(updatedUser);
@@ -356,11 +356,6 @@ const PhysicalAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
-        } else {
-          Logger.log(
-            'PhysicalAddress: Failed to store access token',
-            storeResult.error,
-          );
         }
 
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
@@ -378,6 +373,7 @@ const PhysicalAddress = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
@@ -424,15 +420,17 @@ const PhysicalAddress = () => {
       )}
 
       {/* Check box 2: Electronic Consent */}
-      <Checkbox
-        isChecked={electronicConsent}
-        onPress={handleElectronicConsentToggle}
-        label={strings(
-          'card.card_onboarding.physical_address.electronic_consent',
-        )}
-        style={tw.style('h-auto')}
-        testID="physical-address-electronic-consent-checkbox"
-      />
+      {selectedCountry === 'US' && (
+        <Checkbox
+          isChecked={electronicConsent}
+          onPress={handleElectronicConsentToggle}
+          label={strings(
+            'card.card_onboarding.physical_address.electronic_consent',
+          )}
+          style={tw.style('h-auto')}
+          testID="physical-address-electronic-consent-checkbox"
+        />
+      )}
     </>
   );
 
