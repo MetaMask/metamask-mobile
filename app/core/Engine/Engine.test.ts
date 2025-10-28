@@ -227,7 +227,6 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         balances: {},
-        claimTransaction: null,
         claimablePositions: [],
         depositTransaction: null,
         withdrawTransaction: null,

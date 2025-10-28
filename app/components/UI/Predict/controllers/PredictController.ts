@@ -115,7 +115,6 @@ export type PredictControllerState = {
   // Claim management
   // TODO: change to be per-account basis
   claimablePositions: PredictPosition[];
-  claimTransaction: PredictClaim | null;
 
   // Deposit management
   // TODO: change to be per-account basis
@@ -140,7 +139,6 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   lastUpdateTimestamp: 0,
   balances: {},
   claimablePositions: [],
-  claimTransaction: null,
   depositTransaction: null,
   withdrawTransaction: null,
   isOnboarded: {},
@@ -175,12 +173,6 @@ const metadata: StateMetadata<PredictControllerState> = {
     usedInUi: false,
   },
   claimablePositions: {
-    persist: false,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
-    usedInUi: false,
-  },
-  claimTransaction: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -1077,7 +1069,7 @@ export class PredictController extends BaseController<
 
       // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
       const prepareClaimResult = await provider.prepareClaim({
-        positions: claimablePositions,
+        positions: claimablePositions.splice(0, 1),
         signer,
       });
 
@@ -1131,7 +1123,6 @@ export class PredictController extends BaseController<
       };
 
       this.update((state) => {
-        state.claimTransaction = predictClaim;
         state.lastError = null; // Clear any previous errors
         state.lastUpdateTimestamp = Date.now();
       });
@@ -1163,7 +1154,6 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-        state.claimTransaction = null; // Clear any partial claim transaction
       });
 
       // Log error for debugging and future Sentry integration
@@ -1225,12 +1215,6 @@ export class PredictController extends BaseController<
     updater: (state: PredictControllerState) => void,
   ): void {
     this.update(updater);
-  }
-
-  public clearClaimTransaction(): void {
-    this.update((state) => {
-      state.claimTransaction = null;
-    });
   }
 
   public async depositWithConfirmation(

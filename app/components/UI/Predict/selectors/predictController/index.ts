@@ -11,11 +11,6 @@ const selectPredictDepositTransaction = createSelector(
     predictControllerState?.depositTransaction || null,
 );
 
-const selectPredictClaimTransaction = createSelector(
-  selectPredictControllerState,
-  (predictControllerState) => predictControllerState?.claimTransaction || null,
-);
-
 const selectPredictClaimablePositions = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.claimablePositions || [],
@@ -61,7 +56,6 @@ const selectPredictBalanceByAddress = ({
 export {
   selectPredictControllerState,
   selectPredictDepositTransaction,
-  selectPredictClaimTransaction,
   selectPredictClaimablePositions,
   selectPredictWonPositions,
   selectPredictWinFiat,
