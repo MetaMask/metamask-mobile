@@ -16,10 +16,11 @@ import OnboardingStep from './OnboardingStep';
 import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SelectComponent from '../../../SelectComponent';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -34,7 +35,8 @@ import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
-  const { setUser } = useCardSDK();
+  const dispatch = useDispatch();
+  const { setUser, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -48,6 +50,19 @@ const PersonalDetails = () => {
 
   // Get registration settings data
   const { data: registrationSettings } = useRegistrationSettings();
+
+  // If user data is available, set the state values
+  useEffect(() => {
+    if (userData) {
+      setFirstName(userData.firstName || '');
+      setLastName(userData.lastName || '');
+      setDateOfBirth(
+        userData.dateOfBirth ? formatDateOfBirth(userData.dateOfBirth) : '',
+      );
+      setNationality(userData.countryOfResidence || '');
+      setSSN(userData.ssn || '');
+    }
+  }, [userData]);
 
   // Create select options from registration settings data
   const selectOptions = useMemo(() => {
@@ -170,6 +185,7 @@ const PersonalDetails = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
