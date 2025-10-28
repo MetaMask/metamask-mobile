@@ -1773,6 +1773,11 @@
       "provider_fee": "Provider fee",
       "metamask_fee": "MetaMask fee",
       "total": "Total"
+    },
+    "error": {
+      "title": "Unable to connect to predictions",
+      "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
+      "retry": "Retry"
     }
   },
   "receive": {
@@ -1839,6 +1844,8 @@
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
+    "view_all_nfts": "View all NFTs",
+    "view_all_tokens": "View all tokens",
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
@@ -6005,7 +6012,7 @@
         "confirm_code_label": "Confirmation code",
         "confirm_code_placeholder": "Enter the 6-digit code",
         "resend_verification": "Resend verification code",
-        "resend_cooldown": "Resend available in {{seconds}} seconds",
+        "resend_cooldown": "Resend code in {{seconds}}s",
         "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
@@ -6022,7 +6029,7 @@
         "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
         "confirm_code_label": "Confirmation code",
         "resend_verification": "Resend verification code",
-        "resend_cooldown": "Resend available in {{seconds}} seconds"
+        "resend_cooldown": "Resend code in {{seconds}}s"
       },
       "verify_identity": {
         "title": "Next, verify your identity",
