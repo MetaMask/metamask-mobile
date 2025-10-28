@@ -2,15 +2,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { TokenI } from '../../../UI/Tokens/types';
 import { getHostFromUrl, isNativeToken } from './generic';
 
-jest.mock('./asset', () => ({
-  getNativeTokenAddress: jest.fn((chainId: string) => {
-    if (chainId === CHAIN_IDS.POLYGON) {
-      return '0x0000000000000000000000000000000000001010';
-    }
-    return '0x0000000000000000000000000000000000000000';
-  }),
-}));
-
 describe('generic utils', () => {
   describe('getHostFromUrl', () => {
     it('returns undefined when url is empty', () => {
