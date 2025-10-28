@@ -1851,6 +1851,11 @@
       "provider_fee": "Provider fee",
       "metamask_fee": "MetaMask fee",
       "total": "Total"
+    },
+    "error": {
+      "title": "Unable to connect to predictions",
+      "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
+      "retry": "Retry"
     }
   },
   "receive": {
