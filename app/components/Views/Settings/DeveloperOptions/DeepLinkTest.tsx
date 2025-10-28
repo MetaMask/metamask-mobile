@@ -13,13 +13,13 @@ const DEEP_LINKS = [
   ///////// UNIVERSAL LINKS /////////
   {
     id: 'unsigned-valid-universal',
-    title: 'Unsigned valid link',
+    title: 'Unsigned valid link = caution modal',
     url: 'https://link.metamask.io/perps',
     description: 'Unsigned valid link',
   },
   {
     id: 'signed-valid-universal',
-    title: 'Signed valid link',
+    title: 'Signed valid link = redirect modal to perps',
     url: 'https://link.metamask.io/perps?sig=ZEapBaui3fjBr-UtJT-pJNHNwgKBNPGBrrsP4dtJMVdqJzXLP2YIP_o94axxzT9x5m6D2xqGcPbZyXEMrFLvdQ',
     description: 'Signed valid link',
   },
@@ -31,20 +31,20 @@ const DEEP_LINKS = [
   },
   {
     id: 'invalid-link-universal',
-    title: 'Invalid link',
+    title: 'Invalid link = no exist',
     url: 'https://link.metamask.io/invalid-link',
     description: 'Invalid link = unsigned and unsupported action',
   },
   ///////// DEEP LINKS /////////
   {
     id: 'unsigned-valid-deep',
-    title: 'Unsigned valid deep link',
-    url: 'metamask://perps',
+    title: 'Unsigned valid deep link = deposit',
+    url: 'metamask://deposit',
     description: 'Unsigned valid deep link',
   },
   {
     id: 'invalid-link-deep',
-    title: 'Invalid deep link',
+    title: 'Invalid deep link = do nothing',
     url: 'metamask://invalid-link',
     description: 'Invalid link = unsigned and unsupported action',
   },
