@@ -56,6 +56,21 @@ on:
         description: 'Optional description for this build run'
         required: false
         type: string
+      build_type:
+        description: 'The type of build to perform'
+        required: false
+        default: 'main'
+        type: string
+      metamask_environment:
+        description: 'The environment to build for'
+        required: false
+        default: 'rc'
+        type: string
+      keystore_target:
+        description: 'The target to use for the keystore'
+        required: false
+        default: 'qa'
+        type: string
 
 permissions:
   contents: read
@@ -117,7 +132,7 @@ jobs:
           platform: android
           setup-simulator: false
           configure-keystores: true
-          target: qa
+          target: ${{ inputs.keystore_target }}
 
       - name: Cache Gradle dependencies
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
