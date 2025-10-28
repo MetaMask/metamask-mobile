@@ -12,7 +12,6 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectIsAuthenticatedCard,
-  selectUserCardLocation,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
 } from '../../../../../core/redux/slices/card';
@@ -27,7 +26,10 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
@@ -53,10 +55,11 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { SUPPORTED_ASSET_NETWORKS } from '../../constants';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions } from '../../util/metrics';
+import { truncateAddress } from '../../util/truncateAddress';
+import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 
 export interface SupportedTokenWithChain {
   address: string;
@@ -66,6 +69,7 @@ export interface SupportedTokenWithChain {
   enabled: boolean;
   caipChainId: CaipChainId;
   chainName: string;
+  walletAddress?: string; // The user's wallet address holding this token
   balance?: string;
   balanceFiat?: string;
   image?: string;
@@ -88,6 +92,8 @@ export interface AssetSelectionBottomSheetProps {
   // Selection only mode: just call onTokenSelect and close, don't handle priority/navigation
   selectionOnly?: boolean;
   onTokenSelect?: (token: SupportedTokenWithChain) => void;
+  // Hide Solana assets completely (used in SpendingLimit since Solana delegation is not supported)
+  hideSolanaAssets?: boolean;
 }
 
 const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
@@ -100,6 +106,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   navigateToCardHomeOnPriorityToken = false,
   selectionOnly = false,
   onTokenSelect,
+  hideSolanaAssets = false,
 }) => {
   const navigation = useNavigation();
   const theme = useTheme();
@@ -108,9 +115,8 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const userCardLocation = useSelector(selectUserCardLocation);
   const { trackEvent, createEventBuilder } = useMetrics();
-
+  const { navigateToCardPage } = useNavigateToCardPage(navigation);
   // bottomsheet_selected_token_symbol:
   //   type: string
   //   description: The symbol of the token that was selected on the select token bottomsheet.
@@ -124,124 +130,90 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   //   description: The amount of the limit for the token that was selected on the select token bottomsheet.
   //   required: false
 
-  // Map all available tokens from delegation settings and merge with user's current tokens
+  // Map user's actual wallets/tokens to display format
+  // This preserves duplicates (same token on same chain but different wallet addresses)
   const supportedTokens = useMemo<SupportedTokenWithChain[]>(() => {
-    if (!delegationSettings?.networks || !sdk) return [];
+    if (!tokensWithAllowances?.length || !sdk) return [];
 
-    const allTokens: SupportedTokenWithChain[] = [];
+    const allTokens: SupportedTokenWithChain[] = tokensWithAllowances
+      .map((userToken) => {
+        // Determine chain name
+        const isSolana =
+          userToken.caipChainId === SolScope.Mainnet ||
+          userToken.caipChainId?.startsWith('solana:');
+        const chainName = isSolana ? 'Solana' : 'Linea';
 
-    // Filter and iterate through supported networks only
-    const filteredNetworks = delegationSettings.networks.filter((network) => {
-      const networkLower = network.network.toLowerCase();
-
-      // Only include supported networks
-      if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) return false;
-
-      // Only show linea-us tokens for US users
-      if (networkLower === 'linea-us' && userCardLocation !== 'us')
-        return false;
-
-      return true;
-    });
-
-    filteredNetworks.forEach((network) => {
-      const networkLower = network.network.toLowerCase();
-      const isSolana = networkLower === 'solana';
-      const caipChainId = isSolana
-        ? SolScope.Mainnet
-        : formatChainIdToCaip(network.chainId);
-      const isStaging = network.environment === 'staging';
-
-      // Iterate through all tokens in this network
-      Object.entries(network.tokens).forEach(([_tokenKey, tokenConfig]) => {
-        // For staging environment, map to real token for better UI
-        let displayTokenAddress = tokenConfig.address;
-
-        if (isStaging) {
-          // Get the real token address from SDK's supported tokens
-          const sdkSupportedTokens =
-            sdk.getSupportedTokensByChainId(caipChainId);
-          const realToken = sdkSupportedTokens.find(
-            (t) => t.symbol?.toLowerCase() === tokenConfig.symbol.toLowerCase(),
-          );
-
-          if (realToken?.address) {
-            displayTokenAddress = realToken.address;
-          }
-        }
-
-        // Find if user already has this token
-        // Match by: 1) address (for exact matches), or 2) symbol + chain (for Solana or staging)
-        const userToken = tokensWithAllowances?.find((t) => {
-          // Must match the same chain
-          if (t.caipChainId !== caipChainId) {
-            return false;
-          }
-
-          const userAddressLower = t.address?.toLowerCase();
-          const tokenAddressLower = tokenConfig.address.toLowerCase();
-          const displayAddressLower = displayTokenAddress.toLowerCase();
-          const userSymbolLower = t.symbol?.toLowerCase();
-          const tokenSymbolLower = tokenConfig.symbol.toLowerCase();
-
-          // Try to match by address first (exact match)
-          if (
-            userAddressLower === tokenAddressLower ||
-            userAddressLower === displayAddressLower
-          ) {
-            return true;
-          }
-
-          // Fallback: Match by symbol + chain (useful for Solana or when addresses differ)
-          if (userSymbolLower === tokenSymbolLower) {
-            return true;
-          }
-
-          return false;
-        });
-
+        // Build token icon URL
         const iconUrl = buildTokenIconUrl(
-          caipChainId,
-          displayTokenAddress || '',
+          userToken.caipChainId,
+          userToken.address || '',
         );
 
-        const balance = userToken?.availableBalance
+        // Format balance
+        const balance = userToken.availableBalance
           ? parseFloat(userToken.availableBalance).toFixed(6)
           : '0';
         const balanceFiat = `$${parseFloat(balance).toFixed(2)} USD`;
 
-        allTokens.push({
-          address: displayTokenAddress,
-          symbol: tokenConfig.symbol.toUpperCase(),
-          name: tokenConfig.symbol.toUpperCase(),
-          decimals: tokenConfig.decimals,
-          enabled: userToken
-            ? userToken.allowanceState !== AllowanceState.NotEnabled
-            : false,
-          caipChainId,
-          chainName: isSolana ? 'Solana' : 'Linea',
+        return {
+          address: userToken.address ?? '',
+          symbol: userToken.symbol?.toUpperCase() ?? '',
+          name: userToken.name ?? userToken.symbol?.toUpperCase() ?? '',
+          decimals: userToken.decimals ?? 0,
+          enabled: userToken.allowanceState !== AllowanceState.NotEnabled,
+          caipChainId: userToken.caipChainId,
+          chainName,
+          walletAddress: userToken.walletAddress,
           balance,
           balanceFiat,
           image: iconUrl,
           logo: iconUrl,
-          allowanceState:
-            userToken?.allowanceState || AllowanceState.NotEnabled,
-          allowance: userToken?.allowance || '0',
-          delegationContract: network.delegationContract,
-        });
+          allowanceState: userToken.allowanceState,
+          allowance: userToken.allowance || '0',
+          delegationContract: userToken.delegationContract ?? undefined,
+        };
+      })
+      .filter((token) => {
+        // Filter out unsupported networks
+        const networkLower = token.chainName.toLowerCase();
+        if (
+          !SUPPORTED_ASSET_NETWORKS.includes(networkLower) &&
+          networkLower !== 'linea'
+        ) {
+          return false;
+        }
+
+        const isSolana =
+          token.caipChainId === SolScope.Mainnet ||
+          token.caipChainId?.startsWith('solana:');
+
+        // Hide all Solana assets if hideSolanaAssets prop is true
+        if (hideSolanaAssets && isSolana) {
+          return false;
+        }
+
+        // For Solana assets, only show enabled tokens
+        if (isSolana && !token.enabled) {
+          return false;
+        }
+
+        return true;
       });
-    });
 
     // Sort: Priority token first, then enabled tokens, then disabled tokens
     return allTokens.sort((a, b) => {
       const aIsPriority =
         priorityToken &&
         a.address?.toLowerCase() === priorityToken.address?.toLowerCase() &&
-        a.caipChainId === priorityToken.caipChainId;
+        a.caipChainId === priorityToken.caipChainId &&
+        a.walletAddress?.toLowerCase() ===
+          priorityToken.walletAddress?.toLowerCase();
       const bIsPriority =
         priorityToken &&
         b.address?.toLowerCase() === priorityToken.address?.toLowerCase() &&
-        b.caipChainId === priorityToken.caipChainId;
+        b.caipChainId === priorityToken.caipChainId &&
+        b.walletAddress?.toLowerCase() ===
+          priorityToken.walletAddress?.toLowerCase();
 
       if (aIsPriority) return -1;
       if (bIsPriority) return 1;
@@ -252,13 +224,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
       return 0;
     });
-  }, [
-    delegationSettings,
-    tokensWithAllowances,
-    priorityToken,
-    sdk,
-    userCardLocation,
-  ]);
+  }, [tokensWithAllowances, priorityToken, sdk, hideSolanaAssets]);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -319,7 +285,9 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           (wallet) =>
             wallet.tokenDetails.address?.toLowerCase() ===
               token.address?.toLowerCase() &&
-            wallet.caipChainId === token.caipChainId,
+            wallet.caipChainId === token.caipChainId &&
+            wallet.walletAddress?.toLowerCase() ===
+              token.walletAddress?.toLowerCase(),
         );
 
         if (!selectedWallet) {
@@ -383,7 +351,9 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     (token: SupportedTokenWithChain) =>
       priorityToken &&
       priorityToken.address?.toLowerCase() === token.address?.toLowerCase() &&
-      priorityToken.caipChainId === token.caipChainId,
+      priorityToken.caipChainId === token.caipChainId &&
+      priorityToken.walletAddress?.toLowerCase() ===
+        token.walletAddress?.toLowerCase(),
     [priorityToken],
   );
 
@@ -466,6 +436,56 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         <FlatList
           scrollEnabled
           data={supportedTokens}
+          ListFooterComponent={
+            hideSolanaAssets ? (
+              <ListItemSelect onPress={navigateToCardPage}>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Between}
+                  twClassName="flex-1"
+                >
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="flex-1"
+                  >
+                    <AvatarToken
+                      size={AvatarSize.Md}
+                      // eslint-disable-next-line @typescript-eslint/no-require-imports
+                      imageSource={require('../../../../../images/solana-logo.png')}
+                    />
+                    <Box
+                      twClassName="flex-1 ml-3"
+                      justifyContent={BoxJustifyContent.Center}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        style={tw.style('font-semibold')}
+                      >
+                        {strings(
+                          'card.asset_selection.solana_not_supported_button_title',
+                        )}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={tw.style('font-medium text-text-alternative')}
+                      >
+                        {strings(
+                          'card.asset_selection.solana_not_supported_button_description',
+                        )}
+                      </Text>
+                    </Box>
+                  </Box>
+
+                  {/* Balance */}
+                  <Box twClassName="items-end">
+                    <Icon name={IconName.Export} size={IconSize.Md} />
+                  </Box>
+                </Box>
+              </ListItemSelect>
+            ) : undefined
+          }
           renderItem={({ item }) => {
             const isCurrentPriority = isPriorityToken(item);
             return (
@@ -530,6 +550,17 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
                             ? strings('card.asset_selection.limited')
                             : strings('card.asset_selection.not_enabled')}
                         </Text>
+                        {item.walletAddress && (
+                          <Text
+                            variant={TextVariant.BodyXS}
+                            style={tw.style(
+                              'font-normal text-text-alternative mt-1',
+                            )}
+                            numberOfLines={1}
+                          >
+                            {truncateAddress(item.walletAddress, 6)}
+                          </Text>
+                        )}
                       </Box>
                     </Box>
 
@@ -554,9 +585,9 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             );
           }}
           keyExtractor={(item) =>
-            `${item.address}-${item.symbol}-${safeFormatChainIdToHex(
-              item.caipChainId,
-            )}`
+            `${item.address}-${item.symbol}-${
+              item.walletAddress
+            }-${safeFormatChainIdToHex(item.caipChainId)}`
           }
         />
       ) : (

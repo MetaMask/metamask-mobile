@@ -591,6 +591,7 @@ const SpendingLimit = ({
           cardExternalWalletDetails={externalWalletDetailsData}
           selectionOnly
           onTokenSelect={handleTokenSelection}
+          hideSolanaAssets
         />
       )}
     </ScrollView>

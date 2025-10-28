@@ -6243,7 +6243,7 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Solana tokens are not supported for spending limits at this time"
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -6267,7 +6267,9 @@
       "limited": "Limited",
       "not_enabled": "Not enabled",
       "update_success": "Spend priority updated successfully",
-      "update_error": "Failed to update spend priority"
+      "update_error": "Failed to update spend priority",
+      "solana_not_supported_button_title": "Others tokens on Solana",
+      "solana_not_supported_button_description": "Enable on card.metamask.io"
     },
     "card_authentication": {
       "title": "Log in to your MetaMask Card account",
