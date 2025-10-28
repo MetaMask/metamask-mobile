@@ -71,7 +71,6 @@ import TransactionElement from '../TransactionElement';
 import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -190,10 +189,6 @@ class Transactions extends PureComponent {
      * Chain ID of the token
      */
     tokenChainId: PropTypes.string,
-    /**
-     * Whether multichain accounts state 2 is enabled
-     */
-    isMultichainAccountsState2Enabled: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -364,20 +359,7 @@ class Transactions extends PureComponent {
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
-    const shouldShowSwitchNetwork = () => {
-      if (this.props.isMultichainAccountsState2Enabled) {
-        return false;
-      }
-      if (!this.props.tokenChainId || !this.props.chainId) {
-        return false;
-      }
-
-      if (this.isNonEvmChain || this.isTokenNonEvmChain) {
-        return this.props.tokenChainId !== this.props.chainId;
-      }
-
-      return this.props.tokenChainId !== this.props.chainId;
-    };
+    const shouldShowSwitchNetwork = () => false;
 
     if (shouldShowSwitchNetwork()) {
       return (
@@ -912,8 +894,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
-  isMultichainAccountsState2Enabled:
-    selectMultichainAccountsState2Enabled(state),
 });
 
 Transactions.contextType = ThemeContext;

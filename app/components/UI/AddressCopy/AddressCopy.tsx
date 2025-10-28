@@ -1,6 +1,6 @@
 // Third parties dependencies
 import React, { useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AccountGroupId } from '@metamask/account-api';
@@ -11,22 +11,15 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { showAlert } from '../../../actions/alert';
-import { protectWalletModalVisible } from '../../../actions/user';
 
 import { strings } from '../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import type { AddressCopyProps } from './AddressCopy.types';
 import {
   endTrace,
@@ -35,59 +28,11 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 
-const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
+const AddressCopy = ({ iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
-  const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useMetrics();
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
-
-  const handleShowAlert = useCallback(
-    (config: {
-      isVisible: boolean;
-      autodismiss: number;
-      content: string;
-      data: { msg: string };
-    }) => dispatch(showAlert(config)),
-    [dispatch],
-  );
-
-  const handleProtectWalletModalVisible = useCallback(
-    () => dispatch(protectWalletModalVisible()),
-    [dispatch],
-  );
-
-  /**
-   * A string that represents the selected address
-   */
-
-  const copyAccountToClipboard = useCallback(async () => {
-    await ClipboardManager.setString(
-      getFormattedAddressFromInternalAccount(account),
-    );
-    handleShowAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: { msg: strings('account_details.account_copied_to_clipboard') },
-    });
-    setTimeout(() => handleProtectWalletModalVisible(), 2000);
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WALLET_COPIED_ADDRESS).build(),
-    );
-  }, [
-    account,
-    createEventBuilder,
-    handleProtectWalletModalVisible,
-    handleShowAlert,
-    trackEvent,
-  ]);
 
   const navigateToAddressList = useCallback(() => {
     // Start the trace before navigating to the address list to include the
@@ -114,16 +59,8 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   }, [navigate, selectedAccountGroupId]);
 
   const handleOnPress = useCallback(() => {
-    if (isMultichainAccountsState2Enabled) {
-      navigateToAddressList();
-    } else {
-      copyAccountToClipboard();
-    }
-  }, [
-    copyAccountToClipboard,
-    isMultichainAccountsState2Enabled,
-    navigateToAddressList,
-  ]);
+    navigateToAddressList();
+  }, [navigateToAddressList]);
 
   return (
     <View style={styles.address}>

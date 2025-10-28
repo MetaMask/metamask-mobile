@@ -38,7 +38,6 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -97,19 +96,12 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
 
   // Shared hooks
-  const {
-    enabledNetworks,
-    getNetworkInfo,
-    isDisabled: hookIsDisabled,
-  } = useCurrentNetworkInfo();
+  const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
 
   const { enableAllPopularNetworks } = useNetworkEnablement();
   const { areAllNetworksSelected, totalEnabledNetworksCount } =
@@ -143,18 +135,10 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       return customIsDisabled;
     }
 
-    // If multichain accounts state 2 is enabled, enable the button
-    if (isMultichainAccountsState2Enabled) {
-      return false;
-    }
+    return false;
+  }, [customIsDisabled]);
 
-    // Otherwise, use the hook's logic
-    return hookIsDisabled;
-  }, [customIsDisabled, isMultichainAccountsState2Enabled, hookIsDisabled]);
-
-  const displayAllNetworks = isMultichainAccountsState2Enabled
-    ? totalEnabledNetworksCount > 1
-    : enabledNetworks.length > 1;
+  const displayAllNetworks = totalEnabledNetworksCount > 1;
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
@@ -225,18 +209,12 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       label={renderNetworkLabel()}
       isDisabled={isDisabled}
       onPress={
-        useEvmSelectionLogic &&
-        !isEvmSelected &&
-        !isMultichainAccountsState2Enabled
+        useEvmSelectionLogic && !isEvmSelected
           ? () => null
           : handleFilterControls
       }
       endIconName={
-        useEvmSelectionLogic &&
-        !isEvmSelected &&
-        !isMultichainAccountsState2Enabled
-          ? undefined
-          : IconName.ArrowDown
+        useEvmSelectionLogic && !isEvmSelected ? undefined : IconName.ArrowDown
       }
       style={isDisabled ? styles.controlButtonDisabled : styles.controlButton}
       disabled={isDisabled}

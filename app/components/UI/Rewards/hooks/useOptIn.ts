@@ -9,7 +9,6 @@ import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   selectAccountGroupsByWallet,
   selectWalletByAccount,
@@ -70,9 +69,6 @@ export const useOptin = (): UseOptinResult => {
         : null,
     [currentWalletSection, internalAccountsById],
   );
-  const multichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const handleOptin = useCallback(
     async ({
@@ -129,7 +125,7 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(false);
       }
 
-      if (multichainAccountsState2Enabled && sideEffectAccountToLink) {
+      if (sideEffectAccountToLink) {
         try {
           if (
             sideEffectAccountToLink &&
@@ -149,7 +145,6 @@ export const useOptin = (): UseOptinResult => {
       account,
       trackEvent,
       createEventBuilder,
-      multichainAccountsState2Enabled,
       sideEffectAccountToLink,
       dispatch,
       addTraitsToUser,

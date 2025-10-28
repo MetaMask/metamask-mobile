@@ -12,7 +12,6 @@ import {
 } from '../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
-import { selectMultichainAccountsState2Enabled } from './featureFlagController/multichainAccounts';
 import { createDeepEqualSelector } from './util';
 
 /**
@@ -23,20 +22,10 @@ export const selectSourceWalletAddress = createSelector(
   [
     (state: RootState) => state,
     selectSourceToken,
-    selectMultichainAccountsState2Enabled,
     selectSelectedInternalAccountAddress,
   ],
-  (
-    state,
-    sourceToken,
-    isMultichainAccountsState2Enabled,
-    selectedInternalAccountAddress,
-  ) => {
+  (state, sourceToken) => {
     if (!sourceToken) return undefined;
-
-    if (!isMultichainAccountsState2Enabled) {
-      return selectedInternalAccountAddress;
-    }
 
     const chainId = formatChainIdToCaip(sourceToken.chainId);
     const internalAccount =

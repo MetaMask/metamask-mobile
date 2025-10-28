@@ -16,7 +16,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { setOnboardingActiveStep } from '../../../../reducers/rewards';
 import { OnboardingStep } from '../../../../reducers/rewards/types';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 const isE2ETest =
   process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
@@ -37,9 +36,6 @@ export const useRewardsIntroModal = () => {
   const isRewardsFeatureEnabled = useSelector(selectRewardsEnabledFlag);
   const isRewardsAnnouncementEnabled = useSelector(
     selectRewardsAnnouncementModalEnabledFlag,
-  );
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
   );
 
   const hasSeenBIP44IntroModal = useSelector(
@@ -75,8 +71,7 @@ export const useRewardsIntroModal = () => {
       // BIP44 intro modal has been seen in a PREVIOUS session (not current)
       // OR it's a fresh install (which doesn't trigger bip44 modal)
       // OR bip44 is not enabled
-      (!isMultichainAccountsState2Enabled ||
-        (hasSeenBIP44IntroModal && !bip44SeenInCurrentSession.current) ||
+      ((hasSeenBIP44IntroModal && !bip44SeenInCurrentSession.current) ||
         !isUpdate) &&
       !hasSeenRewardsIntroModal &&
       !subscriptionId;
@@ -90,7 +85,6 @@ export const useRewardsIntroModal = () => {
     }
   }, [
     isRewardsFeatureEnabled,
-    isMultichainAccountsState2Enabled,
     isRewardsAnnouncementEnabled,
     hasSeenBIP44IntroModal,
     hasSeenRewardsIntroModal,

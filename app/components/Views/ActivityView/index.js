@@ -29,7 +29,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import {
   selectChainId,
@@ -241,14 +240,9 @@ const ActivityView = () => {
   const networkImageSource = getNetworkImageSource({
     chainId: firstEnabledChainId,
   });
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const isGlobalNetworkSelectorRemoved =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
-  const showUnifiedActivityList =
-    isGlobalNetworkSelectorRemoved && isMultichainAccountsState2Enabled;
+  const showUnifiedActivityList = isGlobalNetworkSelectorRemoved;
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
@@ -298,23 +292,13 @@ const ActivityView = () => {
                   )}
                 </>
               }
-              isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
-              onPress={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? showFilterControls
-                  : () => null
-              }
-              endIconName={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? IconName.ArrowDown
-                  : undefined
-              }
+              isDisabled={isDisabled}
+              onPress={isEvmSelected ? showFilterControls : () => null}
+              endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
               style={
-                isDisabled && !isMultichainAccountsState2Enabled
-                  ? styles.controlButtonDisabled
-                  : styles.controlButton
+                isDisabled ? styles.controlButtonDisabled : styles.controlButton
               }
-              disabled={isDisabled && !isMultichainAccountsState2Enabled}
+              disabled={isDisabled}
             />
           </View>
         )}

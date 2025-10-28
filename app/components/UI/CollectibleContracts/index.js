@@ -79,7 +79,6 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { multichainCollectibleForEvmAccount } from '../../../selectors/nftController';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 
@@ -184,9 +183,6 @@ const CollectibleContracts = ({
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const collectibleContractsByEnabledNetworks = useSelector(
     multichainCollectibleForEvmAccount,
-  );
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
   );
 
   const { enabledNetworks, getNetworkInfo, isDisabled } =
@@ -620,11 +616,7 @@ const CollectibleContracts = ({
             }
             isDisabled={isDisabled}
             onPress={showFilterControls}
-            endIconName={
-              isEvmSelected || isMultichainAccountsState2Enabled
-                ? IconName.ArrowDown
-                : undefined
-            }
+            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
             style={
               isDisabled ? styles.controlButtonDisabled : styles.controlButton
             }
