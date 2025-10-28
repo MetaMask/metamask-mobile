@@ -326,7 +326,7 @@ const CardHome = () => {
           <Button
             variant={ButtonVariants.Primary}
             style={styles.defaultMarginTop}
-            label={strings('card.card_home.enable_assets_button_label')}
+            label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
             onPress={changeAssetAction}
             width={ButtonWidthTypes.Full}
@@ -611,8 +611,8 @@ const CardHome = () => {
 
       {isAuthenticated && (
         <ManageCardListItem
-          title="Logout"
-          description="Logout of your Card account"
+          title={strings('card.card_home.logout')}
+          description={strings('card.card_home.logout_description')}
           rightIcon={IconName.Logout}
           onPress={logoutAction}
         />

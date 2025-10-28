@@ -10,6 +10,7 @@ import {
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { useWrapWithCache } from './useWrapWithCache';
+import { AUTHENTICATED_CACHE_DURATION } from '../constants';
 
 interface CardDetailsResult {
   cardDetails: CardDetailsResponse | null;
@@ -68,7 +69,7 @@ const useCardDetails = () => {
     error,
     fetchData: fetchCardDetails,
   } = useWrapWithCache('card-details', fetchCardDetailsInternal, {
-    cacheDuration: 30 * 1000, // 30 seconds cache
+    cacheDuration: AUTHENTICATED_CACHE_DURATION, // 30 seconds cache
   });
 
   // Poll logic to check if card is provisioned

@@ -509,7 +509,7 @@ export const useGetPriorityCardToken = (
   // Auto-fetch on-chain priority token for unauthenticated users
   useEffect(() => {
     const run = async () => {
-      if (isAuthenticated || !selectedAddress) {
+      if (isAuthenticated || !selectedAddress || !sdk) {
         return;
       }
 
@@ -523,10 +523,13 @@ export const useGetPriorityCardToken = (
     };
 
     run();
-    // We deliberately include fetchPriorityTokenOnChain to allow refetching
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, selectedAddress, cacheIsValid]);
+  }, [
+    isAuthenticated,
+    selectedAddress,
+    cacheIsValid,
+    sdk,
+    fetchPriorityTokenOnChain,
+  ]);
 
   // Add priorityToken to the TokenListController if it exists
   useEffect(() => {

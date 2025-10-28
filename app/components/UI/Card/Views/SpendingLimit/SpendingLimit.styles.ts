@@ -64,6 +64,10 @@ const createStyles = (theme: Theme) =>
     selectedOptionCard: {
       borderColor: theme.colors.primary.default,
     },
+    optionItem: {
+      paddingVertical: 6,
+      marginBottom: 16,
+    },
     optionHeader: {
       flexDirection: 'row',
       alignItems: 'center',

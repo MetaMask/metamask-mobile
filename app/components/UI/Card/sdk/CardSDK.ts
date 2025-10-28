@@ -986,7 +986,7 @@ export class CardSDK {
 
     if (delegationSettingNetwork.environment === 'staging') {
       return {
-        symbol: delegationSettingToken.symbol,
+        symbol: delegationSettingToken.symbol.toUpperCase(),
         address: tokenDetails.address,
         decimals: delegationSettingToken.decimals,
         decimalChainId: delegationSettingNetwork.chainId,
@@ -998,7 +998,7 @@ export class CardSDK {
     }
 
     return {
-      symbol: delegationSettingToken.symbol,
+      symbol: delegationSettingToken.symbol.toUpperCase(),
       address: delegationSettingToken.address,
       decimals: delegationSettingToken.decimals,
       decimalChainId: delegationSettingNetwork.chainId,

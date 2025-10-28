@@ -36,6 +36,7 @@ export interface CardToken {
   decimals: number | null;
   symbol: string | null;
   name: string | null;
+  delegationContract?: string | null;
 }
 
 // Card token data interface

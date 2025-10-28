@@ -8,6 +8,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import { CardNetwork } from '../types';
 
 interface DelegationState {
   isLoading: boolean;
@@ -29,8 +30,8 @@ interface DelegationState {
 
 interface DelegationParams {
   amount: string;
-  currency: 'usdc' | 'usdt';
-  network: 'linea' | 'solana';
+  currency: string;
+  network: CardNetwork;
 }
 
 interface PriorityToken {
@@ -42,6 +43,7 @@ interface PriorityToken {
   allowanceState?: string | null;
   walletAddress?: string | null;
   name?: string | null;
+  delegationContract?: string | null;
 }
 
 /**
@@ -66,7 +68,7 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
    * Step 1: Generate delegation token
    */
   const generateDelegationToken = useCallback(
-    async (network: 'linea' | 'solana', address: string) => {
+    async (network: CardNetwork, address: string) => {
       if (!sdk) {
         throw new Error('Card SDK not available');
       }
@@ -173,8 +175,9 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
       setState((prev) => ({ ...prev, step: 'transaction', isLoading: true }));
 
       try {
-        const supportedNetworks = {
+        const supportedNetworks: Record<CardNetwork, string[]> = {
           linea: ['0xe708', '0xe704'], // Linea Mainnet, Linea Sepolia
+          'linea-us': ['0xe708', '0xe704'], // Linea US uses same chain IDs
           solana: ['solana:mainnet'], // Solana Mainnet
         };
 
@@ -193,16 +196,17 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
           throw new Error('Card SDK not available');
         }
 
-        // Get token address from chain config API
-        const tokenAddress = await sdk.getTokenAddress(
-          targetNetwork,
-          params.currency,
-        );
+        // Get token address and delegation contract from the token
+        const tokenAddress = priorityToken?.address;
+        const spenderAddress = priorityToken?.delegationContract;
 
-        // Get spender address from chain config API
-        const spenderAddress = await sdk.getPlatformSpenderAddress(
-          targetNetwork,
-        );
+        if (!tokenAddress) {
+          throw new Error('Token address not available');
+        }
+
+        if (!spenderAddress) {
+          throw new Error('Delegation contract address not available');
+        }
 
         // Create the approval transaction
         const tokenDecimals = priorityToken?.decimals || 6;
@@ -298,7 +302,12 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
         throw error;
       }
     },
-    [sdk, priorityToken?.decimals],
+    [
+      sdk,
+      priorityToken?.decimals,
+      priorityToken?.address,
+      priorityToken?.delegationContract,
+    ],
   );
 
   /**
@@ -365,7 +374,7 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
    * Get delegation token (Step 1)
    */
   const getDelegationToken = useCallback(
-    async (network: 'linea' | 'solana', address: string) =>
+    async (network: CardNetwork, address: string) =>
       await generateDelegationToken(network, address),
     [generateDelegationToken],
   );

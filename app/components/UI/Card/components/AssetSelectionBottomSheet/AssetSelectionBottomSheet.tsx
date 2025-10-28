@@ -71,6 +71,7 @@ export interface SupportedTokenWithChain {
   logo?: string;
   allowanceState: AllowanceState;
   allowance?: string;
+  delegationContract?: string;
 }
 
 export interface AssetSelectionBottomSheetProps {

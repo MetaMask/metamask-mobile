@@ -6100,6 +6100,9 @@
       "change_asset": "Change asset",
       "enable_card_button_label": "Enable Card",
       "enable_assets_button_label": "Enable Assets",
+      "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
+      "logout": "Log out",
+      "logout_description": "Log out from your MetaMask Card account",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6133,19 +6136,17 @@
       }
     },
     "card_spending_limit": {
-      "title": "Spending Limit",
       "title_change_token": "Change token and network",
       "title_enable_token": "Enable token",
-      "full_access_title": "Full spending access",
+      "full_access_title": "Full access",
       "full_access_description": "Your card can use your funds automatically, without asking for approval each time.",
-      "restricted_limit_title": "Restricted spending limit",
+      "restricted_limit_title": "Limited spending",
       "restricted_limit_description": "You'll need to come back and pay a network fee every time you want to increase the limit.",
       "edit_limit": "Edit limit",
-      "confirm_new_limit": "Confirm new limit",
+      "confirm_new_limit": "Confirm",
       "cancel": "Cancel",
-      "set_new_limit": "Set new limit",
+      "set_new_limit": "Set a limit",
       "dismiss": "Dismiss",
-      "spending_limit_updated": "Spending limit updated",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit"
     },
