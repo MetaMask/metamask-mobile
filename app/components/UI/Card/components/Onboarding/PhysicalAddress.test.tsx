@@ -303,7 +303,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Enter ZIP code',
       'card.card_onboarding.physical_address.same_mailing_address_label':
         'Use same address for mailing',
-      'card.card_onboarding.physical_address.electronic_consent_label':
+      'card.card_onboarding.physical_address.electronic_consent':
         'I consent to electronic communications',
       'card.card_onboarding.continue_button': 'Continue',
     };
@@ -315,6 +315,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 // Create test store
@@ -443,6 +444,7 @@ describe('PhysicalAddress Component', () => {
             termsAndConditions: '',
             accountOpeningDisclosure: '',
             noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
           },
           intl: { termsAndConditions: '', rightToInformation: '' },
         },
@@ -661,7 +663,7 @@ describe('PhysicalAddress Component', () => {
       expect(status.props.children).toBe('unchecked');
     });
 
-    it('handles electronic consent checkbox toggle', () => {
+    it('handles electronic consent checkbox toggle for US users', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -679,6 +681,63 @@ describe('PhysicalAddress Component', () => {
 
       fireEvent.press(checkbox);
       expect(status.props.children).toBe('checked');
+    });
+
+    it('shows electronic consent checkbox for US users', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Electronic consent checkbox should be visible for US users
+      expect(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      ).toBeTruthy();
+    });
+
+    it('hides electronic consent checkbox for international users', () => {
+      // Create store with international country
+      const intlStore = createTestStore({
+        onboarding: {
+          selectedCountry: 'CA', // Canada as international
+          onboardingId: 'test-id',
+          contactVerificationId: 'contact-id',
+          user: {
+            id: 'user-id',
+            email: 'test@example.com',
+          },
+        },
+        userCardLocation: 'intl',
+      });
+
+      // Mock useSelector for international users
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'CA',
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      const { queryByTestId } = render(
+        <Provider store={intlStore}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Electronic consent checkbox should not be visible for international users
+      expect(
+        queryByTestId('physical-address-electronic-consent-checkbox'),
+      ).toBeNull();
     });
   });
 
@@ -706,9 +765,18 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+
+      // Check all required checkboxes for US users
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
 
       // Wait for state updates
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -786,6 +854,15 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+
+      // Check all required checkboxes for US users
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
 
       // Toggle same mailing address to false (it starts as true)
       fireEvent.press(
