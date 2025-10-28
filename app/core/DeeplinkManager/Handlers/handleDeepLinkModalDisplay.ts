@@ -1,3 +1,4 @@
+// Handles deep link modal display - analytics tracked in handleUniversalLink
 import {
   createDeepLinkModalNavDetails,
   DeepLinkModalParams,
@@ -5,9 +6,12 @@ import {
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import { store } from '../../../store';
 import NavigationService from '../../../core/NavigationService';
+import { DeepLinkAnalyticsContext } from '../types/deepLinkAnalytics.types';
 
-const handleDeepLinkModalDisplay = (params: DeepLinkModalParams) => {
-  // TODO: Update name since this is meant to remove interstitial if don't remind me again was toggled
+const handleDeepLinkModalDisplay = async (
+  params: DeepLinkModalParams,
+  deepLinkContext?: DeepLinkAnalyticsContext,
+) => {
   const deepLinkModalDisabled = selectDeepLinkModalDisabled(store.getState());
 
   if (params.linkType === 'private' && deepLinkModalDisabled) {
@@ -16,7 +20,10 @@ const handleDeepLinkModalDisplay = (params: DeepLinkModalParams) => {
     return;
   }
   NavigationService.navigation.navigate(
-    ...createDeepLinkModalNavDetails(params),
+    ...createDeepLinkModalNavDetails({
+      ...params,
+      deepLinkContext,
+    }),
   );
 };
 

@@ -9,7 +9,7 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
-import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import { DeepLinkModalLinkType } from '../types/deepLink.types';
 
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -20,7 +20,23 @@ jest.mock('../../../core/NativeModules', () => ({
     goBack: jest.fn(),
   },
 }));
-jest.mock('../Handlers/handleDeepLinkModalDisplay');
+jest.mock('../Handlers/handleDeepLinkModalDisplay', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      })),
+      dispatch: jest.fn(),
+    },
+  },
+}));
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {
@@ -28,6 +44,38 @@ jest.mock('react-native-quick-crypto', () => ({
       verify: jest.fn(),
     },
   },
+}));
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn(() => ({
+      trackEvent: jest.fn(),
+    })),
+  },
+  MetaMetricsEvents: {
+    DEEP_LINK_USED: 'DEEP_LINK_USED',
+  },
+}));
+jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(() => ({})),
+    })),
+  },
+}));
+jest.mock('../../../util/metrics', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({})),
+}));
+jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
+  createDeepLinkUsedEventBuilder: jest.fn(() =>
+    Promise.resolve({
+      addProperties: jest.fn().mockReturnThis(),
+      addSensitiveProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }),
+  ),
+  mapSupportedActionToRoute: jest.fn(() => 'test-route'),
 }));
 
 const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
@@ -85,7 +133,7 @@ describe('handleUniversalLinks', () => {
       typeof handleDeepLinkModalDisplay
     >;
   // Default mock implementation that resolves with true
-  mockHandleDeepLinkModalDisplay.mockImplementation((callbackParams) => {
+  mockHandleDeepLinkModalDisplay.mockImplementation(async (callbackParams) => {
     if (
       callbackParams.linkType === 'invalid' ||
       callbackParams.linkType === 'unsupported'
@@ -680,12 +728,23 @@ describe('handleUniversalLinks', () => {
         'DeepLinkManager:parse Verified signature for deeplink',
         url,
       );
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-        linkType: DeepLinkModalLinkType.PRIVATE,
-        pageTitle: 'Dapp',
-        onContinue: expect.any(Function),
-        onBack: expect.any(Function),
-      });
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        {
+          linkType: DeepLinkModalLinkType.PRIVATE,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        },
+        {
+          url: expect.any(String),
+          route: 'test-route',
+          urlParams: expect.any(Object),
+          signatureStatus: 'valid',
+          interstitialShown: false,
+          interstitialDisabled: false,
+          interstitialAction: undefined,
+        },
+      );
       expect(handled).toHaveBeenCalled();
     });
 
@@ -705,12 +764,23 @@ describe('handleUniversalLinks', () => {
         'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
         url,
       );
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-        linkType: DeepLinkModalLinkType.PUBLIC,
-        pageTitle: 'Dapp',
-        onContinue: expect.any(Function),
-        onBack: expect.any(Function),
-      });
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        {
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        },
+        {
+          url: expect.any(String),
+          route: 'test-route',
+          urlParams: expect.any(Object),
+          signatureStatus: 'invalid',
+          interstitialShown: false,
+          interstitialDisabled: false,
+          interstitialAction: undefined,
+        },
+      );
       expect(handled).toHaveBeenCalled();
     });
 
@@ -730,12 +800,23 @@ describe('handleUniversalLinks', () => {
         'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
         url,
       );
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-        linkType: DeepLinkModalLinkType.PUBLIC,
-        pageTitle: 'Dapp',
-        onContinue: expect.any(Function),
-        onBack: expect.any(Function),
-      });
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        {
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        },
+        {
+          url: expect.any(String),
+          route: 'test-route',
+          urlParams: expect.any(Object),
+          signatureStatus: 'missing',
+          interstitialShown: false,
+          interstitialDisabled: false,
+          interstitialAction: undefined,
+        },
+      );
       expect(handled).toHaveBeenCalled();
     });
 
@@ -751,13 +832,27 @@ describe('handleUniversalLinks', () => {
         source: 'test-source',
       });
 
-      expect(DevLogger.log).not.toHaveBeenCalled();
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-        linkType: DeepLinkModalLinkType.PUBLIC,
-        pageTitle: 'Dapp',
-        onContinue: expect.any(Function),
-        onBack: expect.any(Function),
-      });
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DeepLinkAnalytics: Tracked consolidated deep link event:',
+        expect.any(Object),
+      );
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        {
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        },
+        {
+          url: expect.any(String),
+          route: 'test-route',
+          urlParams: expect.any(Object),
+          signatureStatus: 'missing',
+          interstitialShown: false,
+          interstitialDisabled: false,
+          interstitialAction: undefined,
+        },
+      );
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -785,12 +880,20 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.INVALID,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.INVALID,
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
     });
 
@@ -817,12 +920,20 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.UNSUPPORTED,
-          pageTitle: 'Unsupported action',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.UNSUPPORTED,
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
 
       it('should return INVALID link type for unsupported action without valid signature', async () => {
@@ -843,12 +954,20 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.INVALID,
-          pageTitle: 'Unsupported action',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.INVALID,
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
 
       it('should return INVALID link type for unsupported action with invalid signature', async () => {
@@ -871,12 +990,20 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.INVALID,
-          pageTitle: 'Unsupported action',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.INVALID,
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
     });
 
@@ -902,12 +1029,22 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.PRIVATE,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.PRIVATE,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
 
       it('should return PUBLIC link type for supported action without signature', async () => {
@@ -927,12 +1064,22 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
 
       it('should return PUBLIC link type for supported action with invalid signature', async () => {
@@ -954,12 +1101,22 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
 
       it('should return PUBLIC link type for supported action with missing signature', async () => {
@@ -979,12 +1136,22 @@ describe('handleUniversalLinks', () => {
           source: 'test-source',
         });
 
-        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-          linkType: DeepLinkModalLinkType.PUBLIC,
-          pageTitle: 'Dapp',
-          onContinue: expect.any(Function),
-          onBack: expect.any(Function),
-        });
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          {
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          },
+          expect.objectContaining({
+            url: expect.any(String),
+            route: expect.any(String),
+            urlParams: expect.any(Object),
+            signatureStatus: expect.any(String),
+            interstitialShown: expect.any(Boolean),
+            interstitialDisabled: expect.any(Boolean),
+          }),
+        );
       });
     });
   });
@@ -1064,13 +1231,419 @@ describe('handleUniversalLinks', () => {
         source: 'test-source',
       });
 
-      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
-        linkType: DeepLinkModalLinkType.PUBLIC,
-        pageTitle: 'Dapp',
-        onContinue: expect.any(Function),
-        onBack: expect.any(Function),
-      });
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        {
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        },
+        {
+          url: expect.any(String),
+          route: 'test-route',
+          urlParams: expect.any(Object),
+          signatureStatus: 'missing',
+          interstitialShown: false,
+          interstitialDisabled: false,
+          interstitialAction: undefined,
+        },
+      );
       expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('async handleDeepLinkModalDisplay behavior', () => {
+    it('waits for handleDeepLinkModalDisplay to complete before resolving interstitial action', async () => {
+      let modalDisplayComplete = false;
+      let callbackExecuted = false;
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          // Simulate async operations (like analytics tracking)
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          modalDisplayComplete = true;
+
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+            callbackExecuted = true;
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1`;
+      urlObj = {
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(modalDisplayComplete).toBe(true);
+      expect(callbackExecuted).toBe(true);
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('waits for handleDeepLinkModalDisplay to complete before handling rejection', async () => {
+      let modalDisplayComplete = false;
+      let callbackExecuted = false;
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          // Simulate async operations (like analytics tracking)
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          modalDisplayComplete = true;
+
+          if (callbackParams.linkType === 'invalid') {
+            callbackParams.onBack();
+            callbackExecuted = true;
+          }
+        },
+      );
+
+      url = 'https://invalid-domain.com/some-action';
+      urlObj = {
+        hostname: 'invalid-domain.com',
+        pathname: '/some-action',
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(modalDisplayComplete).toBe(true);
+      expect(callbackExecuted).toBe(true);
+      expect(result).toBe(false);
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('passes correct signature status to analytics context for valid signatures', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          // Verify signature status is correct
+          expect(callbackParams).toBeDefined();
+          if (callbackParams.linkType === 'private') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      mockSubtle.verify.mockResolvedValue(true);
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=${validSignature}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          signatureStatus: 'valid',
+        }),
+      );
+    });
+
+    it('passes correct signature status to analytics context for invalid signatures', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      mockSubtle.verify.mockResolvedValue(false);
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=invalid`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          signatureStatus: 'invalid',
+        }),
+      );
+    });
+
+    it('passes correct signature status to analytics context when signature is missing', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          signatureStatus: 'missing',
+        }),
+      );
+    });
+  });
+
+  describe('consolidated analytics tracking', () => {
+    interface MockMetricsInstance {
+      trackEvent: jest.Mock;
+    }
+
+    interface MockEventBuilder {
+      addProperties: jest.Mock;
+      addSensitiveProperties: jest.Mock;
+      build: jest.Mock;
+    }
+
+    let mockMetrics: MockMetricsInstance;
+    let mockCreateEventBuilder: jest.MockedFunction<
+      () => Promise<MockEventBuilder>
+    >;
+    const { MetaMetrics } = jest.requireMock('../../../core/Analytics');
+    const { createDeepLinkUsedEventBuilder } = jest.requireMock(
+      '../../../util/deeplinks/deepLinkAnalytics',
+    );
+    const ReduxService = jest.requireMock('../../../core/redux');
+
+    beforeEach(() => {
+      mockMetrics = {
+        trackEvent: jest.fn(),
+      };
+      MetaMetrics.getInstance.mockReturnValue(mockMetrics);
+
+      mockCreateEventBuilder = jest.fn(() =>
+        Promise.resolve({
+          addProperties: jest.fn().mockReturnThis(),
+          addSensitiveProperties: jest.fn().mockReturnThis(),
+          build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
+        }),
+      );
+      createDeepLinkUsedEventBuilder.mockImplementation(mockCreateEventBuilder);
+    });
+
+    it('tracks analytics for REJECTED interstitial before early return', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onBack(); // User rejects
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(result).toBe(false); // Early return happened
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialAction: 'rejected',
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalledWith({
+        eventName: 'DEEP_LINK_USED',
+      });
+    });
+
+    it('tracks analytics with wasInterstitialShown=false for whitelisted WC action', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=test`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.WC}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: false, // Whitelisted, modal not shown
+          interstitialAction: 'accepted',
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics with correct interstitialDisabled state', async () => {
+      // Mock modal disabled state
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: true,
+        },
+      });
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialDisabled: true, // User has disabled modal
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics with wasInterstitialShown=true when modal shown and user accepts', async () => {
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      });
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue(); // User accepts
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: true, // Modal was shown
+          interstitialAction: 'accepted',
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics only once per deep link', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      // Analytics should be tracked exactly once
+      expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
     });
   });
 });
