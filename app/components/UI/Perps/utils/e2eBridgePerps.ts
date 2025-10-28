@@ -8,6 +8,11 @@
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isE2E } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
+import axios, { AxiosResponse } from 'axios';
+import {
+  getCommandQueueServerPort,
+  getLocalHost,
+} from '../../../../../e2e/framework/fixtures/FixtureUtils';
 
 // Global bridge for E2E mock injection
 export interface E2EBridgePerpsStreaming {
@@ -23,10 +28,18 @@ let hasRegisteredDeepLinkHandler = false;
 // Track processed URLs to avoid duplicate handling when both initial URL and event fire
 const processedDeepLinks = new Set<string>();
 
+// E2E HTTP polling state
+let hasStartedPolling = false;
+let pollTimeout: ReturnType<typeof setTimeout> | null = null;
+let consecutivePollFailures = 0;
+let pollingDisabled = false;
+const MAX_CONSECUTIVE_POLL_FAILURES = 2;
+
 /**
  * Register a lightweight deep link handler for E2E-only schema (e2e://perps/*)
  * This avoids touching production deeplink parsing while enabling deterministic
  * E2E commands like price push and forced liquidation.
+ * !! TODO: E2E perps deeplink handler can be later removed if HTTP polling is stable !!
  */
 function registerE2EPerpsDeepLinkHandler(): void {
   if (hasRegisteredDeepLinkHandler || !isE2E) {
@@ -122,6 +135,167 @@ function registerE2EPerpsDeepLinkHandler(): void {
 }
 
 /**
+ * E2E-only: Poll external command API to apply mock updates
+ * Avoids deep links; relies on tests posting commands to a standalone service
+ *
+ * @returns void
+ */
+function startE2EPerpsCommandPolling(): void {
+  if (!isE2E || hasStartedPolling) {
+    return;
+  }
+
+  hasStartedPolling = true;
+
+  const pollIntervalMs = Number(process.env.E2E_POLL_INTERVAL_MS || 2000);
+  const host = getLocalHost();
+  const port = getCommandQueueServerPort();
+  // Change isDebug while developing E2E for Perps to avoid emptying out the queue
+  const isDebug = false;
+  const baseUrl = isDebug
+    ? `http://${host}:${port}/debug.json`
+    : `http://${host}:${port}/queue.json`;
+  const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
+
+  function scheduleNext(delay: number): void {
+    if (!isE2E || pollingDisabled) return;
+    if (pollTimeout) clearTimeout(pollTimeout);
+    pollTimeout = setTimeout(pollOnce, delay);
+  }
+
+  async function pollOnce(): Promise<void> {
+    try {
+      // Lazy require to keep bridge tree-shakeable in prod and avoid ESM import in Jest
+      /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+      const mod = require('../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks');
+      const service = mod?.PerpsE2EMockService?.getInstance?.();
+      /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+      if (!service) {
+        scheduleNext(pollIntervalMs);
+        return;
+      }
+
+      DevLogger.log('[E2E Perps Bridge - HTTP Polling] Poll URL', baseUrl);
+
+      const response = await new Promise<AxiosResponse>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error('Request timeout'));
+        }, FETCH_TIMEOUT);
+
+        axios
+          .get(baseUrl)
+          .then((res) => {
+            clearTimeout(timeoutId);
+            resolve(res);
+          })
+          .catch((error) => {
+            clearTimeout(timeoutId);
+            reject(error);
+          });
+      });
+
+      if ((response as AxiosResponse).status !== 200) {
+        DevLogger.log(
+          '[E2E Perps Bridge - HTTP Polling] Poll non-200',
+          (response as AxiosResponse).status,
+        );
+        consecutivePollFailures += 1;
+        if (consecutivePollFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
+          pollingDisabled = true;
+          DevLogger.log(
+            '[E2E Perps Bridge - HTTP Polling] Disabling polling due to repeated non-200 responses',
+          );
+          return;
+        }
+        scheduleNext(pollIntervalMs);
+        return;
+      }
+
+      const data = ((await response) as AxiosResponse).data?.queue as
+        | (
+            | {
+                type: 'push-price';
+                symbol: string;
+                price: string | number;
+              }
+            | {
+                type: 'force-liquidation';
+                symbol: string;
+              }
+            | {
+                type: 'mock-deposit';
+                amount: string;
+              }
+          )[]
+        | null
+        | undefined;
+
+      if (!Array.isArray(data) || data.length === 0) {
+        consecutivePollFailures = 0;
+        scheduleNext(pollIntervalMs);
+        return;
+      }
+
+      consecutivePollFailures = 0;
+      DevLogger.log('[E2E Perps Bridge - HTTP Polling] Poll data', data);
+
+      for (const item of data) {
+        if (!item || typeof item !== 'object') continue;
+        if (item.type === 'push-price') {
+          const sym = (item as { symbol: string }).symbol;
+          const price = String((item as { price: string | number }).price);
+          try {
+            if (typeof service.mockPushPrice === 'function') {
+              service.mockPushPrice(sym, price);
+            }
+          } catch (e) {
+            // no-op
+          }
+        } else if (item.type === 'force-liquidation') {
+          const sym = (item as { symbol: string }).symbol;
+          try {
+            if (typeof service.mockForceLiquidation === 'function') {
+              service.mockForceLiquidation(sym);
+            }
+          } catch (e) {
+            // no-op
+          }
+        } else if (item.type === 'mock-deposit') {
+          const amount = (item as { amount: string }).amount;
+          try {
+            if (typeof service.mockDepositUSD === 'function') {
+              service.mockDepositUSD(amount);
+            }
+          } catch (e) {
+            // no-op
+          }
+        }
+
+        // no cursor handling
+      }
+
+      scheduleNext(0);
+    } catch (err) {
+      DevLogger.log('[E2E Perps Bridge - HTTP Polling] Poll error', err);
+      consecutivePollFailures += 1;
+      if (consecutivePollFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
+        pollingDisabled = true;
+        DevLogger.log(
+          '[E2E Perps Bridge - HTTP Polling] Disabling polling due to repeated errors',
+        );
+        return;
+      }
+      scheduleNext(pollIntervalMs);
+    }
+  }
+
+  DevLogger.log(
+    '[E2E Perps Bridge - HTTP Polling] Starting E2E perps HTTP polling',
+  );
+  scheduleNext(0);
+}
+
+/**
  * Auto-configure E2E bridge when isE2E is true
  */
 function autoConfigureE2EBridge(): void {
@@ -158,9 +332,15 @@ function autoConfigureE2EBridge(): void {
     };
 
     // Register E2E deep link handler for price/liq commands
+    // TODO: E2E perps deeplink handler can be later removed if HTTP polling is stable
     registerE2EPerpsDeepLinkHandler();
 
-    DevLogger.log('E2E Bridge auto-configured successfully');
+    // Start E2E HTTP polling for commands (replaces deeplink handler)
+    startE2EPerpsCommandPolling();
+
+    DevLogger.log(
+      '[E2E Perps Bridge - HTTP Polling] E2E Bridge auto-configured successfully',
+    );
     DevLogger.log('Mock state:', {
       accountBalance: mockService.getMockAccountState().availableBalance,
       positionsCount: mockService.getMockPositions().length,

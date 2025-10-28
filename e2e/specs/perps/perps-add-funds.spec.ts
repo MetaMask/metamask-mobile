@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { LocalNodeType } from '../../framework/types';
+import { LocalNodeType, TestSuiteParams } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
 import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
@@ -61,7 +61,10 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
           },
         ],
       },
-      async () => {
+      async ({ commandQueueServer }: TestSuiteParams) => {
+        if (!commandQueueServer) {
+          throw new Error('Command queue server not found');
+        }
         await loginToApp();
         await device.disableSynchronization();
         await Assertions.expectElementToBeVisible(
@@ -106,7 +109,7 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
 
         await PerpsDepositProcessingView.expectProcessingVisible();
         // Apply deposit mock and verify balance update
-        await PerpsE2EModifiers.applyDepositUSD('80');
+        await PerpsE2EModifiers.applyDepositUSDServer(commandQueueServer, '80');
         logger.info('🔥 E2E Mock: Deposit applied');
         await Utilities.executeWithRetry(
           async () => {
