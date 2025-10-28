@@ -669,6 +669,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.press(pasteButton);
+        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -684,6 +685,636 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       expect(mockImportNewSecretRecoveryPhrase).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('dynamic grid expansion', () => {
+    it('expands to grid when typing multi-word SRP in textarea', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+
+      await act(async () => {
+        await fireEvent.changeText(textareaInput, 'word1 word2 word3');
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
+        const input2 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+        const input3 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+        expect(input1).toBeTruthy();
+        expect(input2).toBeTruthy();
+        expect(input3).toBeTruthy();
+      });
+    });
+
+    it('adds empty input when typing SRP ending with space', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+
+      await act(async () => {
+        await fireEvent.changeText(textareaInput, 'word1 word2 ');
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const input3 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+        expect(input3.props.value).toBe('');
+      });
+    });
+
+    it('dismisses keyboard when complete valid SRP is entered', async () => {
+      mockGetString.mockResolvedValue(valid12WordMnemonic);
+
+      const { getByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(getByText(messages.import_from_seed.clear_all)).toBeTruthy();
+      });
+    });
+
+    it('stops accepting words when reaching 24-word limit', async () => {
+      const words25 = Array(25).fill('abandon').join(' ');
+
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+
+      await act(async () => {
+        await fireEvent.changeText(textareaInput, words25);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const inputs = Array.from({ length: 24 }, (_, i) =>
+          getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_${i}`),
+        );
+        expect(inputs.length).toBe(24);
+      });
+    });
+  });
+
+  describe('QR scanner', () => {
+    it('fills SRP when QR scan returns seed data', async () => {
+      renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      const navigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'QRTabSwitcher',
+      );
+
+      expect(navigationCall).toBeUndefined();
+
+      const setOptionsCall = mockSetOptions.mock.calls[0];
+      expect(setOptionsCall).toBeDefined();
+    });
+
+    it('shows alert when QR scan returns no seed', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert');
+
+      renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      mockAlert.mockRestore();
+    });
+  });
+
+  describe('partial SRP input', () => {
+    it('keeps import button disabled for incomplete SRP', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+
+      await act(async () => {
+        await fireEvent.changeText(textareaInput, 'word1 word2 word3 word4');
+        jest.runAllTimers();
+      });
+
+      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+      expect(importButton.props.disabled).toBe(true);
+    });
+
+    it('handles empty string in textarea', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+
+      await act(async () => {
+        await fireEvent.changeText(textareaInput, '');
+        jest.runAllTimers();
+      });
+
+      expect(textareaInput.props.value).toBe('');
+    });
+
+    it('normalizes multiple spaces between words', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+
+      await act(async () => {
+        await fireEvent.changeText(textareaInput, 'word1    word2   word3');
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
+        const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+        const input2 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+        expect(input0.props.value).toBe('word1');
+        expect(input1.props.value).toBe('word2');
+        expect(input2.props.value).toBe('word3');
+      });
+    });
+  });
+
+  describe('grid mode interactions', () => {
+    it('removes input when backspace is pressed on empty field', async () => {
+      mockGetString.mockResolvedValue('word1 word2 word3');
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`)).toBeTruthy();
+      });
+
+      const input2 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+
+      await act(async () => {
+        await fireEvent(input2, 'onKeyPress', {
+          nativeEvent: { key: 'Backspace' },
+        });
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const inputs = [0, 1].map((i) =>
+          getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_${i}`),
+        );
+        expect(inputs.length).toBe(2);
+      });
+    });
+
+    it('adds space when enter key is pressed in grid input', async () => {
+      mockGetString.mockResolvedValue('word1 word2');
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+      });
+
+      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+
+      await act(async () => {
+        await fireEvent(input1, 'onSubmitEditing');
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`)).toBeTruthy();
+      });
+    });
+
+    it('updates single character in grid input without space', async () => {
+      mockGetString.mockResolvedValue('word1 word2 word3');
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+      });
+
+      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+
+      await act(async () => {
+        await fireEvent.changeText(input1, 'word2a');
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const updatedInput = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+        expect(updatedInput.props.value).toBe('word2a');
+      });
+    });
+
+    it('validates word on focus change', async () => {
+      mockGetString.mockResolvedValue('word1 word2 word3');
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+      });
+
+      const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
+      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+
+      await act(async () => {
+        await fireEvent(input0, 'onFocus');
+      });
+
+      await act(async () => {
+        await fireEvent.changeText(input0, 'invalidword123');
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        await fireEvent(input1, 'onFocus');
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByText(messages.import_from_seed.spellcheck_error),
+        ).toBeTruthy();
+      });
+    });
+
+    it('handles empty split array when pasting only spaces', async () => {
+      mockGetString.mockResolvedValue('word1 word2');
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+      });
+
+      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+
+      await act(async () => {
+        await fireEvent.changeText(input1, '   ');
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const updatedInput = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+        expect(updatedInput.props.value).toBe('');
+      });
+    });
+  });
+
+  describe('navigation', () => {
+    it('navigates back when back button is pressed', async () => {
+      renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      const headerLeft = setOptionsCall.headerLeft;
+
+      const { getByTestId } = renderScreen(
+        () => headerLeft(),
+        { name: 'HeaderLeft' },
+        { state: initialState },
+      );
+
+      const backButton = getByTestId(ImportSRPIDs.BACK);
+
+      await act(async () => {
+        await fireEvent.press(backButton);
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('opens QR scanner when QR button is pressed', async () => {
+      renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      const headerRight = setOptionsCall.headerRight;
+
+      const { getByTestId } = renderScreen(
+        () => headerRight(),
+        { name: 'HeaderRight' },
+        { state: initialState },
+      );
+
+      const qrButton = getByTestId('qr-code-button');
+
+      await act(async () => {
+        await fireEvent.press(qrButton);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'QRTabSwitcher',
+        expect.objectContaining({
+          initialScreen: 0,
+          disableTabber: true,
+        }),
+      );
+    });
+
+    it('navigates to SRP info modal when info icon is pressed', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      const infoIcon = getByTestId('info-icon');
+
+      await act(async () => {
+        await fireEvent.press(infoIcon);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+        screen: 'SeedphraseModal',
+      });
+    });
+  });
+
+  describe('QR scan callbacks', () => {
+    it('fills SRP when QR scan returns seed in data object', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      const headerRight = setOptionsCall.headerRight;
+
+      const { getByTestId: getHeaderButton } = renderScreen(
+        () => headerRight(),
+        { name: 'HeaderRight' },
+        { state: initialState },
+      );
+
+      const qrButton = getHeaderButton('qr-code-button');
+
+      await act(async () => {
+        await fireEvent.press(qrButton);
+      });
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'QRTabSwitcher',
+      );
+      const onScanSuccess = navigateCall[1].onScanSuccess;
+
+      await act(async () => {
+        onScanSuccess({ seed: valid12WordMnemonic }, undefined);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
+        expect(input0.props.value).toBe('lazy');
+      });
+    });
+
+    it('fills SRP when QR scan returns seed in content parameter', async () => {
+      const { getByTestId } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      const headerRight = setOptionsCall.headerRight;
+
+      const { getByTestId: getHeaderButton } = renderScreen(
+        () => headerRight(),
+        { name: 'HeaderRight' },
+        { state: initialState },
+      );
+
+      const qrButton = getHeaderButton('qr-code-button');
+
+      await act(async () => {
+        await fireEvent.press(qrButton);
+      });
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'QRTabSwitcher',
+      );
+      const onScanSuccess = navigateCall[1].onScanSuccess;
+
+      await act(async () => {
+        onScanSuccess({}, valid12WordMnemonic);
+        jest.runAllTimers();
+      });
+
+      await waitFor(() => {
+        const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
+        expect(input0.props.value).toBe('lazy');
+      });
+    });
+
+    it('shows alert when QR scan returns no seed data', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert');
+
+      renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockSetOptions).toHaveBeenCalled();
+      });
+
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      const headerRight = setOptionsCall.headerRight;
+
+      const { getByTestId } = renderScreen(
+        () => headerRight(),
+        { name: 'HeaderRight' },
+        { state: initialState },
+      );
+
+      const qrButton = getByTestId('qr-code-button');
+
+      await act(async () => {
+        await fireEvent.press(qrButton);
+      });
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'QRTabSwitcher',
+      );
+      const onScanSuccess = navigateCall[1].onScanSuccess;
+
+      await act(async () => {
+        onScanSuccess({}, undefined);
+      });
+
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Invalid QR Code',
+        'The QR code does not contain a valid Secret Recovery Phrase',
+      );
+
+      mockAlert.mockRestore();
     });
   });
 });

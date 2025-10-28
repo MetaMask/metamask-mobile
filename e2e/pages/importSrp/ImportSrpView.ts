@@ -13,14 +13,8 @@ class ImportSrpView {
       : Matchers.getElementByLabel(ImportSRPIDs.IMPORT_BUTTON);
   }
 
-  get dropdown(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.SRP_SELECTION_DROPDOWN);
-  }
-
-  inputOfIndex(srpIndex: number): DetoxElement {
-    return Matchers.getElementByID(
-      ImportSRPIDs.SRP_INPUT_WORD_NUMBER + `-${String(srpIndex)}`,
-    );
+  get textareaInput(): DetoxElement {
+    return Matchers.getElementByID(ImportSRPIDs.PASTE_BUTTON);
   }
 
   async tapImportButton() {
@@ -28,30 +22,21 @@ class ImportSrpView {
       elemDescription: 'Import button',
     });
   }
-  async enterSrpWord(srpIndex: number, word: string): Promise<void> {
-    const inputElement = this.inputOfIndex(srpIndex);
-    const elemDescription = `SRP word input at index ${srpIndex}`;
+
+  async enterSrp(mnemonic: string): Promise<void> {
+    const elemDescription = 'SRP textarea input';
 
     if (device.getPlatform() === 'ios') {
-      await Gestures.typeText(inputElement, word, {
+      await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
         hideKeyboard: true,
       });
     } else {
       // For Android, we use replaceText to avoid autocomplete issue
-      await Gestures.replaceText(inputElement, word, {
+      await Gestures.replaceText(this.textareaInput, mnemonic, {
         elemDescription,
       });
     }
-  }
-
-  async selectNWordSrp(numberOfWords: number) {
-    await Gestures.waitAndTap(this.dropdown);
-    await Gestures.waitAndTap(
-      Matchers.getElementByLabel(
-        `I have a ${String(numberOfWords)} word phrase`,
-      ),
-    );
   }
 }
 
