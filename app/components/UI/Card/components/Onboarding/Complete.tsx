@@ -42,13 +42,13 @@ const Complete = () => {
     );
 
     try {
-      dispatch(resetOnboardingState());
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
         navigation.navigate(Routes.CARD.HOME);
       } else {
         navigation.navigate(Routes.CARD.AUTHENTICATION);
       }
+      dispatch(resetOnboardingState());
     } catch (error) {
       Logger.log('Complete::handleContinue error', error);
     } finally {

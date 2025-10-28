@@ -77,6 +77,7 @@ const SignUp = () => {
     }
     return [...registrationSettings.countries]
       .sort((a, b) => a.name.localeCompare(b.name))
+      .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
         value: country.iso3166alpha2,
@@ -162,9 +163,8 @@ const SignUp = () => {
           })
           .build(),
       );
-      const { contactVerificationId } = await sendEmailVerification(
-        debouncedEmail,
-      );
+      const { contactVerificationId } =
+        await sendEmailVerification(debouncedEmail);
 
       dispatch(setContactVerificationId(contactVerificationId));
 

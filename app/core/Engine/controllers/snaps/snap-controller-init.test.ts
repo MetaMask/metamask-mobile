@@ -9,7 +9,11 @@ import {
 import { snapControllerInit } from './snap-controller-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { KeyringControllerGetKeyringsByTypeAction } from '@metamask/keyring-controller';
+import {
+  KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
+  KeyringControllerGetKeyringsByTypeAction,
+} from '@metamask/keyring-controller';
 import { store } from '../../../../store';
 import { MetaMetrics } from '../../../Analytics';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -76,6 +80,46 @@ describe('SnapControllerInit', () => {
       preinstalledSnaps: expect.any(Array),
       trackEvent: expect.any(Function),
     });
+  });
+
+  it('calls `SnapController:setClientActive` when the client is locked', () => {
+    const baseMessenger = new ExtendedMessenger<
+      MockAnyNamespace,
+      never,
+      KeyringControllerLockEvent
+    >({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+
+    const request = getInitRequestMock(baseMessenger);
+    const { initMessenger } = request;
+
+    const spy = jest.spyOn(initMessenger, 'call').mockImplementation();
+
+    snapControllerInit(request);
+    baseMessenger.publish('KeyringController:lock');
+
+    expect(spy).toHaveBeenCalledWith('SnapController:setClientActive', false);
+  });
+
+  it('calls `SnapController:setClientActive` when the client is unlocked', () => {
+    const baseMessenger = new ExtendedMessenger<
+      MockAnyNamespace,
+      never,
+      KeyringControllerUnlockEvent
+    >({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+
+    const request = getInitRequestMock(baseMessenger);
+    const { initMessenger } = request;
+
+    const spy = jest.spyOn(initMessenger, 'call').mockImplementation();
+
+    snapControllerInit(request);
+    baseMessenger.publish('KeyringController:unlock');
+
+    expect(spy).toHaveBeenCalledWith('SnapController:setClientActive', true);
   });
 
   describe('getMnemonicSeed', () => {

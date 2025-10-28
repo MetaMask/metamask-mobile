@@ -282,7 +282,9 @@ export const asyncifyMigrations = (
     } catch (error) {
       captureException(
         new Error(
-          `inflateFromControllers: Critical error loading controller data: ${String(error)}`,
+          `inflateFromControllers: Critical error loading controller data: ${String(
+            error,
+          )}`,
         ),
       );
 

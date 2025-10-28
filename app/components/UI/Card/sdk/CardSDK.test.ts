@@ -730,9 +730,8 @@ describe('CardSDK', () => {
         cardFeatureFlag: emptyTokensCardFeatureFlag,
       });
 
-      const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
-        testAddress,
-      );
+      const result =
+        await emptyTokensCardSDK.getSupportedTokensAllowances(testAddress);
       expect(result).toEqual([]);
     });
 
@@ -962,9 +961,8 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await cardSDK.initiateCardProviderAuthentication(
-        mockQueryParams,
-      );
+      const result =
+        await cardSDK.initiateCardProviderAuthentication(mockQueryParams);
 
       expect(result).toEqual(mockResponse);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -2550,7 +2548,7 @@ describe('CardSDK', () => {
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
       const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'us',
+        policyType: 'US',
         onboardingId: 'onboarding123',
         consents: [],
         tenantId: 'tenant_baanx_global',
@@ -2585,7 +2583,7 @@ describe('CardSDK', () => {
 
     it('handles create onboarding consent error', async () => {
       const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'us',
+        policyType: 'US',
         onboardingId: 'onboarding123',
         consents: [],
         tenantId: 'tenant_baanx_global',
