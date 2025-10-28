@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { Image, useWindowDimensions, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -18,14 +18,27 @@ import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const CardWelcome = () => {
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const isCardholder = useIsCardholder();
   const theme = useTheme();
   const deviceWidth = useWindowDimensions().width;
   const styles = createStyles(theme, deviceWidth);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.WELCOME,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const cardWelcomeCopies = useMemo(() => {
     if (isCardholder) {
@@ -48,12 +61,20 @@ const CardWelcome = () => {
   }, [isCardholder]);
 
   const handleButtonPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFY_ACCOUNT_BUTTON,
+        })
+        .build(),
+    );
+
     if (isCardholder) {
       navigate(Routes.CARD.AUTHENTICATION);
     } else {
       navigate(Routes.CARD.ONBOARDING.ROOT);
     }
-  }, [isCardholder, navigate]);
+  }, [isCardholder, navigate, trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
