@@ -31,6 +31,7 @@ import styleSheet from './PredictSellPreview.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
@@ -114,12 +115,13 @@ const PredictSellPreview = () => {
         style={styles.container}
       >
         <View style={styles.cashOutContainer}>
-          <Text style={styles.currentValue}>
+          <Text style={styles.currentValue} variant={TextVariant.BodyMDMedium}>
             {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
           <Text
             style={styles.percentPnl}
             color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+            variant={TextVariant.BodyMDMedium}
           >
             {`${signal}${formatPrice(Math.abs(cashPnl), {
               maximumDecimals: 2,
@@ -136,6 +138,7 @@ const PredictSellPreview = () => {
                 numberOfLines={1}
                 ellipsizeMode="tail"
                 style={styles.detailsLeft}
+                variant={TextVariant.HeadingSM}
               >
                 {outcomeTitle}
               </Text>
@@ -143,6 +146,7 @@ const PredictSellPreview = () => {
                 numberOfLines={1}
                 ellipsizeMode="tail"
                 style={styles.detailsResolves}
+                variant={TextVariant.BodySMMedium}
               >
                 {formatPrice(initialValue, { maximumDecimals: 2 })} on{' '}
                 {outcomeSideText}
@@ -152,7 +156,14 @@ const PredictSellPreview = () => {
           <View style={styles.cashOutButtonContainer}>
             <Button
               testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
-              label="Cash out"
+              label={
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Inverse}
+                >
+                  {strings('predict.cash_out')}
+                </Text>
+              }
               variant={ButtonVariants.Secondary}
               disabled={!preview || isCalculating || isLoading}
               onPress={onCashOut}
@@ -162,8 +173,8 @@ const PredictSellPreview = () => {
               }}
               loading={isLoading}
             />
-            <Text variant={TextVariant.BodySM} style={styles.cashOutButtonText}>
-              Funds will be added to your available balance
+            <Text variant={TextVariant.BodyXS} style={styles.cashOutButtonText}>
+              {strings('predict.cash_out_info')}
             </Text>
           </View>
         </View>

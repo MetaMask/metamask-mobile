@@ -173,22 +173,20 @@ export const usePredictToasts = ({
         return;
       }
 
-      if (
+      if (transactionMeta.status === TransactionStatus.rejected) {
+        clearTransaction();
+      } else if (
         transactionMeta.status === TransactionStatus.approved &&
         pendingToastConfig
       ) {
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
         showPendingToast({ amount, config: pendingToastConfig });
-      }
-
-      if (transactionMeta.status === TransactionStatus.confirmed) {
+      } else if (transactionMeta.status === TransactionStatus.confirmed) {
         clearTransaction();
         const amount = confirmedToastConfig.getAmount(transactionMeta);
         showConfirmedToast(amount);
         onConfirmed?.();
-      }
-
-      if (transactionMeta.status === TransactionStatus.failed) {
+      } else if (transactionMeta.status === TransactionStatus.failed) {
         clearTransaction();
         showErrorToast();
       }
