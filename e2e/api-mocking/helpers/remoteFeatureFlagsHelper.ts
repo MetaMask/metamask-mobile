@@ -267,6 +267,12 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   {
     predictEnabled: false,
   },
+  {
+    bitcoinAccounts: {
+      enabled: false,
+      minimumVersion: null,
+    },
+  },
 ];
 
 /**

@@ -146,3 +146,19 @@ export const remoteFeatureFlagSendRedesignDisabled = {
   ],
   responseCode: 200,
 };
+
+/**
+ * Helper to enable/disable Bitcoin accounts feature flag for E2E tests
+ * @param enabled - Whether Bitcoin accounts should be enabled
+ * @param minimumVersion - Minimum app version required (null means no version check)
+ * @returns Feature flag object for Bitcoin accounts
+ */
+export const remoteFeatureFlagBitcoinAccounts = (
+  enabled = false,
+  minimumVersion: string | null = null,
+) => ({
+  bitcoinAccounts: {
+    enabled,
+    minimumVersion,
+  },
+});
