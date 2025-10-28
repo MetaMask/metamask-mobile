@@ -226,7 +226,8 @@ const createStyles = (colors: Colors) =>
       marginLeft: 8,
     },
     loaderWrapper: {
-      paddingLeft: 40,
+      flexDirection: 'column',
+      gap: 4,
     },
     portfolioButtonContainer: {
       alignItems: 'center',
