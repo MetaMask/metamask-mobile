@@ -54,6 +54,7 @@ const createStyles = (colors: any) =>
     textInput: {
       ...fontStyles.normal,
       color: colors.text.default,
+      flex: 1,
     } as TextStyle,
     icon: {
       paddingLeft: 20,
