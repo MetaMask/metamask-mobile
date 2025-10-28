@@ -1,6 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import { AppwrightLocator, Device, appwrightExpect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 class MultiChainTestDapp {
     constructor() {}
 
