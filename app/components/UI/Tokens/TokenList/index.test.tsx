@@ -51,20 +51,6 @@ jest.mock('./TokenListItem', () => ({
   },
 }));
 
-jest.mock('./TokenListFooter', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    TokenListFooter: function MockTokenListFooter() {
-      return React.createElement(
-        View,
-        { testID: 'token-list-footer' },
-        React.createElement(Text, null, 'Token List Footer'),
-      );
-    },
-  };
-});
-
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => ({
   Box: ({
@@ -301,12 +287,6 @@ describe('TokenList', () => {
 
     expect(getByTestId('token-item-0x123')).toBeOnTheScreen();
     expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
-  });
-
-  it('renders token list footer', () => {
-    const { getByTestId } = renderComponent();
-
-    expect(getByTestId('token-list-footer')).toBeOnTheScreen();
   });
 
   it('handles undefined tokenKeys gracefully', () => {
