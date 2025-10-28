@@ -1,15 +1,15 @@
+import { toHex } from '@metamask/controller-utils';
+import { RpcEndpointType } from '@metamask/network-controller';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { toHex } from '@metamask/controller-utils';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import { usePerpsNetwork } from './usePerpsNetwork';
-import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import Engine from '../../../../core/Engine';
-import { RpcEndpointType } from '@metamask/network-controller';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
   ARBITRUM_MAINNET_CAIP_CHAIN_ID,
   ARBITRUM_TESTNET_CAIP_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
+import { usePerpsNetwork } from './usePerpsNetwork';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -43,7 +43,9 @@ export const usePerpsNetworkManagement = () => {
    */
   const ensureArbitrumNetworkExists = useCallback(async () => {
     const arbitrumCaipChainId = getArbitrumChainId();
-    const chainId = toHex(parseInt(arbitrumCaipChainId.split(':')[1], 10));
+    const chainId = toHex(
+      Number.parseInt(arbitrumCaipChainId.split(':')[1], 10),
+    );
 
     // Check if network already exists
     if (networkConfigurations[chainId]) {
@@ -55,32 +57,34 @@ export const usePerpsNetworkManagement = () => {
 
     try {
       // Add the network
-      await NetworkController.addNetwork({
-        chainId,
-        blockExplorerUrls: [
-          currentNetwork === 'testnet'
-            ? 'https://sepolia.arbiscan.io'
-            : 'https://arbiscan.io',
-        ],
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
-        name:
-          currentNetwork === 'testnet' ? 'Arbitrum Sepolia' : 'Arbitrum One',
-        nativeCurrency: 'ETH',
-        rpcEndpoints: [
-          {
-            url:
-              currentNetwork === 'testnet'
-                ? `https://arbitrum-sepolia.infura.io/v3/${infuraProjectId}`
-                : `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
-            name:
-              currentNetwork === 'testnet'
-                ? 'Arbitrum Sepolia'
-                : 'Arbitrum One',
-            type: RpcEndpointType.Custom,
-          },
-        ],
-      });
+      await Promise.resolve(
+        NetworkController.addNetwork({
+          chainId,
+          blockExplorerUrls: [
+            currentNetwork === 'testnet'
+              ? 'https://sepolia.arbiscan.io'
+              : 'https://arbiscan.io',
+          ],
+          defaultRpcEndpointIndex: 0,
+          defaultBlockExplorerUrlIndex: 0,
+          name:
+            currentNetwork === 'testnet' ? 'Arbitrum Sepolia' : 'Arbitrum One',
+          nativeCurrency: 'ETH',
+          rpcEndpoints: [
+            {
+              url:
+                currentNetwork === 'testnet'
+                  ? `https://arbitrum-sepolia.infura.io/v3/${infuraProjectId}`
+                  : `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
+              name:
+                currentNetwork === 'testnet'
+                  ? 'Arbitrum Sepolia'
+                  : 'Arbitrum One',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        }),
+      );
 
       // Enable the newly added network
       enableNetwork(arbitrumCaipChainId);

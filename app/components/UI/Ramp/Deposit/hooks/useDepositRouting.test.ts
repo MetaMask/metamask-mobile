@@ -44,6 +44,13 @@ let mockGetOrder = jest.fn().mockResolvedValue({
   paymentMethod: 'credit_debit_card',
   fiatCurrency: 'USD',
 });
+let mockGetUserLimits = jest.fn().mockResolvedValue({
+  exceeded: { 1: false, 30: false, 365: false },
+  limits: { 1: 300, 30: 1000, 365: 3000 },
+  remaining: { 1: 300, 30: 1000, 365: 3000 },
+  shortage: {},
+  spent: { 1: 0, 30: 0, 365: 0 },
+});
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -137,12 +144,17 @@ jest.mock('./useDepositSdkMethod', () => ({
         mockGetOrder(...wrapParams(customParams, params));
       return [mockUseDepositSdkMethodInitialState, wrappedGetOrder];
     }
+    if (config?.method === 'getUserLimits') {
+      const wrappedGetUserLimits = (...customParams: unknown[]) =>
+        mockGetUserLimits(...wrapParams(customParams, params));
+      return [mockUseDepositSdkMethodInitialState, wrappedGetUserLimits];
+    }
     return [mockUseDepositSdkMethodInitialState, jest.fn()];
   }),
 }));
 
 const mockLogoutFromProvider = jest.fn();
-const mockSelectedRegion = { isoCode: 'US' };
+const mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
 let mockSelectedPaymentMethod = {
   isManualBankTransfer: false,
   id: 'credit_debit_card',
@@ -231,6 +243,13 @@ describe('useDepositRouting', () => {
       network: { chainId: 'eip155:1', name: 'Ethereum' },
       networkFees: '5.99',
       partnerFees: '5.99',
+    });
+    mockGetUserLimits = jest.fn().mockResolvedValue({
+      exceeded: { 1: false, 30: false, 365: false },
+      limits: { 1: 300, 30: 1000, 365: 3000 },
+      remaining: { 1: 300, 30: 1000, 365: 3000 },
+      shortage: {},
+      spent: { 1: 0, 30: 0, 365: 0 },
     });
 
     mockUseHandleNewOrder.mockReturnValue(
@@ -1086,6 +1105,197 @@ describe('useDepositRouting', () => {
       ).resolves.not.toThrow();
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('User limits checking', () => {
+    it('should check user limits and proceed when within limits', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        'credit_debit_card',
+        'SIMPLE',
+      );
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalled();
+    });
+
+    it('should pass real kycType from requirements to getUserLimits', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'STANDARD',
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        'credit_debit_card',
+        'STANDARD',
+      );
+    });
+
+    it('should throw error when deposit exceeds daily limit', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 150,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 100, 30: 1000, 365: 3000 },
+        remaining: { 1: 100, 30: 1000, 365: 3000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow(/daily.*100.*USD/);
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when deposit exceeds monthly limit', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 600,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 1000, 30: 500, 365: 3000 },
+        remaining: { 1: 1000, 30: 500, 365: 3000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow(/monthly.*500.*USD/);
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when deposit exceeds yearly limit', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 1100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 2000, 30: 5000, 365: 1000 },
+        remaining: { 1: 2000, 30: 5000, 365: 1000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow(/yearly.*1000.*USD/);
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when getUserLimits returns null', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue(null);
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Failed to check your deposit limits');
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when any limit value is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest.fn().mockResolvedValue({
+        exceeded: { 1: false, 30: false, 365: false },
+        limits: { 1: 300, 365: 3000 },
+        remaining: { 1: 300, 365: 3000 },
+        shortage: {},
+        spent: { 1: 0, 30: 0, 365: 0 },
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Failed to check your deposit limits');
+
+      expect(mockCreateOrder).not.toHaveBeenCalled();
+      expect(mockRequestOtt).not.toHaveBeenCalled();
     });
   });
 });

@@ -89,7 +89,7 @@ export function getFeesFromHex({
       conversionRate: nativeConversionRateInBN,
       fromCurrency: 'GWEI',
       toCurrency: 'ETH',
-      numberOfDecimals: 3,
+      numberOfDecimals: 18,
       toDenomination: 'ETH',
     }),
   );

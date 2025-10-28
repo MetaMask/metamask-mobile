@@ -49,6 +49,9 @@ export const selectSeasonTiers = (state: RootState) =>
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
 
+export const selectOnboardingReferralCode = (state: RootState) =>
+  state.rewards.onboardingReferralCode;
+
 export const selectGeoLocation = (state: RootState) =>
   state.rewards.geoLocation;
 

@@ -27,11 +27,13 @@ import Logger from '../../../../../../util/Logger';
 import { openActivityDetailsSheet } from './EventDetails/ActivityDetailsSheet';
 import { TouchableOpacity } from 'react-native';
 import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
+import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
   accountName: string | undefined;
-}> = ({ event, accountName }) => {
+  testID?: string;
+}> = ({ event, accountName, testID }) => {
   const navigation = useNavigation();
   const eventDetails = React.useMemo(
     () => (event ? getEventDetails(event, accountName) : undefined),
@@ -46,15 +48,22 @@ export const ActivityEventRow: React.FC<{
 
     try {
       let assetType: CaipAssetType | undefined;
+      let chainId: string | undefined;
+
       if (event.type === 'SWAP' && event.payload.srcAsset?.type) {
         assetType = event.payload.srcAsset.type as CaipAssetType;
+        chainId = parseCaipAssetType(assetType).chainId;
       } else if (event.type === 'PERPS' && event.payload.asset?.type) {
         assetType = event.payload.asset.type as CaipAssetType;
+        chainId = parseCaipAssetType(assetType).chainId;
+      } else if (event.type === 'CARD' && event.payload.asset?.type) {
+        assetType = event.payload.asset.type as CaipAssetType;
+        chainId = parseCaipAssetType(assetType).chainId;
       } else {
         return;
       }
 
-      const { chainId } = parseCaipAssetType(assetType);
+      if (!chainId) return;
 
       return getNetworkImageSource({ chainId });
     } catch (error) {
@@ -84,6 +93,7 @@ export const ActivityEventRow: React.FC<{
         justifyContent={BoxJustifyContent.Between}
         twClassName="w-full py-3"
         gap={3}
+        testID={testID}
       >
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
@@ -120,14 +130,20 @@ export const ActivityEventRow: React.FC<{
               alignItems={BoxAlignItems.End}
               gap={1}
             >
-              <Text>{eventDetails.title}</Text>
+              <Text
+                testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_TITLE}-${testID}`}
+              >
+                {eventDetails.title}
+              </Text>
             </Box>
 
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.End}
             >
-              <Text>{`${event.value > 0 ? '+' : ''}${formatNumber(
+              <Text
+                testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_VALUE}-${testID}`}
+              >{`${event.value > 0 ? '+' : ''}${formatNumber(
                 event.value,
               )}`}</Text>
               {event.bonus?.bips && (
@@ -135,6 +151,7 @@ export const ActivityEventRow: React.FC<{
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                   twClassName="ml-1"
+                  testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_BONUS}-${testID}`}
                 >
                   +{event.bonus.bips / 100}%
                 </Text>
@@ -146,12 +163,14 @@ export const ActivityEventRow: React.FC<{
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-alternative flex-1 max-w-[60%]"
+              testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_DETAILS}-${testID}`}
             >
               {eventDetails.details}
             </Text>
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-alternative flex-1 text-right"
+              testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_DATE}-${testID}`}
             >
               {formatRewardsDate(new Date(event.timestamp))}
             </Text>

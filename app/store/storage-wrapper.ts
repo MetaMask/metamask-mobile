@@ -154,6 +154,55 @@ class StorageWrapper extends EventEmitter2 {
   }
 
   /**
+   * Gets all keys stored in storage.
+   * @returns A promise that resolves with a readonly array of all keys.
+   * @throws Will throw an error if retrieval fails (except in E2E mode, where it falls back to AsyncStorage).
+   *
+   * @example
+   * const keys = await StorageWrapper.getAllKeys();
+   * console.log('All keys:', keys);
+   */
+  async getAllKeys() {
+    try {
+      return await this.storage.getAllKeys();
+    } catch (error) {
+      if (isE2E) {
+        // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
+        return await AsyncStorage.getAllKeys();
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Gets multiple items from storage at once.
+   * @param keys - An array of keys to retrieve.
+   * @returns A promise that resolves with a readonly array of [key, value] pairs.
+   * @throws Will throw an error if retrieval fails (except in E2E mode, where it falls back to AsyncStorage).
+   *
+   * @example
+   * const items = await StorageWrapper.multiGet(['key1', 'key2']);
+   * console.log('Items:', items); // [['key1', 'value1'], ['key2', 'value2']]
+   */
+  async multiGet(keys: string[]) {
+    try {
+      const results = await Promise.all(
+        keys.map(async (key) => {
+          const value = await this.getItem(key);
+          return [key, value];
+        }),
+      );
+      return results;
+    } catch (error) {
+      if (isE2E) {
+        // Fall back to AsyncStorage in test mode
+        return await AsyncStorage.multiGet(keys);
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Subscribe to specific key changes
    * @param key - The storage key to watch
    * @param callback - Function to call when the key's value changes

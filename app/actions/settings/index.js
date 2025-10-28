@@ -108,3 +108,10 @@ export function setDeepLinkModalDisabled(deepLinkModalDisabled) {
     deepLinkModalDisabled,
   };
 }
+
+export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
+  return {
+    type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
+    preferredCandlePeriod,
+  };
+}

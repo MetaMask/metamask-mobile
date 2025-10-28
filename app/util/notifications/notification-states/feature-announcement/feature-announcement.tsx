@@ -49,6 +49,7 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
     footer: {
       type: ModalFooterType.ANNOUNCEMENT_CTA,
       mobileLink: notification.data.mobileLink,
+      externalLink: notification.data.externalLink,
     },
     /**
      * TODO support mobile links

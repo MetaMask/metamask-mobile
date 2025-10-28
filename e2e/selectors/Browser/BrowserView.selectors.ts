@@ -18,6 +18,7 @@ export const BrowserViewSelectorsIDs = {
   CLOSE_ALL_TABS: 'tabs_close_all',
   NO_TABS_MESSAGE: 'no-tabs-message',
   DONE_BUTTON: 'tabs_done',
+  TOGGLE_FULLSCREEN_BUTTON: 'toggle-fullscreen-button',
 } as const;
 
 export const BrowserViewSelectorsText = {

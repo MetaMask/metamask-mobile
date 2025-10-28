@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
@@ -12,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectUSDConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 import { getTokenTransferData } from '../../utils/transaction-pay';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -85,8 +85,8 @@ function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
 }
 
 function useGasToken(chainId: Hex): TransactionToken | undefined {
-  const balanceProperties = useTokenBalance(NATIVE_TOKEN_ADDRESS, chainId);
-
+  const nativeTokenAddress = getNativeTokenAddress(chainId);
+  const balanceProperties = useTokenBalance(nativeTokenAddress, chainId);
   const maxGasCostHex = useTransactionMaxGasCost();
 
   const usdConversionRate = useSelector((state: RootState) =>

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
-import type { AccountState } from '../controllers/types';
 import type { BridgeToken } from '../../Bridge/types';
+import type { AccountState } from '../controllers/types';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
 // Mock all dependencies
@@ -65,11 +65,10 @@ describe('usePerpsPaymentTokens', () => {
 
   const mockAccountState: AccountState = {
     availableBalance: '1000.50',
-    totalBalance: '1000.50',
     marginUsed: '300.25',
     unrealizedPnl: '50.25',
     returnOnEquity: '0',
-    totalValue: '10000',
+    totalBalance: '10000',
   };
 
   const mockTokensWithBalance: BridgeToken[] = [
@@ -277,10 +276,10 @@ describe('usePerpsPaymentTokens', () => {
       const usdcTokens = otherTokens.filter((token) => token.symbol === 'USDC');
 
       if (usdcTokens.length > 1) {
-        const firstBalance = parseFloat(
+        const firstBalance = Number.parseFloat(
           usdcTokens[0].balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
         );
-        const secondBalance = parseFloat(
+        const secondBalance = Number.parseFloat(
           usdcTokens[1].balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
         );
         expect(firstBalance).toBeGreaterThan(secondBalance);

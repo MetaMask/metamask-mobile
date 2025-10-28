@@ -44,9 +44,9 @@ export const styleSheet = (params: {
     },
     container: {
       backgroundColor: theme.colors.background.default,
+      flex: 1,
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
-      minHeight: '100%',
     },
     currencyTag: {
       alignSelf: 'center',

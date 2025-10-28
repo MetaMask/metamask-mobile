@@ -5,7 +5,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import { Assertions } from '../../framework';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers';
 
 jest.setTimeout(150_000);
 

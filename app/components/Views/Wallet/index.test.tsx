@@ -34,6 +34,7 @@ jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
+  validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
 
 jest.mock(

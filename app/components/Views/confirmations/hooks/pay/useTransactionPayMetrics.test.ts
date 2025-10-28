@@ -40,7 +40,7 @@ const PAY_TOKEN_MOCK = {
   symbol: 'TST',
 };
 
-function runHook() {
+function runHook({ type }: { type?: TransactionType } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
@@ -49,7 +49,7 @@ function runHook() {
   );
 
   state.engine.backgroundState.TransactionController.transactions[0].type =
-    TransactionType.perpsDeposit;
+    type ?? TransactionType.perpsDeposit;
 
   return renderHookWithProvider(useTransactionPayMetrics, {
     state,
@@ -180,6 +180,34 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_use_case: 'perps_deposit',
+          simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
+  it('includes predict deposit properties', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    selectTransactionBridgeQuotesByIdMock.mockReturnValue([
+      {} as never,
+      {} as never,
+      {} as never,
+    ] as never[]);
+
+    runHook({ type: TransactionType.predictDeposit });
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_use_case: 'predict_deposit',
           simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
         }),
         sensitiveProperties: {},

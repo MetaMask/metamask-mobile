@@ -1,22 +1,37 @@
 import { IconName } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import {
   PointsEventDto,
   SwapEventPayload,
   PerpsEventPayload,
+  CardEventPayload,
   EventAssetDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
-import { formatNumber } from './formatUtils';
+import { formatWithThreshold } from '../../../../util/assets';
 import { PerpsEventType } from './eventConstants';
 
 /**
  * Formats an asset amount with proper decimals
  */
 export const formatAssetAmount = (amount: string, decimals: number): string => {
+  const oneHundredThousandths = 0.00001;
   const rawAmount = formatUnits(BigInt(amount), decimals);
-  return formatNumber(parseFloat(Number(rawAmount).toFixed(3)));
+  const numericAmount = parseFloat(rawAmount);
+
+  // Check if the number is a whole number (no significant decimals)
+  const isWholeNumber = numericAmount === Math.floor(numericAmount);
+
+  return formatWithThreshold(
+    numericAmount,
+    oneHundredThousandths,
+    I18n.locale,
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: isWholeNumber ? 0 : 5,
+    },
+  );
 };
 
 /**
@@ -71,12 +86,7 @@ const getPerpsEventDetails = (
     return undefined;
 
   const { amount, decimals, symbol } = payload.asset;
-  const rawAmount = formatUnits(BigInt(amount), decimals);
-  // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = formatNumber(
-    parseFloat(Number(rawAmount).toFixed(5)),
-    decimals,
-  );
+  const formattedAmount = formatAssetAmount(amount, decimals);
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
@@ -130,6 +140,22 @@ export const formatSwapDetails = (
 };
 
 /**
+ * Gets the details for card events
+ * @param payload - The card event payload
+ * @returns The card event details
+ */
+export const getCardEventDetails = (
+  payload: CardEventPayload,
+): string | undefined => {
+  const asset = payload?.asset;
+
+  if (!hasValidAsset(asset)) return undefined;
+
+  const formattedAmount = formatAssetAmount(asset.amount, asset.decimals);
+  return `${formattedAmount} ${asset.symbol}`;
+};
+
+/**
  * Formats an event details
  * @param event - The event
  * @param accountName - Optional account name to display for bonus events
@@ -155,6 +181,12 @@ export const getEventDetails = (
         title: getPerpsEventTitle(event.payload as PerpsEventPayload),
         details: getPerpsEventDetails(event.payload as PerpsEventPayload),
         icon: IconName.Candlestick,
+      };
+    case 'CARD':
+      return {
+        title: strings('rewards.events.type.card_spend'),
+        details: getCardEventDetails(event.payload as CardEventPayload),
+        icon: IconName.Card,
       };
     case 'REFERRAL':
       return {

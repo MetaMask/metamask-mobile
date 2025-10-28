@@ -66,6 +66,8 @@ describe('usePredictMarketData', () => {
           groupItemTitle: 'Yes/No',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     },
     {
       id: 'market-2',
@@ -115,6 +117,8 @@ describe('usePredictMarketData', () => {
           groupItemTitle: 'Yes/No',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     },
   ];
 
@@ -128,6 +132,10 @@ describe('usePredictMarketData', () => {
     (DevLogger.log as jest.Mock).mockImplementation(() => {
       // Mock implementation
     });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it.skip('should fetch market data successfully', async () => {

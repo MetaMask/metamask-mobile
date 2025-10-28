@@ -7,7 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { strings } from '../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 export function useInsufficientPayTokenBalanceAlert({
   amountOverrides,
@@ -16,13 +16,14 @@ export function useInsufficientPayTokenBalanceAlert({
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
   const { balance, symbol } = payToken ?? {};
+  const nativeTokenAddress = getNativeTokenAddress(payToken?.chainId ?? '0x0');
 
   const { totalHuman, amounts } = useTransactionPayTokenAmounts({
     amountOverrides,
   });
 
   const tokenAmount =
-    amounts?.find((a) => a.address !== NATIVE_TOKEN_ADDRESS)
+    amounts?.find((a) => a.address !== nativeTokenAddress)
       ?.amountHumanOriginal ?? '0';
 
   const balanceValue = new BigNumber(balance ?? '0');

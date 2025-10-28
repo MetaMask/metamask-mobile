@@ -469,12 +469,6 @@ const ManualBackupStep2 = ({
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <View style={[styles.container]}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('manual_backup_step_2.steps', {
-            currentStep: 3,
-            totalSteps: 3,
-          })}
-        </Text>
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.continue')}

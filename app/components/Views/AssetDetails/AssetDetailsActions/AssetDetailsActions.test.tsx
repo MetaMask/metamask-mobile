@@ -44,6 +44,20 @@ jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
   default: () => ({ isDepositEnabled: true }),
 }));
 
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
   const mockGoToSwaps = jest.fn();
@@ -74,6 +88,8 @@ describe('AssetDetailsActions', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
     jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
@@ -132,6 +148,28 @@ describe('AssetDetailsActions', () => {
         asset: undefined,
       },
     });
+  });
+
+  it('tracks action button click when buy button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: createStateWithSigningCapability() },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+
+    const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      action_name: 'buy',
+      action_position: 0, // ActionPosition.BUY = 0
+      button_label: strings('asset_overview.buy_button'),
+      location: 'home',
+    });
+    expect(mockEventBuilder.build).toHaveBeenCalled();
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {

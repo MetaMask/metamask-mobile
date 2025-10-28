@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import TradingViewChart, { TPSLLines } from './TradingViewChart';
-import type { CandleData } from '../../types';
+import type { CandleData } from '../../types/perps-types';
 
 // Mock WebView - using a string name to avoid out-of-scope issues
 jest.mock('@metamask/react-native-webview', () => ({

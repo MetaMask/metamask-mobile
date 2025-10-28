@@ -27,11 +27,12 @@ import { ButtonProps } from '../../../../../component-library/components/Buttons
 import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
-import { TextInput } from 'react-native';
+import { Platform, TextInput } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { useKeyboardHeight } from '../../../../hooks/useKeyboardHeight';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
@@ -64,6 +65,8 @@ export const EditMultichainAccountName = () => {
 
   const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
+
+  const keyboardHeight = useKeyboardHeight();
 
   const handleAccountNameChange = useCallback(() => {
     // Validate that account name is not empty
@@ -144,7 +147,10 @@ export const EditMultichainAccountName = () => {
         {error && <Text color={TextColor.Error}>{error}</Text>}
       </Box>
       <BottomSheetFooter
-        style={styles.footer}
+        style={{
+          ...styles.footer,
+          ...(Platform.OS === 'android' && { marginBottom: keyboardHeight }),
+        }}
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={[saveButtonProps]}
       />

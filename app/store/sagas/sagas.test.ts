@@ -142,6 +142,22 @@ jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
   },
 }));
 
+const defaultMockState = {
+  onboarding: { completedOnboarding: false },
+  user: { existingUser: true },
+  engine: { backgroundState: {} },
+  confirmation: {},
+  navigation: {},
+  security: {},
+  sdk: {},
+  inpageProvider: {},
+  confirmationMetrics: {},
+  originThrottling: {},
+  notifications: {},
+  bridge: {},
+  banners: {},
+};
+
 describe('authStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
@@ -253,7 +269,7 @@ describe('startAppServices', () => {
     await expectSaga(startAppServices)
       .withState({
         onboarding: { completedOnboarding: false },
-        user: {},
+        user: { existingUser: true },
       })
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
@@ -327,7 +343,7 @@ describe('handleDeeplinkSaga', () => {
       await expectSaga(handleDeeplinkSaga)
         .withState({
           onboarding: { completedOnboarding: false },
-          user: {},
+          user: { existingUser: true },
           engine: { backgroundState: {} },
           confirmation: {},
           navigation: {},
@@ -361,7 +377,7 @@ describe('handleDeeplinkSaga', () => {
         await expectSaga(handleDeeplinkSaga)
           .withState({
             onboarding: { completedOnboarding: false },
-            user: {},
+            user: { existingUser: true },
             engine: { backgroundState: {} },
             confirmation: {},
             navigation: {},
@@ -393,6 +409,9 @@ describe('handleDeeplinkSaga', () => {
 
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
+            .withState({
+              user: { existingUser: true },
+            })
             .dispatch(setCompletedOnboarding(false))
             .silentRun();
 
@@ -416,6 +435,9 @@ describe('handleDeeplinkSaga', () => {
 
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
+            .withState({
+              user: { existingUser: true },
+            })
             .dispatch(setCompletedOnboarding(true))
             .silentRun();
 
@@ -441,7 +463,7 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               onboarding: { completedOnboarding: true },
-              user: {},
+              user: { existingUser: true },
               engine: { backgroundState: {} },
               confirmation: {},
               navigation: {},
@@ -466,6 +488,67 @@ describe('handleDeeplinkSaga', () => {
           ).toHaveBeenCalled();
           expect(WC2Manager.init).toHaveBeenCalledWith({});
           expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+        });
+      });
+    });
+    describe('onboarding deeplink', () => {
+      describe('when existing user is true', () => {
+        it('skip onboarding deeplink handling and continue to normal deeplink flow', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/onboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('when existing user is false', () => {
+        it('handle onboarding deeplink when completed onboarding is false', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/onboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+        });
+
+        it('not handle onboarding deeplink when pathname is not /onboarding', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/invalidonboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
     });

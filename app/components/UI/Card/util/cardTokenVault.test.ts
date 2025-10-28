@@ -22,7 +22,8 @@ describe('cardTokenVault', () => {
   const mockTokenData = {
     accessToken: 'access-token-123',
     refreshToken: 'refresh-token-456',
-    expiresAt: FIXED_TIMESTAMP + 3600000, // 1 hour from fixed timestamp
+    accessTokenExpiresAt: 3600, // 1 hour in seconds
+    refreshTokenExpiresAt: 86400, // 24 hours in seconds
     location: 'us' as const,
   };
 
@@ -41,9 +42,17 @@ describe('cardTokenVault', () => {
 
       const result = await storeCardBaanxToken(mockTokenData);
 
+      const expectedStoredData = {
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000, // Converted to milliseconds
+        refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000, // Converted to milliseconds
+        location: 'us',
+      };
+
       expect(mockSecureKeychain.setSecureItem).toHaveBeenCalledWith(
         'CARD_BAANX_TOKENS',
-        JSON.stringify(mockTokenData),
+        JSON.stringify(expectedStoredData),
         mockScopeOptions,
       );
       expect(result).toEqual({
@@ -83,9 +92,17 @@ describe('cardTokenVault', () => {
 
       const result = await storeCardBaanxToken(internationalTokenData);
 
+      const expectedStoredData = {
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
+        location: 'international',
+      };
+
       expect(mockSecureKeychain.setSecureItem).toHaveBeenCalledWith(
         'CARD_BAANX_TOKENS',
-        JSON.stringify(internationalTokenData),
+        JSON.stringify(expectedStoredData),
         mockScopeOptions,
       );
       expect(result.success).toBe(true);
@@ -94,9 +111,16 @@ describe('cardTokenVault', () => {
 
   describe('getCardBaanxToken', () => {
     it('retrieves valid token successfully', async () => {
+      const storedTokenData = {
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
+        location: 'us' as const,
+      };
       const mockSecureItem = {
         key: 'CARD_BAANX_TOKENS',
-        value: JSON.stringify(mockTokenData),
+        value: JSON.stringify(storedTokenData),
       };
       (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(
         mockSecureItem,
@@ -109,18 +133,18 @@ describe('cardTokenVault', () => {
       );
       expect(result).toEqual({
         success: true,
-        tokenData: mockTokenData,
+        tokenData: storedTokenData,
       });
     });
 
-    it('returns undefined when no token exists', async () => {
+    it('returns null when no token exists', async () => {
       (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(null);
 
       const result = await getCardBaanxToken();
 
       expect(result).toEqual({
         success: true,
-        tokenData: undefined,
+        tokenData: null,
       });
     });
 
@@ -135,12 +159,9 @@ describe('cardTokenVault', () => {
 
       const result = await getCardBaanxToken();
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Error getting card baanx token:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         success: false,
+        tokenData: null,
         error: expect.any(String),
       });
     });
@@ -151,19 +172,19 @@ describe('cardTokenVault', () => {
 
       const result = await getCardBaanxToken();
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Error getting card baanx token:',
-        error,
-      );
       expect(result).toEqual({
         success: false,
+        tokenData: null,
         error: 'Keychain access denied',
       });
     });
 
     it('handles international location tokens', async () => {
       const internationalTokenData = {
-        ...mockTokenData,
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
         location: 'international' as const,
       };
       const mockSecureItem = {
@@ -179,6 +200,28 @@ describe('cardTokenVault', () => {
       expect(result).toEqual({
         success: true,
         tokenData: internationalTokenData,
+      });
+    });
+
+    it('returns error for invalid token data missing required fields', async () => {
+      const invalidTokenData = {
+        accessToken: 'access-token-123',
+        // Missing refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, location
+      };
+      const mockSecureItem = {
+        key: 'CARD_BAANX_TOKENS',
+        value: JSON.stringify(invalidTokenData),
+      };
+      (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(
+        mockSecureItem,
+      );
+
+      const result = await getCardBaanxToken();
+
+      expect(result).toEqual({
+        success: false,
+        tokenData: null,
+        error: 'Invalid token data',
       });
     });
   });
@@ -239,16 +282,23 @@ describe('cardTokenVault', () => {
       expect(storeResult.success).toBe(true);
 
       // Get token
+      const storedTokenData = {
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        accessTokenExpiresAt: FIXED_TIMESTAMP + 3600 * 1000,
+        refreshTokenExpiresAt: FIXED_TIMESTAMP + 86400 * 1000,
+        location: 'us' as const,
+      };
       const mockSecureItem = {
         key: 'CARD_BAANX_TOKENS',
-        value: JSON.stringify(mockTokenData),
+        value: JSON.stringify(storedTokenData),
       };
       (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(
         mockSecureItem,
       );
       const getResult = await getCardBaanxToken();
       expect(getResult.success).toBe(true);
-      expect(getResult.tokenData).toEqual(mockTokenData);
+      expect(getResult.tokenData).toEqual(storedTokenData);
 
       // Remove token
       (mockSecureKeychain.clearSecureScope as jest.Mock).mockResolvedValue(
@@ -260,10 +310,10 @@ describe('cardTokenVault', () => {
   });
 
   describe('error boundary testing', () => {
-    it('handles malformed token data structure', async () => {
+    it('rejects malformed token data structure missing required fields', async () => {
       const malformedTokenData = {
         accessToken: 'token',
-        // Missing required fields: refreshToken, expiresAt, location
+        // Missing required fields: refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, location
       };
       const mockSecureItem = {
         key: 'CARD_BAANX_TOKENS',
@@ -275,16 +325,20 @@ describe('cardTokenVault', () => {
 
       const result = await getCardBaanxToken();
 
-      // Should still return the malformed data if JSON parsing succeeds
-      // The validation happens at usage time, not storage time
-      expect(result.success).toBe(true);
-      expect(result.tokenData).toEqual(malformedTokenData);
+      expect(result).toEqual({
+        success: false,
+        tokenData: null,
+        error: 'Invalid token data',
+      });
     });
 
     it('handles extremely large expiration timestamps', async () => {
       const futureTokenData = {
-        ...mockTokenData,
-        expiresAt: Number.MAX_SAFE_INTEGER,
+        accessToken: 'access-token-123',
+        refreshToken: 'refresh-token-456',
+        accessTokenExpiresAt: Number.MAX_SAFE_INTEGER,
+        refreshTokenExpiresAt: Number.MAX_SAFE_INTEGER,
+        location: 'us' as const,
       };
       const mockSecureItem = {
         key: 'CARD_BAANX_TOKENS',

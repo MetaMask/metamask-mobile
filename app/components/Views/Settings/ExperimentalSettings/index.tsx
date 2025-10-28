@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -17,7 +17,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isTest } from '../../../../util/test/utils';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import Share from 'react-native-share';
@@ -26,12 +26,20 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
+import {
+  selectAlwaysShowCardButton,
+  setAlwaysShowCardButton,
+} from '../../../../core/redux/slices/card';
+import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
 
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
+  const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
+  const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
+  const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
@@ -80,6 +88,30 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         style={styles.accessory}
       />
     </>
+  );
+
+  const handleAlwaysShowCardButtonToggle = (value: boolean) => {
+    dispatch(setAlwaysShowCardButton(value));
+  };
+
+  const renderCardSettings = () => (
+    <View style={styles.heading}>
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        {strings('experimental_settings.card_title')}
+      </Text>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.desc}
+      >
+        {strings('experimental_settings.card_desc')}
+      </Text>
+      <Switch
+        value={alwaysShowCardButton}
+        onValueChange={handleAlwaysShowCardButtonToggle}
+        testID="always-show-card-button-switch"
+      />
+    </View>
   );
 
   const downloadPerformanceMetrics = async () => {
@@ -132,6 +164,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       {renderWalletConnectSettings()}
+      {cardExperimentalSwitch && renderCardSettings()}
       {isTest && renderPerformanceSettings()}
     </ScrollView>
   );

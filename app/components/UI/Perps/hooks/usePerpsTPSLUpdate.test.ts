@@ -256,11 +256,14 @@ describe('usePerpsTPSLUpdate', () => {
       await result.current.handleUpdateTPSL(position, '3300', '2700');
     });
 
+    // When error is null, the mock falls back to 'perps.errors.unknown'
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith(null);
+    ).toHaveBeenCalledWith('perps.errors.unknown');
     expect(mockShowToast).toHaveBeenCalledWith(
-      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(null),
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+        'perps.errors.unknown',
+      ),
     );
   });
 

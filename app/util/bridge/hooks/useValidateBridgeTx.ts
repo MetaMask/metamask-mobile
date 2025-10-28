@@ -1,5 +1,4 @@
-import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { SolMethod } from '@metamask/keyring-api';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';

@@ -1,21 +1,31 @@
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePredictTrading } from './usePredictTrading';
-import { PredictPositionStatus, Side } from '../types';
+import { Side } from '../types';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       getPositions: jest.fn(),
+      getClaimablePositions: jest.fn(),
       placeOrder: jest.fn(),
       claim: jest.fn(),
+      claimWithConfirmation: jest.fn(),
+      calculateBetAmounts: jest.fn(),
+      calculateCashOutAmounts: jest.fn(),
+      getBalance: jest.fn(),
+      deposit: jest.fn(),
     },
   },
 }));
 
 describe('usePredictTrading', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -53,12 +63,11 @@ describe('usePredictTrading', () => {
       expect(response).toEqual(mockPositions);
     });
 
-    it('handles errors from PredictController.getPositions', async () => {
+    it('throws error when PredictController.getPositions fails', async () => {
       const mockError = new Error('Failed to fetch predict positions');
       (
         Engine.context.PredictController.getPositions as jest.Mock
       ).mockRejectedValue(mockError);
-
       const { result } = renderHook(() => usePredictTrading());
 
       await expect(
@@ -83,20 +92,29 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.placeOrder({
+      const mockPreview = {
+        marketId: 'market-1',
         outcomeId: 'outcome-789',
         outcomeTokenId: 'outcome-token-101',
+        timestamp: Date.now(),
         side: Side.BUY,
-        size: 100,
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 180,
+        slippage: 0.01,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const response = await result.current.placeOrder({
         providerId: 'polymarket',
+        preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        outcomeId: 'outcome-789',
-        outcomeTokenId: 'outcome-token-101',
-        side: Side.BUY,
-        size: 100,
         providerId: 'polymarket',
+        preview: mockPreview,
       });
       expect(response).toEqual(mockBuyResult);
     });
@@ -113,100 +131,64 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.placeOrder({
+      const mockPreview = {
+        marketId: 'market-1',
         outcomeId: 'outcome-101',
         outcomeTokenId: 'outcome-token-202',
+        timestamp: Date.now(),
         side: Side.SELL,
-        size: 50,
+        sharePrice: 0.7,
+        maxAmountSpent: 50,
+        minAmountReceived: 35,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const response = await result.current.placeOrder({
         providerId: 'polymarket',
+        preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        outcomeId: 'outcome-101',
-        outcomeTokenId: 'outcome-token-202',
-        side: Side.SELL,
-        size: 50,
         providerId: 'polymarket',
+        preview: mockPreview,
       });
       expect(response).toEqual(mockSellResult);
     });
 
-    it('handles errors from PredictController.placeOrder', async () => {
+    it('throws error when PredictController.placeOrder fails', async () => {
       const mockError = new Error('Failed to place order');
       (
         Engine.context.PredictController.placeOrder as jest.Mock
       ).mockRejectedValue(mockError);
-
       const { result } = renderHook(() => usePredictTrading());
+      const mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-789',
+        outcomeTokenId: 'outcome-token-101',
+        timestamp: Date.now(),
+        side: Side.BUY,
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 180,
+        slippage: 0.01,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
 
       await expect(
         result.current.placeOrder({
-          outcomeId: 'outcome-789',
-          outcomeTokenId: 'outcome-token-101',
-          side: Side.BUY,
-          size: 100,
           providerId: 'polymarket',
+          preview: mockPreview,
         }),
       ).rejects.toThrow('Failed to place order');
     });
   });
 
   describe('claim', () => {
-    const mockClaimablePositions = [
-      {
-        id: 'position-123',
-        providerId: 'provider-456',
-        marketId: 'market-789',
-        outcomeId: 'outcome-101',
-        outcome: 'UP',
-        outcomeTokenId: 'outcome-token-202',
-        title: 'BTC UP',
-        icon: 'btc-icon.png',
-        amount: 100,
-        price: 1.0,
-        status: PredictPositionStatus.REDEEMABLE,
-        size: 100,
-        outcomeIndex: 0,
-        realizedPnl: 50,
-        curPrice: 1.5,
-        conditionId: 'condition-303',
-        percentPnl: 50,
-        cashPnl: 50,
-        redeemable: true,
-        initialValue: 100,
-        avgPrice: 1.0,
-        currentValue: 150,
-        endDate: '2025-01-01',
-        claimable: false,
-      },
-      {
-        id: 'position-456',
-        providerId: 'provider-789',
-        marketId: 'market-101',
-        outcomeId: 'outcome-202',
-        outcome: 'DOWN',
-        outcomeTokenId: 'outcome-token-303',
-        title: 'ETH DOWN',
-        icon: 'eth-icon.png',
-        amount: 75,
-        price: 1.2,
-        status: PredictPositionStatus.REDEEMABLE,
-        size: 75,
-        outcomeIndex: 1,
-        realizedPnl: 25,
-        curPrice: 1.5,
-        conditionId: 'condition-404',
-        percentPnl: 33.33,
-        cashPnl: 25,
-        redeemable: true,
-        initialValue: 75,
-        avgPrice: 1.2,
-        currentValue: 112.5,
-        endDate: '2025-02-01',
-        claimable: false,
-      },
-    ];
-
     it('calls PredictController.claim and returns result', async () => {
       const mockClaimResult = {
         txMeta: { id: 'tx-789', hash: '0xghi789' },
@@ -214,89 +196,92 @@ describe('usePredictTrading', () => {
         claimedAmount: 175,
       };
 
-      (Engine.context.PredictController.claim as jest.Mock).mockResolvedValue(
-        mockClaimResult,
-      );
+      (
+        Engine.context.PredictController.claimWithConfirmation as jest.Mock
+      ).mockResolvedValue(mockClaimResult);
 
       const { result } = renderHook(() => usePredictTrading());
 
       const response = await result.current.claim({
-        positions: mockClaimablePositions,
         providerId: 'polymarket',
       });
 
-      expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
-        positions: mockClaimablePositions,
+      expect(
+        Engine.context.PredictController.claimWithConfirmation,
+      ).toHaveBeenCalledWith({
         providerId: 'polymarket',
       });
       expect(response).toEqual(mockClaimResult);
     });
 
-    it('handles errors from PredictController.claim', async () => {
+    it('throws error when PredictController.claim fails', async () => {
       const mockError = new Error('Failed to claim winnings');
-      (Engine.context.PredictController.claim as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
+      (
+        Engine.context.PredictController.claimWithConfirmation as jest.Mock
+      ).mockRejectedValue(mockError);
       const { result } = renderHook(() => usePredictTrading());
 
       await expect(
-        result.current.claim({
-          positions: mockClaimablePositions,
-          providerId: 'polymarket',
-        }),
+        result.current.claim({ providerId: 'polymarket' }),
       ).rejects.toThrow('Failed to claim winnings');
     });
+  });
 
-    it('handles empty positions array', async () => {
-      const mockClaimResult = {
-        txMeta: { id: 'tx-empty', hash: '0xempty' },
-        success: true,
-        claimedAmount: 0,
-      };
+  describe('getBalance', () => {
+    it('calls PredictController.getBalance and returns balance', async () => {
+      const mockBalance = 1500.75;
 
-      (Engine.context.PredictController.claim as jest.Mock).mockResolvedValue(
-        mockClaimResult,
-      );
+      (
+        Engine.context.PredictController.getBalance as jest.Mock
+      ).mockResolvedValue(mockBalance);
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.claim({
-        positions: [],
+      const response = await result.current.getBalance({
         providerId: 'polymarket',
+        address: '0x1234567890123456789012345678901234567890',
       });
 
-      expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
-        positions: [],
+      expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith({
         providerId: 'polymarket',
+        address: '0x1234567890123456789012345678901234567890',
       });
-      expect(response).toEqual(mockClaimResult);
+      expect(response).toBe(mockBalance);
     });
 
-    it('handles single position claim', async () => {
-      const singlePosition = [mockClaimablePositions[0]];
-      const mockClaimResult = {
-        txMeta: { id: 'tx-single', hash: '0xsingle' },
-        success: true,
-        claimedAmount: 150,
-      };
+    it('throws error when PredictController.getBalance fails', async () => {
+      const mockError = new Error('Failed to fetch balance');
+      (
+        Engine.context.PredictController.getBalance as jest.Mock
+      ).mockRejectedValue(mockError);
+      const { result } = renderHook(() => usePredictTrading());
 
-      (Engine.context.PredictController.claim as jest.Mock).mockResolvedValue(
-        mockClaimResult,
-      );
+      await expect(
+        result.current.getBalance({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        }),
+      ).rejects.toThrow('Failed to fetch balance');
+    });
+
+    it('calls getBalance with default address when not provided', async () => {
+      const mockBalance = 500.0;
+
+      (
+        Engine.context.PredictController.getBalance as jest.Mock
+      ).mockResolvedValue(mockBalance);
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.claim({
-        positions: singlePosition,
+      const response = await result.current.getBalance({
         providerId: 'polymarket',
       });
 
-      expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
-        positions: singlePosition,
+      // The hook calls the controller directly, so the controller handles the default address
+      expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith({
         providerId: 'polymarket',
       });
-      expect(response).toEqual(mockClaimResult);
+      expect(response).toBe(mockBalance);
     });
   });
 
@@ -307,21 +292,16 @@ describe('usePredictTrading', () => {
       const initialGetPositions = result.current.getPositions;
       const initialPlaceOrder = result.current.placeOrder;
       const initialClaim = result.current.claim;
-      const initialCalculateBetAmounts = result.current.calculateBetAmounts;
-      const initialCalculateCashOutAmounts =
-        result.current.calculateCashOutAmounts;
+      const initialGetBalance = result.current.getBalance;
+      const initialPreviewOrder = result.current.previewOrder;
 
       rerender({});
 
       expect(result.current.getPositions).toBe(initialGetPositions);
       expect(result.current.placeOrder).toBe(initialPlaceOrder);
       expect(result.current.claim).toBe(initialClaim);
-      expect(result.current.calculateBetAmounts).toBe(
-        initialCalculateBetAmounts,
-      );
-      expect(result.current.calculateCashOutAmounts).toBe(
-        initialCalculateCashOutAmounts,
-      );
+      expect(result.current.getBalance).toBe(initialGetBalance);
+      expect(result.current.previewOrder).toBe(initialPreviewOrder);
     });
   });
 });

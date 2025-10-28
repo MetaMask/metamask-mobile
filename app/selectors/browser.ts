@@ -26,3 +26,6 @@ export const selectBrowserBookmarksWithType = createDeepEqualSelector(
         ({ ...item, category: UrlAutocompleteCategory.Favorites } as const),
     ),
 );
+
+export const selectBrowserFullscreen = (state: RootState) =>
+  state.browser.isFullscreen;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { MarketInfo } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Hook to fetch and manage market data for a specific asset
@@ -28,7 +28,7 @@ export const usePerpsMarketData = (asset: string) => {
       const markets = await getMarkets({ symbols: [asset] });
       const assetMarket = markets.find((market) => market.name === asset);
 
-      if (!assetMarket) {
+      if (assetMarket === undefined) {
         setError(`Asset ${asset} is not tradable`);
         setMarketData(null);
       } else {

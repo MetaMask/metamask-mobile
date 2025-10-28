@@ -14,6 +14,6 @@ export default {
   },
   error: (...args: unknown[]) => {
     // eslint-disable-next-line no-console
-    console.error(prettify(prefix, ...args));
+    console.error(prefix, ...args);
   },
 };

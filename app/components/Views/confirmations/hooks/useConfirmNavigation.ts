@@ -10,6 +10,7 @@ const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
 const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
 export type ConfirmNavigateOptions = {
+  amount?: string;
   headerShown?: boolean;
   stack?: string;
 } & ConfirmationParams;

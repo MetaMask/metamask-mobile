@@ -28,13 +28,14 @@ const PERCENTAGE_BUTTONS = [
     value: 50,
   },
   {
-    label: '90%',
-    value: 90,
+    label: 'Max',
+    value: 100,
   },
 ];
 
 export interface DepositKeyboardProps {
   alertMessage?: string;
+  hasInput?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -44,6 +45,7 @@ export interface DepositKeyboardProps {
 export const DepositKeyboard = memo(
   ({
     alertMessage,
+    hasInput,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -52,7 +54,6 @@ export const DepositKeyboard = memo(
     const currentCurrency = PERPS_CURRENCY;
     const { styles } = useStyles(styleSheet, {});
     const valueString = value.toString();
-    const hasInput = valueString && valueString !== '0' && valueString !== '';
 
     const handleChange = useCallback(
       (data: KeypadChangeData) => {

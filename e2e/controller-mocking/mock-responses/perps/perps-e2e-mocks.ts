@@ -26,12 +26,11 @@ export class PerpsE2EMockService {
 
   // Mock state that persists across the E2E session
   private mockAccount: AccountState = {
-    totalBalance: '10000.00',
     availableBalance: '8000.00',
     marginUsed: '2000.00',
     unrealizedPnl: '150.00',
     returnOnEquity: '0',
-    totalValue: '10000.00',
+    totalBalance: '10000.00',
   };
 
   private mockPositions: Position[] = [];
@@ -76,7 +75,6 @@ export class PerpsE2EMockService {
       // Set a temporary value; we will recompute from positions below
       unrealizedPnl: '0.00',
       returnOnEquity: '0',
-      totalValue: profile === 'no-funds' ? '0.00' : '10000.00',
     };
 
     // Positions based on profile
@@ -357,8 +355,8 @@ export class PerpsE2EMockService {
     // Recompute account unrealized PnL based on remaining positions
     const recomputedUnrealized = this.computeTotalUnrealizedPnl();
     this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
-    // Keep totalValue aligned with equity (realized + unrealized)
-    this.mockAccount.totalValue = (
+    // Keep totalBalance aligned with equity (realized + unrealized)
+    this.mockAccount.totalBalance = (
       parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
     ).toFixed(2);
 
@@ -757,11 +755,11 @@ export class PerpsE2EMockService {
 
     this.mockPositions = remaining;
 
-    // Recompute unrealized and totalValue after potential closures
+    // Recompute unrealized and totalBalance after potential closures
     if (didAnyClose) {
       const recomputedUnrealized = this.computeTotalUnrealizedPnl();
       this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
-      this.mockAccount.totalValue = (
+      this.mockAccount.totalBalance = (
         parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
       ).toFixed(2);
     }

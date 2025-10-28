@@ -48,10 +48,13 @@ const STATE_MOCK = merge(
   },
 );
 
-function runHook() {
-  return renderHookWithProvider(useAutomaticTransactionPayToken, {
-    state: STATE_MOCK,
-  });
+function runHook({ disable = false } = {}) {
+  return renderHookWithProvider(
+    () => useAutomaticTransactionPayToken({ disable }),
+    {
+      state: STATE_MOCK,
+    },
+  );
 }
 
 describe('useAutomaticTransactionPayToken', () => {
@@ -369,5 +372,19 @@ describe('useAutomaticTransactionPayToken', () => {
     const { result } = runHook();
 
     expect(result.current.count).toBe(2);
+  });
+
+  it('selected nothing if disabled', () => {
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: REQUIRED_BALANCE_MOCK,
+      },
+    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+
+    runHook({ disable: true });
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 });

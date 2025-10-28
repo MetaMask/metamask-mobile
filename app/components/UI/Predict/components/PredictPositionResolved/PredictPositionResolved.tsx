@@ -10,6 +10,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
+import { getPredictPositionSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 dayjs.extend(relativeTime);
 
@@ -45,6 +46,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
 
   return (
     <TouchableOpacity
+      testID={getPredictPositionSelector.resolvedPositionCard(position.id)}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
@@ -68,8 +70,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       <View>
         {percentPnl > 0 ? (
           <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-            Won{' '}
-            {formatPrice(currentValue - initialValue, { maximumDecimals: 2 })}
+            Won {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
         ) : (
           <Text variant={TextVariant.BodyMD} color={TextColor.Error}>

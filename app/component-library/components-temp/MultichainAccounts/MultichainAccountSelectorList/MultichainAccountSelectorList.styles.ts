@@ -70,6 +70,22 @@ const createStyles = (params: {
     accountCellWrapper: {
       flex: 1,
     },
+    externalAccountContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      paddingVertical: 16,
+    },
+    textContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      gap: 4,
+    },
+    networkAvatarContainer: {
+      marginLeft: 8,
+      alignSelf: 'center',
+    },
     emptyState: {
       flex: 1,
       justifyContent: 'center',

@@ -3,63 +3,273 @@ description: Project Guidelines for Unit Testing
 globs: *.test.*
 alwaysApply: false
 ---
-- Use (the unit testing guidelines)[https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md]
 
-# Developer Best Practices
+Reference: [MetaMask Unit Testing Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md)
 
-- Use meaningful test names that describe the purpose, not implementation details.
+# Unit Testing Guidelines
+
+## Test Naming Rules
+
+- **NEVER use "should" in test names** - this is a hard rule with zero exceptions
+- **Use action-oriented descriptions** that describe what the code does
+- **Be specific about the behavior being tested**
+- **AVOID** weasel words like "handle", "manage", or other non-specific action verbs
+- **AVOID** subjective outcome words like "successfully", "correctly", "invalid" - instead indicate what the actual result should be
+- **BE SPECIFIC** about conditions: use "email without domain" instead of "invalid email"
+
 ```ts
-it('displays an error when input is invalid', () => { ... });
+// ❌ WRONG
+it('should return fixed timestamp', () => { ... });
+it('should ignore events', () => { ... });
+it('should display error when input is invalid', () => { ... });
+it('handles invalid input correctly', () => { ... });
+
+// ✅ CORRECT
+it('returns fixed timestamp for privacy events', () => { ... });
+it('ignores events without privacy timestamp property', () => { ... });
+it('displays error when email is missing @ symbol', () => { ... });
+it('returns false for email without domain', () => { ... });
 ```
-- Structure tests using the AAA pattern (Arrange, Act, Assert) for readability and maintainability.
+
+## Test Structure and Organization - MANDATORY
+
+- **EVERY test MUST follow the AAA pattern** (Arrange, Act, Assert) with blank line separation
+- **Each test must cover ONE behavior** and be isolated from others
+- **Use helper functions** for test data creation
+- **Group related tests** in `describe` blocks
+
 ```ts
-// Arrange
-const input = 'bad';
-// Act
-const result = validate(input);
-// Assert
-expect(result).toBe(false);
+it('returns false for email without domain', () => {
+  const input = 'user@';
+
+  const result = validateEmail(input);
+
+  expect(result).toBe(false);
+});
 ```
-- Each test must cover one behavior and be isolated from others.
+
+**Helper Functions**:
 ```ts
-it('returns true for valid email', () => { expect(isEmail('a@b.com')).toBe(true); });
+const createTestEvent = (overrides = {}) => ({
+  type: EventType.TrackEvent,
+  event: 'Test Event',
+  timestamp: '2024-01-01T12:00:00.000Z',
+  ...overrides,
+});
 ```
-- Favor focused assertions and clear structure.
+
+## Mocking Rules - CRITICAL
+
+- **EVERYTHING not under test MUST be mocked** - no exceptions
+- **NO** use of `require` - use ES6 imports only
+- **NO** use of `any` type - use proper TypeScript types
+- **Mock all external dependencies** including APIs, services, hooks
+- **Use realistic mock data** that reflects real usage
+
 ```ts
-expect(screen.getByText('Welcome')).toBeOnTheScreen();
+// ✅ CORRECT
+import { apiService } from '../services/api';
+jest.mock('../services/api');
+const mockApiService = apiService as jest.Mocked<typeof apiService>;
+
+interface MockEvent {
+  type: EventType;
+  event: string;
+  timestamp: string;
+}
+
+// ❌ WRONG
+const mockApi = require('../services/api'); // ❌ no require
+const mockApi: any = jest.fn();             // ❌ no any type
 ```
-- Avoid duplicated or polluted tests.
+
+## Test Isolation and Focus - MANDATORY
+
+- **Each test MUST be independent** - no shared state between tests
+- **Use `beforeEach` for setup, `afterEach` for cleanup**
+- **Reset all mocks between tests**
+- **Tests MUST run in any order**
+- **Avoid duplicated or polluted tests**
+- **Use mocks for all external dependencies**
+
 ```ts
-// Only define shared mocks once, not in every test
-beforeEach(() => mockReset());
+// ✅ CORRECT Test Isolation
+describe('MetaMetricsCustomTimestampPlugin', () => {
+  let plugin: MetaMetricsCustomTimestampPlugin;
+
+  beforeEach(() => {
+    plugin = new MetaMetricsCustomTimestampPlugin({
+      timestampStrategy: 'fixed',
+      customTimestamp: '1970-01-01T00:00:00.000Z',
+    });
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('returns fixed timestamp for privacy events', () => {
+    const event = createTestEvent({ privacyTimestamp: true });
+
+    const result = plugin.execute(event);
+
+    expect(result.timestamp).toBe('1970-01-01T00:00:00.000Z');
+  });
+});
 ```
-- Use mocks only when necessary.
+
+## Test Coverage (MANDATORY)
+
+**EVERY component MUST test:**
+- ✅ **Happy path** - normal expected behavior
+- ✅ **Edge cases** - null, undefined, empty values, boundary conditions
+- ✅ **Error conditions** - invalid inputs, failure scenarios
+- ✅ **Different code paths** - all if/else branches, switch cases
+- ✅ **Method chaining** - for builder patterns
+- ✅ **Side effects** - property changes, state updates, cleanup
+
 ```ts
-jest.mock('api'); // mock only when calling real API is not feasible
+// ✅ CORRECT Coverage Example
+describe('MetaMetricsCustomTimestampPlugin', () => {
+  describe('execute', () => {
+    it('returns fixed timestamp for privacy events', () => {
+      // Happy path
+    });
+
+    it('ignores events without privacy timestamp property', () => {
+      // Edge case
+    });
+
+    it('throws error when strategy is null', () => {
+      // Error condition
+    });
+
+    it('uses event-specific timestamp strategy when provided', () => {
+      // Different code path
+    });
+
+    it('removes privacy properties from event', () => {
+      // Side effect
+    });
+  });
+});
 ```
+
+## Parameterized Tests
+
 - Parameterize tests to cover all values (e.g., enums) with type-safe iteration.
+
 ```ts
 it.each(['small', 'medium', 'large'] as const)('renders %s size', (size) => {
   expect(renderComponent(size)).toBeOnTheScreen();
 });
 ```
-- Prefer comments like "Given / When / Then" for test case clarity.
-```ts
-// Given a logged out user
-// When they visit the dashboard
-// Then they should be redirected to login
-```
 
-# Test Determinism & Brittleness
+## Test Determinism
 
+- **EVERYTHING** not under test must be mocked - no exceptions.
 - Avoid brittle tests: do not test internal state or UI snapshots for logic.
 - Only test public behavior, not implementation details.
 - Mock time, randomness, and external systems to ensure consistent results.
+
 ```ts
+// Mock all external dependencies
+jest.mock('../services/api');
+jest.mock('../utils/date');
+jest.mock('../hooks/useAuth');
+
 jest.useFakeTimers();
 jest.setSystemTime(new Date('2024-01-01'));
 ```
+
 - Avoid relying on global state or hardcoded values (e.g., dates) or mock it.
+
+## Async Testing and act() - CRITICAL
+
+**ALWAYS use `act()` when testing async operations that trigger React state updates.**
+
+### When to Use act()
+
+Use `act()` when you:
+- Call async functions via component props (e.g., `onRefresh`, `onPress` with async handlers)
+- Invoke functions that perform state updates asynchronously
+- Test pull-to-refresh or other async interactions
+
+### Symptoms of Missing act()
+
+Tests fail intermittently with:
+- `TypeError: terminated`
+- `SocketError: other side closed`
+- Warnings about state updates not being wrapped in act()
+
+### Examples
+
+```ts
+// ❌ WRONG - Causes flaky tests
+it('calls Logger.error when handleOnRefresh fails', async () => {
+  const mockLoggerError = jest.spyOn(Logger, 'error');
+  render(BankDetails);
+
+  // Async function called without act() - causes race condition
+  screen
+    .getByTestId('refresh-control-scrollview')
+    .props.refreshControl.props.onRefresh();
+
+  await waitFor(() => {
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+});
+
+// ✅ CORRECT - Properly handles async state updates
+it('calls Logger.error when handleOnRefresh fails', async () => {
+  const mockLoggerError = jest.spyOn(Logger, 'error');
+  render(BankDetails);
+
+  // Wrap async operation in act()
+  await act(async () => {
+    await screen
+      .getByTestId('refresh-control-scrollview')
+      .props.refreshControl.props.onRefresh();
+  });
+
+  await waitFor(() => {
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+});
+```
+
+### Common Patterns Requiring act()
+
+```ts
+// RefreshControl callbacks
+await act(async () => {
+  await refreshControl.props.onRefresh();
+});
+
+// Async button press handlers
+await act(async () => {
+  await button.props.onPress();
+});
+
+// Any async callback that updates state
+await act(async () => {
+  await component.props.onSomeAsyncAction();
+});
+```
+
+### Why This Matters
+
+Without `act()`:
+1. Async function starts executing
+2. Test continues and waits only for specific assertion
+3. Jest cleanup/termination happens while promises are still pending
+4. Results in "terminated" or "other side closed" errors
+
+With `act()`:
+1. React Testing Library waits for all state updates
+2. All promises resolve before test proceeds
+3. Clean, deterministic test execution
 
 # Reviewer Responsibilities
 
@@ -69,15 +279,8 @@ jest.setSystemTime(new Date('2024-01-01'));
 expect(result).toBe(false);
 ```
 - Ensure tests use proper matchers (`toBeOnTheScreen` vs `toBeDefined`).
-- Do not approve PRs without reviewing snapshot diffs.
+- Do not approve PRs without reviewing snapshot diffs, it can reveal errors.
 - Reject tests with complex names combining multiple logical conditions (AND/OR).
-```ts
-// OK
-it('renders button when enabled')
-
-// NOT OK
-it('renders and disables button when input is empty or invalid')
-```
 
 # Refactoring Support
 
@@ -85,44 +288,81 @@ it('renders and disables button when input is empty or invalid')
 - Encourage small, testable components.
 - Unit tests must act as documentation for feature expectations.
 
+# Quality Checklist - MANDATORY
+
+Before submitting any test file, verify:
+- [ ] **No "should" in any test name**
+- [ ] **All tests follow AAA pattern**
+- [ ] **Each test has one clear purpose**
+- [ ] **All code paths are tested**
+- [ ] **Edge cases are covered**
+- [ ] **Test data is realistic**
+- [ ] **Tests are independent**
+- [ ] **Assertions are specific**
+- [ ] **Test names are descriptive**
+- [ ] **No test duplication**
+- [ ] **Async operations wrapped in act()** when they trigger state updates
+
+# Common Mistakes to AVOID - CRITICAL
+
+- ❌ **Using "should" in test names** - This is the #1 mistake
+- ❌ **Testing multiple behaviors in one test** - One test, one behavior
+- ❌ **Sharing state between tests** - Each test must be independent
+- ❌ **Not testing error conditions** - Test both success and failure paths
+- ❌ **Using unrealistic test data** - Use data that reflects real usage
+- ❌ **Not following AAA pattern** - Always Arrange, Act, Assert
+- ❌ **Not testing edge cases** - Test null, undefined, empty values
+- ❌ **Using weak matchers** - Use specific assertions like `toBe()`, `toEqual()`
+- ❌ **Not wrapping async state updates in act()** - Causes flaky "terminated" errors
+
 # Anti-patterns to Avoid
 
 - ❌ Do not consider snapshot coverage as functional coverage.
-```ts
-expect(component).toMatchSnapshot(); // 🚫 not behavior validation
-```
 - ❌ Do not rely on code coverage percentage without real assertions.
-```ts
-// 100% lines executed, but no assertions
-```
-- ❌ Do not use weak matchers like `toBeDefined` or `toBeTruthy` to assert element presence.
-```ts
-expect(queryByText('Item')).toBeOnTheScreen(); // ✅ use strong matchers
-```
+- ❌ Do not use weak matchers like `toBeDefined` or `toBeTruthy` to assert element presence. Use `toBeOnTheScreen()`.
 
 # Unit tests developement workflow
 
 - Always run unit tests after making code changes.
+- **NEVER** use npm, npx, or other package managers - ONLY use yarn
+
+## Testing Commands
+
+### Single File Testing
 ```shell
+# Use this command for testing a specific file
+yarn jest <filename>
+# Use this command for testing specific test cases
+yarn jest <filename> -t "<test-name-pattern>"
+# Use this command for running all unit tests
 yarn test:unit
+# Run a specific test file
+yarn jest MyComponent.test.tsx
+yarn jest utils/helpers.test.ts
 ```
+
+### Coverage Reports
+```shell
+# Use this command for coverage reports
+yarn test:unit:coverage
+```
+
+
+## Workflow Requirements
 - Confirm all tests are passing before commit.
 - When a snapshot update is detected, confirm the changes are expected.
 - Do not blindly update snapshots without understanding the differences.
 
 # Reference Code Examples
 
-## ✅ Proper Test Structure (AAA)
+**Proper AAA**:
 ```ts
 it('indicates expired milk when past due date', () => {
-  // Arrange
   const today = new Date('2025-06-01');
   const milk = { expiration: new Date('2025-05-30') };
 
-  // Act
   const result = isMilkGood(today, milk);
 
-  // Assert
   expect(result).toBe(false);
 });
 ```
@@ -140,22 +380,36 @@ it('renders the button', () => {
 it('displays error message when API fails', async () => {
   mockApi.failOnce();
   const { findByText } = render(<MyComponent />);
+
   expect(await findByText('Something went wrong')).toBeOnTheScreen();
 });
 ```
 
-## ✅ Test the Test
+**Test the Test**:
 ```ts
 it('hides selector when disabled', () => {
   const { queryByTestId } = render(<Selector enabled={false} />);
-  expect(queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
 
-  // Intentionally break: render with enabled=true and see if test fails
+  expect(queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
+  
+  // Break test: change enabled={false} to enabled={true} and verify test fails
 });
 ```
 
-# Resources
+## Reviewer Responsibilities
 
-- Contributor docs: https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md
-- Jest Matchers: https://jestjs.io/docs/using-matchers
-- React Native Testing Library: https://testing-library.com/docs/react-native-testing-library/intro/
+Validate tests fail when code breaks • Ensure proper matchers • Review snapshot diffs • Reject complex names with AND/OR
+
+```ts
+// OK
+it('renders button when enabled')
+
+// NOT OK
+it('renders and disables button when input is empty or missing required field')
+```
+
+## Workflow
+
+Always run tests after changes • Confirm all pass before commit • Review snapshot changes • Don't blindly update snapshots
+
+**Resources**: [Contributor docs](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md) • [Jest Matchers](https://jestjs.io/docs/using-matchers) • [React Native Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/)

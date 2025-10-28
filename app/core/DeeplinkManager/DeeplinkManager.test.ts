@@ -16,6 +16,7 @@ import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
+import handleFastOnboarding from './Handlers/handleFastOnboarding';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
@@ -28,6 +29,7 @@ jest.mock('./Handlers/handleCreateAccountUrl');
 jest.mock('./Handlers/handlePerpsUrl');
 jest.mock('./Handlers/handleRewardsUrl');
 jest.mock('./Handlers/handleDeeplink');
+jest.mock('./Handlers/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
 
 const mockNavigation = {
@@ -198,6 +200,12 @@ describe('DeeplinkManager', () => {
     expect(handleRewardsUrl).toHaveBeenCalledWith({
       rewardsPath: '?referral=code123',
     });
+  });
+
+  it('should handle onboarding correctly', () => {
+    const onboardingPath = '/onboarding';
+    deeplinkManager._handleFastOnboarding(onboardingPath);
+    expect(handleFastOnboarding).toHaveBeenCalledWith({ onboardingPath });
   });
 });
 

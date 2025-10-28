@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
+import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 
 /**
  * Hook to track deposit progress state for UI components
@@ -72,8 +72,10 @@ export const usePerpsDepositProgress = () => {
       return;
     }
 
-    const currentBalance = parseFloat(liveAccount.availableBalance || '0');
-    const previousBalance = parseFloat(prevAvailableBalanceRef.current);
+    const currentBalance = Number.parseFloat(
+      liveAccount.availableBalance || '0',
+    );
+    const previousBalance = Number.parseFloat(prevAvailableBalanceRef.current);
 
     // Check if balance increased
     if (currentBalance > previousBalance) {

@@ -129,10 +129,15 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
     address: '0x1234567890123456789012345678901234567890',
     id: 'mock-account-id',
   }),
+  selectInternalAccountByAccountGroupAndScope: () => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'mock-account-id',
+  }),
 }));
 
 jest.mock('../../../../selectors/settings', () => ({
   selectAvatarAccountType: () => 'MaskIcon',
+  selectBasicFunctionalityEnabled: () => true,
 }));
 
 jest.mock(

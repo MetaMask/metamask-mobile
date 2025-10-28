@@ -62,7 +62,7 @@ describe('RegionSelectorModal Component', () => {
 
     mockUseParams.mockReturnValue({
       regions: mockRegions,
-      error: null,
+      onRegionSelect: undefined,
     });
 
     mockTrackEvent.mockClear();
@@ -151,7 +151,7 @@ describe('RegionSelectorModal Component', () => {
 
     mockUseParams.mockReturnValue({
       regions: customRegions,
-      error: null,
+      onRegionSelect: undefined,
     });
 
     const { toJSON } = renderWithProvider(RegionSelectorModal);
@@ -162,11 +162,112 @@ describe('RegionSelectorModal Component', () => {
   it('handles empty regions array from navigation params', () => {
     mockUseParams.mockReturnValue({
       regions: [],
-      error: null,
     });
 
     const { toJSON } = renderWithProvider(RegionSelectorModal);
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('calls onRegionSelect callback when provided and region is selected', () => {
+    const mockOnRegionSelect = jest.fn();
+
+    mockUseParams.mockReturnValue({
+      regions: mockRegions,
+      onRegionSelect: mockOnRegionSelect,
+    });
+
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+    const germanyRegion = getByText('Germany');
+
+    fireEvent.press(germanyRegion);
+
+    expect(mockOnRegionSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isoCode: 'DE',
+        name: 'Germany',
+        supported: true,
+      }),
+    );
+  });
+
+  it('does not update global region when updateGlobalRegion is false', () => {
+    mockUseParams.mockReturnValue({
+      regions: mockRegions,
+      onRegionSelect: undefined,
+      updateGlobalRegion: false,
+    });
+
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+    const germanyRegion = getByText('Germany');
+
+    fireEvent.press(germanyRegion);
+
+    expect(mockSetSelectedRegion).not.toHaveBeenCalled();
+  });
+
+  it('does not track analytics when trackSelection is false', () => {
+    mockUseParams.mockReturnValue({
+      regions: mockRegions,
+      onRegionSelect: undefined,
+      trackSelection: false,
+    });
+
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+    const germanyRegion = getByText('Germany');
+
+    fireEvent.press(germanyRegion);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('render matches snapshot with allRegionsSelectable set to true', () => {
+    mockUseParams.mockReturnValue({
+      regions: mockRegions,
+      onRegionSelect: undefined,
+      allRegionsSelectable: true,
+    });
+
+    const { toJSON } = renderWithProvider(RegionSelectorModal);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('render matches snapshot with custom selectedRegion', () => {
+    const germanyRegion = mockRegions.find((r) => r.isoCode === 'DE');
+
+    mockUseParams.mockReturnValue({
+      regions: mockRegions,
+      onRegionSelect: undefined,
+      selectedRegion: germanyRegion,
+    });
+
+    const { toJSON } = renderWithProvider(RegionSelectorModal);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('allows selection of unsupported regions when allRegionsSelectable is true', () => {
+    const mockOnRegionSelect = jest.fn();
+
+    mockUseParams.mockReturnValue({
+      regions: mockRegions,
+      onRegionSelect: mockOnRegionSelect,
+      allRegionsSelectable: true,
+    });
+
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+    const canadaRegion = getByText('Canada');
+
+    fireEvent.press(canadaRegion);
+
+    expect(mockOnRegionSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isoCode: 'CA',
+        name: 'Canada',
+        supported: false,
+      }),
+    );
+    expect(mockSetSelectedRegion).toHaveBeenCalled();
   });
 });

@@ -31,12 +31,26 @@ export const useMultichainAccountsIntroModal = () => {
     const lastAppVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
     const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
+    let isMultichainAccountsUpdate = false;
+    if (isUpdate) {
+      const toParts = (v: string = '') => v.split('.').map(Number);
+      const [lastMaj = 0, lastMin = 0] = toParts(lastAppVersion);
+      const [currMaj = 0, currMin = 0] = toParts(currentAppVersion);
+
+      isMultichainAccountsUpdate =
+        (lastMaj < 7 || (lastMaj === 7 && lastMin <= 56)) &&
+        (currMaj > 7 || (currMaj === 7 && currMin >= 57));
+    }
+
     // Only show modal if:
     // 1. Feature is enabled
     // 2. User hasn't seen the modal
     // 3. This is not a fresh install (it's an update)
     const shouldShow =
-      isMultichainAccountsState2Enabled && !hasSeenIntroModal && isUpdate;
+      isMultichainAccountsState2Enabled &&
+      !hasSeenIntroModal &&
+      isUpdate &&
+      isMultichainAccountsUpdate;
 
     if (shouldShow && !isE2ETest) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

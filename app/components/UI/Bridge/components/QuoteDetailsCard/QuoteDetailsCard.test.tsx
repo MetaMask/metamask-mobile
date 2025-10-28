@@ -73,10 +73,32 @@ jest.mock('../../../../../core/Engine', () => ({
 // Mock the bridge selectors
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectBridgeControllerState: () => ({
+    quotesLastFetched: Date.now(),
+    quotesLoadingStatus: null,
+    quoteFetchError: null,
+    quotesRefreshCount: 0,
+  }),
   selectBridgeFeatureFlags: () => ({
+    minimumVersion: '0.0.0',
+    refreshRate: 30000,
+    maxRefreshCount: 3,
+    support: true,
     priceImpactThreshold: {
       normal: 3.0,
       gasless: 1.5,
+    },
+    chains: {
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+        refreshRate: 30000,
+        isActiveSrc: true,
+        isActiveDest: true,
+      },
+      'eip155:1': {
+        refreshRate: 30000,
+        isActiveSrc: true,
+        isActiveDest: true,
+      },
     },
   }),
   selectIsEvmSolanaBridge: () => true,
@@ -95,6 +117,34 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     name: 'Ethereum',
   }),
   selectSourceAmount: () => '1.0',
+  selectDestAddress: () => undefined,
+  selectIsSwap: () => false,
+}));
+
+// Mock multichain account selectors
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: () => ({}),
+    selectAccountToWalletMap: () => ({}),
+    selectWalletsMap: () => ({}),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+    selectAccountTreeControllerState: () => ({}),
+    selectAccountGroupWithInternalAccounts: () => [],
+    selectSelectedAccountGroupInternalAccounts: () => [],
+  }),
+);
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectInternalAccounts: () => [],
 }));
 
 // want to make the source token solana and dest token evm

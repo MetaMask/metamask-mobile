@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
@@ -14,7 +14,7 @@ import Assertions from '../../framework/Assertions';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeConfirmations('Send ETH'), () => {
+describe(RegressionConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
 

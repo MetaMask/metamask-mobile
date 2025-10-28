@@ -49,6 +49,10 @@ describe('SearchBox', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Visibility behavior', () => {
     it('renders nothing when isVisible is false', () => {
       const { queryByTestId } = renderWithProvider(

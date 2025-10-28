@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (theme: Theme) =>
+const createStyles = (theme: Theme, deviceWidth: number) =>
   StyleSheet.create({
     safeAreaView: {
       flex: 1,
@@ -19,7 +19,8 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
     },
     image: {
-      transform: [{ rotate: '1.9deg' }],
+      width: deviceWidth * 0.9,
+      height: deviceWidth,
     },
     button: {
       marginTop: 48,

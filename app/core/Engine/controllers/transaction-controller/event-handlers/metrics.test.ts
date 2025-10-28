@@ -48,6 +48,17 @@ jest.mock('../../../Engine', () => ({
   context: {},
 }));
 
+jest.mock('../event_properties/metamask-pay', () => ({
+  getMetaMaskPayProperties: jest.fn().mockReturnValue({
+    properties: {
+      builder_test: true,
+    },
+    sensitiveProperties: {
+      builder_sensitive_test: true,
+    },
+  }),
+}));
+
 describe('Transaction Metric Event Handlers', () => {
   const mockGetSmartTransactionMetricsProperties = jest.mocked(
     getSmartTransactionMetricsProperties,
@@ -193,6 +204,25 @@ describe('Transaction Metric Event Handlers', () => {
     }).not.toThrow();
   });
 
+  it('includes builder metrics', async () => {
+    await handleTransactionSubmittedEventForMetrics(
+      mockTransactionMeta,
+      mockTransactionMetricRequest,
+    );
+
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        builder_test: true,
+      }),
+    );
+
+    expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        builder_sensitive_test: true,
+      }),
+    );
+  });
+
   describe('handleTransactionFinalized', () => {
     it('adds STX metrics properties if smart transactions are enabled', async () => {
       // Force the selector to return true
@@ -248,6 +278,25 @@ describe('Transaction Metric Event Handlers', () => {
       expect(mockEventBuilder.addProperties).toHaveBeenCalled();
       expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
         expect.objectContaining(mockSmartTransactionMetricsProperties),
+      );
+    });
+
+    it('includes builder metrics', async () => {
+      await handleTransactionFinalizedEventForMetrics(
+        mockTransactionMeta,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder_test: true,
+        }),
+      );
+
+      expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder_sensitive_test: true,
+        }),
       );
     });
   });

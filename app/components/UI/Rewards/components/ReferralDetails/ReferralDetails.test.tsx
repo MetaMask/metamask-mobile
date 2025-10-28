@@ -226,14 +226,6 @@ describe('ReferralDetails', () => {
   });
 
   describe('Redux selectors integration', () => {
-    it('should call useSelector multiple times for different selectors', () => {
-      // Act
-      renderComponent();
-
-      // Assert - useSelector should be called for each selector in the component
-      expect(mockUseSelector).toHaveBeenCalledTimes(8);
-    });
-
     it('should use the referral details hook', () => {
       // Act
       renderComponent();
@@ -258,18 +250,16 @@ describe('ReferralDetails', () => {
   });
 
   describe('props passing to child components', () => {
-    it('should pass correct props to ReferralStatsSection', () => {
+    it('passes loading state to ReferralStatsSection when referral details are loading', () => {
       // Arrange
       const earnedPoints = 2000;
       const refereeCount = 8;
-      const seasonLoading = true;
-      const detailsLoading = false;
+      const detailsLoading = true;
 
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
         if (selector.name === 'selectBalanceRefereePortion')
           return earnedPoints;
         if (selector.name === 'selectReferralCount') return refereeCount;
-        if (selector.name === 'selectSeasonStatusLoading') return seasonLoading;
         if (selector.name === 'selectReferralDetailsLoading')
           return detailsLoading;
         if (selector.name === 'selectReferralCode') return 'TEST123';
@@ -282,22 +272,58 @@ describe('ReferralDetails', () => {
       // Act
       const { getByTestId } = renderComponent();
 
-      // Assert - Check if component received correct props structure
+      // Assert
       const statsElement = getByTestId('referral-stats-section');
-      expect(statsElement).toBeTruthy();
+      const propsString = statsElement.props['data-testid'];
+      const props = JSON.parse(propsString.replace('stats-', ''));
+      expect(props.earnedPointsFromReferees).toBe(earnedPoints);
+      expect(props.refereeCount).toBe(refereeCount);
+      expect(props.earnedPointsFromRefereesLoading).toBe(true);
+      expect(props.refereeCountLoading).toBe(true);
+      expect(props.refereeCountError).toBe(false);
     });
 
-    it('should pass correct props to ReferralActionsSection', () => {
+    it('passes error state to ReferralStatsSection when referral details error occurs', () => {
+      // Arrange
+      const detailsError = true;
+      const detailsLoading = false;
+
+      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
+        if (selector.name === 'selectBalanceRefereePortion') return 1500;
+        if (selector.name === 'selectReferralCount') return 5;
+        if (selector.name === 'selectReferralDetailsLoading')
+          return detailsLoading;
+        if (selector.name === 'selectReferralDetailsError') return detailsError;
+        if (selector.name === 'selectReferralCode') return 'TEST123';
+        if (selector.name === 'selectSeasonStatusError') return false;
+        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
+        return null;
+      });
+
+      // Act
+      const { getByTestId } = renderComponent();
+
+      // Assert
+      const statsElement = getByTestId('referral-stats-section');
+      const propsString = statsElement.props['data-testid'];
+      const props = JSON.parse(propsString.replace('stats-', ''));
+      expect(props.refereeCountError).toBe(true);
+    });
+
+    it('passes loading state to ReferralActionsSection when referral details are loading', () => {
       // Arrange
       const referralCode = 'TEST456';
       const loading = true;
+      const error = false;
 
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
         if (selector.name === 'selectReferralCode') return referralCode;
         if (selector.name === 'selectReferralDetailsLoading') return loading;
+        if (selector.name === 'selectReferralDetailsError') return error;
         if (selector.name === 'selectReferralCount') return 5;
         if (selector.name === 'selectBalanceRefereePortion') return 1500;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector.name === 'selectSeasonStatusError') return false;
+        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
         return null;
       });
 
@@ -306,7 +332,38 @@ describe('ReferralDetails', () => {
 
       // Assert
       const actionsElement = getByTestId('referral-actions-section');
-      expect(actionsElement).toBeTruthy();
+      const propsString = actionsElement.props['data-testid'];
+      const props = JSON.parse(propsString.replace('actions-', ''));
+      expect(props.referralCode).toBe(referralCode);
+      expect(props.referralCodeLoading).toBe(true);
+      expect(props.referralCodeError).toBe(false);
+    });
+
+    it('passes error state to ReferralActionsSection when referral details error occurs', () => {
+      // Arrange
+      const referralCode = 'TEST789';
+      const loading = false;
+      const error = true;
+
+      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
+        if (selector.name === 'selectReferralCode') return referralCode;
+        if (selector.name === 'selectReferralDetailsLoading') return loading;
+        if (selector.name === 'selectReferralDetailsError') return error;
+        if (selector.name === 'selectReferralCount') return 5;
+        if (selector.name === 'selectBalanceRefereePortion') return 1500;
+        if (selector.name === 'selectSeasonStatusError') return false;
+        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
+        return null;
+      });
+
+      // Act
+      const { getByTestId } = renderComponent();
+
+      // Assert
+      const actionsElement = getByTestId('referral-actions-section');
+      const propsString = actionsElement.props['data-testid'];
+      const props = JSON.parse(propsString.replace('actions-', ''));
+      expect(props.referralCodeError).toBe(true);
     });
   });
 

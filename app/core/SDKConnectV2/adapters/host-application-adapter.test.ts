@@ -255,7 +255,9 @@ describe('HostApplicationAdapter', () => {
         Caip25EndowmentPermissionName,
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        `[SDKConnectV2] Failed to revoke ${Caip25EndowmentPermissionName} permission for connection ${connectionId}`,
+        '[SDKConnectV2]',
+        `Failed to revoke ${Caip25EndowmentPermissionName} permission for connection`,
+        connectionId,
       );
     });
 

@@ -72,6 +72,10 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SampleFeatureListPetNames = 'Sample Feature List Pet Names',
+  SampleFeatureAddPetName = 'Sample Feature Add Pet Name',
+  ///: END:ONLY_INCLUDE_IF
   OnboardingNewSocialAccountExists = 'Onboarding - New Social Account Exists',
   OnboardingNewSocialCreateWallet = 'Onboarding - New Social Create Wallet',
   OnboardingNewSrpCreateWallet = 'Onboarding - New SRP Create Wallet',
@@ -185,6 +189,10 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SampleFeatureListPetNames = 'sample.feature.list.pet.names',
+  SampleFeatureAddPetName = 'sample.feature.add.pet.name',
+  ///: END:ONLY_INCLUDE_IF
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',

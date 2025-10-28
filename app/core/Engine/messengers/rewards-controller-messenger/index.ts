@@ -37,6 +37,8 @@ import {
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
   RewardsDataServiceGetPointsEventsLastUpdatedAction,
+  RewardsDataServiceGetDiscoverSeasonsAction,
+  RewardsDataServiceGetSeasonMetadataAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
@@ -63,7 +65,9 @@ type AllowedActions =
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
   | RewardsDataServiceGetUnlockedRewardsAction
-  | RewardsDataServiceClaimRewardAction;
+  | RewardsDataServiceClaimRewardAction
+  | RewardsDataServiceGetDiscoverSeasonsAction
+  | RewardsDataServiceGetSeasonMetadataAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -108,6 +112,8 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getActivePointsBoosts',
       'RewardsDataService:getUnlockedRewards',
       'RewardsDataService:claimReward',
+      'RewardsDataService:getDiscoverSeasons',
+      'RewardsDataService:getSeasonMetadata',
     ],
     allowedEvents: [
       'AccountTreeController:selectedAccountGroupChange',

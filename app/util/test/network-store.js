@@ -68,6 +68,16 @@ class ReadOnlyNetworkStore {
     delete this._asyncState;
   }
 
+  async getAllKeys() {
+    await this._initIfRequired();
+    return Object.keys(this._asyncState || {});
+  }
+
+  async multiGet(keys) {
+    await this._initIfRequired();
+    return keys.map((key) => [key, this._asyncState?.[key] ?? null]);
+  }
+
   async _initIfRequired() {
     if (!this._initialized) {
       await this._init();

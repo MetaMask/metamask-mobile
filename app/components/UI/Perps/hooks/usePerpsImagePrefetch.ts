@@ -1,7 +1,7 @@
-import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { Image } from 'expo-image';
-import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 
 /**
  * Hook to prefetch Perps market icons for better performance
@@ -54,13 +54,13 @@ export const usePerpsImagePrefetch = (
 
           // Track successfully prefetched symbols
           const newPrefetched: string[] = [];
-          results.forEach((result, index) => {
+          for (const [index, result] of results.entries()) {
             if (result.status === 'fulfilled' && result.value) {
               const symbol = batch[index].toUpperCase();
               prefetchedRef.current.add(symbol);
               newPrefetched.push(symbol);
             }
-          });
+          }
 
           // Update state to trigger re-render
           if (newPrefetched.length > 0) {

@@ -24,11 +24,17 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
   adaptPositionFromSDK: jest.fn((assetPos: any) => ({
     coin: 'BTC',
     size: assetPos.position.szi,
-    notionalSize: '5000',
+    entryPrice: '50000',
+    positionValue: '5000',
     unrealizedPnl: '100',
-    percentagePnl: '2.0',
-    averagePrice: '50000',
-    markPrice: '52000',
+    marginUsed: '2500',
+    leverage: { type: 'isolated', value: 2 },
+    liquidationPrice: '40000',
+    maxLeverage: 100,
+    returnOnEquity: '4.0',
+    cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   })),
   adaptOrderFromSDK: jest.fn((order: any) => ({
     orderId: order.oid.toString(),
@@ -48,11 +54,14 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
   })),
   adaptAccountStateFromSDK: jest.fn(() => ({
     availableBalance: '1000.00',
-    totalBalance: '10000.00',
     marginUsed: '500.00',
     unrealizedPnl: '100.00',
     returnOnEquity: '20.0',
-    totalValue: '10100.00',
+    totalBalance: '10100.00',
+  })),
+  parseAssetName: jest.fn((symbol: string) => ({
+    symbol,
+    dex: null,
   })),
 }));
 
@@ -241,9 +250,6 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = await service.subscribeToPrices(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
-        mockWalletAdapter,
-      );
       expect(mockSubscriptionClient.allMids).toHaveBeenCalled();
       expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledWith(
         { coin: 'BTC' },
@@ -343,9 +349,6 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
-        mockWalletAdapter,
-      );
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         params.accountId,
       );
@@ -381,7 +384,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should handle subscription client not available', () => {
+    it('should handle subscription client not available', async () => {
       mockClientService.getSubscriptionClient.mockReturnValue(undefined);
 
       const mockCallback = jest.fn();
@@ -391,10 +394,11 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       expect(typeof unsubscribe).toBe('function');
-      expect(
-        mockWalletService.getUserAddressWithDefault,
-      ).not.toHaveBeenCalled();
+      expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
     });
 
     it('should filter out zero-size positions', async () => {
@@ -444,9 +448,6 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToOrderFills(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
-        mockWalletAdapter,
-      );
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         params.accountId,
       );
@@ -866,7 +867,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should handle missing subscription client in position subscription', () => {
+    it('should handle missing subscription client in position subscription', async () => {
       mockClientService.getSubscriptionClient.mockReturnValue(undefined);
 
       const mockCallback = jest.fn();
@@ -874,10 +875,11 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       });
 
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       expect(typeof unsubscribe).toBe('function');
-      expect(
-        mockWalletService.getUserAddressWithDefault,
-      ).not.toHaveBeenCalled();
+      expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
     });
 
     it('should handle missing subscription client in order fill subscription', () => {
@@ -1978,5 +1980,537 @@ describe('HyperLiquidSubscriptionService', () => {
     ]);
 
     unsubscribe();
+  });
+
+  describe('HIP-3 Feature Flags and Multi-DEX Support', () => {
+    it('initializes service with HIP-3 DEXs enabled', () => {
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        true, // equityEnabled
+        ['dex1', 'dex2'], // enabledDexs
+      );
+
+      expect(hip3Service).toBeDefined();
+    });
+
+    it('returns only main DEX when equity is disabled', () => {
+      const service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        false, // equityEnabled
+        [],
+      );
+
+      expect(service).toBeDefined();
+    });
+
+    it('updates feature flags and establishes new DEX subscriptions', async () => {
+      // Start with market data subscribers to trigger assetCtxs subscriptions
+      const mockCallback = jest.fn();
+      const mockInfoClient = {
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC' }, { name: 'ETH' }],
+        }),
+      };
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const assetCtxsSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      mockSubscriptionClient.assetCtxs = jest
+        .fn()
+        .mockResolvedValue(assetCtxsSubscription);
+
+      // Subscribe to prices with market data to create market data subscribers
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Now update feature flags to enable new DEXs
+      await service.updateFeatureFlags(true, ['newdex1', 'newdex2']);
+
+      expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'newdex1' });
+      expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'newdex2' });
+    });
+
+    it('updates feature flags with position subscribers', async () => {
+      const mockPositionCallback = jest.fn();
+      const mockInfoClient = {
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      };
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const clearinghouseStateSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      mockSubscriptionClient.clearinghouseState = jest.fn(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              user: '0x123',
+              clearinghouseState: {
+                assetPositions: [],
+              },
+            });
+          }, 0);
+          return Promise.resolve(clearinghouseStateSubscription);
+        },
+      );
+
+      // Subscribe to positions first
+      service.subscribeToPositions({
+        callback: mockPositionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Update feature flags with new DEXs
+      await service.updateFeatureFlags(true, ['dex3']);
+
+      expect(mockSubscriptionClient.clearinghouseState).toHaveBeenCalledWith(
+        { user: '0x123', dex: 'dex3' },
+        expect.any(Function),
+      );
+    });
+
+    it('handles errors when establishing assetCtxs subscriptions for new DEXs', async () => {
+      const mockCallback = jest.fn();
+
+      // Mock successful meta call but failing assetCtxs subscription
+      const mockInfoClient = {
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC' }],
+        }),
+      };
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      // Make assetCtxs subscription fail
+      mockSubscriptionClient.assetCtxs = jest
+        .fn()
+        .mockRejectedValue(new Error('AssetCtxs subscription failed'));
+
+      // Subscribe to prices with market data to create market data subscribers
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Update feature flags - should handle error gracefully without throwing
+      await service.updateFeatureFlags(true, ['failingdex']);
+
+      // Wait for async error handling
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Verify updateFeatureFlags completed without throwing
+      expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'failingdex' });
+    });
+
+    it('handles errors when establishing clearinghouseState subscriptions for new DEXs', async () => {
+      const mockPositionCallback = jest.fn();
+      mockSubscriptionClient.clearinghouseState = jest
+        .fn()
+        .mockRejectedValue(new Error('Subscription failed'));
+
+      // Subscribe to positions first
+      service.subscribeToPositions({
+        callback: mockPositionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Update feature flags - should handle error gracefully
+      await expect(
+        service.updateFeatureFlags(true, ['failingdex2']),
+      ).resolves.not.toThrow();
+    });
+
+    it('handles getUserAddress errors during feature flag updates', async () => {
+      const mockPositionCallback = jest.fn();
+      mockWalletService.getUserAddressWithDefault.mockRejectedValue(
+        new Error('Wallet error'),
+      );
+
+      // Subscribe to positions first
+      service.subscribeToPositions({
+        callback: mockPositionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Update feature flags - should handle wallet error gracefully
+      await expect(
+        service.updateFeatureFlags(true, ['newdex']),
+      ).resolves.not.toThrow();
+
+      // Reset mock for other tests
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0x123' as Hex,
+      );
+    });
+
+    it('does not establish subscriptions when no new DEXs are added', async () => {
+      const mockCallback = jest.fn();
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+
+      const initialCallCount = mockSubscriptionClient.assetCtxs
+        ? (mockSubscriptionClient.assetCtxs as jest.Mock).mock.calls.length
+        : 0;
+
+      // Update with same DEXs (no new ones)
+      await service.updateFeatureFlags(false, []);
+
+      // Should not create new subscriptions
+      const finalCallCount = mockSubscriptionClient.assetCtxs
+        ? (mockSubscriptionClient.assetCtxs as jest.Mock).mock.calls.length
+        : 0;
+      expect(finalCallCount).toBe(initialCallCount);
+    });
+
+    it('subscribes to positions with HIP-3 DEXs enabled', async () => {
+      const mockPositionCallback = jest.fn();
+      const mockInfoClient = {
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      };
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const clearinghouseStateSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      mockSubscriptionClient.clearinghouseState = jest.fn(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              user: '0x123',
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0', coin: 'BTC' },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+            });
+          }, 0);
+          return Promise.resolve(clearinghouseStateSubscription);
+        },
+      );
+
+      // Create service with HIP-3 enabled
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        true,
+        ['dex1', 'dex2'],
+      );
+
+      const unsubscribe = hip3Service.subscribeToPositions({
+        callback: mockPositionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Should create clearinghouseState subscriptions for HIP-3 DEXs
+      expect(mockSubscriptionClient.clearinghouseState).toHaveBeenCalledWith(
+        { user: '0x123', dex: 'dex1' },
+        expect.any(Function),
+      );
+      expect(mockSubscriptionClient.clearinghouseState).toHaveBeenCalledWith(
+        { user: '0x123', dex: 'dex2' },
+        expect.any(Function),
+      );
+
+      unsubscribe();
+    });
+
+    it('cleans up HIP-3 DEX subscriptions when last subscriber unsubscribes', async () => {
+      const mockPositionCallback = jest.fn();
+      const mockInfoClient = {
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      };
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const clearinghouseStateUnsubscribe = jest
+        .fn()
+        .mockResolvedValue(undefined);
+      const clearinghouseStateSubscription = {
+        unsubscribe: clearinghouseStateUnsubscribe,
+      };
+
+      mockSubscriptionClient.clearinghouseState = jest.fn(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              user: '0x123',
+              clearinghouseState: {
+                assetPositions: [],
+              },
+            });
+          }, 0);
+          return Promise.resolve(clearinghouseStateSubscription);
+        },
+      );
+
+      // Create service with HIP-3 enabled
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        true,
+        ['testdex'],
+      );
+
+      const unsubscribe = hip3Service.subscribeToPositions({
+        callback: mockPositionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Unsubscribe and trigger cleanup
+      unsubscribe();
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should have called unsubscribe on clearinghouseState subscription
+      expect(clearinghouseStateUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('Market Data Cache Initialization', () => {
+    it('caches funding rates from initial market data', async () => {
+      const mockCallback = jest.fn();
+      const mockInfoClient = {
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC' }, { name: 'ETH' }, { name: 'SOL' }],
+        }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          {}, // meta object (first element)
+          [
+            // assetCtxs array (second element)
+            {
+              funding: '0.0001',
+              prevDayPx: '49000',
+              openInterest: '1000000',
+              dayNtlVlm: '50000000',
+              oraclePx: '50100',
+            },
+            {
+              funding: '0.0002',
+              prevDayPx: '2900',
+              openInterest: '500000',
+              dayNtlVlm: '10000000',
+              oraclePx: '3010',
+            },
+            {
+              funding: '0.00015',
+              prevDayPx: '95',
+              openInterest: '200000',
+              dayNtlVlm: '5000000',
+              oraclePx: '98',
+            },
+          ],
+        ]),
+      };
+
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC', 'ETH', 'SOL'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Verify meta was called to cache funding rates
+      expect(mockInfoClient.meta).toHaveBeenCalled();
+      expect(mockInfoClient.metaAndAssetCtxs).toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('handles errors when caching initial market data', async () => {
+      const mockCallback = jest.fn();
+      const mockInfoClient = {
+        meta: jest.fn().mockRejectedValue(new Error('Meta fetch failed')),
+        metaAndAssetCtxs: jest
+          .fn()
+          .mockRejectedValue(new Error('AssetCtxs fetch failed')),
+      };
+
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      // Should not throw even if initial cache fails
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Subscription should still work despite cache error
+      expect(unsubscribe).toBeDefined();
+      expect(typeof unsubscribe).toBe('function');
+
+      unsubscribe();
+    });
+
+    it('skips caching when includeMarketData is false', async () => {
+      const mockCallback = jest.fn();
+      const mockInfoClient = {
+        meta: jest.fn(),
+        metaAndAssetCtxs: jest.fn(),
+      };
+
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeMarketData: false,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Should not call meta/metaAndAssetCtxs when market data not requested
+      expect(mockInfoClient.meta).not.toHaveBeenCalled();
+      expect(mockInfoClient.metaAndAssetCtxs).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('handles partial market data in cache', async () => {
+      const mockCallback = jest.fn();
+      const mockInfoClient = {
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC' }, { name: 'ETH' }],
+        }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          {},
+          [
+            {
+              funding: '0.0001',
+              prevDayPx: '49000',
+            },
+            null, // Missing asset context for ETH
+          ],
+        ]),
+      };
+
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC', 'ETH'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Should handle partial data gracefully
+      expect(mockCallback).toHaveBeenCalled();
+
+      unsubscribe();
+    });
+  });
+
+  describe('Multi-DEX Error Handling', () => {
+    it('handles webData2 subscription errors gracefully', async () => {
+      const mockCallback = jest.fn();
+      mockSubscriptionClient.webData2 = jest
+        .fn()
+        .mockRejectedValue(new Error('WebData2 subscription failed'));
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Should return unsubscribe function despite error
+      expect(typeof unsubscribe).toBe('function');
+      expect(() => unsubscribe()).not.toThrow();
+    });
+
+    it('handles clearinghouseState subscription errors for HIP-3 DEXs', async () => {
+      const mockCallback = jest.fn();
+      mockSubscriptionClient.clearinghouseState = jest
+        .fn()
+        .mockRejectedValue(new Error('ClearinghouseState subscription failed'));
+
+      // Create service with HIP-3 enabled
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        true,
+        ['failingdex'],
+      );
+
+      const unsubscribe = hip3Service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Should handle error gracefully
+      expect(typeof unsubscribe).toBe('function');
+      expect(() => unsubscribe()).not.toThrow();
+    });
+
+    it('handles unsubscribe errors for HIP-3 clearinghouseState', async () => {
+      const mockCallback = jest.fn();
+      const mockInfoClient = {
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      };
+      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
+
+      const clearinghouseStateSubscription = {
+        unsubscribe: jest
+          .fn()
+          .mockRejectedValue(new Error('Unsubscribe failed')),
+      };
+
+      mockSubscriptionClient.clearinghouseState = jest.fn(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              user: '0x123',
+              clearinghouseState: {
+                assetPositions: [],
+              },
+            });
+          }, 0);
+          return Promise.resolve(clearinghouseStateSubscription);
+        },
+      );
+
+      // Create service with HIP-3 enabled
+      const hip3Service = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        true,
+        ['testdex'],
+      );
+
+      const unsubscribe = hip3Service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Unsubscribe should not throw even if underlying unsubscribe fails
+      expect(() => unsubscribe()).not.toThrow();
+    });
   });
 });

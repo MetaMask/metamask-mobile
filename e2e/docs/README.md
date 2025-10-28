@@ -11,6 +11,7 @@
 
 ## E2E Framework Structure
 
+- **Testing Scenarios (`e2e/specs/`)** - Test files organized by feature
 - **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
 - **Page Objects (`e2e/pages/`)**: Page Object Model implementation
@@ -318,7 +319,7 @@ await Utilities.executeWithRetry(
 
 **Predefined Job Coverage** (update when new tags are added):
 
-- `SmokeConfirmations` (3 splits) / `SmokeConfirmationsRedesigned` (2 splits)
+- `SmokeConfirmationsRedesigned` (2 splits)
 - `SmokeTrade` (2 splits) / `SmokeWalletPlatform` (2 splits) / `SmokeIdentity` (2 splits)
 - `SmokeAccounts` (2 splits) / `SmokeNetworkAbstractions` (2 splits) / `SmokeNetworkExpansion` (2 splits)
 - `SmokeCore` (2 splits) / `SmokeWalletUX` (2 splits) / `SmokeSwaps` (2 splits)

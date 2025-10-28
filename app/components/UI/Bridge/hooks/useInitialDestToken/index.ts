@@ -5,11 +5,13 @@ import {
   selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
-import { getDefaultDestToken } from '../../utils/tokenUtils';
+import {
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode, BridgeToken } from '../../types';
-import { getNativeSourceToken } from '../useInitialSourceToken';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import usePrevious from '../../../../hooks/usePrevious';
 import { useEffect } from 'react';
 
@@ -37,8 +39,17 @@ export const useInitialDestToken = (
       return;
     }
 
+    // Entering Swaps NOT from asset details page or deeplink
     if (!initialDestToken && !initialSourceToken) {
       if (isSwap && bip44DefaultPair && !destToken) {
+        dispatch(setDestToken(bip44DefaultPair.destAsset));
+        return;
+      }
+    }
+
+    // Use BIP44 default pair for Bitcoin source token (i.e. entered Swaps from Bitcoin Asset Details page)
+    if (initialSourceToken && initialSourceToken.chainId === BtcScope.Mainnet) {
+      if (bip44DefaultPair && !destToken) {
         dispatch(setDestToken(bip44DefaultPair.destAsset));
         return;
       }

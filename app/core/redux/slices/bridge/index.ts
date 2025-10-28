@@ -55,6 +55,8 @@ export interface BridgeState {
   slippage: string | undefined;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
+  isMaxSourceAmount?: boolean;
+  isSelectingRecipient: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -68,6 +70,8 @@ export const initialState: BridgeState = {
   slippage: '0.5',
   isSubmittingTx: false,
   bridgeViewMode: undefined,
+  isMaxSourceAmount: false,
+  isSelectingRecipient: false,
 };
 
 const name = 'bridge';
@@ -91,6 +95,15 @@ const slice = createSlice({
     },
     setSourceAmount: (state, action: PayloadAction<string | undefined>) => {
       state.sourceAmount = action.payload;
+      // Clears max flag when amount is set via keypad
+      state.isMaxSourceAmount = false;
+    },
+    setSourceAmountAsMax: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.sourceAmount = action.payload;
+      state.isMaxSourceAmount = true;
     },
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
@@ -124,6 +137,9 @@ const slice = createSlice({
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
+    },
+    setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
+      state.isSelectingRecipient = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -176,6 +192,11 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectIsMaxSourceAmount = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isMaxSourceAmount ?? false,
 );
 
 export const selectBridgeViewMode = createSelector(
@@ -490,6 +511,11 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
+export const selectIsSelectingRecipient = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSelectingRecipient,
+);
+
 export const selectIsGaslessSwapEnabled = createSelector(
   selectIsSwap,
   selectBridgeFeatureFlags,
@@ -545,6 +571,7 @@ export const selectBip44DefaultPair = createSelector(
 // Actions
 export const {
   setSourceAmount,
+  setSourceAmountAsMax,
   setDestAmount,
   resetBridgeState,
   setSourceToken,
@@ -555,4 +582,5 @@ export const {
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,
+  setIsSelectingRecipient,
 } = actions;

@@ -101,6 +101,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.tpsl.below': 'below',
       'perps.tpsl.above': 'above',
       'perps.points': 'Points',
+      'perps.estimated_points': 'perps.estimated_points',
+      'perps.points_error': 'Points Error',
+      'perps.points_error_content': 'Unable to load points at this time',
     };
 
     if (params && translations[key]) {
@@ -283,14 +286,6 @@ jest.mock('../../../../../selectors/featureFlagController/rewards', () => ({
   selectRewardsEnabledFlag: jest.fn(() => false),
 }));
 
-// Mock Rive component for RewardPointsDisplay
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: 'Rive',
-  Alignment: { CenterRight: 'CenterRight' },
-  Fit: { FitHeight: 'FitHeight' },
-}));
-
 // Mock DevLogger (module appears to use default export with .log())
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
   const log = jest.fn();
@@ -425,7 +420,7 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon' })),
 }));
 
-// Consolidated mock for all bottom sheet components
+// Consolidated mock for bottom sheet components (not PerpsTPSLView - it's now a navigation screen)
 const createBottomSheetMock = (testId: string) => {
   const MockReact = jest.requireActual('react');
   return {
@@ -435,9 +430,6 @@ const createBottomSheetMock = (testId: string) => {
   };
 };
 
-jest.mock('../../components/PerpsTPSLBottomSheet', () =>
-  createBottomSheetMock('tpsl-bottom-sheet'),
-);
 jest.mock('../../components/PerpsLeverageBottomSheet', () =>
   createBottomSheetMock('leverage-bottom-sheet'),
 );
@@ -838,7 +830,9 @@ describe('PerpsOrderView', () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     const leverageText = await screen.findByText('Leverage');
-    fireEvent.press(leverageText);
+    await act(async () => {
+      fireEvent.press(leverageText);
+    });
 
     // The bottom sheet should become visible
     await waitFor(() => {
@@ -1158,7 +1152,9 @@ describe('PerpsOrderView', () => {
     const placeOrderButton = await screen.findByTestId(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
     );
-    fireEvent.press(placeOrderButton);
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
 
     // Should not call placeOrder due to validation failure
     await waitFor(() => {
@@ -1761,22 +1757,24 @@ describe('PerpsOrderView', () => {
       );
 
       // Press the TP/SL button
-      fireEvent.press(tpSlButton);
-
-      // Give the event handler time to execute
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        fireEvent.press(tpSlButton);
       });
 
       // Verify that showToast was called with the correct argument
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(mockLimitPriceRequiredToast);
 
-      // Verify that the TP/SL bottom sheet was NOT opened
-      expect(screen.queryByTestId('tpsl-bottom-sheet')).toBeNull();
+      // Verify that navigation to TP/SL screen was NOT triggered
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          asset: expect.anything(),
+        }),
+      );
     });
 
-    it('opens TP/SL bottom sheet on limit order with limit price', async () => {
+    it('navigates to TP/SL screen on limit order with limit price', async () => {
       // Set up route params
       (useRoute as jest.Mock).mockReturnValue({
         params: {
@@ -1858,11 +1856,22 @@ describe('PerpsOrderView', () => {
       const tpSlButton = screen.getByTestId(
         PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON,
       );
-      fireEvent.press(tpSlButton);
+      await act(async () => {
+        fireEvent.press(tpSlButton);
+      });
 
-      // Verify that TP/SL bottom sheet IS shown
+      // Verify that navigation to TP/SL screen was triggered
       await waitFor(() => {
-        expect(screen.getByTestId('tpsl-bottom-sheet')).toBeDefined();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          expect.stringContaining('TPSL'),
+          expect.objectContaining({
+            asset: 'ETH',
+            direction: 'long',
+            leverage: 3,
+            orderType: 'limit',
+            limitPrice: '3100',
+          }),
+        );
       });
     });
   });
@@ -1952,6 +1961,122 @@ describe('PerpsOrderView', () => {
 
       // Assert - Points text and tooltip should be present
       expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+    });
+
+    it('should render RewardsAnimations component with correct props when rewards shown', async () => {
+      // Arrange - Enable rewards with specific values
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 1000,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 250,
+        feeDiscountPercentage: 15,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row and animation component render
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        // The RewardsAnimations component should display the formatted points value
+        expect(screen.getByText('1,000')).toBeTruthy();
+      });
+    });
+
+    it('should render RewardsAnimations in loading state', async () => {
+      // Arrange - Enable rewards in loading state
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: true,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row renders even in loading state
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+      });
+    });
+
+    it('should render RewardsAnimations in error state', async () => {
+      // Arrange - Enable rewards in error state
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: false,
+        hasError: true,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row renders in error state
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        // RewardsAnimations component renders with hasError state
+      });
+    });
+
+    it('should render RewardsAnimations with bonus bips when provided', async () => {
+      // Arrange - Enable rewards with bonus
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 2500,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 500, // 5% bonus
+        feeDiscountPercentage: 25,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify the rewards row renders with bonus
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        expect(screen.getByText('2,500')).toBeTruthy();
+      });
     });
   });
 
@@ -2160,37 +2285,6 @@ describe('PerpsOrderView', () => {
       // The points tooltip is handled by the handleTooltipPress('points') function
       // Since we can't easily find the specific points info icon, we just verify
       // that the points section renders correctly which covers the main code paths
-    });
-
-    it('should show RewardPointsDisplay with correct props', async () => {
-      // Enable rewards
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectRewardsEnabledFlag) {
-          return true;
-        }
-        return undefined;
-      });
-
-      const mockRewardsState = {
-        shouldShowRewardsRow: true,
-        isLoading: false,
-        estimatedPoints: 250,
-        bonusBips: 750,
-        feeDiscountPercentage: 25,
-        hasError: false,
-        isRefresh: false,
-      };
-
-      (usePerpsRewards as jest.Mock).mockReturnValue(mockRewardsState);
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      await waitFor(() => {
-        expect(screen.getByText('perps.estimated_points')).toBeDefined();
-      });
-
-      // The RewardPointsDisplay component is rendered with the correct props
-      // Testing passes if component renders without error with the mocked state
     });
   });
 
@@ -2726,11 +2820,10 @@ describe('PerpsOrderView', () => {
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
           availableBalance: '1', // Very low balance
-          totalBalance: '1',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '1',
+          totalBalance: '1',
         },
         isInitialLoading: false,
       });
@@ -2757,11 +2850,10 @@ describe('PerpsOrderView', () => {
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
           availableBalance: '10000', // High balance
-          totalBalance: '10000',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '10000',
+          totalBalance: '10000',
         },
         isInitialLoading: false,
       });

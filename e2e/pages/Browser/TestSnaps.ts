@@ -18,7 +18,6 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
-import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import { waitForTestSnapsToLoad } from '../../viewHelper';
 import { RetryOptions } from '../../framework';
@@ -315,7 +314,7 @@ class TestSnaps {
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
     // New gestures currently don't support web elements
-    await LegacyGestures.typeInWebElement(webElement, message);
+    await Gestures.typeInWebElement(webElement, message);
   }
 
   async approveSignRequest() {

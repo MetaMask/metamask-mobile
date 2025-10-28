@@ -450,7 +450,11 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
-    if (!isSameOrigin(msg.origin, this.origin)) {
+    if (
+      !this.isWalletConnect &&
+      !this.isMMSDK &&
+      !isSameOrigin(msg.origin, this.origin)
+    ) {
       console.warn(
         '[BackgroundBridge]: message blocked from unknown origin. Expects',
         this.origin,

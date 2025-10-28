@@ -33,6 +33,8 @@ import { applyVaultInitialization } from '../../util/generateSkipOnboardingState
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import { selectExistingUser } from '../../reducers/user';
+import UrlParser from 'url-parse';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -170,6 +172,22 @@ export function* handleDeeplinkSaga() {
       completedOnboarding = value.completedOnboarding;
     } else {
       completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    const existingUser: boolean = yield select(selectExistingUser);
+
+    if (AppStateEventProcessor.pendingDeeplink) {
+      const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
+      // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
+      if (!existingUser && url.pathname === '/onboarding') {
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(url.href, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }, 200);
+        AppStateEventProcessor.clearPendingDeeplink();
+        continue;
+      }
     }
 
     const { KeyringController } = Engine.context;

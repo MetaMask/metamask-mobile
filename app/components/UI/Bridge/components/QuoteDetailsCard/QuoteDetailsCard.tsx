@@ -28,13 +28,14 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import QuoteCountdownTimer from '../QuoteCountdownTimer';
+import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 
 if (
   Platform.OS === 'android' &&
@@ -43,25 +44,25 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QuoteDetailsCard = () => {
+const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
 
   const locale = I18n.locale;
   const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumFractionDigits: 6,
+    maximumSignificantDigits: 8,
   });
 
   const {
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
+    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -90,18 +91,7 @@ const QuoteDetailsCard = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
-  // Check if price impact warning should be shown
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
-  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
-  const shouldShowPriceImpactWarning =
-    rawPriceImpact !== undefined &&
-    bridgeFeatureFlags?.priceImpactThreshold &&
-    ((gasIncluded &&
-      Number(rawPriceImpact) >=
-        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-      (!gasIncluded &&
-        Number(rawPriceImpact) >=
-          bridgeFeatureFlags.priceImpactThreshold.normal));
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
@@ -112,14 +102,23 @@ const QuoteDetailsCard = () => {
       <Box style={styles.container}>
         <KeyValueRow
           field={{
-            label: {
-              text: strings('bridge.rate'),
-              variant: TextVariant.BodyMDMedium,
-            },
+            label: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text variant={TextVariant.BodyMDMedium}>
+                  {strings('bridge.rate')}
+                </Text>
+                <QuoteCountdownTimer />
+              </Box>
+            ),
             tooltip: {
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
+              iconName: IconName.Info,
             },
           }}
           value={{
@@ -171,11 +170,67 @@ const QuoteDetailsCard = () => {
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
               label: {
                 text: networkFee,
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
+
+        <KeyValueRow
+          field={{
+            label: {
+              text: strings('bridge.slippage'),
+              variant: TextVariant.BodyMDMedium,
+            },
+            tooltip: {
+              title: strings('bridge.slippage_info_title'),
+              content: strings('bridge.slippage_info_description'),
+              size: TooltipSizes.Sm,
+              iconName: IconName.Info,
+            },
+          }}
+          value={{
+            label: (
+              <TouchableOpacity
+                onPress={handleSlippagePress}
+                activeOpacity={0.6}
+                testID="edit-slippage-button"
+                style={styles.slippageButton}
+              >
+                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
+                <Icon
+                  name={IconName.Edit}
+                  size={IconSize.Sm}
+                  color={IconColor.Muted}
+                />
+              </TouchableOpacity>
+            ),
+          }}
+        />
+
+        {activeQuote?.minToTokenAmount && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.minimum_received'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.minimum_received_tooltip_title'),
+                content: strings('bridge.minimum_received_tooltip_content'),
+                size: TooltipSizes.Sm,
+                iconName: IconName.Info,
+              },
+            }}
+            value={{
+              label: {
+                text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariant.BodyMD,
               },
             }}
@@ -195,6 +250,7 @@ const QuoteDetailsCard = () => {
                   ? strings('bridge.price_impact_info_gasless_description')
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -209,66 +265,7 @@ const QuoteDetailsCard = () => {
           />
         )}
 
-        <KeyValueRow
-          field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={4}
-              >
-                <TouchableOpacity
-                  onPress={handleSlippagePress}
-                  activeOpacity={0.6}
-                  testID="edit-slippage-button"
-                  style={styles.slippageButton}
-                >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge.slippage')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              </Box>
-            ),
-            tooltip: {
-              title: strings('bridge.slippage_info_title'),
-              content: strings('bridge.slippage_info_description'),
-              size: TooltipSizes.Sm,
-            },
-          }}
-          value={{
-            label: {
-              text: slippage,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-        />
-
-        {activeQuote?.minToTokenAmount && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.minimum_received'),
-                variant: TextVariant.BodyMDMedium,
-              },
-              tooltip: {
-                title: strings('bridge.minimum_received_tooltip_title'),
-                content: strings('bridge.minimum_received_tooltip_content'),
-                size: TooltipSizes.Sm,
-              },
-            }}
-            value={{
-              label: {
-                text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
-                variant: TextVariant.BodyMD,
-              },
-            }}
-          />
-        )}
+        <QuoteDetailsRecipientKeyValueRow />
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (
@@ -284,6 +281,7 @@ const QuoteDetailsCard = () => {
                   'bridge.points_tooltip_content_1',
                 )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -311,6 +309,7 @@ const QuoteDetailsCard = () => {
                   title: strings('bridge.points_error'),
                   content: strings('bridge.points_error_content'),
                   size: TooltipSizes.Sm,
+                  iconName: IconName.Info,
                 },
               }),
             }}

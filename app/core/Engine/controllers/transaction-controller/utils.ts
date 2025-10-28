@@ -49,6 +49,12 @@ export function getTransactionTypeValue(
       return 'eth_get_encryption_public_key';
     case TransactionType.perpsDeposit:
       return 'perps_deposit';
+    case TransactionType.predictDeposit:
+      return 'predict_deposit';
+    case TransactionType.predictClaim:
+      return 'predict_claim';
+    case TransactionType.predictWithdraw:
+      return 'predict_withdraw';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
     case TransactionType.simpleSend:

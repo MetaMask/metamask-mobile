@@ -1,4 +1,9 @@
-import { formatPercentage, formatPrice, formatAddress } from './format';
+import {
+  formatPercentage,
+  formatPrice,
+  formatAddress,
+  formatCurrencyValue,
+} from './format';
 
 // Mock the formatWithThreshold utility
 jest.mock('../../../../util/assets', () => ({
@@ -13,6 +18,10 @@ const mockFormatWithThreshold = formatWithThreshold as jest.MockedFunction<
 
 describe('format utils', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -352,6 +361,78 @@ describe('format utils', () => {
         const result = formatPrice(input);
         expect(result).toBe(expected);
       });
+    });
+  });
+
+  describe('formatCurrencyValue', () => {
+    beforeEach(() => {
+      mockFormatWithThreshold.mockImplementation(
+        (value, _threshold, locale, options) =>
+          new Intl.NumberFormat(locale, options).format(Number(value)),
+      );
+    });
+
+    it.each([
+      [undefined, undefined],
+      [null, undefined],
+    ])('returns %s as %s', (input, expected) => {
+      const result = formatCurrencyValue(input as unknown as number);
+
+      expect(result).toBe(expected);
+    });
+
+    it.each([
+      [1234.56, '$1,234.56'],
+      [-789.1, '$789.10'],
+      [0, '$0.00'],
+    ])('formats %s without sign by default as %s', (input, expected) => {
+      const result = formatCurrencyValue(input);
+
+      expect(result).toBe(expected);
+    });
+
+    it.each([
+      [123.45, '+$123.45'],
+      [-123.45, '-$123.45'],
+      [0, '$0.00'],
+    ])('formats %s with sign when showSign=true as %s', (input, expected) => {
+      const result = formatCurrencyValue(input, { showSign: true });
+
+      expect(result).toBe(expected);
+    });
+
+    it('uses absolute value and 2 decimals for values >= 1000', () => {
+      const result = formatCurrencyValue(-1234.567);
+
+      expect(result).toBe('$1,234.57');
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+        1234.567,
+        1000,
+        'en-US',
+        {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
+      );
+    });
+
+    it('uses absolute value and 2 decimals for values < 1000', () => {
+      const result = formatCurrencyValue(-0.1234);
+
+      expect(result).toBe('$0.12');
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+        0.1234,
+        0.0001,
+        'en-US',
+        {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
+      );
     });
   });
 

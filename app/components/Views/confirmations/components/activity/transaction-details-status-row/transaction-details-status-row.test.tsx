@@ -9,12 +9,19 @@ import { TransactionDetailsStatusRow } from './transaction-details-status-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
+import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
 function render() {
   return renderWithProvider(<TransactionDetailsStatusRow />, {
-    state: merge({}, otherControllersMock),
+    state: merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      otherControllersMock,
+    ),
   });
 }
 

@@ -13,6 +13,13 @@ import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 import { RootState } from '../../../../reducers';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../util/analytics/actionButtonTracking';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -53,6 +60,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     selectIsSwapsEnabled(state),
   );
   const { navigate } = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Check if FundActionMenu would be empty
   const { isDepositEnabled } = useDepositEnabled();
@@ -62,6 +70,14 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
 
   const handleBuyPress = () => {
+    // Track the home screen Buy button click
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
+      button_label: strings('asset_overview.buy_button'),
+      location: ActionLocation.HOME,
+    });
+
     // Navigate to FundActionMenu with both custom onBuy and asset context
     // The menu will prioritize custom onBuy over standard funding options
     // This allows custom funding flows even when deposit/ramp are unavailable

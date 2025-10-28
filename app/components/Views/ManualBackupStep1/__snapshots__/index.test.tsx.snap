@@ -27,131 +27,72 @@ exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by def
       ]
     }
   >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#686e7d",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      Step 2 of 3
-    </Text>
     <View
       style={
         {
           "flex": 1,
+          "justifyContent": "space-between",
         }
       }
     >
-      <RCTScrollView
-        automaticallyAdjustContentInsets={false}
-        contentContainerStyle={
+      <View
+        style={
           {
             "flex": 1,
           }
         }
-        contentInset={
-          {
-            "bottom": 0,
-          }
-        }
-        enableAutomaticScroll={true}
-        enableOnAndroid={false}
-        enableResetScrollToCoords={true}
-        extraHeight={75}
-        extraScrollHeight={0}
-        getScrollResponder={[Function]}
-        handleOnScroll={[Function]}
-        keyboardDismissMode="interactive"
-        keyboardOpeningTime={250}
-        keyboardShouldPersistTaps="never"
-        keyboardSpace={0}
-        onScroll={[Function]}
-        resetKeyboardSpace={[Function]}
-        resetScrollToCoords={
-          {
-            "x": 0,
-            "y": 0,
-          }
-        }
-        scrollEventThrottle={1}
-        scrollForExtraHeightOnAndroid={[Function]}
-        scrollIntoView={[Function]}
-        scrollToEnd={[Function]}
-        scrollToFocusedInput={[Function]}
-        scrollToPosition={[Function]}
-        showsVerticalScrollIndicator={true}
-        style={
-          [
+      >
+        <View
+          style={
             {
               "flex": 1,
-            },
-            undefined,
-          ]
-        }
-        update={[Function]}
-        viewIsInsideTabBar={false}
-      >
-        <View>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
+              "flexDirection": "column",
+              "gap": 16,
             }
-            accessible={true}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          }
+          testID="manual_backup_step_1-screen"
+        >
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "flex": 1,
-                "flexDirection": "column",
-                "gap": 16,
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
               }
             }
-            testID="manual_backup_step_1-screen"
+          >
+            Save your Secret Recovery Phrase
+          </Text>
+          <View
+            style={
+              {
+                "justifyContent": "flex-start",
+              }
+            }
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 24,
                 }
               }
             >
-              Save your Secret Recovery Phrase
-            </Text>
-            <View
-              style={
-                {
-                  "justifyContent": "flex-start",
-                }
-              }
-            >
+              Your
+               
               <Text
                 accessibilityRole="text"
+                onPress={[Function]}
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#4459ff",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -159,223 +100,16 @@ exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by def
                   }
                 }
               >
-                This is your
+                Secret Recovery Phrase
                  
-                <Text
-                  accessibilityRole="text"
-                  onPress={[Function]}
-                  style={
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Secret Recovery Phrase.
-                   
-                </Text>
-                Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.
-                 
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Don’t share it with anyone, ever.
-                </Text>
               </Text>
-            </View>
-            <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#b7bbc8",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "minHeight": 230,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "borderRadius": 8,
-                    "flex": 1,
-                  }
-                }
-              >
-                <TouchableOpacity
-                  onPress={[Function]}
-                  style={
-                    {
-                      "borderRadius": 8,
-                      "bottom": 0,
-                      "flex": 1,
-                      "height": "100%",
-                      "left": 0,
-                      "position": "absolute",
-                      "right": 0,
-                      "top": 0,
-                    }
-                  }
-                  testID="blur-button"
-                >
-                  <View
-                    accessibilityIgnoresInvertColors={true}
-                    style={
-                      {
-                        "borderRadius": 8,
-                        "bottom": 0,
-                        "flex": 1,
-                        "height": "100%",
-                        "left": 0,
-                        "opacity": 0.5,
-                        "position": "absolute",
-                        "right": 0,
-                        "top": 0,
-                      }
-                    }
-                  >
-                    <Image
-                      resizeMode="cover"
-                      source={1}
-                      style={
-                        [
-                          {
-                            "bottom": 0,
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "height": "100%",
-                            "width": undefined,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "borderRadius": 8,
-                        "flex": 1,
-                        "flexDirection": "column",
-                        "height": "100%",
-                        "justifyContent": "center",
-                        "paddingHorizontal": 24,
-                        "paddingVertical": 45,
-                        "rowGap": 16,
-                      }
-                    }
-                  >
-                    <SvgMock
-                      color="#121314"
-                      fill="currentColor"
-                      height={32}
-                      name="EyeSlash"
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                      width={32}
-                    />
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      Tap to reveal
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist Regular",
-                          "fontSize": 14,
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      Make sure no one is watching your screen.
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "flexDirection": "row",
-                  "gap": 16,
-                  "paddingHorizontal": 16,
-                  "paddingVertical": 16,
-                  "width": "100%",
-                },
-                {
-                  "marginBottom": 0,
-                  "paddingHorizontal": 0,
-                },
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              disabled={true}
-              loading={false}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="manual-backup-step-continue-button"
-            >
+              gives full wallet access.
+               
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#ffffff",
+                    "color": "#686e7d",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -383,12 +117,194 @@ exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by def
                   }
                 }
               >
-                Continue
+                Write it down with the correct order and numbers. Keep it safe and never share it.
               </Text>
-            </TouchableOpacity>
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "minHeight": 230,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 8,
+                  "flex": 1,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "borderRadius": 8,
+                    "bottom": 0,
+                    "flex": 1,
+                    "height": "100%",
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+                testID="blur-button"
+              >
+                <View
+                  accessibilityIgnoresInvertColors={true}
+                  style={
+                    {
+                      "borderRadius": 8,
+                      "bottom": 0,
+                      "flex": 1,
+                      "height": "100%",
+                      "left": 0,
+                      "opacity": 0.5,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Image
+                    resizeMode="cover"
+                    source={1}
+                    style={
+                      [
+                        {
+                          "bottom": 0,
+                          "left": 0,
+                          "position": "absolute",
+                          "right": 0,
+                          "top": 0,
+                        },
+                        {
+                          "height": "100%",
+                          "width": undefined,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "height": "100%",
+                      "justifyContent": "center",
+                      "paddingHorizontal": 24,
+                      "paddingVertical": 45,
+                      "rowGap": 16,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={32}
+                    name="EyeSlash"
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    width={32}
+                  />
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    Tap to reveal
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Make sure no one is watching your screen.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </RCTScrollView>
+      </View>
+      <View
+        style={
+          {
+            "gap": 16,
+            "marginBottom": 0,
+            "paddingHorizontal": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="manual-backup-step-continue-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Continue
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View />
@@ -422,131 +338,72 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
       ]
     }
   >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#686e7d",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      Step 2 of 3
-    </Text>
     <View
       style={
         {
           "flex": 1,
+          "justifyContent": "space-between",
         }
       }
     >
-      <RCTScrollView
-        automaticallyAdjustContentInsets={false}
-        contentContainerStyle={
+      <View
+        style={
           {
             "flex": 1,
           }
         }
-        contentInset={
-          {
-            "bottom": 0,
-          }
-        }
-        enableAutomaticScroll={true}
-        enableOnAndroid={false}
-        enableResetScrollToCoords={true}
-        extraHeight={75}
-        extraScrollHeight={0}
-        getScrollResponder={[Function]}
-        handleOnScroll={[Function]}
-        keyboardDismissMode="interactive"
-        keyboardOpeningTime={250}
-        keyboardShouldPersistTaps="never"
-        keyboardSpace={0}
-        onScroll={[Function]}
-        resetKeyboardSpace={[Function]}
-        resetScrollToCoords={
-          {
-            "x": 0,
-            "y": 0,
-          }
-        }
-        scrollEventThrottle={1}
-        scrollForExtraHeightOnAndroid={[Function]}
-        scrollIntoView={[Function]}
-        scrollToEnd={[Function]}
-        scrollToFocusedInput={[Function]}
-        scrollToPosition={[Function]}
-        showsVerticalScrollIndicator={true}
-        style={
-          [
+      >
+        <View
+          style={
             {
               "flex": 1,
-            },
-            undefined,
-          ]
-        }
-        update={[Function]}
-        viewIsInsideTabBar={false}
-      >
-        <View>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
+              "flexDirection": "column",
+              "gap": 16,
             }
-            accessible={true}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          }
+          testID="manual_backup_step_1-screen"
+        >
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "flex": 1,
-                "flexDirection": "column",
-                "gap": 16,
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
               }
             }
-            testID="manual_backup_step_1-screen"
+          >
+            Save your Secret Recovery Phrase
+          </Text>
+          <View
+            style={
+              {
+                "justifyContent": "flex-start",
+              }
+            }
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 24,
                 }
               }
             >
-              Save your Secret Recovery Phrase
-            </Text>
-            <View
-              style={
-                {
-                  "justifyContent": "flex-start",
-                }
-              }
-            >
+              Your
+               
               <Text
                 accessibilityRole="text"
+                onPress={[Function]}
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#4459ff",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -554,223 +411,16 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
                   }
                 }
               >
-                This is your
+                Secret Recovery Phrase
                  
-                <Text
-                  accessibilityRole="text"
-                  onPress={[Function]}
-                  style={
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Secret Recovery Phrase.
-                   
-                </Text>
-                Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.
-                 
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Don’t share it with anyone, ever.
-                </Text>
               </Text>
-            </View>
-            <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#b7bbc8",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "minHeight": 230,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "borderRadius": 8,
-                    "flex": 1,
-                  }
-                }
-              >
-                <TouchableOpacity
-                  onPress={[Function]}
-                  style={
-                    {
-                      "borderRadius": 8,
-                      "bottom": 0,
-                      "flex": 1,
-                      "height": "100%",
-                      "left": 0,
-                      "position": "absolute",
-                      "right": 0,
-                      "top": 0,
-                    }
-                  }
-                  testID="blur-button"
-                >
-                  <View
-                    accessibilityIgnoresInvertColors={true}
-                    style={
-                      {
-                        "borderRadius": 8,
-                        "bottom": 0,
-                        "flex": 1,
-                        "height": "100%",
-                        "left": 0,
-                        "opacity": 0.5,
-                        "position": "absolute",
-                        "right": 0,
-                        "top": 0,
-                      }
-                    }
-                  >
-                    <Image
-                      resizeMode="cover"
-                      source={1}
-                      style={
-                        [
-                          {
-                            "bottom": 0,
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "height": "100%",
-                            "width": undefined,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "borderRadius": 8,
-                        "flex": 1,
-                        "flexDirection": "column",
-                        "height": "100%",
-                        "justifyContent": "center",
-                        "paddingHorizontal": 24,
-                        "paddingVertical": 45,
-                        "rowGap": 16,
-                      }
-                    }
-                  >
-                    <SvgMock
-                      color="#121314"
-                      fill="currentColor"
-                      height={32}
-                      name="EyeSlash"
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                      width={32}
-                    />
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      Tap to reveal
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist Regular",
-                          "fontSize": 14,
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      Make sure no one is watching your screen.
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "flexDirection": "row",
-                  "gap": 16,
-                  "paddingHorizontal": 16,
-                  "paddingVertical": 16,
-                  "width": "100%",
-                },
-                {
-                  "marginBottom": 16,
-                  "paddingHorizontal": 0,
-                },
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              disabled={true}
-              loading={false}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="manual-backup-step-continue-button"
-            >
+              gives full wallet access.
+               
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#ffffff",
+                    "color": "#686e7d",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -778,12 +428,194 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
                   }
                 }
               >
-                Continue
+                Write it down with the correct order and numbers. Keep it safe and never share it.
               </Text>
-            </TouchableOpacity>
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "minHeight": 230,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 8,
+                  "flex": 1,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "borderRadius": 8,
+                    "bottom": 0,
+                    "flex": 1,
+                    "height": "100%",
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+                testID="blur-button"
+              >
+                <View
+                  accessibilityIgnoresInvertColors={true}
+                  style={
+                    {
+                      "borderRadius": 8,
+                      "bottom": 0,
+                      "flex": 1,
+                      "height": "100%",
+                      "left": 0,
+                      "opacity": 0.5,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Image
+                    resizeMode="cover"
+                    source={1}
+                    style={
+                      [
+                        {
+                          "bottom": 0,
+                          "left": 0,
+                          "position": "absolute",
+                          "right": 0,
+                          "top": 0,
+                        },
+                        {
+                          "height": "100%",
+                          "width": undefined,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "height": "100%",
+                      "justifyContent": "center",
+                      "paddingHorizontal": 24,
+                      "paddingVertical": 45,
+                      "rowGap": 16,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={32}
+                    name="EyeSlash"
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    width={32}
+                  />
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    Tap to reveal
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Make sure no one is watching your screen.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </RCTScrollView>
+      </View>
+      <View
+        style={
+          {
+            "gap": 16,
+            "marginBottom": 16,
+            "paddingHorizontal": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="manual-backup-step-continue-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Continue
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View />
@@ -817,131 +649,72 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
       ]
     }
   >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#686e7d",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      Step 2 of 3
-    </Text>
     <View
       style={
         {
           "flex": 1,
+          "justifyContent": "space-between",
         }
       }
     >
-      <RCTScrollView
-        automaticallyAdjustContentInsets={false}
-        contentContainerStyle={
+      <View
+        style={
           {
             "flex": 1,
           }
         }
-        contentInset={
-          {
-            "bottom": 0,
-          }
-        }
-        enableAutomaticScroll={true}
-        enableOnAndroid={false}
-        enableResetScrollToCoords={true}
-        extraHeight={75}
-        extraScrollHeight={0}
-        getScrollResponder={[Function]}
-        handleOnScroll={[Function]}
-        keyboardDismissMode="interactive"
-        keyboardOpeningTime={250}
-        keyboardShouldPersistTaps="never"
-        keyboardSpace={0}
-        onScroll={[Function]}
-        resetKeyboardSpace={[Function]}
-        resetScrollToCoords={
-          {
-            "x": 0,
-            "y": 0,
-          }
-        }
-        scrollEventThrottle={1}
-        scrollForExtraHeightOnAndroid={[Function]}
-        scrollIntoView={[Function]}
-        scrollToEnd={[Function]}
-        scrollToFocusedInput={[Function]}
-        scrollToPosition={[Function]}
-        showsVerticalScrollIndicator={true}
-        style={
-          [
+      >
+        <View
+          style={
             {
               "flex": 1,
-            },
-            undefined,
-          ]
-        }
-        update={[Function]}
-        viewIsInsideTabBar={false}
-      >
-        <View>
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
+              "flexDirection": "column",
+              "gap": 16,
             }
-            accessible={true}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          }
+          testID="manual_backup_step_1-screen"
+        >
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "flex": 1,
-                "flexDirection": "column",
-                "gap": 16,
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
               }
             }
-            testID="manual_backup_step_1-screen"
+          >
+            Save your Secret Recovery Phrase
+          </Text>
+          <View
+            style={
+              {
+                "justifyContent": "flex-start",
+              }
+            }
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 24,
                 }
               }
             >
-              Save your Secret Recovery Phrase
-            </Text>
-            <View
-              style={
-                {
-                  "justifyContent": "flex-start",
-                }
-              }
-            >
+              Your
+               
               <Text
                 accessibilityRole="text"
+                onPress={[Function]}
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#4459ff",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -949,223 +722,16 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
                   }
                 }
               >
-                This is your
+                Secret Recovery Phrase
                  
-                <Text
-                  accessibilityRole="text"
-                  onPress={[Function]}
-                  style={
-                    {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Secret Recovery Phrase.
-                   
-                </Text>
-                Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.
-                 
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Don’t share it with anyone, ever.
-                </Text>
               </Text>
-            </View>
-            <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#b7bbc8",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "minHeight": 230,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "borderRadius": 8,
-                    "flex": 1,
-                  }
-                }
-              >
-                <TouchableOpacity
-                  onPress={[Function]}
-                  style={
-                    {
-                      "borderRadius": 8,
-                      "bottom": 0,
-                      "flex": 1,
-                      "height": "100%",
-                      "left": 0,
-                      "position": "absolute",
-                      "right": 0,
-                      "top": 0,
-                    }
-                  }
-                  testID="blur-button"
-                >
-                  <View
-                    accessibilityIgnoresInvertColors={true}
-                    style={
-                      {
-                        "borderRadius": 8,
-                        "bottom": 0,
-                        "flex": 1,
-                        "height": "100%",
-                        "left": 0,
-                        "opacity": 0.5,
-                        "position": "absolute",
-                        "right": 0,
-                        "top": 0,
-                      }
-                    }
-                  >
-                    <Image
-                      resizeMode="cover"
-                      source={1}
-                      style={
-                        [
-                          {
-                            "bottom": 0,
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "height": "100%",
-                            "width": undefined,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "borderRadius": 8,
-                        "flex": 1,
-                        "flexDirection": "column",
-                        "height": "100%",
-                        "justifyContent": "center",
-                        "paddingHorizontal": 24,
-                        "paddingVertical": 45,
-                        "rowGap": 16,
-                      }
-                    }
-                  >
-                    <SvgMock
-                      color="#121314"
-                      fill="currentColor"
-                      height={32}
-                      name="EyeSlash"
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                      width={32}
-                    />
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      Tap to reveal
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist Regular",
-                          "fontSize": 14,
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      Make sure no one is watching your screen.
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              [
-                {
-                  "flexDirection": "row",
-                  "gap": 16,
-                  "paddingHorizontal": 16,
-                  "paddingVertical": 16,
-                  "width": "100%",
-                },
-                {
-                  "marginBottom": 0,
-                  "paddingHorizontal": 0,
-                },
-              ]
-            }
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              disabled={true}
-              loading={false}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="manual-backup-step-continue-button"
-            >
+              gives full wallet access.
+               
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#ffffff",
+                    "color": "#686e7d",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1173,12 +739,194 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
                   }
                 }
               >
-                Continue
+                Write it down with the correct order and numbers. Keep it safe and never share it.
               </Text>
-            </TouchableOpacity>
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "minHeight": 230,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 8,
+                  "flex": 1,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "borderRadius": 8,
+                    "bottom": 0,
+                    "flex": 1,
+                    "height": "100%",
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+                testID="blur-button"
+              >
+                <View
+                  accessibilityIgnoresInvertColors={true}
+                  style={
+                    {
+                      "borderRadius": 8,
+                      "bottom": 0,
+                      "flex": 1,
+                      "height": "100%",
+                      "left": 0,
+                      "opacity": 0.5,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Image
+                    resizeMode="cover"
+                    source={1}
+                    style={
+                      [
+                        {
+                          "bottom": 0,
+                          "left": 0,
+                          "position": "absolute",
+                          "right": 0,
+                          "top": 0,
+                        },
+                        {
+                          "height": "100%",
+                          "width": undefined,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "height": "100%",
+                      "justifyContent": "center",
+                      "paddingHorizontal": 24,
+                      "paddingVertical": 45,
+                      "rowGap": 16,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={32}
+                    name="EyeSlash"
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    width={32}
+                  />
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    Tap to reveal
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Make sure no one is watching your screen.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </RCTScrollView>
+      </View>
+      <View
+        style={
+          {
+            "gap": 16,
+            "marginBottom": 0,
+            "paddingHorizontal": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="manual-backup-step-continue-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Continue
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View />

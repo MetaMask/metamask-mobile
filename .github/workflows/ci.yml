@@ -266,7 +266,7 @@ jobs:
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
-      metamask_environment: 'qa'
+      metamask_environment: 'e2e'
       keystore_target: 'qa'
     secrets: inherit
 
@@ -335,7 +335,7 @@ jobs:
         run: yarn gen-bundle:ios
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 45
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 50
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4

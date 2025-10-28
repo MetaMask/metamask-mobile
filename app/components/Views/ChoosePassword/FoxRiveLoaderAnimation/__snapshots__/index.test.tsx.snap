@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FoxRiveLoaderAnimation displays Rive animation and ActivityIndicator 1`] = `
+<View
+  style={
+    {
+      "testID": "animation-container",
+    }
+  }
+  testID="fox-rive-loader-animation"
+>
+  <View
+    style={
+      {
+        "testID": "animation-wrapper",
+      }
+    }
+  >
+    <RiveView
+      alignment="Center"
+      autoplay={true}
+      source="mock-rive-file"
+      style={
+        {
+          "testID": "rive-animation",
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "testID": "text-wrapper",
+      }
+    }
+  >
+    <ActivityIndicator
+      color="#121314"
+      size="large"
+    />
+  </View>
+</View>
+`;

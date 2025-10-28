@@ -64,6 +64,12 @@ export const useRewardsIntroModal = () => {
   }, [hasSeenBIP44IntroModal]);
 
   const checkAndShowRewardsIntroModal = useCallback(async () => {
+    if (subscriptionId) {
+      await StorageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true');
+      setHasSeenRewardsIntroModal(true);
+      return;
+    }
+
     // Check if this is a fresh install
     const currentAppVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
     const lastAppVersion = await StorageWrapper.getItem(LAST_APP_VERSION);

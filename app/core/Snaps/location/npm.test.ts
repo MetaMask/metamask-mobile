@@ -5,10 +5,15 @@ jest.mock('react-native-blob-util', () => ({
     fetch: jest.fn(() => ({
       flush: jest.fn(),
       data: '/document-dir/archive.tgz',
+      respInfo: {
+        status: 200,
+        headers: {
+          'content-length': 2000,
+        },
+      },
     })),
   })),
   fs: {
-    dirs: { DocumentDir: '/document-dir/' },
     unlink: jest.fn().mockResolvedValue(undefined),
     isDir: jest.fn((path) => path.endsWith('archive') || path.endsWith('dist')),
     ls: jest.fn((path) => {

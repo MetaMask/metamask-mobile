@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
+import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
 
 /**
  * PerpsStreamBridge - Bridges stream context to global hooks.
@@ -10,6 +11,9 @@ import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 const PerpsStreamBridge: React.FC = () => {
   // Enable withdrawal status monitoring and toasts
   usePerpsWithdrawStatus();
+
+  // Enable deposit status monitoring and toasts
+  usePerpsDepositStatus();
 
   // This component doesn't render anything
   return null;

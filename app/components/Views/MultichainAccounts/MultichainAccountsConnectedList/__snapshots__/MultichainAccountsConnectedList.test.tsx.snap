@@ -176,33 +176,45 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       <View
                         style={
                           {
-                            "alignItems": "center",
                             "display": "flex",
                             "flex": 1,
-                            "flexDirection": "row",
+                            "flexDirection": "column",
+                            "gap": 4,
                             "justifyContent": "flex-start",
                             "minWidth": 0,
                           }
                         }
                       >
-                        <Text
-                          accessibilityRole="text"
-                          numberOfLines={1}
+                        <View
                           style={
                             {
-                              "color": "#121314",
-                              "flex": 1,
-                              "fontFamily": "Geist Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
+                              "alignItems": "center",
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "justifyContent": "flex-start",
                               "minWidth": 0,
                             }
                           }
-                          testID="multichain-account-cell-address"
                         >
-                          Account 1
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            numberOfLines={1}
+                            style={
+                              {
+                                "color": "#121314",
+                                "flex": 1,
+                                "fontFamily": "Geist Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "minWidth": 0,
+                              }
+                            }
+                            testID="multichain-account-cell-address"
+                          >
+                            Account 1
+                          </Text>
+                        </View>
                       </View>
                     </TouchableOpacity>
                     <View
@@ -220,19 +232,30 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       <TouchableOpacity
                         onPress={[Function]}
                       >
-                        <Text
-                          accessibilityRole="text"
+                        <View
                           style={
                             {
-                              "color": "#121314",
-                              "fontFamily": "Geist Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
+                              "alignItems": "flex-end",
+                              "display": "flex",
+                              "flexDirection": "column",
+                              "gap": 4,
                             }
                           }
-                          testID="multichain-account-cell-balance"
-                        />
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                            testID="multichain-account-cell-balance"
+                          />
+                        </View>
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={[Function]}
@@ -362,33 +385,45 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       <View
                         style={
                           {
-                            "alignItems": "center",
                             "display": "flex",
                             "flex": 1,
-                            "flexDirection": "row",
+                            "flexDirection": "column",
+                            "gap": 4,
                             "justifyContent": "flex-start",
                             "minWidth": 0,
                           }
                         }
                       >
-                        <Text
-                          accessibilityRole="text"
-                          numberOfLines={1}
+                        <View
                           style={
                             {
-                              "color": "#121314",
-                              "flex": 1,
-                              "fontFamily": "Geist Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
+                              "alignItems": "center",
+                              "display": "flex",
+                              "flexDirection": "row",
+                              "justifyContent": "flex-start",
                               "minWidth": 0,
                             }
                           }
-                          testID="multichain-account-cell-address"
                         >
-                          Account 2
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            numberOfLines={1}
+                            style={
+                              {
+                                "color": "#121314",
+                                "flex": 1,
+                                "fontFamily": "Geist Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "minWidth": 0,
+                              }
+                            }
+                            testID="multichain-account-cell-address"
+                          >
+                            Account 2
+                          </Text>
+                        </View>
                       </View>
                     </TouchableOpacity>
                     <View
@@ -406,19 +441,30 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       <TouchableOpacity
                         onPress={[Function]}
                       >
-                        <Text
-                          accessibilityRole="text"
+                        <View
                           style={
                             {
-                              "color": "#121314",
-                              "fontFamily": "Geist Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
+                              "alignItems": "flex-end",
+                              "display": "flex",
+                              "flexDirection": "column",
+                              "gap": 4,
                             }
                           }
-                          testID="multichain-account-cell-balance"
-                        />
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                            testID="multichain-account-cell-balance"
+                          />
+                        </View>
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={[Function]}

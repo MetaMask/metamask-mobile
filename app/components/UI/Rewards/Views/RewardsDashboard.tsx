@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -182,53 +182,57 @@ const RewardsDashboard: React.FC = () => {
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
-  useEffect(() => {
-    if (
-      (totalOptedInAccountsSelectedGroup === 0 ||
-        currentAccountGroupPartiallySupported === false) &&
-      !hideCurrentAccountNotOptedInBanner &&
-      selectedAccountGroup?.id
-    ) {
-      if (currentAccountGroupPartiallySupported === false) {
-        // Account group entirely not not supported (e.g. hardware wallet account group)
-        if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
-          showNotSupportedModal();
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        (totalOptedInAccountsSelectedGroup === 0 ||
+          currentAccountGroupPartiallySupported === false) &&
+        !hideCurrentAccountNotOptedInBanner &&
+        selectedAccountGroup?.id
+      ) {
+        if (currentAccountGroupPartiallySupported === false) {
+          // Account group entirely not not supported (e.g. hardware wallet account group)
+          if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
+            showNotSupportedModal();
+          }
+        } else if (
+          !hasShownModal('not-opted-in' as RewardsDashboardModalType)
+        ) {
+          // Account can be opted in but hasn't been yet
+          showNotOptedInModal();
         }
-      } else if (!hasShownModal('not-opted-in' as RewardsDashboardModalType)) {
-        // Account can be opted in but hasn't been yet
-        showNotOptedInModal();
+        return; // Don't check for unlinked accounts if current account has issues
       }
-      return; // Don't check for unlinked accounts if current account has issues
-    }
 
-    // Priority 2: Check for unlinked accounts (only if current account is good)
-    if (
-      subscriptionId &&
-      (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
-        currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
-        hideCurrentAccountNotOptedInBanner) &&
-      totalAccountGroupsWithOptedOutAccounts > 0 &&
-      !hideUnlinkedAccountsBanner
-    ) {
-      // User has other accounts that could be earning rewards
-      if (!hasShownModal('unlinked-accounts' as RewardsDashboardModalType)) {
-        showUnlinkedAccountsModal();
+      // Priority 2: Check for unlinked accounts (only if current account is good)
+      if (
+        subscriptionId &&
+        (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
+          currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
+          hideCurrentAccountNotOptedInBanner) &&
+        totalAccountGroupsWithOptedOutAccounts > 0 &&
+        !hideUnlinkedAccountsBanner
+      ) {
+        // User has other accounts that could be earning rewards
+        if (!hasShownModal('unlinked-accounts' as RewardsDashboardModalType)) {
+          showUnlinkedAccountsModal();
+        }
       }
-    }
-  }, [
-    currentAccountGroupOptedInStatus,
-    currentAccountGroupPartiallySupported,
-    hideCurrentAccountNotOptedInBanner,
-    selectedAccountGroup?.id,
-    subscriptionId,
-    totalAccountGroupsWithOptedOutAccounts,
-    totalOptedInAccountsSelectedGroup,
-    hideUnlinkedAccountsBanner,
-    showNotOptedInModal,
-    showUnlinkedAccountsModal,
-    showNotSupportedModal,
-    hasShownModal,
-  ]);
+    }, [
+      currentAccountGroupOptedInStatus,
+      currentAccountGroupPartiallySupported,
+      hideCurrentAccountNotOptedInBanner,
+      selectedAccountGroup?.id,
+      subscriptionId,
+      totalAccountGroupsWithOptedOutAccounts,
+      totalOptedInAccountsSelectedGroup,
+      hideUnlinkedAccountsBanner,
+      showNotOptedInModal,
+      showUnlinkedAccountsModal,
+      showNotSupportedModal,
+      hasShownModal,
+    ]),
+  );
 
   useEffect(() => {
     if (!hasTrackedDashboardViewed.current) {
