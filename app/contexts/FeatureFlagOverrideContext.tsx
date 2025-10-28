@@ -12,7 +12,9 @@ import {
   FeatureFlagInfo,
   getFeatureFlagDescription,
   getFeatureFlagType,
+  isMinimumRequiredVersionSupported,
 } from '../util/feature-flags';
+import { ToastContext } from '../component-library/components/Toast';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -47,6 +49,8 @@ export const FeatureFlagOverrideProvider: React.FC<
 > = ({ children }) => {
   // Get the initial feature flags from Redux
   const rawFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const toastContext = useContext(ToastContext);
+  const toastRef = toastContext?.toastRef;
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
@@ -138,7 +142,37 @@ export const FeatureFlagOverrideProvider: React.FC<
   /**
    * get a specific feature flag value with overrides applied
    */
-  const getFeatureFlag = (key: string) => featureFlags[key];
+  const getFeatureFlag = (key: string) => {
+    const flag = featureFlags[key];
+    if (!flag) {
+      return undefined;
+    }
+
+    if (flag.type === 'boolean with minimumVersion') {
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        !isMinimumRequiredVersionSupported(flag.value?.minimumVersion)
+      ) {
+        toastRef?.current?.showToast({
+          variant: 'Icon' as any,
+          labelOptions: [
+            {
+              label: 'Unsupported version',
+              isBold: true,
+            },
+            {
+              label: `${flag.key} is not supported on your version of the app.`,
+            },
+          ],
+          iconName: 'Warning' as any,
+          hasNoTimeout: false,
+        });
+      }
+      return flag.value.enabled;
+    }
+
+    return flag.value;
+  };
 
   const getOverrideCount = useCallback(
     (): number => Object.keys(overrides).length,
