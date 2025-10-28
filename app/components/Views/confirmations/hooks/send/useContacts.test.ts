@@ -292,5 +292,33 @@ describe('useContacts', () => {
         '0x1234567890123456789012345678901234567890',
       );
     });
+
+    it('filters out zero address burn address', () => {
+      const burnAddressBook = {
+        '1': {
+          contact1: mockEvmContact1,
+          burnContact: {
+            name: 'Burn Address',
+            address: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      };
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAddressBook) {
+          return burnAddressBook;
+        }
+        return {};
+      });
+
+      const { result } = renderHook(() => useContacts());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].address).toBe(mockEvmContact1.address);
+      expect(
+        result.current.find(
+          (c) => c.address === '0x0000000000000000000000000000000000000000',
+        ),
+      ).toBeUndefined();
+    });
   });
 });

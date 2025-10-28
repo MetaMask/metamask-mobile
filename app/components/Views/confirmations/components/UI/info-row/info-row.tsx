@@ -48,6 +48,7 @@ const InfoRow = ({
   withIcon,
 }: InfoRowProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const hasLabel = Boolean(label);
 
   const ValueComponent =
     typeof children === 'string' ? (
@@ -62,7 +63,7 @@ const InfoRow = ({
         style={{ ...styles.container, ...style }}
         testID={testID ?? 'info-row'}
       >
-        {Boolean(label) && (
+        {hasLabel && (
           <View style={styles.labelContainer}>
             <Text variant={TextVariant.BodyMDMedium} color={variant}>
               {label}
@@ -75,6 +76,16 @@ const InfoRow = ({
                 title={tooltipTitle ?? label}
               />
             )}
+          </View>
+        )}
+        {!hasLabel && labelChildren && (
+          <View
+            style={{
+              ...styles.labelContainer,
+              ...styles.labelContainerWithoutLabel,
+            }}
+          >
+            {labelChildren}
           </View>
         )}
         {valueOnNewLine ? null : ValueComponent}
