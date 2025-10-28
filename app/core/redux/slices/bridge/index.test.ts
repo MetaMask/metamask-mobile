@@ -55,6 +55,8 @@ describe('bridge slice', () => {
         selectedDestChainId: undefined,
         slippage: '0.5',
         isSubmittingTx: false,
+        isSelectingRecipient: false,
+        isMaxSourceAmount: false,
       });
     });
   });

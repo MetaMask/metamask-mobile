@@ -49,13 +49,13 @@ export class AIE2ETagsSelector {
 
   private readonly pipelineTags = [
     'SmokeAccounts',
-    'SmokeConfirmations',
     'SmokeConfirmationsRedesigned',
     'SmokeIdentity',
     'SmokeNetworkAbstractions',
     'SmokeNetworkExpansion',
     'SmokeTrade',
-    'SmokeWalletPlatform'
+    'SmokeWalletPlatform',
+    'SmokeRewards'
   ];
 
   private readonly availableTags = smokeTags
@@ -667,14 +667,14 @@ AVAILABLE TAGS:
 ${this.pipelineTags.map(tag => `- ${tag}`).join('\n')}
 
 TAG COVERAGE:
-- SmokeConfirmations: Transaction confirmations, send/receive, signatures
-- SmokeConfirmationsRedesigned: New confirmation UI as well as all confirmation flows
+- SmokeConfirmationsRedesigned: All confirmation flows including transaction confirmations, send/receive, signatures etc.
 - SmokeTrade: Token swaps, DEX trading
 - SmokeWalletPlatform: Core wallet, accounts, network switching
 - SmokeIdentity: User identity, authentication
 - SmokeAccounts: Multi-account, account management
 - SmokeNetworkAbstractions: Network layer, multi-chain
 - SmokeNetworkExpansion: New networks, network config (Solana, Bitcoin, etc)
+- SmokeRewards: Rewards system, points, levels, boosts
 
 TOOLS AVAILABLE:
 - read_file: Read actual file content
@@ -735,8 +735,9 @@ SELECTION GUIDANCE:
 - Use your judgment on whether tests are needed - 0 tags is perfectly acceptable for genuine non-functional changes
 - Critical files (package.json, controllers, Engine) should almost always trigger tests
 - Reading actual diffs (get_git_diff) provides better context than filenames alone
-- For CI files: Use find_related_files first, then assess impact breadth
-- If a reusable workflow or widely-used script changes → likely HIGH impact
+- For CI files: Use find_related_files first, then assess impact breadth and depth
+- If a reusable workflow or widely-used script changes → likely HIGH impact so consider running tests
+- Err on the side of caution when uncertain and make some selection rather than none (unless clearly non-functional)
 
 CONFIDENCE SCORING (0-100):
 - 90-100%: Very confident (clear-cut cases)

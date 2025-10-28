@@ -1,17 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, TouchableOpacity } from 'react-native';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { formatPrice, formatPositionSize } from '../../utils/format';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useEffect, useRef } from 'react';
+import { Animated, TouchableOpacity } from 'react-native';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { formatPositionSize, formatPrice } from '../../utils/format';
 
 interface PredictAmountDisplayProps {
   amount: string;
@@ -69,7 +69,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   const content = (
     <Box
       alignItems={BoxAlignItems.Center}
-      twClassName="pt-12 px-6"
+      twClassName="px-6"
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
       {label && (
@@ -89,10 +89,9 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
         <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
           color={hasError ? TextColor.Error : TextColor.Default}
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.BodyMDMedium}
           style={tw.style(
-            'text-[54px] tracking-tight leading-[74px]',
-            Platform.OS === 'android' ? 'font-medium' : 'font-black',
+            'text-[64px] tracking-tight leading-[74px] font-medium',
           )}
         >
           {showTokenAmount && tokenAmount && tokenSymbol

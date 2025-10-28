@@ -480,10 +480,11 @@ describe('BridgeView', () => {
     expect(maxButton).toBeTruthy();
     fireEvent.press(maxButton);
 
-    // Verify the input value is set to the maximum available balance (2.0 from useLatestBalance mock)
+    // Verify the input displays truncated value ("2.0" → "2" for display only)
+    // The actual sourceAmount in Redux state retains full precision "2.0" for API
     const input = getByTestId('source-token-area-input');
     await waitFor(() => {
-      expect(input.props.value).toBe('2.0');
+      expect(input.props.value).toBe('2');
     });
   });
 
@@ -578,6 +579,10 @@ describe('BridgeView', () => {
   });
 
   describe('Bottom Content', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('displays "Select amount" when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
@@ -638,7 +643,7 @@ describe('BridgeView', () => {
       expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
-    it('displays "Fetching quote" when quotes are loading', () => {
+    it('displays "Fetching quote" when quotes are loading and there is no active quote', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLastFetched: null,
@@ -650,6 +655,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: true,
+          activeQuote: null,
         }));
 
       const { getByText } = renderScreen(
@@ -682,6 +688,42 @@ describe('BridgeView', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: false,
+          willRefresh: false,
+        }));
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const continueButton = getByTestId('bridge-confirm-button');
+      expect(continueButton).toBeTruthy();
+    });
+
+    it('displays Continue button and Terms link when a quote is available but other quotes are still loading', () => {
+      const mockQuote = mockQuoteWithMetadata;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.LOADING,
+          quotes: [mockQuote as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0', // Less than balance of 2.0 ETH
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: false,
           willRefresh: false,
@@ -735,10 +777,11 @@ describe('BridgeView', () => {
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
+          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
       renderScreen(
@@ -759,7 +802,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote expires with refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: true,
@@ -786,7 +829,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote is valid', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: false,
           willRefresh: false,
@@ -810,14 +853,51 @@ describe('BridgeView', () => {
       });
     });
 
-    it('blurs input when opening QuoteExpiredModal', async () => {
+    it('does not navigate to QuoteExpiredModal when RecipientSelectorModal is open', async () => {
+      // Set the Redux state to indicate user is selecting recipient
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSelectingRecipient: true,
+        },
+      };
+
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
+        }));
+
+      renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+          },
+        );
+      });
+    });
+
+    it('blurs input when opening QuoteExpiredModal', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          willRefresh: false,
           isLoading: false,
+          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
       const { toJSON } = renderScreen(
@@ -851,7 +931,7 @@ describe('BridgeView', () => {
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
             quotes: [mockQuote as unknown as QuoteResponse],
-            quotesLastFetched: 12,
+            quotesLastFetched: Date.now(),
           },
           bridgeReducerOverrides: {
             sourceAmount: '1.0',
@@ -1441,9 +1521,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Should display the deep link amount in the input
+      // Should display the deep link amount in the input (formatted with commas)
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('uses all deep link params when all are provided', async () => {
@@ -1477,7 +1557,7 @@ describe('BridgeView', () => {
       expect(getByText('USDC')).toBeTruthy();
       expect(getByText('USDT')).toBeTruthy();
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('falls back to Redux state when deep link params are not provided', () => {

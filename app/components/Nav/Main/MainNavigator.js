@@ -74,6 +74,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectBrowserFullscreen } from '../../../selectors/browser';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
@@ -109,6 +110,9 @@ import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsV
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
+///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -117,6 +121,8 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
+import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
@@ -191,11 +197,6 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.PREDICT.ROOT}
-      component={PredictScreenStack}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
       name="AddAsset"
       component={AddAsset}
       options={AddAsset.navigationOptions}
@@ -263,6 +264,15 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+      component={RewardOptInAccountGroupModal}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
+      component={ReferralBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -512,6 +522,8 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
+  const isBrowserFullscreen = useSelector(selectBrowserFullscreen);
+
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -610,6 +622,14 @@ const HomeTabs = () => {
       currentRoute.name?.startsWith('Rewards') &&
       isRewardsEnabled &&
       !rewardsSubscription
+    ) {
+      return null;
+    }
+
+    // Hide tab bar when browser is in fullscreen mode
+    if (
+      isBrowserFullscreen &&
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
     ) {
       return null;
     }
@@ -861,6 +881,14 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+const SampleFeatureFlow = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeature} />
+  </Stack.Navigator>
+);
+///: END:ONLY_INCLUDE_IF
+
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
@@ -1048,17 +1076,25 @@ const MainNavigator = () => {
             name={Routes.PREDICT.ROOT}
             component={PredictScreenStack}
             options={{
-              animationEnabled: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
             }}
           />
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={{
-              ...clearStackNavigatorOptions,
-              presentation: 'transparentModal',
-              animationEnabled: true,
-            }}
+            options={clearStackNavigatorOptions}
           />
         </>
       )}
@@ -1101,6 +1137,16 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      }
+      <Stack.Screen
+        name={Routes.SAMPLE_FEATURE}
+        component={SampleFeatureFlow}
+      />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );

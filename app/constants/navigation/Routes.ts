@@ -104,6 +104,8 @@ const Routes = {
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
+    REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
+    REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -235,6 +237,7 @@ const Routes = {
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
+      RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -248,10 +251,11 @@ const Routes = {
     MARKET_DETAILS: 'PerpsMarketDetails',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
+    HIP3_DEBUG: 'PerpsHIP3Debug',
+    TPSL: 'PerpsTPSL',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
-      BALANCE_MODAL: 'PerpsBalanceModal',
       GTM_MODAL: 'PerpsGTMModal',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
@@ -262,11 +266,13 @@ const Routes = {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
+    ACTIVITY_DETAIL: 'PredictActivityDetail',
     MODALS: {
       ROOT: 'PredictModals',
-      CASH_OUT: 'PredictCashOut',
+      BUY_PREVIEW: 'PredictBuyPreview',
+      SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
-      PLACE_BET: 'PredictPlaceBet',
+      ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
   LOCK_SCREEN: 'LockScreen',
@@ -307,6 +313,7 @@ const Routes = {
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+    NO_HEADER: 'NoHeaderConfirmations',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
@@ -338,10 +345,29 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SAMPLE_FEATURE: 'SampleFeature',
+  ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
+    AUTHENTICATION: 'CardAuthentication',
+    ONBOARDING: {
+      ROOT: 'CardOnboarding',
+      SIGN_UP: 'CardOnboardingSignUp',
+      CONFIRM_EMAIL: 'CardOnboardingConfirmEmail',
+      SET_PHONE_NUMBER: 'CardOnboardingSetPhoneNumber',
+      CONFIRM_PHONE_NUMBER: 'CardOnboardingConfirmPhoneNumber',
+      VERIFY_IDENTITY: 'CardOnboardingVerifyIdentity',
+      VALIDATING_KYC: 'CardOnboardingValidatingKYC',
+      PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
+      PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
+      MAILING_ADDRESS: 'CardOnboardingMailingAddress',
+      COMPLETE: 'CardOnboardingComplete',
+      KYC_FAILED: 'CardOnboardingKYCFailed',
+      WEBVIEW: 'CardOnboardingWebview',
+    },
   },
   SEND: {
     RECIPIENT: 'Recipient',

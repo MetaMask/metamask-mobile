@@ -1,10 +1,7 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  selectIsTransactionBridgeQuotesLoadingById,
-  selectTransactionBridgeQuotesById,
-} from '../../../../../../core/redux/slices/confirmationMetrics';
+import { selectTransactionBridgeQuotesById } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import Text, {
@@ -16,31 +13,29 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { BigNumber } from 'bignumber.js';
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
 import { SkeletonRow } from '../skeleton-row';
 import { hasTransactionType } from '../../../utils/transaction';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
+import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 
 export function BridgeFeeRow() {
+  const { formatFiat } = useTransactionPayFiat();
+  const { totalTransactionFeeFormatted } = useTransactionTotalFiat();
+  const { isLoading } = useIsTransactionPayLoading();
+
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { id: transactionId } = transactionMetadata;
-
-  const { totalTransactionFeeFormatted } = useTransactionTotalFiat();
-  const fiatFormatter = useFiatFormatter();
-
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
-  );
 
   const quotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
   );
 
   const hasQuotes = Boolean(quotes?.length);
+  const metamaskFee = useMemo(() => formatFiat(0), [formatFiat]);
 
-  if (isQuotesLoading) {
+  if (isLoading) {
     return (
       <>
         <SkeletonRow testId="bridge-fee-row-skeleton" />
@@ -64,7 +59,7 @@ export function BridgeFeeRow() {
           testID="metamask-fee-row"
           label={strings('confirm.label.metamask_fee')}
         >
-          <Text>{fiatFormatter(new BigNumber(0))}</Text>
+          <Text>{metamaskFee}</Text>
         </InfoRow>
       )}
     </>

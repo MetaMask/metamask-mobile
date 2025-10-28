@@ -203,7 +203,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
-      symbols: allSymbols, // Subscribe to specific symbols
+      symbols: allSymbols,
+      includeOrderBook: true, // include bid/ask data from L2 book
       callback: (updates: PriceUpdate[]) => {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
@@ -310,6 +311,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       // Subscribe to all market prices
       this.prewarmUnsubscribe = controller.subscribeToPrices({
         symbols: this.allMarketSymbols,
+        includeOrderBook: true, // include bid/ask data from L2 book
         callback: (updates: PriceUpdate[]) => {
           // Update cache and build price map
           const priceMap: Record<string, PriceUpdate> = {};
@@ -344,7 +346,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         this.cleanupPrewarm();
       };
     } catch (error) {
-      DevLogger.log('PriceStreamChannel: Failed to prewarm prices', error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'PriceStreamChannel.prewarm',
+      });
       // Return no-op cleanup function
       return () => {
         // No-op
@@ -881,10 +885,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         });
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
-        DevLogger.log('PerpsStreamManager: Failed to fetch market data', {
-          error,
-          fetchTimeMs: fetchTime,
-        });
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context: 'PerpsStreamManager.fetchMarketData',
+            fetchTimeMs: fetchTime,
+          },
+        );
         // Keep existing cache if fetch fails
         const existing = this.cache.get('markets');
         if (existing) {
@@ -927,7 +934,9 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
     this.fetchMarketData().catch((error) => {
-      DevLogger.log('PerpsStreamManager: Failed to prewarm market data', error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'MarketDataChannel.prewarm',
+      });
     });
 
     // No cleanup needed for REST data

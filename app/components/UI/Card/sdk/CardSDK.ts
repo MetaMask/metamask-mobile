@@ -7,8 +7,50 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
 import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
-import { CardToken } from '../types';
+import {
+  CardAuthorizeResponse,
+  CardDetailsResponse,
+  CardError,
+  CardErrorType,
+  CardExchangeTokenRawResponse,
+  CardExchangeTokenResponse,
+  CardExternalWalletDetail,
+  CardExternalWalletDetailsResponse,
+  CardLocation,
+  CardLoginInitiateResponse,
+  CardLoginResponse,
+  CardToken,
+  CardType,
+  CardWalletExternalPriorityResponse,
+  CardWalletExternalResponse,
+  EmailVerificationSendRequest,
+  EmailVerificationSendResponse,
+  EmailVerificationVerifyRequest,
+  EmailVerificationVerifyResponse,
+  PhoneVerificationSendRequest,
+  PhoneVerificationSendResponse,
+  PhoneVerificationVerifyRequest,
+  RegisterPersonalDetailsRequest,
+  RegisterUserResponse,
+  RegisterPhysicalAddressRequest,
+  RegisterAddressResponse,
+  RegistrationSettingsResponse,
+  StartUserVerificationResponse,
+  CreateOnboardingConsentRequest,
+  CreateOnboardingConsentResponse,
+  LinkUserToConsentRequest,
+  LinkUserToConsentResponse,
+  UserResponse,
+  StartUserVerificationRequest,
+} from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
+import { getCardBaanxToken } from '../util/cardTokenVault';
+import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
+import { CaipChainId } from '@metamask/utils';
+
+// Default timeout for all API requests (10 seconds)
+const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
 // The CardSDK class provides methods to interact with the Card feature
 // and check if an address is a card holder, get supported tokens, and more.
@@ -16,34 +58,39 @@ import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 // Ideally it should be separated into its own package in the future.
 export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
-  private chainId: string | number;
   private enableLogs: boolean;
+  private cardBaanxApiBaseUrl: string;
+  private cardBaanxApiKey: string | undefined;
+  private userCardLocation: CardLocation;
+  lineaChainId: CaipChainId;
 
   constructor({
     cardFeatureFlag,
+    userCardLocation,
     enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
+    userCardLocation?: CardLocation;
     enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
-    this.chainId = getDecimalChainId(LINEA_CHAIN_ID);
     this.enableLogs = enableLogs;
+    this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
+    this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
+    this.lineaChainId = `eip155:${getDecimalChainId(LINEA_CHAIN_ID)}`;
+    this.userCardLocation = userCardLocation ?? 'international';
   }
 
   get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.enabled || false
-    );
+    return this.cardFeatureFlag.chains?.[this.lineaChainId]?.enabled || false;
   }
 
-  get supportedTokens(): SupportedToken[] {
+  getSupportedTokensByChainId(chainId: CaipChainId): SupportedToken[] {
     if (!this.isCardEnabled) {
       return [];
     }
 
-    const tokens =
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.tokens;
+    const tokens = this.cardFeatureFlag.chains?.[chainId]?.tokens;
 
     if (!tokens) {
       return [];
@@ -51,17 +98,13 @@ export class CardSDK {
 
     return tokens.filter(
       (token): token is SupportedToken =>
-        token &&
-        typeof token.address === 'string' &&
-        ethers.utils.isAddress(token.address) &&
-        token.enabled !== false,
+        token && typeof token.address === 'string' && token.enabled !== false,
     );
   }
 
   private get foxConnectAddresses() {
     const foxConnect =
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
-        ?.foxConnectAddresses;
+      this.cardFeatureFlag.chains?.[this.lineaChainId]?.foxConnectAddresses;
 
     if (!foxConnect?.global || !foxConnect?.us) {
       throw new Error(
@@ -82,8 +125,7 @@ export class CardSDK {
 
   private get balanceScannerInstance() {
     const balanceScannerAddress =
-      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
-        ?.balanceScannerAddress;
+      this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
     if (!balanceScannerAddress) {
       throw new Error(
@@ -96,16 +138,6 @@ export class CardSDK {
       BALANCE_SCANNER_ABI,
       this.ethersProvider,
     );
-  }
-
-  private get rampApiUrl() {
-    const onRampApi = this.cardFeatureFlag.constants?.onRampApiUrl;
-
-    if (!onRampApi) {
-      throw new Error('On Ramp API URL is not defined for the current chain');
-    }
-
-    return onRampApi;
   }
 
   private get accountsApiUrl() {
@@ -176,9 +208,9 @@ export class CardSDK {
       this.logDebugInfo('performCardholderRequest', data);
       return data.is || [];
     } catch (error) {
-      Logger.error(
+      Logger.log(
         error as Error,
-        'Failed to check if address is a card holder',
+        'CardSDK: Failed to check if address is a card holder',
       );
       return [];
     }
@@ -241,17 +273,24 @@ export class CardSDK {
 
   getGeoLocation = async (): Promise<string> => {
     try {
-      const url = new URL('geolocation', this.rampApiUrl);
+      const env = process.env.NODE_ENV ?? 'production';
+      const environment = env === 'production' ? 'PROD' : 'DEV';
+
+      const GEOLOCATION_URLS = {
+        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+      };
+      const url = GEOLOCATION_URLS[environment];
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch geolocation');
+        throw new Error(`Failed to get geolocation: ${response.statusText}`);
       }
 
       return await response.text();
     } catch (error) {
-      Logger.error(error as Error, 'Failed to get geolocation');
-      return '';
+      Logger.log(error as Error, 'CardSDK: Failed to get geolocation');
+      return 'UNKNOWN';
     }
   };
 
@@ -268,9 +307,9 @@ export class CardSDK {
       throw new Error('Card feature is not enabled for this chain');
     }
 
-    const supportedTokensAddresses = this.supportedTokens.map(
-      (token) => token.address,
-    );
+    const supportedTokensAddresses = this.getSupportedTokensByChainId(
+      this.lineaChainId,
+    ).map((token) => token.address);
 
     if (supportedTokensAddresses.length === 0) {
       return [];
@@ -345,14 +384,1300 @@ export class CardSDK {
     );
   };
 
+  private getBaanxApiBaseUrl() {
+    // always using url from env var if set
+    if (process.env.BAANX_API_URL) return process.env.BAANX_API_URL;
+    // otherwise using default per-env url
+    return getDefaultBaanxApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
+  }
+
+  private async makeRequest(
+    endpoint: string,
+    options: RequestInit & { query?: string } = {},
+    authenticated: boolean = false,
+    location: CardLocation = this.userCardLocation,
+    timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
+  ): Promise<Response> {
+    const apiKey = this.cardBaanxApiKey;
+
+    if (!apiKey) {
+      throw new CardError(
+        CardErrorType.API_KEY_MISSING,
+        'Card API key is not configured',
+      );
+    }
+
+    const isUSEnv = location === 'us';
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      'x-us-env': String(isUSEnv),
+      'x-client-key': apiKey,
+    };
+
+    // Add bearer token for authenticated requests
+    try {
+      if (authenticated) {
+        const tokenResult = await getCardBaanxToken();
+        if (tokenResult.success && tokenResult.tokenData?.accessToken) {
+          headers.Authorization = `Bearer ${tokenResult.tokenData.accessToken}`;
+        }
+      }
+    } catch (error) {
+      // Continue without bearer token if retrieval fails
+      Logger.log('Failed to retrieve Card bearer token:', error);
+    }
+
+    const url = `${this.cardBaanxApiBaseUrl}${endpoint}${
+      options.query ? `?${options.query}` : ''
+    }`;
+
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        credentials: 'omit',
+        ...options,
+        headers: {
+          ...headers,
+          ...options.headers,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      // Check if the error is due to timeout
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new CardError(
+          CardErrorType.TIMEOUT_ERROR,
+          'Request timed out. Please check your connection.',
+          error,
+        );
+      }
+
+      // Network or other fetch errors
+      if (error instanceof Error) {
+        throw new CardError(
+          CardErrorType.NETWORK_ERROR,
+          'Network error. Please check your connection.',
+          error,
+        );
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'An unexpected error occurred.',
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  initiateCardProviderAuthentication = async (queryParams: {
+    state: string;
+    codeChallenge: string;
+    location: CardLocation;
+  }): Promise<CardLoginInitiateResponse> => {
+    if (!this.cardBaanxApiKey) {
+      throw new CardError(
+        CardErrorType.API_KEY_MISSING,
+        'Card API key is not configured',
+      );
+    }
+
+    const { state, codeChallenge } = queryParams;
+    const queryParamsString = new URLSearchParams();
+    queryParamsString.set('client_id', this.cardBaanxApiKey);
+    // Redirect URI is required but not used by this flow
+    queryParamsString.set('redirect_uri', 'https://example.com');
+    queryParamsString.set('state', state);
+    queryParamsString.set('code_challenge', codeChallenge);
+    queryParamsString.set('code_challenge_method', 'S256');
+    queryParamsString.set('mode', 'api');
+    queryParamsString.set('client_secret', this.cardBaanxApiKey);
+    queryParamsString.set('response_type', 'code');
+
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/authorize/initiate',
+      {
+        method: 'GET',
+        query: queryParamsString.toString(),
+      },
+      false,
+      queryParams.location,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to initiate authentication. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to initiate card provider authentication. Status: ${response.status}, Response: ${responseBody}`,
+      );
+      throw error;
+    }
+
+    const data = await response.json();
+    return data as CardLoginInitiateResponse;
+  };
+
+  login = async (body: {
+    email: string;
+    password: string;
+    location: CardLocation;
+    otpCode?: string;
+  }): Promise<CardLoginResponse> => {
+    const { email, password, otpCode, location } = body;
+
+    const response = await this.makeRequest(
+      '/v1/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+          ...(otpCode ? { otpCode } : {}),
+        }),
+      },
+      false,
+      location,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.json();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      // Handle specific HTTP status codes
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        response.status === 404
+      ) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Invalid login details',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Invalid credentials during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      if (response.status >= 500) {
+        const error = new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Server error. Please try again later.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Server error during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Login failed. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Unknown error during login. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const data = await response.json();
+    return data as CardLoginResponse;
+  };
+
+  sendOtpLogin = async (body: {
+    userId: string;
+    location: CardLocation;
+  }): Promise<void> => {
+    const { userId } = body;
+    const response = await this.makeRequest(
+      '/v1/auth/login/otp',
+      {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+      },
+      false,
+      body.location,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to send OTP login. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to send OTP login. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    return;
+  };
+
+  authorize = async (body: {
+    initiateAccessToken: string;
+    loginAccessToken: string;
+    location: CardLocation;
+  }): Promise<CardAuthorizeResponse> => {
+    const { initiateAccessToken, loginAccessToken, location } = body;
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/authorize',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          token: initiateAccessToken,
+        }),
+        headers: {
+          Authorization: `Bearer ${loginAccessToken}`,
+        },
+      },
+      false,
+      location,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Authorization failed. Please try logging in again.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Authorization failed - invalid credentials. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Authorization failed. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Authorization failed. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const data = await response.json();
+    return data as CardAuthorizeResponse;
+  };
+
+  exchangeToken = async (body: {
+    code?: string;
+    codeVerifier?: string;
+    grantType: 'authorization_code' | 'refresh_token';
+    location: CardLocation;
+  }): Promise<CardExchangeTokenResponse> => {
+    let requestBody = null;
+
+    if (body.grantType === 'authorization_code') {
+      requestBody = {
+        code: body.code,
+        code_verifier: body.codeVerifier,
+        grant_type: body.grantType,
+        // This is a required field for the authorization code grant type
+        // but it is not used by the Card API
+        redirect_uri: 'https://example.com',
+      };
+    } else {
+      requestBody = {
+        grant_type: body.grantType,
+        refresh_token: body.code,
+      };
+    }
+
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/token',
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'x-secret-key': this.cardBaanxApiKey || '',
+        },
+      },
+      false,
+      body.location,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Token exchange failed. Please try logging in again.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Token exchange failed - invalid credentials. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Token exchange failed. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Token exchange failed. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const data = (await response.json()) as CardExchangeTokenRawResponse;
+
+    return {
+      accessToken: data.access_token,
+      tokenType: data.token_type,
+      expiresIn: data.expires_in,
+      refreshToken: data.refresh_token,
+      refreshTokenExpiresIn: data.refresh_token_expires_in,
+    } as CardExchangeTokenResponse;
+  };
+
+  getCardDetails = async (): Promise<CardDetailsResponse> => {
+    const response = await this.makeRequest(
+      '/v1/card/status',
+      { method: 'GET' },
+      true,
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Invalid credentials. Please try logging in again.',
+        );
+      }
+
+      if (response.status === 404) {
+        throw new CardError(
+          CardErrorType.NO_CARD,
+          'User has no card. Request a card first.',
+        );
+      }
+
+      const errorResponse = await response.json();
+      Logger.log(errorResponse, 'Failed to get card details.');
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to get card details. Please try again.',
+      );
+    }
+
+    return (await response.json()) as CardDetailsResponse;
+  };
+
+  getCardExternalWalletDetails =
+    async (): Promise<CardExternalWalletDetailsResponse> => {
+      const promises = [
+        this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
+        this.makeRequest(
+          '/v1/wallet/external/priority',
+          { method: 'GET' },
+          true,
+        ),
+      ];
+
+      const responses = await Promise.all(promises);
+
+      if (!responses[0].ok || !responses[1].ok) {
+        try {
+          const errorResponse0 = await responses[0].json();
+          const errorResponse1 = await responses[1].json();
+          Logger.log(
+            errorResponse0,
+            'Failed to get card external wallet details. Please try again.',
+          );
+          Logger.log(
+            errorResponse1,
+            'Failed to get card priority wallet details. Please try again.',
+          );
+        } catch (error) {
+          // If we can't parse response, continue without it
+        }
+
+        throw new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to get card external wallet details. Please try again.',
+        );
+      }
+
+      const externalWalletDetails =
+        (await responses[0].json()) as CardWalletExternalResponse[];
+      const priorityWalletDetails =
+        (await responses[1].json()) as CardWalletExternalPriorityResponse[];
+
+      if (
+        externalWalletDetails.length === 0 ||
+        priorityWalletDetails.length === 0
+      ) {
+        return [];
+      }
+
+      const combinedDetails = externalWalletDetails.map(
+        (wallet: CardWalletExternalResponse) => {
+          const priorityWallet = priorityWalletDetails.find(
+            (p: CardWalletExternalPriorityResponse) =>
+              p?.currency === wallet?.currency &&
+              p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
+          );
+          const supportedTokens = this.getSupportedTokensByChainId(
+            this.mapAPINetworkToCaipChainId(wallet.network),
+          );
+          const tokenDetails = this.mapSupportedTokenToCardToken(
+            supportedTokens.find(
+              (token) =>
+                token.symbol?.toLowerCase() === wallet.currency?.toLowerCase(),
+            ) ?? supportedTokens[0],
+          );
+
+          return {
+            id: priorityWallet?.id ?? 0,
+            walletAddress: wallet.address,
+            currency: wallet.currency,
+            balance: wallet.balance,
+            allowance: wallet.allowance,
+            priority: priorityWallet?.priority ?? 0,
+            chainId: this.mapAPINetworkToAssetChainId(wallet.network),
+            tokenDetails,
+          } as CardExternalWalletDetail;
+        },
+      );
+
+      // Sort - lower number = higher priority
+      return combinedDetails.sort((a, b) => a.priority - b.priority);
+    };
+
+  provisionCard = async (): Promise<{ success: boolean }> => {
+    const response = await this.makeRequest(
+      '/v1/card/order',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          type: CardType.VIRTUAL,
+        }),
+      },
+      true,
+    );
+
+    if (!response.ok) {
+      try {
+        const errorResponse = await response.json();
+        Logger.log(errorResponse, 'Failed to provision card.');
+      } catch (error) {
+        // If we can't parse response, continue without it
+      }
+
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to provision card. Please try again.',
+      );
+    }
+
+    return (await response.json()) as { success: boolean };
+  };
+
+  private mapAPINetworkToCaipChainId(network: 'linea' | 'solana'): CaipChainId {
+    switch (network) {
+      case 'solana':
+        return SOLANA_MAINNET.chainId;
+      default:
+        return this.lineaChainId;
+    }
+  }
+
+  private mapAPINetworkToAssetChainId(network: 'linea' | 'solana'): string {
+    switch (network) {
+      case 'solana':
+        return SOLANA_MAINNET.chainId;
+      default:
+        return LINEA_CHAIN_ID; // Asset only supports HEX chainId on EVM assets.
+    }
+  }
+  emailVerificationSend = async (
+    request: EmailVerificationSendRequest,
+  ): Promise<EmailVerificationSendResponse> => {
+    this.logDebugInfo('emailVerificationSend', { email: request.email });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/email/send',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Email verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Email verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as EmailVerificationSendResponse;
+    } catch (error) {
+      this.logDebugInfo('emailVerificationSend error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to send email verification',
+        error as Error,
+      );
+    }
+  };
+
+  emailVerificationVerify = async (
+    request: EmailVerificationVerifyRequest,
+  ): Promise<EmailVerificationVerifyResponse> => {
+    this.logDebugInfo('emailVerificationVerify', {
+      email: request.email,
+      contactVerificationId: request.contactVerificationId,
+      countryOfResidence: request.countryOfResidence,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/email/verify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Email verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Email verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as EmailVerificationVerifyResponse;
+    } catch (error) {
+      this.logDebugInfo('emailVerificationVerify error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to verify email verification',
+        error as Error,
+      );
+    }
+  };
+
+  phoneVerificationSend = async (
+    request: PhoneVerificationSendRequest,
+  ): Promise<PhoneVerificationSendResponse> => {
+    try {
+      this.logDebugInfo('phoneVerificationSend request', request);
+
+      const response = await this.makeRequest(
+        '/v1/auth/register/phone/send',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Phone verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Phone verification send failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as PhoneVerificationSendResponse;
+    } catch (error) {
+      this.logDebugInfo('phoneVerificationSend error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to send phone verification',
+        error as Error,
+      );
+    }
+  };
+
+  phoneVerificationVerify = async (
+    request: PhoneVerificationVerifyRequest,
+  ): Promise<RegisterUserResponse> => {
+    try {
+      this.logDebugInfo('phoneVerificationVerify request', request);
+
+      const response = await this.makeRequest(
+        '/v1/auth/register/phone/verify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Phone verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Phone verification verify failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterUserResponse;
+    } catch (error) {
+      this.logDebugInfo('phoneVerificationVerify error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to verify phone verification',
+        error as Error,
+      );
+    }
+  };
+
+  startUserVerification = async (
+    request: StartUserVerificationRequest,
+  ): Promise<StartUserVerificationResponse> => {
+    this.logDebugInfo('startUserVerification', request);
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/verification',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to get registration settings',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration settings',
+          );
+        }
+      }
+      const data = await response.json();
+      return data as StartUserVerificationResponse;
+    } catch (error) {
+      this.logDebugInfo('startUserVerification error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to start user verification',
+        error as Error,
+      );
+    }
+  };
+
+  registerPersonalDetails = async (
+    request: RegisterPersonalDetailsRequest,
+  ): Promise<RegisterUserResponse> => {
+    this.logDebugInfo('registerPersonalDetails', {
+      onboardingId: request.onboardingId,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/personal-details',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Personal details registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Personal details registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterUserResponse;
+    } catch (error) {
+      this.logDebugInfo('registerPersonalDetails error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to register personal details',
+        error as Error,
+      );
+    }
+  };
+
+  registerPhysicalAddress = async (
+    request: RegisterPhysicalAddressRequest,
+  ): Promise<RegisterAddressResponse> => {
+    this.logDebugInfo('registerPhysicalAddress', {
+      onboardingId: request.onboardingId,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/address',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterAddressResponse;
+    } catch (error) {
+      this.logDebugInfo('registerAddress error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to register address',
+        error as Error,
+      );
+    }
+  };
+
+  registerMailingAddress = async (
+    request: RegisterPhysicalAddressRequest,
+  ): Promise<RegisterAddressResponse> => {
+    this.logDebugInfo('registerMailingAddress', {
+      onboardingId: request.onboardingId,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/register/mailing-address',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        },
+        false,
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              `Address registration failed: ${response.status} ${response.statusText}`,
+          );
+        }
+      }
+
+      const data = await response.json();
+      return data as RegisterAddressResponse;
+    } catch (error) {
+      this.logDebugInfo('registerAddress error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to register address',
+        error as Error,
+      );
+    }
+  };
+
+  getRegistrationSettings = async (): Promise<RegistrationSettingsResponse> => {
+    try {
+      const response = await this.makeRequest(
+        '/v1/auth/settings',
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to get registration settings',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration settings',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getRegistrationSettings response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getRegistrationSettings error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get registration settings',
+        error as Error,
+      );
+    }
+  };
+
+  getRegistrationStatus = async (
+    onboardingId: string,
+  ): Promise<UserResponse> => {
+    try {
+      const response = await this.makeRequest(
+        `/v1/auth/register?onboardingId=${onboardingId}`,
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to get registration status',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting registration status',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getRegistrationStatus response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getRegistrationStatus error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get registration status',
+        error as Error,
+      );
+    }
+  };
+
+  createOnboardingConsent = async (
+    request: CreateOnboardingConsentRequest,
+  ): Promise<CreateOnboardingConsentResponse> => {
+    this.logDebugInfo('createOnboardingConsent', { request });
+
+    try {
+      const response = await this.makeRequest(
+        '/v2/consent/onboarding',
+        {
+          method: 'POST',
+          body: JSON.stringify(request),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
+          },
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to create onboarding consent',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while creating onboarding consent',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('createOnboardingConsent response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('createOnboardingConsent error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to create onboarding consent',
+        error as Error,
+      );
+    }
+  };
+
+  linkUserToConsent = async (
+    consentSetId: string,
+    request: LinkUserToConsentRequest,
+  ): Promise<LinkUserToConsentResponse> => {
+    this.logDebugInfo('linkUserToConsent', {
+      consentSetId,
+      request,
+    });
+
+    try {
+      const response = await this.makeRequest(
+        `/v2/consent/onboarding/${consentSetId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(request),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-secret-key': this.cardBaanxApiKey || '',
+          },
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message || 'Failed to link user to consent',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while linking user to consent',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('linkUserToConsent response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('linkUserToConsent error', error);
+
+      if (error instanceof CardError) {
+        throw error;
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to link user to consent',
+        error as Error,
+      );
+    }
+  };
+
   private getFirstSupportedTokenOrNull(): CardToken | null {
-    return this.supportedTokens.length > 0
-      ? this.mapSupportedTokenToCardToken(this.supportedTokens[0])
+    const lineaSupportedTokens = this.getSupportedTokensByChainId(
+      this.lineaChainId,
+    );
+
+    return lineaSupportedTokens.length > 0
+      ? this.mapSupportedTokenToCardToken(lineaSupportedTokens[0])
       : null;
   }
 
   private findSupportedTokenByAddress(tokenAddress: string): CardToken | null {
-    const match = this.supportedTokens.find(
+    const match = this.getSupportedTokensByChainId(this.lineaChainId).find(
       (supportedToken) =>
         supportedToken.address?.toLowerCase() === tokenAddress.toLowerCase(),
     );

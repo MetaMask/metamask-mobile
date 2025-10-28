@@ -1,11 +1,9 @@
 import { toHex } from '@metamask/controller-utils';
-import { type Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import type { PerpsToken } from '../types';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_MAINNET_CHAIN_ID,
@@ -15,6 +13,7 @@ import {
   USDC_SYMBOL,
   ZERO_ADDRESS,
 } from '../constants/hyperLiquidConfig';
+import type { PerpsToken } from '../types/perps-types';
 import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 
 /**
@@ -57,8 +56,8 @@ export const useWithdrawTokens = () => {
   // Destination token (Arbitrum USDC)
   const destToken = useMemo<PerpsToken>(() => {
     const arbitrumChainId = toHex(
-      parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10),
-    ) as Hex;
+      Number.parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10),
+    );
 
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,

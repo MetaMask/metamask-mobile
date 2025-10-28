@@ -3,6 +3,7 @@ import {
   isBridgeUrl,
   isValidASCIIURL,
   toPunycodeURL,
+  isSameOrigin,
 } from './index';
 import AppConstants from '../../core/AppConstants';
 
@@ -121,6 +122,36 @@ describe('URL Check Functions', () => {
       expect(
         toPunycodeURL('https://opensea.io/language=français'),
       ).toStrictEqual('https://opensea.io/language=fran%C3%A7ais');
+    });
+  });
+
+  describe('isSameOrigin', () => {
+    it('return true for urls with the same origin', () => {
+      expect(
+        isSameOrigin(
+          'https://metamask.io/page.html',
+          'https://metamask.io/page2.html',
+        ),
+      ).toBeTruthy();
+      expect(
+        isSameOrigin(
+          'https://metamask.io/other.html',
+          'https://usr:pw@metamask.io/',
+        ),
+      ).toBeTruthy();
+      expect(
+        isSameOrigin('https://metamask.io:80/page', 'https://metamask.io:80/'),
+      ).toBeTruthy();
+      expect(
+        isSameOrigin('https://metamask.io:81/', 'https://metamask.io:80'),
+      ).toBeFalsy();
+      expect(
+        isSameOrigin(
+          'https://en.metamask.io/page.html',
+          'https://metamask.io/',
+        ),
+      ).toBeFalsy();
+      expect(isSameOrigin('invalid url', 'https://metamask.io/')).toBeFalsy();
     });
   });
 });

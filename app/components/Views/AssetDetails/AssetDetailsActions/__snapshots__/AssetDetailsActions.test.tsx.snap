@@ -6,9 +6,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     {
       "flexDirection": "row",
       "gap": 8,
-      "paddingBottom": 0,
       "paddingHorizontal": 16,
-      "paddingTop": 24,
       "width": "100%",
     }
   }
@@ -91,15 +89,15 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           <SvgMock
             color="#686e7d"
             fill="currentColor"
-            height={20}
+            height={24}
             name="AttachMoney"
             style={
               {
-                "height": 20,
-                "width": 20,
+                "height": 24,
+                "width": 24,
               }
             }
-            width={20}
+            width={24}
           />
           <Text
             accessibilityRole="text"
@@ -204,15 +202,15 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           <SvgMock
             color="#686e7d"
             fill="currentColor"
-            height={20}
+            height={24}
             name="SwapVertical"
             style={
               {
-                "height": 20,
-                "width": 20,
+                "height": 24,
+                "width": 24,
               }
             }
-            width={20}
+            width={24}
           />
           <Text
             accessibilityRole="text"
@@ -317,15 +315,15 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           <SvgMock
             color="#686e7d"
             fill="currentColor"
-            height={20}
+            height={24}
             name="Send"
             style={
               {
-                "height": 20,
-                "width": 20,
+                "height": 24,
+                "width": 24,
               }
             }
-            width={20}
+            width={24}
           />
           <Text
             accessibilityRole="text"
@@ -430,15 +428,15 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           <SvgMock
             color="#686e7d"
             fill="currentColor"
-            height={20}
+            height={24}
             name="Received"
             style={
               {
-                "height": 20,
-                "width": 20,
+                "height": 24,
+                "width": 24,
               }
             }
-            width={20}
+            width={24}
           />
           <Text
             accessibilityRole="text"
