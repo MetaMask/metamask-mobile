@@ -114,7 +114,7 @@ const SpendingLimit = ({
         address: selectedToken.address,
         symbol: selectedToken.symbol,
         decimals: selectedToken.decimals,
-        chainId: selectedToken.caipChainId,
+        caipChainId: selectedToken.caipChainId,
         name: selectedToken.name,
         allowance: selectedToken.allowance,
         allowanceState: selectedToken.allowanceState,
@@ -286,14 +286,11 @@ const SpendingLimit = ({
             ? getNetworkFromCaipChainId(tokenToUse.caipChainId)
             : 'linea';
 
-          await submitDelegation(
-            {
-              amount,
-              currency: currency || '',
-              network,
-            },
-            priorityToken?.walletAddress || '',
-          );
+          await submitDelegation({
+            amount,
+            currency: currency || '',
+            network,
+          });
 
           // Show success toast
           toastRef?.current?.showToast({
