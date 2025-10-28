@@ -1,11 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import {
-  TextInput,
-  View,
-  StyleSheet,
-  TextStyle,
-  DimensionValue,
-} from 'react-native';
+import { TextInput, View, StyleSheet, TextStyle } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -112,7 +106,6 @@ interface Props {
 // eslint-disable-next-line react/display-name
 const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [inputDimensions, setInputDimensions] = useState<DimensionValue>('85%');
   const [isFocus, setIsFocus] = useState(false);
   const tokenListForAllChains = useSelector(selectERC20TokensByChain);
   const { colors, themeAppearance } = useTheme();
@@ -132,12 +125,6 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
       chainId: selectedChainId,
     }));
   }, [selectedChainId, tokenListForAllChains]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setInputDimensions('86%');
-    }, 100);
-  }, []);
 
   // Update fuse list
   useEffect(() => {
@@ -176,10 +163,7 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
 
       <View style={styles.input}>
         <TextInput
-          style={[
-            styles.textInput,
-            { height: inputDimensions, width: inputDimensions },
-          ]}
+          style={styles.textInput}
           value={searchQuery}
           onFocus={() => {
             onFocus();
