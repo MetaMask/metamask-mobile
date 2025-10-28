@@ -18,6 +18,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
   })),
+  useFocusEffect: jest.fn((callback: () => void) => {
+    // Execute callback immediately for testing
+    callback();
+  }),
 }));
 
 const renderWithProviders = (component: React.ReactElement) =>

@@ -31,7 +31,7 @@ import {
 import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
@@ -160,9 +160,10 @@ const PersonalDetails = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.PERSONAL_DETAILS_BUTTON_CLICKED,
+            action: CardActions.PERSONAL_DETAILS_BUTTON,
+            country_of_residence: selectedCountry,
           })
           .build(),
       );
@@ -195,9 +196,9 @@ const PersonalDetails = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.PERSONAL_DETAILS,
+          screen: CardScreens.PERSONAL_DETAILS,
         })
         .build(),
     );
