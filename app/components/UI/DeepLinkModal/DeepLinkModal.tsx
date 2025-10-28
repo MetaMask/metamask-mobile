@@ -199,29 +199,32 @@ const DeepLinkModal = () => {
   const dismissModal = (cb?: () => void): void =>
     bottomSheetRef?.current?.onCloseBottomSheet(cb);
 
-  const onDimiss = useCallback(() => {
-    dismissModal(async () => {
-      try {
-        const deepLinkContext = params.deepLinkContext;
-        const eventBuilder = await createDeepLinkUsedEventBuilder({
-          url: deepLinkContext?.url || '',
-          route: deepLinkContext?.route || DeepLinkRoute.INVALID,
-          urlParams: deepLinkContext?.urlParams || {},
-          signatureStatus:
-            deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
-          interstitialShown: true,
-          interstitialDisabled: false,
-          interstitialAction: InterstitialState.REJECTED,
-        });
+  const onDimiss = useCallback(async () => {
+    // Track analytics BEFORE dismissing modal to ensure completion
+    try {
+      const deepLinkContext = params.deepLinkContext;
+      const eventBuilder = await createDeepLinkUsedEventBuilder({
+        url: deepLinkContext?.url || '',
+        route: deepLinkContext?.route || DeepLinkRoute.INVALID,
+        urlParams: deepLinkContext?.urlParams || {},
+        signatureStatus:
+          deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
+        interstitialShown: true,
+        interstitialDisabled: false,
+        interstitialAction: InterstitialState.REJECTED,
+      });
 
-        eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
-        trackEvent(eventBuilder.build());
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'DeepLinkModal: Error tracking modal dismissed event',
-        );
-      }
+      eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
+      trackEvent(eventBuilder.build());
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'DeepLinkModal: Error tracking modal dismissed event',
+      );
+    }
+
+    // Dismiss modal with sync callback after analytics completes
+    dismissModal(() => {
       onBack?.();
     });
   }, [trackEvent, onBack, params.deepLinkContext]);
@@ -241,33 +244,35 @@ const DeepLinkModal = () => {
     });
   }, []);
 
-  const onPrimaryButtonPressed = useCallback(() => {
-    dismissModal(async () => {
-      try {
-        const deepLinkContext = params.deepLinkContext;
-        const eventBuilder = await createDeepLinkUsedEventBuilder({
-          url: deepLinkContext?.url || '',
-          route: deepLinkContext?.route || DeepLinkRoute.INVALID,
-          urlParams: deepLinkContext?.urlParams || {},
-          signatureStatus:
-            deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
-          interstitialShown: true,
-          interstitialDisabled: false,
-          interstitialAction: InterstitialState.ACCEPTED,
-        });
+  const onPrimaryButtonPressed = useCallback(async () => {
+    // Track analytics BEFORE dismissing modal to ensure completion
+    try {
+      const deepLinkContext = params.deepLinkContext;
+      const eventBuilder = await createDeepLinkUsedEventBuilder({
+        url: deepLinkContext?.url || '',
+        route: deepLinkContext?.route || DeepLinkRoute.INVALID,
+        urlParams: deepLinkContext?.urlParams || {},
+        signatureStatus:
+          deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
+        interstitialShown: true,
+        interstitialDisabled: false,
+        interstitialAction: InterstitialState.ACCEPTED,
+      });
 
-        eventBuilder.addProperties({
-          ...generateDeviceAnalyticsMetaData(),
-          pageTitle,
-        });
-        trackEvent(eventBuilder.build());
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'DeepLinkModal: Error tracking modal continue event',
-        );
-      }
+      eventBuilder.addProperties({
+        ...generateDeviceAnalyticsMetaData(),
+        pageTitle,
+      });
+      trackEvent(eventBuilder.build());
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'DeepLinkModal: Error tracking modal continue event',
+      );
+    }
 
+    // Dismiss modal with sync callback after analytics completes
+    dismissModal(() => {
       if (
         linkType === DeepLinkModalLinkType.INVALID ||
         linkType === DeepLinkModalLinkType.UNSUPPORTED
