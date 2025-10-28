@@ -6,12 +6,12 @@ import {
   CardExternalWalletDetail,
   CardTokenAllowance,
   AllowanceState,
+  DelegationSettingsResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { isZero } from '../../../../util/lodash';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { useWrapWithCache } from './useWrapWithCache';
-import useGetDelegationSettings from './useGetDelegationSettings';
 
 /**
  * Maps a CardExternalWalletDetail to CardTokenAllowance format
@@ -75,6 +75,7 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
  * This hook fetches all external wallet details for the authenticated user,
  * including balances, allowances, and token information.
  *
+ * @param delegationSettings - Delegation settings containing network configurations
  * @returns Object containing:
  * - walletDetails: Array of CardExternalWalletDetail objects
  * - mappedWalletDetails: Array of CardTokenAllowance objects (mapped format)
@@ -83,10 +84,11 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
  * - error: Error object if any
  * - fetch: Function to manually trigger fetch
  */
-const useGetCardExternalWalletDetails = () => {
+const useGetCardExternalWalletDetails = (
+  delegationSettings: DelegationSettingsResponse | null,
+) => {
   const { sdk } = useCardSDK();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const { data: delegationSettings } = useGetDelegationSettings();
 
   const fetchCardExternalWalletDetails = useCallback(async () => {
     if (!sdk || !isAuthenticated || !delegationSettings) {

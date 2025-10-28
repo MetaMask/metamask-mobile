@@ -88,6 +88,8 @@ const SpendingLimit = ({
     priorityToken,
     allTokens,
     isLoading: isPriorityTokenLoading,
+    delegationSettings,
+    externalWalletDetailsData,
   } = useLoadCardData();
   const { sdk } = useCardSDK();
 
@@ -585,6 +587,8 @@ const SpendingLimit = ({
           setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
           priorityToken={priorityToken}
           tokensWithAllowances={allTokens}
+          delegationSettings={delegationSettings}
+          cardExternalWalletDetails={externalWalletDetailsData}
           selectionOnly
           onTokenSelect={handleTokenSelection}
         />

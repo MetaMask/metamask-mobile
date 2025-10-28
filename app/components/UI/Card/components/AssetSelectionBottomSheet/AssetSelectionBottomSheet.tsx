@@ -7,6 +7,7 @@ import {
   AllowanceState,
   CardExternalWalletDetail,
   CardTokenAllowance,
+  DelegationSettingsResponse,
 } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -39,7 +40,6 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { CaipChainId } from '@metamask/utils';
-import useGetDelegationSettings from '../../hooks/useGetDelegationSettings';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -47,7 +47,6 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { FlatList } from 'react-native-gesture-handler';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { SolScope } from '@metamask/keyring-api';
-import useGetCardExternalWalletDetails from '../../hooks/useGetCardExternalWalletDetails';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import Logger from '../../../../../util/Logger';
 import {
@@ -81,6 +80,10 @@ export interface AssetSelectionBottomSheetProps {
   sheetRef: React.RefObject<BottomSheetRef>;
   priorityToken: CardTokenAllowance | null;
   tokensWithAllowances: CardTokenAllowance[];
+  delegationSettings: DelegationSettingsResponse | null;
+  cardExternalWalletDetails?: {
+    walletDetails?: CardExternalWalletDetail[];
+  } | null;
   navigateToCardHomeOnPriorityToken?: boolean;
   // Selection only mode: just call onTokenSelect and close, don't handle priority/navigation
   selectionOnly?: boolean;
@@ -92,6 +95,8 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   sheetRef,
   priorityToken,
   tokensWithAllowances,
+  delegationSettings,
+  cardExternalWalletDetails,
   navigateToCardHomeOnPriorityToken = false,
   selectionOnly = false,
   onTokenSelect,
@@ -104,11 +109,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const { sdk } = useCardSDK();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const userCardLocation = useSelector(selectUserCardLocation);
-  const {
-    data: delegationSettingsData,
-    isLoading: isLoadingDelegationSettings,
-  } = useGetDelegationSettings();
-  const { data: cardExternalWalletDetails } = useGetCardExternalWalletDetails();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // bottomsheet_selected_token_symbol:
@@ -126,25 +126,23 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
   // Map all available tokens from delegation settings and merge with user's current tokens
   const supportedTokens = useMemo<SupportedTokenWithChain[]>(() => {
-    if (!delegationSettingsData?.networks || !sdk) return [];
+    if (!delegationSettings?.networks || !sdk) return [];
 
     const allTokens: SupportedTokenWithChain[] = [];
 
     // Filter and iterate through supported networks only
-    const filteredNetworks = delegationSettingsData.networks.filter(
-      (network) => {
-        const networkLower = network.network.toLowerCase();
+    const filteredNetworks = delegationSettings.networks.filter((network) => {
+      const networkLower = network.network.toLowerCase();
 
-        // Only include supported networks
-        if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) return false;
+      // Only include supported networks
+      if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) return false;
 
-        // Only show linea-us tokens for US users
-        if (networkLower === 'linea-us' && userCardLocation !== 'us')
-          return false;
+      // Only show linea-us tokens for US users
+      if (networkLower === 'linea-us' && userCardLocation !== 'us')
+        return false;
 
-        return true;
-      },
-    );
+      return true;
+    });
 
     filteredNetworks.forEach((network) => {
       const networkLower = network.network.toLowerCase();
@@ -255,7 +253,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       return 0;
     });
   }, [
-    delegationSettingsData,
+    delegationSettings,
     tokensWithAllowances,
     priorityToken,
     sdk,
@@ -309,7 +307,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       );
       if (
         !sdk ||
-        !delegationSettingsData ||
+        !delegationSettings ||
         !cardExternalWalletDetails?.walletDetails
       ) {
         setOpenAssetSelectionBottomSheet(false);
@@ -370,7 +368,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     },
     [
       sdk,
-      delegationSettingsData,
+      delegationSettings,
       cardExternalWalletDetails,
       dispatch,
       showSuccessToast,
@@ -456,7 +454,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      {isLoadingDelegationSettings ? (
+      {!delegationSettings ? (
         // Loading delegation settings
         <View style={tw.style('items-center justify-center py-8')}>
           <ActivityIndicator

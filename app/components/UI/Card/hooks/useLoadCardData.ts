@@ -6,6 +6,7 @@ import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
+import useGetDelegationSettings from './useGetDelegationSettings';
 import { CardTokenAllowance } from '../types';
 
 /**
@@ -40,13 +41,21 @@ const useLoadCardData = () => {
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
   const isCardholder = useIsCardholder();
 
+  // Get delegation settings (only used in authenticated mode)
+  const {
+    data: delegationSettings,
+    isLoading: isLoadingDelegationSettings,
+    error: delegationSettingsError,
+  } = useGetDelegationSettings();
+
   // Authenticated mode: Get all wallet details from API
+  // Pass delegationSettings to avoid duplicate hook calls
   const {
     data: externalWalletDetailsData,
     isLoading: isLoadingExternalWalletDetails,
     error: externalWalletDetailsError,
     fetchData: fetchExternalWalletDetails,
-  } = useGetCardExternalWalletDetails();
+  } = useGetCardExternalWalletDetails(delegationSettings);
 
   // Get priority token (works for both authenticated and unauthenticated)
   // Authenticated: uses externalWalletDetailsData
@@ -83,30 +92,36 @@ const useLoadCardData = () => {
 
   // Combined loading state
   const isLoading = useMemo(() => {
-    const baseLoading = isLoadingPriorityToken || isLoadingCardDetails;
+    const baseLoading =
+      isLoadingPriorityToken ||
+      isLoadingCardDetails ||
+      isLoadingDelegationSettings;
 
     if (isAuthenticated) {
       return baseLoading || isLoadingExternalWalletDetails;
     }
-    return baseLoading; // Unauthenticated loading is handled by useGetPriorityCardToken
+    return baseLoading;
   }, [
     isLoadingPriorityToken,
     isLoadingCardDetails,
+    isLoadingDelegationSettings,
     isLoadingExternalWalletDetails,
     isAuthenticated,
   ]);
 
   // Combined error state
   const error = useMemo(() => {
-    const baseError = priorityTokenError || cardDetailsError;
+    const baseError =
+      priorityTokenError || cardDetailsError || delegationSettingsError;
 
     if (isAuthenticated) {
       return baseError || externalWalletDetailsError;
     }
-    return baseError; // Unauthenticated errors are handled by useGetPriorityCardToken
+    return baseError;
   }, [
     priorityTokenError,
     cardDetailsError,
+    delegationSettingsError,
     externalWalletDetailsError,
     isAuthenticated,
   ]);
@@ -144,6 +159,11 @@ const useLoadCardData = () => {
     allTokens,
     // Card details
     cardDetails,
+    // Delegation settings and external wallet details (authenticated mode only)
+    delegationSettings: isAuthenticated ? delegationSettings : null,
+    externalWalletDetailsData: isAuthenticated
+      ? externalWalletDetailsData
+      : null,
     // State flags
     isLoading,
     error,

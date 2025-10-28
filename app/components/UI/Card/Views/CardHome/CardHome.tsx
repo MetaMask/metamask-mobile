@@ -110,6 +110,8 @@ const CardHome = () => {
     pollCardStatusUntilProvisioned,
     isLoadingPollCardStatusUntilProvisioned,
     allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
   } = useLoadCardData();
 
   const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance, asset } =
@@ -170,9 +172,11 @@ const CardHome = () => {
         setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
         tokensWithAllowances={allTokens}
         priorityToken={priorityToken}
+        delegationSettings={delegationSettings}
+        cardExternalWalletDetails={externalWalletDetailsData}
       />
     ),
-    [allTokens, priorityToken],
+    [allTokens, priorityToken, delegationSettings, externalWalletDetailsData],
   );
 
   // Track event only once after priorityToken and balances are loaded
