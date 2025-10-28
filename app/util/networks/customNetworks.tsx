@@ -156,7 +156,7 @@ export const PopularList = [
     warning: true,
     rpcPrefs: {
       blockExplorerUrl: 'http://monadscan.com/',
-      imageUrl: 'MONAD',
+      imageUrl: 'MON',
       imageSource: require('../../images/monad-mainnet-logo.png'),
     },
   },
