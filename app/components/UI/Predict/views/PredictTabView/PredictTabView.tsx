@@ -8,6 +8,7 @@ import PredictPositions, {
   PredictPositionsHandle,
 } from '../../components/PredictPositions/PredictPositions';
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
+import PredictOffline from '../../components/PredictOffline';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
@@ -18,6 +19,8 @@ interface PredictTabViewProps {}
 const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [positionsError, setPositionsError] = useState<string | null>(null);
+  const [headerError, setHeaderError] = useState<string | null>(null);
 
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
@@ -26,8 +29,13 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   usePredictClaimToasts();
   usePredictWithdrawToasts();
 
+  const hasError = Boolean(positionsError || headerError);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    // Clear errors before refreshing
+    setPositionsError(null);
+    setHeaderError(null);
     try {
       await Promise.all([
         predictPositionsRef.current?.refresh(),
@@ -38,18 +46,39 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     }
   }, []);
 
+  const handlePositionsError = useCallback((error: string | null) => {
+    setPositionsError(error);
+  }, []);
+
+  const handleHeaderError = useCallback((error: string | null) => {
+    setHeaderError(error);
+  }, []);
+
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <ScrollView
-        testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-      >
-        <PredictPositionsHeader ref={predictPositionsHeaderRef} />
-        <PredictPositions ref={predictPositionsRef} />
-        <PredictAddFundsSheet />
-      </ScrollView>
+      {hasError ? (
+        <PredictOffline onRetry={handleRefresh} />
+      ) : (
+        <ScrollView
+          testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        >
+          <PredictPositionsHeader
+            ref={predictPositionsHeaderRef}
+            onError={handleHeaderError}
+          />
+          <PredictPositions
+            ref={predictPositionsRef}
+            onError={handlePositionsError}
+          />
+          <PredictAddFundsSheet />
+        </ScrollView>
+      )}
     </View>
   );
 };
