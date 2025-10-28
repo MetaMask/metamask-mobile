@@ -33,6 +33,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       testID,
       tabsBarProps,
       tabsListContentTwClassName,
+      autoHeight = false,
       ...boxProps
     },
     ref,
@@ -221,6 +222,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     }, []);
 
     useEffect(() => {
+      // Only measure heights when autoHeight mode is enabled
+      if (!autoHeight) {
+        setScrollViewHeight(undefined);
+        return;
+      }
+
       const activeTab = tabs[activeIndex];
       if (!activeTab) {
         setScrollViewHeight(undefined);
@@ -263,7 +270,14 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           };
         }
       }
-    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight, tabs]);
+    }, [
+      activeIndex,
+      tabHeights,
+      loadedTabs,
+      measureTabHeight,
+      tabs,
+      autoHeight,
+    ]);
 
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {
@@ -462,12 +476,29 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const handleScrollEnd = useCallback(() => {
       scrollTimeout.current = setTimeout(() => {
         isScrolling.current = false;
-        const activeTab = tabs[activeIndex];
-        if (activeTab && loadedTabs.has(activeIndex)) {
-          measureTabHeight(activeTab.key);
+
+        // Only measure heights in autoHeight mode
+        if (autoHeight) {
+          const activeTab = tabs[activeIndex];
+          if (activeTab && loadedTabs.has(activeIndex)) {
+            // Update to the active tab's cached height immediately if available
+            const cachedHeight = tabHeights.get(activeTab.key);
+            if (cachedHeight && cachedHeight > 0) {
+              setScrollViewHeight(cachedHeight);
+            }
+            // Then measure to ensure accuracy
+            measureTabHeight(activeTab.key);
+          }
         }
       }, 150);
-    }, [activeIndex, loadedTabs, measureTabHeight, tabs]);
+    }, [
+      activeIndex,
+      loadedTabs,
+      measureTabHeight,
+      tabs,
+      tabHeights,
+      autoHeight,
+    ]);
 
     const handleLayout = useCallback(
       (layoutEvent: { nativeEvent: { layout: { width: number } } }) => {
@@ -551,11 +582,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         {/* Render TabsBar */}
         <TabsBar {...tabBarPropsComputed} />
 
-        {/* Horizontal ScrollView for tab contents with dynamic height */}
+        {/* Horizontal ScrollView for tab contents with dynamic or fixed height */}
         <View
           style={tw.style(
             'mt-2',
-            scrollViewHeight && scrollViewHeight > 0
+            autoHeight && scrollViewHeight && scrollViewHeight > 0
               ? { height: scrollViewHeight, overflow: 'hidden' }
               : {},
           )}
@@ -585,11 +616,14 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                 <View
                   style={tw.style(`px-4 ${tabsListContentTwClassName || ''}`)}
                   ref={(viewRef) => {
-                    if (viewRef) {
+                    if (viewRef && autoHeight) {
                       tabContentRefs.current.set(enabledTab.key, viewRef);
                     }
                   }}
                   onLayout={(layoutEvent) => {
+                    // Only measure heights in autoHeight mode
+                    if (!autoHeight) return;
+
                     const { height } = layoutEvent.nativeEvent.layout;
                     if (height > 0) {
                       const currentHeight = tabHeights.get(enabledTab.key);
@@ -612,9 +646,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                           return newHeights;
                         });
 
+                        // Only update scrollViewHeight if we're on this tab and not actively scrolling
                         if (
                           enabledTab.originalIndex === activeIndex &&
-                          tabContentRefs.current.has(enabledTab.key)
+                          tabContentRefs.current.has(enabledTab.key) &&
+                          !isScrolling.current &&
+                          !isProgrammaticScroll.current
                         ) {
                           setScrollViewHeight(height);
                         }
