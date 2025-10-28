@@ -119,7 +119,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   if (isFetching) {
     return (
-      <Box style={styles.loadingContainer}>
+      <Box style={styles.loadingContainer} twClassName="py-4">
         <Skeleton
           testID="skeleton-loading-1"
           height={60}

@@ -6,7 +6,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../pages/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
-import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket-mocks';
+import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
