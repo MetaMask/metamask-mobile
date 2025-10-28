@@ -216,6 +216,17 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+
+      - name: List artifacts directory
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
+        run: |
+          echo "Listing artifacts directory (max depth 10):"
+          find ./artifacts -maxdepth 10 -print | sort
+          echo "Listing artifacts directory:"
+          ls -la ./artifacts
+          echo "Full artifacts directory tree:"
+          find ./artifacts -type d | head -20
+
       - name: Upload Android APK - ${{ matrix.srp_build_type }}
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         id: upload-apk
