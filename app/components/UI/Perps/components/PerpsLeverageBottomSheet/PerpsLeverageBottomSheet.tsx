@@ -371,11 +371,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   // Instead of using isDragging || isCalculating, we use shouldShowSkeleton to show the skeleton
   // Otherwise the skeleton would flicker for a split second when the user stops dragging and the liquidation price is not yet being calculated
   useEffect(() => {
-    if (isCalculating) {
-      setShouldShowSkeleton(true);
-    } else if (apiLiquidationPrice) {
-      setShouldShowSkeleton(false);
-    }
+    setShouldShowSkeleton(isCalculating);
   }, [isCalculating, apiLiquidationPrice]);
 
   const dynamicLiquidationPrice = isCalculating
