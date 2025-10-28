@@ -59,19 +59,17 @@ echo -e "${BLUE}📊 Base commit: ${BASE_COMMIT}${NC}"
 echo -e "${BLUE}📊 Current commit: HEAD${NC}"
 echo ""
 
-# Get list of changed files using null-delimited output
-# Use -z for null-delimited, --diff-filter=ACMR to exclude deleted files
+# Get list of changed files
+# Use --diff-filter=ACMR to exclude deleted files
 # Compare BASE_COMMIT..HEAD to get all changes in the current branch
-DIFF_OUTPUT=$(git diff -z --name-only --diff-filter=ACMR "${BASE_COMMIT}"...HEAD 2>/dev/null)
-
-if [ $? -ne 0 ]; then
+if ! git diff --name-only --diff-filter=ACMR "${BASE_COMMIT}"...HEAD >/dev/null 2>&1; then
   echo -e "${RED}❌ Error: git diff command failed${NC}"
   echo -e "${YELLOW}💡 This might happen if the base commit is not available${NC}"
   exit 1
 fi
 
-# Filter for JS/TS/JSON/feature files using null-delimited grep
-FILES=$(echo "$DIFF_OUTPUT" | grep -zE '\.(js|jsx|ts|tsx|json|feature)$' || true)
+# Get files and filter for JS/TS/JSON/feature files
+FILES=$(git diff --name-only --diff-filter=ACMR "${BASE_COMMIT}"...HEAD 2>/dev/null | grep -E '\.(js|jsx|ts|tsx|json|feature)$' || true)
 
 if [ -z "$FILES" ]; then
   echo -e "${GREEN}✅ No JavaScript/TypeScript/JSON/feature files changed${NC}"
@@ -79,14 +77,14 @@ if [ -z "$FILES" ]; then
   exit 0
 fi
 
-# Count files (handling null-delimited output)
-FILE_COUNT=$(echo "$FILES" | tr '\0' '\n' | grep -c '^' || echo 0)
+# Count files
+FILE_COUNT=$(echo "$FILES" | wc -l | tr -d ' ')
 echo -e "${BLUE}📝 Found ${FILE_COUNT} file(s) to check${NC}"
 
 # Show which files are being checked (first 10)
 if [ "$FILE_COUNT" -gt 0 ]; then
   echo -e "${BLUE}📄 Files being checked:${NC}"
-  echo "$FILES" | tr '\0' '\n' | head -10 | sed 's/^/  - /'
+  echo "$FILES" | head -10 | sed 's/^/  - /'
   if [ "$FILE_COUNT" -gt 10 ]; then
     echo -e "  ${BLUE}... and $((FILE_COUNT - 10)) more${NC}"
   fi
@@ -99,14 +97,14 @@ if [ "$FILE_COUNT" -gt 50 ]; then
   echo ""
 fi
 
-# Run Prettier check with null-delimited input
+# Run Prettier check
 echo -e "${BLUE}🔍 Running Prettier format check...${NC}"
 echo ""
 
-# Convert null-delimited to newline-delimited for xargs
-# Use --no-run-if-empty to handle empty input gracefully
+# Use xargs to pass files to prettier
+# --no-run-if-empty handles empty input gracefully
 PRETTIER_EXIT_CODE=0
-echo "$FILES" | tr '\0' '\n' | xargs --no-run-if-empty yarn prettier --check --ignore-unknown || PRETTIER_EXIT_CODE=$?
+echo "$FILES" | xargs yarn prettier --check --ignore-unknown || PRETTIER_EXIT_CODE=$?
 
 echo ""
 
