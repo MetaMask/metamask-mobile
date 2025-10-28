@@ -119,7 +119,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-    prediction_market_android_smoke:
+  prediction-market-android-smoke:
     strategy:
       matrix:
         split: [1]
@@ -132,6 +132,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
 
   rewards-android-smoke:
     strategy:
@@ -160,7 +161,7 @@ jobs:
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
       - confirmations-redesigned-android-smoke
-      - prediction_market_android_smoke
+      - prediction-market-android-smoke
       - rewards-android-smoke
     steps:
       - name: Checkout

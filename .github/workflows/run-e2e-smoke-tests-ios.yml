@@ -119,7 +119,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-   prediction_market_ios_smoke:
+  prediction-market-ios-smoke:
     strategy:
       matrix:
         split: [1]
@@ -161,7 +161,7 @@ jobs:
       - accounts-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
-      - prediction_market_ios_smoke
+      - prediction-market-ios-smoke
       - rewards-ios-smoke
     steps:
       - name: Checkout
