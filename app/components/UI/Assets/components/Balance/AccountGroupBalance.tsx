@@ -58,9 +58,7 @@ const AccountGroupBalance = () => {
             <Skeleton width={100} height={20} />
           </View>
         ) : shouldShowEmptyState ? (
-          <>
-            <BalanceEmptyState testID="account-group-balance-empty-state" />
-          </>
+          <BalanceEmptyState testID="account-group-balance-empty-state" />
         ) : (
           <TouchableOpacity
             onPress={() => togglePrivacy(!privacyMode)}
