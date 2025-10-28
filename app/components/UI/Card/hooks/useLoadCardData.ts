@@ -7,7 +7,6 @@ import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import { CardTokenAllowance } from '../types';
-import Logger from '../../../../util/Logger';
 
 /**
  * Hook to load card data.
@@ -81,8 +80,6 @@ const useLoadCardData = () => {
     // Unauthenticated: Use on-chain data from useGetPriorityCardToken
     return allTokensWithAllowances || [];
   }, [externalWalletDetailsData, isAuthenticated, allTokensWithAllowances]);
-
-  Logger.log('allTokens', allTokens);
 
   // Combined loading state
   const isLoading = useMemo(() => {

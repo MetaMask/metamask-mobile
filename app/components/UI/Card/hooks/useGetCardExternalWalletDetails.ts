@@ -55,6 +55,10 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
     );
 
     // This ensures compatibility with useTokensWithBalance and other hooks that expect Hex chainIds
+    Logger.log(
+      'cardExternalWalletDetail.chainId',
+      cardExternalWalletDetail.chainId,
+    );
     const hexChainId = formatChainIdToHex(cardExternalWalletDetail.chainId);
 
     return {

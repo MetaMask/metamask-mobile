@@ -1019,13 +1019,6 @@ export class CardSDK {
             [[token.delegationContractAddress ?? '']], // Only this token's delegation contract
           );
 
-        Logger.log('getTotalAllowance result', {
-          tokenAddress,
-          walletAddress: token.walletAddress,
-          delegationContract: token.delegationContractAddress,
-          result: spendersAllowances,
-        });
-
         // spendersAllowances is Result[][] - 2D array
         // Outer array: one element per token (we queried 1 token)
         // Inner array: one element per spender (we queried 1 spender)

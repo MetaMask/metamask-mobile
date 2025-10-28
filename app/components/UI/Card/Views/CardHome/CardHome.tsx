@@ -63,6 +63,7 @@ import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import useLoadCardData from '../../hooks/useLoadCardData';
+import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 
 /**
  * CardHome Component
@@ -78,8 +79,11 @@ import useLoadCardData from '../../hooks/useLoadCardData';
 const CardHome = () => {
   const { PreferencesController } = Engine.context;
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
+  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
+    useState(false);
   const [retries, setRetries] = useState(0);
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const addFundsSheetRef = useRef<BottomSheetRef>(null);
+  const assetSelectionSheetRef = useRef<BottomSheetRef>(null);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
 
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -104,6 +108,7 @@ const CardHome = () => {
     fetchAllData,
     pollCardStatusUntilProvisioned,
     isLoadingPollCardStatusUntilProvisioned,
+    allTokens,
   } = useLoadCardData();
 
   const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance, asset } =
@@ -148,13 +153,25 @@ const CardHome = () => {
   const renderAddFundsBottomSheet = useCallback(
     () => (
       <AddFundsBottomSheet
-        sheetRef={sheetRef}
+        sheetRef={addFundsSheetRef}
         setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
         priorityToken={priorityToken ?? undefined}
         navigate={navigation.navigate}
       />
     ),
-    [sheetRef, setOpenAddFundsBottomSheet, priorityToken, navigation],
+    [priorityToken, navigation],
+  );
+
+  const renderAssetSelectionBottomSheet = useCallback(
+    () => (
+      <AssetSelectionBottomSheet
+        sheetRef={assetSelectionSheetRef}
+        setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
+        tokensWithAllowances={allTokens}
+        priorityToken={priorityToken}
+      />
+    ),
+    [allTokens, priorityToken],
   );
 
   // Track event only once after priorityToken and balances are loaded
@@ -233,7 +250,7 @@ const CardHome = () => {
 
   const changeAssetAction = useCallback(() => {
     if (isAuthenticated) {
-      // open asset bottom sheet
+      setOpenAssetSelectionBottomSheet(true);
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
@@ -602,6 +619,7 @@ const CardHome = () => {
       )}
 
       {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
+      {openAssetSelectionBottomSheet && renderAssetSelectionBottomSheet()}
     </ScrollView>
   );
 };
