@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -16,10 +15,9 @@ import { useSelector } from 'react-redux';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { selectPredictBalanceByAddress } from '../../components/predict-confirmations/predict-temp';
-import { RootState } from '../../../../../reducers';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
+import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -167,14 +165,10 @@ function useMaxPercentage() {
 function useTokenBalance() {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { convertFiat } = useTransactionPayFiat();
-  const from = (transactionMeta?.txParams?.from ?? '0x0') as Hex;
 
   const { payToken } = useTransactionPayToken();
   const payTokenBalance = convertFiat(payToken?.tokenFiatAmount ?? 0);
-
-  const predictBalance = useSelector((state: RootState) =>
-    selectPredictBalanceByAddress(state, from),
-  );
+  const { balance: predictBalance } = usePredictBalance({ loadOnMount: true });
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
     ? predictBalance
