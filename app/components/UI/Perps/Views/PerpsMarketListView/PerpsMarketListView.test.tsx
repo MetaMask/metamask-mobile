@@ -347,6 +347,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     BoxAlignItems: {
       Center: 'center',
+      End: 'flex-end',
     },
   };
 });
