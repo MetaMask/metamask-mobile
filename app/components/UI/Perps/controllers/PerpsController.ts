@@ -516,10 +516,6 @@ interface VersionGatedFeatureFlag {
   minimumVersion: string;
 }
 
-interface PerpsFeatureFlag extends VersionGatedFeatureFlag {
-  source: FeatureFlagSource;
-}
-
 interface BlockedRegionList {
   list: string[];
   source: FeatureFlagSource;
@@ -561,10 +557,9 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
-  private hip3EnabledFlag: PerpsFeatureFlag = {
+  private hip3EnabledFlag = {
     enabled: false,
     source: 'fallback',
-    minimumVersion: '0.0.0',
   };
 
   private enabledHIP3Dexs: EnabledHIP3Dexs = {
@@ -572,7 +567,6 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
-  // TODO: Centralize fallback configuration and remote feature flag updates
   constructor({ messenger, state = {}, clientConfig }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
@@ -581,15 +575,17 @@ export class PerpsController extends BaseController<
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
 
-    console.log('[PerpsController] clientConfig: ', clientConfig);
+    Logger.log(
+      'PerpsController: clientConfig on initialization: ',
+      clientConfig,
+    );
 
     // Controller Configuration
     this.setClientVersion(clientConfig?.clientVersion ?? '0.0.0');
 
     // Immediately set the fallback HIP-3 enabled flag since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setHIP3EnabledFlag(
-      clientConfig?.fallbackEquityEnabled?.enabled ?? false,
-      clientConfig?.fallbackEquityEnabled?.minimumVersion ?? '0.0.0',
+      clientConfig?.fallbackEquityEnabled ?? false,
       'fallback',
     );
 
@@ -626,7 +622,7 @@ export class PerpsController extends BaseController<
       );
     } catch (error) {
       // If we can't read the remote feature flags at construction time, we'll rely on:
-      // 1. The fallback blocked regions already set above
+      // 1. The fallback values already set above
       // 2. The subscription to catch updates when RemoteFeatureFlagController is ready
       Logger.error(
         ensureError(error),
@@ -635,11 +631,6 @@ export class PerpsController extends BaseController<
         }),
       );
     }
-
-    // this.messagingSystem.subscribe(
-    //   'RemoteFeatureFlagController:stateChange',
-    //   this.refreshEligibilityOnFeatureFlagChange.bind(this),
-    // );
 
     this.messagingSystem.subscribe(
       'RemoteFeatureFlagController:stateChange',
@@ -677,34 +668,28 @@ export class PerpsController extends BaseController<
     });
   }
 
-  // TODO: Breakout into utils file
-  private hasMinimumRequiredVersion = (minRequiredVersion: string) => {
+  private readonly hasMinimumRequiredVersion = (minRequiredVersion: string) => {
     if (!minRequiredVersion) return false;
     const currentVersion = this.clientVersion;
     return compare(currentVersion, minRequiredVersion, '>=');
   };
 
-  // TODO: Breakout into utils file
+  /**
+   *
+   * @param remoteFlag - The remote flag to validate
+   * @returns true if the remote flag is valid and the client version is greater than or equal to the minimum version.
+   * Returns undefined if the remote flag is not valid
+   */
   private validatedVersionGatedFeatureFlag = (
     remoteFlag: VersionGatedFeatureFlag | undefined,
-  ): remoteFlag is VersionGatedFeatureFlag => {
-    console.log(
-      '[PerpsController] validatedVersionGatedFeatureFlag: ',
-      remoteFlag,
-    );
+  ) => {
     if (
       !remoteFlag ||
       typeof remoteFlag.enabled !== 'boolean' ||
       typeof remoteFlag.minimumVersion !== 'string'
     ) {
-      return false;
+      return undefined;
     }
-
-    console.log('[PerpsController] remoteFlag.enabled: ', remoteFlag.enabled);
-    console.log(
-      '[PerpsController] hasMinimumRequiredVersion: ',
-      this.hasMinimumRequiredVersion(remoteFlag.minimumVersion),
-    );
 
     return (
       remoteFlag.enabled &&
@@ -715,28 +700,22 @@ export class PerpsController extends BaseController<
   private refreshHIP3EnabledFlagOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
-    console.log(
-      '[PerpsController] refreshHIP3EnabledFlagOnFeatureFlagChange: ',
-      remoteFeatureFlagControllerState,
-    );
-
     const perpsEquityEnabledFeatureFlag = remoteFeatureFlagControllerState
       .remoteFeatureFlags?.perpsEquityEnabled as unknown as
       | VersionGatedFeatureFlag
       | undefined;
 
-    console.log(
-      'perpsEquityEnabledFeatureFlag: ',
+    const remoteFlagValidationResult = this.validatedVersionGatedFeatureFlag(
       perpsEquityEnabledFeatureFlag,
     );
 
-    if (this.validatedVersionGatedFeatureFlag(perpsEquityEnabledFeatureFlag)) {
-      this.setHIP3EnabledFlag(
-        perpsEquityEnabledFeatureFlag.enabled,
-        perpsEquityEnabledFeatureFlag.minimumVersion,
-        'remote',
-      );
+    // Invalid/missing remote flag -> keep fallback, don't update.
+    if (remoteFlagValidationResult === undefined) {
+      return;
     }
+
+    // true or false = valid remote flag -> always update (remote trumps fallback)
+    this.setHIP3EnabledFlag(remoteFlagValidationResult, 'remote');
   }
 
   private refreshEnabledHIP3DexsOnFeatureFlagChange(
@@ -753,16 +732,47 @@ export class PerpsController extends BaseController<
   private refreshHIP3ConfigOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
+    const previousEquityEnabled = this.hip3EnabledFlag.enabled;
+    const previousEnabledDexs = [...this.enabledHIP3Dexs.dexs];
+
     this.refreshHIP3EnabledFlagOnFeatureFlagChange(
       remoteFeatureFlagControllerState,
     );
+
     this.refreshEnabledHIP3DexsOnFeatureFlagChange(
       remoteFeatureFlagControllerState,
     );
 
-    this.performInitialization().catch((error) => {
-      console.error('PerpsController: Error performing initialization', error);
-    });
+    const equityEnabledChanged =
+      previousEquityEnabled !== this.hip3EnabledFlag.enabled;
+    const hasDexsChanged =
+      previousEnabledDexs.length !== this.enabledHIP3Dexs.dexs.length ||
+      previousEnabledDexs.some(
+        (dex, index) => dex !== this.enabledHIP3Dexs.dexs[index],
+      );
+
+    if (equityEnabledChanged || hasDexsChanged) {
+      Logger.log(
+        'PerpsController: HIP-3 configuration changed, re-initializing providers',
+        {
+          equityEnabled: {
+            from: previousEquityEnabled,
+            to: this.hip3EnabledFlag.enabled,
+          },
+          enabledDexs: {
+            from: previousEnabledDexs,
+            to: this.enabledHIP3Dexs.dexs,
+          },
+        },
+      );
+
+      this.performInitialization().catch((error) => {
+        console.error(
+          'PerpsController: Error performing initialization',
+          error,
+        );
+      });
+    }
   }
 
   private setClientVersion(version: string): void {
@@ -779,7 +789,6 @@ export class PerpsController extends BaseController<
 
   private setHIP3EnabledFlag(
     enabled: boolean,
-    minimumVersion: string,
     source: FeatureFlagSource,
   ): void {
     // Never downgrade from remote to fallback
@@ -787,19 +796,8 @@ export class PerpsController extends BaseController<
       return;
     }
 
-    if (compare(this.clientVersion, minimumVersion, '<')) {
-      return;
-    }
-
-    console.log('[PerpsController] setting HIP3 enabled flag: ', {
-      enabled,
-      minimumVersion,
-      source,
-    });
-
     this.hip3EnabledFlag = {
       enabled,
-      minimumVersion,
       source,
     };
   }

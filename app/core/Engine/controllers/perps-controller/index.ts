@@ -27,11 +27,8 @@ export const perpsControllerInit: ControllerInitFunction<
     state: perpsControllerState,
     clientConfig: {
       fallbackBlockedRegions: process.env.MM_PERPS_BLOCKED_REGIONS?.split(','),
-      fallbackEquityEnabled: {
-        enabled: process.env.MM_PERPS_EQUITY_ENABLED === 'true',
-        minimumVersion: process.env.MM_PERPS_EQUITY_MIN_VERSION ?? '0.0.0',
-      },
-      fallbackEnabledDexs: process.env.MM_PERPS_ENABLED_DEXS?.split(','),
+      fallbackEquityEnabled: process.env.MM_PERPS_HIP3_ENABLED === 'true',
+      fallbackEnabledDexs: process.env.MM_PERPS_HIP3_ENABLED_DEXS?.split(','),
       clientVersion: getVersion(),
     },
   });
