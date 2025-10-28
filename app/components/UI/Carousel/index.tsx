@@ -89,6 +89,43 @@ export function useFetchCarouselSlides() {
     CarouselSlide[]
   >([]);
 
+  // Dummy slides for testing
+  const dummySlides: CarouselSlide[] = [
+    {
+      id: 'sew2ewe-slide-1',
+      title: 'Test Slide 1',
+      description: 'This is a test slide to verify carousel functionality',
+      navigation: {
+        type: 'url',
+        href: 'https://metamask.io',
+      },
+      variableName: 'test1',
+      cardPlacement: 1,
+    },
+    {
+      id: 'sew2ewe-slide-2',
+      title: 'Test Slide 2',
+      description: 'Another test slide with different content',
+      navigation: {
+        type: 'url',
+        href: 'https://ethereum.org',
+      },
+      variableName: 'test2',
+      cardPlacement: 2,
+    },
+    {
+      id: 'sew2ewe-slide-3',
+      title: 'Test Slide 3',
+      description: 'Third test slide for comprehensive testing',
+      navigation: {
+        type: 'url',
+        href: 'https://consensys.io',
+      },
+      variableName: 'test3',
+      cardPlacement: 3,
+    },
+  ];
+
   const fetchCallback = useCallback(async () => {
     if (!isContentfulCarouselEnabled) return;
     try {
@@ -117,7 +154,7 @@ export function useFetchCarouselSlides() {
   }, [fetchCallback, isContentfulCarouselEnabled]);
 
   return {
-    priorityContentfulSlides,
+    priorityContentfulSlides: [...priorityContentfulSlides, ...dummySlides],
     regularContentfulSlides,
   };
 }
@@ -147,6 +184,9 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const carouselScaleY = useRef(new Animated.Value(1)).current;
 
   const isAnimating = useRef(false);
+
+  // Ref to track if we're mid-animation on the last card
+  const dismissingLastCardRef = useRef(false);
 
   // Animation hooks
   const transitionToNextCard = useTransitionToNextCard({
@@ -236,8 +276,15 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     const regular = orderByCardPlacement(regularContentfulSlides.map(patch));
     slides = [...priority, ...regular];
 
-    // Always add empty card as the last card
-    if (slides.length > 0) {
+    // Check if there are any non-dismissed slides (or if we're in the final dismissal flow)
+    const hasNonDismissedSlides = slides.some(
+      (s) => !dismissedBanners.includes(s.id),
+    );
+    const shouldAddEmpty =
+      hasNonDismissedSlides || dismissingLastCardRef.current;
+
+    // Add empty card only if there are non-dismissed slides or during dismissal animation
+    if (shouldAddEmpty && slides.length > 0) {
       const emptyCard: CarouselSlide = {
         id: `empty-card-${Date.now()}`,
         title: '',
@@ -258,6 +305,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     isZeroBalance,
     priorityContentfulSlides,
     regularContentfulSlides,
+    dismissedBanners,
   ]);
 
   const visibleSlides = useMemo(() => {
@@ -276,6 +324,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
       return !dismissedBanners.includes(slide.id);
     });
+
+    // If we're in the middle of dismissing the last card,
+    // keep the empty card in visibleSlides so the animation completes
+    if (dismissingLastCardRef.current && filtered.length === 0) {
+      // Re-add the empty card so the animation completes
+      return slidesConfig.filter((s) => s.variableName === 'empty');
+    }
+
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
   }, [
     slidesConfig,
@@ -408,24 +464,46 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       isAnimating.current = true;
       setIsTransitioning(true);
 
+      // Check if next card is the empty card (last non-empty slide being dismissed)
+      const isNextCardEmpty = nextSlide?.variableName === 'empty';
+
+      // Set flag to keep empty card visible during dismissal animation
+      if (isNextCardEmpty) {
+        dismissingLastCardRef.current = true;
+      }
+
       try {
         await transitionToNextCard.executeTransition('nextCard');
 
-        // After animation, dismiss banner and reset
+        // After animation, dismiss banner immediately so Redux knows it's gone
         dispatch(dismissBanner(slideId));
 
-        // Set up new next card if there will be one
+        // Set up animations based on what's next
         requestAnimationFrame(() => {
-          if (safeActiveSlideIndex < visibleSlides.length - 2) {
-            nextCardOpacity.setValue(0.7);
+          if (isNextCardEmpty) {
+            // Empty card is now current - set it to full visibility
+            currentCardOpacity.setValue(1);
+            currentCardScale.setValue(1);
+            currentCardTranslateY.setValue(0);
+
+            // No next card after empty
+            nextCardOpacity.setValue(0);
             nextCardScale.setValue(0.96);
             nextCardTranslateY.setValue(8);
-            nextCardBgOpacity.setValue(1);
-          }
+            nextCardBgOpacity.setValue(0);
+          } else {
+            // Regular transition - set up new next card if there will be one
+            if (safeActiveSlideIndex < visibleSlides.length - 2) {
+              nextCardOpacity.setValue(0.7);
+              nextCardScale.setValue(0.96);
+              nextCardTranslateY.setValue(8);
+              nextCardBgOpacity.setValue(1);
+            }
 
-          currentCardOpacity.setValue(1);
-          currentCardScale.setValue(1);
-          currentCardTranslateY.setValue(0);
+            currentCardOpacity.setValue(1);
+            currentCardScale.setValue(1);
+            currentCardTranslateY.setValue(0);
+          }
 
           setIsTransitioning(false);
           isAnimating.current = false;
@@ -441,6 +519,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       dispatch,
       safeActiveSlideIndex,
       visibleSlides.length,
+      nextSlide,
       currentCardOpacity,
       currentCardScale,
       currentCardTranslateY,
@@ -459,6 +538,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     try {
       // Trigger empty state component (fold-up and remove carousel)
       await transitionToEmpty.executeTransition(() => {
+        dismissingLastCardRef.current = false; // Reset the flag
         onEmptyState?.();
         setIsCarouselVisible(false);
       });
