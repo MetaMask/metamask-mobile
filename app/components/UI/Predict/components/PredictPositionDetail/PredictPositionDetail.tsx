@@ -133,7 +133,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       {marketStatus === PredictMarketStatus.OPEN && (
         <Box>
           <Button
-            testID={PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON}
+            testID={
+              PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON
+            }
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
