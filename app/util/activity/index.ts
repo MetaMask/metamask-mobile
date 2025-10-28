@@ -134,10 +134,15 @@ export const filterByAddress = (
   allTransactions?: TransactionMeta[],
 ): boolean => {
   const {
+    isIntentComplete,
     isTransfer,
     transferInformation,
     txParams: { from, to },
   } = tx;
+
+  if (isIntentComplete) {
+    return false;
+  }
 
   if (isFilteredByMetaMaskPay(tx, allTransactions ?? [])) {
     return false;
