@@ -94,3 +94,4 @@ describe('hasPersistedState', () => {
     expect(result).toBe(true);
   });
 });
+
