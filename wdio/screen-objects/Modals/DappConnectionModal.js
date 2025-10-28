@@ -1,7 +1,7 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import { AppwrightLocator, Device } from 'appwright';
-class MultiChainTestDapp {
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
+
+class DappConnectionModal {
     constructor() {}
 
     get device() {
@@ -18,7 +18,7 @@ class MultiChainTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Connect"]');
+            return AppwrightSelectors.getElementByText(this._device, 'Connect');
         }
     }
 
@@ -32,4 +32,4 @@ class MultiChainTestDapp {
     }
 }
 
-export default new MultiChainTestDapp();
+export default new DappConnectionModal();
