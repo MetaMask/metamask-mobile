@@ -1,3 +1,4 @@
+tab
 name: "Check PR has required labels"
 on:
   pull_request:
