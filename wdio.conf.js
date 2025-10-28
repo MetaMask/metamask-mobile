@@ -1,31 +1,8 @@
 const dotenv = require('dotenv');
 dotenv.config({ path: '.e2e.env' });
 
-import generateTestReports from './wdio/utils/generateTestReports';
 import ADB from 'appium-adb';
-import { gasApiDown, cleanAllMocks } from './wdio/utils/mocks';
-import {
-  startGanache,
-  stopGanache,
-  deployMultisig,
-  deployErc20,
-  deployErc721,
-} from './wdio/utils/ganache';
-import FixtureBuilder from './e2e/framework/fixtures/FixtureBuilder';
-import { loadFixture, startFixtureServer, stopFixtureServer } from './e2e/framework/fixtures/FixtureHelper';
-import FixtureServer from './e2e/framework/fixtures/FixtureServer';
 const { removeSync } = require('fs-extra');
-
-const fixtureServer = new FixtureServer();
-
-// cucumber tags
-const GANACHE = '@ganache';
-const MULTISIG = '@multisig';
-const ERC20 = '@erc20';
-const ERC721 = '@erc721';
-const GAS_API_DOWN = '@gasApiDown';
-const MOCK = '@mock';
-const FIXTURES_SKIP_ONBOARDING = '@fixturesSkipOnboarding'
 
 export const config = {
   //
@@ -51,22 +28,18 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/**/*.feature'],
+  // Configure spec files for your test framework
+  specs: [
+    // Add your spec files here
+  ],
 
   suites: {
-    confirmations: ['./wdio/features/Confirmations/*.feature'],
+    // Define test suites here
   },
 
   // Patterns to exclude.
   exclude: [
-    './wdio/features/Wallet/*',
-    './wdio/features/Accounts/*',
-    './wdio/features/BrowserFlow/*',
-    './wdio/features/Confirmations/*',
-    './wdio/features/Networks/*',
-    './wdio/features/Settings/*',
-    './wdio/features/SecurityAndPrivacy/*',
-    './wdio/features/Onboarding/*',
+    // Add patterns to exclude here
   ],
   //
   // ============
@@ -191,7 +164,7 @@ export const config = {
   //
   // Make sure you have the wdio adapter package for the specific framework installed
   // before running any tests.
-  framework: 'cucumber',
+  // framework: 'cucumber', // Cucumber removed - configure framework as needed
   //
   // The number of times to retry the entire specfile when it fails as a whole
   // specFileRetries: 1,
@@ -208,13 +181,6 @@ export const config = {
   reporters: [
     'spec',
     [
-      'cucumberjs-json',
-      {
-        jsonFolder: './wdio/reports/json',
-        language: 'en',
-      },
-    ],
-    [
       'junit',
       {
         outputDir: './wdio/reports/junit-results',
@@ -227,31 +193,8 @@ export const config = {
   ],
 
   //
-  // If you are using Cucumber you need to specify the location of your step definitions.
-  cucumberOpts: {
-    // <string[]> (file/dir) require files before executing features
-    require: ['./wdio/step-definitions/*.js'],
-    // <boolean> show full backtrace for errors
-    backtrace: false,
-    // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-    requireModule: [],
-    // <boolean> invoke formatters without executing steps
-    dryRun: false,
-    // <boolean> abort the run on first failure
-    failFast: false,
-    // <boolean> hide step definition snippets for pending steps
-    snippets: true,
-    // <boolean> hide source uris
-    source: true,
-    // <boolean> fail if there are any undefined or pending steps
-    strict: false,
-    // <string> (expression) only execute the features or scenarios with tags matching the expression
-    tagExpression: '',
-    // <number> timeout for step definitions
-    timeout: 200000,
-    // <boolean> Enable this config to treat undefined definitions as warnings.
-    ignoreUndefinedDefinitions: false,
-  },
+  // Cucumber options removed - configure your test framework options as needed
+  // cucumberOpts: { ... },
 
   //
   // =====
@@ -324,102 +267,8 @@ export const config = {
    */
   // beforeCommand: function (commandName, args) {
   // },
-  /**
-   * Cucumber Hooks
-   *
-   * Runs before a Cucumber Feature.
-   * @param {String}                   uri      path to feature file
-   * @param {GherkinDocument.IFeature} feature  Cucumber feature object
-   */
-  beforeFeature: function (uri, feature) { },
-  /**
-   *
-   * Runs before a Cucumber Scenario.
-   * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
-   * @param {Object}                 context  Cucumber World object
-   */
-  beforeScenario: async function (world, context) {
-    const tags = world.pickle.tags;
-
-    if (tags.filter((e) => e.name === GANACHE).length > 0) {
-      await startGanache();
-    }
-
-    if (tags.filter((e) => e.name === MULTISIG).length > 0) {
-      const multisig = await deployMultisig();
-      context.multisig = multisig;
-    }
-
-    if (tags.filter((e) => e.name === ERC20).length > 0) {
-      context.erc20 = await deployErc20();
-    }
-
-    if (tags.filter((e) => e.name === ERC721).length > 0) {
-      context.erc721 = await deployErc721();
-    }
-
-    if (tags.filter((e) => e.name === GAS_API_DOWN).length > 0) {
-      context.mock = gasApiDown();
-    }
-
-    if (tags.filter((e) => e.name === FIXTURES_SKIP_ONBOARDING).length > 0) {
-      // Start the fixture server
-      await startFixtureServer(fixtureServer);
-      const state = new FixtureBuilder().build();
-      await loadFixture(fixtureServer, { fixture: state });
-    }
-
-  },
-  /**
-   *
-   * Runs before a Cucumber Step.
-   * @param {Pickle.IPickleStep} step     step data
-   * @param {IPickle}            scenario scenario pickle
-   * @param {Object}             context  Cucumber World object
-   */
-  // beforeStep: function (step, scenario, context) {
-  // },
-  /**
-   *
-   * Runs after a Cucumber Step.
-   * @param {Pickle.IPickleStep} step             step data
-   * @param {IPickle}            scenario         scenario pickle
-   * @param {Object}             result           results object containing scenario results
-   * @param {boolean}            result.passed    true if scenario has passed
-   * @param {string}             result.error     error stack if scenario failed
-   * @param {number}             result.duration  duration of scenario in milliseconds
-   * @param {Object}             context          Cucumber World object
-   */
-  // afterStep: function (step, scenario, result, context) {
-  // },
-  /**
-   *
-   * Runs after a Cucumber Scenario.
-   * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
-   * @param {Object}                 result           results object containing scenario results
-   * @param {boolean}                result.passed    true if scenario has passed
-   * @param {string}                 result.error     error stack if scenario failed
-   * @param {number}                 result.duration  duration of scenario in milliseconds
-   * @param {Object}                 context          Cucumber World object
-   */
-  afterScenario: async function (world, context) {
-    const tags = world.pickle.tags;
-
-    if (tags.filter((e) => e.name === GANACHE).length > 0) {
-      await stopGanache();
-    }
-
-    if (tags.filter((e) => e.name === MOCK).length > 0) {
-      cleanAllMocks();
-    }
-  },
-  /**
-   *
-   * Runs after a Cucumber Feature.
-   * @param {String}                   uri      path to feature file
-   * @param {GherkinDocument.IFeature} feature  Cucumber feature object
-   */
-  afterFeature: function (uri, feature) { },
+  // Cucumber-specific hooks removed (beforeFeature, beforeScenario, afterScenario, afterFeature)
+  // Configure test framework hooks as needed
 
   /**
    * Runs after a WebdriverIO command gets executed
@@ -438,9 +287,6 @@ export const config = {
    * @param {Array.<String>} specs List of spec file paths that ran
    */
   after: async function (result, capabilities) {
-    // Stop the fixture server
-    await stopFixtureServer(fixtureServer);
-
     if (capabilities.bundleId) {
       driver.terminateApp(capabilities.bundleId);
     }
@@ -462,7 +308,7 @@ export const config = {
    * @param {<Object>} results object containing test results
    */
   onComplete: async function (exitCode, config, capabilities) {
-    generateTestReports();
+    // Add any cleanup or report generation here
   },
   /**
    * Gets executed when a refresh happens.
