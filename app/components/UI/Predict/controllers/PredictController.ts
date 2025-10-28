@@ -1029,14 +1029,22 @@ export class PredictController extends BaseController<
 
       return predictClaim;
     } catch (error) {
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        // ignore error, as the user cancelled the tx
+        return {
+          batchId: 'NA',
+          chainId: 0,
+          status: PredictClaimStatus.CANCELLED,
+        };
+      }
       // Log to Sentry with claim context (no user address or amounts)
       Logger.error(
-        ensureError(error),
+        e,
         this.getErrorContext('claimWithConfirmation', {
           providerId,
         }),
       );
-
       throw error;
     }
   }
@@ -1298,6 +1306,15 @@ export class PredictController extends BaseController<
         error instanceof Error
           ? error.message
           : PREDICT_ERROR_CODES.WITHDRAW_FAILED;
+
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        // ignore error, as the user cancelled the tx
+        return {
+          success: true,
+          response: 'User cancelled transaction',
+        };
+      }
 
       // Update error state for Sentry integration
       this.update((state) => {

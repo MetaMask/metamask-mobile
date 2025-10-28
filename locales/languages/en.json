@@ -1729,6 +1729,7 @@
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash out",
+    "cash_out_info": "Funds will be added to your available balance",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -1845,6 +1846,11 @@
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
+    },
+    "fee_summary": {
+      "provider_fee": "Provider fee",
+      "metamask_fee": "MetaMask fee",
+      "total": "Total"
     }
   },
   "receive": {
