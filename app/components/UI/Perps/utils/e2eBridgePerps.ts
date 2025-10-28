@@ -173,14 +173,21 @@ function startE2EPerpsCommandPolling(): void {
 
       DevLogger.log('[E2E Perps Bridge - HTTP Polling] Poll URL', baseUrl);
 
-      const response = await new Promise((resolve, reject) => {
-        axios
-          .get(baseUrl)
-          .then((res) => resolve(res))
-          .catch((error) => reject(error));
-        setTimeout(() => {
+      const response = await new Promise<AxiosResponse>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
           reject(new Error('Request timeout'));
         }, FETCH_TIMEOUT);
+
+        axios
+          .get(baseUrl)
+          .then((res) => {
+            clearTimeout(timeoutId);
+            resolve(res);
+          })
+          .catch((error) => {
+            clearTimeout(timeoutId);
+            reject(error);
+          });
       });
 
       if ((response as AxiosResponse).status !== 200) {
