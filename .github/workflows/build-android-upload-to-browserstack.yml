@@ -167,12 +167,42 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      - name: Debug - Find APK output location
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
+        run: |
+          echo "Searching for APK files..."
+          echo "Current directory: $(pwd)"
+          echo "Looking in android/app/build/outputs/apk/"
+          find android/app/build/outputs/apk -name "*.apk" -type f 2>/dev/null || echo "No APK files found in expected location"
+          echo ""
+          echo "Looking for APK files in android/build:"
+          find android -name "*.apk" -type f 2>/dev/null | head -10
+          echo ""
+          echo "Checking if android/app/build/outputs/apk exists:"
+          ls -la android/app/build/outputs/apk/ 2>/dev/null || echo "Directory does not exist"
+
       - name: Copy and rename APK for artifact
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
+          # Find the actual APK file location
+          APK_FILE=$(find android/app/build/outputs/apk/prod/release -name "*.apk" -type f 2>/dev/null | head -1)
+          
+          if [ -z "$APK_FILE" ]; then
+            echo "❌ Error: No APK file found in expected location"
+            echo "Searching in all of android directory..."
+            APK_FILE=$(find android -name "*.apk" -type f 2>/dev/null | grep -i "prod.*release" | head -1)
+            echo "Found APK at: $APK_FILE"
+          fi
+          
+          if [ -z "$APK_FILE" ]; then
+            echo "❌ Error: Could not find APK file anywhere"
+            exit 1
+          fi
+          
+          echo "Found APK at: $APK_FILE"
           # Create artifacts directory and copy APK with unique name
           mkdir -p ./upload-artifacts
-          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk ./upload-artifacts/app-prod-release-${{ matrix.build_type }}.apk
+          cp "$APK_FILE" ./upload-artifacts/app-prod-release-${{ matrix.build_type }}.apk
           echo "APK copied as app-prod-release-${{ matrix.build_type }}.apk"
           ls -lh ./upload-artifacts/
 
