@@ -168,6 +168,7 @@ MetaMetrics.getInstance().trackEvent(
 - `take_profit_price` (at least one required): Take profit trigger price (number)
 - `stop_loss_price` (at least one required): Stop loss trigger price (number)
 - `direction` (optional): `'long' | 'short'`
+- `source` (optional): Where TP/SL update originated (e.g., `'tp_sl_view'`, `'position_screen'`)
 - `position_size` (optional): Size of the position (number)
 
 ### 8. PERPS_ERROR

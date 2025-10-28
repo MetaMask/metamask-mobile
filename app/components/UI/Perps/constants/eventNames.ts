@@ -137,6 +137,7 @@ export const PerpsEventValues = {
     PERP_MARKET: 'perp_market',
     PERP_MARKET_SEARCH: 'perp_market_search',
     POSITION_SCREEN: 'position_screen',
+    TP_SL_VIEW: 'tp_sl_view',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
