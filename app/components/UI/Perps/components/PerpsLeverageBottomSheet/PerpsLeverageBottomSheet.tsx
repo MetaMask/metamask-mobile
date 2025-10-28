@@ -369,10 +369,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     );
 
   // Instead of using isDragging || isCalculating, we use shouldShowSkeleton to show the skeleton
-  // because otherwise the skeleton would flicker for a split second when the user stops dragging and the liquidation price is not yet being calculated
+  // Otherwise the skeleton would flicker for a split second when the user stops dragging and the liquidation price is not yet being calculated
   useEffect(() => {
-    setShouldShowSkeleton(isCalculating);
-  }, [isCalculating]);
+    if (isCalculating) {
+      setShouldShowSkeleton(true);
+    } else if (apiLiquidationPrice) {
+      setShouldShowSkeleton(false);
+    }
+  }, [isCalculating, apiLiquidationPrice]);
 
   const dynamicLiquidationPrice = isCalculating
     ? 0
@@ -685,6 +689,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             onValueChange={(newValue) => {
               if (isDragging) {
                 setDraggingLeverage(newValue);
+                if (!shouldShowSkeleton) {
+                  setShouldShowSkeleton(true);
+                }
               } else {
                 setTempLeverage(newValue);
               }
@@ -692,12 +699,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             onDragStart={() => {
               setIsDragging(true);
               setDraggingLeverage(tempLeverage);
-              setShouldShowSkeleton(true);
             }}
             onDragEnd={(finalValue) => {
               setIsDragging(false);
               setTempLeverage(finalValue);
               setInputMethod('slider');
+              if (tempLeverage === finalValue) {
+                setShouldShowSkeleton(false);
+              }
             }}
             minValue={minLeverage}
             maxValue={maxLeverage}
@@ -732,6 +741,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 setInputMethod('preset');
                 // Add haptic feedback for quick select buttons
                 impactAsync(ImpactFeedbackStyle.Light);
+                if (value !== tempLeverage) {
+                  setShouldShowSkeleton(true);
+                }
               }}
             >
               <Text
