@@ -63,6 +63,7 @@ exports[`AssetSearch renders correctly with selected chain 1`] = `
         [
           {
             "color": "#121314",
+            "flex": 1,
             "fontFamily": "Geist Regular",
           },
           {
