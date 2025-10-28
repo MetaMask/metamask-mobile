@@ -49,7 +49,7 @@ do
 
   # Step 1: Check Prettier formatting (this is what CI checks with format:check:changed)
   echo "📝 Checking Prettier formatting..."
-  echo "$FILES" | tr '\n' '\0' | xargs -0 npx prettier --check
+  echo "$FILES" | tr '\n' '\0' | xargs -0 npx prettier --check --ignore-unknown
 
   if [ $? -ne 0 ]; then
     echo ""
