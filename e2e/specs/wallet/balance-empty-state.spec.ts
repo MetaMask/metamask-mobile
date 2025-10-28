@@ -16,7 +16,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
     jest.setTimeout(2500000);
   });
 
-  it('should display empty state when user has zero balance', async (): Promise<void> => {
+  it('displays the empty state when user has zero balance', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -50,7 +50,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
     );
   });
 
-  it('should display empty state consistently across different networks', async (): Promise<void> => {
+  it('displays the empty state consistently across different networks', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -130,7 +130,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
     );
   });
 
-  it('should navigate to buy flow when action button is tapped', async (): Promise<void> => {
+  it('navigates to the buy flow when the action button is tapped', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
@@ -166,7 +166,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
     );
   });
 
-  it('should maintain empty state behavior after app restart', async (): Promise<void> => {
+  it('maintains the empty state behavior after app restart', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
