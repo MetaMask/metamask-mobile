@@ -54,9 +54,8 @@ const fetchAllowances = async (
       name: TraceName.Card,
       op: TraceOperation.CardGetSupportedTokensAllowances,
     });
-    const supportedTokensAllowances = await sdk.getSupportedTokensAllowances(
-      selectedAddress,
-    );
+    const supportedTokensAllowances =
+      await sdk.getSupportedTokensAllowances(selectedAddress);
 
     const supportedTokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
 
@@ -416,8 +415,8 @@ export const useGetPriorityCardToken = () => {
       allowanceFloat === 0
         ? AllowanceState.NotEnabled
         : allowanceFloat < ARBITRARY_ALLOWANCE
-        ? AllowanceState.Limited
-        : AllowanceState.Enabled;
+          ? AllowanceState.Limited
+          : AllowanceState.Enabled;
     const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
     return {

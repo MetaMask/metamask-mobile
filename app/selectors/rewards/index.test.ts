@@ -33,7 +33,7 @@ const createMockRootState = (
       },
     },
     rewards: createMockRewardsState(rewardsStateOverrides),
-  } as RootState);
+  }) as RootState;
 
 describe('Rewards Selectors', () => {
   describe('selectRewardsControllerState', () => {

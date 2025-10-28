@@ -98,8 +98,8 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
             : amount
-            ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
-            : '$0'}
+              ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
+              : '$0'}
         </Text>
         {isActive && (
           <Animated.View

@@ -41,9 +41,8 @@ describe.skip(RegressionConfirmations('Send to contract address'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
-          HST_CONTRACT,
-        );
+        const hstAddress =
+          await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
 
         await WalletView.tapWalletSendButton();

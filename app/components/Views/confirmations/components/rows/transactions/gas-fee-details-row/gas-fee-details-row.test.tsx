@@ -215,8 +215,7 @@ describe('GasFeesDetailsRow', () => {
     const clonedStakingDepositConfirmationState = cloneDeep(
       stakingDepositConfirmationState,
     );
-    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored =
-      true;
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
     const { getByText, queryByText } = renderWithProvider(
       <GasFeesDetailsRow />,
       {

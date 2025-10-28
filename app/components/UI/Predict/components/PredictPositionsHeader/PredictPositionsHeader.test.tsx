@@ -326,20 +326,20 @@ function setupMarketsWonCardTest(
     claimablePositionsOverrides.positions !== undefined
       ? (claimablePositionsOverrides.positions as unknown as PredictPosition[])
       : props.totalClaimableAmount
-      ? ([
-          {
-            id: 'position-1',
-            status: PredictPositionStatus.WON,
-            cashPnl: props.totalClaimableAmount,
-            marketId: 'market-1',
-            tokenId: 'token-1',
-            outcome: 'Yes',
-            shares: '100',
-            avgPrice: 0.5,
-            currentValue: props.totalClaimableAmount,
-          },
-        ] as unknown as PredictPosition[])
-      : [];
+        ? ([
+            {
+              id: 'position-1',
+              status: PredictPositionStatus.WON,
+              cashPnl: props.totalClaimableAmount,
+              marketId: 'market-1',
+              tokenId: 'token-1',
+              outcome: 'Yes',
+              shares: '100',
+              avgPrice: 0.5,
+              currentValue: props.totalClaimableAmount,
+            },
+          ] as unknown as PredictPosition[])
+        : [];
 
   // Create Redux state
   const state = {
