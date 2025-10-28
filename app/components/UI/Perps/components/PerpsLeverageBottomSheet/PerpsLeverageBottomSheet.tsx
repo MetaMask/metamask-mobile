@@ -386,6 +386,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setTempLeverage(initialLeverage);
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);
+      setShouldShowSkeleton(false);
     }
   }, [isVisible, initialLeverage]);
 
