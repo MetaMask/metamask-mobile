@@ -47,13 +47,28 @@ const tags = {
  */
 const aiE2EConfig = [
   { tag: 'SmokeAccounts', description: 'Multi-account, account management' },
-  { tag: 'SmokeConfirmations', description: 'Transaction confirmations, send/receive, signatures' },
-  { tag: 'SmokeConfirmationsRedesigned', description: 'New confirmation UI as well as all confirmation flows' },
+  {
+    tag: 'SmokeConfirmations',
+    description: 'Transaction confirmations, send/receive, signatures',
+  },
+  {
+    tag: 'SmokeConfirmationsRedesigned',
+    description: 'New confirmation UI as well as all confirmation flows',
+  },
   { tag: 'SmokeIdentity', description: 'User identity, authentication' },
-  { tag: 'SmokeNetworkAbstractions', description: 'Network layer, multi-chain' },
-  { tag: 'SmokeNetworkExpansion', description: 'New networks, network config (Solana, Bitcoin, etc)' },
+  {
+    tag: 'SmokeNetworkAbstractions',
+    description: 'Network layer, multi-chain',
+  },
+  {
+    tag: 'SmokeNetworkExpansion',
+    description: 'New networks, network config (Solana, Bitcoin, etc)',
+  },
   { tag: 'SmokeTrade', description: 'Token swaps, DEX trading' },
-  { tag: 'SmokeWalletPlatform', description: 'Core wallet, accounts, network switching' },
+  {
+    tag: 'SmokeWalletPlatform',
+    description: 'Core wallet, accounts, network switching',
+  },
   { tag: 'SmokeCore', description: 'Core wallet functionality' },
   { tag: 'SmokeWalletUX', description: 'Wallet user experience and UI' },
   { tag: 'SmokeAssets', description: 'Asset management and display' },

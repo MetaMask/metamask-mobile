@@ -7,7 +7,6 @@
 import {
   isCriticalFile,
   categorizeFiles as categorizeByCat,
-  getCategorySummary
 } from '../config/patterns.config';
 import { FileCategorization, FileCategories } from '../types';
 

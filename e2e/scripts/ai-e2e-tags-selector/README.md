@@ -1,10 +1,6 @@
-# AI E2E Tags Selector - Modular Architecture
-
-This directory contains the refactored, modular implementation of the AI E2E Tags Selector.
+# AI E2E Tags Selector
 
 ## Architecture
-
-The system has been broken down into focused, maintainable modules:
 
 ```
 ai-e2e-tags-selector/
@@ -36,42 +32,9 @@ ai-e2e-tags-selector/
     └── output-formatter.ts        # Result formatting
 ```
 
-## Key Improvements
-
-### 1. **Single Source of Truth in e2e/tags.js**
-- All tags pulled directly from `aiE2EConfig` array in `e2e/tags.js`
-- No hardcoded lists anywhere in the AI selector code
-- No intermediate discovery layer - modules import directly from `e2e/tags.js`
-- To add a new tag: just add it to `aiE2EConfig` with description
-
-### 2. **Configurable Patterns**
-- File patterns moved to `config/patterns.config.ts`
-- Easy to modify critical file patterns
-- File categorization logic is isolated and testable
-
-### 3. **Modular Tool System**
-- Each AI tool is a separate handler module
-- Easy to add new tools without touching core logic
-- Clear separation between tool definitions and execution
-
-### 4. **Separation of Concerns**
-- Each module has a single, well-defined responsibility
-- ~100 lines per file instead of 1336 lines monolith
-- Better testability and maintainability
-
-### 5. **Type Safety**
-- Shared TypeScript types in `types/index.ts`
-- Type-safe interfaces throughout
-
 ## Usage
 
-The refactored system maintains full backward compatibility:
-
 ```bash
-# Using the modular entry point
-node -r esbuild-register e2e/scripts/ai-e2e-tags-selector/index.ts --help
-
-# Or via the backward compatibility wrapper
 node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --help
 ```
 
@@ -109,14 +72,6 @@ const aiE2EConfig = [
   { tag: 'YourNewTag', description: 'Description of what this tag covers' },
 ];
 ```
-
-That's it! The AI selector will automatically pick it up.
-
-## Migration Notes
-
-- Original monolithic file: `e2e/scripts/ai-e2e-tags-selector.legacy.ts`
-- New modular implementation: `e2e/scripts/ai-e2e-tags-selector/`
-- Backward compatibility maintained via wrapper at original location
 
 ## Testing
 

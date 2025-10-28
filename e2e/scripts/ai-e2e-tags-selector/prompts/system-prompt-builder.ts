@@ -10,13 +10,13 @@ import { aiE2EConfig } from '../../../tags';
  * Builds the system prompt for the AI agent
  */
 export function buildSystemPrompt(): string {
-  const pipelineTags = aiE2EConfig.map(config => config.tag);
+  const availableTags = aiE2EConfig.map(config => config.tag);
   const tagCoverage: Record<string, string> = {};
   for (const config of aiE2EConfig) {
     tagCoverage[config.tag] = config.description;
   }
 
-  const tagCoverageLines = pipelineTags
+  const tagCoverageLines = availableTags
     .map(tag => {
       const coverage = tagCoverage[tag] || 'General smoke tests';
       return `- ${tag}: ${coverage}`;
@@ -28,7 +28,7 @@ export function buildSystemPrompt(): string {
 GOAL: Analyze code changes and select appropriate smoke test tags to run.
 
 AVAILABLE TAGS:
-${pipelineTags.map(tag => `- ${tag}`).join('\n')}
+${availableTags.map(tag => `- ${tag}`).join('\n')}
 
 TAG COVERAGE:
 ${tagCoverageLines}
@@ -95,6 +95,7 @@ SELECTION GUIDANCE:
 - For CI files: Use find_related_files first, then assess impact breadth and depth
 - If a reusable workflow or widely-used script changes → likely HIGH impact so consider running tests
 - Err on the side of caution when uncertain and make some selection rather than none (unless clearly non-functional)
+- Changes to controllers and Engine are high risk and usually warrant tests
 
 CONFIDENCE SCORING (0-100):
 - 90-100%: Very confident (clear-cut cases)

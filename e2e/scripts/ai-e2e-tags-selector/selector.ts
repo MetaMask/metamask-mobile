@@ -25,7 +25,6 @@ import { formatAndOutput, createLogger } from './utils/output-formatter';
 
 export class AIE2ETagsSelector {
   private anthropic: Anthropic;
-  private readonly pipelineTags: string[];
   private readonly availableTags: string[];
   private isQuietMode = false;
   private conversationHistory: Anthropic.MessageParam[] = [];
@@ -37,7 +36,6 @@ export class AIE2ETagsSelector {
   constructor(apiKey: string) {
     this.anthropic = new Anthropic({ apiKey });
     const tags = aiE2EConfig.map(config => config.tag);
-    this.pipelineTags = tags;
     this.availableTags = tags;
     this.log = createLogger(false);
 
@@ -126,7 +124,7 @@ export class AIE2ETagsSelector {
                 }
               }
 
-              const analysis = parseAgentDecision(toolResult, this.pipelineTags);
+              const analysis = parseAgentDecision(toolResult);
               if (analysis) {
                 // Add test file info
                 if (analysis.selectedTags.length > 0) {
@@ -151,7 +149,7 @@ export class AIE2ETagsSelector {
               }
 
               this.log('⚠️ Failed to parse finalize_decision');
-              return createFallbackAnalysis(categorization.allFiles, this.pipelineTags);
+              return createFallbackAnalysis(categorization.allFiles, this.availableTags);
             }
 
             toolResults.push({
@@ -182,7 +180,7 @@ export class AIE2ETagsSelector {
       );
 
       if (textContent && textContent.type === 'text') {
-        const analysis = parseAgentDecision(textContent.text, this.pipelineTags);
+        const analysis = parseAgentDecision(textContent.text);
 
         if (analysis) {
           // Add test file info
@@ -212,7 +210,7 @@ export class AIE2ETagsSelector {
     }
 
     this.log('⚠️ Using fallback analysis');
-    return createFallbackAnalysis(categorization.allFiles, this.pipelineTags);
+    return createFallbackAnalysis(categorization.allFiles, this.availableTags);
   }
 
   /**
