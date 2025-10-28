@@ -1,7 +1,6 @@
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import MobileBrowserScreen from '../../../wdio/screen-objects/MobileBrowser.js';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
-import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 
 export async function launchMobileBrowser(device) {
   const isAndroid = AppwrightSelectors.isAndroid(device);
@@ -10,22 +9,25 @@ export async function launchMobileBrowser(device) {
   );
 }
 
-export async function navigateToDapp(device, url, dappName) {
+export async function navigateToDappAndroid(device, url, dappName) {
   MobileBrowserScreen.device = device;
-
-  // Chrome might or not be onboarded depending on the device state
-  try {
-    await MobileBrowserScreen.tapOnboardingChromeWithoutAccount();
-    await MobileBrowserScreen.tapChromeNoThanksButton();
-  } catch (error) {
-    console.log('Chrome is already onboarded. Skipping onboarding.');
-  }
 
   await MobileBrowserScreen.tapSearchBox();
   await MobileBrowserScreen.tapUrlBar();
-  await AppwrightGestures.typeText(
-    await MobileBrowserScreen.chromeUrlBar,
-    url + '\n',
-  );
+  await AppwrightGestures.typeText(await MobileBrowserScreen.chromeUrlBar, url);
   await MobileBrowserScreen.tapSelectDappUrl(dappName);
+}
+
+export async function navigateToDappIOS(device, url, dappName) {
+  throw new Error('Not implemented');
+}
+
+export async function navigateToDapp(device, url, dappName) {
+  if (AppwrightSelectors.isAndroid(device)) {
+    return navigateToDappAndroid(device, url, dappName);
+  }
+  if (AppwrightSelectors.isIOS(device)) {
+    return navigateToDappIOS(device, url, dappName);
+  }
+  throw new Error('Unsupported platform');
 }
