@@ -31,8 +31,6 @@ test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
     MULTI_CHAIN_TEST_DAPP_NAME,
   );
 
-  // await AppwrightGestures.terminateApp(device);
-
   // TODO: add assertion to see the connection modal being displayed before tapping the connect button
   await AppwrightGestures.scrollIntoView(
     device,
@@ -44,12 +42,12 @@ test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
   // Accept in MetaMask app
-  await login(device, { shouldDismissModals: false });
+  // await login(device, { shouldDismissModals: false });
 
   await DappConnectionModal.tapConnectButton();
 
   // Explicit pausing to avoid navigating back too fast to the dapp
-  await device.pause(500);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await launchMobileBrowser(device);
 
