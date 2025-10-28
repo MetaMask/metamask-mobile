@@ -14,7 +14,7 @@ import handleConnectionMessage from './handleConnectionMessage';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
-const handleDeeplink = async ({
+export const handleDeeplink = async ({
   sdkConnect,
   channelId,
   origin,
