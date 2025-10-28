@@ -31,7 +31,7 @@ test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
     MULTI_CHAIN_TEST_DAPP_NAME,
   );
 
-  await AppwrightGestures.terminateApp(device);
+  // await AppwrightGestures.terminateApp(device);
 
   // TODO: add assertion to see the connection modal being displayed before tapping the connect button
   await AppwrightGestures.scrollIntoView(
@@ -48,8 +48,10 @@ test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
 
   await DappConnectionModal.tapConnectButton();
 
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await device.pause(500);
+
   await launchMobileBrowser(device);
 
-  // TOOD: add assertion to check the connection status
-  await device.pause(20000);
+  await MultiChainTestDapp.isDappConnected();
 });
