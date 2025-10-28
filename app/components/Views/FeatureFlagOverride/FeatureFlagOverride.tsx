@@ -38,8 +38,8 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
   const isVersionSupported = useMemo(
-    () => isMinimumRequiredVersionSupported(localValue?.minimumVersion),
-    [localValue?.minimumVersion],
+    () => isMinimumRequiredVersionSupported((localValue as MinimumVersionFlagValue)?.minimumVersion),
+    [(localValue as MinimumVersionFlagValue)?.minimumVersion],
   );
 
   const handleResetOverride = () => {

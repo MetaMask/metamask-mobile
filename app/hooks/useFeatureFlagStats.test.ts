@@ -37,7 +37,7 @@ describe('useFeatureFlagStats', () => {
   it('returns correct stats for empty feature flags list', () => {
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: [],
-    } as FeatureFlagOverrideContextType);
+    } as unknown as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 

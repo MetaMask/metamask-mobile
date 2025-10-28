@@ -26,13 +26,14 @@ export const getFeatureFlagType = (value: unknown): FeatureFlagInfo['type'] => {
   if (typeof value === 'number') return 'number';
   if (Array.isArray(value)) return 'array';
   if (
+    value &&
     typeof value === 'object' &&
-    typeof value?.enabled === 'boolean' &&
-    typeof value?.minimumVersion === 'string'
+    value.hasOwnProperty('enabled') &&
+    value.hasOwnProperty('minimumVersion')
   ) {
     return 'boolean with minimumVersion';
   }
-  if (typeof value === 'object' && typeof value.value === 'boolean')
+  if (typeof value === 'object' && typeof (value as { value: boolean })?.value === 'boolean')
     return 'boolean nested';
   if (typeof value === 'object' && value !== null) return 'object';
   return 'string';
