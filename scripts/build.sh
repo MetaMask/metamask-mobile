@@ -29,11 +29,12 @@ loadJSEnv(){
 # Load JS env variables
 loadJSEnv
 
-# Use input values when platform is NOT watcher. Otherwise, use the values from the environment variables.
 if [ "$PLATFORM" != "watcher" ]; then
+	# Use the values from the environment variables when platform is watcher
 	export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
 	export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 fi
+
 # Enable Sentry to auto upload source maps and debug symbols
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export EXPO_NO_TYPESCRIPT_SETUP=1
@@ -140,6 +141,18 @@ checkParameters(){
 		*)
 			# Invalid environment - exit with error
 			printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not valid. Please set it to one of the following: ${VALID_METAMASK_ENVIRONMENTS}"
+			exit 1
+	esac
+
+	VALID_METAMASK_BUILD_TYPES="main|flask|qa"
+	# Check if the METAMASK_BUILD_TYPE is valid
+	case "${METAMASK_BUILD_TYPE}" in
+		main|flask|qa)
+			# Valid build type - continue
+			;;
+		*)
+			# Invalid build type - exit with error
+			printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not valid. Please set it to one of the following: ${VALID_METAMASK_BUILD_TYPES}"
 			exit 1
 	esac
 	
