@@ -5,6 +5,7 @@ export { default as Matchers } from './Matchers';
 export { default as Utilities, BASE_DEFAULTS, sleep } from './Utilities';
 export { Logger, createLogger, LogLevel, logger } from './logger';
 export * from './types';
+export * from './NavigationHelpers';
 
 // Example usage:
 // import { Assertions, Gestures, Matchers, sleep } from '../framework';
