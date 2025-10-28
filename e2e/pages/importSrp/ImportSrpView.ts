@@ -30,13 +30,13 @@ class ImportSrpView {
       await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
         hideKeyboard: true,
-        timeout: 5000,
+        timeout: 15000,
       });
     } else {
       // For Android, we use replaceText to avoid autocomplete issue
       await Gestures.replaceText(this.textareaInput, mnemonic, {
         elemDescription,
-        timeout: 5000,
+        timeout: 15000,
       });
     }
   }
