@@ -92,40 +92,48 @@ async function resolveInterstitialAction(
     return InterstitialState.ACCEPTED;
   }
 
-  return new Promise<InterstitialState>(async (resolve) => {
-    const [, actionName] = validatedUrl.pathname.split('/');
-    const sanitizedAction = actionName?.replace(/-/g, ' ');
-    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
+  // Extract action details for modal
+  const [, actionName] = validatedUrl.pathname.split('/');
+  const sanitizedAction = actionName?.replace(/-/g, ' ');
+  const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
-    const modalLinkType = linkType();
+  const modalLinkType = linkType();
 
-    // Build params based on link type - INVALID and UNSUPPORTED don't have onContinue/pageTitle
-    const modalParams: DeepLinkModalParams =
-      modalLinkType === DeepLinkModalLinkType.INVALID ||
-      modalLinkType === DeepLinkModalLinkType.UNSUPPORTED
-        ? {
-            linkType: modalLinkType,
-            onBack: () => resolve(InterstitialState.REJECTED),
-          }
-        : {
-            linkType: modalLinkType,
-            pageTitle,
-            onContinue: () => resolve(InterstitialState.ACCEPTED),
-            onBack: () => resolve(InterstitialState.REJECTED),
-          };
-
-    await handleDeepLinkModalDisplay(modalParams, {
-      url,
-      route: isSupportedAction(action)
-        ? mapSupportedActionToRoute(action)
-        : DeepLinkRoute.INVALID,
-      urlParams: extractURLParams(url).params,
-      signatureStatus: SignatureStatus.MISSING,
-      interstitialShown: false,
-      interstitialDisabled: false,
-      interstitialAction: undefined,
-    });
+  // Create Promise and capture resolve function to be called by modal callbacks
+  let resolveInterstitial: (state: InterstitialState) => void;
+  const interstitialPromise = new Promise<InterstitialState>((resolve) => {
+    resolveInterstitial = resolve;
   });
+
+  // Build params based on link type - INVALID and UNSUPPORTED don't have onContinue/pageTitle
+  const modalParams: DeepLinkModalParams =
+    modalLinkType === DeepLinkModalLinkType.INVALID ||
+    modalLinkType === DeepLinkModalLinkType.UNSUPPORTED
+      ? {
+          linkType: modalLinkType,
+          onBack: () => resolveInterstitial(InterstitialState.REJECTED),
+        }
+      : {
+          linkType: modalLinkType,
+          pageTitle,
+          onContinue: () => resolveInterstitial(InterstitialState.ACCEPTED),
+          onBack: () => resolveInterstitial(InterstitialState.REJECTED),
+        };
+
+  // Wait for async modal display (including analytics) to complete before callbacks can resolve
+  await handleDeepLinkModalDisplay(modalParams, {
+    url,
+    route: isSupportedAction(action)
+      ? mapSupportedActionToRoute(action)
+      : DeepLinkRoute.INVALID,
+    urlParams: extractURLParams(url).params,
+    signatureStatus: SignatureStatus.MISSING,
+    interstitialShown: false,
+    interstitialDisabled: false,
+    interstitialAction: undefined,
+  });
+
+  return interstitialPromise;
 }
 
 async function handleUniversalLink({
