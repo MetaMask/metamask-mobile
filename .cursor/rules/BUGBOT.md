@@ -1,9 +1,9 @@
-on each BugBot run, always reference .cursor/rules/unit-testing-guidelines.mdc
+on each BUGBOT run, always reference .cursor/rules/unit-testing-guidelines.mdc
 
 1. Porvide a #Quality Checklist audit
 2. Provide a #Code Coverage audit
 
-the, suggestions corrections on the following rules:
+then, suggestion corrections on the following rules:
 
 ## Test Naming Rules
 ## Test Structure and Organization - MANDATORY
