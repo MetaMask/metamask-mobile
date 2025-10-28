@@ -30,8 +30,10 @@ jest.mock('../../hooks/useRegistrationSettings', () => ({
   default: jest.fn(() => ({
     data: {
       countries: [
-        { iso3166alpha2: 'US', name: 'United States' },
-        { iso3166alpha2: 'CA', name: 'Canada' },
+        { iso3166alpha2: 'US', name: 'United States', canSignUp: true },
+        { iso3166alpha2: 'CA', name: 'Canada', canSignUp: true },
+        { iso3166alpha2: 'GB', name: 'United Kingdom', canSignUp: false },
+        { iso3166alpha2: 'DE', name: 'Germany', canSignUp: true },
       ],
     },
   })),
@@ -577,6 +579,37 @@ describe('SignUp Component', () => {
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
+    });
+  });
+
+  describe('Country Selection', () => {
+    it('filters selectOptions by country.canSignUp property', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId('signup-country-select');
+
+      // The SelectComponent mock should receive only countries where canSignUp is true
+      // Based on the mock data, we should have US, Canada, and Germany (3 countries)
+      expect(countrySelect.props.options).toHaveLength(3);
+
+      // Verify that only countries with canSignUp: true are included
+      const optionValues = countrySelect.props.options.map(
+        (option: { value: string }) => option.value,
+      );
+      expect(optionValues).toContain('US');
+      expect(optionValues).toContain('CA');
+      expect(optionValues).toContain('DE');
+      expect(optionValues).not.toContain('GB');
+
+      // Verify the options are sorted alphabetically by name
+      const optionLabels = countrySelect.props.options.map(
+        (option: { label: string }) => option.label,
+      );
+      expect(optionLabels).toEqual(['Canada', 'Germany', 'United States']);
     });
   });
 
