@@ -1436,4 +1436,214 @@ describe('handleUniversalLinks', () => {
       );
     });
   });
+
+  describe('consolidated analytics tracking', () => {
+    interface MockMetricsInstance {
+      trackEvent: jest.Mock;
+    }
+
+    interface MockEventBuilder {
+      addProperties: jest.Mock;
+      addSensitiveProperties: jest.Mock;
+      build: jest.Mock;
+    }
+
+    let mockMetrics: MockMetricsInstance;
+    let mockCreateEventBuilder: jest.MockedFunction<
+      () => Promise<MockEventBuilder>
+    >;
+    const { MetaMetrics } = jest.requireMock('../../../core/Analytics');
+    const { createDeepLinkUsedEventBuilder } = jest.requireMock(
+      '../../../util/deeplinks/deepLinkAnalytics',
+    );
+    const ReduxService = jest.requireMock('../../../core/redux');
+
+    beforeEach(() => {
+      mockMetrics = {
+        trackEvent: jest.fn(),
+      };
+      MetaMetrics.getInstance.mockReturnValue(mockMetrics);
+
+      mockCreateEventBuilder = jest.fn(() =>
+        Promise.resolve({
+          addProperties: jest.fn().mockReturnThis(),
+          addSensitiveProperties: jest.fn().mockReturnThis(),
+          build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
+        }),
+      );
+      createDeepLinkUsedEventBuilder.mockImplementation(mockCreateEventBuilder);
+    });
+
+    it('tracks analytics for REJECTED interstitial before early return', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onBack(); // User rejects
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(result).toBe(false); // Early return happened
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialAction: 'rejected',
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalledWith({
+        eventName: 'DEEP_LINK_USED',
+      });
+    });
+
+    it('tracks analytics with wasInterstitialShown=false for whitelisted WC action', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=test`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.WC}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: false, // Whitelisted, modal not shown
+          interstitialAction: 'accepted',
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics with correct interstitialDisabled state', async () => {
+      // Mock modal disabled state
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: true,
+        },
+      });
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialDisabled: true, // User has disabled modal
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics with wasInterstitialShown=true when modal shown and user accepts', async () => {
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      });
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue(); // User accepts
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: true, // Modal was shown
+          interstitialAction: 'accepted',
+        }),
+      );
+      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics only once per deep link', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.SWAP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      // Analytics should be tracked exactly once
+      expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    });
+  });
 });

@@ -232,6 +232,13 @@ async function handleUniversalLink({
   // Determine signature status before resolving interstitial to ensure correct analytics
   const signatureStatus = await determineSignatureStatus(validatedUrl);
 
+  // Check if action/URL is whitelisted (modal will not be shown)
+  const isWhitelisted =
+    (isSupportedAction(action) && WHITELISTED_ACTIONS.includes(action)) ||
+    interstitialWhitelist.some((url) =>
+      validatedUrl.toString().startsWith(url),
+    );
+
   const interstitialAction = await resolveInterstitialAction(
     action,
     validatedUrl,
@@ -243,11 +250,8 @@ async function handleUniversalLink({
   // Universal links
   handled();
 
-  if (interstitialAction === InterstitialState.REJECTED) {
-    return false;
-  }
-
-  // Track consolidated deep link analytics event
+  // Track consolidated deep link analytics event BEFORE early return
+  // This ensures we track REJECTED and SKIPPED states as well
   try {
     const { params } = extractURLParams(url);
 
@@ -256,11 +260,13 @@ async function handleUniversalLink({
       ReduxService.store.getState(),
     );
 
-    // Determine if interstitial was shown based on user action
+    // Determine if interstitial was actually shown to user
+    // Modal is NOT shown if: whitelisted OR (private link + modal disabled by user)
+    const modalLinkType = linkType();
+    const wasModalSkippedDueToPreference =
+      modalLinkType === DeepLinkModalLinkType.PRIVATE && isModalDisabled;
     const wasInterstitialShown =
-      (interstitialAction as InterstitialState) ===
-        InterstitialState.ACCEPTED ||
-      (interstitialAction as InterstitialState) === InterstitialState.REJECTED;
+      !isWhitelisted && !wasModalSkippedDueToPreference;
 
     // Create analytics context
     const analyticsContext: DeepLinkAnalyticsContext = {
@@ -290,6 +296,11 @@ async function handleUniversalLink({
     );
   } catch (error) {
     Logger.error(error as Error, 'Error tracking deep link event');
+  }
+
+  // Handle rejection after analytics tracking
+  if (interstitialAction === InterstitialState.REJECTED) {
+    return false;
   }
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;

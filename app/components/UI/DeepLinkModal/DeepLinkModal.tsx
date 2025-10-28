@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useRef,
-  useEffect,
-  useState,
-  memo,
-  useMemo,
-} from 'react';
+import React, { useCallback, useRef, useState, memo, useMemo } from 'react';
 import {
   View,
   Image,
@@ -32,15 +25,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../component-library/components/Checkbox';
 import { ScrollView } from 'react-native-gesture-handler';
-import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { createDeepLinkUsedEventBuilder } from '../../../util/deeplinks/deepLinkAnalytics';
-import {
-  InterstitialState,
-  SignatureStatus,
-  DeepLinkRoute,
-} from '../../../core/DeeplinkManager/types/deepLinkAnalytics.types';
-import Logger from '../../../util/Logger';
 import { Box } from '../../../components/UI/Box/Box';
 import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import BottomSheet, {
@@ -126,7 +110,6 @@ const DeepLinkModal = () => {
       ? params.pageTitle
       : undefined;
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const dispatch = useDispatch();
@@ -166,68 +149,14 @@ const DeepLinkModal = () => {
     [pageTitle],
   );
 
-  // Track modal viewed with consolidated DEEP_LINK_USED event
-  useEffect(() => {
-    const trackModalViewed = async () => {
-      try {
-        // Use actual deep link context if available, otherwise fallback to defaults
-        const deepLinkContext = params.deepLinkContext;
-        const eventBuilder = await createDeepLinkUsedEventBuilder({
-          url: deepLinkContext?.url || '',
-          route: deepLinkContext?.route || DeepLinkRoute.INVALID,
-          urlParams: deepLinkContext?.urlParams || {},
-          signatureStatus:
-            deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
-          interstitialShown: true,
-          interstitialDisabled: false,
-          interstitialAction: undefined, // No user action yet - modal just displayed
-        });
-
-        eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
-        trackEvent(eventBuilder.build());
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'DeepLinkModal: Error tracking modal viewed event',
-        );
-      }
-    };
-
-    trackModalViewed();
-  }, [trackEvent, params.deepLinkContext]);
-
   const dismissModal = (cb?: () => void): void =>
     bottomSheetRef?.current?.onCloseBottomSheet(cb);
 
-  const onDimiss = useCallback(async () => {
-    // Track analytics BEFORE dismissing modal to ensure completion
-    try {
-      const deepLinkContext = params.deepLinkContext;
-      const eventBuilder = await createDeepLinkUsedEventBuilder({
-        url: deepLinkContext?.url || '',
-        route: deepLinkContext?.route || DeepLinkRoute.INVALID,
-        urlParams: deepLinkContext?.urlParams || {},
-        signatureStatus:
-          deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
-        interstitialShown: true,
-        interstitialDisabled: false,
-        interstitialAction: InterstitialState.REJECTED,
-      });
-
-      eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
-      trackEvent(eventBuilder.build());
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'DeepLinkModal: Error tracking modal dismissed event',
-      );
-    }
-
-    // Dismiss modal with sync callback after analytics completes
+  const onDimiss = useCallback(() => {
     dismissModal(() => {
       onBack?.();
     });
-  }, [trackEvent, onBack, params.deepLinkContext]);
+  }, [onBack]);
 
   const openMetaMaskStore = useCallback(() => {
     // Open appropriate store based on platform
@@ -244,34 +173,7 @@ const DeepLinkModal = () => {
     });
   }, []);
 
-  const onPrimaryButtonPressed = useCallback(async () => {
-    // Track analytics BEFORE dismissing modal to ensure completion
-    try {
-      const deepLinkContext = params.deepLinkContext;
-      const eventBuilder = await createDeepLinkUsedEventBuilder({
-        url: deepLinkContext?.url || '',
-        route: deepLinkContext?.route || DeepLinkRoute.INVALID,
-        urlParams: deepLinkContext?.urlParams || {},
-        signatureStatus:
-          deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
-        interstitialShown: true,
-        interstitialDisabled: false,
-        interstitialAction: InterstitialState.ACCEPTED,
-      });
-
-      eventBuilder.addProperties({
-        ...generateDeviceAnalyticsMetaData(),
-        pageTitle,
-      });
-      trackEvent(eventBuilder.build());
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'DeepLinkModal: Error tracking modal continue event',
-      );
-    }
-
-    // Dismiss modal with sync callback after analytics completes
+  const onPrimaryButtonPressed = useCallback(() => {
     dismissModal(() => {
       if (
         linkType === DeepLinkModalLinkType.INVALID ||
@@ -289,36 +191,12 @@ const DeepLinkModal = () => {
         params.onContinue();
       }
     });
-  }, [trackEvent, linkType, params, navigation, pageTitle]);
+  }, [linkType, params, navigation]);
 
-  const onDontRemindMeAgainPressed = useCallback(async () => {
-    try {
-      const deepLinkContext = params.deepLinkContext;
-      const eventBuilder = await createDeepLinkUsedEventBuilder({
-        url: deepLinkContext?.url || '',
-        route: deepLinkContext?.route || DeepLinkRoute.INVALID,
-        urlParams: deepLinkContext?.urlParams || {},
-        signatureStatus:
-          deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
-        interstitialShown: true,
-        interstitialDisabled: !isChecked, // Will be disabled if checking the box
-        interstitialAction: !isChecked
-          ? InterstitialState.SKIPPED
-          : InterstitialState.ACCEPTED,
-      });
-
-      eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
-      trackEvent(eventBuilder.build());
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'DeepLinkModal: Error tracking checkbox event',
-      );
-    }
-
+  const onDontRemindMeAgainPressed = useCallback(() => {
     dispatch(setDeepLinkModalDisabled(!isChecked));
     setIsChecked((prev) => !prev);
-  }, [isChecked, trackEvent, dispatch, params.deepLinkContext]);
+  }, [isChecked, dispatch]);
 
   const shouldShowCheckbox = linkType === 'private';
 
