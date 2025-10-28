@@ -274,7 +274,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
       : renderedTokenKeys.length;
     const contentHeight = displayTokenCount * estimatedTokenItemHeight;
     const footerHeight =
-      maxItems && renderedTokenKeys.length > maxItems ? 80 : 16;
+      maxItems && renderedTokenKeys.length > maxItems ? 92 : 16;
 
     return contentHeight + footerHeight;
   }, [
@@ -308,7 +308,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   return (
     <Box
       twClassName={
-        isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default'
+        isHomepageRedesignV1Enabled && !isFullView
+          ? 'bg-default'
+          : 'flex-1 bg-default'
       }
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
@@ -321,7 +323,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
       progressiveTokens.length === 0 ? (
         <Box
           twClassName={
-            isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default'
+            isHomepageRedesignV1Enabled && !isFullView
+              ? 'bg-default'
+              : 'flex-1 bg-default'
           }
         />
       ) : (
@@ -342,6 +346,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
                   setShowScamWarningModal={handleScamWarningModal}
                   flashListProps={flashListProps}
                   maxItems={maxItems}
+                  isFullView={isFullView}
                 />
               </Box>
             ) : (
@@ -355,6 +360,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
                 setShowScamWarningModal={handleScamWarningModal}
                 flashListProps={flashListProps}
                 maxItems={maxItems}
+                isFullView={isFullView}
               />
             ))}
         </>

@@ -41,6 +41,7 @@ interface TokenListProps {
   setShowScamWarningModal: () => void;
   flashListProps?: Partial<FlashListProps<FlashListAssetKey>>;
   maxItems?: number;
+  isFullView?: boolean;
 }
 
 const TokenListComponent = ({
@@ -52,6 +53,7 @@ const TokenListComponent = ({
   setShowScamWarningModal,
   flashListProps,
   maxItems,
+  isFullView = false,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -125,7 +127,9 @@ const TokenListComponent = ({
   return displayTokenKeys?.length ? (
     <Box
       twClassName={
-        isHomepageRedesignV1Enabled ? 'h-full bg-default' : 'flex-1 bg-default'
+        isHomepageRedesignV1Enabled && !isFullView
+          ? 'h-full bg-default'
+          : 'flex-1 bg-default'
       }
     >
       <FlashList

@@ -13,6 +13,7 @@ import {
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  View,
 } from 'react-native';
 
 // External dependencies.
@@ -42,13 +43,21 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       Dimensions.get('window').width,
     );
     const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
+    const [tabHeights, setTabHeights] = useState<Map<string, number>>(
+      new Map(),
+    );
+    const [scrollViewHeight, setScrollViewHeight] = useState<
+      number | undefined
+    >(undefined);
     const scrollViewRef = useRef<ScrollView>(null);
+    const tabContentRefs = useRef<Map<string, View>>(new Map());
     const isScrolling = useRef(false);
     const isProgrammaticScroll = useRef(false);
     const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
     const loadTabTimeout = useRef<NodeJS.Timeout | null>(null);
     const programmaticScrollTimeout = useRef<NodeJS.Timeout | null>(null);
     const goToTabTimeout = useRef<NodeJS.Timeout | null>(null);
+    const measurementTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
     // Extract tab items from children
     const tabs: TabItem[] = useMemo(
@@ -130,15 +139,138 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       return !tabs[activeIndex]?.isDisabled;
     }, [hasAnyEnabledTabs, activeIndex, tabs]);
 
-    // Load tab content on-demand when tab becomes active for the first time
+    // Clean up stale heights when tabs change
+    useEffect(() => {
+      const currentTabKeys = new Set(tabs.map((tab) => tab.key));
+      setTabHeights((prev) => {
+        const newHeights = new Map(prev);
+        let hasChanges = false;
+
+        // Remove heights for tabs that no longer exist
+        Array.from(newHeights.keys()).forEach((key) => {
+          if (!currentTabKeys.has(key)) {
+            newHeights.delete(key);
+            hasChanges = true;
+          }
+        });
+
+        return hasChanges ? newHeights : prev;
+      });
+
+      // Clean up refs for removed tabs
+      Array.from(tabContentRefs.current.keys()).forEach((key) => {
+        if (!currentTabKeys.has(key)) {
+          tabContentRefs.current.delete(key);
+        }
+      });
+
+      // Clean up timers for removed tabs
+      Array.from(measurementTimers.current.keys()).forEach((key) => {
+        if (!currentTabKeys.has(key)) {
+          const timer = measurementTimers.current.get(key);
+          if (timer) {
+            clearTimeout(timer);
+            measurementTimers.current.delete(key);
+          }
+        }
+      });
+    }, [tabs]);
+
+    // Debounced measurement function using tab key
+    const measureTabHeight = useCallback((tabKey: string) => {
+      const tabContentRef = tabContentRefs.current.get(tabKey);
+      if (!tabContentRef) return;
+
+      // Clear any existing measurement timer for this tab
+      const existingTimer = measurementTimers.current.get(tabKey);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+      }
+
+      // Debounce measurement to allow content to settle
+      const timer = setTimeout(() => {
+        if (tabContentRefs.current.has(tabKey)) {
+          tabContentRef.measure(
+            (
+              _x: number,
+              _y: number,
+              _width: number,
+              height: number,
+              _pageX: number,
+              _pageY: number,
+            ) => {
+              if (height > 0 && tabContentRefs.current.has(tabKey)) {
+                setTabHeights((prev) => {
+                  const currentHeight = prev.get(tabKey);
+                  // Only update if height changed significantly
+                  if (!currentHeight || Math.abs(currentHeight - height) > 5) {
+                    const newHeights = new Map(prev);
+                    newHeights.set(tabKey, height);
+                    return newHeights;
+                  }
+                  return prev;
+                });
+              }
+            },
+          );
+        }
+        measurementTimers.current.delete(tabKey);
+      }, 100);
+
+      measurementTimers.current.set(tabKey, timer);
+    }, []);
+
+    useEffect(() => {
+      const activeTab = tabs[activeIndex];
+      if (!activeTab) {
+        setScrollViewHeight(undefined);
+        return;
+      }
+
+      const currentTabHeight = tabHeights.get(activeTab.key);
+
+      if (currentTabHeight && currentTabHeight > 0) {
+        // If we have a cached height, use it immediately for smooth transitions
+        setScrollViewHeight(currentTabHeight);
+      } else {
+        // Don't set a height until we measure the actual content
+        // This allows the content to render at its natural height
+        setScrollViewHeight(undefined);
+
+        // Trigger measurement after a brief delay to let content render
+        if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
+          let isMeasurementRelevant = true;
+          let rafCleanup: (() => void) | undefined;
+
+          const timeoutId = setTimeout(() => {
+            if (isMeasurementRelevant) {
+              // Use RAF for measurement
+              const rafId = requestAnimationFrame(() => {
+                if (tabContentRefs.current.has(activeTab.key)) {
+                  measureTabHeight(activeTab.key);
+                }
+              });
+              rafCleanup = () => cancelAnimationFrame(rafId);
+            }
+          }, 50);
+
+          return () => {
+            isMeasurementRelevant = false;
+            clearTimeout(timeoutId);
+            if (rafCleanup) {
+              rafCleanup();
+            }
+          };
+        }
+      }
+    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight, tabs]);
+
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {
         setLoadedTabs((prev) => {
-          // Only update if the tab isn't already loaded
-          if (!prev.has(activeIndex)) {
-            return new Set(prev).add(activeIndex);
-          }
-          return prev;
+          const newLoadedTabs = new Set(prev);
+          newLoadedTabs.add(activeIndex);
+          return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
         });
       }
     }, [activeIndex, tabs.length]);
@@ -162,18 +294,20 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           clearTimeout(goToTabTimeout.current);
           goToTabTimeout.current = null;
         }
+        // Clean up all measurement timers
+        Array.from(measurementTimers.current.values()).forEach((timer) => {
+          clearTimeout(timer);
+        });
+        measurementTimers.current.clear();
+        tabContentRefs.current.clear();
       },
       [],
     );
 
-    // Update active index when initialActiveIndex or tabs change
     useEffect(() => {
-      // Store the current active tab key for preservation
       const currentActiveTabKey = tabs[activeIndex]?.key;
 
-      // First, try to preserve the current active tab by key when tabs array changes
       if (currentActiveTabKey && tabs.length > 0) {
-        // Try to find the current active tab by key in the new tabs array
         const newIndexForCurrentTab = tabs.findIndex(
           (tab) => tab.key === currentActiveTabKey,
         );
@@ -182,41 +316,35 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           !tabs[newIndexForCurrentTab].isDisabled &&
           newIndexForCurrentTab !== activeIndex
         ) {
-          // Preserve the current selection if the tab still exists and is enabled
           setActiveIndex(newIndexForCurrentTab);
           return;
         }
       }
 
-      // Fallback: When current tab is no longer available, try to keep current index if valid
       if (
         activeIndex >= 0 &&
         activeIndex < tabs.length &&
         !tabs[activeIndex]?.isDisabled
       ) {
-        // Current activeIndex is still valid, keep it
         return;
       }
 
-      // If current activeIndex is invalid, fall back to initialActiveIndex or first enabled tab
       const targetTab = tabs[initialActiveIndex];
       if (targetTab && !targetTab.isDisabled) {
         setActiveIndex(initialActiveIndex);
       } else {
-        // Find first enabled tab
         const firstEnabledIndex = tabs.findIndex((tab) => !tab.isDisabled);
         setActiveIndex(firstEnabledIndex >= 0 ? firstEnabledIndex : -1);
       }
     }, [initialActiveIndex, tabs, activeIndex]);
 
-    // Scroll to active tab when activeIndex changes
     useEffect(() => {
       if (scrollViewRef.current && containerWidth > 0) {
         const contentIndex = getContentIndexFromTabIndex(activeIndex);
         if (contentIndex >= 0) {
           scrollViewRef.current.scrollTo({
             x: contentIndex * containerWidth,
-            animated: !isScrolling.current, // Don't animate if user is currently scrolling
+            animated: !isScrolling.current,
           });
         }
       }
@@ -232,36 +360,31 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           return;
         }
 
-        // Get the content index for this tab
         const contentIndex = getContentIndexFromTabIndex(tabIndex);
         if (contentIndex < 0) return;
 
-        // Only update state and call callback if the tab actually changed
         const tabChanged = tabIndex !== activeIndex;
-
-        // Update activeIndex immediately for TabsBar animation
         setActiveIndex(tabIndex);
 
-        // Ensure the tab is loaded
         if (!loadedTabs.has(tabIndex)) {
-          // Synchronous updates for tests
           if (process.env.JEST_WORKER_ID) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           } else {
+            setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+
             if (loadTabTimeout.current) {
               clearTimeout(loadTabTimeout.current);
             }
             loadTabTimeout.current = setTimeout(() => {
-              setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+              const tab = tabs[tabIndex];
+              if (tab) measureTabHeight(tab.key);
               loadTabTimeout.current = null;
-            }, 10); // Brief delay for smooth loading
+            }, 100);
           }
         }
 
-        // Mark as programmatic scroll
         isProgrammaticScroll.current = true;
 
-        // Scroll to the content index, not the tab index
         if (scrollViewRef.current && containerWidth > 0) {
           scrollViewRef.current.scrollTo({
             x: contentIndex * containerWidth,
@@ -269,7 +392,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           });
         }
 
-        // Only call onChangeTab if the tab actually changed
         if (onChangeTab && tabChanged) {
           onChangeTab({
             i: tabIndex,
@@ -277,7 +399,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           });
         }
 
-        // Reset programmatic scroll flag
         if (programmaticScrollTimeout.current) {
           clearTimeout(programmaticScrollTimeout.current);
         }
@@ -293,6 +414,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         containerWidth,
         getContentIndexFromTabIndex,
         loadedTabs,
+        measureTabHeight,
       ],
     );
 
@@ -303,15 +425,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const { contentOffset } = scrollEvent.nativeEvent;
         if (containerWidth <= 0) return;
 
-        // Calculate which content index we're at
         const contentIndex = Math.round(contentOffset.x / containerWidth);
-
-        // Convert content index back to tab index
         const newTabIndex = getTabIndexFromContentIndex(contentIndex);
 
         if (newTabIndex >= 0 && newTabIndex !== activeIndex) {
-          // Update activeIndex immediately to trigger TabsBar animation alongside content scroll
-          // This matches the behavior of tab clicks
           setActiveIndex(newTabIndex);
           setLoadedTabs((prev) => new Set(prev).add(newTabIndex));
 
@@ -333,23 +450,24 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     const handleScrollBegin = useCallback(() => {
-      // Clear any existing timeout
       if (scrollTimeout.current) {
         clearTimeout(scrollTimeout.current);
       }
 
-      // Only mark as user scroll if it's not programmatic
       if (!isProgrammaticScroll.current) {
         isScrolling.current = true;
       }
     }, []);
 
     const handleScrollEnd = useCallback(() => {
-      // Reset scrolling flag
       scrollTimeout.current = setTimeout(() => {
         isScrolling.current = false;
+        const activeTab = tabs[activeIndex];
+        if (activeTab && loadedTabs.has(activeIndex)) {
+          measureTabHeight(activeTab.key);
+        }
       }, 150);
-    }, []);
+    }, [activeIndex, loadedTabs, measureTabHeight, tabs]);
 
     const handleLayout = useCallback(
       (layoutEvent: { nativeEvent: { layout: { width: number } } }) => {
@@ -359,7 +477,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [],
     );
 
-    // Expose methods via ref
     useImperativeHandle(
       ref,
       () => ({
@@ -375,18 +492,13 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           const contentIndex = getContentIndexFromTabIndex(tabIndex);
           if (contentIndex < 0) return;
 
-          // Only update state and call callback if the tab actually changed
           const tabChanged = tabIndex !== activeIndex;
-
-          // Update activeIndex immediately for TabsBar animation
           setActiveIndex(tabIndex);
 
-          // Ensure the tab is loaded
           if (!loadedTabs.has(tabIndex)) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           }
 
-          // Mark as programmatic scroll
           isProgrammaticScroll.current = true;
 
           if (scrollViewRef.current && containerWidth > 0) {
@@ -396,7 +508,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             });
           }
 
-          // Only call onChangeTab if the tab actually changed
           if (onChangeTab && tabChanged) {
             onChangeTab({
               i: tabIndex,
@@ -404,7 +515,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             });
           }
 
-          // Reset programmatic scroll flag
           if (goToTabTimeout.current) {
             clearTimeout(goToTabTimeout.current);
           }
@@ -437,44 +547,89 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     return (
-      <Box twClassName="flex-1" testID={testID} {...boxProps}>
+      <Box testID={testID} {...boxProps}>
         {/* Render TabsBar */}
         <TabsBar {...tabBarPropsComputed} />
 
-        {/* Horizontal ScrollView for tab contents */}
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          onScrollAnimationEnd={handleScrollEnd}
-          onScrollBeginDrag={handleScrollBegin}
-          onScrollEndDrag={handleScrollEnd}
-          onMomentumScrollBegin={handleScrollBegin}
-          onMomentumScrollEnd={handleScrollEnd}
-          scrollEventThrottle={16}
-          onLayout={handleLayout}
-          style={tw.style('flex-1 mt-2')}
-          decelerationRate="fast"
-          testID={testID ? `${testID}-content` : undefined}
+        {/* Horizontal ScrollView for tab contents with dynamic height */}
+        <View
+          style={tw.style(
+            'mt-2',
+            scrollViewHeight && scrollViewHeight > 0
+              ? { height: scrollViewHeight, overflow: 'hidden' }
+              : {},
+          )}
         >
-          {enabledTabs.map((enabledTab) => (
-            <Box
-              key={enabledTab.key}
-              style={tw.style(
-                `flex-1 px-4 ${tabsListContentTwClassName || ''}`,
-                {
-                  width: containerWidth,
-                },
-              )}
-            >
-              {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
-                ? enabledTab.content
-                : null}
-            </Box>
-          ))}
-        </ScrollView>
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            onScrollAnimationEnd={handleScrollEnd}
+            onScrollBeginDrag={handleScrollBegin}
+            onScrollEndDrag={handleScrollEnd}
+            onMomentumScrollBegin={handleScrollBegin}
+            onMomentumScrollEnd={handleScrollEnd}
+            scrollEventThrottle={16}
+            onLayout={handleLayout}
+            style={tw.style('w-full')}
+            decelerationRate="fast"
+            testID={testID ? `${testID}-content` : undefined}
+          >
+            {enabledTabs.map((enabledTab) => (
+              <View
+                key={enabledTab.key}
+                style={tw.style({ width: containerWidth })}
+              >
+                <View
+                  style={tw.style(`px-4 ${tabsListContentTwClassName || ''}`)}
+                  ref={(viewRef) => {
+                    if (viewRef) {
+                      tabContentRefs.current.set(enabledTab.key, viewRef);
+                    }
+                  }}
+                  onLayout={(layoutEvent) => {
+                    const { height } = layoutEvent.nativeEvent.layout;
+                    if (height > 0) {
+                      const currentHeight = tabHeights.get(enabledTab.key);
+
+                      if (
+                        !currentHeight ||
+                        Math.abs(currentHeight - height) > 5
+                      ) {
+                        setTabHeights((prev) => {
+                          const latestHeight = prev.get(enabledTab.key);
+                          if (
+                            latestHeight &&
+                            Math.abs(latestHeight - height) <= 5
+                          ) {
+                            return prev;
+                          }
+
+                          const newHeights = new Map(prev);
+                          newHeights.set(enabledTab.key, height);
+                          return newHeights;
+                        });
+
+                        if (
+                          enabledTab.originalIndex === activeIndex &&
+                          tabContentRefs.current.has(enabledTab.key)
+                        ) {
+                          setScrollViewHeight(height);
+                        }
+                      }
+                    }
+                  }}
+                >
+                  {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
+                    ? enabledTab.content
+                    : null}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </Box>
     );
   },
