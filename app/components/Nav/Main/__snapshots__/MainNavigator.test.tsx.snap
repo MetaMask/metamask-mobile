@@ -112,6 +112,15 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="NftFullView"
+    options={
+      {
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="PaymentRequestView"
   />
   <Screen

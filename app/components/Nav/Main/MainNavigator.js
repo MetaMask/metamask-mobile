@@ -26,6 +26,7 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
+import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
@@ -997,6 +998,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.NFTS_FULL_VIEW}
+        component={NftFullView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen name={Routes.RAMP.BUY}>
