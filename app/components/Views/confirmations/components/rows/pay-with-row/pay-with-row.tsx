@@ -26,12 +26,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const formatFiat = useFiatFormatter();
+  const { formatFiat } = useTransactionPayFiat();
 
   const {
     txParams: { from },

@@ -4,15 +4,15 @@ import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
 import { SkeletonRow } from '../skeleton-row';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 
 export function TotalRow() {
-  const formatFiat = useFiatFormatter();
+  const { formatFiat } = useTransactionPayFiat();
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
 
