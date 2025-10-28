@@ -50,9 +50,11 @@ const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
 const mockDevLoggerLog = DevLogger.log as jest.MockedFunction<
   typeof DevLogger.log
 >;
+const mockCloseToast = jest.fn();
 const mockToastRef = {
   current: {
     showToast: jest.fn(),
+    closeToast: mockCloseToast,
   },
 };
 
@@ -106,6 +108,7 @@ describe('usePredictPlaceOrder', () => {
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
+      deposit: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
       balance: 1000,
@@ -134,9 +137,8 @@ describe('usePredictPlaceOrder', () => {
   });
 
   describe('placeOrder - success scenario', () => {
-    it('places order successfully and updates state', async () => {
+    it('places order and updates state with result', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
-
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {
@@ -145,15 +147,13 @@ describe('usePredictPlaceOrder', () => {
 
       expect(mockPlaceOrder).toHaveBeenCalledWith(mockOrderParams);
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
-
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toEqual(mockSuccessResult);
     });
 
-    it('shows success toast when BUY order is placed successfully', async () => {
+    it('shows success toast when BUY order is placed', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
-
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {
@@ -190,10 +190,9 @@ describe('usePredictPlaceOrder', () => {
       );
     });
 
-    it('shows cashed out toast when SELL order is placed successfully', async () => {
+    it('shows cashed out toast when SELL order is placed', async () => {
       jest.useFakeTimers();
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
-
       const sellOrderParams = {
         ...mockOrderParams,
         preview: createMockOrderPreview({
@@ -201,7 +200,6 @@ describe('usePredictPlaceOrder', () => {
           minAmountReceived: 150,
         }),
       };
-
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {
@@ -251,7 +249,7 @@ describe('usePredictPlaceOrder', () => {
       jest.useRealTimers();
     });
 
-    it('reloads balance after successful order placement', async () => {
+    it('reloads balance after order placement completes', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
       const mockLoadBalance = jest.fn();
       mockUsePredictBalance.mockReturnValue({
@@ -262,7 +260,6 @@ describe('usePredictPlaceOrder', () => {
         hasNoBalance: false,
         loadBalance: mockLoadBalance,
       });
-
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {
@@ -334,9 +331,8 @@ describe('usePredictPlaceOrder', () => {
   });
 
   describe('placeOrder - failure scenario', () => {
-    it('handles order failure and updates error state', async () => {
+    it('updates error state when order fails', async () => {
       mockPlaceOrder.mockResolvedValue(mockFailureResult);
-
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {
@@ -369,13 +365,25 @@ describe('usePredictPlaceOrder', () => {
         }),
       );
 
-      // Second call - failure toast
-      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(2, {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
-        labelOptions: [{ label: 'Order failed' }],
-        hasNoTimeout: false,
-      });
+      // Second call - error toast with detailed message
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Order failed',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'Order placement failed',
+              isBold: false,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('calls onError callback when provided and order fails', async () => {
@@ -394,7 +402,20 @@ describe('usePredictPlaceOrder', () => {
       expect(mockOnError).toHaveBeenCalledTimes(1);
     });
 
-    it('handles thrown errors from controller', async () => {
+    it('sets error state when controller throws error', async () => {
+      const mockError = new Error('Network error');
+      mockPlaceOrder.mockRejectedValue(mockError);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.error).toBe('Network error');
+      expect(result.current.result).toBeNull();
+    });
+
+    it('shows error toast when controller throws exception', async () => {
       const mockError = new Error('Network error');
       mockPlaceOrder.mockRejectedValue(mockError);
 
@@ -404,8 +425,37 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(result.current.error).toBe('Network error');
-      expect(result.current.result).toBeNull();
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledTimes(2);
+
+      // First call - loading toast
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hasNoTimeout: false,
+        }),
+      );
+
+      // Second call - error toast with exception message
+      expect(mockToastRef.current?.showToast).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Order failed',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'Network error',
+              isBold: false,
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('provides default error message for non-Error thrown values', async () => {
@@ -507,10 +557,9 @@ describe('usePredictPlaceOrder', () => {
   });
 
   describe('state management', () => {
-    it('resets error state on successful order placement', async () => {
+    it('resets error state when order placement succeeds after failure', async () => {
       // First fail an order
       mockPlaceOrder.mockResolvedValueOnce(mockFailureResult);
-
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {

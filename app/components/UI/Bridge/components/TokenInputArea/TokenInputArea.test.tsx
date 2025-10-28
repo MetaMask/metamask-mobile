@@ -299,8 +299,8 @@ describe('getDisplayAmount', () => {
 
   it('always truncates destination amount to 5 decimals', () => {
     const amount = '123.456789012345';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Destination, false)).toBe(
-      '123.45678',
-    );
+    expect(
+      getDisplayAmount(amount, TokenInputAreaType.Destination, false),
+    ).toBe('123.45678');
   });
 });

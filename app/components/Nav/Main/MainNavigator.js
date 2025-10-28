@@ -27,6 +27,7 @@ import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
+import TokensFullView from '../../Views/TokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -939,6 +940,11 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen
+        name={Routes.WALLET.TOKENS_FULL_VIEW}
+        component={TokensFullView}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="AddAsset"
         component={AddAsset}

@@ -10,6 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { AddressFields } from './PhysicalAddress';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
   setIsAuthenticatedCard,
@@ -179,6 +180,7 @@ const MailingAddress = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
