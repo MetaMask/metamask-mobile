@@ -167,13 +167,22 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      - name: Copy and rename APK for artifact
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
+        run: |
+          # Create artifacts directory and copy APK with unique name
+          mkdir -p ./upload-artifacts
+          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk ./upload-artifacts/app-prod-release-${{ matrix.build_type }}.apk
+          echo "APK copied as app-prod-release-${{ matrix.build_type }}.apk"
+          ls -lh ./upload-artifacts/
+
       - name: Upload Android APK - ${{ matrix.build_type }}
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release-${{ matrix.build_type }}.apk
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          name: android-apk-${{ matrix.build_type }}
+          path: ./upload-artifacts/app-prod-release-${{ matrix.build_type }}.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -219,23 +228,25 @@ jobs:
 
           # List artifacts directory structure for debugging
           echo "Artifacts directory structure:"
-          find ./artifacts -type f -name "*.apk" | head -10
+          find ./artifacts -type f -name "*.apk" | head -20
           echo "Full artifacts directory tree:"
           find ./artifacts -type d | head -20
+          echo "All files in artifacts:"
+          find ./artifacts -type f | head -20
 
-          # Find the APK files in their subdirectories
-          WITH_SRP_APK=$(find ./artifacts -path "*/app-prod-release-with-srp.apk/app-prod-release.apk" | head -1)
-          WITHOUT_SRP_APK=$(find ./artifacts -path "*/app-prod-release-without-srp.apk/app-prod-release.apk" | head -1)
+          # Find the APK files - look for the renamed files we created
+          WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" -type f | head -1)
+          WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" -type f | head -1)
 
-          # Fallback: if not found in subdirectories, try direct search
+          # Alternative search if files are in artifact subdirectories
           if [ -z "$WITH_SRP_APK" ]; then
-            echo "With-SRP APK not found in subdirectory, trying direct search..."
-            WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" | head -1)
+            echo "With-SRP APK not found by name, trying subdirectory search..."
+            WITH_SRP_APK=$(find ./artifacts/android-apk-with-srp -name "*.apk" 2>/dev/null | head -1)
           fi
 
           if [ -z "$WITHOUT_SRP_APK" ]; then
-            echo "Without-SRP APK not found in subdirectory, trying direct search..."
-            WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" | head -1)
+            echo "Without-SRP APK not found by name, trying subdirectory search..."
+            WITHOUT_SRP_APK=$(find ./artifacts/android-apk-without-srp -name "*.apk" 2>/dev/null | head -1)
           fi
 
           echo "Found APKs:"
