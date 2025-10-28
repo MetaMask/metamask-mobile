@@ -466,13 +466,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
 export const createDeepLinkUsedEventBuilder = async (
   context: DeepLinkAnalyticsContext,
 ): Promise<MetricsEventBuilder> => {
-  const { url, signatureStatus } = context;
+  const { url, route, signatureStatus } = context;
 
   // Detect app installation status
   const wasAppInstalled = await detectAppInstallation();
-
-  // Extract route
-  const route = extractRouteFromUrl(url);
 
   // Extract sensitive properties
   const sensitiveProperties = extractSensitiveProperties(

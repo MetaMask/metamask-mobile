@@ -540,5 +540,32 @@ describe('deepLinkAnalytics', () => {
       expect(result.properties.route).toBe('swap');
       expect(result.properties.signature).toBe(SignatureStatus.MISSING);
     });
+
+    it('uses route from context instead of recalculating from URL', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      // URL says "swap" but context says "perps" - context should win
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/swap?from=ETH',
+        route: DeepLinkRoute.PERPS, // Different from URL path
+        urlParams: {
+          symbol: 'BTC',
+          screen: 'markets',
+        },
+        signatureStatus: SignatureStatus.VALID,
+        interstitialShown: true,
+        interstitialDisabled: false,
+        interstitialAction: InterstitialState.ACCEPTED,
+      };
+
+      const eventBuilder = await createDeepLinkUsedEventBuilder(context);
+      const result = eventBuilder.build();
+
+      expect(result.properties.route).toBe('perps');
+      expect(result.sensitiveProperties).toEqual({
+        symbol: 'BTC',
+        screen: 'markets',
+      });
+    });
   });
 });

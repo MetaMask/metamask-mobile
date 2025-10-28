@@ -180,7 +180,7 @@ const DeepLinkModal = () => {
             deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
           interstitialShown: true,
           interstitialDisabled: false,
-          interstitialAction: InterstitialState.NOT_SHOWN,
+          interstitialAction: undefined, // No user action yet - modal just displayed
         });
 
         eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
