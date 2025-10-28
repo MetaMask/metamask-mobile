@@ -5,7 +5,6 @@ import useSDKMethod from './useSDKMethod';
 export default function useFiatCurrencies() {
   const {
     selectedRegion,
-    selectedPaymentMethodId,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     isBuy,
@@ -19,7 +18,10 @@ export default function useFiatCurrencies() {
     },
     queryDefaultFiatCurrency,
   ] = useSDKMethod(
-    isBuy ? 'getDefaultFiatCurrency' : 'getDefaultSellFiatCurrency',
+    {
+      method: isBuy ? 'getDefaultFiatCurrency' : 'getDefaultSellFiatCurrency',
+      onMount: false,
+    },
     selectedRegion?.id,
     [],
   );
@@ -32,10 +34,20 @@ export default function useFiatCurrencies() {
     },
     queryGetFiatCurrencies,
   ] = useSDKMethod(
-    isBuy ? 'getFiatCurrencies' : 'getSellFiatCurrencies',
+    {
+      method: isBuy ? 'getFiatCurrencies' : 'getSellFiatCurrencies',
+      onMount: false,
+    },
     selectedRegion?.id,
-    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
+    null,
   );
+
+  useEffect(() => {
+    if (selectedRegion?.id) {
+      queryDefaultFiatCurrency();
+      queryGetFiatCurrencies();
+    }
+  }, [selectedRegion?.id, queryDefaultFiatCurrency, queryGetFiatCurrencies]);
 
   /**
    * Select the default fiat currency as selected if none is selected.
@@ -94,8 +106,8 @@ export default function useFiatCurrencies() {
     fiatCurrencies,
     queryGetFiatCurrencies,
     errorFiatCurrency: errorFiatCurrencies || errorDefaultFiatCurrency,
-    isFetchingFiatCurrency:
-      isFetchingFiatCurrencies || isFetchingDefaultFiatCurrency,
+    isFetchingFiatCurrency: isFetchingDefaultFiatCurrency,
+    isFetchingFiatCurrencies,
     currentFiatCurrency,
   };
 }

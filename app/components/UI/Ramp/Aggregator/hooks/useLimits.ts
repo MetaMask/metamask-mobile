@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import useSDKMethod from './useSDKMethod';
 import { useRampSDK } from '../sdk';
 
@@ -10,13 +11,30 @@ const useLimits = () => {
     isBuy,
   } = useRampSDK();
 
-  const [{ data: limits }] = useSDKMethod(
-    isBuy ? 'getLimits' : 'getSellLimits',
+  const [{ data: limits, isFetching }, queryGetLimits] = useSDKMethod(
+    { method: isBuy ? 'getLimits' : 'getSellLimits', onMount: false },
     selectedRegion?.id,
     selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
     selectedAsset?.id,
     selectedFiatCurrencyId,
   );
+
+  useEffect(() => {
+    if (
+      selectedRegion?.id &&
+      selectedPaymentMethodId &&
+      selectedAsset?.id &&
+      selectedFiatCurrencyId
+    ) {
+      queryGetLimits();
+    }
+  }, [
+    selectedRegion?.id,
+    selectedPaymentMethodId,
+    selectedAsset?.id,
+    selectedFiatCurrencyId,
+    queryGetLimits,
+  ]);
 
   const isAmountBelowMinimum = (amount: number) =>
     Boolean(amount !== 0 && limits?.minAmount && amount < limits.minAmount);
@@ -29,9 +47,11 @@ const useLimits = () => {
 
   return {
     limits,
+    isFetching,
     isAmountBelowMinimum,
     isAmountAboveMaximum,
     isAmountValid,
+    queryGetLimits,
   };
 };
 

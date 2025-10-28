@@ -29,7 +29,10 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
   const [
     { data: sdkCryptoCurrencies, error, isFetching },
     retryFetchCryptoCurrencies,
-  ] = useDepositSdkMethod('getCryptoCurrencies', selectedRegion?.isoCode);
+  ] = useDepositSdkMethod(
+    { method: 'getCryptoCurrencies', onMount: false },
+    selectedRegion?.isoCode,
+  );
 
   const cryptoCurrencies = useMemo(() => {
     if (!isFetching && !error && sdkCryptoCurrencies) {

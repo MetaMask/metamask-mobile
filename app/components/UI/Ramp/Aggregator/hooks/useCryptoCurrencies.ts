@@ -32,11 +32,20 @@ export default function useCryptoCurrencies() {
     },
     queryGetCryptoCurrencies,
   ] = useSDKMethod(
-    isBuy ? 'getCryptoCurrencies' : 'getSellCryptoCurrencies',
+    {
+      method: isBuy ? 'getCryptoCurrencies' : 'getSellCryptoCurrencies',
+      onMount: false,
+    },
     selectedRegion?.id,
     [], // paymentMethodIds is passed as a wildcard to fetch all cryptocurrencies
     selectedFiatCurrencyId,
   );
+
+  useEffect(() => {
+    if (selectedRegion?.id && selectedFiatCurrencyId) {
+      queryGetCryptoCurrencies();
+    }
+  }, [selectedRegion?.id, selectedFiatCurrencyId, queryGetCryptoCurrencies]);
 
   const cryptoCurrencies = useMemo(() => {
     if (
