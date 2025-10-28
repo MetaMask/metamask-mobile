@@ -227,4 +227,50 @@ describe('GasFeesDetailsRow', () => {
     expect(getByText('Paid by MetaMask')).toBeDefined();
     expect(queryByText('ETH')).toBeNull();
   });
+
+  it('does not show MetaMask fee info when metaMaskFee is 0x0', () => {
+    const mockToken = {
+      ...GAS_FEE_TOKEN_MOCK,
+      metaMaskFee: '0x0',
+      metamaskFeeFiat: '$0.12',
+    };
+
+    mockUseSelectedGasFeeToken.mockReturnValue(
+      mockToken as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+    );
+
+    const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
+      state: stakingDepositConfirmationState,
+    });
+
+    expect(queryByText('MetaMask fee: $0.12')).toBeNull();
+  });
+
+  it('shows MetaMask fee info when metaMaskFee is higher than 0x0', () => {
+    const mockToken = {
+      ...GAS_FEE_TOKEN_MOCK,
+      metaMaskFee: '0x2',
+      metamaskFeeFiat: '$0.25',
+    };
+
+    mockUseSelectedGasFeeToken.mockReturnValue(
+      mockToken as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+    );
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      {
+        state: stakingDepositConfirmationState,
+      },
+    );
+
+    fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+
+    expect(mockTrackTooltipClickedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tooltip: TOOLTIP_TYPES.NETWORK_FEE,
+      }),
+    );
+    expect(getByText('Includes $0.25 fee')).toBeDefined();
+  });
 });
