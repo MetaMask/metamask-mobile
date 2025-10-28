@@ -374,7 +374,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     setShouldShowSkeleton(isCalculating);
   }, [isCalculating]);
 
-  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
+  const dynamicLiquidationPrice = isCalculating
+    ? 0
+    : Number.parseFloat(apiLiquidationPrice);
 
   useEffect(() => {
     if (isVisible) {
