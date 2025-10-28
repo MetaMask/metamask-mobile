@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonSize,
@@ -8,70 +8,178 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import { AddressFields } from './PhysicalAddress';
+import {
+  selectOnboardingId,
+  selectSelectedCountry,
+  setUser,
+} from '../../../../../core/redux/slices/card';
+import { useDispatch, useSelector } from 'react-redux';
+import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { CardError } from '../../types';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const onboardingId = useSelector(selectOnboardingId);
+  const selectedCountry = useSelector(selectSelectedCountry);
+
+  const [addressLine1, setAddressLine1] = useState('');
+  const [addressLine2, setAddressLine2] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zipCode, setZipCode] = useState('');
 
   const {
-    addressLine1: initialAddressLine1,
-    addressLine2: initialAddressLine2,
-    city: initialCity,
-    state: initialState,
-    zipCode: initialZipCode,
-  } = useParams<{
-    addressLine1: string;
-    addressLine2: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  }>();
+    registerAddress,
+    isLoading: registerLoading,
+    isError: registerIsError,
+    error: registerError,
+    reset: resetRegisterAddress,
+  } = useRegisterMailingAddress();
 
-  const [addressLine1, setAddressLine1] = useState(initialAddressLine1);
-  const [addressLine2, setAddressLine2] = useState(initialAddressLine2);
-  const [city, setCity] = useState(initialCity);
-  const [state, setState] = useState(initialState);
-  const [zipCode, setZipCode] = useState(initialZipCode);
+  const handleAddressLine1Change = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setAddressLine1(text);
+    },
+    [resetRegisterAddress],
+  );
 
-  const handleContinue = () => {
-    navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
-  };
+  const handleAddressLine2Change = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setAddressLine2(text);
+    },
+    [resetRegisterAddress],
+  );
 
-  const handleZipCodeChange = (text: string) => {
-    const cleanedText = text.replace(/\D/g, '');
-    setZipCode(cleanedText);
-  };
+  const handleCityChange = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setCity(text);
+    },
+    [resetRegisterAddress],
+  );
+
+  const handleStateChange = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setState(text);
+    },
+    [resetRegisterAddress],
+  );
+
+  const handleZipCodeChange = useCallback(
+    (text: string) => {
+      resetRegisterAddress();
+      setZipCode(text);
+    },
+    [resetRegisterAddress],
+  );
 
   const isDisabled = useMemo(
-    () => !addressLine1 || !city || !state || !zipCode,
-    [addressLine1, city, state, zipCode],
+    () =>
+      registerLoading ||
+      registerIsError ||
+      !onboardingId ||
+      !addressLine1 ||
+      !city ||
+      (!state && selectedCountry === 'US') ||
+      !zipCode,
+    [
+      registerLoading,
+      registerIsError,
+      onboardingId,
+      addressLine1,
+      city,
+      state,
+      selectedCountry,
+      zipCode,
+    ],
   );
+
+  const handleContinue = async () => {
+    if (
+      !onboardingId ||
+      !addressLine1 ||
+      !city ||
+      (!state && selectedCountry === 'US') ||
+      !zipCode
+    ) {
+      return;
+    }
+
+    try {
+      const { accessToken, user: updatedUser } = await registerAddress({
+        onboardingId,
+        addressLine1,
+        addressLine2,
+        city,
+        usState: state || undefined,
+        zip: zipCode,
+      });
+
+      if (updatedUser) {
+        dispatch(setUser(updatedUser));
+      }
+
+      if (accessToken) {
+        // Registration complete
+        navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+      }
+
+      // Something is wrong. We need to display the registerError or restart the flow
+    } catch (error) {
+      if (
+        error instanceof CardError &&
+        error.message.includes('Onboarding ID not found')
+      ) {
+        // Onboarding ID not found, navigate back and restart the flow
+        navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
+        return;
+      }
+      // Allow error message to display
+    }
+  };
 
   const renderFormFields = () => (
     <AddressFields
       addressLine1={addressLine1}
-      setAddressLine1={setAddressLine1}
+      handleAddressLine1Change={handleAddressLine1Change}
       addressLine2={addressLine2}
-      setAddressLine2={setAddressLine2}
+      handleAddressLine2Change={handleAddressLine2Change}
       city={city}
-      setCity={setCity}
+      handleCityChange={handleCityChange}
       state={state}
-      setState={setState}
+      handleStateChange={handleStateChange}
       zipCode={zipCode}
       handleZipCodeChange={handleZipCodeChange}
     />
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-    />
+    <Box>
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        testID="mailing-address-continue-button"
+      />
+      {!!registerError && (
+        <Text
+          variant={TextVariant.BodySm}
+          testID="mailing-address-error"
+          twClassName="text-error-default"
+        >
+          {registerError}
+        </Text>
+      )}
+    </Box>
   );
 
   return (
