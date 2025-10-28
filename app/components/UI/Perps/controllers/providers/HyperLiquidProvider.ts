@@ -4378,16 +4378,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    const { orderType, isMaker = false, amount } = params;
+    const { orderType, isMaker = false, amount, coin } = params;
 
     // Start with base rates from config
     let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
+    // HIP-3 assets have 2× base fees (per fees.md line 9)
+    // Parse coin to detect HIP-3 DEX (e.g., "xyz:TSLA" → dex="xyz")
+    const { dex } = parseAssetName(coin);
+    const isHip3Asset = dex !== null;
+    if (isHip3Asset) {
+      const originalRate = feeRate;
+      feeRate *= 2;
+      DevLogger.log('HIP-3 Fee Multiplier Applied', {
+        coin,
+        dex,
+        originalBaseRate: originalRate,
+        hip3BaseRate: feeRate,
+        multiplier: 2,
+      });
+    }
+
     DevLogger.log('HyperLiquid Fee Calculation Started', {
       orderType,
       isMaker,
       amount,
+      coin,
+      isHip3Asset,
       baseFeeRate: feeRate,
       baseTakerRate: FEE_RATES.taker,
       baseMakerRate: FEE_RATES.maker,

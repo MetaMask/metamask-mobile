@@ -183,6 +183,7 @@ export function usePerpsCloseAllCalculations({
                 orderType: 'market',
                 isMaker: false, // Market close orders are always taker
                 amount: positionValue.toString(),
+                coin: pos.coin, // Required for HIP-3 2× fee calculation
               });
 
               // Calculate rewards points per position with coin-specific parameters

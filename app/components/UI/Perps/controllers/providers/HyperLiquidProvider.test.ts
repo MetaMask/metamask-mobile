@@ -3256,11 +3256,40 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
+      it('should apply 2× fee multiplier for HIP-3 assets', async () => {
+        // HIP-3 asset (dex:SYMBOL format)
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+          coin: 'xyz:TSLA', // HIP-3 asset
+        });
+
+        // HIP-3 should have 2× base fees: 0.045% * 2 = 0.09% + 0.1% MetaMask = 0.19%
+        expect(result.feeRate).toBe(0.0019); // 0.09% taker + 0.1% MetaMask fee
+        expect(result.feeAmount).toBe(190); // 100000 * 0.0019
+      });
+
+      it('should apply 2× fee multiplier for HIP-3 maker orders', async () => {
+        // HIP-3 asset (dex:SYMBOL format)
+        const result = await provider.calculateFees({
+          orderType: 'limit',
+          isMaker: true,
+          amount: '100000',
+          coin: 'abc:SPX', // HIP-3 asset
+        });
+
+        // HIP-3 should have 2× base fees: 0.015% * 2 = 0.03% + 0.1% MetaMask = 0.13%
+        expect(result.feeRate).toBe(0.0013); // 0.03% maker + 0.1% MetaMask fee
+        expect(result.feeAmount).toBe(130); // 100000 * 0.0013
+      });
+
       it('should calculate fees for market orders', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
@@ -3270,8 +3299,10 @@ describe('HyperLiquidProvider', () => {
       it('should calculate fees for limit orders as taker', async () => {
         const result = await provider.calculateFees({
           orderType: 'limit',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
+          coin: 'ETH',
         });
 
         expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
@@ -3281,8 +3312,10 @@ describe('HyperLiquidProvider', () => {
       it('should calculate fees for limit orders as maker', async () => {
         const result = await provider.calculateFees({
           orderType: 'limit',
+          coin: 'BTC',
           isMaker: true,
           amount: '100000',
+          coin: 'SOL',
         });
 
         expect(result.feeRate).toBe(0.00115); // 0.015% maker + 0.1% MetaMask fee
@@ -3292,8 +3325,10 @@ describe('HyperLiquidProvider', () => {
       it('should handle zero amount', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '0',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3303,7 +3338,9 @@ describe('HyperLiquidProvider', () => {
       it('should handle undefined amount', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3329,8 +3366,10 @@ describe('HyperLiquidProvider', () => {
         // First call should fetch from API
         const result1 = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should use dynamically calculated rate: 0.045% * (1 - 0.04 - 0.05) = 0.045% * 0.91 = 0.04095%
@@ -3343,8 +3382,10 @@ describe('HyperLiquidProvider', () => {
         // Second call should use cache
         const result2 = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result2.feeRate).toBeCloseTo(0.0014095, 6); // Includes MetaMask fee
@@ -3367,8 +3408,10 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should use base rates on failure
@@ -3379,8 +3422,10 @@ describe('HyperLiquidProvider', () => {
       it('should handle non-numeric amount gracefully', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: 'invalid',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3392,6 +3437,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result).toHaveProperty('feeRate');
@@ -3403,6 +3449,7 @@ describe('HyperLiquidProvider', () => {
       it('should be async and return a Promise', () => {
         const result = provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
         });
 
@@ -3429,6 +3476,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
         });
@@ -3455,6 +3503,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
         });
@@ -3482,6 +3531,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
         });
@@ -3511,6 +3561,7 @@ describe('HyperLiquidProvider', () => {
         // Test market order with isMaker=true (should still use taker rate)
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: true, // This should be ignored for market orders
           amount: '100000',
         });
@@ -3539,6 +3590,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
         });
@@ -3567,6 +3619,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
         });
@@ -3595,6 +3648,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
         });
@@ -3624,6 +3678,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'limit',
+          coin: 'BTC',
           isMaker: true,
           amount: '100000',
         });
@@ -3652,6 +3707,7 @@ describe('HyperLiquidProvider', () => {
 
         const result = await provider.calculateFees({
           orderType: 'market',
+          coin: 'BTC',
           isMaker: false,
           amount: '100000',
         });
@@ -3798,6 +3854,7 @@ describe('HyperLiquidProvider', () => {
           // Act
           const result = await provider.calculateFees({
             orderType: 'market',
+            coin: 'BTC',
             isMaker: false,
             amount: '100000',
           });
@@ -3817,6 +3874,7 @@ describe('HyperLiquidProvider', () => {
           // Act
           const result = await provider.calculateFees({
             orderType: 'limit',
+            coin: 'BTC',
             isMaker: true,
             amount: '100000',
           });
@@ -3836,6 +3894,7 @@ describe('HyperLiquidProvider', () => {
           // Act
           const result = await provider.calculateFees({
             orderType: 'market',
+            coin: 'BTC',
             isMaker: false,
             amount: '100000',
           });
@@ -3854,6 +3913,7 @@ describe('HyperLiquidProvider', () => {
           // Act
           const result = await provider.calculateFees({
             orderType: 'market',
+            coin: 'BTC',
             isMaker: false,
             amount: '100000',
           });
@@ -3871,6 +3931,7 @@ describe('HyperLiquidProvider', () => {
           // Act
           const result = await provider.calculateFees({
             orderType: 'limit',
+            coin: 'BTC',
             isMaker: true,
             amount: '100000',
           });
@@ -3906,6 +3967,7 @@ describe('HyperLiquidProvider', () => {
           // Act
           const result = await provider.calculateFees({
             orderType: 'market',
+            coin: 'BTC',
             isMaker: false,
             amount: '100000',
           });
@@ -3925,6 +3987,7 @@ describe('HyperLiquidProvider', () => {
           // Verify discount is applied
           let result = await provider.calculateFees({
             orderType: 'market',
+            coin: 'BTC',
             isMaker: false,
             amount: '100000',
           });
@@ -3936,6 +3999,7 @@ describe('HyperLiquidProvider', () => {
           // Assert - should return to full fees
           result = await provider.calculateFees({
             orderType: 'market',
+            coin: 'BTC',
             isMaker: false,
             amount: '100000',
           });
