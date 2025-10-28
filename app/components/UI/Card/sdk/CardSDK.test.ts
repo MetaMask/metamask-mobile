@@ -730,8 +730,9 @@ describe('CardSDK', () => {
         cardFeatureFlag: emptyTokensCardFeatureFlag,
       });
 
-      const result =
-        await emptyTokensCardSDK.getSupportedTokensAllowances(testAddress);
+      const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
+        testAddress,
+      );
       expect(result).toEqual([]);
     });
 
@@ -961,8 +962,9 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result =
-        await cardSDK.initiateCardProviderAuthentication(mockQueryParams);
+      const result = await cardSDK.initiateCardProviderAuthentication(
+        mockQueryParams,
+      );
 
       expect(result).toEqual(mockResponse);
       expect(global.fetch).toHaveBeenCalledWith(

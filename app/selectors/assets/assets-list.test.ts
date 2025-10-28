@@ -345,7 +345,7 @@ const mockState = ({
         },
       },
     },
-  }) as unknown as RootState;
+  } as unknown as RootState);
 
 describe('selectAssetsBySelectedAccountGroup', () => {
   it('builds the initial state object', () => {

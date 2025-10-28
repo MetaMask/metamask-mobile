@@ -207,7 +207,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
           >
             {displayAllNetworks
               ? strings('wallet.popular_networks')
-              : (currentNetworkName ?? strings('wallet.current_network'))}
+              : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
         </View>
       ) : (
@@ -218,7 +218,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
         >
           {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
             ? strings('wallet.popular_networks')
-            : (networkName ?? strings('wallet.current_network'))}
+            : networkName ?? strings('wallet.current_network')}
         </TextComponent>
       )}
     </>
