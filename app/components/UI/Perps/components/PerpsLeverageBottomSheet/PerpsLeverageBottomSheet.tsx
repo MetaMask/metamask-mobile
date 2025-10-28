@@ -342,13 +342,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [draggingLeverage, setDraggingLeverage] = useState(initialLeverage);
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
+  const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
 
   // Dynamically calculate liquidation price based on tempLeverage
   // Use limit price for limit orders, market price for market orders
   const entryPrice = useMemo(
     () =>
       orderType === 'limit' && limitPrice
-        ? parseFloat(limitPrice)
+        ? Number.parseFloat(limitPrice)
         : currentPrice,
     [orderType, limitPrice, currentPrice],
   );
@@ -367,27 +368,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       },
     );
 
-  // Calculate theoretical liquidation price for immediate drag feedback
-  const theoreticalLiquidationPrice = useMemo(() => {
-    const leverageToUse = isDragging ? draggingLeverage : tempLeverage;
+  // Instead of using isDragging || isCalculating, we use shouldShowSkeleton to show the skeleton
+  // because otherwise the skeleton would flicker for a split second when the user stops dragging and the liquidation price is not yet being calculated
+  useEffect(() => {
+    setShouldShowSkeleton(isCalculating);
+  }, [isCalculating]);
 
-    if (!entryPrice || leverageToUse <= 0) return 0;
-
-    // Standard isolated margin liquidation price calculation for immediate feedback
-    // This provides accurate theoretical values during drag, API provides precise values after
-    const liquidationMultiplier =
-      direction === 'long'
-        ? 1 - 1 / leverageToUse // Long: liquidation when price drops by 1/leverage
-        : 1 + 1 / leverageToUse; // Short: liquidation when price rises by 1/leverage
-
-    return entryPrice * liquidationMultiplier;
-  }, [entryPrice, direction, isDragging, draggingLeverage, tempLeverage]);
-
-  // Use theoretical price during drag for immediate feedback, API price when settled
-  // Show skeleton while API is calculating (not dragging and calculating)
-  const dynamicLiquidationPrice = isDragging
-    ? theoreticalLiquidationPrice
-    : parseFloat(apiLiquidationPrice) || theoreticalLiquidationPrice;
+  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
 
   useEffect(() => {
     if (isVisible) {
@@ -620,7 +607,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              {!isDragging && isCalculating ? (
+              {shouldShowSkeleton ? (
                 <Skeleton height={16} width={200} />
               ) : (
                 strings('perps.order.leverage_modal.liquidation_warning', {
@@ -652,7 +639,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   color={warningStyles.priceColor}
                   style={styles.priceIcon}
                 />
-                {!isDragging && isCalculating ? (
+                {shouldShowSkeleton ? (
                   <Skeleton height={20} width={80} />
                 ) : (
                   <Text
@@ -703,6 +690,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             onDragStart={() => {
               setIsDragging(true);
               setDraggingLeverage(tempLeverage);
+              setShouldShowSkeleton(true);
             }}
             onDragEnd={(finalValue) => {
               setIsDragging(false);
