@@ -39,7 +39,7 @@ export default function useFiatCurrencies() {
       onMount: false,
     },
     selectedRegion?.id,
-    null,
+    [],
   );
 
   useEffect(() => {
