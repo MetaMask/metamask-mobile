@@ -74,7 +74,6 @@ const PredictAddFundsSheet = forwardRef<
   };
 
   const handleAddFunds = () => {
-    handleClose();
     executeGuardedAction(() => {
       deposit();
     });
