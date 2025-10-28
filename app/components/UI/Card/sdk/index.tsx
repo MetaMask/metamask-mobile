@@ -23,6 +23,7 @@ import {
   selectUserCardLocation,
   setUserCardLocation,
   selectOnboardingId,
+  resetOnboardingState,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 
@@ -115,9 +116,12 @@ export const CardSDKProvider = ({
     await removeCardBaanxToken();
     removeAuthenticatedData();
 
+    // reset onboarding state
+    dispatch(resetOnboardingState());
+
     // Clear user data from context
     setUser(null);
-  }, [sdk, removeAuthenticatedData]);
+  }, [sdk, removeAuthenticatedData, dispatch]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
@@ -150,12 +154,11 @@ export const useCardSDK = () => {
  * Higher-order component that wraps a component with CardSDKProvider.
  */
 export const withCardSDK =
-  (Component: React.ComponentType) => (props: Record<string, unknown>) =>
-    (
-      <CardSDKProvider>
-        <Component {...props} />
-      </CardSDKProvider>
-    );
+  (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+    <CardSDKProvider>
+      <Component {...props} />
+    </CardSDKProvider>
+  );
 
 /**
  * Component that performs cardholder verification.
