@@ -344,7 +344,7 @@ describe('AccountListFooter', () => {
       await waitFor(() => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           expect.any(Error),
-          'Cannot Add account without keyring ID',
+          'Cannot create account without keyring ID',
         );
       });
 
