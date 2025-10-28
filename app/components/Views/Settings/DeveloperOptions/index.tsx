@@ -56,6 +56,7 @@ const DeveloperOptions = () => {
       }
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
       <ConfirmationsDeveloperOptions />
+      <DeepLinkTest />
     </ScrollView>
   );
 };
