@@ -25,7 +25,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
@@ -87,9 +87,9 @@ const SetPhoneNumber = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.SET_PHONE_NUMBER,
+          screen: CardScreens.SET_PHONE_NUMBER,
         })
         .build(),
     );
@@ -106,9 +106,10 @@ const SetPhoneNumber = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.SET_PHONE_NUMBER_BUTTON_CLICKED,
+            action: CardActions.SET_PHONE_NUMBER_BUTTON,
+            phone_number_country_code: selectedCountryAreaCode,
           })
           .build(),
       );

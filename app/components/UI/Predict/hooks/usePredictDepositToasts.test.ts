@@ -34,6 +34,18 @@ jest.mock('./usePredictEligibility', () => ({
   })),
 }));
 
+// Mock usePredictBalance
+jest.mock('./usePredictBalance', () => ({
+  usePredictBalance: jest.fn(() => ({
+    balance: 100,
+    hasNoBalance: false,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadBalance: jest.fn(),
+  })),
+}));
+
 // Create a mock toast ref
 const mockToastRef = {
   current: {
