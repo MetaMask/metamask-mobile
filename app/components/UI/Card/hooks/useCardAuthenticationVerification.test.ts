@@ -4,21 +4,17 @@ import { useCardAuthenticationVerification } from './useCardAuthenticationVerifi
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { verifyCardAuthentication } from '../../../../core/redux/slices/card';
 import Logger from '../../../../util/Logger';
-import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 
 jest.mock('react-redux');
 jest.mock('../../../hooks/useThunkDispatch');
 jest.mock('../../../../core/redux/slices/card');
 jest.mock('../../../../util/Logger');
-jest.mock('./isBaanxLoginEnabled');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseThunkDispatch = useThunkDispatch as jest.MockedFunction<
   typeof useThunkDispatch
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
-const mockUseIsBaanxLoginEnabled =
-  useIsBaanxLoginEnabled as jest.MockedFunction<typeof useIsBaanxLoginEnabled>;
 
 describe('useCardAuthenticationVerification', () => {
   const mockDispatch = jest.fn();
@@ -26,16 +22,10 @@ describe('useCardAuthenticationVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseThunkDispatch.mockReturnValue(mockDispatch);
+    mockUseSelector.mockReturnValue(true);
   });
 
-  const setupMocks = (userLoggedIn: boolean, isBaanxLoginEnabled: boolean) => {
-    mockUseSelector.mockReturnValue(userLoggedIn);
-    mockUseIsBaanxLoginEnabled.mockReturnValue(isBaanxLoginEnabled);
-  };
-
-  it('dispatches verification when user is logged in and Baanx login is enabled', () => {
-    setupMocks(true, true);
-
+  it('dispatches verification when user is logged in and card feature is enabled', () => {
     renderHook(() => useCardAuthenticationVerification());
 
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -45,25 +35,7 @@ describe('useCardAuthenticationVerification', () => {
     );
   });
 
-  it('does not dispatch when user is logged in but Baanx login is disabled', () => {
-    setupMocks(true, false);
-
-    renderHook(() => useCardAuthenticationVerification());
-
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch when user is not logged in', () => {
-    setupMocks(false, true);
-
-    renderHook(() => useCardAuthenticationVerification());
-
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch when user is not logged in and Baanx login is disabled', () => {
-    setupMocks(false, false);
-
+  it('does not dispatch when dispatch is not available', () => {
     renderHook(() => useCardAuthenticationVerification());
 
     expect(mockDispatch).not.toHaveBeenCalled();
@@ -71,7 +43,6 @@ describe('useCardAuthenticationVerification', () => {
 
   it('logs error when dispatch throws Error instance', () => {
     const testError = new Error('Test dispatch error');
-    setupMocks(true, true);
     mockDispatch.mockImplementation(() => {
       throw testError;
     });
@@ -85,7 +56,6 @@ describe('useCardAuthenticationVerification', () => {
   });
 
   it('logs error when dispatch throws non-Error value', () => {
-    setupMocks(true, true);
     mockDispatch.mockImplementation(() => {
       throw 'String error';
     });
@@ -99,12 +69,11 @@ describe('useCardAuthenticationVerification', () => {
   });
 
   it('dispatches verification when user logs in', () => {
-    setupMocks(false, true);
     const { rerender } = renderHook(() => useCardAuthenticationVerification());
 
     expect(mockDispatch).not.toHaveBeenCalled();
 
-    setupMocks(true, true);
+    mockUseSelector.mockReturnValue(true);
     rerender();
 
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -114,29 +83,8 @@ describe('useCardAuthenticationVerification', () => {
     );
   });
 
-  it('dispatches verification when Baanx login becomes enabled', () => {
-    setupMocks(true, false);
+  it('calls dispatch when component rerenders', () => {
     const { rerender } = renderHook(() => useCardAuthenticationVerification());
-
-    expect(mockDispatch).not.toHaveBeenCalled();
-
-    setupMocks(true, true);
-    rerender();
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      verifyCardAuthentication({
-        isBaanxLoginEnabled: true,
-      }),
-    );
-  });
-
-  it('dispatches verification again when isBaanxLoginEnabled flag changes from false to true', () => {
-    setupMocks(true, false);
-    const { rerender } = renderHook(() => useCardAuthenticationVerification());
-
-    expect(mockDispatch).not.toHaveBeenCalled();
-
-    setupMocks(true, true);
     rerender();
 
     expect(mockDispatch).toHaveBeenCalledWith(

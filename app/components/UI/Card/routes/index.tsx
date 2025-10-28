@@ -17,6 +17,8 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
+import ChangeAsset from '../Views/ChangeAsset/ChangeAsset';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsAuthenticatedCard,
@@ -82,6 +84,56 @@ export const cardAuthenticationNavigationOptions = ({
   headerRight: () => <View />,
 });
 
+export const cardSpendingLimitNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'spending-limit-title'}
+    >
+      {strings('card.card_spending_limit.title')}
+    </Text>
+  ),
+  headerRight: () => <View />,
+});
+
+export const cardChangeAssetNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'change-asset-title'}
+    >
+      {strings('card.change_asset.title')}
+    </Text>
+  ),
+  headerRight: () => <View />,
+});
+
 const CardRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
@@ -108,6 +160,16 @@ const CardRoutes = () => {
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
         options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.SPENDING_LIMIT}
+        component={SpendingLimit}
+        options={cardSpendingLimitNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.CHANGE_ASSET}
+        component={ChangeAsset}
+        options={cardChangeAssetNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.ROOT}

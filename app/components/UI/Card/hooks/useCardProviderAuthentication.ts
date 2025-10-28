@@ -136,11 +136,7 @@ const useCardProviderAuthentication =
             ...(params.otpCode ? { otpCode: params.otpCode } : {}),
           });
 
-          if (
-            loginResponse.isOtpRequired ||
-            loginResponse.verificationState === 'PENDING' ||
-            loginResponse.phase
-          ) {
+          if (loginResponse.isOtpRequired) {
             return loginResponse;
           }
 

@@ -3,8 +3,11 @@ import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { verifyCardAuthentication } from '../../../../core/redux/slices/card';
 import { selectUserLoggedIn } from '../../../../reducers/user';
+import {
+  CardFeatureFlag,
+  selectCardFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 import Logger from '../../../../util/Logger';
-import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 
 /**
  * Hook that automatically verifies card authentication status when the app loads.
@@ -14,21 +17,23 @@ import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 export const useCardAuthenticationVerification = () => {
   const dispatch = useThunkDispatch();
   const userLoggedIn = useSelector(selectUserLoggedIn);
-  const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
+  const cardFeatureFlag = useSelector(selectCardFeatureFlag) as CardFeatureFlag;
 
   const checkAuthentication = useCallback(() => {
+    const isBaanxLoginEnabled = cardFeatureFlag?.isBaanxLoginEnabled ?? false;
+
     dispatch(
       verifyCardAuthentication({
         isBaanxLoginEnabled,
       }),
     );
-  }, [isBaanxLoginEnabled, dispatch]);
+  }, [cardFeatureFlag, dispatch]);
 
   useEffect(() => {
     // Only run authentication check when:
     // 1. User is logged in
-    // 2. Baanx login is enabled
-    if (userLoggedIn && isBaanxLoginEnabled) {
+    // 2. Card feature flag is enabled
+    if (userLoggedIn && cardFeatureFlag) {
       try {
         checkAuthentication();
       } catch (error) {
@@ -38,5 +43,5 @@ export const useCardAuthenticationVerification = () => {
         );
       }
     }
-  }, [userLoggedIn, isBaanxLoginEnabled, checkAuthentication]);
+  }, [userLoggedIn, cardFeatureFlag, checkAuthentication]);
 };
