@@ -61,6 +61,9 @@ export interface DeeplinkUrlParams {
   crypto_currency?: string;
   crypto_amount?: string;
 
+  // Home-specific parameters
+  previewToken?: string;
+
   // Note: All properties are explicitly defined above
 }
 

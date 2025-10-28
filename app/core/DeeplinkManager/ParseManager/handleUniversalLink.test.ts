@@ -739,7 +739,7 @@ describe('handleUniversalLinks', () => {
           url: expect.any(String),
           route: 'test-route',
           urlParams: expect.any(Object),
-          signatureStatus: 'missing',
+          signatureStatus: 'valid',
           interstitialShown: false,
           interstitialDisabled: false,
           interstitialAction: undefined,
@@ -775,7 +775,7 @@ describe('handleUniversalLinks', () => {
           url: expect.any(String),
           route: 'test-route',
           urlParams: expect.any(Object),
-          signatureStatus: 'missing',
+          signatureStatus: 'invalid',
           interstitialShown: false,
           interstitialDisabled: false,
           interstitialAction: undefined,
@@ -1328,6 +1328,112 @@ describe('handleUniversalLinks', () => {
       expect(callbackExecuted).toBe(true);
       expect(result).toBe(false);
       expect(handled).toHaveBeenCalled();
+    });
+
+    it('passes correct signature status to analytics context for valid signatures', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          // Verify signature status is correct
+          expect(callbackParams).toBeDefined();
+          if (callbackParams.linkType === 'private') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      mockSubtle.verify.mockResolvedValue(true);
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=${validSignature}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          signatureStatus: 'valid',
+        }),
+      );
+    });
+
+    it('passes correct signature status to analytics context for invalid signatures', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      mockSubtle.verify.mockResolvedValue(false);
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1&sig=invalid`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          signatureStatus: 'invalid',
+        }),
+      );
+    });
+
+    it('passes correct signature status to analytics context when signature is missing', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'public') {
+            callbackParams.onContinue();
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}?param1=value1`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DAPP}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          signatureStatus: 'missing',
+        }),
+      );
     });
   });
 });

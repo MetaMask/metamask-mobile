@@ -81,6 +81,7 @@ async function resolveInterstitialAction(
   validatedUrl: URL,
   url: string,
   linkType: () => DeepLinkModalLinkType,
+  signatureStatus: SignatureStatus,
 ): Promise<InterstitialState> {
   // Check if action is supported and whitelisted
   if (isSupportedAction(action) && WHITELISTED_ACTIONS.includes(action)) {
@@ -127,7 +128,7 @@ async function resolveInterstitialAction(
       ? mapSupportedActionToRoute(action)
       : DeepLinkRoute.INVALID,
     urlParams: extractURLParams(url).params,
-    signatureStatus: SignatureStatus.MISSING,
+    signatureStatus,
     interstitialShown: false,
     interstitialDisabled: false,
     interstitialAction: undefined,
@@ -228,11 +229,15 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
+  // Determine signature status before resolving interstitial to ensure correct analytics
+  const signatureStatus = await determineSignatureStatus(validatedUrl);
+
   const interstitialAction = await resolveInterstitialAction(
     action,
     validatedUrl,
     url,
     linkType,
+    signatureStatus,
   );
 
   // Universal links
@@ -245,9 +250,6 @@ async function handleUniversalLink({
   // Track consolidated deep link analytics event
   try {
     const { params } = extractURLParams(url);
-
-    // Determine signature status
-    const signatureStatus = await determineSignatureStatus(validatedUrl);
 
     // Get modal disabled state from Redux store
     const isModalDisabled = selectDeepLinkModalDisabled(
