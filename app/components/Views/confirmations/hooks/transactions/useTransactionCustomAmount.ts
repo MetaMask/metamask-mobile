@@ -100,9 +100,9 @@ export function useTransactionCustomAmount({
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
         .toString(10);
 
-      updatePendingAmount(newAmount);
+      setAmountFiat(newAmount);
     },
-    [maxPercentage, tokenBalanceFiat, updatePendingAmount],
+    [maxPercentage, tokenBalanceFiat],
   );
 
   const updateTokenAmount = useCallback(() => {
