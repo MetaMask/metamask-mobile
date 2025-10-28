@@ -26,11 +26,13 @@ const CONFIG_MAP = {
     channel: 'production',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: false,
+    updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
   },
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: false,
+    updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
   },
 };
 
@@ -46,9 +48,12 @@ function getConfigForEnvironment(environment) {
 /**
  * Only toggles EXPO_UPDATES_CONFIGURATION_ENABLED in AndroidManifest.xml
  * @param {string} filePath
+ * @param {string} channelName
+ * @param {string} runtimeVersion
  * @param {boolean} updatesEnabled
+ * @param {string} updateUrl
  */
-function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled) {
+function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled, updateUrl) {
   let content = fs.readFileSync(filePath, 'utf8');
 
   // Update or insert EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE (channel)
@@ -90,6 +95,19 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
     );
   }
 
+  // Update or insert EXPO_UPDATE_URL
+  if (content.includes('expo.modules.updates.EXPO_UPDATE_URL')) {
+    content = content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATE_URL" android:value="[^"]*" \/>/g,
+      `<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="${updateUrl}" />`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/application>/,
+      `\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="${updateUrl}" />$1</application>`
+    );
+  }
+
   // Only toggle expo.modules.updates.ENABLED; rely on defaults for the rest
   const enabledValue = updatesEnabled ? 'true' : 'false';
   if (content.includes('expo.modules.updates.ENABLED')) {
@@ -111,11 +129,14 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
 /**
  * Only toggles EXUpdatesEnabled in plist file
  * @param {string} filePath
+ * @param {string} channelName
+ * @param {string} runtimeVersion
  * @param {string} fileName
  * @param {boolean} updatesEnabled
+ * @param {string} updateUrl
  */
-function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled) {
-  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}`);
+function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled, updateUrl) {
+  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}`);
 
   let content = fs.readFileSync(filePath, 'utf8');
 
@@ -142,6 +163,19 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
       `\n\t<key>EXUpdatesRuntimeVersion</key>\n\t<string>${runtimeVersion}</string>$1</dict>\n</plist>`
+    );
+  }
+
+  // Update or insert EXUpdatesURL
+  if (content.includes('<key>EXUpdatesURL</key>')) {
+    content = content.replace(
+      /(<key>EXUpdatesURL<\/key>\s*<string>)[^<]*(<\/string>)/,
+      `$1${updateUrl}$2`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/dict>\s*<\/plist>/,
+      `\n\t<key>EXUpdatesURL</key>\n\t<string>${updateUrl}</string>$1</dict>\n</plist>`
     );
   }
 
@@ -209,11 +243,12 @@ function main() {
   console.log(`Environment: ${environment}`);
 
   // Get configuration for this environment
-  const { channel, runtimeVersion, updatesEnabled } = getConfigForEnvironment(environment);
+  const { channel, runtimeVersion, updatesEnabled, updateUrl } = getConfigForEnvironment(environment);
 
   console.log(`Channel: ${channel}`);
   console.log(`Runtime Version: ${runtimeVersion}`);
   console.log(`Updates Enabled: ${updatesEnabled}`);
+  console.log(`Update URL: ${updateUrl}`);
   console.log('');
 
   // Check if files exist
@@ -234,9 +269,9 @@ function main() {
 
   // Update files
   try {
-    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled);
-    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled);
-    updatePlistFile(IOS_INFO_PLIST_PATH, channel, runtimeVersion, 'Info.plist', updatesEnabled);
+    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl);
+    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled, updateUrl);
+    // updatePlistFile(IOS_INFO_PLIST_PATH, channel, runtimeVersion, 'Info.plist', updatesEnabled, updateUrl);
 
     console.log('');
     console.log('✓ All files updated successfully!');

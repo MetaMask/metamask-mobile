@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
-    <key>EXUpdatesEnabled</key>
-    <false/>
-    <key>EXUpdatesURL</key>
-    <string>https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620</string>
-    <!-- EXUpdatesChannel, EXUpdatesRuntimeVersion, and EXUpdatesRequestHeaders are auto-injected by build script -->
+    <!-- EAS Update configuration is injected by scripts/update-expo-channel.js during build -->
   </dict>
 </plist>

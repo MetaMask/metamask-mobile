@@ -39,11 +39,6 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>EXUpdatesEnabled</key>
-	<false/>
-	<key>EXUpdatesURL</key>
-	<string>https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620</string>
-	<!-- EXUpdatesRuntimeVersion, EXUpdatesChannel, and EXUpdatesRequestHeaders are auto-injected by build script -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>twitter</string>
