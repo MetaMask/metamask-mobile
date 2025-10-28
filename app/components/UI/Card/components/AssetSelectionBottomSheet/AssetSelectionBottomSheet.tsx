@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
@@ -11,6 +11,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectIsAuthenticatedCard,
+  selectUserCardLocation,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
 } from '../../../../../core/redux/slices/card';
@@ -25,6 +26,7 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
@@ -46,10 +48,16 @@ import { FlatList } from 'react-native-gesture-handler';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { SolScope } from '@metamask/keyring-api';
 import useGetCardExternalWalletDetails from '../../hooks/useGetCardExternalWalletDetails';
-import Logger from '../../../../../util/Logger';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
+import Logger from '../../../../../util/Logger';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { SUPPORTED_ASSET_NETWORKS } from '../../constants';
 
-interface SupportedTokenWithChain {
+export interface SupportedTokenWithChain {
   address: string;
   symbol: string;
   name: string;
@@ -71,6 +79,9 @@ export interface AssetSelectionBottomSheetProps {
   priorityToken: CardTokenAllowance | null;
   tokensWithAllowances: CardTokenAllowance[];
   navigateToCardHomeOnPriorityToken?: boolean;
+  // Selection only mode: just call onTokenSelect and close, don't handle priority/navigation
+  selectionOnly?: boolean;
+  onTokenSelect?: (token: SupportedTokenWithChain) => void;
 }
 
 const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
@@ -79,68 +90,159 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   priorityToken,
   tokensWithAllowances,
   navigateToCardHomeOnPriorityToken = false,
+  selectionOnly = false,
+  onTokenSelect,
 }) => {
   const navigation = useNavigation();
   const theme = useTheme();
   const tw = useTailwind();
   const dispatch = useDispatch();
+  const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const userCardLocation = useSelector(selectUserCardLocation);
   const {
     data: delegationSettingsData,
     isLoading: isLoadingDelegationSettings,
   } = useGetDelegationSettings();
   const { data: cardExternalWalletDetails } = useGetCardExternalWalletDetails();
 
-  const [supportedTokens, setSupportedTokens] = useState<
-    SupportedTokenWithChain[]
-  >([]);
+  // Map all available tokens from delegation settings and merge with user's current tokens
+  const supportedTokens = useMemo<SupportedTokenWithChain[]>(() => {
+    if (!delegationSettingsData?.networks || !sdk) return [];
 
-  // Map tokens with allowances to display format
-  const mapTokensForDisplay = useCallback(() => {
-    if (!tokensWithAllowances || tokensWithAllowances.length === 0) {
-      return [];
-    }
+    const allTokens: SupportedTokenWithChain[] = [];
 
-    return tokensWithAllowances.map((token) => {
-      // Determine network name from chainId
-      const isSolana = token.caipChainId === SolScope.Mainnet;
-      // Build icon URL - use chainId directly (already in hex format)
-      const iconUrl = buildTokenIconUrl(token.caipChainId, token.address || '');
+    // Filter and iterate through supported networks only
+    const filteredNetworks = delegationSettingsData.networks.filter(
+      (network) => {
+        const networkLower = network.network.toLowerCase();
 
-      // Parse balance and allowance for display
-      const balance = token.availableBalance
-        ? parseFloat(token.availableBalance).toFixed(6)
-        : '0';
-      const balanceFloat = parseFloat(balance);
+        // Only include supported networks
+        if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) return false;
 
-      // Simple USD conversion (in real app, you'd get actual price)
-      // For now, just display balance as is
-      const balanceFiat = `$${balanceFloat.toFixed(2)} USD`;
+        // Only show linea-us tokens for US users
+        if (networkLower === 'linea-us' && userCardLocation !== 'us')
+          return false;
 
-      return {
-        address: token.address || '',
-        symbol: token.symbol?.toUpperCase() || '',
-        name: token.name || '',
-        decimals: token.decimals || 0,
-        enabled: token.allowanceState !== AllowanceState.NotEnabled,
-        caipChainId: token.caipChainId,
-        chainName: isSolana ? 'Solana' : 'Linea',
-        balance,
-        balanceFiat,
-        image: iconUrl,
-        logo: iconUrl,
-        allowanceState: token.allowanceState,
-        allowance: token.allowance || '0',
-      };
+        return true;
+      },
+    );
+
+    filteredNetworks.forEach((network) => {
+      const networkLower = network.network.toLowerCase();
+      const isSolana = networkLower === 'solana';
+      const caipChainId = isSolana
+        ? SolScope.Mainnet
+        : formatChainIdToCaip(network.chainId);
+      const isStaging = network.environment === 'staging';
+
+      // Iterate through all tokens in this network
+      Object.entries(network.tokens).forEach(([_tokenKey, tokenConfig]) => {
+        // For staging environment, map to real token for better UI
+        let displayTokenAddress = tokenConfig.address;
+
+        if (isStaging) {
+          // Get the real token address from SDK's supported tokens
+          const sdkSupportedTokens =
+            sdk.getSupportedTokensByChainId(caipChainId);
+          const realToken = sdkSupportedTokens.find(
+            (t) => t.symbol?.toLowerCase() === tokenConfig.symbol.toLowerCase(),
+          );
+
+          if (realToken?.address) {
+            displayTokenAddress = realToken.address;
+          }
+        }
+
+        // Find if user already has this token
+        // Match by: 1) address (for exact matches), or 2) symbol + chain (for Solana or staging)
+        const userToken = tokensWithAllowances?.find((t) => {
+          // Must match the same chain
+          if (t.caipChainId !== caipChainId) {
+            return false;
+          }
+
+          const userAddressLower = t.address?.toLowerCase();
+          const tokenAddressLower = tokenConfig.address.toLowerCase();
+          const displayAddressLower = displayTokenAddress.toLowerCase();
+          const userSymbolLower = t.symbol?.toLowerCase();
+          const tokenSymbolLower = tokenConfig.symbol.toLowerCase();
+
+          // Try to match by address first (exact match)
+          if (
+            userAddressLower === tokenAddressLower ||
+            userAddressLower === displayAddressLower
+          ) {
+            return true;
+          }
+
+          // Fallback: Match by symbol + chain (useful for Solana or when addresses differ)
+          if (userSymbolLower === tokenSymbolLower) {
+            return true;
+          }
+
+          return false;
+        });
+
+        const iconUrl = buildTokenIconUrl(
+          caipChainId,
+          displayTokenAddress || '',
+        );
+
+        const balance = userToken?.availableBalance
+          ? parseFloat(userToken.availableBalance).toFixed(6)
+          : '0';
+        const balanceFiat = `$${parseFloat(balance).toFixed(2)} USD`;
+
+        allTokens.push({
+          address: displayTokenAddress,
+          symbol: tokenConfig.symbol.toUpperCase(),
+          name: tokenConfig.symbol.toUpperCase(),
+          decimals: tokenConfig.decimals,
+          enabled: userToken
+            ? userToken.allowanceState !== AllowanceState.NotEnabled
+            : false,
+          caipChainId,
+          chainName: isSolana ? 'Solana' : 'Linea',
+          balance,
+          balanceFiat,
+          image: iconUrl,
+          logo: iconUrl,
+          allowanceState:
+            userToken?.allowanceState || AllowanceState.NotEnabled,
+          allowance: userToken?.allowance || '0',
+        });
+      });
     });
-  }, [tokensWithAllowances]);
 
-  // Update supported tokens when tokensWithAllowances changes
-  useEffect(() => {
-    const mappedTokens = mapTokensForDisplay();
-    setSupportedTokens(mappedTokens);
-  }, [mapTokensForDisplay]);
+    // Sort: Priority token first, then enabled tokens, then disabled tokens
+    return allTokens.sort((a, b) => {
+      const aIsPriority =
+        priorityToken &&
+        a.address?.toLowerCase() === priorityToken.address?.toLowerCase() &&
+        a.caipChainId === priorityToken.caipChainId;
+      const bIsPriority =
+        priorityToken &&
+        b.address?.toLowerCase() === priorityToken.address?.toLowerCase() &&
+        b.caipChainId === priorityToken.caipChainId;
+
+      if (aIsPriority) return -1;
+      if (bIsPriority) return 1;
+
+      // Sort enabled tokens before disabled tokens
+      if (a.enabled && !b.enabled) return -1;
+      if (!a.enabled && b.enabled) return 1;
+
+      return 0;
+    });
+  }, [
+    delegationSettingsData,
+    tokensWithAllowances,
+    priorityToken,
+    sdk,
+    userCardLocation,
+  ]);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -149,89 +251,121 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     [sheetRef],
   );
 
+  const showSuccessToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings('card.asset_selection.update_success') }],
+      iconName: IconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.success.muted,
+      hasNoTimeout: false,
+    });
+  }, [toastRef, theme]);
+
+  const showErrorToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings('card.asset_selection.update_error') }],
+      iconName: IconName.Danger,
+      iconColor: theme.colors.error.default,
+      backgroundColor: theme.colors.error.muted,
+      hasNoTimeout: false,
+    });
+  }, [toastRef, theme]);
+
   const updatePriority = useCallback(
     async (token: SupportedTokenWithChain) => {
-      if (!sdk || !delegationSettingsData) {
+      if (
+        !sdk ||
+        !delegationSettingsData ||
+        !cardExternalWalletDetails?.walletDetails
+      ) {
         setOpenAssetSelectionBottomSheet(false);
         return;
       }
 
-      Logger.log('token', JSON.stringify(token));
-
       try {
-        // Get current wallet details with delegation settings
-        const selectedWallet = cardExternalWalletDetails?.walletDetails.find(
+        const selectedWallet = cardExternalWalletDetails.walletDetails.find(
           (wallet) =>
             wallet.tokenDetails.address?.toLowerCase() ===
               token.address?.toLowerCase() &&
             wallet.caipChainId === token.caipChainId,
         );
-        Logger.log('selectedWallet', selectedWallet);
-        if (selectedWallet && cardExternalWalletDetails?.walletDetails) {
-          // Create new priority order: selected token becomes priority 1, others shift down
-          const newPriorities = cardExternalWalletDetails?.walletDetails.map(
-            (wallet: CardExternalWalletDetail, index: number) => ({
-              id: wallet.id,
-              priority: wallet.id === selectedWallet.id ? 1 : index + 2,
-            }),
-          );
 
-          if (newPriorities) {
-            try {
-              await sdk.updateWalletPriority(newPriorities);
-            } catch (error) {
-              Logger.log('Error updating wallet priority:', error);
-            }
-          }
-
-          // Set the selected token as the priority token in Redux
-          const newPriorityTokenWalletDetail =
-            cardExternalWalletDetails?.walletDetails.find(
-              (wallet) =>
-                wallet.tokenDetails.address?.toLowerCase() ===
-                  token.address?.toLowerCase() &&
-                wallet.caipChainId === token.caipChainId,
-            );
-
-          const priorityTokenData = {
-            address: token.address,
-            decimals: token.decimals,
-            symbol: token.symbol,
-            name: token.name,
-            allowanceState: AllowanceState.Enabled,
-            allowance: token.allowance || '0',
-            availableBalance: token.balance || '0',
-            walletAddress: newPriorityTokenWalletDetail?.walletAddress || '',
-            caipChainId: token.caipChainId,
-            isStaked: false,
-          };
-
-          dispatch(setAuthenticatedPriorityToken(priorityTokenData));
-          dispatch(setAuthenticatedPriorityTokenLastFetched(new Date()));
+        if (!selectedWallet) {
+          showErrorToast();
+          setOpenAssetSelectionBottomSheet(false);
+          return;
         }
 
+        // Create new priority order: selected token becomes priority 1, others shift down
+        const newPriorities = cardExternalWalletDetails.walletDetails.map(
+          (wallet: CardExternalWalletDetail, index: number) => ({
+            id: wallet.id,
+            priority: wallet.id === selectedWallet.id ? 1 : index + 2,
+          }),
+        );
+
+        await sdk.updateWalletPriority(newPriorities);
+
+        // Update priority token in Redux
+        const priorityTokenData: CardTokenAllowance = {
+          address: token.address,
+          decimals: token.decimals,
+          symbol: token.symbol,
+          name: token.name,
+          allowanceState: AllowanceState.Enabled,
+          allowance: token.allowance || '0',
+          availableBalance: token.balance || '0',
+          walletAddress: selectedWallet.walletAddress,
+          caipChainId: token.caipChainId,
+        };
+
+        dispatch(setAuthenticatedPriorityToken(priorityTokenData));
+        dispatch(setAuthenticatedPriorityTokenLastFetched(new Date()));
+
+        showSuccessToast();
         setOpenAssetSelectionBottomSheet(false);
       } catch (error) {
-        console.error('Error updating wallet priority:', error);
+        Logger.error(
+          error as Error,
+          'AssetSelectionBottomSheet: Error updating wallet priority',
+        );
+        showErrorToast();
         setOpenAssetSelectionBottomSheet(false);
       }
     },
     [
       sdk,
       delegationSettingsData,
-      setOpenAssetSelectionBottomSheet,
       cardExternalWalletDetails,
       dispatch,
+      showSuccessToast,
+      showErrorToast,
+      setOpenAssetSelectionBottomSheet,
     ],
+  );
+
+  const isPriorityToken = useCallback(
+    (token: SupportedTokenWithChain) =>
+      priorityToken &&
+      priorityToken.address?.toLowerCase() === token.address?.toLowerCase() &&
+      priorityToken.caipChainId === token.caipChainId,
+    [priorityToken],
   );
 
   const handleTokenPress = useCallback(
     async (token: SupportedTokenWithChain) => {
+      // Selection only mode: just call the callback and close
+      if (selectionOnly && onTokenSelect) {
+        onTokenSelect(token);
+        setOpenAssetSelectionBottomSheet(false);
+        return;
+      }
+
+      // Regular mode: handle priority token logic
       // Check if this token is already the priority token
-      const isAlreadyPriorityToken =
-        priorityToken &&
-        priorityToken.address?.toLowerCase() === token.address?.toLowerCase() &&
-        priorityToken.caipChainId === token.caipChainId;
+      const isAlreadyPriorityToken = isPriorityToken(token);
 
       if (isAlreadyPriorityToken) {
         // Token is already the priority token
@@ -248,17 +382,19 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         // Token is already delegated, update priority directly
         await updatePriority(token);
       } else {
-        // Token is not delegated, navigate to Change Asset screen to delegate it
+        // Token is not delegated, navigate to Spending Limit screen to enable it
         closeBottomSheetAndNavigate(() => {
-          navigation.navigate(Routes.CARD.CHANGE_ASSET, {
+          navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+            flow: 'enable',
             selectedToken: token,
-            priorityToken,
           });
         });
       }
     },
     [
-      priorityToken,
+      selectionOnly,
+      onTokenSelect,
+      isPriorityToken,
       isAuthenticated,
       navigateToCardHomeOnPriorityToken,
       closeBottomSheetAndNavigate,
@@ -297,82 +433,93 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         <FlatList
           scrollEnabled
           data={supportedTokens}
-          renderItem={({ item }) => (
-            <ListItemSelect onPress={() => handleTokenPress(item)}>
+          renderItem={({ item }) => {
+            const isCurrentPriority = isPriorityToken(item);
+            return (
               <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-                twClassName="flex-1"
+                twClassName={
+                  isCurrentPriority
+                    ? 'border-l-4 border-primary-default bg-background-muted'
+                    : ''
+                }
               >
-                {/* Token Info */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="flex-1"
-                >
-                  <BadgeWrapper
-                    style={tw.style('mr-3')}
-                    badgePosition={BadgePosition.BottomRight}
-                    badgeElement={
-                      item.caipChainId ? (
-                        <Badge
-                          variant={BadgeVariant.Network}
-                          imageSource={NetworkBadgeSource(
-                            safeFormatChainIdToHex(
-                              item.caipChainId,
-                            ) as `0x${string}`,
-                          )}
-                        />
-                      ) : null
-                    }
-                  >
-                    <AvatarToken
-                      size={AvatarSize.Md}
-                      imageSource={{ uri: item.image || item.logo }}
-                    />
-                  </BadgeWrapper>
+                <ListItemSelect onPress={() => handleTokenPress(item)}>
                   <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
                     twClassName="flex-1"
-                    justifyContent={BoxJustifyContent.Center}
                   >
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      style={tw.style('font-semibold')}
+                    {/* Token Info */}
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      twClassName="flex-1"
                     >
-                      {item.symbol} on {item.chainName}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      style={tw.style('font-medium text-text-alternative')}
-                    >
-                      {item.allowanceState === AllowanceState.Enabled
-                        ? 'Enabled'
-                        : item.allowanceState === AllowanceState.Limited
-                        ? 'Limited'
-                        : 'Not enabled'}
-                    </Text>
-                  </Box>
-                </Box>
+                      <BadgeWrapper
+                        style={tw.style('mr-3')}
+                        badgePosition={BadgePosition.BottomRight}
+                        badgeElement={
+                          item.caipChainId ? (
+                            <Badge
+                              variant={BadgeVariant.Network}
+                              imageSource={NetworkBadgeSource(
+                                safeFormatChainIdToHex(
+                                  item.caipChainId,
+                                ) as `0x${string}`,
+                              )}
+                            />
+                          ) : null
+                        }
+                      >
+                        <AvatarToken
+                          size={AvatarSize.Md}
+                          imageSource={{ uri: item.image || item.logo }}
+                        />
+                      </BadgeWrapper>
+                      <Box
+                        twClassName="flex-1"
+                        justifyContent={BoxJustifyContent.Center}
+                      >
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          style={tw.style('font-semibold')}
+                        >
+                          {item.symbol} on {item.chainName}
+                        </Text>
+                        <Text
+                          variant={TextVariant.BodySM}
+                          style={tw.style('font-medium text-text-alternative')}
+                        >
+                          {item.allowanceState === AllowanceState.Enabled
+                            ? strings('card.asset_selection.enabled')
+                            : item.allowanceState === AllowanceState.Limited
+                            ? strings('card.asset_selection.limited')
+                            : strings('card.asset_selection.not_enabled')}
+                        </Text>
+                      </Box>
+                    </Box>
 
-                {/* Balance */}
-                <Box twClassName="items-end">
-                  <Text
-                    variant={TextVariant.BodySM}
-                    style={tw.style('text-text-default font-medium')}
-                  >
-                    {item.balanceFiat}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyXS}
-                    style={tw.style('text-text-alternative mt-1')}
-                  >
-                    {item.balance} {item.symbol}
-                  </Text>
-                </Box>
+                    {/* Balance */}
+                    <Box twClassName="items-end">
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={tw.style('text-text-default font-medium')}
+                      >
+                        {item.balanceFiat}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodyXS}
+                        style={tw.style('text-text-alternative mt-1')}
+                      >
+                        {item.balance} {item.symbol}
+                      </Text>
+                    </Box>
+                  </Box>
+                </ListItemSelect>
               </Box>
-            </ListItemSelect>
-          )}
+            );
+          }}
           keyExtractor={(item) =>
             `${item.address}-${item.symbol}-${safeFormatChainIdToHex(
               item.caipChainId,
@@ -385,7 +532,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             variant={TextVariant.BodySM}
             style={tw.style('text-center text-text-alternative')}
           >
-            No tokens available
+            {strings('card.no_tokens_available')}
           </Text>
         </View>
       )}

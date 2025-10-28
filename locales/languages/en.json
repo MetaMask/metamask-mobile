@@ -6134,6 +6134,8 @@
     },
     "card_spending_limit": {
       "title": "Spending Limit",
+      "title_change_token": "Change token and network",
+      "title_enable_token": "Enable token",
       "full_access_title": "Full spending access",
       "full_access_description": "Your card can use your funds automatically, without asking for approval each time.",
       "restricted_limit_title": "Restricted spending limit",
@@ -6143,7 +6145,9 @@
       "cancel": "Cancel",
       "set_new_limit": "Set new limit",
       "dismiss": "Dismiss",
-      "spending_limit_updated": "Spending limit updated"
+      "spending_limit_updated": "Spending limit updated",
+      "update_success": "Spending limit updated successfully",
+      "update_error": "Failed to update spending limit"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -6161,6 +6165,14 @@
     "select_asset": "Select token and network",
     "search_tokens": "Search tokens",
     "no_tokens_found": "No tokens found",
+    "no_tokens_available": "No tokens available",
+    "asset_selection": {
+      "enabled": "Enabled",
+      "limited": "Limited",
+      "not_enabled": "Not enabled",
+      "update_success": "Spend priority updated successfully",
+      "update_error": "Failed to update spend priority"
+    },
     "card_authentication": {
       "title": "Log in to your MetaMask Card account",
       "location_button_text": "International",

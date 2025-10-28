@@ -5,7 +5,7 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { getDecimalChainId } from '../../../../util/networks';
 import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
-import { BALANCE_SCANNER_ABI } from '../constants';
+import { BALANCE_SCANNER_ABI, SUPPORTED_ASSET_NETWORKS } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
   CardType,
@@ -887,8 +887,13 @@ export class CardSDK {
       return [];
     }
 
-    const combinedDetails = externalWalletDetails.map(
-      (wallet: CardWalletExternalResponse) => {
+    const combinedDetails = externalWalletDetails
+      .map((wallet: CardWalletExternalResponse) => {
+        const networkLower = wallet.network?.toLowerCase();
+        if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) {
+          return null;
+        }
+
         const priorityWallet = priorityWalletDetails.find(
           (p: CardWalletExternalPriorityResponse) =>
             p?.currency === wallet?.currency &&
@@ -900,15 +905,11 @@ export class CardSDK {
             wallet,
             delegationSettings,
           );
-        Logger.log('tokenDetails', tokenDetails);
-        Logger.log('===============================================');
 
         // Determine caipChainId based on network type
         // For Solana, use the proper Solana CAIP chain ID
         // For EVM chains, convert the decimal chainId to CAIP format
         const caipChainId = (() => {
-          const networkLower = wallet.network?.toLowerCase();
-
           if (networkLower === 'solana') {
             return SolScope.Mainnet;
           }
@@ -923,9 +924,6 @@ export class CardSDK {
 
           return formatChainIdToCaip(tokenDetails.decimalChainId);
         })();
-
-        Logger.log('caipChainId', caipChainId);
-        Logger.log('===============================================');
 
         return {
           id: priorityWallet?.id ?? 0,
@@ -947,11 +945,11 @@ export class CardSDK {
             tokenDetails?.delegationContractAddress ?? '',
           stagingTokenAddress: tokenDetails?.stagingTokenAddress ?? '',
         } as CardExternalWalletDetail;
-      },
-    );
+      })
+      .filter((detail): detail is CardExternalWalletDetail => detail !== null);
 
     // Sort - lower number = higher priority
-    return combinedDetails.sort((a, b) => a?.priority - b?.priority);
+    return combinedDetails.sort((a, b) => a.priority - b.priority);
   };
 
   mapCardExternalWalletDetailsToDelegationSettings = (
@@ -1127,7 +1125,6 @@ export class CardSDK {
     this.logDebugInfo('updateWalletPriority', { wallets });
 
     const requestBody = { wallets };
-    Logger.log('CardSDK: Updating wallet priority with body:', requestBody);
 
     const response = await this.makeRequest(
       '/v1/wallet/external/priority',
@@ -1140,8 +1137,6 @@ export class CardSDK {
       },
       true, // authenticated
     );
-
-    Logger.log('CardSDK: Priority update response status:', response.status);
 
     if (!response.ok) {
       let responseBody = null;
@@ -1164,8 +1159,6 @@ export class CardSDK {
       throw error;
     }
 
-    const responseData = await response.json();
-    Logger.log('CardSDK: Priority update successful response:', responseData);
     this.logDebugInfo(
       'updateWalletPriority',
       'Successfully updated wallet priority',

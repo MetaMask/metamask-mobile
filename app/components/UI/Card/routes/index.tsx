@@ -86,28 +86,38 @@ export const cardAuthenticationNavigationOptions = ({
 
 export const cardSpendingLimitNavigationOptions = ({
   navigation,
+  route,
 }: {
   navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => ({
-  headerLeft: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'spending-limit-title'}
-    >
-      {strings('card.card_spending_limit.title')}
-    </Text>
-  ),
-  headerRight: () => <View />,
-});
+  route: { params?: { flow?: 'manage' | 'enable' } };
+}): StackNavigationOptions => {
+  const flow = route.params?.flow || 'manage';
+  const titleKey =
+    flow === 'enable'
+      ? 'card.card_spending_limit.title_enable_token'
+      : 'card.card_spending_limit.title_change_token';
+
+  return {
+    headerLeft: () => (
+      <ButtonIcon
+        style={headerStyle.icon}
+        size={ButtonIconSizes.Md}
+        iconName={IconName.ArrowLeft}
+        onPress={() => navigation.goBack()}
+      />
+    ),
+    headerTitle: () => (
+      <Text
+        variant={TextVariant.HeadingSM}
+        style={headerStyle.title}
+        testID={'spending-limit-title'}
+      >
+        {strings(titleKey)}
+      </Text>
+    ),
+    headerRight: () => <View />,
+  };
+};
 
 export const cardChangeAssetNavigationOptions = ({
   navigation,

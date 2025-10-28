@@ -10,10 +10,45 @@ const createStyles = (theme: Theme) =>
     contentContainer: {
       flexGrow: 1,
       paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingTop: 16,
+      paddingBottom: 32,
     },
     assetContainer: {
       marginBottom: 24,
+    },
+    dropdownButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+    },
+    selectedTokenContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    selectedTokenIcon: {
+      marginRight: 12,
+    },
+    selectedTokenInfo: {
+      flex: 1,
+      marginRight: 8,
+    },
+    selectedTokenSymbol: {
+      fontWeight: '600',
+      color: theme.colors.text.default,
+    },
+    selectedChainName: {
+      color: theme.colors.text.alternative,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    placeholderText: {
+      color: theme.colors.text.alternative,
+      flex: 1,
     },
     optionsContainer: {
       flex: 1,

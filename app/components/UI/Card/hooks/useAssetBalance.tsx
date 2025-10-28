@@ -29,7 +29,6 @@ import {
 } from '../../../../util/number';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { createSelector } from 'reselect';
-import Logger from '../../../../util/Logger';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 
 // This hook retrieves the asset balance and related information for a given token and account.
@@ -49,8 +48,6 @@ export const useAssetBalance = (
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
-  Logger.log('token', token);
-  Logger.log('===============================================');
 
   let asset = useSelector((state: RootState) =>
     token && token?.caipChainId
@@ -63,17 +60,12 @@ export const useAssetBalance = (
       : undefined,
   );
 
-  Logger.log('asset', asset);
-
   if (!asset && token) {
     const isSolana = token.caipChainId && isSolanaChainId(token.caipChainId);
 
     const assetAddress = isSolana
       ? `${token.caipChainId}/token:${token.address}`
       : token.address?.toLowerCase();
-
-    Logger.log('token.caipChainId', token.caipChainId);
-    Logger.log('token.address', token.address);
 
     const iconUrl = buildTokenIconUrl(token.caipChainId, token.address ?? '');
     const filteredToken = tokensWithBalance.find(
@@ -134,10 +126,6 @@ export const useAssetBalance = (
     exchangeRates,
     currentCurrency,
   } = assetBalance;
-  Logger.log('assetBalance', assetBalance);
-  Logger.log('asset', asset);
-  Logger.log('token', token);
-  Logger.log('chainId', chainId);
 
   const { balanceFiat, balanceValueFormatted, rawFiatNumber, rawTokenBalance } =
     useMemo(() => {

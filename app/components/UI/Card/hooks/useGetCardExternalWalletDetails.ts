@@ -96,8 +96,6 @@ const useGetCardExternalWalletDetails = () => {
       const cardExternalWalletDetails = await sdk.getCardExternalWalletDetails(
         delegationSettings.networks,
       );
-      Logger.log('cardExternalWalletDetails', cardExternalWalletDetails);
-      Logger.log('===============================================');
 
       if (!cardExternalWalletDetails?.length) {
         return {
@@ -169,7 +167,7 @@ const useGetCardExternalWalletDetails = () => {
   return useWrapWithCache(
     'card-external-wallet-details',
     fetchCardExternalWalletDetails,
-    { cacheDuration: 30 * 1000 }, // 30 seconds cache (matches authenticated mode in useGetPriorityCardToken)
+    { cacheDuration: 60 * 1000 }, // 60 seconds cache (matches authenticated mode in useGetPriorityCardToken)
   );
 };
 

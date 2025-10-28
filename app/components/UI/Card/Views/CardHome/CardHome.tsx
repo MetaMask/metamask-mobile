@@ -258,7 +258,7 @@ const CardHome = () => {
 
   const manageSpendingLimitAction = useCallback(() => {
     if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT);
+      navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'manage' });
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
