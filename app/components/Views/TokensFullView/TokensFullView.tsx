@@ -37,7 +37,7 @@ const TokensFullView = () => {
             iconName={IconName.ArrowLeft}
           />
         }
-        includesTopInset
+        style={tw`p-4`}
       >
         {strings('wallet.tokens')}
       </HeaderBase>

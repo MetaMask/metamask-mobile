@@ -14,6 +14,7 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
+  ScrollView,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -118,6 +119,7 @@ import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -246,6 +248,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
+  );
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
   );
   const isPerpsEnabled = useMemo(
     () =>
@@ -467,7 +472,14 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   return (
     <View style={styles.tabContainer}>
-      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList
+        key={tabsKey}
+        ref={tabsListRef}
+        onChangeTab={handleTabChange}
+        tabsListContentTwClassName={
+          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
+        }
+      >
         {tabsToRender}
       </TabsList>
     </View>
@@ -1057,6 +1069,9 @@ const Wallet = ({
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1288,11 +1303,20 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
+  const scrollViewContentStyle = useMemo(
+    () => [
+      styles.wrapper,
+      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
+    ],
+    [styles.wrapper, isHomepageRedesignV1Enabled],
+  );
+
   const renderContent = useCallback(
     () => (
-      <View
-        style={styles.wrapper}
+      <ScrollView
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+        contentContainerStyle={scrollViewContentStyle}
+        scrollEnabled={isHomepageRedesignV1Enabled}
       >
         <AssetPollingProvider />
         <View style={styles.banner}>
@@ -1341,15 +1365,16 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
-      </View>
+      </ScrollView>
     ),
     [
       styles.banner,
       styles.carousel,
-      styles.wrapper,
+      scrollViewContentStyle,
       basicFunctionalityEnabled,
       defiEnabled,
       isMultichainAccountsState2Enabled,
+      isHomepageRedesignV1Enabled,
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
