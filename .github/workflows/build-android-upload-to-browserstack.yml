@@ -15,6 +15,22 @@ on:
         required: false
         type: string
         description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
+      build_type:
+        description: 'The type of build to perform'
+        required: false
+        default: 'main'
+        type: string
+      metamask_environment:
+        description: 'The environment to build for'
+        required: false
+        default: 'qa'
+        type: string
+      keystore_target:
+        description: 'The target to use for the keystore'
+        required: false
+        default: 'qa'
+        type: string
+
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -80,7 +96,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: [with-srp, without-srp]
+        srp_build_type: [with-srp, without-srp]
 
     steps:
       - name: Checkout repo
@@ -113,18 +129,36 @@ jobs:
             /home/admin/_work/.gradle/caches
             /home/admin/_work/.gradle/wrapper
             android/.gradle
-          key: gradle-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ runner.os }}-${{ matrix.srp_build_type }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            gradle-${{ runner.os }}-${{ matrix.build_type }}-
+            gradle-${{ runner.os }}-${{ matrix.srp_build_type }}-
             gradle-${{ runner.os }}-
 
-      - name: Build Android E2E APK - ${{ matrix.build_type }}
+      - name: Determine target paths and Artifact Names
+        id: determine-target-paths
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
+              echo "artifact_name=app-flask-release"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+              echo "artifact_name=app-prod-release"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
+
+      - name: Build Android E2E APK - ${{ matrix.srp_build_type }}
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         run: |
-          echo "🚀 Setting up project for ${{ matrix.build_type }} build..."
+          echo "🚀 Setting up project for ${{ matrix.srp_build_type }} build..."
           yarn setup:github-ci --no-build-ios
 
-          echo "🏗 Building Android E2E APK (${{ matrix.build_type }})..."
+          echo "🏗 Building Android E2E APK (${{ matrix.srp_build_type }})..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           # Use dedicated dual versions properties file for ARM architectures
           cp android/gradle.properties.github.dual-versions android/gradle.properties
@@ -132,8 +166,8 @@ jobs:
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           IS_TEST: false
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -148,8 +182,8 @@ jobs:
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           # Conditionally set SRP and password based on build type
-          ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.IN_BUILD_SRP || '' }}
-          PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
+          ADDITIONAL_SRP_1: ${{ matrix.srp_build_type == 'with-srp' && secrets.IN_BUILD_SRP || '' }}
+          PREDEFINED_PASSWORD: ${{ matrix.srp_build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -167,13 +201,13 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      - name: Upload Android APK - ${{ matrix.build_type }}
+      - name: Upload Android APK - ${{ matrix.srp_build_type }}
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release-${{ matrix.build_type }}.apk
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-${{ matrix.srp_build_type }}.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -222,6 +256,9 @@ jobs:
           find ./artifacts -type f -name "*.apk" | head -10
           echo "Full artifacts directory tree:"
           find ./artifacts -type d | head -20
+
+          echo "Listing artifacts directory (max depth 10):"
+          find ./artifacts -maxdepth 10 -print | sort
 
           # Find the APK files in their subdirectories
           WITH_SRP_APK=$(find ./artifacts -path "*/app-prod-release-with-srp.apk/app-prod-release.apk" | head -1)
