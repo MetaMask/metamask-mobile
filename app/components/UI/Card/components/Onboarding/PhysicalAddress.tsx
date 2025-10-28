@@ -34,7 +34,7 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { Linking } from 'react-native';
+import { Linking, TouchableOpacity } from 'react-native';
 
 export const AddressFields = ({
   addressLine1,
@@ -286,72 +286,60 @@ const PhysicalAddress = () => {
   const handleAccountOpeningDisclosureToggle = useCallback(() => {
     resetRegisterUserConsent();
     resetRegisterAddress();
-    if (!accountOpeningDisclosure && accountOpeningDisclosureUSUrl) {
-      Linking.openURL(accountOpeningDisclosureUSUrl);
-    }
     setAccountOpeningDisclosure(!accountOpeningDisclosure);
   }, [
-    accountOpeningDisclosureUSUrl,
     accountOpeningDisclosure,
     resetRegisterAddress,
     resetRegisterUserConsent,
   ]);
 
+  const openAccountOpeningDisclosureUS = useCallback(() => {
+    if (accountOpeningDisclosureUSUrl) {
+      Linking.openURL(accountOpeningDisclosureUSUrl);
+    }
+  }, [accountOpeningDisclosureUSUrl]);
+
   const handleRightToInformationToggle = useCallback(() => {
     resetRegisterUserConsent();
     resetRegisterAddress();
-    if (!rightToInformation && rightToInformationIntlUrl) {
+    setRightToInformation(!rightToInformation);
+  }, [rightToInformation, resetRegisterAddress, resetRegisterUserConsent]);
+
+  const openRightToInformationIntl = useCallback(() => {
+    if (rightToInformationIntlUrl) {
       Linking.openURL(rightToInformationIntlUrl);
     }
-    setRightToInformation(!rightToInformation);
-  }, [
-    rightToInformationIntlUrl,
-    rightToInformation,
-    resetRegisterAddress,
-    resetRegisterUserConsent,
-  ]);
+  }, [rightToInformationIntlUrl]);
 
-  const handleTermsAndConditionsIntlToggle = useCallback(() => {
+  const handleTermsAndConditionsToggle = useCallback(() => {
     resetRegisterUserConsent();
     resetRegisterAddress();
-    if (!termsAndConditions && termsAndConditionsIntlUrl) {
+    setTermsAndConditions(!termsAndConditions);
+  }, [termsAndConditions, resetRegisterAddress, resetRegisterUserConsent]);
+
+  const openTermsAndConditionsIntl = useCallback(() => {
+    if (termsAndConditionsIntlUrl) {
       Linking.openURL(termsAndConditionsIntlUrl);
     }
-    setTermsAndConditions(!termsAndConditions);
-  }, [
-    termsAndConditionsIntlUrl,
-    termsAndConditions,
-    resetRegisterAddress,
-    resetRegisterUserConsent,
-  ]);
+  }, [termsAndConditionsIntlUrl]);
 
-  const handleTermsAndConditionsUSToggle = useCallback(() => {
-    resetRegisterUserConsent();
-    resetRegisterAddress();
-    if (!termsAndConditions && termsAndConditionsUSUrl) {
+  const openTermsAndConditionsUS = useCallback(() => {
+    if (termsAndConditionsUSUrl) {
       Linking.openURL(termsAndConditionsUSUrl);
     }
-    setTermsAndConditions(!termsAndConditions);
-  }, [
-    termsAndConditionsUSUrl,
-    termsAndConditions,
-    resetRegisterAddress,
-    resetRegisterUserConsent,
-  ]);
+  }, [termsAndConditionsUSUrl]);
 
   const handlePrivacyPolicyToggle = useCallback(() => {
     resetRegisterUserConsent();
     resetRegisterAddress();
-    if (!privacyPolicy && privacyPolicyUSUrl) {
+    setPrivacyPolicy(!privacyPolicy);
+  }, [privacyPolicy, resetRegisterAddress, resetRegisterUserConsent]);
+
+  const openPrivacyPolicyUS = useCallback(() => {
+    if (privacyPolicyUSUrl) {
       Linking.openURL(privacyPolicyUSUrl);
     }
-    setPrivacyPolicy(!privacyPolicy);
-  }, [
-    privacyPolicyUSUrl,
-    privacyPolicy,
-    resetRegisterAddress,
-    resetRegisterUserConsent,
-  ]);
+  }, [privacyPolicyUSUrl]);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {
@@ -566,19 +554,56 @@ const PhysicalAddress = () => {
           <Checkbox
             isChecked={accountOpeningDisclosure}
             onPress={handleAccountOpeningDisclosureToggle}
-            label={strings(
-              'card.card_onboarding.physical_address.account_opening_disclosure',
-            )}
+            label={
+              <Box twClassName="flex flex-row items-center h-auto flex-wrap">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.account_opening_disclosure_1',
+                  )}
+                </Text>
+                <TouchableOpacity onPress={openAccountOpeningDisclosureUS}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary-default underline"
+                  >
+                    {strings(
+                      'card.card_onboarding.physical_address.account_opening_disclosure_2',
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              </Box>
+            }
             style={tw.style('h-auto')}
             testID="physical-address-account-opening-disclosure-checkbox"
           />
           {/* US: Check box 4: Terms and Conditions */}
           <Checkbox
             isChecked={termsAndConditions}
-            onPress={handleTermsAndConditionsUSToggle}
-            label={strings(
-              'card.card_onboarding.physical_address.terms_and_conditions',
-            )}
+            onPress={handleTermsAndConditionsToggle}
+            label={
+              <Box twClassName="flex flex-row items-center h-auto flex-wrap">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.terms_and_conditions_1',
+                  )}
+                </Text>
+                <TouchableOpacity onPress={openTermsAndConditionsUS}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary-default underline"
+                  >
+                    {strings(
+                      'card.card_onboarding.physical_address.terms_and_conditions_2',
+                    )}
+                  </Text>
+                </TouchableOpacity>
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.terms_and_conditions_3',
+                  )}
+                </Text>
+              </Box>
+            }
             style={tw.style('h-auto')}
             testID="physical-address-terms-and-conditions-checkbox"
           />
@@ -587,9 +612,30 @@ const PhysicalAddress = () => {
           <Checkbox
             isChecked={privacyPolicy}
             onPress={handlePrivacyPolicyToggle}
-            label={strings(
-              'card.card_onboarding.physical_address.privacy_policy',
-            )}
+            label={
+              <Box twClassName="flex flex-row items-center h-auto flex-wrap">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.privacy_policy_1',
+                  )}
+                </Text>
+                <TouchableOpacity onPress={openPrivacyPolicyUS}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary-default underline"
+                  >
+                    {strings(
+                      'card.card_onboarding.physical_address.privacy_policy_2',
+                    )}
+                  </Text>
+                </TouchableOpacity>
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.privacy_policy_3',
+                  )}
+                </Text>
+              </Box>
+            }
             style={tw.style('h-auto')}
             testID="physical-address-privacy-policy-checkbox"
           />
@@ -599,10 +645,31 @@ const PhysicalAddress = () => {
           {/* Intl: Check box 1: Terms and Conditions */}
           <Checkbox
             isChecked={termsAndConditions}
-            onPress={handleTermsAndConditionsIntlToggle}
-            label={strings(
-              'card.card_onboarding.physical_address.terms_and_conditions',
-            )}
+            onPress={handleTermsAndConditionsToggle}
+            label={
+              <Box twClassName="flex flex-row items-center h-auto flex-wrap">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.terms_and_conditions_1',
+                  )}
+                </Text>
+                <TouchableOpacity onPress={openTermsAndConditionsIntl}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary-default underline"
+                  >
+                    {strings(
+                      'card.card_onboarding.physical_address.terms_and_conditions_2',
+                    )}
+                  </Text>
+                </TouchableOpacity>
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.terms_and_conditions_3',
+                  )}
+                </Text>
+              </Box>
+            }
             style={tw.style('h-auto')}
             testID="physical-address-terms-and-conditions-checkbox"
           />
@@ -611,9 +678,30 @@ const PhysicalAddress = () => {
           <Checkbox
             isChecked={rightToInformation}
             onPress={handleRightToInformationToggle}
-            label={strings(
-              'card.card_onboarding.physical_address.right_to_information',
-            )}
+            label={
+              <Box twClassName="flex flex-row items-center h-auto flex-wrap">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.right_to_information_1',
+                  )}
+                </Text>
+                <TouchableOpacity onPress={openRightToInformationIntl}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary-default underline"
+                  >
+                    {strings(
+                      'card.card_onboarding.physical_address.right_to_information_2',
+                    )}
+                  </Text>
+                </TouchableOpacity>
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'card.card_onboarding.physical_address.right_to_information_3',
+                  )}
+                </Text>
+              </Box>
+            }
             style={tw.style('h-auto')}
             testID="physical-address-right-to-information-checkbox"
           />
