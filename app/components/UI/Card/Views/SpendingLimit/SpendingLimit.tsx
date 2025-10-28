@@ -40,6 +40,8 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const getNetworkFromCaipChainId = (
   caipChainId: string,
@@ -64,9 +66,23 @@ const SpendingLimit = ({
   const theme = useTheme();
   const styles = createStyles(theme);
   const { toastRef } = useContext(ToastContext);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const flow = route?.params?.flow || 'manage';
   const selectedTokenFromRoute = route?.params?.selectedToken;
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen:
+            flow === 'enable'
+              ? CardScreens.ENABLE_TOKEN
+              : CardScreens.SPENDING_LIMIT,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, flow]);
 
   const {
     priorityToken,
@@ -138,11 +154,13 @@ const SpendingLimit = ({
 
   useEffect(() => {
     // For 'enable' flow, use the token passed from AssetSelectionBottomSheet
-    if (flow === 'enable' && selectedTokenFromRoute && !selectedToken) {
+    if (flow === 'enable' && selectedTokenFromRoute) {
       setSelectedToken(selectedTokenFromRoute);
+      return;
     }
+
     // For 'manage' flow, determine the best token to pre-select
-    else if (flow === 'manage' && !selectedToken) {
+    if (flow === 'manage') {
       // Check if priority token is Solana
       const isPriorityTokenSolana =
         priorityToken?.caipChainId === SolScope.Mainnet ||
@@ -161,31 +179,9 @@ const SpendingLimit = ({
           allowanceState: priorityToken.allowanceState,
           allowance: priorityToken.allowance,
         });
-      } else {
-        // Priority token is Solana or doesn't exist, try to find mUSD (non-Solana)
-        const mUSDToken = allTokens.find(
-          (token) =>
-            token.symbol?.toLowerCase() === 'musd' &&
-            token.caipChainId !== SolScope.Mainnet &&
-            !token.caipChainId?.startsWith('solana:'),
-        );
-
-        if (mUSDToken) {
-          setSelectedToken({
-            address: mUSDToken.address ?? '',
-            symbol: mUSDToken.symbol ?? '',
-            name: mUSDToken.name ?? '',
-            decimals: mUSDToken.decimals ?? 0,
-            enabled: true,
-            caipChainId: mUSDToken.caipChainId,
-            chainName: 'Linea',
-            allowanceState: mUSDToken.allowanceState,
-            allowance: mUSDToken.allowance,
-          });
-        }
       }
     }
-  }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
+  }, [flow, selectedTokenFromRoute, priorityToken, allTokens]);
 
   // Update limit amount when spending limit settings change
   useEffect(() => {
@@ -240,6 +236,13 @@ const SpendingLimit = ({
   );
 
   const handleEditLimit = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ENABLE_TOKEN_SET_LIMIT_BUTTON,
+        })
+        .build(),
+    );
     // When "Set a limit" is clicked, show both options and default to restricted
     setTempSelectedOption('restricted');
 
@@ -247,9 +250,16 @@ const SpendingLimit = ({
     setTempLimitAmount(spendingLimitSettings.limitAmount || '0');
 
     setShowOptions(true);
-  }, [spendingLimitSettings]);
+  }, [spendingLimitSettings, trackEvent, createEventBuilder]);
 
   const handleConfirm = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ENABLE_TOKEN_CONFIRM_BUTTON,
+        })
+        .build(),
+    );
     const isFullAccess = tempSelectedOption === 'full';
     const newSpendingLimit = {
       isFullAccess,
@@ -343,12 +353,20 @@ const SpendingLimit = ({
   ]);
 
   const handleCancel = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
+        })
+        .build(),
+    );
+
     if (showOptions) {
       setShowOptions(false);
     } else {
       navigation.goBack();
     }
-  }, [navigation, showOptions]);
+  }, [navigation, showOptions, trackEvent, createEventBuilder]);
 
   const handleTokenSelection = useCallback((token: SupportedTokenWithChain) => {
     setSelectedToken(token);
@@ -445,7 +463,16 @@ const SpendingLimit = ({
           <View style={styles.optionCard}>
             <TouchableOpacity
               style={styles.optionItem}
-              onPress={() => handleOptionSelect('full')}
+              onPress={() => {
+                handleOptionSelect('full');
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                    .addProperties({
+                      action: CardActions.ENABLE_TOKEN_FULL_ACCESS_BUTTON,
+                    })
+                    .build(),
+                );
+              }}
             >
               <View style={styles.optionHeader}>
                 <View style={styles.radioButton}>

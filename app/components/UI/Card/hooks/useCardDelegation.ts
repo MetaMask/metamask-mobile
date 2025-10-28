@@ -14,6 +14,7 @@ import { useCardSDK } from '../sdk';
 import { CardNetwork } from '../types';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { Hex } from '@metamask/utils';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 interface DelegationState {
   isLoading: boolean;
@@ -51,7 +52,7 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [state, setState] = useState<DelegationState>({
     isLoading: false,
     error: null,
@@ -145,6 +146,18 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
       setState({ isLoading: true, error: null });
 
       try {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_STARTED)
+            .addProperties({
+              token_symbol: params.currency,
+              token_chain_id: params.network,
+              delegation_type: params.amount === '0' ? 'full' : 'limited',
+              delegation_amount: isNaN(Number(params.amount))
+                ? 0
+                : Number(params.amount),
+            })
+            .build(),
+        );
         const userAccount = selectAccountByScope(
           params.network === 'solana' ? SolScope.Mainnet : 'eip155:0',
         );
@@ -191,9 +204,35 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
           token,
         });
 
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.CARD_DELEGATION_PROCESS_COMPLETED,
+          )
+            .addProperties({
+              token_symbol: params.currency,
+              token_chain_id: params.network,
+              delegation_type: params.amount === '0' ? 'full' : 'limited',
+              delegation_amount: isNaN(Number(params.amount))
+                ? 0
+                : Number(params.amount),
+            })
+            .build(),
+        );
         setState({ isLoading: false, error: null });
         return result;
       } catch (error) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)
+            .addProperties({
+              token_symbol: params.currency,
+              token_chain_id: params.network,
+              delegation_type: params.amount === '0' ? 'full' : 'limited',
+              delegation_amount: isNaN(Number(params.amount))
+                ? 0
+                : Number(params.amount),
+            })
+            .build(),
+        );
         const errorMessage =
           error instanceof Error ? error.message : 'Delegation failed';
         setState({ isLoading: false, error: errorMessage });
@@ -207,6 +246,8 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
       generateSignatureMessage,
       KeyringController,
       executeApprovalTransaction,
+      trackEvent,
+      createEventBuilder,
     ],
   );
 

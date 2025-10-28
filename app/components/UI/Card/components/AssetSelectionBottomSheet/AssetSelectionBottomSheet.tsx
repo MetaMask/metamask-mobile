@@ -56,6 +56,8 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { SUPPORTED_ASSET_NETWORKS } from '../../constants';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions } from '../../util/metrics';
 
 export interface SupportedTokenWithChain {
   address: string;
@@ -107,6 +109,20 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     isLoading: isLoadingDelegationSettings,
   } = useGetDelegationSettings();
   const { data: cardExternalWalletDetails } = useGetCardExternalWalletDetails();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  // bottomsheet_selected_token_symbol:
+  //   type: string
+  //   description: The symbol of the token that was selected on the select token bottomsheet.
+  //   required: false
+  // bottomsheet_selected_token_chain_id:
+  //   type: string
+  //   description: The chain ID of the token that was selected on the select token bottomsheet.
+  //   required: false
+  // bottomsheet_selected_token_limit_amount:
+  //   type: number
+  //   description: The amount of the limit for the token that was selected on the select token bottomsheet.
+  //   required: false
 
   // Map all available tokens from delegation settings and merge with user's current tokens
   const supportedTokens = useMemo<SupportedTokenWithChain[]>(() => {
@@ -277,6 +293,20 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
   const updatePriority = useCallback(
     async (token: SupportedTokenWithChain) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.ASSET_ITEM_SELECT_TOKEN_BOTTOMSHEET,
+            bottomsheet_selected_token_symbol: token.symbol,
+            bottomsheet_selected_token_chain_id: token.caipChainId,
+            bottomsheet_selected_token_limit_amount: isNaN(
+              Number(token.allowance),
+            )
+              ? 0
+              : Number(token.allowance),
+          })
+          .build(),
+      );
       if (
         !sdk ||
         !delegationSettingsData ||
@@ -346,6 +376,8 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       showSuccessToast,
       showErrorToast,
       setOpenAssetSelectionBottomSheet,
+      trackEvent,
+      createEventBuilder,
     ],
   );
 

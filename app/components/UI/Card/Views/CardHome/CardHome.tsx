@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
   IconName,
@@ -64,6 +64,7 @@ import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { CardActions } from '../../util/metrics';
 
 /**
  * CardHome Component
@@ -249,25 +250,57 @@ const CardHome = () => {
   }, [trackEvent, createEventBuilder, priorityToken, openSwaps]);
 
   const changeAssetAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.CHANGE_ASSET_BUTTON,
+        })
+        .build(),
+    );
+
     if (isAuthenticated) {
       setOpenAssetSelectionBottomSheet(true);
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
   const manageSpendingLimitAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.MANAGE_SPENDING_LIMIT_BUTTON,
+        })
+        .build(),
+    );
+
     if (isAuthenticated) {
       navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'manage' });
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
-  const logoutAction = () => {
-    logoutFromProvider();
-    navigation.goBack();
-  };
+  const logoutAction = useCallback(() => {
+    Alert.alert(
+      strings('card.card_home.logout_confirmation_title'),
+      strings('card.card_home.logout_confirmation_message'),
+      [
+        {
+          text: strings('card.card_home.logout_confirmation_cancel'),
+          style: 'cancel',
+        },
+        {
+          text: strings('card.card_home.logout_confirmation_confirm'),
+          style: 'destructive',
+          onPress: () => {
+            logoutFromProvider();
+            navigation.goBack();
+          },
+        },
+      ],
+    );
+  }, [logoutFromProvider, navigation]);
 
   const enableCardAction = useCallback(async () => {
     await provisionCard();
