@@ -1,4 +1,4 @@
-import { FlashListAssetKey } from '../Tokens/TokenList';
+import { CaipChainId } from '@metamask/utils';
 
 /**
  * Enum for asset delegation status
@@ -56,11 +56,11 @@ export interface AuthenticatedCardTokenAllowanceData {
 }
 
 export type CardTokenAllowance = {
+  caipChainId: CaipChainId;
   allowanceState: AllowanceState;
   allowance: string;
   totalAllowance?: string;
-} & FlashListAssetKey &
-  CardToken &
+} & CardToken &
   AuthenticatedCardTokenAllowanceData;
 
 export interface CardLoginInitiateResponse {
@@ -150,7 +150,7 @@ export interface CardExternalWalletDetail {
   allowance: string; // Remaining allowance for the token
   priority: number;
   tokenDetails: CardToken;
-  chainId: string;
+  caipChainId: CaipChainId;
   network: CardNetwork;
   delegationContractAddress?: string;
   stagingTokenAddress?: string;

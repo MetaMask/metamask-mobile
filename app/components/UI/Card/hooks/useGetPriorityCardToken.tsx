@@ -7,7 +7,7 @@ import {
   CardWarning,
   CardExternalWalletDetail,
 } from '../types';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import BigNumber from 'bignumber.js';
@@ -40,8 +40,9 @@ import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { createSelector } from 'reselect';
 import {
   isSolanaChainId,
-  formatChainIdToHex,
+  formatChainIdToCaip,
 } from '@metamask/bridge-controller';
+import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -96,7 +97,7 @@ const fetchAllowances = async (
         name: tokenInfo.name ?? null,
         symbol: tokenInfo.symbol ?? null,
         allowance: allowance.toString(),
-        chainId,
+        caipChainId: chainId,
       };
     });
 
@@ -221,9 +222,9 @@ export const useGetPriorityCardToken = (
     allowances.filter(({ allowance }) => parseFloat(allowance) > 0);
 
   const getBalancesForChain = useCallback(
-    (tokenChainId: Hex): Record<Hex, string> =>
+    (tokenChainId: CaipChainId): Record<Hex, string> =>
       allTokenBalances?.[selectedAddress?.toLowerCase() as Hex]?.[
-        tokenChainId?.toLowerCase() as Hex
+        safeFormatChainIdToHex(tokenChainId) as `0x${string}`
       ] ?? {},
     [allTokenBalances, selectedAddress],
   );
@@ -268,7 +269,7 @@ export const useGetPriorityCardToken = (
         const cardTokenAllowances = await fetchAllowances(
           sdk,
           selectedAddress,
-          LINEA_CHAIN_ID,
+          formatChainIdToCaip(LINEA_CHAIN_ID),
         );
 
         // Store all tokens for asset selection
@@ -288,7 +289,8 @@ export const useGetPriorityCardToken = (
               ...supportedTokens[0],
               allowanceState: AllowanceState.NotEnabled,
               isStaked: false,
-              chainId: LINEA_CHAIN_ID,
+              caipChainId: LINEA_CHAIN_ID,
+              allowance: '0',
             } as CardTokenAllowance;
 
             // Update cache with fallback token
@@ -350,13 +352,13 @@ export const useGetPriorityCardToken = (
 
         const suggestedPriorityToken = await sdk.getPriorityToken(
           selectedAddress,
-          validTokenAddresses,
+          validTokenAddresses as string[],
         );
 
         const matchingAllowance = suggestedPriorityToken
           ? validAllowances.find(
               ({ address }) =>
-                address.toLowerCase() ===
+                address?.toLowerCase() ===
                 suggestedPriorityToken.address?.toLowerCase(),
             )
           : undefined;
@@ -365,7 +367,7 @@ export const useGetPriorityCardToken = (
 
         if (matchingAllowance) {
           const chainBalances = getBalancesForChain(
-            matchingAllowance.chainId as Hex,
+            matchingAllowance.caipChainId,
           );
 
           const rawTokenBalance =
@@ -445,39 +447,6 @@ export const useGetPriorityCardToken = (
         ) {
           priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
           Logger.log('priorityWalletDetail', priorityWalletDetail);
-        } else {
-          Logger.log(
-            'fetching card external wallet details',
-            'useGetPriorityCardToken::fetchPriorityTokenAPI',
-          );
-          // Fallback: fetch directly from SDK if no data provided
-          // const cardExternalWalletDetails =
-          //   await sdk?.getCardExternalWalletDetails();
-          // let cardExternalWalletDetailsWithPriority =
-          //   cardExternalWalletDetails?.[0];
-
-          // if (
-          //   cardExternalWalletDetails?.length &&
-          //   cardExternalWalletDetails?.length > 1 &&
-          //   !cardExternalWalletDetailsWithPriority?.balance
-          // ) {
-          //   cardExternalWalletDetailsWithPriority =
-          //     cardExternalWalletDetails?.find((detail) => {
-          //       if (
-          //         isNaN(parseFloat(detail.balance)) ||
-          //         isZero(detail.balance)
-          //       ) {
-          //         return false;
-          //       }
-          //       return true;
-          //     });
-          // }
-
-          // priorityWalletDetail =
-          //   mapCardExternalWalletDetailToCardTokenAllowance(
-          //     cardExternalWalletDetailsWithPriority ??
-          //       cardExternalWalletDetails?.[0],
-          //   );
         }
 
         const warning = !priorityWalletDetail
@@ -566,16 +535,19 @@ export const useGetPriorityCardToken = (
     const addToken = async () => {
       try {
         if (priorityToken && !isCancelled) {
-          if (priorityToken.chainId && isSolanaChainId(priorityToken.chainId)) {
+          if (
+            priorityToken.caipChainId &&
+            isSolanaChainId(priorityToken.caipChainId)
+          ) {
             // Solana tokens are not supported in the TokenListController
             return;
           }
 
           // Ensure chainId is in Hex format (convert from CAIP if needed)
           // This handles cases where chainId might be in "eip155:59144" format
-          const hexChainId = formatChainIdToHex(
-            priorityToken.chainId as string,
-          );
+          const hexChainId = safeFormatChainIdToHex(
+            priorityToken.caipChainId,
+          ) as `0x${string}`;
 
           const { allTokens } = TokensController.state;
           const allTokensPerChain = allTokens[hexChainId as Hex] || {};
@@ -589,8 +561,8 @@ export const useGetPriorityCardToken = (
 
           if (isNotOnAllTokens && !isCancelled) {
             const iconUrl = buildTokenIconUrl(
-              hexChainId,
-              priorityToken.address,
+              priorityToken.caipChainId,
+              priorityToken.address ?? '',
             );
             const networkClientId =
               NetworkController.findNetworkClientIdByChainId(hexChainId as Hex);
@@ -599,7 +571,7 @@ export const useGetPriorityCardToken = (
               isLoadingAddToken: true,
             }));
             await TokensController.addToken({
-              address: priorityToken.address,
+              address: priorityToken.address ?? '',
               symbol: priorityToken.symbol as string,
               decimals: priorityToken.decimals as number,
               name: priorityToken.name as string,

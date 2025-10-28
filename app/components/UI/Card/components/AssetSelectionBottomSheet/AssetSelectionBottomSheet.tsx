@@ -36,7 +36,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { Hex } from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import useGetDelegationSettings from '../../hooks/useGetDelegationSettings';
 import BottomSheet, {
   BottomSheetRef,
@@ -47,10 +47,7 @@ import ListItemSelect from '../../../../../component-library/components/List/Lis
 import { SolScope } from '@metamask/keyring-api';
 import useGetCardExternalWalletDetails from '../../hooks/useGetCardExternalWalletDetails';
 import Logger from '../../../../../util/Logger';
-import {
-  formatChainIdToCaip,
-  isSolanaChainId,
-} from '@metamask/bridge-controller';
+import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 
 interface SupportedTokenWithChain {
   address: string;
@@ -58,7 +55,7 @@ interface SupportedTokenWithChain {
   name: string;
   decimals: number;
   enabled: boolean;
-  chainId: string;
+  caipChainId: CaipChainId;
   chainName: string;
   balance?: string;
   balanceFiat?: string;
@@ -107,11 +104,9 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
     return tokensWithAllowances.map((token) => {
       // Determine network name from chainId
-      const isSolana = token.chainId === '0x1';
-      const chainName = isSolana ? 'Solana' : 'Linea';
-      const chainId = isSolana ? SolScope.Mainnet : token.chainId || '';
+      const isSolana = token.caipChainId === SolScope.Mainnet;
       // Build icon URL - use chainId directly (already in hex format)
-      const iconUrl = buildTokenIconUrl(chainId, token.address || '');
+      const iconUrl = buildTokenIconUrl(token.caipChainId, token.address || '');
 
       // Parse balance and allowance for display
       const balance = token.availableBalance
@@ -129,8 +124,8 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         name: token.name || '',
         decimals: token.decimals || 0,
         enabled: token.allowanceState !== AllowanceState.NotEnabled,
-        chainId,
-        chainName,
+        caipChainId: token.caipChainId,
+        chainName: isSolana ? 'Solana' : 'Linea',
         balance,
         balanceFiat,
         image: iconUrl,
@@ -164,15 +159,12 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       Logger.log('token', JSON.stringify(token));
 
       try {
-        const isSolana = isSolanaChainId(token.chainId);
-        const chainId = isSolana
-          ? formatChainIdToCaip(1)
-          : formatChainIdToCaip(token.chainId);
         // Get current wallet details with delegation settings
         const selectedWallet = cardExternalWalletDetails?.walletDetails.find(
           (wallet) =>
             wallet.tokenDetails.address?.toLowerCase() ===
-              token.address?.toLowerCase() && wallet.chainId === chainId,
+              token.address?.toLowerCase() &&
+            wallet.caipChainId === token.caipChainId,
         );
         Logger.log('selectedWallet', selectedWallet);
         if (selectedWallet && cardExternalWalletDetails?.walletDetails) {
@@ -197,7 +189,8 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             cardExternalWalletDetails?.walletDetails.find(
               (wallet) =>
                 wallet.tokenDetails.address?.toLowerCase() ===
-                  token.address?.toLowerCase() && wallet.chainId === chainId,
+                  token.address?.toLowerCase() &&
+                wallet.caipChainId === token.caipChainId,
             );
 
           const priorityTokenData = {
@@ -209,7 +202,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             allowance: token.allowance || '0',
             availableBalance: token.balance || '0',
             walletAddress: newPriorityTokenWalletDetail?.walletAddress || '',
-            chainId: token.chainId,
+            caipChainId: token.caipChainId,
             isStaked: false,
           };
 
@@ -234,18 +227,12 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
   const handleTokenPress = useCallback(
     async (token: SupportedTokenWithChain) => {
-      const isSolana = isSolanaChainId(token.chainId);
-      const chainId = isSolana
-        ? formatChainIdToCaip(1)
-        : formatChainIdToCaip(token.chainId);
       // Check if this token is already the priority token
-      Logger.log('chainId', chainId);
       const isAlreadyPriorityToken =
         priorityToken &&
         priorityToken.address?.toLowerCase() === token.address?.toLowerCase() &&
-        priorityToken.chainId === chainId;
+        priorityToken.caipChainId === token.caipChainId;
 
-      Logger.log('isAlreadyPriorityToken', isAlreadyPriorityToken);
       if (isAlreadyPriorityToken) {
         // Token is already the priority token
         if (navigateToCardHomeOnPriorityToken) {
@@ -258,7 +245,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           setOpenAssetSelectionBottomSheet(false);
         }
       } else if (token.enabled && isAuthenticated) {
-        Logger.log('token is enabled and authenticated');
         // Token is already delegated, update priority directly
         await updatePriority(token);
       } else {
@@ -329,10 +315,14 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
                     style={tw.style('mr-3')}
                     badgePosition={BadgePosition.BottomRight}
                     badgeElement={
-                      item.chainId ? (
+                      item.caipChainId ? (
                         <Badge
                           variant={BadgeVariant.Network}
-                          imageSource={NetworkBadgeSource(item.chainId as Hex)}
+                          imageSource={NetworkBadgeSource(
+                            safeFormatChainIdToHex(
+                              item.caipChainId,
+                            ) as `0x${string}`,
+                          )}
                         />
                       ) : null
                     }
@@ -384,7 +374,9 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             </ListItemSelect>
           )}
           keyExtractor={(item) =>
-            `${item.address}-${item.symbol}-${item.chainId}`
+            `${item.address}-${item.symbol}-${safeFormatChainIdToHex(
+              item.caipChainId,
+            )}`
           }
         />
       ) : (

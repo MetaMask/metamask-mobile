@@ -52,6 +52,7 @@ import { getCardBaanxToken } from '../util/cardTokenVault';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -899,6 +900,32 @@ export class CardSDK {
             wallet,
             delegationSettings,
           );
+        Logger.log('tokenDetails', tokenDetails);
+        Logger.log('===============================================');
+
+        // Determine caipChainId based on network type
+        // For Solana, use the proper Solana CAIP chain ID
+        // For EVM chains, convert the decimal chainId to CAIP format
+        const caipChainId = (() => {
+          const networkLower = wallet.network?.toLowerCase();
+
+          if (networkLower === 'solana') {
+            return SolScope.Mainnet;
+          }
+
+          // For EVM chains, ensure we have valid tokenDetails before formatting
+          if (!tokenDetails?.decimalChainId) {
+            Logger.log(
+              `Missing decimalChainId for network ${wallet.network}, using network fallback`,
+            );
+            return this.mapAPINetworkToCaipChainId(wallet.network);
+          }
+
+          return formatChainIdToCaip(tokenDetails.decimalChainId);
+        })();
+
+        Logger.log('caipChainId', caipChainId);
+        Logger.log('===============================================');
 
         return {
           id: priorityWallet?.id ?? 0,
@@ -907,9 +934,7 @@ export class CardSDK {
           balance: wallet.balance,
           allowance: wallet.allowance,
           priority: priorityWallet?.priority ?? 0,
-          chainId: tokenDetails?.decimalChainId
-            ? formatChainIdToCaip(tokenDetails?.decimalChainId)
-            : '',
+          caipChainId,
           tokenDetails: {
             address: tokenDetails?.address ?? '',
             decimals: tokenDetails?.decimals ?? 0,

@@ -25,6 +25,7 @@ import {
 } from '../../../../util/number';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { TokenI } from '../../Tokens/types';
+import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 
 /**
  * Interface for tokens formatted for AssetSelectionBottomSheet
@@ -76,23 +77,27 @@ export const useAssetsList = (
     }
 
     return tokens.map((token): SupportedTokenWithChain => {
-      const chainId = token.chainId as Hex;
+      const chainId = safeFormatChainIdToHex(
+        token.caipChainId,
+      ) as `0x${string}`;
 
       // Get asset from assets list or build from token data
       let asset = selectAsset(allAssets, {
-        address: token.address,
-        chainId: token.chainId as string,
-        isStaked: token.isStaked,
+        address: token.address ?? '',
+        chainId,
       });
 
       if (!asset && token) {
         const assetAddress =
-          token.chainId && isSolanaChainId(token.chainId)
-            ? `${token.chainId}/token:${token.address}`
-            : token.address.toLowerCase();
-        const iconUrl = buildTokenIconUrl(token.chainId, token.address);
+          token.caipChainId && isSolanaChainId(token.caipChainId)
+            ? `${token.caipChainId}/token:${token.address}`
+            : token.address?.toLowerCase() ?? '';
+        const iconUrl = buildTokenIconUrl(
+          token.caipChainId,
+          token.address ?? '',
+        );
         const filteredToken = tokensWithBalance.find(
-          (t) => t.address === assetAddress && t.chainId === token.chainId,
+          (t) => t.address === assetAddress && t.chainId === token.caipChainId,
         );
 
         asset = {
@@ -171,15 +176,15 @@ export const useAssetsList = (
       const chainName = isSolanaChainId(chainId) ? 'Solana' : 'Linea';
 
       // Build icon URL
-      const iconUrl = buildTokenIconUrl(token.chainId, token.address);
+      const iconUrl = buildTokenIconUrl(token.caipChainId, token.address ?? '');
 
       return {
-        address: token.address,
+        address: token.address ?? '',
         symbol: token.symbol || '',
         name: token.name || token.symbol || '',
         decimals: token.decimals || 0,
         enabled: token.allowanceState !== AllowanceState.NotEnabled,
-        chainId: token.chainId || chainId,
+        chainId: token.caipChainId || chainId,
         chainName,
         balance,
         balanceFiat,

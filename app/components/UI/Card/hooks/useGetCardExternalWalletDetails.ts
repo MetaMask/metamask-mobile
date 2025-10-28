@@ -12,7 +12,6 @@ import { isZero } from '../../../../util/lodash';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { useWrapWithCache } from './useWrapWithCache';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import { formatChainIdToHex } from '@metamask/bridge-controller';
 
 /**
  * Maps a CardExternalWalletDetail to CardTokenAllowance format
@@ -54,20 +53,13 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
       (ta) => ta.address.toLowerCase() === tokenAddressToMatch?.toLowerCase(),
     );
 
-    // This ensures compatibility with useTokensWithBalance and other hooks that expect Hex chainIds
-    Logger.log(
-      'cardExternalWalletDetail.chainId',
-      cardExternalWalletDetail.chainId,
-    );
-    const hexChainId = formatChainIdToHex(cardExternalWalletDetail.chainId);
-
     return {
       address: cardExternalWalletDetail.tokenDetails.address ?? '',
       decimals: cardExternalWalletDetail.tokenDetails.decimals ?? 0,
       symbol: cardExternalWalletDetail.tokenDetails.symbol ?? '',
       name: cardExternalWalletDetail.tokenDetails.name ?? '',
       walletAddress: cardExternalWalletDetail.walletAddress,
-      chainId: hexChainId,
+      caipChainId: cardExternalWalletDetail.caipChainId,
       allowanceState,
       totalAllowance,
       allowance: allowanceFloat.toString(),
@@ -104,6 +96,8 @@ const useGetCardExternalWalletDetails = () => {
       const cardExternalWalletDetails = await sdk.getCardExternalWalletDetails(
         delegationSettings.networks,
       );
+      Logger.log('cardExternalWalletDetails', cardExternalWalletDetails);
+      Logger.log('===============================================');
 
       if (!cardExternalWalletDetails?.length) {
         return {
@@ -138,7 +132,8 @@ const useGetCardExternalWalletDetails = () => {
       // The balance scanner contract only works with EVM addresses
       const lineaEvmTokens = cardExternalWalletDetails.filter(
         (detail) =>
-          detail.chainId === sdk.lineaChainId && detail.tokenDetails.address,
+          detail.caipChainId === sdk.lineaChainId &&
+          detail.tokenDetails.address,
       );
 
       const totalAllowances = await sdk.getTotalAllowance(lineaEvmTokens);
@@ -151,7 +146,7 @@ const useGetCardExternalWalletDetails = () => {
       // Get priority wallet detail
       const priorityWalletDetail = mappedWalletDetails.find(
         (mpw) =>
-          mpw.address.toLowerCase() ===
+          mpw.address?.toLowerCase() ===
           cardExternalWalletDetailsWithPriority.tokenDetails.address?.toLowerCase(),
       );
 

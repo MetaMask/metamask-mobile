@@ -64,7 +64,11 @@ export const useOpenSwaps = ({
 
       const destToken: BridgeToken = {
         ...priorityToken,
-        image: buildTokenIconUrl(priorityToken.chainId, priorityToken.address),
+        chainId: priorityToken.caipChainId,
+        image: buildTokenIconUrl(
+          priorityToken.caipChainId,
+          priorityToken.address ?? '',
+        ),
       } as BridgeToken;
       dispatch(setDestToken(destToken));
 

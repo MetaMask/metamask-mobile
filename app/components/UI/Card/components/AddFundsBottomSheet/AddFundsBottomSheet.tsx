@@ -31,6 +31,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 
 export interface AddFundsBottomSheetProps {
   setOpenAddFundsBottomSheet: (open: boolean) => void;
@@ -82,7 +83,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
         .addProperties({
           text: 'Deposit',
           location: 'CardHome',
-          chain_id_destination: getDecimalChainId(priorityToken?.chainId),
+          chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
           ramp_type: 'DEPOSIT',
         })
         .build(),
@@ -96,7 +97,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
     navigate,
     trackEvent,
     createEventBuilder,
-    priorityToken?.chainId,
+    priorityToken,
   ]);
 
   const options = [
@@ -117,7 +118,10 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
       onPress: handleOpenSwaps,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
       enabled:
-        AppConstants.SWAPS.ACTIVE && isSwapsAllowed(priorityToken?.chainId),
+        AppConstants.SWAPS.ACTIVE &&
+        isSwapsAllowed(
+          safeFormatChainIdToHex(priorityToken?.caipChainId ?? ''),
+        ),
     },
   ];
 
