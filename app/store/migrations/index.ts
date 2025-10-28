@@ -252,7 +252,7 @@ export const asyncifyMigrations = (
    * - Migrations 105+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
    * - "unpacking" distributed files back into a single object
-   * 
+   *
    * CRITICAL: Crashes if controller data cannot be loaded.
    * This ensures migrations run with complete data and prevents silent data loss.
    */
@@ -260,8 +260,8 @@ export const asyncifyMigrations = (
     try {
       const fsState = (await ControllerStorage.getAllPersistedState()) as
         | {
-          backgroundState?: Record<string, unknown>;
-        }
+            backgroundState?: Record<string, unknown>;
+          }
         | undefined;
 
       const s = state as StateWithEngine;
@@ -282,7 +282,9 @@ export const asyncifyMigrations = (
     } catch (error) {
       captureException(
         new Error(
-          `inflateFromControllers: Critical error loading controller data: ${String(error)}`,
+          `inflateFromControllers: Critical error loading controller data: ${String(
+            error,
+          )}`,
         ),
       );
 
@@ -290,8 +292,8 @@ export const asyncifyMigrations = (
       // This could result in data loss if migrations can't access all controller state
       throw new Error(
         `Critical: Failed to load controller data for migration. ` +
-        `Cannot continue safely as migrations may corrupt data without complete state. ` +
-        `App will restart to attempt recovery. Error: ${String(error)}`
+          `Cannot continue safely as migrations may corrupt data without complete state. ` +
+          `App will restart to attempt recovery. Error: ${String(error)}`,
       );
     }
   };
@@ -305,7 +307,7 @@ export const asyncifyMigrations = (
    * - This function "redistributes" the single object back into individual controller files
    * - Then strips engine.backgroundState from redux to maintain the new architecture
    * - "repacking" the single object back into distributed files
-   * 
+   *
    * CRITICAL: Crashes immediately if ANY controller fails to save.
    * This prevents partial migration state corruption and ensures clean recovery.
    */
@@ -341,8 +343,8 @@ export const asyncifyMigrations = (
             // This ensures clean recovery and prevents state corruption
             throw new Error(
               `Critical: Migration failed for controller '${controllerName}'. ` +
-              `Cannot continue with partial migration as this would corrupt user data. ` +
-              `App will restart to attempt recovery. Error: ${String(error)}`
+                `Cannot continue with partial migration as this would corrupt user data. ` +
+                `App will restart to attempt recovery. Error: ${String(error)}`,
             );
           }
         }),
@@ -364,8 +366,8 @@ export const asyncifyMigrations = (
       // Returning original state would mean user continues with unmigrated data
       throw new Error(
         `Critical: deflateToControllersAndStrip failed completely. ` +
-        `Cannot continue safely as this indicates severe migration system failure. ` +
-        `App will restart to attempt recovery. Error: ${String(error)}`
+          `Cannot continue safely as this indicates severe migration system failure. ` +
+          `App will restart to attempt recovery. Error: ${String(error)}`,
       );
     }
   };
@@ -394,7 +396,7 @@ export const asyncifyMigrations = (
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
-            Object.keys(s2.engine.backgroundState).length > 0,
+              Object.keys(s2.engine.backgroundState).length > 0,
           );
           if (hasControllers) {
             return await deflateToControllersAndStrip(migratedState);

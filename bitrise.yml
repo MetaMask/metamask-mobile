@@ -181,9 +181,6 @@ pipelines:
       build_ios_main_exp:
         depends_on:
         - bump_version_code    
-      deploy_ios_to_store:
-        depends_on:
-        - build_ios_main_exp
   nightly_rc_builds_pipeline:
     workflows:
       bump_version_code: {}
@@ -193,9 +190,6 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
-      deploy_ios_to_store:
-        depends_on:
-        - build_ios_main_rc    
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -653,6 +647,9 @@ workflows:
                     echo "APP_BUILD_NUMBER: $APP_SEM_VER_NAME_TMP"
                     exit 1
                 fi
+
+                echo "APP_SEM_VER_NAME: $APP_SEM_VER_NAME_TMP"
+                echo "APP_BUILD_NUMBER: $APP_BUILD_NUMBER_TMP"
 
                 # Export as environment variables
                 envman add --key APP_SEM_VER_NAME --value "$APP_SEM_VER_NAME_TMP"
@@ -3701,7 +3698,7 @@ app:
       BRIDGE_USE_DEV_APIS: false
     - opts:
         is_expand: false
-      MM_PERPS_ENABLED: false
+      MM_PERPS_ENABLED: true
     - opts:
         is_expand: false
       MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB,BE"
