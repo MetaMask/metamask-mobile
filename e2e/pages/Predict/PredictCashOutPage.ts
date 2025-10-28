@@ -1,5 +1,4 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import { Matchers, Gestures } from '../../framework';
 import { PredictCashOutSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
 
 class PredictCashOutPage {
@@ -12,7 +11,9 @@ class PredictCashOutPage {
     );
   }
   async tapCashOutButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cashOutButton);
+    await Gestures.waitAndTap(this.cashOutButton, {
+      elemDescription: 'Cash out button',
+    });
   }
 }
 
