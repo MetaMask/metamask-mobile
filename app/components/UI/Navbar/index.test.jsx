@@ -17,6 +17,7 @@ import {
   getPaymentRequestSuccessOptionsTitle,
   getApproveNavbar,
   getModalNavbarOptions,
+  getStakingNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -102,6 +103,10 @@ jest.mock('../../../core/Analytics', () => ({
 
 jest.mock('../../../util/blockaid', () => ({
   getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
+}));
+
+jest.mock('../Stake/utils/metaMetrics/withMetaMetrics', () => ({
+  withMetaMetrics: jest.fn((fn) => () => fn()),
 }));
 
 describe('getNetworkNavbarOptions', () => {
@@ -1319,5 +1324,69 @@ describe('getBridgeNavbar', () => {
         getSendFlowTitle();
       }).toThrow();
     });
+  });
+});
+
+describe('getStakingNavbar', () => {
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+  const {
+    withMetaMetrics,
+  } = require('../Stake/utils/metaMetrics/withMetaMetrics');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('invokes goBack on back button press and records metrics when provided', () => {
+    const options = getStakingNavbar(
+      'Stake',
+      mockNavigation,
+      mockTheme.colors,
+      { hasBackButton: true },
+      {
+        backButtonEvent: { event: 'BACK_EVT', properties: { source: 'test' } },
+      },
+    );
+
+    const headerLeft = options.headerLeft();
+    headerLeft.props.onPress();
+
+    expect(withMetaMetrics).toHaveBeenCalledTimes(1);
+    expect(withMetaMetrics).toHaveBeenCalledWith(expect.any(Function), {
+      event: 'BACK_EVT',
+      properties: { source: 'test' },
+    });
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('invokes icon handler and records metrics when icon button is pressed', () => {
+    const handleIconPress = jest.fn();
+
+    const options = getStakingNavbar(
+      'Stake',
+      mockNavigation,
+      mockTheme.colors,
+      {
+        hasBackButton: false,
+        hasCancelButton: false,
+        hasIconButton: true,
+        handleIconPress,
+      },
+      {
+        iconButtonEvent: { event: 'ICON_EVT', properties: { from: 'header' } },
+      },
+    );
+
+    const headerRight = options.headerRight();
+    headerRight.props.onPress();
+
+    expect(withMetaMetrics).toHaveBeenCalledTimes(1);
+    expect(withMetaMetrics).toHaveBeenCalledWith(expect.any(Function), {
+      event: 'ICON_EVT',
+      properties: { from: 'header' },
+    });
+    expect(handleIconPress).toHaveBeenCalledTimes(1);
   });
 });
