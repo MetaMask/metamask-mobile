@@ -1,4 +1,10 @@
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, {
+  ReactNode,
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import InfoSection from '../../UI/info-row/info-section';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -31,13 +37,15 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
 
 export interface CustomAmountInfoProps {
+  children?: ReactNode;
   currency?: string;
+  disablePay?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ currency }) => {
+  ({ children, currency, disablePay }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken();
+    useAutomaticTransactionPayToken({ disable: disablePay });
 
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setKeyboardVisible] = useState(true);
@@ -56,7 +64,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
-    } = useTransactionCustomAmount();
+    } = useTransactionCustomAmount({ currency });
 
     const { alertMessage, keyboardAlertMessage, excludeBannerKeys } =
       useTransactionCustomAmountAlerts({
@@ -86,7 +94,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={Boolean(keyboardAlertMessage)}
             onPress={handleAmountPress}
           />
-          <PayTokenAmount amountHuman={amountHuman} />
+          {disablePay !== true && <PayTokenAmount amountHuman={amountHuman} />}
+          {children}
           {!isKeyboardVisible && (
             <AlertBanner
               blockingOnly
@@ -95,9 +104,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               inline
             />
           )}
-          <InfoSection>
-            <PayWithRow />
-          </InfoSection>
+          {disablePay !== true && (
+            <InfoSection>
+              <PayWithRow />
+            </InfoSection>
+          )}
           {isKeyboardVisible && <AlertMessage alertMessage={alertMessage} />}
           {isResultReady && (
             <>
@@ -157,6 +168,6 @@ function useIsResultReady({
 
   return (
     !isKeyboardVisible &&
-    (isLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0)
+    (isLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
   );
 }

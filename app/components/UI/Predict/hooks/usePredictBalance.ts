@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { usePredictTrading } from './usePredictTrading';
@@ -42,8 +43,8 @@ export function usePredictBalance(
 ): UsePredictBalanceReturn {
   const {
     providerId = POLYMARKET_PROVIDER_ID,
-    loadOnMount = true,
-    refreshOnFocus = true,
+    loadOnMount = false,
+    refreshOnFocus = false,
   } = options;
 
   const { getBalance } = usePredictTrading();
@@ -53,6 +54,7 @@ export function usePredictBalance(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
+  const isLoadingRef = useRef(false);
 
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
@@ -65,9 +67,16 @@ export function usePredictBalance(
 
   const loadBalance = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
+      // Prevent multiple simultaneous calls
+      if (isLoadingRef.current) {
+        DevLogger.log('usePredictBalance: Skipping load - already in progress');
+        return;
+      }
+
       const { isRefresh = false } = loadOptions || {};
 
       try {
+        isLoadingRef.current = true;
         if (isRefresh) {
           setIsRefreshing(true);
         } else {
@@ -92,7 +101,22 @@ export function usePredictBalance(
           err instanceof Error ? err.message : 'Failed to load balance';
         setError(errorMessage);
         DevLogger.log('usePredictBalance: Error loading balance', err);
+
+        // Capture exception with balance loading context (no user address)
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePredictBalance',
+            action: 'balance_load',
+            operation: 'data_fetching',
+          },
+          extra: {
+            balanceContext: {
+              providerId,
+            },
+          },
+        });
       } finally {
+        isLoadingRef.current = false;
         setIsLoading(false);
         setIsRefreshing(false);
       }

@@ -8,6 +8,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
+import { getPredictPositionSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -31,6 +32,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   return (
     <TouchableOpacity
+      testID={getPredictPositionSelector.currentPositionCard}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >

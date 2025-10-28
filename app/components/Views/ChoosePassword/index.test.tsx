@@ -53,7 +53,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('./FoxRiveLoaderAnimation/index');
+jest.mock('./FoxRiveLoaderAnimation/FoxRiveLoaderAnimation');
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
@@ -571,7 +571,7 @@ describe('ChoosePassword', () => {
     );
   });
 
-  it('create a password and navigate to AccountBackupStep1', async () => {
+  it('create a password and navigate to ManualBackupStep1', async () => {
     // Mock Authentication.newWalletAndKeychain to resolve quickly to trigger loading state
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
@@ -652,12 +652,11 @@ describe('ChoosePassword', () => {
 
     // Wait for the animation callback to trigger navigation
     await waitFor(() => {
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
-        'AccountBackupStep1',
-        {
-          seedPhrase: expect.any(Array),
-        },
-      );
+      expect(mockNavigation.replace).toHaveBeenCalledWith('ManualBackupStep1', {
+        seedPhrase: expect.any(Array),
+        backupFlow: false,
+        settingsBackup: false,
+      });
     });
 
     // // Clean up mock

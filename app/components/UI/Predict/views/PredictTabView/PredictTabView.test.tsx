@@ -5,6 +5,20 @@ jest.mock('../../hooks/usePredictDepositToasts', () => ({
   usePredictDepositToasts: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePredictClaimToasts', () => ({
+  usePredictClaimToasts: jest.fn(() => ({
+    showSuccessToast: jest.fn(),
+    showErrorToast: jest.fn(),
+  })),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+  })),
+}));
+
 const renderWithProviders = (component: React.ReactElement) =>
   render(component);
 
@@ -247,6 +261,10 @@ import PredictTabView from './PredictTabView';
 
 describe('PredictTabView', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

@@ -110,6 +110,9 @@ import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsV
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
+///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -191,11 +194,6 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name="WalletView"
       component={WalletModalFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.PREDICT.ROOT}
-      component={PredictScreenStack}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -883,6 +881,14 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+const SampleFeatureFlow = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeature} />
+  </Stack.Navigator>
+);
+///: END:ONLY_INCLUDE_IF
+
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
@@ -1070,17 +1076,25 @@ const MainNavigator = () => {
             name={Routes.PREDICT.ROOT}
             component={PredictScreenStack}
             options={{
-              animationEnabled: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
             }}
           />
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={{
-              ...clearStackNavigatorOptions,
-              presentation: 'transparentModal',
-              animationEnabled: true,
-            }}
+            options={clearStackNavigatorOptions}
           />
         </>
       )}
@@ -1123,6 +1137,16 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      }
+      <Stack.Screen
+        name={Routes.SAMPLE_FEATURE}
+        component={SampleFeatureFlow}
+      />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );

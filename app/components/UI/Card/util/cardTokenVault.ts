@@ -1,5 +1,6 @@
 import SecureKeychain from '../../../../core/SecureKeychain';
 import Logger from '../../../../util/Logger';
+import { CardTokenData } from '../types';
 
 const CARD_BAANX_TOKENS_KEY = 'CARD_BAANX_TOKENS';
 
@@ -15,16 +16,26 @@ interface TokenResponse {
 }
 
 /**
- * Store a card baanx token
+ * Store a card baanx token. Automatically converts token expiration dates from seconds to milliseconds.
+ * Supports both full token pairs (access + refresh) and access-only tokens from onboarding.
  */
-export async function storeCardBaanxToken(params: {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number;
-  location: 'us' | 'international';
-}): Promise<TokenResponse> {
+export async function storeCardBaanxToken(
+  params: CardTokenData,
+): Promise<TokenResponse> {
   try {
-    const stringifiedTokens = JSON.stringify(params);
+    const accessTokenExpiresAt =
+      Date.now() + params.accessTokenExpiresAt * 1000;
+
+    // Handle optional refresh token (for onboarding flow)
+    const refreshTokenExpiresAt = params.refreshTokenExpiresAt
+      ? Date.now() + params.refreshTokenExpiresAt * 1000
+      : undefined;
+
+    const stringifiedTokens = JSON.stringify({
+      ...params,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    });
 
     const storeResult = await SecureKeychain.setSecureItem(
       CARD_BAANX_TOKENS_KEY,
@@ -52,16 +63,40 @@ export async function storeCardBaanxToken(params: {
 }
 
 /**
+ * Validate the token data
+ * @param tokenData The token data to validate
+ * @returns True if the token data is valid, false otherwise
+ *
+ * Note: Supports both full token pairs and access-only tokens from onboarding.
+ * For full authentication, both access and refresh tokens are required.
+ * For onboarding flow, only access token is required.
+ */
+const validateTokenData = (tokenData: Partial<CardTokenData>): boolean => {
+  // Always require access token, expiration, and location
+  const hasRequiredFields = Boolean(
+    tokenData.accessToken &&
+      tokenData.accessTokenExpiresAt &&
+      tokenData.location,
+  );
+
+  if (!hasRequiredFields) {
+    return false;
+  }
+
+  // If refresh token is present, refresh token expiration must also be present
+  if (tokenData.refreshToken && !tokenData.refreshTokenExpiresAt) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Get a card baanx token
  */
 export async function getCardBaanxToken(): Promise<{
   success: boolean;
-  tokenData?: {
-    accessToken?: string;
-    refreshToken?: string;
-    expiresAt?: number;
-    location?: 'us' | 'international';
-  };
+  tokenData: CardTokenData | null;
   error?: string;
 }> {
   try {
@@ -70,25 +105,28 @@ export async function getCardBaanxToken(): Promise<{
     if (!secureItem) {
       return {
         success: true,
-        tokenData: undefined,
+        tokenData: null,
       };
     }
 
-    const tokenData: {
-      accessToken: string;
-      refreshToken: string;
-      expiresAt: number;
-      location: 'us' | 'international';
-    } = JSON.parse(secureItem.value);
+    const tokenData: Partial<CardTokenData> = JSON.parse(secureItem.value);
+
+    if (!validateTokenData(tokenData)) {
+      return {
+        success: false,
+        tokenData: null,
+        error: 'Invalid token data',
+      };
+    }
 
     return {
       success: true,
-      tokenData,
+      tokenData: tokenData as CardTokenData,
     };
   } catch (error) {
-    Logger.log('Error getting card baanx token:', error);
     return {
       success: false,
+      tokenData: null,
       error: (error as Error).message,
     };
   }

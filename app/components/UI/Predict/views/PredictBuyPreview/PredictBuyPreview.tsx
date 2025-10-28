@@ -15,7 +15,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Image, ScrollView, TouchableOpacity } from 'react-native';
 import Button, {
   ButtonSize,
@@ -26,11 +26,15 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import {
+  PredictEventType,
+  PredictEventValues,
+} from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
@@ -38,6 +42,10 @@ import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { strings } from '../../../../../../locales/i18n';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -47,8 +55,34 @@ const PredictBuyPreview = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken } = route.params;
+  const { market, outcome, outcomeToken, entryPoint } = route.params;
+
+  // Prepare analytics properties (userAddress will be added by PredictController)
+  const analyticsProperties = useMemo(
+    () => ({
+      marketId: market?.id,
+      marketTitle: market?.title,
+      marketCategory: market?.categories?.[0],
+      entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+      liquidity: market?.liquidity,
+      volume: market?.volume,
+      sharePrice: outcomeToken?.price,
+    }),
+    [market, outcomeToken, entryPoint],
+  );
+
   const { placeOrder, isLoading } = usePredictPlaceOrder();
+
+  const { balance, isLoading: isBalanceLoading } = usePredictBalance({
+    providerId: outcome.providerId,
+    loadOnMount: true,
+    refreshOnFocus: true,
+  });
+
+  const { deposit } = usePredictDeposit({
+    providerId: outcome.providerId,
+  });
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
@@ -64,41 +98,63 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 5000,
   });
 
+  // Track Predict Action Initiated when screen mounts
+  useEffect(() => {
+    const controller = Engine.context.PredictController;
+
+    controller.trackPredictOrderEvent({
+      eventType: PredictEventType.INITIATED,
+      analyticsProperties,
+      providerId: outcome.providerId,
+      sharePrice: outcomeToken?.price,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const toWin = preview?.minAmountReceived ?? 0;
+  const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
+  // Validation constants and states
+  const MINIMUM_BET = 1; // $1 minimum bet
+  const hasInsufficientFunds = total > balance;
+  const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
+  const canPlaceBet =
+    currentValue >= MINIMUM_BET &&
+    !hasInsufficientFunds &&
+    preview &&
+    !isCalculating &&
+    !isLoading &&
+    !isBalanceLoading &&
+    !isRateLimited;
+
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
-    ? `${outcome.groupItemTitle} • `
+    ? `${outcome.groupItemTitle} · `
     : '';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
 
-  const onPlaceBet = async () => {
-    if (!preview) return;
+  const onPlaceBet = () => {
+    if (!preview || hasInsufficientFunds || isBelowMinimum) return;
 
-    await placeOrder({
+    placeOrder({
       providerId: outcome.providerId,
+      analyticsProperties,
       preview,
     });
-    try {
-      dispatch(StackActions.pop());
-      dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
-    } catch (error) {
-      // Navigation errors should not prevent the bet from being placed
-      console.warn('Navigation error after placing bet:', error);
-    }
+    dispatch(StackActions.pop());
   };
 
   const renderHeader = () => (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full gap-4 p-4 border-b border-muted"
+      twClassName="w-full gap-4 p-4"
     >
       <TouchableOpacity testID="back-button" onPress={() => goBack()}>
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
@@ -114,7 +170,7 @@ const PredictBuyPreview = () => {
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.HeadingSM}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -156,26 +212,38 @@ const PredictBuyPreview = () => {
 
   const renderAmount = () => (
     <ScrollView
-      style={tw.style('flex-col mt-12 py-9')}
-      contentContainerStyle={tw.style('')}
+      style={tw.style('flex-col')}
+      contentContainerStyle={tw.style('flex-grow justify-center')}
       showsVerticalScrollIndicator={false}
     >
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="w-full flex-2 gap-2"
+        twClassName="w-full"
       >
         <Box twClassName="text-center leading-[72px]">
           <PredictAmountDisplay
             amount={currentValueUSDString}
             onPress={() => keypadRef.current?.handleAmountPress()}
             isActive={isInputFocused}
+            hasError={hasInsufficientFunds}
           />
         </Box>
-        <Box twClassName="text-center">
+        {/* Available balance */}
+        <Box twClassName="text-center mt-2">
+          {isBalanceLoading ? (
+            <Skeleton width={120} height={20} />
+          ) : (
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {`${strings('predict.order.available')}: `}
+              {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
+            </Text>
+          )}
+        </Box>
+        <Box twClassName="text-center mt-2">
           <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
-            To win{' '}
+            {`${strings('predict.order.to_win')} `}
             {formatPrice(toWin, {
               minimumDecimals: 2,
               maximumDecimals: 2,
@@ -185,6 +253,45 @@ const PredictBuyPreview = () => {
       </Box>
     </ScrollView>
   );
+
+  const renderErrorMessage = () => {
+    if (isBalanceLoading) return null;
+
+    if (hasInsufficientFunds) {
+      return (
+        <Box twClassName="px-12 pb-4">
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Error}
+            style={tw.style('text-center')}
+          >
+            {strings('predict.order.prediction_insufficient_funds')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (isBelowMinimum) {
+      return (
+        <Box twClassName="px-12 pb-4">
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Error}
+            style={tw.style('text-center')}
+          >
+            {strings('predict.order.prediction_minimum_bet', {
+              amount: formatPrice(MINIMUM_BET, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+            })}
+          </Text>
+        </Box>
+      );
+    }
+
+    return null;
+  };
 
   const renderBottomContent = () => {
     if (isInputFocused) {
@@ -198,29 +305,47 @@ const PredictBuyPreview = () => {
       >
         <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
           <Box twClassName="w-full h-12">
-            <Button
-              label={`${outcomeToken?.title} • ${formatCents(
-                outcomeToken?.price ?? 0,
-              )}`}
-              variant={ButtonVariants.Secondary}
-              onPress={onPlaceBet}
-              style={tw.style(
-                outcomeToken?.title === 'Yes'
-                  ? 'bg-success-default/15'
-                  : 'bg-error-default/15',
-                outcomeToken?.title === 'Yes'
-                  ? 'text-success-default'
-                  : 'text-error-default',
-              )}
-              disabled={!preview || isCalculating || isLoading}
-              loading={isLoading}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-            />
+            {hasInsufficientFunds ? (
+              <Button
+                label={strings('predict.deposit.add_funds')}
+                variant={ButtonVariants.Primary}
+                onPress={deposit}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+              />
+            ) : (
+              <Button
+                label={
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Success}
+                  >
+                    {outcomeToken?.title} ·{' '}
+                    {formatCents(outcomeToken?.price ?? 0)}
+                  </Text>
+                }
+                variant={ButtonVariants.Secondary}
+                onPress={onPlaceBet}
+                style={tw.style(
+                  outcomeToken?.title === 'Yes'
+                    ? 'bg-success-default/15'
+                    : 'bg-error-default/15',
+                  outcomeToken?.title === 'Yes'
+                    ? 'text-success-default'
+                    : 'text-error-default',
+                  !canPlaceBet && 'opacity-40',
+                )}
+                disabled={!canPlaceBet}
+                loading={isLoading}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                labelTextVariant={TextVariant.BodyMD}
+              />
+            )}
           </Box>
           <Box twClassName="text-center items-center">
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              All payments are made in USDC
+            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+              {strings('predict.order.payments_made_in_usdc')}
             </Text>
           </Box>
         </Box>
@@ -238,6 +363,7 @@ const PredictBuyPreview = () => {
         metamaskFee={metamaskFee}
         providerFee={providerFee}
       />
+      {renderErrorMessage()}
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
@@ -246,6 +372,8 @@ const PredictBuyPreview = () => {
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
+        hasInsufficientFunds={hasInsufficientFunds}
+        onAddFunds={deposit}
       />
       {renderBottomContent()}
     </SafeAreaView>

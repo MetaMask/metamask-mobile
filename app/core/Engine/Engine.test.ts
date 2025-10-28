@@ -102,6 +102,7 @@ describe('Engine', () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
     await Engine.destroyEngine();
+    await EngineClass.instance?.destroyEngineInstance();
   });
 
   it('should expose an API', () => {
@@ -224,7 +225,9 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         claimTransaction: null,
+        claimablePositions: [],
         depositTransaction: null,
+        withdrawTransaction: null,
         isOnboarded: {},
       },
       GatorPermissionsController: {
@@ -238,6 +241,16 @@ describe('Engine', () => {
         gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
         isFetchingGatorPermissions: false,
         isGatorPermissionsEnabled: false,
+      },
+      PerpsController: {
+        ...backgroundState.PerpsController,
+        depositRequests: [],
+        withdrawalRequests: [],
+        withdrawalProgress: {
+          progress: 0,
+          lastUpdated: 0,
+          activeWithdrawalId: undefined,
+        },
       },
     };
 

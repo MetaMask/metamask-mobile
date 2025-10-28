@@ -251,6 +251,8 @@ const Routes = {
     MARKET_DETAILS: 'PerpsMarketDetails',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
+    HIP3_DEBUG: 'PerpsHIP3Debug',
+    TPSL: 'PerpsTPSL',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
@@ -343,11 +345,29 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SAMPLE_FEATURE: 'SampleFeature',
+  ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    ONBOARDING: {
+      ROOT: 'CardOnboarding',
+      SIGN_UP: 'CardOnboardingSignUp',
+      CONFIRM_EMAIL: 'CardOnboardingConfirmEmail',
+      SET_PHONE_NUMBER: 'CardOnboardingSetPhoneNumber',
+      CONFIRM_PHONE_NUMBER: 'CardOnboardingConfirmPhoneNumber',
+      VERIFY_IDENTITY: 'CardOnboardingVerifyIdentity',
+      VALIDATING_KYC: 'CardOnboardingValidatingKYC',
+      PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
+      PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
+      MAILING_ADDRESS: 'CardOnboardingMailingAddress',
+      COMPLETE: 'CardOnboardingComplete',
+      KYC_FAILED: 'CardOnboardingKYCFailed',
+      WEBVIEW: 'CardOnboardingWebview',
+    },
   },
   SEND: {
     RECIPIENT: 'Recipient',
