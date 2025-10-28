@@ -4,6 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
+// import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
@@ -11,6 +12,8 @@ import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
+// import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
+// import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
@@ -41,6 +44,21 @@ const PerpsModalStack = () => (
           name={Routes.PERPS.MODALS.GTM_MODAL}
           component={PerpsGTMModal}
         />
+        {/* TODO: Replace modals once finalized in follow up PR */}
+        {/* <ModalStack.Screen
+          name={Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS}
+          component={PerpsCloseAllPositionsView}
+          options={{
+            title: strings('perps.close_all_modal.title'),
+          }}
+        />
+        <ModalStack.Screen
+          name={Routes.PERPS.MODALS.CANCEL_ALL_ORDERS}
+          component={PerpsCancelAllOrdersView}
+          options={{
+            title: strings('perps.cancel_all_modal.title'),
+          }}
+        /> */}
       </ModalStack.Navigator>
     </PerpsStreamProvider>
   </PerpsConnectionProvider>
@@ -58,6 +76,17 @@ const PerpsScreenStack = () => (
           options={{
             title: strings('perps.perps_trading'),
             headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name={Routes.PERPS.PERPS_HOME}
+          // TODO: Replace with PerpsHomeView once finalized in follow up PR
+          component={PerpsMarketListView}
+          options={{
+            title: strings('perps.markets.title'),
+            headerShown: false,
+            animationEnabled: false,
           }}
         />
 
