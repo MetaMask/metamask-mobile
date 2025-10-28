@@ -30,7 +30,7 @@ const CONFIG_MAP = {
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
-    updatesEnabled: true,
+    updatesEnabled: false,
   },
 };
 
