@@ -733,16 +733,37 @@ const EarnInputView = () => {
     : stakingNavBarEventOptions;
 
   useEffect(() => {
+    const isLending =
+      earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
+    const tokenLabel =
+      earnToken?.ticker ?? earnToken?.symbol ?? earnToken?.name ?? '';
+
+    const title = isLending
+      ? `${strings('earn.supply')} ${tokenLabel}`
+      : `${strings('stake.stake')} ${tokenLabel}`;
+
     navigation.setOptions(
       getStakingNavbar(
-        strings('earn.deposit'),
+        title,
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        earnToken,
+        ///: END:ONLY_INCLUDE_IF
       ),
     );
-  }, [navigation, token, theme.colors, navBarEventOptions, navBarOptions]);
+  }, [
+    navigation,
+    token,
+    theme.colors,
+    navBarEventOptions,
+    navBarOptions,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    earnToken,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
