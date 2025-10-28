@@ -150,7 +150,11 @@ function startE2EPerpsCommandPolling(): void {
   const pollIntervalMs = Number(process.env.E2E_POLL_INTERVAL_MS || 2000);
   const host = getLocalHost();
   const port = getCommandQueueServerPort();
-  const baseUrl = `http://${host}:${port}/queue.json`;
+  // Change isDebug while developing E2E for Perps to avoid emptying out the queue
+  const isDebug = false;
+  const baseUrl = isDebug
+    ? `http://${host}:${port}/debug.json`
+    : `http://${host}:${port}/queue.json`;
   const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
 
   function scheduleNext(delay: number): void {
