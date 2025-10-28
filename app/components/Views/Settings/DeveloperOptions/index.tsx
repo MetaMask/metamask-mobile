@@ -16,6 +16,7 @@ import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/Perps
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
+import DeepLinkTest from './DeepLinkTest';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -55,6 +56,7 @@ const DeveloperOptions = () => {
         ///: END:ONLY_INCLUDE_IF
       }
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
+      <DeepLinkTest />
       <ConfirmationsDeveloperOptions />
     </ScrollView>
   );
