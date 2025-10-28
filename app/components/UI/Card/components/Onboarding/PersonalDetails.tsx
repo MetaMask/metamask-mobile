@@ -16,10 +16,11 @@ import OnboardingStep from './OnboardingStep';
 import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SelectComponent from '../../../SelectComponent';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -29,13 +30,16 @@ import {
 } from '../../util/validateDateOfBirth';
 import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
-  const { setUser } = useCardSDK();
+  const dispatch = useDispatch();
+  const { setUser, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -46,6 +50,19 @@ const PersonalDetails = () => {
 
   // Get registration settings data
   const { data: registrationSettings } = useRegistrationSettings();
+
+  // If user data is available, set the state values
+  useEffect(() => {
+    if (userData) {
+      setFirstName(userData.firstName || '');
+      setLastName(userData.lastName || '');
+      setDateOfBirth(
+        userData.dateOfBirth ? formatDateOfBirth(userData.dateOfBirth) : '',
+      );
+      setNationality(userData.countryOfResidence || '');
+      setSSN(userData.ssn || '');
+    }
+  }, [userData]);
 
   // Create select options from registration settings data
   const selectOptions = useMemo(() => {
@@ -142,6 +159,14 @@ const PersonalDetails = () => {
     }
 
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.PERSONAL_DETAILS_BUTTON,
+            country_of_residence: selectedCountry,
+          })
+          .build(),
+      );
       const { user } = await registerPersonalDetails({
         onboardingId,
         firstName,
@@ -161,12 +186,23 @@ const PersonalDetails = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
       // Allow error message to display
     }
   };
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.PERSONAL_DETAILS,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const isDisabled = useMemo(
     () =>
@@ -252,7 +288,7 @@ const PersonalDetails = () => {
       />
 
       {/* Nationality */}
-      <Box>
+      <Box twClassName="mt-[-14px]">
         <Label>
           {strings('card.card_onboarding.personal_details.nationality_label')}
         </Label>

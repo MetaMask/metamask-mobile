@@ -11,9 +11,12 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { user } = useCardSDK();
 
   const {
@@ -30,6 +33,14 @@ const VerifyIdentity = () => {
       return;
     }
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFY_IDENTITY_BUTTON,
+        })
+        .build(),
+    );
+
     navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
       sessionUrl,
     });
@@ -40,6 +51,16 @@ const VerifyIdentity = () => {
       navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
     }
   }, [navigation, user?.verificationState]);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.VERIFY_IDENTITY,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
     <>

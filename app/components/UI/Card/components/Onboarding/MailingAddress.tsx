@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonSize,
@@ -10,6 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { AddressFields } from './PhysicalAddress';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
   setIsAuthenticatedCard,
@@ -22,8 +23,9 @@ import { CardError } from '../../types';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
@@ -31,12 +33,23 @@ const MailingAddress = () => {
   const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.MAILING_ADDRESS,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const {
     registerAddress,
@@ -119,6 +132,13 @@ const MailingAddress = () => {
     }
 
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.MAILING_ADDRESS_BUTTON,
+          })
+          .build(),
+      );
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -147,11 +167,6 @@ const MailingAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
-        } else {
-          Logger.log(
-            'MailingAddress: Failed to store access token',
-            storeResult.error,
-          );
         }
 
         // Registration complete
@@ -165,6 +180,7 @@ const MailingAddress = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }

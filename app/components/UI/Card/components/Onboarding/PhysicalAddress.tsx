@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -18,6 +18,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
   setIsAuthenticatedCard,
@@ -30,8 +31,9 @@ import SelectComponent from '../../../SelectComponent';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 import { Linking, TouchableOpacity } from 'react-native';
 
 export const AddressFields = ({
@@ -147,17 +149,24 @@ export const AddressFields = ({
       </Box>
       {/* State */}
       {selectedCountry === 'US' && (
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <SelectComponent
-            options={selectOptions}
-            selectedValue={state}
-            onValueChange={handleStateChange}
-            label={strings('card.card_onboarding.physical_address.state_label')}
-            defaultValue={strings(
-              'card.card_onboarding.physical_address.state_placeholder',
-            )}
-            testID="state-select"
-          />
+        <Box>
+          <Label>
+            {strings('card.card_onboarding.physical_address.state_label')}
+          </Label>
+          <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+            <SelectComponent
+              options={selectOptions}
+              selectedValue={state}
+              onValueChange={handleStateChange}
+              label={strings(
+                'card.card_onboarding.physical_address.state_label',
+              )}
+              defaultValue={strings(
+                'card.card_onboarding.physical_address.state_placeholder',
+              )}
+              testID="state-select"
+            />
+          </Box>
         </Box>
       )}
       {/* ZIP Code */}
@@ -193,7 +202,7 @@ const PhysicalAddress = () => {
   const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
@@ -433,9 +442,15 @@ const PhysicalAddress = () => {
     ) {
       return;
     }
-    try {
-      await registerUserConsent(onboardingId, user.id);
 
+    try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
+          })
+          .build(),
+      );
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -445,6 +460,7 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
+      await registerUserConsent(onboardingId, user.id);
 
       if (updatedUser) {
         setUser(updatedUser);
@@ -465,11 +481,6 @@ const PhysicalAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
-        } else {
-          Logger.log(
-            'PhysicalAddress: Failed to store access token',
-            storeResult.error,
-          );
         }
 
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
@@ -487,12 +498,23 @@ const PhysicalAddress = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
       // Allow error message to display
     }
   };
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.RESIDENTIAL_ADDRESS,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
     <>
