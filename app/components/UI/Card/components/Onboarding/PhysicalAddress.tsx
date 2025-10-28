@@ -6,7 +6,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import TextField, {
   TextFieldSize,
 } from '../../../../../component-library/components/Form/TextField';
@@ -284,45 +283,6 @@ const PhysicalAddress = () => {
     resetRegisterUserConsent,
   ]);
 
-  const handleOpenKYCWebview = useCallback(
-    (url: string) => {
-      navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, { url });
-    },
-    [navigation],
-  );
-
-  const renderElectronicConsentLabel = useCallback(() => {
-    const baseText = strings(
-      'card.card_onboarding.physical_address.electronic_consent',
-    );
-
-    if (!termsAndConditionsUSUrl && !privacyPolicyUSUrl) {
-      return baseText;
-    }
-
-    return (
-      <Text>
-        {baseText.split(' ').slice(0, -4).join(' ')}{' '}
-        {termsAndConditionsUSUrl && (
-          <ButtonLink
-            label="Terms and Conditions"
-            onPress={() => handleOpenKYCWebview(termsAndConditionsUSUrl)}
-            testID="terms-button-link"
-          />
-        )}
-        {termsAndConditionsUSUrl && privacyPolicyUSUrl && ' and '}
-        {privacyPolicyUSUrl && (
-          <ButtonLink
-            label="Privacy Policy"
-            onPress={() => handleOpenKYCWebview(privacyPolicyUSUrl)}
-            testID="privacy-button-link"
-          />
-        )}
-        .
-      </Text>
-    );
-  }, [termsAndConditionsUSUrl, privacyPolicyUSUrl, handleOpenKYCWebview]);
-
   const handleAccountOpeningDisclosureToggle = useCallback(() => {
     resetRegisterUserConsent();
     resetRegisterAddress();
@@ -596,7 +556,9 @@ const PhysicalAddress = () => {
           <Checkbox
             isChecked={electronicConsent}
             onPress={handleElectronicConsentToggle}
-            label={renderElectronicConsentLabel()}
+            label={strings(
+              'card.card_onboarding.physical_address.electronic_consent',
+            )}
             style={tw.style('h-auto')}
             testID="physical-address-electronic-consent-checkbox"
           />
