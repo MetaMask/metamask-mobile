@@ -12,8 +12,7 @@ import {
   Linking,
   Platform,
   ImageStyle,
-  ViewStyle,
-  TextStyle,
+  ViewStyle, TextStyle,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
