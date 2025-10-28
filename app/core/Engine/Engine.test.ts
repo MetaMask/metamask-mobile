@@ -251,6 +251,15 @@ describe('Engine', () => {
           lastUpdated: 0,
           activeWithdrawalId: undefined,
         },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
+        },
       },
     };
 
