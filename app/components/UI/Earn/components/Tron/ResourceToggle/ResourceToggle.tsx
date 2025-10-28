@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, Easing, ViewProps, ViewStyle } from 'react-native';
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import ButtonBase from '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import {
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../hooks/useStyles';
+} from '../../../../../../component-library/components/Buttons/Button';
+import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ResourceToggle.styles';
 
 export type ResourceType = 'energy' | 'bandwidth';

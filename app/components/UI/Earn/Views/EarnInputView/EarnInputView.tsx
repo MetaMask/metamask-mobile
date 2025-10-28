@@ -23,7 +23,7 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import ResourceToggle, {
   type ResourceType,
-} from '../../components/ResourceToggle';
+} from '../../components/Tron/ResourceToggle';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -161,6 +161,8 @@ const EarnInputView = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const [resourceType, setResourceType] = useState<ResourceType>('energy');
+  const isTronNative =
+    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
   ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
@@ -810,7 +812,7 @@ const EarnInputView = () => {
     <ScreenLayout style={styles.container}>
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTrxStakingEnabled && (
+        isTrxStakingEnabled && isTronNative && (
           <ResourceToggle value={resourceType} onChange={setResourceType} />
         )
         ///: END:ONLY_INCLUDE_IF

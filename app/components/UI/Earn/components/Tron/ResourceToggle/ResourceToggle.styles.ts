@@ -1,6 +1,6 @@
 import { StyleSheet, ViewStyle } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
-import { BackgroundColor } from '../../../Box/box.types';
+import type { Theme } from '../../../../../../util/theme/models';
+import { BackgroundColor } from '../../../../Box/box.types';
 
 const styleSheet = (params: { theme: Theme; vars?: { style?: ViewStyle } }) => {
   const { theme, vars } = params;

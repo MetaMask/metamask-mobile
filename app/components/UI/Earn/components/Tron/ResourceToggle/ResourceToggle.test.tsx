@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ResourceToggle from './ResourceToggle';
-import type { ButtonBaseProps } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import type { ButtonBaseProps } from '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 jest.mock(
   '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
