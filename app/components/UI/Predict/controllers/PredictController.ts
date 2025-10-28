@@ -109,6 +109,9 @@ export type PredictControllerState = {
   lastError: string | null;
   lastUpdateTimestamp: number;
 
+  // Account balances
+  balances: { [providerId: string]: { [address: string]: number } };
+
   // Claim management
   // TODO: change to be per-account basis
   claimablePositions: PredictPosition[];
@@ -135,6 +138,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  balances: {},
   claimablePositions: [],
   claimTransaction: null,
   depositTransaction: null,
@@ -159,6 +163,12 @@ const metadata: StateMetadata<PredictControllerState> = {
     usedInUi: false,
   },
   lastUpdateTimestamp: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  balances: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -1380,10 +1390,18 @@ export class PredictController extends BaseController<
       }
       const { AccountsController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
-      return provider.getBalance({
+      const address = params.address ?? selectedAddress;
+      const balance = await provider.getBalance({
         ...params,
-        address: params.address ?? selectedAddress,
+        address,
       });
+      this.update((state) => {
+        state.balances[params.providerId] = {
+          ...state.balances[params.providerId],
+          [address]: balance,
+        };
+      });
+      return balance;
     } catch (error) {
       // Log to Sentry with balance query context (no user address)
       Logger.error(
