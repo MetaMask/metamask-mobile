@@ -1127,13 +1127,15 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
-      <Stack.Screen
-        name={Routes.FEATURE_FLAG_OVERRIDE}
-        component={FeatureFlagOverride}
-        options={{
-          headerShown: true,
-        }}
-      />
+      {process.env.MM_ENABLE_FEATURE_FLAG_OVERRIDE === 'true' && (
+        <Stack.Screen
+          name={Routes.FEATURE_FLAG_OVERRIDE}
+          component={FeatureFlagOverride}
+          options={{
+            headerShown: true,
+          }}
+        />
+      )}
       <Stack.Screen
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}

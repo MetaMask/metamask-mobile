@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -27,7 +26,7 @@ import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 
 interface FeatureFlagRowProps {
   flag: FeatureFlagInfo;
-  onToggle: (key: string, newValue: any) => void;
+  onToggle: (key: string, newValue: unknown) => void;
 }
 
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
@@ -124,7 +123,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case 'object':
         return (
           <View>
-            {Object.keys(localValue).map((itemKey: any) => (
+            {Object.keys(localValue).map((itemKey: string) => (
               <Text key={itemKey}>
                 {itemKey}: {JSON.stringify(localValue[itemKey])}
               </Text>
@@ -278,7 +277,7 @@ const FeatureFlagOverride: React.FC = () => {
   }, [navigation, theme.colors]);
 
   const handleToggleFlag = useCallback(
-    (key: string, newValue: any) => {
+    (key: string, newValue: unknown) => {
       try {
         if (newValue === null) {
           // Remove override

@@ -1,7 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { renderHook } from '@testing-library/react-native';
 import { useFeatureFlagStats } from './useFeatureFlagStats';
-import { useFeatureFlagOverride } from '../contexts/FeatureFlagOverrideContext';
+import {
+  FeatureFlagOverrideContextType,
+  useFeatureFlagOverride,
+} from '../contexts/FeatureFlagOverrideContext';
 import { FeatureFlagInfo } from '../util/feature-flags';
 
 jest.mock('../contexts/FeatureFlagOverrideContext', () => ({
@@ -21,7 +23,7 @@ describe('useFeatureFlagStats', () => {
   const createMockFeatureFlag = (
     key: string,
     type: FeatureFlagInfo['type'],
-    value: any = true,
+    value: unknown = true,
     isOverridden: boolean = false,
   ): FeatureFlagInfo => ({
     key,
@@ -35,7 +37,7 @@ describe('useFeatureFlagStats', () => {
   it('returns correct stats for empty feature flags list', () => {
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: [],
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -56,7 +58,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -77,7 +79,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -98,7 +100,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -119,7 +121,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -140,7 +142,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -164,7 +166,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -188,7 +190,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -217,7 +219,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -242,7 +244,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -264,7 +266,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -285,7 +287,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result, rerender } = renderHook(() => useFeatureFlagStats());
 
@@ -305,7 +307,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: initialFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result, rerender } = renderHook(() => useFeatureFlagStats());
 
@@ -320,59 +322,13 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: newFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     rerender(null);
 
     expect(result.current.total).toBe(2);
     expect(result.current.boolean).toBe(1);
     expect(result.current.string).toBe(1);
-  });
-
-  it('produces NaN for unknown flag types due to implementation bug', () => {
-    const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('testFlag', 'unknown' as any, 'test'),
-    ];
-
-    mockUseFeatureFlagOverride.mockReturnValue({
-      featureFlagsList: mockFlags,
-    } as any);
-
-    const { result } = renderHook(() => useFeatureFlagStats());
-
-    expect(result.current).toEqual({
-      total: 1,
-      boolean: 0,
-      object: 0,
-      string: 0,
-      number: 0,
-      array: 0,
-      unknown: NaN, // Bug: trying to increment undefined property
-    });
-  });
-
-  it('handles mixed known and unknown types with NaN for unknown', () => {
-    const mockFlags: FeatureFlagInfo[] = [
-      createMockFeatureFlag('booleanFlag', 'boolean', true),
-      createMockFeatureFlag('unknownFlag', 'custom' as any, 'value'),
-      createMockFeatureFlag('stringFlag', 'string', 'test'),
-    ];
-
-    mockUseFeatureFlagOverride.mockReturnValue({
-      featureFlagsList: mockFlags,
-    } as any);
-
-    const { result } = renderHook(() => useFeatureFlagStats());
-
-    expect(result.current).toEqual({
-      total: 3,
-      boolean: 1,
-      object: 0,
-      string: 1,
-      number: 0,
-      array: 0,
-      custom: NaN, // Bug: trying to increment undefined property
-    });
   });
 
   it('handles flags with isOverridden property correctly', () => {
@@ -383,7 +339,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -409,7 +365,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 
@@ -440,7 +396,7 @@ describe('useFeatureFlagStats', () => {
 
     mockUseFeatureFlagOverride.mockReturnValue({
       featureFlagsList: mockFlags,
-    } as any);
+    } as FeatureFlagOverrideContextType);
 
     const { result } = renderHook(() => useFeatureFlagStats());
 

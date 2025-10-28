@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 
 export interface FeatureFlagInfo {
   key: string;
-  value: any;
-  originalValue: any;
+  value: unknown;
+  originalValue: unknown;
   type:
     | 'boolean'
     | 'string'
@@ -22,7 +20,7 @@ export interface FeatureFlagInfo {
 /**
  * Gets the type of a feature flag value
  */
-export const getFeatureFlagType = (value: any): FeatureFlagInfo['type'] => {
+export const getFeatureFlagType = (value: unknown): FeatureFlagInfo['type'] => {
   if (typeof value === 'boolean') return 'boolean';
   if (typeof value === 'string') return 'string';
   if (typeof value === 'number') return 'number';

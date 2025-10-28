@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import React, {
   createContext,
   useContext,
@@ -17,20 +15,20 @@ import {
 } from '../util/feature-flags';
 
 interface FeatureFlagOverrides {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
-interface FeatureFlagOverrideContextType {
+export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
   getFeatureFlag: (key: string) => FeatureFlagInfo;
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
-  setOverride: (key: string, value: any) => void;
+  setOverride: (key: string, value: unknown) => void;
   removeOverride: (key: string) => void;
   clearAllOverrides: () => void;
   hasOverride: (key: string) => boolean;
-  getOverride: (key: string) => any;
+  getOverride: (key: string) => unknown;
   getAllOverrides: () => FeatureFlagOverrides;
   applyOverrides: (originalFlags: FeatureFlagOverrides) => FeatureFlagOverrides;
   getOverrideCount: () => number;
@@ -53,7 +51,7 @@ export const FeatureFlagOverrideProvider: React.FC<
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
 
-  const setOverride = useCallback((key: string, value: any) => {
+  const setOverride = useCallback((key: string, value: unknown) => {
     setOverrides((prev) => ({
       ...prev,
       [key]: value,
@@ -78,21 +76,27 @@ export const FeatureFlagOverrideProvider: React.FC<
   );
 
   const getOverride = useCallback(
-    (key: string): any => overrides[key],
+    (key: string): unknown => overrides[key],
     [overrides],
   );
 
-  const getAllOverrides = useCallback((): FeatureFlagOverrides => ({ ...overrides }), [overrides]);
+  const getAllOverrides = useCallback(
+    (): FeatureFlagOverrides => ({ ...overrides }),
+    [overrides],
+  );
 
   const applyOverrides = useCallback(
     (originalFlags: FeatureFlagOverrides): FeatureFlagOverrides => ({
-        ...originalFlags,
-        ...overrides,
-      }),
+      ...originalFlags,
+      ...overrides,
+    }),
     [overrides],
   );
 
-  const featureFlagsWithOverrides = useMemo(() => applyOverrides(rawFeatureFlags), [rawFeatureFlags, applyOverrides]);
+  const featureFlagsWithOverrides = useMemo(
+    () => applyOverrides(rawFeatureFlags),
+    [rawFeatureFlags, applyOverrides],
+  );
 
   const featureFlags = useMemo(() => {
     // Get all unique keys from both raw and overridden flags
@@ -136,7 +140,10 @@ export const FeatureFlagOverrideProvider: React.FC<
    */
   const getFeatureFlag = (key: string) => featureFlags[key];
 
-  const getOverrideCount = useCallback((): number => Object.keys(overrides).length, [overrides]);
+  const getOverrideCount = useCallback(
+    (): number => Object.keys(overrides).length,
+    [overrides],
+  );
 
   const contextValue: FeatureFlagOverrideContextType = {
     featureFlags,
