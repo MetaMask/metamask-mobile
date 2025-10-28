@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -12,27 +12,26 @@ import ListItem from '../../List/ListItem/ListItem';
 import styleSheet from './ListItemSelect.styles';
 import { ListItemSelectProps } from './ListItemSelect.types';
 import { DEFAULT_SELECTITEM_GAP } from './ListItemSelect.constants';
-import TempTouchableOpacity from '../../../components-temp/TempTouchableOpacity';
 
 const ListItemSelect: React.FC<ListItemSelectProps> = ({
   style,
   isSelected = false,
   isDisabled = false,
   children,
+  onPress,
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
-  shouldEnableAndroidPressIn = false,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
   return (
-    <TempTouchableOpacity
+    <TouchableOpacity
       style={styles.base}
       disabled={isDisabled}
+      onPress={onPress}
       onLongPress={onLongPress}
-      shouldEnableAndroidPressIn={shouldEnableAndroidPressIn}
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
@@ -43,7 +42,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
           <View style={styles.underlayBar} />
         </View>
       )}
-    </TempTouchableOpacity>
+    </TouchableOpacity>
   );
 };
 

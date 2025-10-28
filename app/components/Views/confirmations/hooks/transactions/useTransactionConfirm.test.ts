@@ -4,7 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import useApprovalRequest from '../useApprovalRequest';
-import { useTransactionConfirm } from './useTransactionConfirm';
+import { GO_BACK_TYPES, useTransactionConfirm } from './useTransactionConfirm';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { merge, noop } from 'lodash';
@@ -25,6 +25,9 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { flushPromises } from '../../../../../util/test/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
+import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
+import { useAsyncResult as useAsyncResultHook } from '../../../../hooks/useAsyncResult';
+import { act } from '@testing-library/react-hooks';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -39,6 +42,10 @@ jest.mock('../../../../../actions/transaction');
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../hooks/useNetworkEnablement/useNetworkEnablement');
 jest.mock('../gas/useGasFeeToken');
+jest.mock('../../../../hooks/useAsyncResult', () => ({
+  useAsyncResult: jest.fn(),
+}));
+jest.mock('../../../../../util/transactions/sentinel-api');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -106,6 +113,8 @@ describe('useTransactionConfirm', () => {
   const resetTransactionMock = jest.mocked(resetTransaction);
   const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
   const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
+  const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
+  const useAsyncResultMock = jest.mocked(useAsyncResultHook);
 
   const isRemoveGlobalNetworkSelectorEnabledMock = jest.mocked(
     isRemoveGlobalNetworkSelectorEnabled,
@@ -121,6 +130,7 @@ describe('useTransactionConfirm', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    useAsyncResultMock.mockReturnValue({ pending: false, value: false });
 
     useApprovalRequestMock.mockReturnValue({
       onConfirm: onApprovalConfirm,
@@ -172,10 +182,12 @@ describe('useTransactionConfirm', () => {
     expect(onApprovalConfirm).toHaveBeenCalled();
   });
 
-  it('waits for result by default', async () => {
+  it('sets waitForResult true when not smart tx, no quotes, no fee token', async () => {
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(onApprovalConfirm).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -190,7 +202,9 @@ describe('useTransactionConfirm', () => {
 
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(onApprovalConfirm).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -203,7 +217,9 @@ describe('useTransactionConfirm', () => {
   it('does not wait for result if quotes', async () => {
     const { result } = renderHook({ hasQuotes: true });
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(onApprovalConfirm).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -216,7 +232,9 @@ describe('useTransactionConfirm', () => {
   it('adds metamask pay properties to transaction metadata', async () => {
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
       txMeta: expect.objectContaining({
@@ -234,7 +252,9 @@ describe('useTransactionConfirm', () => {
   it('resets transaction state', async () => {
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(resetTransactionMock).toHaveBeenCalled();
   });
@@ -250,7 +270,9 @@ describe('useTransactionConfirm', () => {
 
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
     await flushPromises();
 
     expect(tryEnableEvmNetworkMock).not.toHaveBeenCalled();
@@ -267,7 +289,9 @@ describe('useTransactionConfirm', () => {
 
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
     await flushPromises();
 
     expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
@@ -276,7 +300,9 @@ describe('useTransactionConfirm', () => {
   it('adds batch transactions if quotes on same chain', async () => {
     const { result } = renderHook({ hasQuotes: true });
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
       txMeta: expect.objectContaining({
@@ -303,14 +329,51 @@ describe('useTransactionConfirm', () => {
     });
   });
 
-  it('handles error during approval', async () => {
+  it('navigates to Transactions view after approval error', async () => {
     onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
 
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('does nothing when transactionMetadata is missing', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue(undefined);
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(onApprovalConfirm).not.toHaveBeenCalled();
+  });
+
+  it('returns false for chainSupportsSendBundle when chainId is undefined', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: undefined,
+    } as unknown as TransactionMeta);
+
+    isSendBundleSupportedMock.mockResolvedValue(true);
+
+    useAsyncResultMock.mockImplementation((fn) => {
+      fn();
+      return { pending: false, value: false };
+    });
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(isSendBundleSupportedMock).not.toHaveBeenCalled();
+    expect(onApprovalConfirm).toHaveBeenCalled();
   });
 
   describe('navigates to', () => {
@@ -322,7 +385,9 @@ describe('useTransactionConfirm', () => {
 
       const { result } = renderHook();
 
-      await result.current.onConfirm();
+      await act(async () => {
+        await result.current.onConfirm();
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
@@ -332,7 +397,9 @@ describe('useTransactionConfirm', () => {
     it('transactions if full screen', async () => {
       const { result } = renderHook();
 
-      await result.current.onConfirm();
+      await act(async () => {
+        await result.current.onConfirm();
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
@@ -344,16 +411,40 @@ describe('useTransactionConfirm', () => {
 
       const { result } = renderHook();
 
-      await result.current.onConfirm();
+      await act(async () => {
+        await result.current.onConfirm();
+      });
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
     });
+
+    it.each(GO_BACK_TYPES)(
+      'navigates to previous page if $type',
+      async (type) => {
+        useFullScreenConfirmationMock.mockReturnValue({
+          isFullScreenConfirmation: true,
+        });
+
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: transactionIdMock,
+          type,
+        } as TransactionMeta);
+
+        const { result } = renderHook();
+        await result.current.onConfirm();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalled();
+      },
+    );
   });
 
   describe('handleSmartTransaction', () => {
     beforeEach(() => {
       selectShouldUseSmartTransactionMock.mockReturnValue(true);
+      useAsyncResultMock.mockReturnValue({ pending: false, value: true });
+      isSendBundleSupportedMock.mockReturnValue(Promise.resolve(true));
       useSelectedGasFeeTokenMock.mockReturnValue({
         transferTransaction: { data: '0xabc', to: '0xdef', value: '0x0' },
         gas: '0x5208',
@@ -364,7 +455,9 @@ describe('useTransactionConfirm', () => {
     it('adds batchTransactions and gas properties when smart transaction is enabled', async () => {
       const { result } = renderHook();
 
-      await result.current.onConfirm();
+      await act(async () => {
+        await result.current.onConfirm();
+      });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.objectContaining({
@@ -387,7 +480,9 @@ describe('useTransactionConfirm', () => {
 
       const { result } = renderHook();
 
-      await result.current.onConfirm();
+      await act(async () => {
+        await result.current.onConfirm();
+      });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.not.objectContaining({
@@ -400,6 +495,7 @@ describe('useTransactionConfirm', () => {
   describe('handleGasless7702', () => {
     it('sets isExternalSign when selectedGasFeeToken is present and not smart transaction', async () => {
       selectShouldUseSmartTransactionMock.mockReturnValue(false);
+      isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
         transferTransaction: { data: '0xabc' },
@@ -407,7 +503,30 @@ describe('useTransactionConfirm', () => {
 
       const { result } = renderHook();
 
-      await result.current.onConfirm();
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isExternalSign: true,
+        }),
+      });
+    });
+
+    it('sets isExternalSign when selectedGasFeeToken is present and smart transaction but the chain does not support send bundle', async () => {
+      selectShouldUseSmartTransactionMock.mockReturnValue(true);
+      isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
+
+      useSelectedGasFeeTokenMock.mockReturnValue({
+        transferTransaction: { data: '0xabc' },
+      } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.objectContaining({
@@ -424,7 +543,9 @@ describe('useTransactionConfirm', () => {
 
       const { result } = renderHook();
 
-      await result.current.onConfirm();
+      await act(async () => {
+        await result.current.onConfirm();
+      });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.not.objectContaining({ isExternalSign: true }),

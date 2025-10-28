@@ -51,8 +51,8 @@ import {
 } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -74,7 +74,7 @@ const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
   [PredictPriceHistoryInterval.MAX]: 1440, // 24-hour resolution for max window
 };
 
-const MULTI_CHART_COLORS = ['#4459FF', '#CA3542', '#F0B034'] as const;
+// Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
 
@@ -88,13 +88,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tw = useTailwind();
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState<number | null>(null);
   const insets = useSafeAreaInsets();
-  const { hasNoBalance } = usePredictBalance();
 
   const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
+
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId,
+    navigation,
+  });
 
   const { market, isFetching: isMarketFetching } = usePredictMarket({
     id: resolvedMarketId,
@@ -104,7 +108,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const claimable = market?.status === PredictMarketStatus.CLOSED;
 
-  const { positions } = usePredictPositions({
+  const { positions, isLoading: isPositionsLoading } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: claimable && !isMarketFetching,
   });
@@ -116,6 +120,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
     }
   }, [market?.status]);
+
+  // Tabs become ready when both market and positions queries have resolved
+  const tabsReady = useMemo(
+    () => !isMarketFetching && !isPositionsLoading,
+    [isMarketFetching, isPositionsLoading],
+  );
 
   const { winningOutcomeToken, losingOutcomeToken, resolutionStatus } =
     useMemo(() => {
@@ -212,29 +222,34 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   // Transform data for the unified chart component
-  const chartData: ChartSeries[] = useMemo(
-    () =>
-      loadedOutcomeTokenIds.map((_tokenId, index) => ({
-        label:
-          outcomeSlices[index]?.groupItemTitle ||
-          outcomeSlices[index]?.title ||
-          `Outcome ${index + 1}`,
-        color:
-          loadedOutcomeTokenIds.length === 1
-            ? colors.success.default
-            : MULTI_CHART_COLORS[index] ?? colors.success.default,
-        data: (priceHistories[index] ?? []).map((point) => ({
-          timestamp: point.timestamp,
-          value: Number((point.price * 100).toFixed(2)),
-        })),
-      })),
-    [
-      loadedOutcomeTokenIds,
-      outcomeSlices,
-      priceHistories,
+  const chartData: ChartSeries[] = useMemo(() => {
+    const palette = [
+      colors.primary.default,
+      colors.error.default,
       colors.success.default,
-    ],
-  );
+    ];
+    return loadedOutcomeTokenIds.map((_tokenId, index) => ({
+      label:
+        outcomeSlices[index]?.groupItemTitle ||
+        outcomeSlices[index]?.title ||
+        `Outcome ${index + 1}`,
+      color:
+        loadedOutcomeTokenIds.length === 1
+          ? colors.success.default
+          : palette[index] ?? colors.success.default,
+      data: (priceHistories[index] ?? []).map((point) => ({
+        timestamp: point.timestamp,
+        value: Number((point.price * 100).toFixed(2)),
+      })),
+    }));
+  }, [
+    loadedOutcomeTokenIds,
+    outcomeSlices,
+    priceHistories,
+    colors.primary.default,
+    colors.error.default,
+    colors.success.default,
+  ]);
 
   const chartEmptyLabel = hasAnyOutcomeToken
     ? errors.find(Boolean) ?? undefined
@@ -267,100 +282,99 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     return 0;
   };
 
-  const handleYesPress = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome: market?.outcomes?.[0],
-        outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+  const handleBuyPress = (token: PredictOutcomeToken) => {
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome: market?.outcomes?.[0],
+            outcomeToken: token,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          },
+        });
       },
-    });
-  };
-
-  const handleNoPress = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome: market?.outcomes?.[0],
-        outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-      },
-    });
+      { checkBalance: true },
+    );
   };
 
   const handleClaimPress = async () => {
-    await claim();
+    await executeGuardedAction(async () => {
+      await claim();
+    });
   };
 
   const handleTabPress = (tabIndex: number) => {
+    if (!tabsReady) return;
     setActiveTab(tabIndex);
   };
 
-  const renderCustomTabBar = () => {
-    const tabs = [
-      { label: strings('predict.tabs.about'), index: 0 },
-      { label: strings('predict.tabs.positions'), index: 1 },
-    ];
+  type TabKey = 'positions' | 'outcomes' | 'about';
 
-    // Add Outcomes tab if market has multiple outcomes or is closed
-    if (multipleOutcomes || market?.status === PredictMarketStatus.CLOSED) {
-      tabs.push({ label: strings('predict.tabs.outcomes'), index: 2 });
+  const tabs = useMemo(() => {
+    const result: { label: string; key: TabKey }[] = [];
+    // positions first if user has any
+    if (positions.length > 0) {
+      result.push({
+        label: strings('predict.tabs.positions'),
+        key: 'positions',
+      });
     }
+    // outcomes next if market has multiple outcomes or is closed
+    if (multipleOutcomes || market?.status === PredictMarketStatus.CLOSED) {
+      result.push({ label: strings('predict.tabs.outcomes'), key: 'outcomes' });
+    }
+    // about last (always present)
+    result.push({ label: strings('predict.tabs.about'), key: 'about' });
+    return result;
+  }, [positions.length, multipleOutcomes, market?.status]);
 
-    return (
+  useEffect(() => {
+    if (!tabsReady) return;
+    if (activeTab === null) {
+      setActiveTab(0);
+      return;
+    }
+    if (activeTab >= tabs.length) {
+      setActiveTab(0);
+    }
+  }, [tabsReady, tabs.length, activeTab]);
+
+  const renderCustomTabBar = () => (
+    <Box
+      twClassName="bg-default border-b border-muted"
+      testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
+    >
       <Box
-        twClassName="bg-default border-b border-muted"
-        testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-3"
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-3"
-        >
-          {tabs.map((tab) => (
-            <Pressable
-              key={tab.index}
-              onPress={() => handleTabPress(tab.index)}
-              style={tw.style(
-                'flex-1 py-3',
-                activeTab === tab.index
-                  ? 'border-b-2 border-primary-default'
-                  : '',
-              )}
-              testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${tab.index}`}
+        {tabs.map((tab, index) => (
+          <Pressable
+            key={tab.key}
+            onPress={() => handleTabPress(index)}
+            style={tw.style(
+              'w-1/3 py-3',
+              activeTab === index ? 'border-b-2 border-primary-default' : '',
+            )}
+            testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={
+                activeTab === index ? TextColor.Primary : TextColor.Alternative
+              }
+              style={tw.style('text-center font-bold')}
             >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={
-                  activeTab === tab.index
-                    ? TextColor.Primary
-                    : TextColor.Alternative
-                }
-                style={tw.style('text-center font-bold')}
-              >
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-        </Box>
+              {tab.label}
+            </Text>
+          </Pressable>
+        ))}
       </Box>
-    );
-  };
+    </Box>
+  );
 
   const renderHeader = () => (
     <Box
@@ -686,7 +700,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {getYesPercentage()}¢
                   </Text>
                 }
-                onPress={handleYesPress}
+                onPress={() => handleBuyPress(market?.outcomes[0].tokens[0])}
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -699,7 +713,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {100 - getYesPercentage()}¢
                   </Text>
                 }
-                onPress={handleNoPress}
+                onPress={() => handleBuyPress(market?.outcomes[0].tokens[1])}
               />
             </Box>
           );
@@ -711,71 +725,75 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 0:
-        return (
-          <Box
-            twClassName="px-3 pt-4 pb-8"
-            testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
-          >
-            {renderAboutSection()}
-          </Box>
-        );
-      case 1:
-        return (
-          <Box
-            twClassName="px-3 pt-4 pb-8"
-            testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
-          >
-            {renderPositionsSection()}
-          </Box>
-        );
-      case 2:
-        return (
-          <Box
-            twClassName="px-3 pt-4 pb-8"
-            testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
-          >
-            {market?.status === PredictMarketStatus.CLOSED ? (
-              <Box>
-                {winningOutcome && (
-                  <PredictMarketOutcome
-                    market={market}
-                    outcome={winningOutcome}
-                    outcomeToken={winningOutcomeToken}
-                    isClosed
-                  />
-                )}
-                {losingOutcome && (
-                  <PredictMarketOutcome
-                    market={market}
-                    outcome={losingOutcome}
-                    outcomeToken={losingOutcomeToken}
-                    isClosed
-                  />
-                )}
-              </Box>
-            ) : (
-              <Box>
-                {market?.outcomes?.map((outcome, index) => (
-                  <PredictMarketOutcome
-                    key={
-                      outcome?.id ??
-                      outcome?.tokens?.[0]?.id ??
-                      outcome?.title ??
-                      `outcome-${index}`
-                    }
-                    market={market}
-                    outcome={outcome}
-                  />
-                ))}
-              </Box>
-            )}
-          </Box>
-        );
-      default:
-        return null;
+    if (activeTab === null || !tabsReady) {
+      return null;
     }
+    const currentKey = tabs[activeTab]?.key;
+    if (currentKey === 'about') {
+      return (
+        <Box
+          twClassName="px-3 pt-4 pb-8"
+          testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
+        >
+          {renderAboutSection()}
+        </Box>
+      );
+    }
+    if (currentKey === 'positions') {
+      return (
+        <Box
+          twClassName="px-3 pt-4 pb-8"
+          testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
+        >
+          {renderPositionsSection()}
+        </Box>
+      );
+    }
+    if (currentKey === 'outcomes') {
+      return (
+        <Box
+          twClassName="px-3 pt-4 pb-8"
+          testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
+        >
+          {market?.status === PredictMarketStatus.CLOSED ? (
+            <Box>
+              {winningOutcome && (
+                <PredictMarketOutcome
+                  market={market}
+                  outcome={winningOutcome}
+                  outcomeToken={winningOutcomeToken}
+                  isClosed
+                />
+              )}
+              {losingOutcome && (
+                <PredictMarketOutcome
+                  market={market}
+                  outcome={losingOutcome}
+                  outcomeToken={losingOutcomeToken}
+                  isClosed
+                />
+              )}
+            </Box>
+          ) : (
+            <Box>
+              {market?.outcomes?.map((outcome, index) => (
+                <PredictMarketOutcome
+                  key={
+                    outcome?.id ??
+                    outcome?.tokens?.[0]?.id ??
+                    outcome?.title ??
+                    `outcome-${index}`
+                  }
+                  market={market}
+                  outcome={outcome}
+                />
+              ))}
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    return null;
   };
 
   return (

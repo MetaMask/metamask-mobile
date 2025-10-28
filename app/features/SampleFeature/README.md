@@ -11,7 +11,7 @@ The Sample Feature is a development and testing feature that demonstrates best p
 graph TB
     %% Developer Actor
     Dev[👨‍💻 Developer]
-    
+
     %% Developer Use Cases
     Dev --> ActivateFeature[Activate Sample Feature with env var flag]
     Dev --> RunE2ETests[Run E2E Tests]
@@ -23,7 +23,7 @@ graph TB
 graph TB
     %% User Actor
     User[👤 User]
-    
+
     %% User Use Cases
     User --> IncrementCounter[Increment Counter]
     User --> AddPetName[Add New Pet Name]
@@ -35,6 +35,7 @@ graph TB
 ## Purpose
 
 This feature demonstrates:
+
 - Feature-based modular architecture
 - State management using Redux Toolkit and Controllers
 - Form validation and error handling
@@ -53,6 +54,7 @@ The SampleFeature folder structure intentionally mirrors the main `/app` folder 
 
 > [!IMPORTANT]
 > When creating real features, place them alongside existing production features in their respective directories:
+
 - Components in `/app/components/`
 - Redux state in `/app/reducers/`
 - Controllers in `/app/core/controllers/`
@@ -103,12 +105,14 @@ app/features/SampleFeature/
 ### 1. Sample Counter
 
 A simple counter implementation demonstrating:
+
 - Redux Toolkit state management
 - Custom hooks (`useSampleCounter`)
 - Action dispatching
 - MetaMetrics event tracking
 
 **Key Files:**
+
 - `components/hooks/useSampleCounter/`
 - `reducers/sample-counter/`
 - `components/views/SampleCounterPane/`
@@ -116,12 +120,14 @@ A simple counter implementation demonstrating:
 ### 2. Sample Pet Names
 
 A more complex feature showing:
+
 - Controller-based state management
 - Form validation with error handling
 - Network-specific data storage
 - CRUD operations
 
 **Key Files:**
+
 - `controllers/sample-petnames-controller-init.ts`
 - `controllers/sample-petnames-controller-messenger.ts`
 - `components/hooks/useSamplePetNames/`
@@ -130,11 +136,13 @@ A more complex feature showing:
 ### 3. Sample Network Display
 
 Demonstrates:
+
 - Network state integration
 - Dynamic UI updates based on network changes
 - Component library usage
 
 **Key Files:**
+
 - `components/hooks/useSampleNetwork/`
 - `components/views/SampleNetworkDisplay/`
 
@@ -145,6 +153,7 @@ This feature demonstrates two state management approaches following MetaMask sta
 ### Redux Pattern (Counter Example)
 
 The counter demonstrates Redux Toolkit patterns following MetaMask standards. See the [MetaMask Contributor Documentation](https://github.com/MetaMask/contributor-docs/tree/main/docs) for Redux guidelines.
+
 - Redux Toolkit slice with actions and reducers
 - Selectors for accessing state
 - Custom hooks for component integration
@@ -154,6 +163,7 @@ The counter demonstrates Redux Toolkit patterns following MetaMask standards. Se
 ### Controller Pattern (Pet Names Example)
 
 The pet names feature showcases the Controller pattern:
+
 - Controller initialization with messenger and persisted state
 - Hook abstraction for component usage
 - Network-specific state management
@@ -186,6 +196,7 @@ The Pet Names form demonstrates comprehensive validation:
 ## UI Component Library Usage
 
 The feature extensively uses the MetaMask component library:
+
 - Text components with proper color and variant props
 - Button components following design system
 - TextField components with validation states
@@ -200,6 +211,7 @@ The feature extensively uses the MetaMask component library:
 ## MetaMetrics Tracking
 
 Events are defined in `analytics/events.ts` following the event builder pattern:
+
 - Centralized event definitions in a dedicated analytics module
 - Event builder helper functions for consistent event creation
 - Type-safe event generation using the `generateOpt` utility
@@ -208,18 +220,19 @@ Events are defined in `analytics/events.ts` following the event builder pattern:
 
 ### Privacy Considerations
 
-> [!WARNING]
-> **Critical Privacy Risk**: Even when using `addSensitiveProperties` for anonymous events, linking sensitive data in the same event creates significant privacy risks.
-> 
+> [!WARNING] > **Critical Privacy Risk**: Even when using `addSensitiveProperties` for anonymous events, linking sensitive data in the same event creates significant privacy risks.
+>
 > **Example Risk**: Sending a name and address in the same anonymous event allows correlation between the two pieces of data, even if the user identity is unknown.
-> 
+>
 > **Best Practice**: Avoid tracking multiple sensitive data points in the same event. Instead, track aggregate data, metadata, or separate events for different sensitive information.
 
 **Safe Tracking Examples:**
+
 - ✅ `totalPetNames` (aggregate count)
 - ✅ `chainId` (public network info)
 
 **Unsafe Tracking Examples:**
+
 - ❌ Name
 - ❌ Address
 
@@ -232,6 +245,7 @@ The Sample Feature demonstrates MetaMask's dual performance monitoring approach 
 **Purpose**: Production aimed performance monitoring with privacy protection.
 
 **Implementation**:
+
 - **`useSamplePetNames.ts`**: Tracks pet names listing operations
   - Trace Name: `SampleFeatureListPetNames`
   - Operation: `sample.feature.list.pet.names`
@@ -242,6 +256,7 @@ The Sample Feature demonstrates MetaMask's dual performance monitoring approach 
   - Captures: chainId, feature context (no addresses or names)
 
 **Features**:
+
 - Automatic span creation and management
 - Error tracking with performance context
 - Integration with Sentry's performance dashboard
@@ -254,12 +269,14 @@ The Sample Feature demonstrates MetaMask's dual performance monitoring approach 
 **Purpose**: Development debugging and testing performance metrics (only active in test environments).
 
 **Implementation**:
+
 - **`useSampleCounter.ts`**: Tracks counter increment operations
   - Event Name: `SAMPLE_COUNTER_INCREMENT`
   - Captures: current count, new count, success/error status
   - Error handling with proper cleanup
 
 **Features**:
+
 - Session-based performance tracking
 - Environment metadata collection
 - Real-time performance data for debugging
@@ -307,11 +324,11 @@ INCLUDE_SAMPLE_FEATURE=true yarn start:android
 #### How It Works
 
 1. **Code Fencing**: All Sample Feature code is wrapped with code fence comments:
-    ```typescript
-    ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-    // Sample feature code here
-    ///: END:ONLY_INCLUDE_IF
-    ```
+   ```typescript
+   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+   // Sample feature code here
+   ///: END:ONLY_INCLUDE_IF
+   ```
 2. **Metro Transform**: The Metro bundler removes fenced code during build time based on the environment variable
 3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, the code is completely removed from the bundle
 
@@ -348,8 +365,8 @@ export MM_SAMPLE_FEATURE_COUNTER_ENABLED="false"
 
 The feature can be controlled remotely via the Launch Darkly feature flag API using the flag name `sampleFeatureCounterEnabled`.
 
-> [!IMPORTANT]
-> **Launch Darkly Access Required**: To configure and control remote feature flags, developers need access to Launch Darkly. If you don't have access:
+> [!IMPORTANT] > **Launch Darkly Access Required**: To configure and control remote feature flags, developers need access to Launch Darkly. If you don't have access:
+>
 > - Contact Helpdesk to request Launch Darkly access
 > - Or reach out to the platform team for assistance
 > - Until access is granted, use the local environment variable override for testing
@@ -387,12 +404,14 @@ This demonstrates how to implement feature flags that can be controlled both loc
 The SampleFeature demonstrates comprehensive testing patterns and best practices:
 
 **Testing Framework:**
+
 - React Native Testing Library for component testing
 - Jest as the test runner and assertion library
 - Testing hooks with `@testing-library/react-hooks`
 - Redux state testing with mock stores
 
 **Key Testing Patterns:**
+
 - Component testing with user interaction simulation
 - Hook testing in isolation
 - Redux state and action testing
@@ -401,6 +420,7 @@ The SampleFeature demonstrates comprehensive testing patterns and best practices
 - Async operation testing
 
 **Mocking Strategies:**
+
 - Module mocking for native dependencies
 - Redux store mocking with `configureStore`
 - Navigation mocking for testing navigation flows
@@ -408,6 +428,7 @@ The SampleFeature demonstrates comprehensive testing patterns and best practices
 - Controller mocking for isolated component tests
 
 **Best Practices Demonstrated:**
+
 - Descriptive test names following behavior-driven patterns
 - Proper test setup and teardown
 - Testing user interactions over implementation details
@@ -427,6 +448,7 @@ yarn jest app/features/SampleFeature --testMatch="**/*.test.ts?(x)"
 ```
 
 **Test Coverage:**
+
 - Component rendering
 - User interactions
 - State management
@@ -444,6 +466,7 @@ Comprehensive E2E tests written in TypeScript demonstrating best practices for D
 > The Sample Feature must be included in the build using the `INCLUDE_SAMPLE_FEATURE` flag for E2E tests to work.
 
 **Currently Implemented E2E Tests:**
+
 - Basic navigation to Sample Feature (Settings → Developer Options → Sample Feature)
 - Feature visibility verification (title, description, container)
 - Counter interactions (increment, value verification, persistence)
@@ -456,38 +479,40 @@ The current E2E implementation includes comprehensive tests for counter function
 
 1. Build the app with Sample Feature included for E2E testing:
 
-    ```bash
-    yarn test:e2e:sample:android:build
-    ```
+   ```bash
+   yarn test:e2e:sample:android:build
+   ```
 
-    Or for iOS:
+   Or for iOS:
 
-    ```bash
-    yarn test:e2e:sample:ios:build
-    ```
+   ```bash
+   yarn test:e2e:sample:ios:build
+   ```
 
 2. Run Sample Feature E2E tests (environment variable included automatically):
 
-    ```bash
-    yarn test:e2e:sample:android:debug:run
-    ```
+   ```bash
+   yarn test:e2e:sample:android:debug:run
+   ```
 
-    Or for iOS:
+   Or for iOS:
 
-    ```bash
-    yarn test:e2e:sample:ios:debug:run
-    ```
+   ```bash
+   yarn test:e2e:sample:ios:debug:run
+   ```
 
 **Without the flag, the Sample Feature won't be in the build and the tests will fail!**
 
 **E2E Implementation Details:**
 See [`app/features/SampleFeature/e2e/README.md`](./e2e/README.md) for:
+
 - Page object patterns
 - TypeScript configuration
 - Selector strategies
 - Test structure and organization
 
 **Planned Test Scenarios (Not Yet Implemented):**
+
 - Pet name update/edit functionality
 - Duplicate address handling with confirmation dialogs
 - Network switching behavior and network-specific data isolation
@@ -496,6 +521,7 @@ See [`app/features/SampleFeature/e2e/README.md`](./e2e/README.md) for:
 - UI element styling and accessibility verification
 
 **Key E2E Testing Patterns Demonstrated:**
+
 - Page Object Model for maintainable tests
 - Text-based selectors for resilient element targeting
 - Proper async handling with Detox waitFor utilities
@@ -535,6 +561,7 @@ This feature demonstrates testing patterns aligned with MetaMask standards. See 
 ### Error Handling
 
 The feature demonstrates proper error handling:
+
 - Try-catch blocks for async operations
 - User-friendly error messages
 - Analytics tracking for failures
@@ -543,6 +570,7 @@ The feature demonstrates proper error handling:
 ### Form Validation
 
 Address validation includes:
+
 - Ethereum address format checking
 - Required field validation
 - Real-time validation feedback
@@ -551,6 +579,7 @@ Address validation includes:
 ### Network-Specific Data
 
 The pet names feature demonstrates network-specific data storage:
+
 - Pet names are isolated per network using chainId
 - Each network maintains its own list of pet names
 - Switching networks automatically filters the displayed data

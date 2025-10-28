@@ -37,7 +37,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import UsdcIcon from './usdc.svg';
-
+import { PredictActivityDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 interface PredictActivityDetailProps {}
 
 const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
@@ -254,6 +254,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         accessibilityRole="button"
         accessibilityLabel={strings('back')}
         style={tw.style('items-center justify-center rounded-full w-10 h-10')}
+        testID={PredictActivityDetailsSelectorsIDs.BACK_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -261,7 +262,11 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           color={colors.icon.default}
         />
       </Pressable>
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+      <Text
+        variant={TextVariant.HeadingMD}
+        color={TextColor.Default}
+        testID={PredictActivityDetailsSelectorsIDs.TITLE_TEXT}
+      >
         {activityDetails?.headerTitle ??
           strings('predict.transactions.activity_details')}
       </Text>
@@ -309,7 +314,11 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             accessibilityLabel="USDC"
           />
         </Box>
-        <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.HeadingLG}
+          color={TextColor.Default}
+          testID={PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY}
+        >
           {activityDetails.amountDisplay}
         </Text>
       </Box>
@@ -378,7 +387,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       edges={['left', 'right', 'bottom']}
-      testID="predict-activity-detail-screen"
+      testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
         <Box twClassName="px-4" style={{ paddingTop: insets.top + 12 }}>
