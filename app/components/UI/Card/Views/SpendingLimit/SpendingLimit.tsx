@@ -393,8 +393,17 @@ const SpendingLimit = ({
     );
   };
 
-  const isConfirmDisabled =
-    tempSelectedOption === 'restricted' && !tempLimitAmount;
+  // Check if selected token is Solana
+  const isSolanaSelected =
+    selectedToken?.caipChainId === SolScope.Mainnet ||
+    selectedToken?.caipChainId?.startsWith('solana:');
+
+  const isConfirmDisabled = useMemo(
+    () =>
+      (tempSelectedOption === 'restricted' && !tempLimitAmount) ||
+      isSolanaSelected,
+    [tempSelectedOption, tempLimitAmount, isSolanaSelected],
+  );
 
   return (
     <ScrollView
@@ -501,6 +510,25 @@ const SpendingLimit = ({
       </View>
 
       <View style={styles.buttonsContainer}>
+        {isSolanaSelected && (
+          <View style={styles.warningContainer}>
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={theme.colors.warning.default}
+              style={styles.warningIcon}
+            />
+            <Text
+              variant={TextVariant.BodySM}
+              style={[
+                styles.warningText,
+                { color: theme.colors.warning.default },
+              ]}
+            >
+              {strings('card.card_spending_limit.solana_not_supported')}
+            </Text>
+          </View>
+        )}
         <Button
           variant={ButtonVariants.Primary}
           label={strings('card.card_spending_limit.confirm_new_limit')}
@@ -508,6 +536,11 @@ const SpendingLimit = ({
           onPress={handleConfirm}
           width={ButtonWidthTypes.Full}
           disabled={isConfirmDisabled || isDelegationLoading}
+          style={
+            isConfirmDisabled || isDelegationLoading
+              ? styles.disabledButton
+              : undefined
+          }
           loading={isDelegationLoading}
         />
         <Button

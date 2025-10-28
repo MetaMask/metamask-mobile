@@ -40,7 +40,9 @@ interface PriorityToken {
 
 /**
  * Hook to handle the complete delegation flow for spending limit increases
- * Flow: Token -> Signature -> Transaction -> Completion
+ * Flow: Token -> Signature -> Approval Transaction -> Completion
+ *
+ * Note: Currently only supports EVM chains (Linea)
  */
 export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
   const { sdk } = useCardSDK();
@@ -181,7 +183,7 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
         const result = await sdk.completeEVMDelegation({
           address,
           network: params.network,
-          currency: params.currency,
+          currency: params.currency.toLowerCase(),
           amount: params.amount,
           txHash: transactionHash,
           sigHash: signature,

@@ -119,9 +119,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       (network) => {
         const networkLower = network.network.toLowerCase();
 
-        // Exclude Solana when in selection-only mode (used by SpendingLimit screen)
-        if (selectionOnly && networkLower === 'solana') return false;
-
         // Only include supported networks
         if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) return false;
 
@@ -247,7 +244,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     priorityToken,
     sdk,
     userCardLocation,
-    selectionOnly,
   ]);
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -389,24 +385,13 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         // Token is already delegated, update priority directly
         await updatePriority(token);
       } else {
-        // Token is not delegated
-        // For Solana tokens, just close the bottom sheet (no spending limit support)
-        const isSolanaToken =
-          token.caipChainId === SolScope.Mainnet ||
-          token.caipChainId.startsWith('solana:');
-
-        if (isSolanaToken) {
-          // Just close the bottom sheet for Solana tokens
-          setOpenAssetSelectionBottomSheet(false);
-        } else {
-          // For EVM tokens, navigate to Spending Limit screen to enable it
-          closeBottomSheetAndNavigate(() => {
-            navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-              flow: 'enable',
-              selectedToken: token,
-            });
+        // Token is not delegated, navigate to Spending Limit screen to enable it
+        closeBottomSheetAndNavigate(() => {
+          navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+            flow: 'enable',
+            selectedToken: token,
           });
-        }
+        });
       }
     },
     [

@@ -125,6 +125,24 @@ const createStyles = (theme: Theme) =>
       gap: 12,
       marginTop: 24,
     },
+    warningContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      backgroundColor: theme.colors.warning.muted,
+      borderRadius: 8,
+      marginBottom: 12,
+    },
+    warningIcon: {
+      marginRight: 8,
+    },
+    warningText: {
+      flex: 1,
+      lineHeight: 18,
+    },
+    disabledButton: {
+      opacity: 0.5,
+    },
   });
 
 export default createStyles;
