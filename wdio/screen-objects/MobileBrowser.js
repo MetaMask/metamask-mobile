@@ -34,6 +34,35 @@ class MobileBrowserScreen {
         }
     }
 
+    get onboardingChromeWithoutAccount() {
+        if (!this._device) {
+            return;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/signin_fre_dismiss_button');
+        }
+    }
+
+    get chromeNoThanksButton() {
+        if (!this._device) {
+            return;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/negative_button');
+        }
+    }
+
+    async tapSelectDappUrl(dappName) {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await AppwrightSelectors.getElementByText(this._device, dappName);
+        await AppwrightGestures.tap(element)
+    }
+
     async tapSearchBox() {
         if (!this._device) {
             return;
@@ -49,6 +78,24 @@ class MobileBrowserScreen {
         }
 
         const element = await this.chromeUrlBar;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapOnboardingChromeWithoutAccount() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.onboardingChromeWithoutAccount;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapChromeNoThanksButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.chromeNoThanksButton;
         await AppwrightGestures.tap(element)
     }
 }
