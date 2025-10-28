@@ -35,52 +35,75 @@ export interface Signer {
   signPersonalMessage: KeyringController['signPersonalMessage'];
 }
 
-export interface BuyOrderParams {
-  signer: Signer;
-  market: PredictMarket;
-  outcomeId: string;
-  outcomeTokenId: string;
-  size: number;
-  isOnboarded: boolean;
-}
-
-export interface SellOrderParams {
-  signer: Signer;
-  position: PredictPosition;
-  isOnboarded: boolean;
-}
-
 export interface PlaceOrderParams {
+  providerId: string;
+  preview: OrderPreview;
+  analyticsProperties?: {
+    marketId?: string;
+    marketTitle?: string;
+    marketCategory?: string;
+    entryPoint?: string;
+    transactionType?: string;
+    sharePrice?: number;
+    liquidity?: number;
+    volume?: number;
+  };
+}
+
+export interface PreviewOrderParams {
+  providerId: string;
+  marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
   side: Side;
   size: number;
-  providerId: string;
+  signer?: Signer;
 }
 
-export interface CalculateBetAmountsParams {
-  providerId: string;
-  outcomeTokenId: string;
-  userBetAmount: number;
+// Fees in US dollars
+export interface PredictFees {
+  metamaskFee: number;
+  providerFee: number;
+  totalFee: number;
 }
 
-export interface CalculateBetAmountsResponse {
-  toWin: number;
-  sharePrice: number;
-}
-
-export interface CalculateCashOutAmountsParams {
-  address: string;
-  providerId: string;
+/**
+ * @example
+ * side = BUY;
+ * maxAmountSpent = 12.34; // $12.34
+ * minAmountReceived = 54.32; // 54.32 shares
+ * sharePrice = 0.1234; // $0.1234
+ * slippage = 0.01; // 1%
+ *
+ * side = SELL;
+ * maxAmountSpent = 42.23; // 42.23 shares
+ * minAmountReceived = 48.56; // $48.56
+ * sharePrice = 0.3456; // $0.3456
+ * slippage = 0.005; // 0.5%
+ */
+export interface OrderPreview {
   marketId: string;
+  outcomeId: string;
   outcomeTokenId: string;
+  timestamp: number;
+  side: Side;
+  sharePrice: number;
+  maxAmountSpent: number;
+  minAmountReceived: number;
+  slippage: number;
+  tickSize: number;
+  minOrderSize: number;
+  negRisk: boolean;
+  fees?: PredictFees;
+  rateLimited?: boolean;
 }
 
-export interface CalculateCashOutAmountsResponse {
-  currentValue: number;
-  cashPnl: number;
-  percentPnl: number;
-}
+export type OrderResult = Result<{
+  id: string;
+  spentAmount: string;
+  receivedAmount: string;
+  txHashes?: string[];
+}>;
 
 export interface ClaimOrderParams {
   positions: PredictPosition[];
@@ -89,11 +112,14 @@ export interface ClaimOrderParams {
 
 export interface ClaimOrderResponse {
   chainId: number;
-  transactionParams: {
-    from: Hex;
-    to: Hex;
-    data: Hex;
-  };
+  transactions: {
+    params: {
+      to: Hex;
+      data?: Hex;
+      value?: Hex;
+    };
+    type?: TransactionType;
+  }[];
 }
 
 export interface GetPositionsParams {
@@ -129,7 +155,7 @@ export interface GetPredictWalletParams {
 }
 
 export interface AccountState {
-  address: string;
+  address: Hex;
   isDeployed: boolean;
   hasAllowances: boolean;
 }
@@ -137,6 +163,32 @@ export interface AccountState {
 export interface GetBalanceParams {
   address?: string;
   providerId: string;
+}
+
+export interface PrepareWithdrawParams {
+  providerId: string;
+}
+
+export interface PrepareWithdrawResponse {
+  chainId: Hex;
+  transaction: {
+    params: {
+      to: Hex;
+      data: Hex;
+    };
+    type?: TransactionType;
+  };
+  predictAddress: Hex;
+}
+
+export interface SignWithdrawParams {
+  callData: Hex;
+  signer: Signer;
+}
+
+export interface SignWithdrawResponse {
+  callData: Hex;
+  amount: number;
 }
 
 export interface PredictProvider {
@@ -157,17 +209,10 @@ export interface PredictProvider {
   }): Promise<import('../types').UnrealizedPnL>;
 
   // Order management
-  placeOrder<T = void>(
+  previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
+  placeOrder(
     params: PlaceOrderParams & { signer: Signer },
-  ): Promise<Result<T>>;
-
-  calculateBetAmounts(
-    params: CalculateBetAmountsParams,
-  ): Promise<CalculateBetAmountsResponse>;
-
-  calculateCashOutAmounts(
-    params: CalculateCashOutAmountsParams,
-  ): Promise<CalculateCashOutAmountsResponse>;
+  ): Promise<OrderResult>;
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
@@ -182,6 +227,10 @@ export interface PredictProvider {
   getAccountState(
     params: GetAccountStateParams & { ownerAddress: string },
   ): Promise<AccountState>;
+  prepareWithdraw(
+    params: PrepareWithdrawParams & { signer: Signer },
+  ): Promise<PrepareWithdrawResponse>;
+  signWithdraw?(params: SignWithdrawParams): Promise<SignWithdrawResponse>;
 
   getBalance(params: GetBalanceParams): Promise<number>;
 }

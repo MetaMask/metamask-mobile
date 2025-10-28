@@ -2,11 +2,7 @@ import { StyleSheet } from 'react-native';
 const createStyles = () =>
   StyleSheet.create({
     accountGroupBalance: {
-      flexDirection: 'row',
-      alignItems: 'center',
       marginHorizontal: 16,
-      justifyContent: 'space-between',
-      paddingTop: 24,
     },
     balanceContainer: {
       flexDirection: 'row',
@@ -14,7 +10,6 @@ const createStyles = () =>
     },
     skeletonContainer: {
       flexDirection: 'column',
-      alignItems: 'center',
       gap: 4,
     },
   });

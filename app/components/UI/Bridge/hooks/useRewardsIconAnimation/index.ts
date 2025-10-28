@@ -1,1 +1,0 @@
-export { useRewardsIconAnimation } from './useRewardsIconAnimation';

@@ -16,6 +16,10 @@ describe('PredictKeypad', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Rendering', () => {
     it('renders keypad when input is focused', () => {
       // Arrange

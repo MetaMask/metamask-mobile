@@ -47,7 +47,9 @@ import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
 import AAVE from './aave-token-round.png';
 import HEMI from './hemi.png';
 import LUKSO from './lukso.png';
+import INJECTIVE from './injective.png';
 import PLASMA from './plasma-native.png';
+import CRONOS from './cronos.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron.png';
 /// END:ONLY_INCLUDE_IF
@@ -107,5 +109,7 @@ export default {
   'MEGAETH-MAINNET': MEGAETH_MAINNET,
   HEMI,
   LYX: LUKSO,
+  INJ: INJECTIVE,
   XPL: PLASMA,
+  CRO: CRONOS,
 };

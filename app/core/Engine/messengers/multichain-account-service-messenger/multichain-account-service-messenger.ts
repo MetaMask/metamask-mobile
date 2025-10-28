@@ -19,8 +19,12 @@ import {
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
 import { MultichainAccountServiceMultichainAccountGroupUpdatedEvent } from '@metamask/multichain-account-service';
+import {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 
-type Actions =
+export type Actions =
   | AccountsControllerListMultichainAccountsAction
   | AccountsControllerGetAccountAction
   | AccountsControllerGetAccountByAddressAction
@@ -32,10 +36,8 @@ type Actions =
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerFindNetworkClientIdByChainIdAction;
 
-type Events =
+export type Events =
   | KeyringControllerStateChangeEvent
-  | AccountsControllerAccountAddedEvent
-  | AccountsControllerAccountRemovedEvent
   | AccountsControllerAccountAddedEvent
   | AccountsControllerAccountRemovedEvent;
 
@@ -76,7 +78,11 @@ export function getMultichainAccountServiceMessenger(
 }
 
 export type AllowedInitializationEvents =
-  MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
+  | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
+
+export type AllowedInitializationActions =
+  RemoteFeatureFlagControllerGetStateAction;
 
 export type MultichainAccountServiceInitMessenger = ReturnType<
   typeof getMultichainAccountServiceInitMessenger
@@ -90,11 +96,17 @@ export type MultichainAccountServiceInitMessenger = ReturnType<
  * @returns The restricted controller messenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  messenger: Messenger<never, AllowedInitializationEvents>,
+  messenger: Messenger<
+    AllowedInitializationActions,
+    AllowedInitializationEvents
+  >,
 ) {
   return messenger.getRestricted({
     name: 'MultichainAccountServiceInit',
-    allowedActions: [],
-    allowedEvents: ['MultichainAccountService:multichainAccountGroupUpdated'],
+    allowedActions: ['RemoteFeatureFlagController:getState'],
+    allowedEvents: [
+      'MultichainAccountService:multichainAccountGroupUpdated',
+      'RemoteFeatureFlagController:stateChange',
+    ],
   });
 }

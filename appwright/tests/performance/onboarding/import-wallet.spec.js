@@ -97,9 +97,8 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   timer8.start();
   await OnboardingSucessScreen.tapDone();
   timer8.stop();
-
-  timer9.start();
   await dissmissAllModals(device);
+  timer9.start();
   await WalletMainScreen.tapOnToken('ETH');
   timer9.stop();
 

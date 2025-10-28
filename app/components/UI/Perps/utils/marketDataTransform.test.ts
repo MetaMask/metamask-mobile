@@ -13,11 +13,11 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
-import {
-  AllMids,
+import type {
+  AllMidsResponse,
   PerpsAssetCtx,
   PredictedFunding,
-} from '@deeeed/hyperliquid-node20';
+} from '../types/hyperliquid-types';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
@@ -75,6 +75,8 @@ describe('marketDataTransform', () => {
         nextFundingTime: undefined,
         fundingIntervalHours: undefined,
         fundingRate: 0.01,
+        marketSource: undefined, // Main DEX has no source
+        marketType: undefined, // Main DEX has no type
       });
     });
 
@@ -118,7 +120,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].price).toBe('$0.00');
+      expect(result[0].price).toBe('$---');
       expect(result[0].change24h).toBe('$0.00');
       expect(result[0].change24hPercent).toBe('-100.00%');
     });
@@ -300,6 +302,64 @@ describe('marketDataTransform', () => {
       // Assert
       expect(result[0].nextFundingTime).toBeUndefined();
       expect(result[0].fundingIntervalHours).toBeUndefined();
+    });
+
+    it('extracts marketSource and marketType for HIP-3 DEX assets', () => {
+      const xyzAsset = {
+        name: 'xyz:XYZ100',
+        maxLeverage: 20,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const xyzAssetCtx = createMockAssetCtx({ prevDayPx: '100' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [xyzAsset],
+        assetCtxs: [xyzAssetCtx],
+        allMids: { 'xyz:XYZ100': '105' },
+      };
+
+      const result = transformMarketData(hyperLiquidData);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('xyz:XYZ100');
+      expect(result[0].marketSource).toBe('xyz');
+      expect(result[0].marketType).toBe('equity');
+    });
+
+    it('handles unmapped HIP-3 DEX with marketSource but no marketType', () => {
+      const unknownDexAsset = {
+        name: 'unknown:ASSET1',
+        maxLeverage: 10,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const unknownAssetCtx = createMockAssetCtx({ prevDayPx: '50' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [unknownDexAsset],
+        assetCtxs: [unknownAssetCtx],
+        allMids: { 'unknown:ASSET1': '55' },
+      };
+
+      const result = transformMarketData(hyperLiquidData);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('unknown:ASSET1');
+      expect(result[0].marketSource).toBe('unknown');
+      expect(result[0].marketType).toBeUndefined();
+    });
+
+    it('handles main DEX assets with no marketSource or marketType', () => {
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [mockUniverseAsset],
+        assetCtxs: [mockAssetCtx],
+        allMids: mockAllMids,
+      };
+
+      const result = transformMarketData(hyperLiquidData);
+
+      expect(result[0].symbol).toBe('BTC');
+      expect(result[0].marketSource).toBeUndefined();
+      expect(result[0].marketType).toBeUndefined();
     });
   });
 
@@ -713,14 +773,14 @@ describe('marketDataTransform', () => {
         assetCtxs: [
           createMockAssetCtx({ prevDayPx: '50000', dayNtlVlm: '1000000' }),
         ],
-        allMids: { BTC: 'invalid-price' } as unknown as AllMids,
+        allMids: { BTC: 'invalid-price' } as unknown as AllMidsResponse,
       };
 
       // Act
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].price).toBe('$0.00');
+      expect(result[0].price).toBe('$---');
       expect(result[0].change24h).toBe('$0.00');
     });
 

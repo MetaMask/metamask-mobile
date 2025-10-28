@@ -15,7 +15,7 @@ on:
         required: true
         type: string
       test_suite_tag:
-        description: 'The Cucumber tag expression to use for filtering tests'
+        description: 'The tests tag expression to use for filtering tests'
         required: true
         type: string
       split_number:
@@ -113,7 +113,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@211837de0fe5589cb88bd78bd2fd3237e1e97f48
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -201,18 +201,39 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
-      - name: Upload test results
+      - name: Merge Detox JUnit reports
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "📊 Merging Detox JUnit XML reports..."
+
+          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y > /dev/null 2>&1
+          npm install xml2js@0.6.2 --no-audit --no-fund --silent
+
+          # Copy node_modules to workspace for script usage
+          cp -r node_modules ${{ github.workspace }}/
+          cd ${{ github.workspace }}
+
+          # Run merge script
+          node .github/scripts/e2e-merge-detox-junit-reports.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules temp-deps
+
+      - name: Upload JUnit XML results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-test-results
+          name: test-e2e-${{ inputs.test-suite-name }}-junit-results
           path: e2e/reports/
           retention-days: 7
 
-      - name: Upload screenshots
+      - name: Upload Screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-screenshots
+          name: test-e2e-${{ inputs.test-suite-name }}-screenshots
           path: e2e/artifacts/
           retention-days: 7

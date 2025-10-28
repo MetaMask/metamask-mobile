@@ -148,6 +148,9 @@ const styles = StyleSheet.create({
   iconButton: {
     marginHorizontal: 24,
   },
+  hidden: {
+    opacity: 0,
+  },
 });
 
 const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
@@ -547,7 +550,7 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(
+export function getSendFlowTitle({
   title,
   navigation,
   route,
@@ -557,7 +560,7 @@ export function getSendFlowTitle(
   disableNetwork = true,
   showSelectedNetwork = false,
   globalChainId = '',
-) {
+} = {}) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -912,6 +915,8 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
+ * @param {boolean} shouldDisplayCardButton - Whether to display the card button
+ * @param {boolean} isRewardsEnabled - Whether rewards are enabled
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -927,7 +932,7 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
-  isCardholder = false,
+  shouldDisplayCardButton,
   isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
@@ -986,7 +991,7 @@ export function getWalletNavbarOptions(
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
-              } catch (e) {
+              } catch {
                 Alert.alert(
                   strings('import_private_key.error_title'),
                   strings('import_private_key.error_message'),
@@ -1102,12 +1107,12 @@ export function getWalletNavbarOptions(
                     hitSlop={innerStyles.touchAreaSlop}
                   />
                 </View>
-                {isCardholder ? (
+                {shouldDisplayCardButton && (
                   <CardButton
                     onPress={handleCardPress}
                     touchAreaSlop={innerStyles.touchAreaSlop}
                   />
-                ) : null}
+                )}
                 <ButtonIcon
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={openQRScanner}
@@ -1848,7 +1853,19 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: null,
+    // Render an empty left header action that matches the dimensions of the close button.
+    // This allows us to center align the title on Android devices.
+    headerLeft: Device.isAndroid()
+      ? () => (
+          <View style={[styles.closeButton, styles.hidden]}>
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Lg}
+              color={IconColor.Muted}
+            />
+          </View>
+        )
+      : null,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -2183,7 +2200,7 @@ export const getSettingsNavigationOptions = (
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Close}
-          onPress={() => navigation && navigation.goBack()}
+          onPress={() => navigation?.goBack()}
           style={innerStyles.accessories}
           testID={NetworksViewSelectorsIDs.CLOSE_ICON}
         />

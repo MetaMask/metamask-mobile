@@ -25,6 +25,7 @@ import { memoize } from 'lodash';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 import { Asset, TokenListToken } from '@metamask/assets-controllers';
 import packageJSON from '../../../../../../package.json';
+import { getTokenIconUrl } from '../../utils';
 
 const { version: clientVersion } = packageJSON;
 const MAX_TOP_TOKENS = 30;
@@ -75,7 +76,7 @@ const formatCachedTokenListControllerTokens = (
       address: tokenAddress,
       symbol: token.symbol,
       name: token.name,
-      image: token.iconUrl || '',
+      image: getTokenIconUrl(tokenAddress, chainId) || token.iconUrl || '',
       decimals: token.decimals,
       chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
       accountType: getAccountType(caipChainId),

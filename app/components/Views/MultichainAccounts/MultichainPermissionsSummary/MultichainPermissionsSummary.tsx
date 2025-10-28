@@ -111,7 +111,7 @@ const MultichainPermissionsSummary = ({
   onRevokeAll,
   showActionButtons = true,
   isAlreadyConnected = true,
-  isDisconnectAllShown = false,
+  isDisconnectAllShown = true,
   isNetworkSwitch = false,
   isNonDappNetworkSwitch = false,
   selectedAccountGroupIds = [],

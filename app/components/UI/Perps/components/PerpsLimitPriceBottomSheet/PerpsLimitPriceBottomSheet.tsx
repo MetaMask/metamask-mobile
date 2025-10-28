@@ -301,7 +301,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
           {asset}-USD{' '}
-          {currentPrice
+          {currentPrice !== undefined && currentPrice !== null
             ? formatPerpsFiat(currentPrice, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })
@@ -375,15 +375,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 };
 
 PerpsLimitPriceBottomSheet.displayName = 'PerpsLimitPriceBottomSheet';
-
-// Enable WDYR tracking in development
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsLimitPriceBottomSheet as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsLimitPriceBottomSheet',
-  };
-}
 
 export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   // If bottom sheet is not visible in both states, skip re-render

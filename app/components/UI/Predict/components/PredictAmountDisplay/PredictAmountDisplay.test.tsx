@@ -38,6 +38,10 @@ describe('PerpsAmountDisplay', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Rendering', () => {
     it('displays amount with proper formatting', () => {
       // Arrange

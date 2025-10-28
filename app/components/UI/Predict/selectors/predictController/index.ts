@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
+import { PredictPositionStatus } from '../../types';
 
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
@@ -15,8 +16,37 @@ const selectPredictClaimTransaction = createSelector(
   (predictControllerState) => predictControllerState?.claimTransaction || null,
 );
 
+const selectPredictClaimablePositions = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.claimablePositions || [],
+);
+
+const selectPredictWonPositions = createSelector(
+  selectPredictClaimablePositions,
+  (claimablePositions) =>
+    claimablePositions.filter(
+      (position) => position.status === PredictPositionStatus.WON,
+    ),
+);
+
+const selectPredictWinFiat = createSelector(
+  selectPredictWonPositions,
+  (winningPositions) =>
+    winningPositions.reduce((acc, position) => acc + position.currentValue, 0),
+);
+
+const selectPredictWinPnl = createSelector(
+  selectPredictWonPositions,
+  (winningPositions) =>
+    winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
+);
+
 export {
   selectPredictControllerState,
   selectPredictDepositTransaction,
   selectPredictClaimTransaction,
+  selectPredictClaimablePositions,
+  selectPredictWonPositions,
+  selectPredictWinFiat,
+  selectPredictWinPnl,
 };

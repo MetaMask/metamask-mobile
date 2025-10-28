@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
@@ -117,8 +118,8 @@ jest.mock('../../hooks', () => ({
   }),
 }));
 
-// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
-jest.mock('../PerpsTPSLBottomSheet', () => ({
+// Mock PerpsTPSLView to avoid PerpsConnectionProvider requirement
+jest.mock('../../Views/PerpsTPSLView/PerpsTPSLView', () => ({
   __esModule: true,
   default: ({
     isVisible,
@@ -319,8 +320,10 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithoutLiquidation} />);
 
-      // Assert
-      expect(screen.getByText('N/A')).toBeOnTheScreen();
+      // Assert - Displays standardized price fallback
+      expect(
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+      ).toBeOnTheScreen();
     });
 
     it('renders with icon when showIcon is true and not expanded', () => {
@@ -554,8 +557,10 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithEmptyLiquidation} />);
 
-      // Assert
-      expect(screen.getByText('N/A')).toBeOnTheScreen();
+      // Assert - Empty string gets parsed as NaN and displays fallback
+      expect(
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+      ).toBeOnTheScreen();
     });
 
     it('renders all body items in correct order', () => {
@@ -638,33 +643,22 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('Bottom Sheet Interactions', () => {
-    it('renders PerpsTPSLBottomSheet when isTPSLVisible is true', () => {
+    it('navigates to TP/SL screen when edit button is pressed', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Open the TP/SL bottom sheet
+      // Open the TP/SL screen via navigation
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
-    });
-
-    it('handles PerpsTPSLBottomSheet onClose callback', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Open the TP/SL bottom sheet
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      // Assert - Should navigate to TP/SL screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        expect.stringContaining('TPSL'),
+        expect.objectContaining({
+          position: mockPosition,
+        }),
       );
-
-      // Close the bottom sheet
-      fireEvent.press(screen.getByText('Close'));
-
-      // Assert - bottom sheet should be closed (not visible)
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
     });
 
     it('navigates to close position screen when close button is pressed', () => {
@@ -718,8 +712,8 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Geo block tooltip should be shown
       expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
-      // Assert - TP/SL bottom sheet should not be shown
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+      // Assert - Navigation should not be called
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when close position button is pressed and user is not eligible', () => {

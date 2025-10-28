@@ -39,6 +39,14 @@ jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   }),
 }));
 
+jest.mock('./useInsufficientPredictBalanceAlert', () => ({
+  useInsufficientPredictBalanceAlert: () => [
+    {
+      id: 'alert-4',
+    },
+  ],
+}));
+
 describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>
@@ -53,6 +61,7 @@ describe('usePendingAmountAlerts', () => {
       {
         id: 'alert-3',
       },
+      { id: 'alert-4' },
     ]);
   });
 });

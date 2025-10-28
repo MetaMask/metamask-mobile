@@ -46,22 +46,24 @@ cat scripts/reports/coverage-report-*.json | jq '.failedTests'
 
 ## Decision Tree
 
-```
-Start → Load & Confirm Guidelines
-  ↓
-Run coverage:analyze
-  ↓
-[Failed Tests?] ──Yes──→ Fix ALL broken tests first
-  ↓ No                          ↓
-  ↓                       Re-run coverage:analyze
-  ↓                              ↓
-[newCodeCoverage < 80%?] ←──────┘
-  ↓ Yes
-[Can improve existing tests?] ──Yes──→ Add assertions to existing tests
-  ↓ No                                            ↓
-Create minimal new tests                    Re-run coverage:analyze
-  ↓                                              ↓
-[Coverage Met] → Success ←──────────────────────┘
+```mermaid
+flowchart TD
+    A[Start] --> B[Load and Confirm Guidelines]
+    B --> C[Run coverage:analyze]
+    C --> D{Failed Tests?}
+    D -->|Yes| E[Fix ALL broken tests first]
+    E --> F[Re-run coverage:analyze]
+    F --> D
+    D -->|No| G{newCodeCoverage less than 80%?}
+    G -->|No| H[Success]
+    G -->|Yes| I{Can improve existing tests?}
+    I -->|Yes| J[Add assertions to existing tests]
+    I -->|No| K[Create minimal new tests]
+    J --> L[Re-run coverage:analyze]
+    K --> L
+    L --> M{Coverage Met?}
+    M -->|No| I
+    M -->|Yes| H
 ```
 
 ## Handling Failed Tests (Priority #1)

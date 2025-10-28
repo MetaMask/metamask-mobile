@@ -7,7 +7,7 @@ import { PredictDepositStatus, PredictClaimStatus } from '../../types';
 
 describe('Predict Controller Selectors', () => {
   describe('selectPredictControllerState', () => {
-    it('should select the PredictController state', () => {
+    it('selects the PredictController state', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -33,7 +33,7 @@ describe('Predict Controller Selectors', () => {
   });
 
   describe('selectPredictDepositTransaction', () => {
-    it('should return deposit transaction when it exists', () => {
+    it('returns deposit transaction when it exists', () => {
       const depositTransaction = {
         batchId: 'batch-123',
         chainId: 137,
@@ -57,7 +57,7 @@ describe('Predict Controller Selectors', () => {
       expect(result).toEqual(depositTransaction);
     });
 
-    it('should return null when deposit transaction does not exist', () => {
+    it('returns null when deposit transaction does not exist', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -74,7 +74,7 @@ describe('Predict Controller Selectors', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null when PredictController state is undefined', () => {
+    it('returns null when PredictController state is undefined', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -91,7 +91,7 @@ describe('Predict Controller Selectors', () => {
   });
 
   describe('selectPredictClaimTransaction', () => {
-    it('should return claim transaction when it exists', () => {
+    it('returns claim transaction when it exists', () => {
       const claimTransaction = {
         transactionId: 'tx-123',
         chainId: 137,
@@ -119,7 +119,7 @@ describe('Predict Controller Selectors', () => {
       expect(result).toEqual(claimTransaction);
     });
 
-    it('should return null when claim transaction does not exist', () => {
+    it('returns null when claim transaction does not exist', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -136,7 +136,7 @@ describe('Predict Controller Selectors', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null when PredictController state is undefined', () => {
+    it('returns null when PredictController state is undefined', () => {
       const mockState = {
         engine: {
           backgroundState: {

@@ -872,9 +872,9 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
+                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -900,7 +900,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "$200000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token2.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                     "name": "Hello Token",
                                     "symbol": "HELLO",
                                     "tokenFiatAmount": 200000,
@@ -912,7 +912,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "$80000",
                                     "chainId": "0xa",
                                     "decimals": 18,
-                                    "image": "https://token3.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x0000000000000000000000000000000000000003.png",
                                     "name": "Foo Token",
                                     "symbol": "FOO",
                                     "tokenFiatAmount": 80000,
@@ -924,7 +924,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "$40000",
                                     "chainId": "0xa",
                                     "decimals": 18,
-                                    "image": "",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/slip44/60.png",
                                     "name": "Ethereum",
                                     "symbol": "ETH",
                                     "tokenFiatAmount": 40000,
@@ -936,7 +936,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "20000.456 USD",
                                     "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
                                     "decimals": 6,
-                                    "image": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
                                     "name": "USD Coin",
                                     "symbol": "USDC",
                                     "tokenFiatAmount": 20000.456,
@@ -948,7 +948,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "$20000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "https://token1.com/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                     "name": "Token One",
                                     "symbol": "TOKEN1",
                                     "tokenFiatAmount": 20000,
@@ -960,7 +960,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "10012.3 USD",
                                     "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
                                     "decimals": 9,
-                                    "image": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                                     "name": "Solana",
                                     "symbol": "SOL",
                                     "tokenFiatAmount": 10012.3,
@@ -972,7 +972,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "$6000",
                                     "chainId": "0x1",
                                     "decimals": 18,
-                                    "image": "",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png",
                                     "name": "Ethereum",
                                     "symbol": "ETH",
                                     "tokenFiatAmount": 6000,
@@ -984,7 +984,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "balanceFiat": "1500 USD",
                                     "chainId": "bip122:000000000019d6689c085ae165831e93",
                                     "decimals": 8,
-                                    "image": "btcIconUrl",
+                                    "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png",
                                     "name": "Bitcoin",
                                     "symbol": "BTC",
                                     "tokenFiatAmount": 1500,
@@ -1101,7 +1101,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token2.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png",
                                                   }
                                                 }
                                                 style={
@@ -1378,7 +1378,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token3.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x0000000000000000000000000000000000000003.png",
                                                   }
                                                 }
                                                 style={
@@ -1962,7 +1962,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
                                                   }
                                                 }
                                                 style={
@@ -2239,7 +2239,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://token1.com/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png",
                                                   }
                                                 }
                                                 style={
@@ -2516,7 +2516,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                                                   }
                                                 }
                                                 style={
@@ -3100,7 +3100,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "btcIconUrl",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png",
                                                   }
                                                 }
                                                 style={

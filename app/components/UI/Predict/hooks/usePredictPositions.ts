@@ -1,5 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
@@ -30,6 +31,11 @@ interface UsePredictPositionsOptions {
    * The parameters to load positions for
    */
   claimable?: boolean;
+  /**
+   * Auto-refresh interval in milliseconds
+   * If provided, positions will be automatically refreshed at this interval
+   */
+  autoRefreshTimeout?: number;
 }
 
 interface UsePredictPositionsReturn {
@@ -54,6 +60,7 @@ export function usePredictPositions(
     refreshOnFocus = true,
     claimable = false,
     marketId,
+    autoRefreshTimeout,
   } = options;
 
   const { getPositions } = usePredictTrading();
@@ -106,6 +113,22 @@ export function usePredictPositions(
           err instanceof Error ? err.message : 'Failed to load positions';
         setError(errorMessage);
         DevLogger.log('usePredictPositions: Error loading positions', err);
+
+        // Capture exception with positions loading context (no user address)
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePredictPositions',
+            action: 'positions_load',
+            operation: 'data_fetching',
+          },
+          extra: {
+            positionsContext: {
+              providerId,
+              claimable,
+              marketId,
+            },
+          },
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
@@ -137,6 +160,25 @@ export function usePredictPositions(
       }
     }, [refreshOnFocus, loadPositions]),
   );
+
+  // Store loadPositions in a ref for auto-refresh
+  const loadPositionsRef = useRef(loadPositions);
+  loadPositionsRef.current = loadPositions;
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!autoRefreshTimeout) {
+      return;
+    }
+
+    const refreshTimer = setInterval(() => {
+      loadPositionsRef.current({ isRefresh: true });
+    }, autoRefreshTimeout);
+
+    return () => {
+      clearInterval(refreshTimer);
+    };
+  }, [autoRefreshTimeout]);
 
   return {
     positions,

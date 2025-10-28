@@ -1,6 +1,5 @@
 import { act } from '@testing-library/react-hooks';
-import { QuoteResponse } from '../../types';
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 
 /**
  * Unit tests for the blockaid validation logic.

@@ -33,6 +33,11 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
+  ///: END:ONLY_INCLUDE_IF
+
   // Approval
   APPROVAL_STARTED = 'Approval Started',
   APPROVAL_COMPLETED = 'Approval Completed',
@@ -552,6 +557,8 @@ enum EVENT_NAME {
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
+  CARD_ONBOARDING_PAGE_VIEWED = 'Card Onboarding Page Viewed',
+  CARD_ONBOARDING_BUTTON_CLICKED = 'Card Onboarding Button Clicked',
 
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
@@ -574,6 +581,12 @@ enum EVENT_NAME {
   REWARDS_REWARD_VIEWED = 'Rewards Reward Viewed',
   REWARDS_SETTINGS_VIEWED = 'Rewards Settings Viewed',
   REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
+
+  // Predict
+  PREDICT_ACTION_INITIATED = 'Predict Action Initiated',
+  PREDICT_ACTION_SUBMITTED = 'Predict Action Submitted',
+  PREDICT_ACTION_COMPLETED = 'Predict Action Completed',
+  PREDICT_ACTION_FAILED = 'Predict Action Failed',
 }
 
 enum ACTIONS {
@@ -616,6 +629,13 @@ enum ACTIONS {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
+
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
+  ///: END:ONLY_INCLUDE_IF
+
+  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -1405,6 +1425,12 @@ const events = {
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
   ),
+  CARD_ONBOARDING_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.CARD_ONBOARDING_PAGE_VIEWED,
+  ),
+  CARD_ONBOARDING_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ONBOARDING_BUTTON_CLICKED,
+  ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -1444,6 +1470,11 @@ const events = {
   REWARDS_WAYS_TO_EARN_CTA_CLICKED: generateOpt(
     EVENT_NAME.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
   ),
+  // Predict
+  PREDICT_ACTION_INITIATED: generateOpt(EVENT_NAME.PREDICT_ACTION_INITIATED),
+  PREDICT_ACTION_SUBMITTED: generateOpt(EVENT_NAME.PREDICT_ACTION_SUBMITTED),
+  PREDICT_ACTION_COMPLETED: generateOpt(EVENT_NAME.PREDICT_ACTION_COMPLETED),
+  PREDICT_ACTION_FAILED: generateOpt(EVENT_NAME.PREDICT_ACTION_FAILED),
 };
 
 /**

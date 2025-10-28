@@ -1,4 +1,25 @@
 {
+  "sample_feature": {
+    "title": "Sample Feature",
+    "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
+    "counter": {
+      "title": "Counter",
+      "value": "Value: {{value}}",
+      "increment": "Increment Redux Counter"
+    },
+    "pet_name": {
+      "list_count_text": "Pet Names on this network",
+      "add_pet_name_button": "Add Pet Name",
+      "address": "Address",
+      "address_placeholder": "0x...",
+      "name": "Name",
+      "name_placeholder": "Name",
+      "duplicate_title": "Address already exists",
+      "duplicate_message": "This address already has a pet name. Do you want to update it?",
+      "cancel": "Cancel",
+      "update": "Update"
+    }
+  },
   "alert_system": {
     "alert_modal": {
       "title": "アラート",
@@ -219,13 +240,14 @@
     "remind_later": "後で通知します",
     "remind_later_description": "シークレットリカバリーフレーズをバックアップしなかった場合、アプリにログインできなくなったり、新しいデバイスに変更した際に、資金にアクセスできなくなります。",
     "remind_later_description2": "ウォレットのバックアップやシークレットリカバリーフレーズの確認は、",
-    "setting_security_privacy": "「設定」>「セキュリティとプライバシー」"
+    "setting_security_privacy": "「設定」>「セキュリティとプライバシー」",
+    "wallet_ready": "Your wallet is ready!"
   },
   "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
+    "new_user_title": "サインアップが完了しました！",
+    "new_user_button": "ウォレットの安全を確保",
+    "existing_user_title": "ログインしました！",
+    "existing_user_button": "ウォレットのロックを解除"
   },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
@@ -395,7 +417,7 @@
     "description": "このデバイスでのみMetaMaskのロックが解除されます。",
     "description_social_login": "これは、すべてのデバイスでのウォレットの復元に使用します。",
     "description_social_login_update": "このパスワードを紛失すると、どのデバイスでもウォレットにアクセスできなくなります。安全な場所に保管してください。",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
+    "description_social_login_update_ios": "これはウォレットを復元するためにすべてのデバイスで使用されます。MetaMaskはリセットできません。",
     "description_social_login_update_bold": "MetaMask側でリセットすることはできません。",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
     "password": "パスワードを作成",
@@ -594,7 +616,9 @@
       "unexpectedError": "予期せぬエラーが発生しました。",
       "quoteFetchError": "クォートを取得できませんでした。",
       "kycFormsFetchError": "KYCフォームを取得できませんでした。",
-      "title": "入金する"
+      "title": "入金する",
+      "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
+      "limitError": "Failed to check your deposit limits. Please try again later."
     },
     "token_modal": {
       "select_a_token": "トークンを選択",
@@ -867,6 +891,7 @@
       "fetch_regions": "地域の取得中に問題が発生しました。",
       "fetch_tokens": "トークンの取得中に問題が発生しました。",
       "fetch_payment_methods": "支払い方法の取得中に問題が発生しました。",
+      "fetch_user_details": "There was an issue fetching the user details.",
       "try_again": "再試行",
       "error_details_title": "エラーの詳細",
       "see_more": "もっと見る"
@@ -892,7 +917,9 @@
     "withdraw": "出金",
     "refresh_balance": "残高を更新",
     "add_funds": "資金を追加",
-    "deposit_in_progress": "Deposit in progress",
+    "deposit_in_progress": "デポジット処理中",
+    "withdraw_in_progress": "Withdraw in progress",
+    "multiple_transactions_in_progress": "Transactions in progress",
     "your_positions": "保有ポジション",
     "loading_positions": "ポジションを読み込み中...",
     "refreshing_positions": "ポジションを更新中...",
@@ -1079,7 +1106,7 @@
       "margin": "マージン",
       "take_profit": "利益確定",
       "stop_loss": "ストップロス",
-      "tp_sl": "TP/SL",
+      "tp_sl": "Auto close",
       "tp": "利確",
       "sl": "損切",
       "button": {
@@ -1198,7 +1225,7 @@
       "you_need_set_price_limit_order": "リミット注文の価格を設定する必要があります。"
     },
     "tpsl": {
-      "title": "利益確定とストップロス",
+      "title": "Auto close",
       "description": "損益の割合を選択するか、ポジションを自動的にクローズするトリガー価格をカスタムで入力してください。",
       "off": "オフ",
       "current_price": "現在の価格",
@@ -1215,14 +1242,19 @@
       "loss_percent_placeholder": "損失",
       "profit_roe_placeholder": "利益率",
       "loss_roe_placeholder": "損失率",
-      "usd_label": "($)",
+      "usd_label": "$",
       "take_profit_invalid_price": "利益確定は{{priceType}}価格よりも{{direction}}に設定する必要があります",
       "stop_loss_invalid_price": "ストップロスは{{priceType}}価格よりも{{direction}}に設定する必要があります",
       "stop_loss_beyond_liquidation_error": "ストップロスは清算価格よりも{{direction}}に設定する必要があります",
       "stop_loss_order_view_warning": "ストップロスが清算価格よりも{{direction}}に設定されています",
       "above": "上",
       "below": "下",
-      "done": "Done"
+      "done": "完了",
+      "cancel": "Cancel",
+      "set": "設定",
+      "clear": "Clear",
+      "expected_profit": "Expected profit: {{amount}}",
+      "expected_loss": "Expected loss: {{amount}}"
     },
     "token_selector": {
       "no_tokens": "使用可能なトークンがありません"
@@ -1277,6 +1309,7 @@
       "assetMappingFailed": "資産マッピングを構築できませんでした",
       "depositFailed": "デポジット失敗",
       "orderLeverageReductionFailed": "レバレッジを下げることはできません",
+      "connectionTimeout": "接続がタイムアウトしました。ネットワークを確認して再試行してください。",
       "connectionFailed": {
         "title": "パーペチュアルが一時的にオフラインです",
         "description": "すぐにオンラインに戻せるように対応しています",
@@ -1348,9 +1381,9 @@
         "error_message": "市場データが見つかりません。前の画面に戻り、もう一度お試しください。"
       },
       "statistics": "概要",
-      "24h_high": "24h high",
-      "24h_low": "24h low",
-      "24h_volume": "24h volume",
+      "24h_high": "24時間の最高値",
+      "24h_low": "24時間の最安値",
+      "24h_volume": "24時間の取引高",
       "open_interest": "取組高",
       "funding_rate": "資金調達率",
       "countdown": "カウントダウン",
@@ -1361,7 +1394,14 @@
       "add_funds": "資金を追加",
       "add_funds_to_start_trading_perps": "資金を追加してパーペチュアルの取引を開始します",
       "position": "ポジション",
-      "orders": "注文"
+      "orders": "注文",
+      "badge": {
+        "experimental": "EXPERIMENTAL",
+        "equity": "STOCK",
+        "commodity": "COMMODITY",
+        "crypto": "CRYPTO",
+        "forex": "FOREX"
+      }
     },
     "buttons": {
       "get_account_balance": "アカウント残高を取得",
@@ -1490,6 +1530,9 @@
         "trades": "取引",
         "orders": "注文",
         "funding": "入金",
+        "withdraw": "Withdraw",
+        "deposit": "Deposit",
+        "deposits": "Deposits",
         "funding_description": "資金調達履歴は、保有中のポジションに適用される資金調達率によって決まる手数料の支払い・受取り状況をまとめたものです。"
       },
       "not_found": "トランザクションが見つかりません",
@@ -1510,9 +1553,10 @@
         "metamask_fee": "MetaMaskの手数料",
         "hyperliquid_fee": "Hyperliquidの手数料",
         "total_fee": "合計手数料",
-        "liquidated": "Liquidated",
-        "take_profit": "Take profit",
-        "stop_loss": "Stop loss"
+        "liquidated": "清算",
+        "take_profit": "利益確定",
+        "stop_loss": "ストップロス",
+        "auto_deleveraging": "Auto-Deleveraging"
       },
       "funding": {
         "date": "日付",
@@ -1525,7 +1569,7 @@
         "history_will_appear": "ここに取引履歴が表示されます"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "パーペチュアルコントラクトは大きなリスクを伴い、予告なく突然、投資額全額を失う可能性があります。取引はすべてお客様の責任で行ってください。市場データ提供元: Hyperliquid。価格チャート提供元: ",
     "tutorial": {
       "continue": "続行",
       "skip": "スキップ",
@@ -1555,16 +1599,15 @@
       "ready_to_trade": {
         "title": "取引の準備はできましたか？",
         "description": "任意のトークンでパーペチュアルアカウントに入金すれば、数秒で最初の取引ができます。",
-        "footer_text": "MetaMaskはArbitrum上で資金をUSDCに交換し、これを追加手数料なしでHyperCoreに入金します。"
+        "footer_text": "MetaMaskはArbitrum上で資金をUSDCにスワップし、追加手数料なしでHyperCoreに入金します。"
       },
       "got_it": "了解",
       "card": {
-        "title": "Learn the basics of perps"
+        "title": "パーペチュアルの基本"
       }
     },
     "points": "ポイント",
     "estimated_points": "推定ポイント数",
-    "unable_to_load": "読み込ませんでした",
     "points_error": "現在、ポイントを読み込めません",
     "points_error_content": "ポイントは獲得できていますのでご心配なく。ポイントはすぐにアカウントに表示されます。または、後ほど「リワード」タブでご確認ください。",
     "tp_on_chart": "TPをチャートに表示",
@@ -1574,12 +1617,32 @@
     "title": "MetaMask Predict",
     "prediction_markets": "予測市場",
     "market_list": "市場リスト",
-    "market_details": "市場の詳細",
+    "loading": "Loading...",
+    "market_details": {
+      "title": "Market Details",
+      "market_ended_on": "Market ended on {{outcome}}",
+      "market_resulted_to": "Market resulted to {{outcome}}",
+      "waiting_for_final_resolution": "Waiting for final resolution",
+      "no_positions_found": "No positions found",
+      "volume": "Volume",
+      "end_date": "End date",
+      "resolver": "Resolver",
+      "powered_by": "Powered by",
+      "yes": "Yes",
+      "no": "No",
+      "on": "on",
+      "market_unavailable": "Market unavailable"
+    },
     "tab": {
-      "no_predictions": "まだ予測はありません",
-      "no_predictions_description": "予測を開いて始めましょう。",
-      "explore": "市場を探索",
-      "new_prediction": "新しい予測"
+      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
+      "explore": "Browse markets",
+      "new_prediction": "新しい予測",
+      "resolved_markets": "Resolved markets"
+    },
+    "tabs": {
+      "about": "About",
+      "positions": "Positions",
+      "outcomes": "Outcomes"
     },
     "sell_position": "売りポジション",
     "cash_out": "キャッシュアウト",
@@ -1609,16 +1672,87 @@
     "claim_button": "請求",
     "markets_won": "的中した市場",
     "won_markets_text": "{{count}}件の市場{{s}}で的中",
-    "won_markets_text_singular": "{{count}}件の市場で的中",
-    "won_markets_text_plural": "{{count}}件の市場で的中",
+    "available_balance": "Available balance",
     "claim_amount_text": "請求額 ${{amount}}",
     "unrealized_pnl_label": "含み損益",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unrealized_pnl_error": "Unable to load",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
       "button": "Got it"
+    },
+    "deposit": {
+      "in_progress": "Deposit in progress",
+      "adding_funds": "Adding funds",
+      "adding_your_funds": "Adding your funds",
+      "add_funds": "Add funds",
+      "withdraw": "Withdraw",
+      "estimated_processing_time": "Est. {{time}} seconds",
+      "account_ready": "Your account is ready",
+      "account_ready_description": "{{amount}} added to your balance",
+      "error_title": "Something went wrong",
+      "error_description": "Your account wasn't funded",
+      "try_again": "Try again"
+    },
+    "add_funds_sheet": {
+      "title": "Add funds",
+      "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+    },
+    "transactions": {
+      "title": "Predictions",
+      "no_transactions": "No recent activity",
+      "buy_title": "Predicted",
+      "sell_title": "Cashed out",
+      "claim_title": "Claimed winnings",
+      "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
+      "sell_detail": "Sold at {{priceCents}} per share",
+      "claim_detail": "Claimed winnings",
+      "not_available": "N/A",
+      "date": "Date",
+      "market": "Market",
+      "outcome": "Outcome",
+      "predicted_amount": "Predicted amount",
+      "shares_bought": "Shares bought",
+      "shares_sold": "Shares sold",
+      "price_per_share": "Price per share",
+      "price_impact": "Price impact",
+      "net_pnl": "Net P&L",
+      "total_net_pnl": "Total Net P&L",
+      "market_net_pnl": "Market Net P&L",
+      "activity_details": "Activity details"
+    },
+    "claim": {
+      "toasts": {
+        "pending": {
+          "title": "Claiming {{amount}}",
+          "description": "Est. {{time}} seconds"
+        },
+        "confirmed": {
+          "title": "Claimed",
+          "description": "{{amount}} added to your balance"
+        },
+        "error": {
+          "title": "Something went wrong",
+          "description": "Failed to proceed with claim",
+          "try_again": "Try again"
+        }
+      }
+    },
+    "order": {
+      "available": "Available",
+      "cashed_out": "Cashed out",
+      "cashed_out_subtitle": "{{amount}} added to your balance",
+      "cashing_out": "Cashing out {{amount}}",
+      "cashing_out_subtitle": "Estimated {{time}} seconds",
+      "placing_prediction": "Placing a prediction",
+      "prediction_placed": "Prediction placed",
+      "order_failed": "Order failed",
+      "payments_made_in_usdc": "All payments are made in USDC",
+      "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
+      "prediction_minimum_bet": "Minimum bet is {{amount}}",
+      "to_win": "To win"
     }
   },
   "receive": {
@@ -1729,6 +1863,8 @@
     "alphabetically": "アルファベット順 (A～Z)",
     "add_to_get_started": "開始するには仮想通貨を追加してください",
     "token_is_needed_to_continue": "続けるには{{tokenSymbol}}が必要です",
+    "fund_your_wallet": "Fund your wallet",
+    "get_ready_for_web3": "Get your wallet ready to use web3",
     "fund_your_wallet_to_get_started": "ウォレットに入金してWeb3の利用を開始",
     "add_funds": "資金を追加",
     "next": "次へ",
@@ -2514,7 +2650,9 @@
     "developer_options": {
       "title": "開発者用オプション",
       "generate_trace_test": "トレーステストを生成",
-      "generate_trace_test_desc": "開発者テスト用のSentryトレースを生成。"
+      "generate_trace_test_desc": "開発者テスト用のSentryトレースを生成。",
+      "navigate_to_sample_feature": "Navigate to Sample Feature",
+      "sample_feature_desc": "A sample feature as a template for developers."
     }
   },
   "aes_crypto_test_form": {
@@ -2673,6 +2811,14 @@
     "swap": "スワップ",
     "bridge": "ブリッジ",
     "earn": "獲得",
+    "tron": {
+      "daily_resource": "Daily resource",
+      "bandwidth": "Bandwidth",
+      "energy": "Energy",
+      "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
+      "sufficient_to_cover_trx": "Sufficient to cover ~{{amount}} TRX transfers",
+      "sufficient_to_cover_usdt": "Sufficient to cover ~{{amount}} USDT"
+    },
     "disabled_button": {
       "buy": "このアカウントでは購入はサポートされていません",
       "sell": "このアカウントでは売却はサポートされていません",
@@ -3091,8 +3237,10 @@
     "tx_review_staking_unstake": "ステーキングを解除",
     "tx_review_lending_deposit": "貸付金のデポジット",
     "tx_review_lending_withdraw": "貸付金の引き出し",
-    "tx_review_perps_deposit": "パーペチュアルアカウントに入金しました",
-    "tx_review_predict_deposit": "Funded Predict account",
+    "tx_review_perps_deposit": "パーペチュアルに入金しました",
+    "tx_review_predict_deposit": "Funded Predictions",
+    "tx_review_predict_claim": "Claimed Wins",
+    "tx_review_predict_withdraw": "Predictions Withdraw",
     "sent_ether": "送信されたイーサ",
     "self_sent_ether": "自分に送信されたイーサ",
     "received_ether": "受け取ったイーサ",
@@ -3166,6 +3314,7 @@
     "network_fee": "ネットワーク手数料",
     "network_fee_tooltip": "ネットワーク上でのトランザクションの処理に支払われた金額です。",
     "confirm_gas_fee_token_tooltip": "これは、トランザクションを処理するためにネットワークに支払われるもので、ETH以外のトークンまたは事前に資金提供されたETHの場合は、{{metamaskFeeFiat}}のMetaMask手数料が含まれます。",
+    "paid_by_metamask": "Paid by MetaMask",
     "confirm_gas_fee_token_metamask_fee": "{{metamaskFeeFiat}}の手数料込み",
     "smart_account_upgrade": "スマートアカウントにアップグレード",
     "smart_account_downgrade": "スタンダードアカウントに切り替える",
@@ -3939,7 +4088,9 @@
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
     "select_provider": "希望のプロバイダーを選択してください",
-    "switch_network": "メインネットまたはSepoliaに切り替えてください"
+    "switch_network": "メインネットまたはSepoliaに切り替えてください",
+    "card_title": "MetaMaskカードボタンを常に表示する",
+    "card_desc": "MetaMaskカードは一部の国にお住まいの方のみご利用いただけます"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "アクティブなセッションがありません",
@@ -5298,7 +5449,8 @@
       "switch_account_type": "アカウントのアップデート",
       "approve": "要求の承認",
       "perps_deposit": "資金を追加",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -5315,7 +5467,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "Metamaskは、HyperCore (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCに交換します。スワッププロバイダーは手数料を請求することがありますが、MetaMaskなら無料です。"
+        "transaction_fee": "HyperCore (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCにスワップします。スワッププロバイダーは手数料を請求する場合がありますが、MetaMaskは無料です。"
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
@@ -5407,6 +5559,12 @@
       "save": "保存",
       "title": "承認限度額を編集"
     },
+    "predict_claim": {
+      "button_label": "Claim winnings",
+      "summary": "You won",
+      "footer_bottom": "Funds will be added to your available balance",
+      "footer_top": "Winnings from {{count}} markets"
+    },
     "unlimited": "無制限",
     "all": "すべて",
     "none": "なし",
@@ -5468,13 +5626,16 @@
     "network_fee_info_content": "ネットワーク手数料は、ネットワークの混雑状況とトランザクションの複雑さによって異なります。",
     "points": "推定ポイント数",
     "points_tooltip": "ポイント",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content_1": "ポイントは、スワップ、ブリッジ、パーペチュアル取引など、トランザクションを完了したことによるMetaMaskリワードの獲得状況を示します。",
+    "points_tooltip_content_2": "この金額は見積もりであり、トランザクション完了後に確定されることをご留意ください。ポイントがリワード残高で確定されるまでに最長1時間かかる場合があります。",
     "unable_to_load": "読み込めません",
     "points_error": "現在、ポイントを読み込めません",
-    "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
+    "points_error_content": "このトランザクションで引き続きポイントを獲得できます。ポイントがアカウントに追加され次第、お知らせいたします。約1時間後に「リワード」タブにてご確認いただくことも可能です。",
     "see_other_quotes": "他のクォートを表示",
     "receive_at": "受取先:",
+    "recipient": "Recipient",
+    "select_recipient": "Select recipient",
+    "external_account": "External account",
     "error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。",
     "insufficient_funds": "資金不足",
     "insufficient_gas": "ガス不足",
@@ -5486,9 +5647,9 @@
     "title": "ブリッジ",
     "submitting_transaction": "送信中",
     "fetching_quote": "クォートを取得中",
-    "fee_disclaimer": "{{feePercentage}}%のMM手数料込み",
+    "fee_disclaimer": "Includes {{feePercentage}}% MM fee.",
     "no_mm_fee": "MM手数料なし",
-    "no_mm_fee_disclaimer": "{{destTokenSymbol}}へのスワップにMM手数料はかかりません",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "まだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "price_impact_info_title": "プライスインパクト",
@@ -5498,7 +5659,7 @@
     "slippage_info_description": "トランザクションが取り消される前に許容する価格の変動率（%）。",
     "blockaid_error_title": "このトランザクションは取り消されます",
     "max": "最大額",
-    "approval_needed": "これにより、{{amount}} {{symbol}}のスワップが承認されます。",
+    "approval_needed": "Approves token for swap.",
     "approval_tooltip_title": "アクセス許可は正確に",
     "approval_tooltip_content": "指定された金額（{{amount}} {{symbol}}）へのアクセスを許可します。コントラクトは追加の資金にアクセスしません。",
     "minimum_received": "最低受取額",
@@ -5775,6 +5936,12 @@
       "update_to_store_link": "MetaMaskを最新バージョンにアップデートしてください。",
       "well_take_you_to_right_place": "その後、該当するページにご案内いたします。"
     },
+    "unsupported": {
+      "title": "This page is not supported in current version",
+      "description": "Update to the latest version to use this feature",
+      "update_to_store_link": "Update to the latest version of MetaMask",
+      "well_take_you_to_right_place": " and we'll take you to the right place."
+    },
     "go_to_home_button": "ホームページに移動",
     "back_button": "戻る",
     "continue_button": "続行"
@@ -5791,7 +5958,96 @@
     "card_onboarding": {
       "title": "カードへようこそ",
       "description": "カードの機能を使用するには、当社のパートナーとアカウントを検証する必要があります。",
-      "verify_account_button": "アカウントを検証"
+      "verify_account_button": "アカウントを検証",
+      "sign_up": {
+        "title": "サインアップ",
+        "description": "MetaMaskカードの提供元であるCrypto Lifeにご登録ください。このアカウントでカードの管理とアクセスを行います。",
+        "email_label": "メールアドレス",
+        "password_label": "パスワード",
+        "confirm_password_label": "パスワードの確認",
+        "country_label": "お住いの国",
+        "email_placeholder": "メールアドレスを入力してください",
+        "password_placeholder": "パスワードを入力してください",
+        "country_placeholder": "お住いの国を選択してください",
+        "password_mismatch": "パスワードが一致しません",
+        "invalid_email": "無効なメールアドレスです"
+      },
+      "confirm_email": {
+        "title": "メールアドレスの確認",
+        "description": "確認コードを{{email}}に送信しました",
+        "confirm_code_label": "確認コード",
+        "confirm_code_placeholder": "確認コードを入力してください"
+      },
+      "set_phone_number": {
+        "title": "電話番号",
+        "description": "電話番号を入力してください",
+        "phone_number_label": "電話番号",
+        "phone_number_placeholder": "電話番号を入力してください",
+        "country_area_code_label": "国番号",
+        "invalid_phone_number": "無効な電話番号です",
+        "legal_terms": "続行すると、電話番号確認のためにSMSを受信することに同意したものとみなされます。"
+      },
+      "confirm_phone_number": {
+        "title": "電話番号の確認",
+        "description": "確認コードを{{phoneNumber}}に送信しました",
+        "confirm_code_label": "確認コード"
+      },
+      "verify_identity": {
+        "title": "カード発行のための本人確認を行っています",
+        "description": "アカウントの安全性を確保し、規制に準拠するため、本人確認が必要です。\n\n政府発行の身分証明書と住所確認書類 (公共料金の請求書や銀行取引明細書など) をご用意ください。\n\n確認には通常5〜30分ほどかかります。完了後に通知いたします。",
+        "verify_button": "Veriffで本人確認を行う"
+      },
+      "validating_kyc": {
+        "title": "KYCを検証中…"
+      },
+      "kyc_failed": {
+        "title": "拒否されました",
+        "description": "KYCが拒否されました。もう一度お試しください。"
+      },
+      "personal_details": {
+        "title": "個人情報",
+        "description": "個人情報を入力してください",
+        "first_name_label": "名",
+        "last_name_label": "姓",
+        "date_of_birth_label": "生年月日",
+        "nationality_label": "国籍",
+        "ssn_label": "社会保障番号",
+        "first_name_placeholder": "名を入力",
+        "last_name_placeholder": "姓を入力",
+        "date_of_birth_placeholder": "生年月日を入力",
+        "nationality_placeholder": "国籍を選択",
+        "ssn_placeholder": "社会保障番号を入力",
+        "invalid_ssn": "無効な社会保障番号です",
+        "invalid_date_of_birth": "無効な生年月日です",
+        "invalid_date_of_birth_underage": "18歳以上である必要があります"
+      },
+      "physical_address": {
+        "title": "現住所",
+        "description": "現住所を入力してください",
+        "address_line_1_label": "住所行1",
+        "address_line_2_label": "住所行2",
+        "city_label": "市区町村",
+        "state_label": "州・都道府県",
+        "zip_code_label": "郵便番号",
+        "address_line_1_placeholder": "住所行1を入力",
+        "address_line_2_placeholder": "住所行2を入力",
+        "city_placeholder": "市区町村を入力",
+        "state_placeholder": "州・都道府県を入力",
+        "zip_code_placeholder": "郵便番号を入力",
+        "same_mailing_address_label": "現住所は郵送先住所と同じ",
+        "electronic_consent": "電子署名法に基づく同意および開示事項に同意し、すべての通知を電子的に受け取ることに同意します。"
+      },
+      "mailing_address": {
+        "title": "郵送先住所",
+        "description": "郵送先住所を入力してください"
+      },
+      "complete": {
+        "title": "承認されました！",
+        "description": "KYCが承認されました。カードをご利用いただけます。"
+      },
+      "continue_button": "次へ",
+      "confirm_button": "確定",
+      "retry_button": "再試行"
     },
     "card_home": {
       "error_title": "データを取得できません",
@@ -5799,10 +6055,73 @@
       "try_again": "再試行してください",
       "limited_spending_warning": "実際の利用可能額は制限されている可能性があります。制限を調整するには、{{manageCard}}に移動してください。",
       "add_funds": "資金を追加",
+      "change_asset": "アセットを変更",
+      "enable_card_button_label": "Enable Card",
+      "enable_assets_button_label": "Enable Assets",
+      "warnings": {
+        "close_spending_limit": {
+          "title": "利用限度額に近づいています",
+          "description": "支払い拒否を防ぐために更新してください",
+          "confirm_button_label": "新しい限度額を設定"
+        },
+        "need_delegation": {
+          "title": "アセットの委任が必要です",
+          "description": "カードでの支払いを開始するにはアセットをカードに委任してください",
+          "confirm_button_label": "アセットを委任"
+        },
+        "no_card": {
+          "title": "You don't have a Card",
+          "description": "Please enable your Card to start spending"
+        },
+        "frozen": {
+          "title": "Your Card is frozen",
+          "description": "Please contact support to unfreeze your Card"
+        },
+        "blocked": {
+          "title": "Your Card is blocked",
+          "description": "Please contact support to unblock your Card"
+        }
+      },
       "manage_card_options": {
+        "manage_spending_limit": "利用限度額を管理",
+        "manage_spending_limit_description_restricted": "利用限度額の制限が有効になっています",
+        "manage_spending_limit_description_full": "全額利用が有効になっています",
         "manage_card": "カードの管理",
-        "advanced_card_management_description": "トランザクションの表示、カードの凍結などを行います"
+        "advanced_card_management_description": "トランザクションの詳細、カードの凍結など"
       }
+    },
+    "card_authentication": {
+      "title": "カードアカウントへのログイン",
+      "location_button_text": "外国",
+      "location_button_text_us": "米国アカウント",
+      "email_label": "メールアドレス",
+      "password_label": "パスワード",
+      "email_placeholder": "メールアドレスを入力してください",
+      "password_placeholder": "パスワードを入力してください",
+      "login_button": "ログイン",
+      "errors": {
+        "invalid_credentials": "ログイン情報が無効です",
+        "unknown_error": "サーバーエラーが発生しました。後ほど再試行してください",
+        "email_required": "メールアドレスは必須です",
+        "password_required": "パスワードは必須です",
+        "email_invalid": "無効なメールアドレスです",
+        "password_invalid": "無効なパスワードです",
+        "invalid_email_or_password": "メールアドレスまたはパスワードが無効です。確認して再試行してください。",
+        "network_error": "ネットワークエラーです。接続を確認して再試行してください。",
+        "timeout_error": "タイムアウトしました。接続を確認して再試行してください。",
+        "server_error": "サーバーエラーが発生しました。後ほど再試行してください。",
+        "configuration_error": "現在サービスをご利用いただけません。後ほど再試行してください。"
+      }
+    },
+    "card_otp_authentication": {
+      "title": "Confirm your phone number",
+      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
+      "confirm_code_label": "Confirmation code",
+      "confirm_button": "Confirm",
+      "back_to_login_button": "Back to Login",
+      "resend_timer": "Resend code in {{seconds}}s",
+      "resend_code": "Resend code"
     }
   },
   "onboarding_error_fallback": {
@@ -5825,65 +6144,65 @@
     "close": "閉じる"
   },
   "rewards": {
-    "auth_fail_title": "Unknown Error.",
-    "auth_fail_description": "An unknown error occurred while authenticating this account with the rewards program. Please try again later.",
-    "failed_to_authenticate": "Failed to authenticate with rewards program",
+    "auth_fail_title": "不明なエラーです。",
+    "auth_fail_description": "このアカウントをリワードプログラムで認証中に不明なエラーが発生しました。後でもう一度お試しください。",
+    "failed_to_authenticate": "リワードプログラムの認証に失敗しました",
     "not_implemented": "近日追加予定",
     "not_implemented_season_summary": "セッションサマリーが近日利用可能になります",
     "optin_error": {
-      "title": "Opt-in failed",
-      "description": "Check your connection and try again."
+      "title": "オプトインに失敗しました",
+      "description": "接続を確認して、もう一度お試しください。"
     },
     "season_status_error": {
-      "error_fetching_title": "Season balance couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "シーズン残高を読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
     },
     "active_boosts_error": {
-      "error_fetching_title": "Boosts couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "ブーストを読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
     },
     "unlocked_rewards_error": {
-      "error_fetching_title": "Rewards couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "リワードを読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
     },
     "upcoming_rewards_error": {
-      "error_fetching_title": "Rewards couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "リワードを読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
     },
     "referral_details_error": {
-      "error_fetching_title": "Referral details couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "紹介の詳細を読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
     },
     "referral_validation_unknown_error": {
-      "title": "Referral code couldn’t be validated",
-      "description": "Check your connection and try again."
+      "title": "紹介コードを検証できませんでした",
+      "description": "接続を確認して、もう一度お試しください。"
     },
     "active_activity_error": {
-      "error_fetching_title": "Activity couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "アクティビティを読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
     },
-    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "solana_signup_not_supported": "Solanaアカウントでのリワードへのサインインは、まだサポートされていません。代わりにイーサリアムアカウントをご利用ください。",
     "error_messages": {
-      "unknown_error": "Unknown error occurred",
-      "something_went_wrong": "Something went wrong. Please try again shortly.",
-      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
-      "request_rejected": "You rejected the request.",
-      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly."
+      "unknown_error": "不明なエラーが発生しました",
+      "something_went_wrong": "問題が発生しました。しばらくしてからもう一度お試しください。",
+      "account_already_registered": "このアカウントは別のリワードプロファイルにすでに登録されています。続行するにはアカウントを切り替えてください。",
+      "request_rejected": "リクエストを拒否しました。",
+      "failed_to_claim_reward": "リワードの請求に失敗しました。しばらくしてからもう一度お試しください。",
+      "service_not_available": "現在サービスをご利用いただけません。しばらくしてからもう一度お試しください。"
     },
     "claim_reward_error": {
-      "title": "Failed to claim reward"
+      "title": "リワードの請求に失敗しました"
     },
     "accounts_opt_in_state_error": {
-      "error_fetching_title": "Accounts couldn’t be loaded",
-      "error_fetching_description": "Check your connection and try again.",
-      "retry_button": "Retry"
+      "error_fetching_title": "アカウントを読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
     },
     "referral_rewards_title": "紹介",
     "points": "ポイント",
@@ -5899,139 +6218,142 @@
     "tab_levels_title": "レベル",
     "referral_stats_earned_from_referrals": "紹介して報酬を獲得",
     "referral_stats_referrals": "紹介",
-    "loading_activity": "Loading activity...",
-    "error_loading_activity": "Error loading activity",
-    "activity_empty_title": "No recent activity.",
-    "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
-    "activity_empty_link": "See ways to earn",
+    "loading_activity": "アクティビティを読み込み中...",
+    "error_loading_activity": "アクティビティの読み込みエラー",
+    "activity_empty_title": "最近のアクティビティはありません。",
+    "activity_empty_description": "MetaMaskを使ってポイントを獲得し、レベルアップして、リワードのロックを解除しましょう。",
+    "activity_empty_link": "獲得方法を見る",
     "events": {
-      "to": "to",
+      "to": "送り先",
       "type": {
         "swap": "スワップ",
         "perps": "パーペチュアル",
-        "referral": "Referral",
-        "referral_action": "Referral action",
-        "sign_up_bonus": "Sign up bonus",
-        "loyalty_bonus": "Loyalty bonus",
-        "one_time_bonus": "One-time bonus",
-        "open_position": "Opened position",
-        "close_position": "Closed position",
+        "card_spend": "カード利用",
+        "referral": "紹介",
+        "referral_action": "紹介アクション",
+        "sign_up_bonus": "サインアップボーナス",
+        "loyalty_bonus": "ロイヤルティボーナス",
+        "one_time_bonus": "ワンタイムボーナス",
+        "open_position": "ポジションをオープン",
+        "close_position": "ポジションをクローズ",
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
-        "uncategorized_event": "Uncategorized event"
+        "uncategorized_event": "未分類のイベント"
       },
-      "date": "Date",
-      "account": "Account",
-      "bonus": "Bonus",
-      "details": "Details",
-      "points": "Points",
-      "points_base": "Base",
-      "points_boost": "Boost",
-      "points_total": "Total"
+      "date": "日付",
+      "account": "アカウント",
+      "bonus": "ボーナス",
+      "details": "詳細",
+      "points": "ポイント",
+      "points_base": "ベース",
+      "points_boost": "ブースト",
+      "points_total": "合計"
     },
     "onboarding": {
       "not_supported_region_title": "未対応の地域です",
-      "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_hardware_account_title": "Account not supported",
-      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
-      "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
-      "not_supported_confirm_go_back": "Go back",
-      "not_supported_confirm_retry": "Retry",
-      "auth_fail_title": "Authentication Failed",
-      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
-      "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
+      "not_supported_region_description": "現在、お住まいの地域ではリワードをご利用いただけません。対象地域を拡大中ですので、後日再度ご確認ください。",
+      "not_supported_hardware_account_title": "サポートされていないアカウントです",
+      "not_supported_hardware_account_description": "ハードウェアウォレットのアカウントは、現時点ではリワードを受け取ることはできません。別のアカウントに切り替えてください。",
+      "not_supported_account_type_title": "サポートされていないアカウントタイプです",
+      "not_supported_account_type_description": "現在、リワードプログラムは内部のイーサリアムおよびSolanaアカウントのみがオプトイン可能です。続行するには、別のアカウントに切り替えてください。",
+      "not_supported_confirm_go_back": "戻る",
+      "not_supported_confirm_retry": "再試行",
+      "auth_fail_title": "認証に失敗しました",
+      "auth_fail_description": "リワードプログラムに認証できませんでした。接続状況を確認して、もう一度お試しください。",
+      "geo_check_fail_title": "オプトインの資格を確認できません",
+      "geo_check_fail_description": "お住いの国でリワードプログラムへのオプトインが許可されているかを確認できません。接続を確認して、もう一度お試しください。",
       "gtm_title": "リワードのご紹介",
       "gtm_description": "アクティビティに対してポイントを獲得できます。\nレベルを上げてリワードのロックを解除しましょう。",
       "gtm_confirm": "開始",
       "intro_title": "シーズン1\n開催中",
-      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
-      "intro_confirm": "Claim 250 points",
-      "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking accounts...",
-      "redirecting_to_dashboard": "Redirecting...",
+      "intro_description": "アクティビティに対してポイントを獲得できます。\nレベルを上げてリワードのロックを解除しましょう。",
+      "intro_confirm": "250ポイントを請求する",
+      "intro_confirm_geo_loading": "地域を確認中…",
+      "checking_opt_in": "アカウントを確認中…",
+      "redirecting_to_dashboard": "リダイレクト中…",
       "intro_skip": "後で",
       "step_confirm": "次へ",
-      "step_skip": "Skip",
-      "step1_title": "Earn points on every trade",
+      "step_skip": "スキップ",
+      "step1_title": "すべての取引でポイントを獲得",
       "step1_description": "MetaMaskでスワップやパーペチュアル取引を行うたびに、リワード獲得のチャンスが近づきます。アカウントを追加して、ポイントが貯まる様子をご覧ください。",
-      "step2_title": "Level up for bigger perks",
+      "step2_title": "レベルアップして特典を増やそう",
       "step2_description": "ポイント数のマイルストーンに達すると、パーペチュアル手数料50%オフ、限定トークン、無料のMetaMaskメタルカードといった特典を獲得できます。",
-      "step3_title": "Exclusive seasonal rewards",
-      "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
-      "step4_title": "You'll earn 250 points when you sign up!",
-      "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_input_placeholder": "Referral code (optional)",
-      "step4_referral_input_error": "Invalid referral code",
-      "step4_confirm": "Claim points",
-      "step4_confirm_loading": "Claiming points...",
-      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Adding additional accounts...",
-      "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
-      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
-      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
-      "step4_legal_disclaimer_4": "learn more"
+      "step3_title": "限定シーズンリワード",
+      "step3_description": "シーズンごとに新しい特典が登場します。参加して競争し、期間終了までにリワードを請求しましょう。",
+      "step4_title": "サインアップすると250ポイントを獲得できます！",
+      "step4_title_referral_bonus": "このコードを使ってサインアップすると500ポイントを獲得できます！",
+      "step4_title_referral_validating": "紹介コードを検証中...",
+      "step4_referral_bonus_description": "紹介コードを使用するとさらに250ポイントを獲得できます",
+      "step4_referral_input_placeholder": "紹介コード（オプション）",
+      "step4_referral_input_error": "無効な紹介コード",
+      "step4_confirm": "ポイントを請求する",
+      "step4_confirm_loading": "ポイントを請求中…",
+      "step4_linking_accounts": "アカウントを追加中… ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "追加アカウントを追加中…",
+      "step4_success_description": "MetaMaskリワードへの登録が完了しました！",
+      "step4_legal_disclaimer_1": "「ポイントを請求」を選択することで、MetaMaskリワードに関する以下の規約に同意したものとみなされます",
+      "step4_legal_disclaimer_2": "補足利用規約およびプライバシー通知",
+      "step4_legal_disclaimer_3": "オンチェーンアクティビティを自動的に追跡し、リワードを付与します –",
+      "step4_legal_disclaimer_4": "詳細"
     },
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
-      "tab_linked_accounts": "Added ({{count}})",
-      "tab_unlinked_accounts": "Not added ({{count}})",
-      "no_linked_accounts": "No accounts opted in",
-      "all_accounts_linked_title": "All accounts opted in",
-      "all_accounts_linked_description": "You have added all your accounts to Rewards.",
-      "link_account_success_title": "{{accountName}} successfully added",
-      "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add",
-      "link_account_failed_error": "Failed to link account",
-      "link_account_unknown_error": "Unknown error occurred"
+      "title": "リワード設定",
+      "subtitle": "アカウント",
+      "description": "複数のアカウントを追加して、ポイントを合算し、より早くリワードのロックを解除しましょう。",
+      "tab_linked_accounts": "追加: ({{count}})",
+      "tab_unlinked_accounts": "未追加: ({{count}})",
+      "no_linked_accounts": "オプトイン済みのアカウントはありません",
+      "all_accounts_linked_title": "すべてのアカウントがオプトイン済みです",
+      "all_accounts_linked_description": "すべてのアカウントをリワードに追加しました。",
+      "link_account_success_title": "{{accountName}}を追加しました",
+      "link_account_error_title": "アカウントの追加に失敗しました",
+      "link_account_button": "追加",
+      "link_account_failed_error": "アカウントのリンクに失敗しました",
+      "link_account_unknown_error": "不明なエラーが発生しました"
     },
     "optout": {
-      "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
-      "confirm": "Opt out",
+      "title": "リワードをオプトアウトする",
+      "description": "これにより、リワードプログラムからアカウントが削除され、ポイントと進行状況がすべて消去されます。この操作は元に戻せません。",
+      "confirm": "オプトアウトする",
       "modal": {
-        "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
-        "cancel": "Cancel",
-        "confirm": "Confirm",
-        "error_message": "Failed to opt out of Rewards. Please try again.",
-        "processing": "Processing..."
+        "confirmation_title": "よろしいですか？",
+        "confirmation_description": "これにより、進行状況はすべて削除され、元には戻せません。リワードプログラムに後で再び参加した場合は、最初から始めることになります。",
+        "cancel": "キャンセル",
+        "confirm": "選択すると、",
+        "error_message": "リワードのオプトアウトに失敗しました。もう一度お試しください。",
+        "processing": "処理中..."
       }
     },
-    "toast_dismiss": "Dismiss",
+    "toast_dismiss": "閉じる",
     "dashboard_modal_info": {
       "active_account": {
-        "title": "Don't miss out",
-        "description": "Add your account to start earning points from your activity.",
-        "confirm": "Add account"
+        "title": "お見逃しなく",
+        "description": "アクティビティからポイントを獲得するには、アカウントを追加してください。",
+        "confirm": "アカウントを追加"
       },
       "multiple_unlinked_accounts": {
-        "title": "Start earning points",
-        "description": "Add your accounts so you can track your rewards at a glance.",
-        "confirm": "Add accounts"
+        "title": "ポイントの獲得を開始しましょう",
+        "description": "アカウントを追加すると、リワードを一目で確認できるようになります。",
+        "confirm": "アカウントを追加する"
       },
       "account_not_supported": {
-        "title": "Account not supported",
-        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
-        "confirm": "Go back"
+        "title": "サポートされていないアカウントです",
+        "description_hardware": "ハードウェアウォレットのアカウントは、現時点ではポイントを受け取ることはできません。別のアカウントに切り替えてください。",
+        "description_general": "現在、非ハードウェアの内部イーサリアムおよびSolanaアカウントのみがポイントを獲得できます。続行するには、別のアカウントに切り替えてください。",
+        "confirm": "戻る"
       }
     },
     "ways_to_earn": {
-      "title": "Ways to earn",
-      "supported_networks": "Supported Networks",
+      "title": "獲得方法",
+      "supported_networks": "サポートされているネットワーク",
       "swap": {
-        "title": "Swap",
-        "description": "80 points per $100",
+        "title": "スワップ",
+        "description": "$800ごとに10ポイント",
         "sheet": {
-          "title": "Swap tokens",
-          "points": "80 points per $100",
-          "description": "Swap tokens on supported networks to earn points for every dollar you trade.",
-          "cta_label": "Start a swap"
+          "title": "トークンをスワップ",
+          "points": "$800ごとに10ポイント",
+          "description": "サポートされているネットワークでトークンをスワップすると、1ドル取引するごとにポイントを獲得できます。",
+          "cta_label": "スワップを開始"
         }
       },
       "perps": {
@@ -6045,52 +6367,74 @@
         }
       },
       "referrals": {
-        "title": "Refer friends",
-        "description": "10 points per 50 from friends"
+        "title": "友達を紹介",
+        "description": "友達が50ポイント獲得するごとに10ポイント",
+        "sheet": {
+          "title": "友達を紹介",
+          "points": "100ごとに20ポイント付与",
+          "cta_label": "友達を紹介"
+        }
       },
       "loyalty": {
-        "title": "Loyalty bonus",
-        "description": "Earn points from past trades",
+        "title": "ロイヤルティボーナス",
+        "description": "過去の取引からポイントを獲得",
         "sheet": {
-          "title": "Loyalty bonus",
-          "points": "250 points per $1250",
-          "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
-          "cta_label": "Add accounts"
+          "title": "ロイヤルティボーナス",
+          "points": "1250ドルごとに250ポイント",
+          "description": "MetaMaskで過去にスワップまたはブリッジを行ったアカウントを追加して、ロイヤルティボーナスを獲得しましょう。対象となるアカウントごとに、250ポイントずつ、最大50,000ポイントのロックを解除できます。ボーナスは、アカウントを追加するとすぐに反映されます。",
+          "cta_label": "アカウントを追加"
+        }
+      },
+      "card": {
+        "title": "MetaMaskカード",
+        "description": "$1ごとに1ポイント",
+        "sheet": {
+          "title": "MetaMaskカード",
+          "points": "$1ごとに1ポイント",
+          "description": "MetaMaskカードで購入するとポイントを獲得できます。さらに1%のキャッシュバック (メタルカード会員は3%) が適用されます。",
+          "cta_label": "カードの管理"
         }
       }
     },
     "referral": {
-      "referral_code": "Referral code",
-      "referral_link": "Referral link",
+      "referral_code": "紹介コード",
+      "referral_link": "紹介リンク",
       "actions": {
         "share_referral_link": "友達を紹介",
         "share_referral_subject": "MetaMaskリワードにご参加ください"
       },
       "info": {
         "title": "コードを共有してさらに収入を得ましょう",
-        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
+        "description": "友達はサインアップ時に2倍のボーナスを獲得できます。お客様は友達が取引で50ポイント獲得するごとに10ポイント獲得できます。"
       }
     },
-    "active_boosts_title": "Active boosts",
-    "season_1": "Season 1",
+    "link_account_group": {
+      "link_account": "アカウントを追加",
+      "tracked": "追跡中",
+      "untracked": "未追跡",
+      "link_account_success": "{{accountName}}の追加が完了しました",
+      "link_account_error": "{{accountName}}のアドレス追加に失敗しました"
+    },
+    "active_boosts_title": "有効なブースト",
+    "season_1": "シーズン1",
     "upcoming_rewards": {
       "title": "ロックされているリワード",
-      "points_needed": "{{points}} points",
-      "cta_label": "Got it",
-      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+      "points_needed": "{{points}}ポイント",
+      "cta_label": "了解",
+      "alpha_fox_invite_input_placeholder": "Telegramのハンドルネーム"
     },
     "unlocked_rewards": {
-      "title": "Unlocked rewards",
-      "cta_label": "Claim now",
-      "cta_request_invite": "Request invite",
-      "claim_label": "Claim",
-      "claimed_label": "Claimed",
-      "reward_claimed": "Reward claimed",
+      "title": "ロックが解除されたリワード",
+      "cta_label": "今すぐ請求",
+      "cta_request_invite": "招待をリクエスト",
+      "claim_label": "請求",
+      "claimed_label": "請求済み",
+      "reward_claimed": "リワードを請求しました",
       "time_left": "残り",
-      "expired": "Expired"
+      "expired": "期限切れ"
     },
     "animation": {
-      "could_not_load": "Couldn't load"
+      "could_not_load": "読み込ませんでした"
     }
   },
   "time": {
@@ -6099,7 +6443,7 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded Perps account",
+      "perps_deposit": "パーペチュアルアカウントに入金しました",
       "predict_deposit": "Funded Predict account",
       "default": "トランザクションの詳細"
     },
@@ -6107,19 +6451,23 @@
       "bridge_fee": "ブリッジ手数料",
       "network_fee": "ネットワーク手数料",
       "paid_with": "支払方法:",
+      "retry_button": "Try again",
       "total": "合計"
     },
     "summary_title": {
-      "bridge": "{{sourceSymbol}}から{{targetSymbol}}にブリッジ",
       "bridge_approval": "{{approveSymbol}}を承認",
       "bridge_approval_loading": "承認",
-      "bridge_loading": "ブリッジ",
+      "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
+      "bridge_send_loading": "Bridge Send",
+      "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
+      "bridge_receive_loading": "Bridge Receive",
       "default": "トランザクション",
       "perps_deposit": "資金を追加",
       "predict_deposit": "Add funds",
       "swap": "トークンをスワップ",
       "swap_approval": "トークンを承認"
-    }
+    },
+    "perps_deposit_solution": "Arbitrumの残高が{{fiat}}のUSDCになりました。もう一度入金をお試しください。"
   },
   "sdk_connect_v2": {
     "show_loading": {

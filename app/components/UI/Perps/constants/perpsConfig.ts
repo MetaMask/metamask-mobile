@@ -157,6 +157,33 @@ export const TP_SL_CONFIG = {
 } as const;
 
 /**
+ * TP/SL View UI configuration
+ * Controls the Take Profit / Stop Loss screen behavior and display options
+ */
+export const TP_SL_VIEW_CONFIG = {
+  // Quick percentage button presets for Take Profit (positive RoE percentages)
+  TAKE_PROFIT_ROE_PRESETS: [10, 25, 50, 100], // +10%, +25%, +50%, +100% RoE
+
+  // Quick percentage button presets for Stop Loss (negative RoE percentages)
+  STOP_LOSS_ROE_PRESETS: [-5, -10, -25, -50], // -5%, -10%, -25%, -50% RoE
+
+  // WebSocket price update throttle delay (milliseconds)
+  // Reduces re-renders by batching price updates in the TP/SL screen
+  PRICE_THROTTLE_MS: 1000,
+
+  // Maximum number of digits allowed in price/percentage input fields
+  // Prevents overflow and maintains reasonable input constraints
+  MAX_INPUT_DIGITS: 9,
+
+  // Keypad configuration for price inputs
+  // USD_PERPS is not a real currency - it's a custom configuration
+  // that allows 5 decimal places for crypto prices, overriding the
+  // default USD configuration which only allows 2 decimal places
+  KEYPAD_CURRENCY_CODE: 'USD_PERPS' as const,
+  KEYPAD_DECIMALS: 5,
+} as const;
+
+/**
  * Limit price configuration
  * Controls preset percentages and behavior for limit orders
  */

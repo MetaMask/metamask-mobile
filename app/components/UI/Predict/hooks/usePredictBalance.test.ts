@@ -37,6 +37,10 @@ describe('usePredictBalance', () => {
     mockFocusCallback = null;
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initial state', () => {
     it('returns correct initial state when loadOnMount is false', () => {
       // Arrange & Act
@@ -66,11 +70,13 @@ describe('usePredictBalance', () => {
 
   describe('loadOnMount behavior', () => {
     it('loads balance automatically on mount when loadOnMount is true', async () => {
-      // Given loadOnMount is true (default)
+      // Given loadOnMount is true
       mockGetBalance.mockResolvedValue(150.5);
 
       // When hook is mounted
-      const { result } = renderHook(() => usePredictBalance());
+      const { result } = renderHook(() =>
+        usePredictBalance({ loadOnMount: true }),
+      );
 
       // Then balance should be loaded
       await waitFor(() => {
@@ -101,7 +107,7 @@ describe('usePredictBalance', () => {
 
       // When hook is mounted with custom providerId
       const { result } = renderHook(() =>
-        usePredictBalance({ providerId: customProviderId }),
+        usePredictBalance({ providerId: customProviderId, loadOnMount: true }),
       );
 
       // Then getBalance should be called with custom providerId
@@ -156,7 +162,9 @@ describe('usePredictBalance', () => {
     it('sets isRefreshing to true when loading with refresh flag', async () => {
       // Given hook is initialized and balance is already loaded
       mockGetBalance.mockResolvedValue(100);
-      const { result } = renderHook(() => usePredictBalance());
+      const { result } = renderHook(() =>
+        usePredictBalance({ loadOnMount: true }),
+      );
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -246,7 +254,9 @@ describe('usePredictBalance', () => {
     it('returns true when balance is zero and not loading', async () => {
       // Given balance is successfully loaded as 0
       mockGetBalance.mockResolvedValue(0);
-      const { result } = renderHook(() => usePredictBalance());
+      const { result } = renderHook(() =>
+        usePredictBalance({ loadOnMount: true }),
+      );
 
       // When loading completes
       await waitFor(() => {
@@ -260,7 +270,9 @@ describe('usePredictBalance', () => {
     it('returns false when balance is greater than zero', async () => {
       // Given balance is successfully loaded as non-zero
       mockGetBalance.mockResolvedValue(100);
-      const { result } = renderHook(() => usePredictBalance());
+      const { result } = renderHook(() =>
+        usePredictBalance({ loadOnMount: true }),
+      );
 
       // When loading completes
       await waitFor(() => {
@@ -274,7 +286,9 @@ describe('usePredictBalance', () => {
     it('returns false when refreshing even if balance is zero', async () => {
       // Given balance is 0 and loaded
       mockGetBalance.mockResolvedValue(0);
-      const { result } = renderHook(() => usePredictBalance());
+      const { result } = renderHook(() =>
+        usePredictBalance({ loadOnMount: true }),
+      );
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -307,7 +321,7 @@ describe('usePredictBalance', () => {
       // Given hook is mounted with refreshOnFocus enabled
       mockGetBalance.mockResolvedValue(100);
       const { result } = renderHook(() =>
-        usePredictBalance({ refreshOnFocus: true }),
+        usePredictBalance({ refreshOnFocus: true, loadOnMount: true }),
       );
 
       await waitFor(() => {
@@ -318,9 +332,11 @@ describe('usePredictBalance', () => {
 
       // When screen comes into focus
       mockGetBalance.mockResolvedValue(200);
-      if (mockFocusCallback) {
-        mockFocusCallback();
-      }
+      await act(async () => {
+        if (mockFocusCallback) {
+          await mockFocusCallback();
+        }
+      });
 
       await waitFor(() => {
         expect(result.current.balance).toBe(200);
@@ -332,9 +348,11 @@ describe('usePredictBalance', () => {
     });
 
     it('does not refresh on focus when refreshOnFocus is false', async () => {
-      // Given hook is mounted with refreshOnFocus disabled
+      // Given hook is mounted with refreshOnFocus disabled and loadOnMount enabled
       mockGetBalance.mockResolvedValue(100);
-      renderHook(() => usePredictBalance({ refreshOnFocus: false }));
+      renderHook(() =>
+        usePredictBalance({ refreshOnFocus: false, loadOnMount: true }),
+      );
 
       await waitFor(() => {
         expect(mockGetBalance).toHaveBeenCalledTimes(1);
@@ -354,7 +372,9 @@ describe('usePredictBalance', () => {
     it('resets state when selected account address changes', async () => {
       // Given hook is mounted with loaded balance
       mockGetBalance.mockResolvedValue(500);
-      const { result, rerender } = renderHook(() => usePredictBalance());
+      const { result, rerender } = renderHook(() =>
+        usePredictBalance({ loadOnMount: true }),
+      );
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -417,14 +437,33 @@ describe('usePredictBalance', () => {
   });
 
   describe('default options', () => {
-    it('uses default options when none are provided', async () => {
+    it('uses default options when none are provided', () => {
       // Given no options are provided
       mockGetBalance.mockResolvedValue(100);
 
       // When hook is mounted
       const { result } = renderHook(() => usePredictBalance());
 
-      // Then default options should be applied
+      // Then default options should be applied (loadOnMount and refreshOnFocus are false by default)
+      expect(result.current.balance).toBe(0);
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.error).toBeNull();
+
+      // Balance should not be loaded automatically since loadOnMount defaults to false
+      expect(mockGetBalance).not.toHaveBeenCalled();
+    });
+
+    it('loads balance with default providerId when loadOnMount is true', async () => {
+      // Given loadOnMount is explicitly enabled
+      mockGetBalance.mockResolvedValue(100);
+
+      // When hook is mounted
+      const { result } = renderHook(() =>
+        usePredictBalance({ loadOnMount: true }),
+      );
+
+      // Then default providerId should be used
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
