@@ -29,6 +29,10 @@ interface FeatureFlagRowProps {
   onToggle: (key: string, newValue: unknown) => void;
 }
 
+interface MinimumVersionFlagValue {
+  enabled: boolean;
+  minimumVersion: string;
+}
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const tw = useTailwind();
   const theme = useTheme();
@@ -49,10 +53,10 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         return (
           <Box twClassName="items-end">
             <Switch
-              value={localValue.enabled}
+              value={(localValue as MinimumVersionFlagValue).enabled}
               disabled //={!isVersionSupported} TODO: Uncomment this when we support overrides for minimum version
               onValueChange={(newValue: boolean) => {
-                setLocalValue({ ...localValue, enabled: newValue });
+                setLocalValue({ ...(localValue as MinimumVersionFlagValue), enabled: newValue });
                 onToggle(flag.key, newValue);
               }}
               trackColor={{
@@ -72,7 +76,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
                   isVersionSupported ? 'bg-success-default' : 'bg-error-default'
                 }`}
               />{' '}
-              Minimum Version: {localValue.minimumVersion}
+              Minimum Version: {(localValue as MinimumVersionFlagValue).minimumVersion}
             </Text>
           </Box>
         );
@@ -80,7 +84,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         return (
           <Switch
             disabled
-            value={localValue}
+            value={(localValue as boolean)}
             onValueChange={(newValue: boolean) => {
               setLocalValue(newValue);
               onToggle(flag.key, newValue);
@@ -123,9 +127,9 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case 'object':
         return (
           <View>
-            {Object.keys(localValue).map((itemKey: string) => (
+            {Object.keys(localValue as object).map((itemKey: string) => (
               <Text key={itemKey}>
-                {itemKey}: {JSON.stringify(localValue[itemKey])}
+                {itemKey}: {JSON.stringify((localValue as object)[itemKey as keyof object])}
               </Text>
             ))}
           </View>
