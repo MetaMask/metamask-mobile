@@ -64,6 +64,7 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
       totalAllowance,
       allowance: allowanceFloat.toString(),
       availableBalance: availableBalance.toString(),
+      delegationContract: cardExternalWalletDetail.delegationContractAddress,
       isStaked: false,
     } as CardTokenAllowance;
   });

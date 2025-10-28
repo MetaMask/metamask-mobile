@@ -1231,21 +1231,14 @@ export class CardSDK {
     sigMessage: string;
     token: string;
   }): Promise<{ success: boolean }> => {
+    Logger.log('completeEVMDelegation', params);
+
     // Validate address format (must be valid Ethereum address)
     const addressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (!addressRegex.test(params.address)) {
       throw new CardError(
         CardErrorType.VALIDATION_ERROR,
         'Invalid Ethereum address format',
-      );
-    }
-
-    // Validate transaction hash format (must be valid EVM transaction hash)
-    const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
-    if (!txHashRegex.test(params.txHash)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid transaction hash format',
       );
     }
 

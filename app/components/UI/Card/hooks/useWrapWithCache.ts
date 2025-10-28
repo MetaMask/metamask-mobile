@@ -115,7 +115,8 @@ export const useWrapWithCache = <T>(
   }, [fetchFn, cacheKey, dispatch]);
 
   // Effect to handle initial fetch - runs on mount and when cache becomes invalid
-  // Also re-runs when fetchFn changes (e.g., when underlying dependencies like delegationSettings load)
+  // We DON'T include fetchData in dependencies to prevent refetching when the fetch function changes
+  // (e.g., when delegationSettings loads, it shouldn't trigger a refetch if cache is still valid)
   useEffect(() => {
     if (!fetchOnMount) {
       return;
@@ -128,11 +129,11 @@ export const useWrapWithCache = <T>(
 
     // Cache is stale or we don't have data, fetch new data
     fetchData();
-    // We deliberately include fetchData to allow refetching when cache expires
-    // or when the underlying fetch function changes (e.g., dependencies load)
+    // We deliberately exclude fetchData from dependencies to prevent unnecessary refetches
+    // when the fetch function reference changes but the cache is still valid
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cacheIsValid, cachedData, fetchOnMount, fetchData]);
+  }, [cacheIsValid, cachedData, fetchOnMount]);
 
   // Determine loading state: only show loading if actively fetching AND no cached data
   const shouldShowLoading = isLoading && (!cachedData || !cacheIsValid);

@@ -41,7 +41,9 @@ import AvatarToken from '../../../../../component-library/components/Avatars/Ava
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 
-const getNetworkFromCaipChainId = (caipChainId: string): 'linea' | 'solana' => {
+const getNetworkFromCaipChainId = (
+  caipChainId: string,
+): 'linea' | 'linea-us' | 'solana' => {
   if (caipChainId === SolScope.Mainnet || caipChainId.startsWith('solana:')) {
     return 'solana';
   }
@@ -139,22 +141,51 @@ const SpendingLimit = ({
     if (flow === 'enable' && selectedTokenFromRoute && !selectedToken) {
       setSelectedToken(selectedTokenFromRoute);
     }
-    // For 'manage' flow, use the priority token
-    else if (flow === 'manage' && priorityToken && !selectedToken) {
-      const isSolana = priorityToken.caipChainId === SolScope.Mainnet;
-      setSelectedToken({
-        address: priorityToken.address ?? '',
-        symbol: priorityToken.symbol ?? '',
-        name: priorityToken.name ?? '',
-        decimals: priorityToken.decimals ?? 0,
-        enabled: true,
-        caipChainId: priorityToken.caipChainId,
-        chainName: isSolana ? 'Solana' : 'Linea',
-        allowanceState: priorityToken.allowanceState,
-        allowance: priorityToken.allowance,
-      });
+    // For 'manage' flow, determine the best token to pre-select
+    else if (flow === 'manage' && !selectedToken) {
+      // Check if priority token is Solana
+      const isPriorityTokenSolana =
+        priorityToken?.caipChainId === SolScope.Mainnet ||
+        priorityToken?.caipChainId?.startsWith('solana:');
+
+      // If priority token exists and is NOT Solana, use it
+      if (priorityToken && !isPriorityTokenSolana) {
+        setSelectedToken({
+          address: priorityToken.address ?? '',
+          symbol: priorityToken.symbol ?? '',
+          name: priorityToken.name ?? '',
+          decimals: priorityToken.decimals ?? 0,
+          enabled: true,
+          caipChainId: priorityToken.caipChainId,
+          chainName: 'Linea',
+          allowanceState: priorityToken.allowanceState,
+          allowance: priorityToken.allowance,
+        });
+      } else {
+        // Priority token is Solana or doesn't exist, try to find mUSD (non-Solana)
+        const mUSDToken = allTokens.find(
+          (token) =>
+            token.symbol?.toLowerCase() === 'musd' &&
+            token.caipChainId !== SolScope.Mainnet &&
+            !token.caipChainId?.startsWith('solana:'),
+        );
+
+        if (mUSDToken) {
+          setSelectedToken({
+            address: mUSDToken.address ?? '',
+            symbol: mUSDToken.symbol ?? '',
+            name: mUSDToken.name ?? '',
+            decimals: mUSDToken.decimals ?? 0,
+            enabled: true,
+            caipChainId: mUSDToken.caipChainId,
+            chainName: 'Linea',
+            allowanceState: mUSDToken.allowanceState,
+            allowance: mUSDToken.allowance,
+          });
+        }
+      }
     }
-  }, [flow, selectedTokenFromRoute, priorityToken, selectedToken]);
+  }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
 
   // Update limit amount when spending limit settings change
   useEffect(() => {
@@ -458,17 +489,10 @@ const SpendingLimit = ({
               </Text>
               {tempSelectedOption === 'restricted' && (
                 <View style={styles.limitInputContainer}>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    style={styles.limitInputLabel}
-                  >
-                    Limit Amount
-                  </Text>
                   <TextInput
                     style={styles.limitInput}
                     value={tempLimitAmount}
                     onChangeText={setTempLimitAmount}
-                    placeholder="Enter amount"
                     keyboardType="numeric"
                     returnKeyType="done"
                   />

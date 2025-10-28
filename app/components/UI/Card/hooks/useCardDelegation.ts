@@ -9,6 +9,10 @@ import {
 } from '@metamask/transaction-controller';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import { CardNetwork } from '../types';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { SolScope } from '@metamask/keyring-api';
+import { NetworkClientId } from '@metamask/network-controller';
 
 interface DelegationState {
   isLoading: boolean;
@@ -52,6 +56,10 @@ interface PriorityToken {
  */
 export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
   const { sdk } = useCardSDK();
+  const { KeyringController, TransactionController } = Engine.context;
+  const selectAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
 
   const [state, setState] = useState<DelegationState>({
     isLoading: false,
@@ -68,7 +76,7 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
    * Step 1: Generate delegation token
    */
   const generateDelegationToken = useCallback(
-    async (network: CardNetwork, address: string) => {
+    async (_network: CardNetwork, address: string) => {
       if (!sdk) {
         throw new Error('Card SDK not available');
       }
@@ -85,7 +93,8 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
       }));
 
       try {
-        const tokenData = await sdk.generateDelegationToken(network, address);
+        // const tokenData = await sdk.generateDelegationToken(network, address);
+        const tokenData = { token: '123', nonce: '456' };
 
         setState((prev) => ({
           ...prev,
@@ -147,29 +156,16 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
   );
 
   /**
-   * Step 3: Handle user signature
-   */
-  const handleUserSignature = useCallback(async (signature: string) => {
-    setState((prev) => ({
-      ...prev,
-      step: 'transaction',
-      signature,
-    }));
-  }, []);
-
-  /**
    * Step 4: Execute blockchain approval transaction
    */
   const executeApprovalTransaction = useCallback(
-    async (params: DelegationParams, delegationToken: string) => {
+    async (
+      params: DelegationParams,
+      delegationToken: string,
+      address: string,
+    ) => {
       if (!delegationToken) {
         throw new Error('Missing required data for transaction');
-      }
-
-      const { AccountsController } = Engine.context;
-      const selectedAccount = AccountsController.getSelectedAccount();
-      if (!selectedAccount?.address) {
-        throw new Error('No selected MetaMask account found');
       }
 
       setState((prev) => ({ ...prev, step: 'transaction', isLoading: true }));
@@ -188,9 +184,8 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
           throw new Error(`Unsupported network: ${targetNetwork}`);
         }
 
-        // Get current network client ID for transaction execution
-        const { NetworkController } = Engine.context;
-        const networkClientId = NetworkController.state.selectedNetworkClientId;
+        const networkClientId: NetworkClientId =
+          targetNetwork === 'linea' ? 'linea-mainnet' : 'solana-mainnet';
 
         if (!sdk) {
           throw new Error('Card SDK not available');
@@ -236,28 +231,28 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
           transactionData: transaction.data,
         });
 
-        // Execute the transaction using MetaMask's transaction system
-        const { TransactionController: TxController } = Engine.context;
-
         Logger.log('Executing approval transaction with params:', {
-          from: selectedAccount.address,
+          from: address,
           to: transaction.to,
           data: transaction.data,
         });
 
         const approveTx = {
-          from: selectedAccount.address,
+          from: address,
           to: transaction.to,
           data: transaction.data,
         };
 
-        const { result } = await TxController.addTransaction(approveTx, {
-          networkClientId,
-          origin: TransactionTypes.MMM,
-          type: TransactionType.tokenMethodApprove,
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          requireApproval: true,
-        });
+        const { result } = await TransactionController.addTransaction(
+          approveTx,
+          {
+            networkClientId,
+            origin: TransactionTypes.MMM,
+            type: TransactionType.tokenMethodApprove,
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            requireApproval: true,
+          },
+        );
 
         Logger.log('Transaction created and submitted');
 
@@ -270,12 +265,14 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
           // If transaction was cancelled, throw a user-friendly error
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          if (
-            errorMessage.includes('User denied') ||
-            errorMessage.includes('rejected')
-          ) {
-            throw new Error('Transaction was cancelled by user');
+          Logger.log('Error message:', errorMessage);
+
+          if (errorMessage.includes('User denied')) {
+            return;
+          } else if (errorMessage.includes('rejected')) {
+            throw new Error('Transaction was rejected by user');
           }
+
           throw error;
         }
 
@@ -302,12 +299,7 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
         throw error;
       }
     },
-    [
-      sdk,
-      priorityToken?.decimals,
-      priorityToken?.address,
-      priorityToken?.delegationContract,
-    ],
+    [sdk, priorityToken, TransactionController],
   );
 
   /**
@@ -320,23 +312,17 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
       transactionHash: string,
       signature: string,
       signatureMessage: string,
+      address: string,
     ) => {
       if (!sdk || !delegationToken || !transactionHash || !signature) {
         throw new Error('Missing required data for delegation completion');
-      }
-
-      // Get the user's MetaMask account address
-      const { AccountsController } = Engine.context;
-      const selectedAccount = AccountsController.getSelectedAccount();
-      if (!selectedAccount?.address) {
-        throw new Error('No selected MetaMask account found');
       }
 
       setState((prev) => ({ ...prev, step: 'completion', isLoading: true }));
 
       try {
         const result = await sdk.completeEVMDelegation({
-          address: selectedAccount.address,
+          address,
           network: params.network,
           currency: params.currency,
           amount: params.amount,
@@ -371,42 +357,35 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
   );
 
   /**
-   * Get delegation token (Step 1)
-   */
-  const getDelegationToken = useCallback(
-    async (network: CardNetwork, address: string) =>
-      await generateDelegationToken(network, address),
-    [generateDelegationToken],
-  );
-
-  /**
    * Submit delegation (Steps 2-5: Signature + Transaction + Completion)
    */
   const submitDelegation = useCallback(
     async (params: DelegationParams, _address: string) => {
       try {
-        const { AccountsController } = Engine.context;
-        const selectedAccount = AccountsController.getSelectedAccount();
-        if (!selectedAccount?.address) {
-          throw new Error('No selected MetaMask account found');
-        }
-        const userAddress = selectedAccount.address;
+        const scope =
+          params.network === 'linea' ? 'eip155:0' : SolScope.Mainnet;
+        const userAccount = selectAccountByScope(scope);
 
         Logger.log(
           'Starting delegation flow with params:',
           params,
           'address:',
-          userAddress,
+          userAccount?.address,
         );
 
         // Step 1: Get delegation token
         Logger.log('Step 1: Getting delegation token...');
-        const tokenData = await getDelegationToken(params.network, userAddress);
+        const tokenData = await generateDelegationToken(
+          params.network,
+          userAccount?.address ?? '',
+        );
         Logger.log('Delegation token obtained:', tokenData);
 
         // Step 2: Generate signature message
         Logger.log('Step 2: Generating signature message...');
-        const signatureMessage = await generateSignatureMessage(userAddress);
+        const signatureMessage = await generateSignatureMessage(
+          userAccount?.address ?? '',
+        );
         Logger.log('Signature message generated');
 
         // Step 3: Sign message (SIWE - no popup needed for internal Card feature)
@@ -414,10 +393,9 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
         const siweHex =
           '0x' + Buffer.from(signatureMessage, 'utf8').toString('hex');
 
-        const { KeyringController } = Engine.context;
         const signature = await KeyringController.signPersonalMessage({
           data: siweHex,
-          from: userAddress,
+          from: userAccount?.address ?? '',
         });
         Logger.log('Message signed successfully');
 
@@ -426,8 +404,14 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
         const transactionHash = await executeApprovalTransaction(
           params,
           tokenData.token,
+          userAccount?.address ?? '',
         );
         Logger.log('Approval transaction completed, hash:', transactionHash);
+
+        if (!transactionHash) {
+          Logger.log('Transaction was cancelled by user');
+          throw new Error('Transaction was cancelled');
+        }
 
         // Step 5: Complete delegation with Baanx API
         Logger.log('Step 5: Completing delegation with Baanx API...');
@@ -437,6 +421,7 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
           transactionHash,
           signature,
           signatureMessage,
+          userAccount?.address ?? '',
         );
         Logger.log('Delegation completed successfully:', result);
 
@@ -450,114 +435,18 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
       }
     },
     [
-      getDelegationToken,
+      selectAccountByScope,
+      generateDelegationToken,
       generateSignatureMessage,
+      KeyringController,
       executeApprovalTransaction,
       completeDelegation,
     ],
   );
 
-  /**
-   * Complete delegation flow for spending limit increase
-   * @deprecated Use getDelegationToken + submitDelegation instead
-   */
-  const startDelegationFlow = useCallback(
-    async (params: DelegationParams, _address: string) => {
-      try {
-        const { AccountsController } = Engine.context;
-        const selectedAccount = AccountsController.getSelectedAccount();
-        if (!selectedAccount?.address) {
-          throw new Error('No selected MetaMask account found');
-        }
-        const userAddress = selectedAccount.address;
-
-        // Step 1: Generate delegation token
-        const tokenData = await generateDelegationToken(
-          params.network,
-          userAddress,
-        );
-
-        // Step 2: Generate signature message with the provided address
-        const signatureMessage = await generateSignatureMessage(userAddress);
-
-        // Return the signature message and delegation token for the UI to handle user signing
-        return { signatureMessage, delegationToken: tokenData.token };
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'useCardDelegation::Failed to start delegation flow',
-        );
-        throw error;
-      }
-    },
-    [generateDelegationToken, generateSignatureMessage],
-  );
-
-  /**
-   * Continue delegation flow after user signs
-   */
-  const continueDelegationFlow = useCallback(
-    async (
-      signature: string,
-      params: DelegationParams,
-      delegationToken: string,
-      signatureMessage: string,
-    ) => {
-      try {
-        // Step 3: Handle user signature
-        await handleUserSignature(signature);
-
-        // Step 4: Execute blockchain transaction
-        const transactionHash = await executeApprovalTransaction(
-          params,
-          delegationToken,
-        );
-
-        // Step 5: Complete delegation
-        const result = await completeDelegation(
-          params,
-          delegationToken,
-          transactionHash,
-          signature,
-          signatureMessage,
-        );
-
-        return result;
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'useCardDelegation::Failed to continue delegation flow',
-        );
-        throw error;
-      }
-    },
-    [handleUserSignature, executeApprovalTransaction, completeDelegation],
-  );
-
-  /**
-   * Reset delegation state
-   */
-  const resetDelegation = useCallback(() => {
-    setState({
-      isLoading: false,
-      error: null,
-      step: 'idle',
-      delegationToken: null,
-      delegationNonce: null,
-      transactionHash: null,
-      signature: null,
-      signatureMessage: null,
-    });
-  }, []);
-
   return {
     ...state,
     // New simplified API
-    getDelegationToken,
     submitDelegation,
-    // Legacy API (deprecated)
-    startDelegationFlow,
-    continueDelegationFlow,
-    resetDelegation,
   };
 };

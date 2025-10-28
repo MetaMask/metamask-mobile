@@ -58,8 +58,6 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.background.muted,
       borderRadius: 12,
       padding: 16,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
     },
     selectedOptionCard: {
       borderColor: theme.colors.primary.default,
@@ -117,10 +115,10 @@ const createStyles = (theme: Theme) =>
       fontWeight: '600',
       paddingHorizontal: 12,
       paddingVertical: 12,
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.default,
       borderRadius: 8,
       borderWidth: 1,
-      borderColor: theme.colors.border.muted,
+      borderColor: theme.colors.border.default,
       minHeight: 48,
     },
     buttonsContainer: {
