@@ -20,7 +20,7 @@ const mockSelectedAccountMultichainBalance = {
   totalNativeTokenBalance: '0.1',
   nativeTokenUnit: 'ETH',
   shouldShowAggregatedPercentage: true,
-  isPortfolioVieEnabled: false,
+  isPortfolioViewEnabled: false,
   aggregatedBalance: {
     ethFiat: 123.45,
     tokenFiat: 0,
