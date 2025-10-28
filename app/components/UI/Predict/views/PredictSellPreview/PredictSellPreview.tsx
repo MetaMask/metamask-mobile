@@ -6,10 +6,12 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useEffect, useMemo } from 'react';
-import { Image, View } from 'react-native';
+import { ActivityIndicator, Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
+  ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
@@ -32,6 +34,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { Box } from '@metamask/design-system-react-native';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
@@ -63,7 +66,12 @@ const PredictSellPreview = () => {
     [market, position, outcome, entryPoint],
   );
 
-  const { placeOrder, isLoading } = usePredictPlaceOrder();
+  const {
+    placeOrder,
+    isLoading,
+    result,
+    error: placeOrderError,
+  } = usePredictPlaceOrder();
 
   const { preview, isCalculating } = usePredictOrderPreview({
     providerId: position.providerId,
@@ -89,20 +97,70 @@ const PredictSellPreview = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (result?.success) {
+      dispatch(StackActions.pop());
+    }
+  }, [dispatch, result]);
+
   const currentValue = preview?.minAmountReceived ?? 0;
   const { cashPnl, percentPnl } = position;
 
   const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
 
-  const onCashOut = () => {
+  const onCashOut = async () => {
     if (!preview) return;
     // Implement cash out action here
-    placeOrder({
+    await placeOrder({
       providerId: position.providerId,
       analyticsProperties,
       preview,
     });
-    dispatch(StackActions.pop());
+  };
+
+  const renderCashOutButton = () => {
+    if (isLoading) {
+      return (
+        <Button
+          label={
+            <Box twClassName="flex-row items-center gap-1">
+              <ActivityIndicator size="small" />
+              <Text
+                variant={TextVariant.BodyLGMedium}
+                color={TextColor.Inverse}
+              >
+                {`${strings('predict.order.cashing_out_loading')}`}
+              </Text>
+            </Box>
+          }
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          onPress={onCashOut}
+          width={ButtonWidthTypes.Full}
+          style={tw.style('opacity-50')}
+          disabled
+        />
+      );
+    }
+
+    return (
+      <Button
+        testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
+        label={
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
+            {strings('predict.cash_out')}
+          </Text>
+        }
+        variant={ButtonVariants.Secondary}
+        disabled={!preview || isCalculating || isLoading}
+        onPress={onCashOut}
+        style={{
+          ...styles.cashOutButton,
+          backgroundColor: colors.primary.default,
+        }}
+        loading={isLoading}
+      />
+    );
   };
 
   return (
@@ -129,6 +187,15 @@ const PredictSellPreview = () => {
           </Text>
         </View>
         <View style={styles.bottomContainer}>
+          {placeOrderError && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Error}
+              style={tw.style('text-center')}
+            >
+              {strings('predict.order.order_failed_generic')}
+            </Text>
+          )}
           <View style={styles.positionContainer}>
             <View>
               <Image source={{ uri: icon }} style={styles.positionIcon} />
@@ -154,25 +221,7 @@ const PredictSellPreview = () => {
             </View>
           </View>
           <View style={styles.cashOutButtonContainer}>
-            <Button
-              testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
-              label={
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Inverse}
-                >
-                  {strings('predict.cash_out')}
-                </Text>
-              }
-              variant={ButtonVariants.Secondary}
-              disabled={!preview || isCalculating || isLoading}
-              onPress={onCashOut}
-              style={{
-                ...styles.cashOutButton,
-                backgroundColor: colors.primary.default,
-              }}
-              loading={isLoading}
-            />
+            {renderCashOutButton()}
             <Text variant={TextVariant.BodyXS} style={styles.cashOutButtonText}>
               {strings('predict.cash_out_info')}
             </Text>
