@@ -5,6 +5,7 @@ import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { usePredictTrading } from './usePredictTrading';
+import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 
 interface UsePredictBalanceOptions {
@@ -48,6 +49,7 @@ export function usePredictBalance(
   } = options;
 
   const { getBalance } = usePredictTrading();
+  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
   const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,6 +85,18 @@ export function usePredictBalance(
           setIsLoading(true);
         }
         setError(null);
+
+        // Ensure Polygon network exists before fetching balance
+        try {
+          await ensurePolygonNetworkExists();
+        } catch (networkError) {
+          // Error already logged to Sentry in usePredictNetworkManagement
+          DevLogger.log(
+            'usePredictBalance: Failed to ensure Polygon network exists',
+            networkError,
+          );
+          // Continue with balance fetch - network might already exist
+        }
 
         // Get balance from Predict controller
         const balanceData = await getBalance({
@@ -121,6 +135,7 @@ export function usePredictBalance(
         setIsRefreshing(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [getBalance, selectedInternalAccountAddress, providerId],
   );
 
