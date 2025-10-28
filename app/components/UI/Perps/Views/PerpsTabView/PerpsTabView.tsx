@@ -39,6 +39,7 @@ import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
+import Engine from '../../../../../core/Engine';
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -73,6 +74,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
+
+  console.log(
+    'direct remote flag state: ',
+    Engine.context.RemoteFeatureFlagController.state,
+  );
 
   // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
