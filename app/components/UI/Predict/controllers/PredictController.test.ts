@@ -1471,6 +1471,45 @@ describe('PredictController', () => {
         ).rejects.toThrow('Claim preparation failed');
       });
     });
+
+    it('return CANCELLED status when user denies transaction signature', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockImplementation(() => {
+            throw new Error('User denied transaction signature');
+          });
+
+        const result = await controller.claimWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        expect(result.batchId).toBe('NA');
+        expect(result.chainId).toBe(0);
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+      });
+    });
+
+    it('return CANCELLED status when user denial error is wrapped', async () => {
+      await withController(async ({ controller }) => {
+        (addTransactionBatch as jest.Mock).mockRejectedValue(
+          new Error(
+            'Error occurred during transaction batch: User denied transaction signature',
+          ),
+        );
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+
+        const result = await controller.claimWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        expect(result.batchId).toBe('NA');
+        expect(result.chainId).toBe(0);
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+      });
+    });
   });
 
   describe('getUnrealizedPnL', () => {
@@ -2518,15 +2557,7 @@ describe('PredictController', () => {
           disableHook: true,
           disableSequential: true,
           requireApproval: true,
-          transactions: [
-            {
-              params: {
-                to: '0x1234567890123456789012345678901234567890',
-                value: '0x1',
-              },
-            },
-            mockWithdrawResponse.transaction,
-          ],
+          transactions: [mockWithdrawResponse.transaction],
         });
       });
     });
@@ -2609,6 +2640,56 @@ describe('PredictController', () => {
         });
 
         expect(controller.state.withdrawTransaction?.chainId).toBe(1);
+      });
+    });
+
+    it('return success when user denies transaction signature', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+          new Error('User denied transaction signature'),
+        );
+
+        const result = await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.response).toBe('User cancelled transaction');
+      });
+    });
+
+    it('return success when user denial error is wrapped in message', async () => {
+      await withController(async ({ controller }) => {
+        (addTransactionBatch as jest.Mock).mockRejectedValue(
+          new Error(
+            'Transaction failed: User denied transaction signature - action cancelled',
+          ),
+        );
+        mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+          mockWithdrawResponse,
+        );
+
+        const result = await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.response).toBe('User cancelled transaction');
+      });
+    });
+
+    it('not update state when user cancels transaction', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.prepareWithdraw.mockRejectedValue(
+          new Error('User denied transaction signature'),
+        );
+
+        await controller.prepareWithdraw({
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.withdrawTransaction).toBeNull();
       });
     });
   });

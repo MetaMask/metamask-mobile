@@ -304,9 +304,8 @@ class ChoosePassword extends PureComponent {
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),
@@ -384,9 +383,8 @@ class ChoosePassword extends PureComponent {
 
   tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
-      password,
-    );
+    const uint8ArrayMnemonic =
+      await KeyringController.exportSeedPhrase(password);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
@@ -496,8 +494,10 @@ class ChoosePassword extends PureComponent {
         });
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
-        this.props.navigation.replace('AccountBackupStep1', {
+        this.props.navigation.replace('ManualBackupStep1', {
           seedPhrase,
+          backupFlow: false,
+          settingsBackup: false,
         });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
