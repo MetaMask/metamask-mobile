@@ -49,7 +49,7 @@ export function usePollingNetworks() {
       return [];
     }
 
-    // Portfolio View and GNS
+    // GNS
     if (globalNetworkSelectorEnabled) {
       // Filtered all EVM networks
       return (enabledEvmNetworks || [])
@@ -60,12 +60,12 @@ export function usePollingNetworks() {
         .filter((c) => Boolean(c));
     }
 
-    // Portfolio View enabled with single network view
+    // Enabled with single network view
     if (!portfolioViewAllNetworksSelected) {
       return selectedNetworkConfig;
     }
 
-    // Portfolio View enabled with all networks
+    // Enabled with all networks
     if (portfolioViewAllNetworksSelected) {
       return Object.values(networkConfigurationsPopularNetworks);
     }

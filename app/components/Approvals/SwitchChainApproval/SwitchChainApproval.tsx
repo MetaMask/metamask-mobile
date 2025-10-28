@@ -53,7 +53,7 @@ const SwitchChainApproval = () => {
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
 
-    // If portfolio view is enabled should set network filter
+    // If remove global network selector is enabled should set network filter
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       selectNetwork(chainId);
     }

@@ -291,7 +291,6 @@ const Main = (props) => {
     if (
       hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
-      //set here token network filter if portfolio view is enabled
       const { PreferencesController } = Engine.context;
       if (Object.keys(tokenNetworkFilter).length === 1) {
         PreferencesController.setTokenNetworkFilter({

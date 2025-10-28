@@ -26,6 +26,7 @@ const getEvmBalance = (
   totalFiatBalancesCrossEvmChain: TotalFiatBalancesCrossChains,
   currentCurrency: string,
 ) => {
+  const balance = Engine.getTotalEvmFiatAccountBalance(account);
   let total;
 
   if (isOriginalNativeEvmTokenSymbol) {
