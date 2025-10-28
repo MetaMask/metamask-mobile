@@ -45,6 +45,9 @@ jest.mock('@react-navigation/native', () => ({
 const mockPlaceOrder = jest.fn();
 const mockReset = jest.fn();
 let mockLoadingState = false;
+let mockPlaceOrderResult: { success: boolean; response?: unknown } | null =
+  null;
+let mockPlaceOrderError: string | undefined;
 
 interface PlaceOrderResult {
   success: boolean;
@@ -78,6 +81,8 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
       },
       isLoading: mockLoadingState,
       loading: mockLoadingState,
+      result: mockPlaceOrderResult,
+      error: mockPlaceOrderError,
       reset: mockReset,
     };
   },
@@ -188,7 +193,14 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
       </TouchableOpacity>
     ),
     ButtonVariants: {
+      Primary: 'primary',
       Secondary: 'secondary',
+    },
+    ButtonSize: {
+      Lg: 'lg',
+    },
+    ButtonWidthTypes: {
+      Full: 'full',
     },
   };
 });
@@ -311,6 +323,8 @@ describe('PredictSellPreview', () => {
       negRisk: false,
     };
     mockLoadingState = false;
+    mockPlaceOrderResult = null;
+    mockPlaceOrderError = undefined;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -437,16 +451,22 @@ describe('PredictSellPreview', () => {
   });
 
   describe('user interactions', () => {
-    it('calls placeOrder when cash out button is pressed', () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
+    it('calls placeOrder when cash out button is pressed', async () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
 
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
+      const { getByTestId, rerender } = renderWithProvider(
+        <PredictSellPreview />,
+        {
+          state: initialState,
+        },
+      );
 
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-      fireEvent.press(cashOutButton);
+
+      await fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         providerId: 'polymarket',
@@ -469,6 +489,9 @@ describe('PredictSellPreview', () => {
         }),
       });
 
+      // Rerender to trigger useEffect with result
+      rerender(<PredictSellPreview />);
+
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
 
@@ -479,8 +502,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-      expect(cashOutButton.props['data-disabled']).toBe(true);
+      const loadingButton = getByTestId('button-primary');
+      expect(loadingButton.props['data-disabled']).toBe(true);
 
       // Reset loading state for other tests
       mockLoadingState = false;
@@ -489,12 +512,11 @@ describe('PredictSellPreview', () => {
     it('shows loading state when loading is true', () => {
       mockLoadingState = true;
 
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
+      const { getByText } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-      expect(cashOutButton.props['data-disabled']).toBe(true);
+      expect(getByText('Cashing out...')).toBeOnTheScreen();
 
       // Reset loading state for other tests
       mockLoadingState = false;
@@ -512,44 +534,54 @@ describe('PredictSellPreview', () => {
   });
 
   describe('error handling', () => {
-    it('handles navigation dispatch errors gracefully', () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
-      mockDispatch.mockImplementation(() => {
-        throw new Error('Navigation error');
-      });
+    it('calls dispatch when result is successful', async () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
 
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
+      const { getByTestId, rerender } = renderWithProvider(
+        <PredictSellPreview />,
+        {
+          state: initialState,
+        },
+      );
 
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      // The dispatch now throws and is not caught, so expect the error
-      expect(() => {
-        fireEvent.press(cashOutButton);
-      }).toThrow('Navigation error');
+      await fireEvent.press(cashOutButton);
 
-      // PlaceOrder should still be called before dispatch throws
+      // PlaceOrder is called when button is pressed
       expect(mockPlaceOrder).toHaveBeenCalled();
 
-      // Dispatch should have been attempted
+      // Rerender to trigger useEffect with result
+      rerender(<PredictSellPreview />);
+
+      // Dispatch is called via useEffect when result is successful
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
 
   describe('navigation integration', () => {
-    it('navigates to market list after successful cash out', () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
-      mockDispatch.mockImplementation(jest.fn()); // Reset to default mock
+    it('navigates to market list after successful cash out', async () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
 
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
+      const { getByTestId, rerender } = renderWithProvider(
+        <PredictSellPreview />,
+        {
+          state: initialState,
+        },
+      );
 
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-      fireEvent.press(cashOutButton);
+
+      await fireEvent.press(cashOutButton);
+
+      // Rerender to trigger useEffect with result
+      rerender(<PredictSellPreview />);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });

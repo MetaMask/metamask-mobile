@@ -194,7 +194,7 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 }));
 
 // Mock usePredictActionGuard hook
-const mockExecuteGuardedAction = jest.fn((action) => action());
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
 jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,

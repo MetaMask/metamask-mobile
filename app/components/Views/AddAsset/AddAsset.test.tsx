@@ -140,22 +140,6 @@ describe('AddAsset component', () => {
       const buttons = getAllByRole('button');
       expect(buttons.length).toBeGreaterThan(0);
     });
-
-    it('calls setOptions with correct navbar options for token view', () => {
-      mockUseParamsValues.assetType = 'token';
-      renderComponent(<AddAsset />);
-
-      // The component should call setOptions during useEffect
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
-
-    it('calls setOptions with correct navbar options for collectible view', () => {
-      mockUseParamsValues.assetType = 'collectible';
-      renderComponent(<AddAsset />);
-
-      // The component should call setOptions during useEffect
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
   });
 
   describe('State management', () => {

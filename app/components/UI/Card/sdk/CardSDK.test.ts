@@ -2548,7 +2548,7 @@ describe('CardSDK', () => {
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
       const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'us',
+        policyType: 'US',
         onboardingId: 'onboarding123',
         consents: [],
         tenantId: 'tenant_baanx_global',
@@ -2583,7 +2583,7 @@ describe('CardSDK', () => {
 
     it('handles create onboarding consent error', async () => {
       const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'us',
+        policyType: 'US',
         onboardingId: 'onboarding123',
         consents: [],
         tenantId: 'tenant_baanx_global',
