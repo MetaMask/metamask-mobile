@@ -7,7 +7,7 @@ Automated test quality enforcement and bug detection for MetaMask Mobile React N
 
 ### 1. Initial Setup
 - **ALWAYS** load and reference `.cursor/rules/unit-testing-guidelines.mdc`
-- Verify test file naming pattern: `*.test.ts(x)`
+- Verify test file naming pattern: `*.test.ts(x)` or `*.test.js(x)`
 - Check for proper Jest/React Native Testing Library imports
 
 ### 2. Automated Audits (Run in Order)
