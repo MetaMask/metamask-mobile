@@ -377,18 +377,15 @@ The Manager's `pendingReconnectPromise` ensures only one reconnection happens at
 Each layer handles errors at its own level:
 
 1. **Provider Layer (Exchange)**:
-
    - Catches WebSocket errors, logs to Sentry
    - Returns error state to Controller
 
 2. **Controller Layer**:
-
    - Catches provider errors, logs to Sentry
    - Updates Redux error state
    - Throws to Manager
 
 3. **Manager Layer**:
-
    - Catches Controller errors, logs to DevLogger
    - Sets local error state
    - Does NOT throw (prevents crash)
