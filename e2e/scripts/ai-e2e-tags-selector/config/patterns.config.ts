@@ -11,10 +11,6 @@
 export const CRITICAL_FILE_PATTERNS = {
   // Dependencies
   dependencies: ['package.json', 'yarn.lock', 'package-lock.json'],
-
-  // Only specific core/ files
-  core: ['core/Engine', 'core/AppConstants'],
-
   // Generic pattern: any file with "Controller" in the name (not in tests)
   controllers: (file: string) => file.includes('Controller') && !file.includes('test')
 };
@@ -26,13 +22,6 @@ export function isCriticalFile(file: string): boolean {
   // Check dependencies
   if (CRITICAL_FILE_PATTERNS.dependencies.includes(file)) {
     return true;
-  }
-
-  // Check specific core/ files
-  for (const pattern of CRITICAL_FILE_PATTERNS.core) {
-    if (file.includes(pattern)) {
-      return true;
-    }
   }
 
   // Check generic controller pattern
