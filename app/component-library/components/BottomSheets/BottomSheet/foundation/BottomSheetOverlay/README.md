@@ -12,7 +12,7 @@ Optional prop to configure the color of the BottomSheetOverlay.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ColorValue                                           | No                                                     |
+| ColorValue                                          | No                                                      |
 
 ### `onPress`
 
@@ -20,10 +20,10 @@ Function to trigger when pressing the BottomSheetOverlay.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| Function                                            | No                                                     |
+| Function                                            | No                                                      |
 
 ## Usage
 
 ```javascript
-<BottomSheetOverlay onPress={() => {}}/>;
+<BottomSheetOverlay onPress={() => {}} />
 ```
