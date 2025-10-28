@@ -114,7 +114,7 @@ module.exports = {
     'ios.main.release': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
+        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: `export CONFIGURATION="Release" && yarn build:ios:main:e2e`,
     },
     'ios.flask.debug': {
@@ -126,7 +126,7 @@ module.exports = {
     'ios.flask.release': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/MetaMask-Flask.app',
+        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-Flask.app',
       build: `export CONFIGURATION="Release" && yarn build:ios:flask:e2e`,
     },
     'android.debug': {
@@ -137,7 +137,8 @@ module.exports = {
     },
     'android.release': {
       type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
+      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
       build: `export CONFIGURATION="Release" && yarn build:android:main:e2e`,
     },
     'android.flask.debug': {
@@ -148,7 +149,8 @@ module.exports = {
     },
     'android.flask.release': {
       type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
+      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
       build: `export CONFIGURATION="Release" && yarn build:android:flask:e2e`,
     },
   },
