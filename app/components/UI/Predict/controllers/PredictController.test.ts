@@ -1548,6 +1548,18 @@ describe('PredictController', () => {
 
     it('return CANCELLED status when user denies transaction signature', async () => {
       await withController(async ({ controller }) => {
+        const mockClaimablePositions = [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            balance: '100',
+            providerId: 'polymarket',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockClaimablePositions as any,
+        );
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockImplementation(() => {
@@ -1566,6 +1578,18 @@ describe('PredictController', () => {
 
     it('return CANCELLED status when user denial error is wrapped', async () => {
       await withController(async ({ controller }) => {
+        const mockClaimablePositions = [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            balance: '100',
+            providerId: 'polymarket',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockClaimablePositions as any,
+        );
         (addTransactionBatch as jest.Mock).mockRejectedValue(
           new Error(
             'Error occurred during transaction batch: User denied transaction signature',

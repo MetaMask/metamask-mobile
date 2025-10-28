@@ -1126,14 +1126,6 @@ export class PredictController extends BaseController<
         providerId,
       });
 
-      // Log to Sentry with claim context (no user address or amounts)
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('claimWithConfirmation', {
-          providerId,
-        }),
-      );
-
       // Re-throw the error so the hook can handle it and show the toast
       throw error;
     }
