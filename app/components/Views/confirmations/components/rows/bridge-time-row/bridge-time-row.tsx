@@ -1,7 +1,10 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import InfoRow from '../../UI/info-row';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { SkeletonRow } from '../skeleton-row';
 import {
   useIsTransactionPayLoading,
@@ -10,6 +13,7 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { InfoRowVariant } from '../../UI/info-row/info-row';
 
 const SAME_CHAIN_DURATION_SECONDS = 2;
 
@@ -34,8 +38,13 @@ export function BridgeTimeRow() {
   const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (
-    <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
-      <Text>{formattedSeconds}</Text>
+    <InfoRow
+      label={strings('confirm.label.bridge_estimated_time')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        {formattedSeconds}
+      </Text>
     </InfoRow>
   );
 }

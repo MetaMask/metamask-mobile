@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './pay-token-amount.styles';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
@@ -61,7 +64,7 @@ export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
 
   return (
     <View testID="pay-token-amount" style={styles.container}>
-      <Text>
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {formattedAmount} {payToken?.symbol}
       </Text>
     </View>

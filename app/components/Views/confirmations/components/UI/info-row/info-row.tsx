@@ -14,6 +14,11 @@ import Tooltip from '../Tooltip/Tooltip';
 import styleSheet from './info-row.styles';
 import CopyIcon from './copy-icon/copy-icon';
 
+export enum InfoRowVariant {
+  Default = 'default',
+  Small = 'small',
+}
+
 export interface InfoRowProps {
   label: string;
   children?: ReactNode | string;
@@ -31,6 +36,7 @@ export interface InfoRowProps {
     size: IconSize;
     name: IconName;
   };
+  rowVariant?: InfoRowVariant;
 }
 
 const InfoRow = ({
@@ -46,8 +52,9 @@ const InfoRow = ({
   copyText,
   valueOnNewLine = false,
   withIcon,
+  rowVariant = InfoRowVariant.Default,
 }: InfoRowProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { variant: rowVariant });
 
   const ValueComponent =
     typeof children === 'string' ? (
@@ -55,6 +62,11 @@ const InfoRow = ({
     ) : (
       <>{children}</>
     );
+
+  const labelVariant =
+    rowVariant === InfoRowVariant.Small
+      ? TextVariant.BodySM
+      : TextVariant.BodyMDMedium;
 
   return (
     <>
@@ -64,7 +76,7 @@ const InfoRow = ({
       >
         {Boolean(label) && (
           <View style={styles.labelContainer}>
-            <Text variant={TextVariant.BodyMDMedium} color={variant}>
+            <Text variant={labelVariant} color={variant}>
               {label}
             </Text>
             {labelChildren}

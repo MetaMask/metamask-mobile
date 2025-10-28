@@ -17,8 +17,7 @@ import Text, {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
-import { formatAmount } from '../../../../../UI/SimulationDetails/formatAmount';
-import I18n, { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
@@ -32,6 +31,7 @@ export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { formatFiat } = useTransactionPayFiat();
+  const { styles } = useStyles(styleSheet, {});
 
   const {
     txParams: { from },
@@ -45,12 +45,6 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation]);
 
-  const balanceHumanFormatted = useMemo(
-    () =>
-      formatAmount(I18n.locale, new BigNumber(payToken?.balanceHuman ?? '0')),
-    [payToken?.balanceHuman],
-  );
-
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceFiat ?? '0')),
     [formatFiat, payToken?.balanceFiat],
@@ -62,42 +56,27 @@ export function PayWithRow() {
 
   return (
     <TouchableOpacity onPress={handleClick} disabled={!canEdit}>
-      <ListItem
-        icon={
-          <TokenIcon address={payToken.address} chainId={payToken.chainId} />
-        }
-        leftPrimary={
-          <>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {strings('confirm.label.pay_with')}
-            </Text>
-            {canEdit && from && (
-              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
-            )}
-          </>
-        }
-        leftAlternate={
-          <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
-          >
-            {payToken.symbol}
-          </Text>
-        }
-        rightPrimary={
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {balanceUsdFormatted}
-          </Text>
-        }
-        rightAlternate={
-          <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
-          >
-            {balanceHumanFormatted} {payToken.symbol}
-          </Text>
-        }
-      />
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        justifyContent={JustifyContent.center}
+        gap={8}
+        style={styles.container}
+      >
+        <TokenIcon address={payToken.address} chainId={payToken.chainId} />
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          {`${strings('confirm.label.pay_with')} ${payToken.symbol}`}
+        </Text>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+          •
+        </Text>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+          {balanceUsdFormatted}
+        </Text>
+        {canEdit && from && (
+          <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+        )}
+      </Box>
     </TouchableOpacity>
   );
 }

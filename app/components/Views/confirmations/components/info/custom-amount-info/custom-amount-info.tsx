@@ -103,32 +103,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               inline
             />
           )}
-          {disablePay !== true && (
-            <InfoSection>
-              <PayWithRow />
-            </InfoSection>
-          )}
+          {disablePay !== true && <PayWithRow />}
           {isKeyboardVisible && <AlertMessage alertMessage={alertMessage} />}
-          {isResultReady && (
-            <>
-              <InfoSection>
-                <BridgeFeeRow />
-                <BridgeTimeRow />
-                <TotalRow />
-              </InfoSection>
-            </>
-          )}
         </Box>
-        {isKeyboardVisible && (
-          <DepositKeyboard
-            alertMessage={keyboardAlertMessage}
-            value={amountFiat}
-            onChange={updatePendingAmount}
-            onDonePress={handleDone}
-            onPercentagePress={updatePendingAmountPercentage}
-            hasInput={hasInput}
-          />
-        )}
+        <>
+          {isResultReady && (
+            <Box>
+              <BridgeFeeRow />
+              <BridgeTimeRow />
+              <TotalRow />
+            </Box>
+          )}
+          {isKeyboardVisible && (
+            <DepositKeyboard
+              alertMessage={keyboardAlertMessage}
+              value={amountFiat}
+              onChange={updatePendingAmount}
+              onDonePress={handleDone}
+              onPercentagePress={updatePendingAmountPercentage}
+              hasInput={hasInput}
+            />
+          )}
+        </>
       </Box>
     );
   },

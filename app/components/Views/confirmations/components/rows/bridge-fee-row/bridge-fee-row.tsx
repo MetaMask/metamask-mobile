@@ -3,6 +3,7 @@ import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -21,6 +22,7 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 import { BigNumber } from 'bignumber.js';
+import { InfoRowVariant } from '../../UI/info-row/info-row';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -66,15 +68,21 @@ export function BridgeFeeRow() {
           ) : undefined
         }
         tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
+        rowVariant={InfoRowVariant.Small}
       >
-        <Text>{feeTotalUsd}</Text>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {feeTotalUsd}
+        </Text>
       </InfoRow>
       {hasQuotes && (
         <InfoRow
           testID="metamask-fee-row"
           label={strings('confirm.label.metamask_fee')}
+          rowVariant={InfoRowVariant.Small}
         >
-          <Text>{metamaskFeeUsd}</Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {metamaskFeeUsd}
+          </Text>
         </InfoRow>
       )}
     </>
