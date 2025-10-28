@@ -480,9 +480,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                   "textAlign": "left",
                                 }
                               }
-                            >
-                               OTA: v0
-                            </Text>
+                            />
                             <Text
                               style={
                                 {
