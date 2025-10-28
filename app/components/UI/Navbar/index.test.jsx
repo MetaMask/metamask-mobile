@@ -13,10 +13,6 @@ import {
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
   getSendFlowTitle,
-  getTransactionOptionsTitle,
-  getPaymentRequestSuccessOptionsTitle,
-  getApproveNavbar,
-  getModalNavbarOptions,
   getStakingNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
@@ -24,8 +20,7 @@ import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
+import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -1337,6 +1332,35 @@ describe('getStakingNavbar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('renders balance and APR when earnToken is provided', () => {
+    const mockNavigation = { goBack: jest.fn() };
+    const earnToken = {
+      balanceFormatted: '1,234.56 USDC',
+      experience: { apr: '5.234' },
+    };
+
+    const options = getStakingNavbar(
+      'Stake',
+      mockNavigation,
+      mockTheme.colors,
+      { hasBackButton: false, hasCancelButton: false },
+      undefined,
+      earnToken,
+    );
+
+    const HeaderTitle = options.headerTitle;
+    const { getByText } = renderWithProvider(<HeaderTitle />, {
+      state: { engine: { backgroundState } },
+    });
+
+    expect(getByText(earnToken.balanceFormatted)).toBeTruthy();
+
+    const expectedApr = `${parseFloat(earnToken.experience.apr).toFixed(
+      1,
+    )}% ${strings('earn.apr')}`;
+    expect(getByText(expectedApr)).toBeTruthy();
   });
 
   it('invokes goBack on back button press and records metrics when provided', () => {

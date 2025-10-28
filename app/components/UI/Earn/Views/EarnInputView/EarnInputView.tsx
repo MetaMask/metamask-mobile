@@ -760,13 +760,11 @@ const EarnInputView = () => {
     theme.colors,
     navBarEventOptions,
     navBarOptions,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     earnToken?.experience?.type,
     earnToken?.ticker,
     earnToken?.symbol,
     earnToken?.name,
     earnToken,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
   useEffect(() => {
