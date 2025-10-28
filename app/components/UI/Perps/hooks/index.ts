@@ -9,10 +9,6 @@ export { usePerpsWithdrawStatus } from './usePerpsWithdrawStatus';
 export { usePerpsWithdrawProgress } from './usePerpsWithdrawProgress';
 
 // View-level composite hooks (combining multiple hooks for specific views)
-export { usePerpsHomeData } from './usePerpsHomeData';
-export { usePerpsMarketListView } from './usePerpsMarketListView';
-export { usePerpsSearch } from './usePerpsSearch';
-export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 
 // Connection management hooks
@@ -48,9 +44,6 @@ export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
 export { usePerpsRewards } from './usePerpsRewards';
-export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
-export { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
-export { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
 export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
