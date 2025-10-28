@@ -12,7 +12,9 @@ export const usePredictWithdrawToasts = () => {
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
 
   const { showPendingToast } = usePredictToasts({
-    onConfirmed: () => loadBalance({ isRefresh: true }),
+    onConfirmed: () => {
+      loadBalance({ isRefresh: true });
+    },
     transactionType: TransactionType.predictWithdraw,
     confirmedToastConfig: {
       title: strings('predict.withdraw.withdraw_completed'),

@@ -10,7 +10,9 @@ export const usePredictDepositToasts = () => {
   const { deposit } = usePredictDeposit();
 
   usePredictToasts({
-    onConfirmed: () => loadBalance({ isRefresh: true }),
+    onConfirmed: () => {
+      loadBalance({ isRefresh: true });
+    },
     transactionType: TransactionType.predictDeposit,
     pendingToastConfig: {
       title: strings('predict.deposit.adding_funds'),
