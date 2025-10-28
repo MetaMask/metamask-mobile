@@ -322,6 +322,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 // Create test store
@@ -450,6 +451,7 @@ describe('PhysicalAddress Component', () => {
             termsAndConditions: '',
             accountOpeningDisclosure: '',
             noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
           },
           intl: { termsAndConditions: '', rightToInformation: '' },
         },
@@ -668,7 +670,7 @@ describe('PhysicalAddress Component', () => {
       expect(status.props.children).toBe('unchecked');
     });
 
-    it('handles electronic consent checkbox toggle', () => {
+    it('handles electronic consent checkbox toggle for US users', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -686,6 +688,254 @@ describe('PhysicalAddress Component', () => {
 
       fireEvent.press(checkbox);
       expect(status.props.children).toBe('checked');
+    });
+
+    it('shows electronic consent checkbox for US users', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Electronic consent checkbox should be visible for US users
+      expect(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      ).toBeTruthy();
+    });
+
+    it('hides electronic consent checkbox for international users', () => {
+      // Create store with international country
+      const intlStore = createTestStore({
+        onboarding: {
+          selectedCountry: 'CA', // Canada as international
+          onboardingId: 'test-id',
+          contactVerificationId: 'contact-id',
+          user: {
+            id: 'user-id',
+            email: 'test@example.com',
+          },
+        },
+        userCardLocation: 'intl',
+      });
+
+      // Mock useSelector for international users
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'CA',
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      const { queryByTestId } = render(
+        <Provider store={intlStore}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Electronic consent checkbox should not be visible for international users
+      expect(
+        queryByTestId('physical-address-electronic-consent-checkbox'),
+      ).toBeNull();
+    });
+
+    it('renders ButtonLink components in electronic consent label when URLs are available for US users', () => {
+      // Mock registration settings with URLs
+      mockUseRegistrationSettings.mockReturnValue({
+        data: {
+          countries: [
+            {
+              id: '1',
+              name: 'United States',
+              iso3166alpha2: 'US',
+              callingCode: '+1',
+              canSignUp: true,
+            },
+          ],
+          usStates: [
+            {
+              id: '1',
+              name: 'California',
+              postalAbbreviation: 'CA',
+              canSignUp: true,
+            },
+          ],
+          links: {
+            us: {
+              termsAndConditions: 'https://example.com/terms',
+              accountOpeningDisclosure: '',
+              noticeOfPrivacy: 'https://example.com/privacy',
+              eSignConsentDisclosure: '',
+            },
+            intl: { termsAndConditions: '', rightToInformation: '' },
+          },
+          config: {
+            us: {
+              emailSpecialCharactersDomainsException: '',
+              consentSmsNumber: '',
+              supportEmail: '',
+            },
+            intl: {
+              emailSpecialCharactersDomainsException: '',
+              consentSmsNumber: '',
+              supportEmail: '',
+            },
+          },
+        },
+        isLoading: false,
+        error: false,
+        fetchData: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Check that ButtonLink components are rendered
+      expect(getByTestId('terms-button-link')).toBeTruthy();
+      expect(getByTestId('privacy-button-link')).toBeTruthy();
+    });
+
+    it('does not render ButtonLink components when URLs are not available for US users', () => {
+      // Mock registration settings without URLs (empty strings)
+      mockUseRegistrationSettings.mockReturnValue({
+        data: {
+          countries: [
+            {
+              id: '1',
+              name: 'United States',
+              iso3166alpha2: 'US',
+              callingCode: '+1',
+              canSignUp: true,
+            },
+          ],
+          usStates: [
+            {
+              id: '1',
+              name: 'California',
+              postalAbbreviation: 'CA',
+              canSignUp: true,
+            },
+          ],
+          links: {
+            us: {
+              termsAndConditions: '',
+              accountOpeningDisclosure: '',
+              noticeOfPrivacy: '',
+              eSignConsentDisclosure: '',
+            },
+            intl: { termsAndConditions: '', rightToInformation: '' },
+          },
+          config: {
+            us: {
+              emailSpecialCharactersDomainsException: '',
+              consentSmsNumber: '',
+              supportEmail: '',
+            },
+            intl: {
+              emailSpecialCharactersDomainsException: '',
+              consentSmsNumber: '',
+              supportEmail: '',
+            },
+          },
+        },
+        isLoading: false,
+        error: false,
+        fetchData: jest.fn(),
+      });
+
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // ButtonLink components should not be rendered when URLs are empty
+      expect(queryByTestId('terms-button-link')).toBeNull();
+      expect(queryByTestId('privacy-button-link')).toBeNull();
+    });
+
+    it('navigates to KYC webview when ButtonLink is pressed for US users', () => {
+      // Mock registration settings with URLs
+      mockUseRegistrationSettings.mockReturnValue({
+        data: {
+          countries: [
+            {
+              id: '1',
+              name: 'United States',
+              iso3166alpha2: 'US',
+              callingCode: '+1',
+              canSignUp: true,
+            },
+          ],
+          usStates: [
+            {
+              id: '1',
+              name: 'California',
+              postalAbbreviation: 'CA',
+              canSignUp: true,
+            },
+          ],
+          links: {
+            us: {
+              termsAndConditions: 'https://example.com/terms',
+              accountOpeningDisclosure: '',
+              noticeOfPrivacy: 'https://example.com/privacy',
+              eSignConsentDisclosure: '',
+            },
+            intl: { termsAndConditions: '', rightToInformation: '' },
+          },
+          config: {
+            us: {
+              emailSpecialCharactersDomainsException: '',
+              consentSmsNumber: '',
+              supportEmail: '',
+            },
+            intl: {
+              emailSpecialCharactersDomainsException: '',
+              consentSmsNumber: '',
+              supportEmail: '',
+            },
+          },
+        },
+        isLoading: false,
+        error: false,
+        fetchData: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Press the terms ButtonLink
+      fireEvent.press(getByTestId('terms-button-link'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.WEBVIEW,
+        {
+          url: 'https://example.com/terms',
+        },
+      );
+
+      // Press the privacy ButtonLink
+      fireEvent.press(getByTestId('privacy-button-link'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.WEBVIEW,
+        {
+          url: 'https://example.com/privacy',
+        },
+      );
     });
   });
 
@@ -713,9 +963,18 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+
+      // Check all required checkboxes for US users
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
 
       // Wait for state updates
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -793,6 +1052,15 @@ describe('PhysicalAddress Component', () => {
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+
+      // Check all required checkboxes for US users
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
 
       // Toggle same mailing address to false (it starts as true)
       fireEvent.press(
