@@ -52,7 +52,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsEquityEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_EQUITY_ENABLED === 'true';
+    const localFlag = process.env.MM_PERPS_HIP3_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsEquityEnabled as unknown as VersionGatedFeatureFlag;
 
