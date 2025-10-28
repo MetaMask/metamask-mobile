@@ -16,7 +16,12 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Image, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -72,7 +77,12 @@ const PredictBuyPreview = () => {
     [market, outcomeToken, entryPoint],
   );
 
-  const { placeOrder, isLoading } = usePredictPlaceOrder();
+  const {
+    placeOrder,
+    isLoading,
+    error: placeOrderError,
+    result,
+  } = usePredictPlaceOrder();
 
   const { balance, isLoading: isBalanceLoading } = usePredictBalance({
     providerId: outcome.providerId,
@@ -139,15 +149,20 @@ const PredictBuyPreview = () => {
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
 
-  const onPlaceBet = () => {
+  useEffect(() => {
+    if (result?.success) {
+      dispatch(StackActions.pop());
+    }
+  }, [dispatch, result]);
+
+  const onPlaceBet = async () => {
     if (!preview || hasInsufficientFunds || isBelowMinimum) return;
 
-    placeOrder({
+    await placeOrder({
       providerId: outcome.providerId,
       analyticsProperties,
       preview,
     });
-    dispatch(StackActions.pop());
   };
 
   const renderHeader = () => (
@@ -293,6 +308,70 @@ const PredictBuyPreview = () => {
     return null;
   };
 
+  const renderActionButton = () => {
+    if (hasInsufficientFunds) {
+      return (
+        <Button
+          label={strings('predict.deposit.add_funds')}
+          variant={ButtonVariants.Primary}
+          onPress={deposit}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+        />
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <Button
+          label={
+            <Box twClassName="flex-row items-center gap-1">
+              <ActivityIndicator size="small" />
+              <Text
+                variant={TextVariant.BodyLGMedium}
+                color={TextColor.Inverse}
+              >
+                {`${strings('predict.order.placing_prediction')}...`}
+              </Text>
+            </Box>
+          }
+          variant={ButtonVariants.Primary}
+          onPress={onPlaceBet}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={tw.style('opacity-50')}
+          disabled
+        />
+      );
+    }
+
+    return (
+      <Button
+        label={
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
+            {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+          </Text>
+        }
+        variant={ButtonVariants.Secondary}
+        onPress={onPlaceBet}
+        style={tw.style(
+          outcomeToken?.title === 'Yes'
+            ? 'bg-success-default/15'
+            : 'bg-error-default/15',
+          outcomeToken?.title === 'Yes'
+            ? 'text-success-default'
+            : 'text-error-default',
+          !canPlaceBet && 'opacity-40',
+        )}
+        disabled={!canPlaceBet}
+        loading={isLoading}
+        size={ButtonSize.Lg}
+        width={ButtonWidthTypes.Full}
+        labelTextVariant={TextVariant.BodyMD}
+      />
+    );
+  };
+
   const renderBottomContent = () => {
     if (isInputFocused) {
       return null;
@@ -304,45 +383,16 @@ const PredictBuyPreview = () => {
         twClassName="border-t border-muted p-4 pb-0 gap-4"
       >
         <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-          <Box twClassName="w-full h-12">
-            {hasInsufficientFunds ? (
-              <Button
-                label={strings('predict.deposit.add_funds')}
-                variant={ButtonVariants.Primary}
-                onPress={deposit}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-              />
-            ) : (
-              <Button
-                label={
-                  <Text
-                    variant={TextVariant.BodyLGMedium}
-                    color={TextColor.Success}
-                  >
-                    {outcomeToken?.title} ·{' '}
-                    {formatCents(outcomeToken?.price ?? 0)}
-                  </Text>
-                }
-                variant={ButtonVariants.Secondary}
-                onPress={onPlaceBet}
-                style={tw.style(
-                  outcomeToken?.title === 'Yes'
-                    ? 'bg-success-default/15'
-                    : 'bg-error-default/15',
-                  outcomeToken?.title === 'Yes'
-                    ? 'text-success-default'
-                    : 'text-error-default',
-                  !canPlaceBet && 'opacity-40',
-                )}
-                disabled={!canPlaceBet}
-                loading={isLoading}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                labelTextVariant={TextVariant.BodyMD}
-              />
-            )}
-          </Box>
+          {placeOrderError && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Error}
+              style={tw.style('text-center pb-2')}
+            >
+              {strings('predict.order.order_failed_generic')}
+            </Text>
+          )}
+          <Box twClassName="w-full h-12">{renderActionButton()}</Box>
           <Box twClassName="text-center items-center">
             <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
               {strings('predict.order.payments_made_in_usdc')}
