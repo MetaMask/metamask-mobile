@@ -315,11 +315,11 @@ jest.mock(
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderComponent = (state: any = {}) =>
+const renderComponent = (state: any = {}, isFullView: boolean = false) =>
   renderWithProvider(
     <Stack.Navigator>
-      <Stack.Screen name="Amount" options={{}}>
-        {() => <Tokens />}
+      <Stack.Screen name="Tokens" options={{}}>
+        {() => <Tokens isFullView={isFullView} />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
@@ -332,7 +332,7 @@ describe('Tokens', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { queryByText } = renderComponent(initialState);
     const tokensTabText = queryByText('Tokens');
     const nftsTabText = queryByText('NFTs');
@@ -340,7 +340,15 @@ describe('Tokens', () => {
     expect(nftsTabText).toBeDefined();
   });
 
-  it('should hide zero balance tokens when setting is on', async () => {
+  it('renders correctly with isFullView prop', () => {
+    const { queryByText } = renderComponent(initialState, true);
+    const tokensTabText = queryByText('Tokens');
+    const nftsTabText = queryByText('NFTs');
+    expect(tokensTabText).toBeDefined();
+    expect(nftsTabText).toBeDefined();
+  });
+
+  it('hides zero balance tokens when setting is on', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -348,7 +356,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeNull();
   });
 
-  it('should show all balance tokens when hideZeroBalanceTokens setting is off', async () => {
+  it('shows all balance tokens when hideZeroBalanceTokens setting is off', async () => {
     const { queryByTestId } = renderComponent({
       ...initialState,
       settings: {
@@ -362,7 +370,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeDefined();
   });
 
-  it('should show all balance with capitalized tickers', async () => {
+  it('shows all balance with capitalized tickers', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -410,7 +418,7 @@ describe('Tokens', () => {
     expect(true).toBe(true);
   });
 
-  it('should display unable to find conversion rate', async () => {
+  it('displays unable to find conversion rate', async () => {
     const testState = {
       ...initialState,
       engine: {
@@ -504,7 +512,7 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
-    it('should handle network filtering correctly', () => {
+    it('handles network filtering correctly', () => {
       const multiNetworkState = {
         ...initialState,
         engine: {
@@ -585,7 +593,7 @@ describe('Tokens', () => {
 
     describe('When hideZeroBalance is enabled', () => {
       describe('When currentNetwork is selected', () => {
-        it('should show zero balance native token and hide zero balance ERC20 token', () => {
+        it('shows zero balance native token and hides zero balance ERC20 token', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -666,7 +674,7 @@ describe('Tokens', () => {
       });
 
       describe('When allNetworks is selected', () => {
-        it('should hide zero balance ERC20 tokens and native tokens', () => {
+        it('hides zero balance ERC20 tokens and native tokens', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -778,7 +786,7 @@ describe('Tokens', () => {
     });
 
     describe('When hideZeroBalance is disabled', () => {
-      it('should show zero balance native and ERC20 tokens', () => {
+      it('shows zero balance native and ERC20 tokens', () => {
         const stateWithZeroBalances = {
           ...initialState,
           settings: {
