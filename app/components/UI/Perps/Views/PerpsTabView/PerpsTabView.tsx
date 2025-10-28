@@ -22,6 +22,8 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import { useSelector } from 'react-redux';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -48,6 +50,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { account } = usePerpsLiveAccount();
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
@@ -210,7 +215,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView style={styles.content}>
+        <ScrollView
+          style={styles.content}
+          scrollEnabled={!isHomepageRedesignV1Enabled}
+        >
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState

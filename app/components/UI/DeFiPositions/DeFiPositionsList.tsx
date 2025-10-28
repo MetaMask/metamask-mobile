@@ -34,6 +34,7 @@ import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { DefiEmptyState } from '../DefiEmptyState';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
@@ -48,6 +49,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     selectDefiPositionsByEnabledNetworks,
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const formattedDeFiPositions = useMemo(() => {
     if (!defiPositions) {
@@ -102,6 +106,18 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     defiPositionsByEnabledNetworks,
   ]);
 
+  const estimatedItemHeight = 72;
+  const calculatedListHeight = useMemo(() => {
+    if (!isHomepageRedesignV1Enabled) return undefined;
+
+    const itemCount = formattedDeFiPositions?.length || 0;
+    const contentHeight = itemCount * estimatedItemHeight;
+    const emptyStateHeight = itemCount === 0 ? 200 : 0;
+    const padding = 20;
+
+    return contentHeight + emptyStateHeight + padding;
+  }, [isHomepageRedesignV1Enabled, formattedDeFiPositions?.length]);
+
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
       // Position data is still loading
@@ -132,29 +148,37 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     }
   }
 
+  const flatListContent = (
+    <FlatList
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
+      data={formattedDeFiPositions}
+      renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
+        <DeFiPositionsListItem
+          chainId={chainId}
+          protocolId={protocolId}
+          protocolAggregate={protocolAggregate}
+          privacyMode={privacyMode}
+        />
+      )}
+      keyExtractor={(protocolChainAggregate) =>
+        `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
+      }
+      scrollEnabled={!isHomepageRedesignV1Enabled}
+      ListEmptyComponent={<DefiEmptyState twClassName="mx-auto mt-4" />}
+    />
+  );
+
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
-      <FlatList
-        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
-        data={formattedDeFiPositions}
-        renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
-          <DeFiPositionsListItem
-            chainId={chainId}
-            protocolId={protocolId}
-            protocolAggregate={protocolAggregate}
-            privacyMode={privacyMode}
-          />
-        )}
-        keyExtractor={(protocolChainAggregate) =>
-          `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
-        }
-        scrollEnabled
-        ListEmptyComponent={<DefiEmptyState twClassName="mx-auto mt-4" />}
-      />
+      {isHomepageRedesignV1Enabled && calculatedListHeight ? (
+        <View style={{ height: calculatedListHeight }}>{flatListContent}</View>
+      ) : (
+        flatListContent
+      )}
     </View>
   );
 };

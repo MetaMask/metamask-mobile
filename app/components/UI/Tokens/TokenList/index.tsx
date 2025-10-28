@@ -19,6 +19,7 @@ import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/Wall
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
+import { selectHomepageRedesignV1Enabled } from '../../../../selectors/featureFlagController/homepage';
 import {
   Box,
   Button,
@@ -56,6 +57,9 @@ const TokenListComponent = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
+  );
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
   );
 
   // BIP44 MAINTENANCE: Once stable, only use TokenListItemBip44
@@ -135,7 +139,21 @@ const TokenListComponent = ({
           return `${item.address}-${item.chainId}-${staked}-${idx}`;
         }}
         decelerationRate="fast"
-        ListFooterComponent={<TokenListFooter />}
+        ListFooterComponent={
+          !isHomepageRedesignV1Enabled ? (
+            <TokenListFooter />
+          ) : shouldShowViewAllButton ? (
+            <Box twClassName="pt-3 pb-9">
+              <Button
+                variant={ButtonVariant.Secondary}
+                onPress={handleViewAllTokens}
+                isFullWidth
+              >
+                {strings('wallet.view_all_tokens')}
+              </Button>
+            </Box>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -148,17 +166,6 @@ const TokenListComponent = ({
         scrollEnabled
         {...flashListProps}
       />
-      {shouldShowViewAllButton && (
-        <Box twClassName="pt-3 pb-9">
-          <Button
-            variant={ButtonVariant.Secondary}
-            onPress={handleViewAllTokens}
-            isFullWidth
-          >
-            {strings('wallet.view_all_tokens')}
-          </Button>
-        </Box>
-      )}
     </Box>
   ) : (
     <View style={styles.emptyView}>

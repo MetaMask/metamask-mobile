@@ -36,6 +36,7 @@ import Loader from '../../../component-library/components-temp/Loader';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -73,6 +74,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
   const isSolanaSelected = selectedSolanaAccount !== null;
+
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [isTokensLoading, setIsTokensLoading] = useState(true);
@@ -252,6 +257,64 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     setShowScamWarningModal((prev) => !prev);
   }, []);
 
+  const maxItems = useMemo(() => {
+    if (isFullView) {
+      return undefined;
+    }
+    return isHomepageRedesignV1Enabled ? 10 : undefined;
+  }, [isFullView, isHomepageRedesignV1Enabled]);
+
+  const shouldUseAutoHeight = !isFullView && isHomepageRedesignV1Enabled;
+
+  const estimatedTokenItemHeight = 64;
+
+  const calculatedListHeight = useMemo(() => {
+    if (!shouldUseAutoHeight) return undefined;
+
+    const displayTokenCount = maxItems
+      ? Math.min(renderedTokenKeys.length, maxItems)
+      : renderedTokenKeys.length;
+    const contentHeight = displayTokenCount * estimatedTokenItemHeight;
+    const footerHeight = 60;
+    const emptyStateHeight = displayTokenCount === 0 ? 200 : 0;
+    const viewAllButtonHeight =
+      maxItems && renderedTokenKeys.length > maxItems ? 80 : 0;
+    const padding = 20;
+
+    return (
+      contentHeight +
+      footerHeight +
+      emptyStateHeight +
+      viewAllButtonHeight +
+      padding
+    );
+  }, [
+    shouldUseAutoHeight,
+    maxItems,
+    renderedTokenKeys.length,
+    estimatedTokenItemHeight,
+  ]);
+
+  const flashListProps = useMemo(() => {
+    if (isFullView) {
+      return {
+        contentContainerStyle: tw`px-4`,
+        scrollEnabled: true,
+      };
+    }
+
+    if (isHomepageRedesignV1Enabled) {
+      return {
+        scrollEnabled: false,
+        estimatedItemSize: estimatedTokenItemHeight,
+      };
+    }
+
+    return {
+      scrollEnabled: true,
+    };
+  }, [isFullView, isHomepageRedesignV1Enabled, tw, estimatedTokenItemHeight]);
+
   return (
     <Box
       twClassName="flex-1 bg-default"
@@ -270,24 +333,40 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           {isTokensLoading && progressiveTokens.length === 0 && (
             <Loader size="large" />
           )}
-          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
-            <TokenList
-              tokenKeys={
-                isTokensLoading ? progressiveTokens : renderedTokenKeys
-              }
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              showRemoveMenu={showRemoveMenu}
-              setShowScamWarningModal={handleScamWarningModal}
-              flashListProps={
-                isFullView
-                  ? {
-                      contentContainerStyle: tw`px-4`,
-                    }
-                  : undefined
-              }
-            />
-          )}
+          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) &&
+            (shouldUseAutoHeight ? (
+              <Box
+                style={
+                  calculatedListHeight
+                    ? { height: calculatedListHeight }
+                    : undefined
+                }
+              >
+                <TokenList
+                  tokenKeys={
+                    isTokensLoading ? progressiveTokens : renderedTokenKeys
+                  }
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  showRemoveMenu={showRemoveMenu}
+                  setShowScamWarningModal={handleScamWarningModal}
+                  flashListProps={flashListProps}
+                  maxItems={maxItems}
+                />
+              </Box>
+            ) : (
+              <TokenList
+                tokenKeys={
+                  isTokensLoading ? progressiveTokens : renderedTokenKeys
+                }
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                showRemoveMenu={showRemoveMenu}
+                setShowScamWarningModal={handleScamWarningModal}
+                flashListProps={flashListProps}
+                maxItems={maxItems}
+              />
+            ))}
         </>
       )}
       {showScamWarningModal && (

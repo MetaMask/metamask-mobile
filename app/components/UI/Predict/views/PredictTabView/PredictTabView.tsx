@@ -1,6 +1,7 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { default as React, useRef, useState, useCallback } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import PredictPositionsHeader, {
   PredictPositionsHeaderHandle,
 } from '../../components/PredictPositionsHeader';
@@ -13,6 +14,7 @@ import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 
 interface PredictTabViewProps {}
 
@@ -24,6 +26,10 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
 
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
+
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   usePredictDepositToasts();
   usePredictClaimToasts();
@@ -61,6 +67,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       ) : (
         <ScrollView
           testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
+          scrollEnabled={!isHomepageRedesignV1Enabled}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
