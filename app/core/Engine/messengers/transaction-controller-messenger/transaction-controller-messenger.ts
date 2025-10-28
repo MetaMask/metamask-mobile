@@ -126,6 +126,7 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:getEIP1559Compatibility',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
+      'TransactionController:getState',
     ],
     events: [
       'BridgeStatusController:stateChange',
