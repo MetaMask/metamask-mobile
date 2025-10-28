@@ -2,18 +2,19 @@ import { Messenger } from '@metamask/base-controller';
 import type {
   AccountsControllerGetSelectedAccountAction,
   AccountsControllerListAccountsAction,
-  AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerSelectedEvmAccountChangeEvent,
 } from '@metamask/accounts-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import type {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerGetStateAction,
+  NetworkControllerNetworkAddedEvent,
 } from '@metamask/network-controller';
 import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
 } from '@metamask/transaction-controller';
+import { KeyringControllerUnlockEvent } from '@metamask/keyring-controller';
 
 type AllowedActions =
   | AccountsControllerListAccountsAction
@@ -24,9 +25,10 @@ type AllowedActions =
 
 type AllowedEvents =
   | AccountsControllerSelectedEvmAccountChangeEvent
-  | AccountsControllerSelectedAccountChangeEvent
   | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerUnapprovedTransactionAddedEvent;
+  | TransactionControllerUnapprovedTransactionAddedEvent
+  | NetworkControllerNetworkAddedEvent
+  | KeyringControllerUnlockEvent;
 
 export type AccountTrackerControllerMessenger = ReturnType<
   typeof getAccountTrackerControllerMessenger
@@ -53,9 +55,10 @@ export function getAccountTrackerControllerMessenger(
     ],
     allowedEvents: [
       'AccountsController:selectedEvmAccountChange',
-      'AccountsController:selectedAccountChange',
       'TransactionController:transactionConfirmed',
       'TransactionController:unapprovedTransactionAdded',
+      'NetworkController:networkAdded',
+      'KeyringController:unlock',
     ],
   });
 }
