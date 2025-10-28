@@ -36,14 +36,14 @@ describe('PredictAmountDisplay', () => {
       expect(getByText('$1000')).toBeOnTheScreen();
     });
 
-    it('displays $ when amount is empty string', () => {
+    it('displays $0 when amount is empty string', () => {
       const emptyAmount = '';
 
       const { getByText } = render(
         <PredictAmountDisplay amount={emptyAmount} />,
       );
 
-      expect(getByText('$')).toBeOnTheScreen();
+      expect(getByText('$0')).toBeOnTheScreen();
     });
 
     it('renders container with correct test ID', () => {

@@ -51,6 +51,8 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
     }
   }, [isActive, fadeAnim]);
 
+  const amountValue = amount ? `$${amount}` : '$0';
+
   const content = (
     <Box
       alignItems={BoxAlignItems.Center}
@@ -70,7 +72,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
             'text-[64px] tracking-tight leading-[74px] font-medium',
           )}
         >
-          {`$${amount}` || '$0'}
+          {amountValue}
         </Text>
         {isActive && (
           <Animated.View
