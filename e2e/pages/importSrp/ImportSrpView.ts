@@ -14,7 +14,7 @@ class ImportSrpView {
   }
 
   get textareaInput(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.PASTE_BUTTON);
+    return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
   }
 
   async tapImportButton() {
@@ -30,11 +30,13 @@ class ImportSrpView {
       await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
         hideKeyboard: true,
+        timeout: 5000,
       });
     } else {
       // For Android, we use replaceText to avoid autocomplete issue
       await Gestures.replaceText(this.textareaInput, mnemonic, {
         elemDescription,
+        timeout: 5000,
       });
     }
   }

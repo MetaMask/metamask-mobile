@@ -44,7 +44,20 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInput from '../SrpInput';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
-import { getTrimmedSeedPhraseLength, isFirstInput as SRPUtils_isFirstInput, isSRPLengthValid, checkForWordErrors, handleSeedPhraseChangeAtIndex as SRPUtils_handleSeedPhraseChangeAtIndex, handleSeedPhraseChange as SRPUtils_handleSeedPhraseChange, handleClearSeedPhrase, handleOnFocus as SRPUtils_handleOnFocus, handleKeyPress as SRPUtils_handleKeyPress, handleEnterKeyPress as SRPUtils_handleEnterKeyPress, getSeedPhraseInputRef, getInputValue } from '../../../util/srp/srpInputUtils';
+import {
+  getTrimmedSeedPhraseLength,
+  isFirstInput as SRPUtils_isFirstInput,
+  isSRPLengthValid,
+  checkForWordErrors,
+  handleSeedPhraseChangeAtIndex as SRPUtils_handleSeedPhraseChangeAtIndex,
+  handleSeedPhraseChange as SRPUtils_handleSeedPhraseChange,
+  handleClearSeedPhrase,
+  handleOnFocus as SRPUtils_handleOnFocus,
+  handleKeyPress as SRPUtils_handleKeyPress,
+  handleEnterKeyPress as SRPUtils_handleEnterKeyPress,
+  getSeedPhraseInputRef,
+  getInputValue,
+} from '../../../util/srp/srpInputUtils';
 
 /**
  * View that's displayed when the user is trying to import a new secret recovery phrase
@@ -480,8 +493,8 @@ const ImportNewSecretRecoveryPhrase = () => {
                       numberOfLines={1}
                       testID={
                         isFirstInput
-                          ? ImportSRPIDs.PASTE_BUTTON
-                          : `${ImportSRPIDs.PASTE_BUTTON}_${index}`
+                          ? ImportSRPIDs.SEED_PHRASE_INPUT_ID
+                          : `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`
                       }
                       keyboardType="default"
                       autoCorrect={false}

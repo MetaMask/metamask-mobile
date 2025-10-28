@@ -200,7 +200,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       },
     );
 
-    const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+    const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
     expect(textareaInput).toBeTruthy();
   });
 
@@ -312,7 +312,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       },
     );
 
-    const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+    const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
 
     await act(async () => {
       await fireEvent.changeText(textareaInput, 'word1 word2 word3');
@@ -374,7 +374,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     await waitFor(() => {
-      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       expect(textareaInput.props.value).toBe('');
     });
   });
@@ -698,7 +698,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, 'word1 word2 word3');
@@ -706,9 +706,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
-        const input2 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
-        const input3 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+        const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+        const input2 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+        const input3 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
         expect(input1).toBeTruthy();
         expect(input2).toBeTruthy();
         expect(input3).toBeTruthy();
@@ -724,7 +724,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, 'word1 word2 ');
@@ -732,7 +732,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const input3 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+        const input3 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
         expect(input3.props.value).toBe('');
       });
     });
@@ -771,7 +771,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, words25);
@@ -780,7 +780,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const inputs = Array.from({ length: 24 }, (_, i) =>
-          getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_${i}`),
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${i}`),
         );
         expect(inputs.length).toBe(24);
       });
@@ -840,7 +840,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, 'word1 word2 word3 word4');
@@ -860,7 +860,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, '');
@@ -879,7 +879,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         },
       );
 
-      const textareaInput = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, 'word1    word2   word3');
@@ -887,9 +887,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
-        const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
-        const input2 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+        const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+        const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+        const input2 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
         expect(input0.props.value).toBe('word1');
         expect(input1.props.value).toBe('word2');
         expect(input2.props.value).toBe('word3');
@@ -917,10 +917,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`)).toBeTruthy();
+        expect(
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
+        ).toBeTruthy();
       });
 
-      const input2 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`);
+      const input2 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
 
       await act(async () => {
         await fireEvent(input2, 'onKeyPress', {
@@ -931,7 +933,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const inputs = [0, 1].map((i) =>
-          getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_${i}`),
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${i}`),
         );
         expect(inputs.length).toBe(2);
       });
@@ -956,10 +958,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+        expect(
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeTruthy();
       });
 
-      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
 
       await act(async () => {
         await fireEvent(input1, 'onSubmitEditing');
@@ -967,7 +971,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_2`)).toBeTruthy();
+        expect(
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
+        ).toBeTruthy();
       });
     });
 
@@ -990,10 +996,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+        expect(
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeTruthy();
       });
 
-      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
 
       await act(async () => {
         await fireEvent.changeText(input1, 'word2a');
@@ -1001,7 +1009,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const updatedInput = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+        const updatedInput = getByTestId(
+          `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`,
+        );
         expect(updatedInput.props.value).toBe('word2a');
       });
     });
@@ -1025,11 +1035,13 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+        expect(
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeTruthy();
       });
 
-      const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
-      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+      const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
 
       await act(async () => {
         await fireEvent(input0, 'onFocus');
@@ -1070,10 +1082,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`)).toBeTruthy();
+        expect(
+          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeTruthy();
       });
 
-      const input1 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
 
       await act(async () => {
         await fireEvent.changeText(input1, '   ');
@@ -1081,7 +1095,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const updatedInput = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_1`);
+        const updatedInput = getByTestId(
+          `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`,
+        );
         expect(updatedInput.props.value).toBe('');
       });
     });
@@ -1221,7 +1237,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
+        const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
         expect(input0.props.value).toBe('lazy');
       });
     });
@@ -1265,7 +1281,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const input0 = getByTestId(`${ImportSRPIDs.PASTE_BUTTON}_0`);
+        const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
         expect(input0.props.value).toBe('lazy');
       });
     });
