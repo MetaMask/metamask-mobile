@@ -1127,7 +1127,7 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
-      {process.env.MM_ENABLE_FEATURE_FLAG_OVERRIDE === 'true' && (
+      {process.env.NODE_ENV !== 'production' && (
         <Stack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
