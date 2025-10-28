@@ -28,12 +28,16 @@ import {
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
+  );
   const tabBarRef = useRef(null);
   const tw = useTailwind();
 
@@ -90,6 +94,12 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
             });
+            break;
+          case Routes.TRENDING_VIEW:
+            if (isAssetsTrendingTokensEnabled) {
+              navigation.navigate(Routes.TRENDING_VIEW);
+            }
+            break;
         }
       };
 
@@ -118,12 +128,23 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       createEventBuilder,
       tw,
       isRewardsEnabled,
+      isAssetsTrendingTokensEnabled,
     ],
   );
 
   const renderTabBarItems = useCallback(
-    () => state.routes.map(renderTabBarItem),
-    [state, renderTabBarItem],
+    () =>
+      state.routes
+        .filter((route) => {
+          const { tabBarButton } = descriptors[route.key].options;
+          // If tabBarButton is a function that returns null, don't render this tab
+          if (typeof tabBarButton === 'function') {
+            return tabBarButton({ children: null }) !== null;
+          }
+          return true;
+        })
+        .map(renderTabBarItem),
+    [state, renderTabBarItem, descriptors],
   );
 
   return (

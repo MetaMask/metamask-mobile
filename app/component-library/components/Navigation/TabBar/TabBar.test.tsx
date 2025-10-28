@@ -17,6 +17,14 @@ jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
   selectRewardsEnabledFlag: () => true,
 }));
 
+// Mock trending tokens feature flag selector
+jest.mock(
+  '../../../../selectors/featureFlagController/assetsTrendingTokens',
+  () => ({
+    selectAssetsTrendingTokensEnabled: () => true,
+  }),
+);
+
 // Mock the navigation object.
 const navigation = {
   navigate: jest.fn(),
@@ -176,5 +184,36 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Rewards}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+  });
+
+  it('navigates to trending when trending tab is pressed', () => {
+    const trendingState = {
+      index: 0,
+      routes: [{ key: '1', name: 'Tab 1' }],
+    };
+    const trendingDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Trending,
+          rootScreenName: Routes.TRENDING_VIEW,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={trendingState as TabNavigationState<ParamListBase>}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        descriptors={trendingDescriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigation={navigation as any}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 });
