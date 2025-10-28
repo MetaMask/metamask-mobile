@@ -31,7 +31,8 @@ do
 
   # Get list of files changed between remote and local HEAD
   # Only check files being pushed, not all uncommitted changes
-  FILES=$(git diff --name-only --diff-filter=ACMR "$remote_sha".."$local_sha" 2>/dev/null | grep -E '\.(js|jsx|ts|tsx)$' || true)
+  # Use -z for null-delimited output to handle filenames with special characters
+  FILES=$(git diff -z --name-only --diff-filter=ACMR "$remote_sha".."$local_sha" | grep -zE '\.(js|jsx|ts|tsx)$')
 
   if [ -z "$FILES" ]; then
     echo "✅ No JavaScript/TypeScript files changed in this push"
@@ -49,7 +50,7 @@ do
 
   # Step 1: Check Prettier formatting (this is what CI checks with format:check:changed)
   echo "📝 Checking Prettier formatting..."
-  echo "$FILES" | tr '\n' '\0' | xargs -0 npx prettier --check --ignore-unknown
+  echo "$FILES" | tr '\n' '\0' | xargs -0 yarn prettier --check --ignore-unknown
 
   if [ $? -ne 0 ]; then
     echo ""
@@ -71,7 +72,7 @@ do
 
   # Step 2: Check ESLint for errors only (warnings are allowed)
   echo "🔍 Checking ESLint for errors..."
-  echo "$FILES" | tr '\n' '\0' | xargs -0 npx eslint
+  echo "$FILES" | tr '\n' '\0' | xargs -0 yarn eslint --cache
 
   if [ $? -ne 0 ]; then
     echo ""
