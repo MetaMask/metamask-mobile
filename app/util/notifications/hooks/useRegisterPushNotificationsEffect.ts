@@ -32,7 +32,6 @@ function clickPushNotification(
 ) {
   // Publish Click Event
   Engine.controllerMessenger.publish(
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error - NotificationServicesPushController:pushNotificationClicked is not typed correctly
     'NotificationServicesPushController:pushNotificationClicked',
     notification,

@@ -159,7 +159,6 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error accessing protected property for testing
     engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
@@ -179,7 +178,6 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error accessing protected property for testing
     engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
