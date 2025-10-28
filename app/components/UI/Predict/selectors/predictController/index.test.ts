@@ -1,14 +1,14 @@
 import {
   selectPredictControllerState,
-  selectPredictDepositTransaction,
   selectPredictClaimablePositions,
+  selectPredictPendingDeposits,
   selectPredictWonPositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
   selectPredictBalances,
   selectPredictBalanceByAddress,
 } from './index';
-import { PredictDepositStatus, PredictPositionStatus } from '../../types';
+import { PredictPositionStatus } from '../../types';
 
 describe('Predict Controller Selectors', () => {
   describe('selectPredictControllerState', () => {
@@ -37,49 +37,48 @@ describe('Predict Controller Selectors', () => {
     });
   });
 
-  describe('selectPredictDepositTransaction', () => {
+  describe('selectPredictPendingDeposits', () => {
     it('returns deposit transaction when it exists', () => {
-      const depositTransaction = {
-        batchId: 'batch-123',
-        chainId: 137,
-        status: PredictDepositStatus.PENDING,
-        providerId: 'polymarket',
+      const pendingDeposits = {
+        polymarket: {
+          '0x123': true,
+        },
       };
 
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              depositTransaction,
+              pendingDeposits,
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictDepositTransaction(mockState as any);
+      const result = selectPredictPendingDeposits(mockState as any);
 
-      expect(result).toEqual(depositTransaction);
+      expect(result).toEqual(pendingDeposits);
     });
 
-    it('returns null when deposit transaction does not exist', () => {
+    it('returns empty object when pending deposits do not exist', () => {
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              depositTransaction: null,
+              pendingDeposits: {},
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictDepositTransaction(mockState as any);
+      const result = selectPredictPendingDeposits(mockState as any);
 
-      expect(result).toBeNull();
+      expect(result).toEqual({});
     });
 
-    it('returns null when PredictController state is undefined', () => {
+    it('returns empty object when PredictController state is undefined', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -89,9 +88,9 @@ describe('Predict Controller Selectors', () => {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictDepositTransaction(mockState as any);
+      const result = selectPredictPendingDeposits(mockState as any);
 
-      expect(result).toBeNull();
+      expect(result).toEqual({});
     });
   });
 

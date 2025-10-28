@@ -660,7 +660,7 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "depositTransaction": null,
+    "pendingDeposits": {},
     "isOnboarded": {}
   }
 }

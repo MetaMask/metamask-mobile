@@ -228,7 +228,7 @@ describe('Engine', () => {
         lastUpdateTimestamp: 0,
         balances: {},
         claimablePositions: [],
-        depositTransaction: null,
+        pendingDeposits: {},
         withdrawTransaction: null,
         isOnboarded: {},
       },

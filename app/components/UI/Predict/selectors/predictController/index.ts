@@ -5,10 +5,9 @@ import { PredictPositionStatus } from '../../types';
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
 
-const selectPredictDepositTransaction = createSelector(
+const selectPredictPendingDeposits = createSelector(
   selectPredictControllerState,
-  (predictControllerState) =>
-    predictControllerState?.depositTransaction || null,
+  (predictControllerState) => predictControllerState?.pendingDeposits || {},
 );
 
 const selectPredictClaimablePositions = createSelector(
@@ -53,13 +52,26 @@ const selectPredictBalanceByAddress = ({
     (balances) => balances[providerId]?.[address] || 0,
   );
 
+const selectPredictPendingDepositByAddress = ({
+  providerId,
+  address,
+}: {
+  providerId: string;
+  address: string;
+}) =>
+  createSelector(
+    selectPredictPendingDeposits,
+    (pendingDeposits) => pendingDeposits[providerId]?.[address] || false,
+  );
+
 export {
   selectPredictControllerState,
-  selectPredictDepositTransaction,
+  selectPredictPendingDeposits,
   selectPredictClaimablePositions,
   selectPredictWonPositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
   selectPredictBalances,
   selectPredictBalanceByAddress,
+  selectPredictPendingDepositByAddress,
 };
