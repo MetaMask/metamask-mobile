@@ -5,11 +5,7 @@ import {
   getDefaultPerpsControllerState,
 } from '../../../../components/UI/Perps/controllers';
 import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
-import {
-  selectPerpsEquityEnabledFlag,
-  selectPerpsEnabledDexs,
-} from '../../../../components/UI/Perps/selectors/featureFlags';
-import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import { getVersion } from 'react-native-device-info';
 
 /**
  * Initialize the PerpsController.
@@ -21,25 +17,22 @@ export const perpsControllerInit: ControllerInitFunction<
   PerpsController,
   PerpsControllerMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState, getState } = request;
+  const { controllerMessenger, persistedState } = request;
 
   const perpsControllerState =
     persistedState.PerpsController ?? getDefaultPerpsControllerState();
-
-  // Get HIP-3 feature flags from selector (with local fallbacks)
-  const state = getState();
-  const remoteFeatureFlags = selectRemoteFeatureFlags(state);
-  const equityEnabled =
-    selectPerpsEquityEnabledFlag.resultFunc(remoteFeatureFlags);
-  const enabledDexs = selectPerpsEnabledDexs.resultFunc(remoteFeatureFlags);
 
   const controller = new PerpsController({
     messenger: controllerMessenger,
     state: perpsControllerState,
     clientConfig: {
       fallbackBlockedRegions: process.env.MM_PERPS_BLOCKED_REGIONS?.split(','),
-      equityEnabled,
-      enabledDexs,
+      fallbackEquityEnabled: {
+        enabled: process.env.MM_PERPS_EQUITY_ENABLED === 'true',
+        minimumVersion: process.env.MM_PERPS_EQUITY_MIN_VERSION ?? '0.0.0',
+      },
+      fallbackEnabledDexs: process.env.MM_PERPS_ENABLED_DEXS?.split(','),
+      clientVersion: getVersion(),
     },
   });
 

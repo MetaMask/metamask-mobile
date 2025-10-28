@@ -391,13 +391,21 @@ export interface PerpsControllerConfig {
    * HIP-3 equity perps master switch passed from client
    * Controls whether HIP-3 (builder-deployed) DEXs are enabled
    */
-  equityEnabled?: boolean;
+  fallbackEquityEnabled?: {
+    enabled: boolean;
+    minimumVersion: string;
+  };
   /**
    * HIP-3 DEX whitelist passed from client
    * Empty array = auto-discover all DEXs, non-empty = whitelist specific DEXs
-   * Only applies when equityEnabled === true
    */
-  enabledDexs?: string[];
+  fallbackEnabledDexs?: string[];
+
+  /**
+   * Semantic versioning used in PerpsController to determine if the client is compatible with the feature flags
+   * E.g. "1.0.0"
+   */
+  clientVersion: string;
 }
 
 export interface PriceUpdate {
