@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
@@ -21,7 +21,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true); // Include winnings. Because claim button is animated we will need to disable sync.
 };
 
-describe(SmokePredictions('Predictions'), () => {
+describe(SmokeTrade('Predictions'), () => {
   it('should claim positions', async () => {
     await withFixtures(
       {
