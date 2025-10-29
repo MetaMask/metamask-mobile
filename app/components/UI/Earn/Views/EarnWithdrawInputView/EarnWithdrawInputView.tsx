@@ -706,7 +706,7 @@ const EarnWithdrawInputView = () => {
         style={styles.keypad}
         // TODO: this should be the underlying token symbol/ticker if not ETH
         // once this data is available in the state we can use that
-        currency={token.isETH ? 'ETH' : token.ticker ?? token.symbol}
+        currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
         decimals={isFiat ? 2 : 5}
       />
       <View style={styles.reviewButtonContainer}>

@@ -63,14 +63,17 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
     (transactions: PerpsTransaction[]): TransactionSection[] => {
-      const grouped = transactions.reduce((acc, transaction) => {
-        const dateKey = formatDateSection(transaction.timestamp);
-        if (!acc[dateKey]) {
-          acc[dateKey] = [];
-        }
-        acc[dateKey].push(transaction);
-        return acc;
-      }, {} as Record<string, PerpsTransaction[]>);
+      const grouped = transactions.reduce(
+        (acc, transaction) => {
+          const dateKey = formatDateSection(transaction.timestamp);
+          if (!acc[dateKey]) {
+            acc[dateKey] = [];
+          }
+          acc[dateKey].push(transaction);
+          return acc;
+        },
+        {} as Record<string, PerpsTransaction[]>,
+      );
 
       return Object.entries(grouped).map(([title, data]) => ({ title, data }));
     },

@@ -54,8 +54,20 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     );
 
     const handleDonePress = useCallback(() => {
+      // Clean up trailing decimal point if user finished with just a dot
+      let cleanedValue = currentValueUSDString;
+      if (cleanedValue.endsWith('.')) {
+        cleanedValue = cleanedValue.slice(0, -1);
+        setCurrentValueUSDString(cleanedValue);
+        setCurrentValue(parseFloat(cleanedValue) || 0);
+      }
       setIsInputFocused(false);
-    }, [setIsInputFocused]);
+    }, [
+      setIsInputFocused,
+      currentValueUSDString,
+      setCurrentValueUSDString,
+      setCurrentValue,
+    ]);
 
     useImperativeHandle(ref, () => ({
       handleAmountPress,
@@ -114,7 +126,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
 
         // Update all states in batch to prevent race conditions
         setCurrentValueUSDString(formattedUSDString);
-        setCurrentValue(parseFloat(formattedUSDString));
+        // parseFloat handles "2." correctly (returns 2), and handles empty/"." as NaN
+        const numericValue = parseFloat(formattedUSDString);
+        setCurrentValue(isNaN(numericValue) ? 0 : numericValue);
       },
       [
         currentValue,

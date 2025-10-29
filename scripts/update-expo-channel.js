@@ -267,24 +267,17 @@ function main() {
     process.exit(1);
   }
 
-  // Update files
   try {
     updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl);
     updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled, updateUrl);
-    // updatePlistFile(IOS_INFO_PLIST_PATH, channel, runtimeVersion, 'Info.plist', updatesEnabled, updateUrl);
 
-    console.log('');
     console.log('✓ All files updated successfully!');
-    console.log(`  Runtime Version: ${runtimeVersion}`);
-    console.log(`  Channel: ${channel}`);
-    console.log('');
   } catch (error) {
     console.error('❌ Error updating files:', error.message);
     process.exit(1);
   }
 }
 
-// Run the script
 if (require.main === module) {
   main();
 }

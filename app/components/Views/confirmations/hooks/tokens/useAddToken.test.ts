@@ -25,6 +25,7 @@ const CHAIN_ID_MOCK = '0x1' as const;
 const NETWORK_CLIENT_ID = 'mockNetworkClientId';
 const SYMBOL_MOCK = 'TST';
 const DECIMALS_MOCK = 6;
+const NAME_MOCK = 'Test Token';
 
 async function runHook({
   existingTokens,
@@ -36,6 +37,7 @@ async function runHook({
         chainId: CHAIN_ID_MOCK,
         symbol: SYMBOL_MOCK,
         decimals: DECIMALS_MOCK,
+        name: NAME_MOCK,
       }),
     {
       state: merge({}, otherControllersMock, {
@@ -81,6 +83,7 @@ describe('useAddToken', () => {
     expect(mockAddToken).toHaveBeenCalledWith({
       address: TOKEN_ADDRESS_MOCK,
       decimals: DECIMALS_MOCK,
+      name: NAME_MOCK,
       networkClientId: NETWORK_CLIENT_ID,
       symbol: SYMBOL_MOCK,
     });

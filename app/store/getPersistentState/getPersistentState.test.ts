@@ -9,7 +9,14 @@ describe('getPersistentState', () => {
   it('return empty state when no properties are persistent', () => {
     const persistentState = getPersistentState(
       { count: 1 },
-      { count: { anonymous: false, persist: false } },
+      {
+        count: {
+          includeInDebugSnapshot: false,
+          persist: false,
+          includeInStateLogs: false,
+          usedInUi: false,
+        },
+      },
     );
     expect(persistentState).toStrictEqual({});
   });
@@ -24,20 +31,28 @@ describe('getPersistentState', () => {
       },
       {
         password: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
           persist: true,
+          includeInStateLogs: false,
+          usedInUi: false,
         },
         privateKey: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
           persist: true,
+          includeInStateLogs: false,
+          usedInUi: false,
         },
         network: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
           persist: false,
+          includeInStateLogs: false,
+          usedInUi: false,
         },
         tokens: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
           persist: false,
+          includeInStateLogs: false,
+          usedInUi: false,
         },
       },
     );
@@ -56,8 +71,10 @@ describe('getPersistentState', () => {
       },
       {
         transactionHash: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
           persist: normalizeTransactionHash,
+          includeInStateLogs: false,
+          usedInUi: false,
         },
       },
     );
@@ -79,7 +96,9 @@ describe('getPersistentState', () => {
       },
       {
         txMeta: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
+          includeInStateLogs: false,
+          usedInUi: false,
           persist: getPersistentTxMeta,
         },
       },
@@ -113,7 +132,9 @@ describe('getPersistentState', () => {
       },
       {
         txMeta: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
+          includeInStateLogs: false,
+          usedInUi: false,
           persist: getPersistentTxMeta,
         },
       },
@@ -131,7 +152,9 @@ describe('getPersistentState', () => {
       },
       {
         count: {
-          anonymous: false,
+          includeInDebugSnapshot: false,
+          includeInStateLogs: false,
+          usedInUi: false,
           persist: (count) => Number(count),
         },
       },
@@ -150,12 +173,16 @@ describe('getPersistentState', () => {
     };
     const metadata = {
       password: {
-        anonymous: false,
+        includeInDebugSnapshot: false,
         persist: true,
+        includeInStateLogs: false,
+        usedInUi: false,
       },
       privateKey: {
-        anonymous: false,
+        includeInDebugSnapshot: false,
         persist: true,
+        includeInStateLogs: false,
+        usedInUi: false,
       },
     } as unknown as StateMetadata<typeof state>;
 
@@ -175,11 +202,15 @@ describe('getPersistentState', () => {
     };
     const metadata = {
       password: {
-        anonymous: false,
+        includeInDebugSnapshot: false,
         persist: true,
+        includeInStateLogs: false,
+        usedInUi: false,
       },
       privateKey: {
-        anonymous: false,
+        includeInDebugSnapshot: false,
+        includeInStateLogs: false,
+        usedInUi: false,
         persist: () => {
           throw new Error('Derivation error');
         },
@@ -209,8 +240,10 @@ describe('getPersistentState', () => {
     };
     const metadata = {
       user: {
-        anonymous: false,
+        includeInDebugSnapshot: false,
         persist: true,
+        includeInStateLogs: false,
+        usedInUi: false,
       },
     } as unknown as StateMetadata<typeof state>;
 

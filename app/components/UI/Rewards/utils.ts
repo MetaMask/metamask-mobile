@@ -91,8 +91,8 @@ export const deriveAccountMetricProps = (account?: InternalAccount) => {
   const scope = isEvmAccountType(account.type)
     ? 'evm'
     : isSolanaAccount(account)
-    ? 'solana'
-    : account.type; // Fallback to account.type for other types
+      ? 'solana'
+      : account.type; // Fallback to account.type for other types
   let type = account.metadata?.keyring?.type;
 
   try {

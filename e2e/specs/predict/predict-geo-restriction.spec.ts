@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
+import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
@@ -57,7 +57,7 @@ const PredictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   });
 };
 
-describe(SmokeTrade('Predictions - Geo Restriction'), () => {
+describe(SmokePredictions('Predictions - Geo Restriction'), () => {
   it('displays geo restriction modal when in US region', async () => {
     await withFixtures(
       {
