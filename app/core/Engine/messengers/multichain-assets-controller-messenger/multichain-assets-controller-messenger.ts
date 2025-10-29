@@ -1,4 +1,9 @@
-import { BaseControllerMessenger } from '../../types';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import { MultichainAssetsControllerMessenger } from '@metamask/assets-controllers';
 
 /**
@@ -8,20 +13,30 @@ import { MultichainAssetsControllerMessenger } from '@metamask/assets-controller
  * @returns The MultichainAssetsControllerMessenger.
  */
 export function getMultichainAssetsControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): MultichainAssetsControllerMessenger {
-  return baseControllerMessenger.getRestricted({
-    name: 'MultichainAssetsController',
-    allowedEvents: [
-      'AccountsController:accountAdded',
-      'AccountsController:accountRemoved',
-      'AccountsController:accountAssetListUpdated',
-    ],
-    allowedActions: [
+  const messenger = new Messenger<
+    'MultichainAssetsController',
+    MessengerActions<MultichainAssetsControllerMessenger>,
+    MessengerEvents<MultichainAssetsControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'MultichainAssetsController',
+    parent: rootExtendedMessenger,
+  });
+  rootExtendedMessenger.delegate({
+    actions: [
       'PermissionController:getPermissions',
       'SnapController:handleRequest',
       'SnapController:getAll',
       'AccountsController:listMultichainAccounts',
     ],
+    events: [
+      'AccountsController:accountAdded',
+      'AccountsController:accountRemoved',
+      'AccountsController:accountAssetListUpdated',
+    ],
+    messenger,
   });
+  return messenger;
 }

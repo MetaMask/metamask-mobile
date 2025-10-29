@@ -1,7 +1,10 @@
 import {
   BaseController,
-  type RestrictedMessenger,
+  ControllerGetStateAction,
+  ControllerStateChangeEvent,
+  StateMetadata,
 } from '@metamask/base-controller';
+import type { Messenger } from '@metamask/messenger';
 import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
@@ -251,125 +254,125 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
 /**
  * State metadata for the PerpsController
  */
-const metadata = {
+const metadata: StateMetadata<PerpsControllerState> = {
   accountState: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   positions: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   perpsBalances: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   isTestnet: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   activeProvider: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   connectionStatus: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   pendingOrders: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: false,
   },
   depositInProgress: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   lastDepositTransactionId: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   lastDepositResult: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   withdrawInProgress: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   lastWithdrawResult: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   withdrawalRequests: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   withdrawalProgress: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   depositRequests: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   lastError: {
     includeInStateLogs: false,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: false,
   },
   lastUpdateTimestamp: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: false,
   },
   isEligible: {
     includeInStateLogs: true,
     persist: false,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   isFirstTimeUser: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
   hasPlacedFirstOrder: {
     includeInStateLogs: true,
     persist: true,
-    anonymous: false,
+    includeInDebugSnapshot: false,
     usedInUi: true,
   },
 };
@@ -377,19 +380,16 @@ const metadata = {
 /**
  * PerpsController events
  */
-export interface PerpsControllerEvents {
-  type: 'PerpsController:stateChange';
-  payload: [PerpsControllerState, PerpsControllerState[]];
-}
+export type PerpsControllerEvents = ControllerStateChangeEvent<
+  'PerpsController',
+  PerpsControllerState
+>;
 
 /**
  * PerpsController actions
  */
 export type PerpsControllerActions =
-  | {
-      type: 'PerpsController:getState';
-      handler: () => PerpsControllerState;
-    }
+  | ControllerGetStateAction<'PerpsController', PerpsControllerState>
   | {
       type: 'PerpsController:placeOrder';
       handler: PerpsController['placeOrder'];
@@ -491,12 +491,10 @@ export type AllowedEvents =
 /**
  * PerpsController messenger constraints
  */
-export type PerpsControllerMessenger = RestrictedMessenger<
+export type PerpsControllerMessenger = Messenger<
   'PerpsController',
   PerpsControllerActions | AllowedActions,
-  PerpsControllerEvents | AllowedEvents,
-  AllowedActions['type'],
-  AllowedEvents['type']
+  PerpsControllerEvents | AllowedEvents
 >;
 
 /**
@@ -576,7 +574,7 @@ export class PerpsController extends BaseController<
      * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
      */
     try {
-      const currentRemoteFeatureFlagState = this.messagingSystem.call(
+      const currentRemoteFeatureFlagState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
 
@@ -593,7 +591,7 @@ export class PerpsController extends BaseController<
       );
     }
 
-    this.messagingSystem.subscribe(
+    this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
       this.refreshEligibilityOnFeatureFlagChange.bind(this),
     );
@@ -683,9 +681,7 @@ export class PerpsController extends BaseController<
       }
 
       // Get the chain ID using proper NetworkController method
-      const networkState = this.messagingSystem.call(
-        'NetworkController:getState',
-      );
+      const networkState = this.messenger.call('NetworkController:getState');
       const selectedNetworkClientId = networkState.selectedNetworkClientId;
       const networkClient = NetworkController.getNetworkClientById(
         selectedNetworkClientId,
@@ -3536,7 +3532,7 @@ export class PerpsController extends BaseController<
     const apiCallStartTime = performance.now();
 
     try {
-      const token = await this.messagingSystem.call(
+      const token = await this.messenger.call(
         'AuthenticationController:getBearerToken',
       );
       const evmAccount = getEvmAccountFromSelectedAccountGroup();
