@@ -517,6 +517,11 @@ export const useDepositRouting = () => {
             return;
           }
 
+          case 'SUBMITTED': {
+            navigateToKycProcessingCallback({ quote });
+            return;
+          }
+
           default:
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
