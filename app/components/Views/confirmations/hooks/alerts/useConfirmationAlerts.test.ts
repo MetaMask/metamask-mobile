@@ -18,6 +18,7 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
+import { useBurnAddressAlert } from './useBurnAddressAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useDomainMismatchAlerts');
@@ -31,6 +32,7 @@ jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useInsufficientPayTokenNativeAlert');
 jest.mock('./useInsufficientPredictBalanceAlert');
+jest.mock('./useBurnAddressAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -144,6 +146,14 @@ describe('useConfirmationAlerts', () => {
       severity: Severity.Danger,
     },
   ];
+  const mockBurnAddressAlert: Alert[] = [
+    {
+      key: 'BurnAddressAlert',
+      title: 'Test Burn Address Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -159,6 +169,7 @@ describe('useConfirmationAlerts', () => {
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPayTokenNativeAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
+    (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -229,6 +240,7 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue(
       mockInsufficientPredictBalanceAlert,
     );
+    (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -244,6 +256,7 @@ describe('useConfirmationAlerts', () => {
       ...mockNoPayTokenQuotesAlert,
       ...mockInsufficientPayTokenNativeAlert,
       ...mockInsufficientPredictBalanceAlert,
+      ...mockBurnAddressAlert,
       ...mockUpgradeAccountAlert,
     ]);
   });
