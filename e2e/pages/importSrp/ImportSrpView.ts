@@ -20,6 +20,7 @@ class ImportSrpView {
   async tapImportButton() {
     await Gestures.waitAndTap(this.importButton, {
       elemDescription: 'Import button',
+      checkVisibility: device.getPlatform() !== 'ios',
     });
   }
 
@@ -32,9 +33,10 @@ class ImportSrpView {
         hideKeyboard: false,
       });
 
-      await Gestures.tap(this.container, {
-        elemDescription: 'Import SRP container to dismiss keyboard',
-        checkVisibility: false,
+      await Gestures.swipe(this.container, 'up', {
+        speed: 'slow',
+        percentage: 0.5,
+        elemDescription: 'Scroll to make Import button visible',
       });
     } else {
       await Gestures.replaceText(this.textareaInput, mnemonic, {
