@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 import {
   FeatureFlagInfo,
+  FeatureFlagInfoSnapshot,
   getFeatureFlagDescription,
   getFeatureFlagType,
   isMinimumRequiredVersionSupported,
@@ -28,6 +29,8 @@ export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
   getFeatureFlag: (key: string) => unknown;
+  getFeatureFlagSnapshotQueue: () => FeatureFlagInfoSnapshot[];
+  takeSnapshot: (featureFlagInfo: FeatureFlagInfo) => void;
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
@@ -58,6 +61,9 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
+  const [featureFlagSnapshots, setFeatureFlagSnapshots] = useState<
+    FeatureFlagInfoSnapshot[]
+  >([]);
 
   const setOverride = useCallback((key: string, value: unknown) => {
     setOverrides((prev) => ({
@@ -65,6 +71,26 @@ export const FeatureFlagOverrideProvider: React.FC<
       [key]: value,
     }));
   }, []);
+
+  const clearSnapshot = useCallback(() => {
+    setFeatureFlagSnapshots([]);
+  }, []);
+
+  const takeSnapshot = useCallback((featureFlagInfo: FeatureFlagInfo) => {
+    setFeatureFlagSnapshots((prev) => [
+      ...prev,
+      {
+        timestamp: Date.now(),
+        ...featureFlagInfo,
+      },
+    ]);
+  }, []);
+
+  const getFeatureFlagSnapshotQueue = useCallback(() => {
+    const currentSnapshot = featureFlagSnapshots;
+    clearSnapshot();
+    return currentSnapshot;
+  }, [featureFlagSnapshots, clearSnapshot]);
 
   const removeOverride = useCallback((key: string) => {
     setOverrides((prev) => {
@@ -197,6 +223,8 @@ export const FeatureFlagOverrideProvider: React.FC<
     featureFlags,
     originalFlags: rawFeatureFlags,
     getFeatureFlag,
+    getFeatureFlagSnapshotQueue,
+    takeSnapshot,
     featureFlagsList,
     overrides,
     setOverride,

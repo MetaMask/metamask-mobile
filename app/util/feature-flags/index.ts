@@ -17,6 +17,10 @@ export interface FeatureFlagInfo {
   isOverridden: boolean;
 }
 
+export interface FeatureFlagInfoSnapshot extends FeatureFlagInfo {
+  timestamp: number;
+}
+
 /**
  * Gets the type of a feature flag value
  */
