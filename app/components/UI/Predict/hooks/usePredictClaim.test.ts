@@ -1,7 +1,6 @@
 import { NavigationProp } from '@react-navigation/native';
 import { renderHook } from '@testing-library/react-hooks';
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { captureException } from '@sentry/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -23,12 +22,6 @@ const mockShowToast = jest.fn();
 // Mock dependencies
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-  connect: jest.fn(() => (component: unknown) => component),
 }));
 
 jest.mock('./usePredictEligibility');
@@ -56,7 +49,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
   typeof usePredictTrading
 >;
@@ -104,10 +96,6 @@ describe('usePredictClaim', () => {
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     } as ReturnType<typeof useConfirmNavigation>);
-
-    mockUseSelector.mockReturnValue({
-      status: 'pending',
-    });
   });
 
   afterEach(() => {
@@ -129,13 +117,12 @@ describe('usePredictClaim', () => {
     );
 
   describe('initialization', () => {
-    it('returns claim function and status', () => {
+    it('returns claim function', () => {
       // Arrange & Act
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
       expect(result.current.claim).toBeInstanceOf(Function);
-      expect(result.current.status).toBe('pending');
     });
   });
 
@@ -363,72 +350,6 @@ describe('usePredictClaim', () => {
           },
         },
       );
-    });
-  });
-
-  describe('status', () => {
-    it('returns status from claimTransaction selector', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue({
-        status: 'completed',
-      });
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBe('completed');
-    });
-
-    it('returns undefined when claimTransaction is not available', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(undefined);
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBeUndefined();
-    });
-
-    it('returns different status values from claimTransaction', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue({
-        status: 'processing',
-      });
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBe('processing');
-    });
-
-    it('selects claimTransaction from Redux state', () => {
-      // Arrange
-      const mockClaimTransaction = {
-        status: 'failed',
-        error: 'Transaction failed',
-      };
-
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          engine: {
-            backgroundState: {
-              PredictController: {
-                claimTransaction: mockClaimTransaction,
-              },
-            },
-          },
-        };
-        return selector(mockState);
-      });
-
-      // Act
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(result.current.status).toBe('failed');
     });
   });
 

@@ -30,7 +30,6 @@ import {
 } from '../../../Perps/constants/hyperLiquidConfig';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { PredictDepositStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -52,21 +51,21 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const { deposit, status } = usePredictDeposit();
+  const { deposit, isDepositPending } = usePredictDeposit();
   const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: 'polymarket',
     navigation,
   });
 
-  const isAddingFunds = status === PredictDepositStatus.PENDING;
+  const isAddingFunds = isDepositPending;
   const hasBalance = balance > 0;
 
   useEffect(() => {
-    if (status === PredictDepositStatus.CONFIRMED) {
+    if (!isDepositPending) {
       loadBalance({ isRefresh: true });
     }
-  }, [status, loadBalance]);
+  }, [isDepositPending, loadBalance]);
 
   const handleAddFunds = useCallback(() => {
     executeGuardedAction(() => {

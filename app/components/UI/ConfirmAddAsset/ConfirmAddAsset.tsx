@@ -60,7 +60,7 @@ const RenderBalance = (asset: {
         {balanceFiat === TOKEN_BALANCE_LOADING ? (
           <SkeletonText thin style={styles.skeleton} />
         ) : (
-          balanceFiat ?? ''
+          (balanceFiat ?? '')
         )}
       </Text>
     </View>

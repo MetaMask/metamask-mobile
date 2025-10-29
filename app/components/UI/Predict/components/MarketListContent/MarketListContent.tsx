@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { RefreshControl } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -10,7 +10,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 import styleSheet from './MarketListContent.styles';
 import {
   PredictCategory,
@@ -28,6 +28,12 @@ interface MarketListContentProps {
   entryPoint?: PredictEntryPoint;
   scrollCoordinator?: ScrollCoordinator;
 }
+
+// create once at module scope to avoid remounting on each render
+type PredictFlashListProps = FlashListProps<PredictMarketType>;
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<PredictFlashListProps>,
+) as unknown as React.ComponentType<PredictFlashListProps>;
 
 const MarketListContent: React.FC<MarketListContentProps> = ({
   category,
@@ -47,20 +53,18 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     fetchMore,
   } = usePredictMarketData({ category, q, pageSize: 20 });
 
-  const listRef = useRef<FlashListRef<PredictMarketType>>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const scrollHandler = scrollCoordinator?.getScrollHandler(category);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: PredictMarketType; index: number }) => (
+    (info: { item: PredictMarketType; index: number }) => (
       <PredictMarket
-        key={item.id}
-        market={item}
+        market={info.item}
         entryPoint={entryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
-          index + 1,
+          info.index + 1,
         )}
       />
     ),
@@ -172,13 +176,8 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   }
 
   if (scrollCoordinator && scrollHandler) {
-    const AnimatedFlashList = Animated.createAnimatedComponent(
-      FlashList<PredictMarketType>,
-    );
-
     return (
       <AnimatedFlashList
-        ref={listRef}
         data={marketData}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
@@ -200,7 +199,6 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   return (
     <FlashList
-      ref={listRef}
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
