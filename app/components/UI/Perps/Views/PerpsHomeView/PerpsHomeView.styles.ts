@@ -74,7 +74,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
     },
     actionButton: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.muted,
       borderRadius: 12,
       borderWidth: 1,
       borderColor: colors.border.muted,
