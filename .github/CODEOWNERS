@@ -40,8 +40,8 @@ app/core/Engine/index.ts                                    @MetaMask/mobile-pla
 app/core/Engine/README.md                                   @MetaMask/mobile-platform
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
-app/core/DeeplinkManager   @MetaMask/mobile-platform
-app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts @MetaMask/perps
+app/core/DeeplinkManager                                    @MetaMask/mobile-platform
+scripts/build.sh                                            @MetaMask/mobile-platform
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
@@ -145,6 +145,7 @@ app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
 app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
+app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 
