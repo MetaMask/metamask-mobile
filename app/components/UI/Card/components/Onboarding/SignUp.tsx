@@ -163,9 +163,8 @@ const SignUp = () => {
           })
           .build(),
       );
-      const { contactVerificationId } = await sendEmailVerification(
-        debouncedEmail,
-      );
+      const { contactVerificationId } =
+        await sendEmailVerification(debouncedEmail);
 
       dispatch(setContactVerificationId(contactVerificationId));
 

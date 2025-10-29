@@ -33,7 +33,11 @@ export function getPersistentState<ControllerState extends StateConstraint>(
 function deriveStateFromMetadata<ControllerState extends StateConstraint>(
   state: ControllerState,
   metadata: StateMetadata<ControllerState>,
-  metadataProperty: 'anonymous' | 'persist',
+  metadataProperty:
+    | 'includeInDebugSnapshot'
+    | 'persist'
+    | 'includeInStateLogs'
+    | 'usedInUi',
 ): Record<keyof ControllerState, Json> {
   return (Object.keys(state) as (keyof ControllerState)[]).reduce<
     Record<keyof ControllerState, Json>

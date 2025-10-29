@@ -97,8 +97,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
             : amount
-            ? formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW })
-            : '$0'}
+              ? formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW })
+              : '$0'}
         </Text>
         {isActive && (
           <Animated.View

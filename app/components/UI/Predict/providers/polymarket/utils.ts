@@ -449,8 +449,8 @@ export const parsePolymarketActivity = (
         ? activity.side === 'BUY'
           ? 'buy'
           : activity.side === 'SELL'
-          ? 'sell'
-          : 'claimWinnings'
+            ? 'sell'
+            : 'claimWinnings'
         : 'claimWinnings';
 
     const id =
