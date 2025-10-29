@@ -76,10 +76,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set Xcode version
-        run: sudo xcode-select --switch /Applications/Xcode.app
-
-      # Use existing MetaMask setup action for Node, Ruby, CocoaPods, etc.
+      # Use existing MetaMask setup action for Node, Ruby, CocoaPods, Xcode, etc.
       - name: Setup iOS environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
         with:
