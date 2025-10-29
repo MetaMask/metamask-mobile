@@ -596,8 +596,8 @@ export class NetworkSettings extends PureComponent {
     isCustomMainnet
       ? navigation.navigate('OptinMetrics')
       : shouldNetworkSwitchPopToWallet
-      ? navigation.navigate('WalletView')
-      : navigation.goBack();
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
   };
 
   /**
@@ -899,8 +899,8 @@ export class NetworkSettings extends PureComponent {
     const symbol = networkConfigurationSymbol
       ? networkConfigurationSymbol
       : chainToMatch
-      ? chainToMatch?.nativeCurrency?.symbol ?? null
-      : networkList?.nativeCurrency?.symbol ?? null;
+        ? (chainToMatch?.nativeCurrency?.symbol ?? null)
+        : (networkList?.nativeCurrency?.symbol ?? null);
 
     const symbolToUse =
       symbol?.toLowerCase() === ticker?.toLowerCase() ? undefined : symbol;

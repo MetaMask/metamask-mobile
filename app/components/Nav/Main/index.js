@@ -134,9 +134,8 @@ const Main = (props) => {
       if (isSeedlessPasswordOutdated) {
         // Check for latest seedless password outdated state
         // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
-          false,
-        );
+        const isOutdated =
+          await Authentication.checkIsSeedlessPasswordOutdated(false);
         if (!isOutdated) {
           return;
         }
