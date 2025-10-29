@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -9,6 +9,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
+import PerpsStocksCommoditiesDropdown from '../../../../components/PerpsStocksCommoditiesDropdown';
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
 
@@ -38,19 +39,34 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   onSortPress,
   showWatchlistOnly,
   onWatchlistToggle,
+  showStocksCommoditiesDropdown = false,
+  stocksCommoditiesFilter = 'all',
+  onStocksCommoditiesPress,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.container} testID={testID}>
-      <View style={styles.sortContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.sortContainer}
+        style={styles.sortScrollView}
+      >
         <PerpsMarketSortDropdowns
           selectedOptionId={selectedOptionId}
           onSortPress={onSortPress}
           testID={testID ? `${testID}-sort` : undefined}
         />
-      </View>
+        {showStocksCommoditiesDropdown && onStocksCommoditiesPress && (
+          <PerpsStocksCommoditiesDropdown
+            selectedFilter={stocksCommoditiesFilter}
+            onPress={onStocksCommoditiesPress}
+            testID={testID ? `${testID}-stocks-commodities` : undefined}
+          />
+        )}
+      </ScrollView>
       <TouchableOpacity
         style={styles.watchlistButton}
         onPress={onWatchlistToggle}

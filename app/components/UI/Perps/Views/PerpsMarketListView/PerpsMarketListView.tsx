@@ -20,6 +20,7 @@ import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsB
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
+import PerpsStocksCommoditiesBottomSheet from '../../components/PerpsStocksCommoditiesBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
@@ -75,6 +76,11 @@ const PerpsMarketListView = ({
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const tabScrollViewRef = useRef<ScrollView>(null);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
+  const [isStocksCommoditiesSheetVisible, setIsStocksCommoditiesSheetVisible] =
+    useState(false);
+  const [stocksCommoditiesFilter, setStocksCommoditiesFilter] = useState<
+    'all' | 'equity' | 'commodity'
+  >('all');
   const [containerWidth, setContainerWidth] = useState(
     Dimensions.get('window').width,
   );
@@ -150,14 +156,23 @@ const PerpsMarketListView = ({
         return filteredMarkets.filter((m) => !m.marketType);
       }
       if (filter === 'stocks_and_commodities') {
-        // Stocks and Commodities combined
-        return filteredMarkets.filter(
+        // Combined stocks and commodities filter - apply sub-filter
+        let stocksCommoditiesMarkets = filteredMarkets.filter(
           (m) => m.marketType === 'equity' || m.marketType === 'commodity',
         );
+
+        // Apply stocks/commodities sub-filter if not 'all'
+        if (stocksCommoditiesFilter !== 'all') {
+          stocksCommoditiesMarkets = stocksCommoditiesMarkets.filter(
+            (m) => m.marketType === stocksCommoditiesFilter,
+          );
+        }
+
+        return stocksCommoditiesMarkets;
       }
       return filteredMarkets;
     },
-    [filteredMarkets, searchQuery],
+    [filteredMarkets, searchQuery, stocksCommoditiesFilter],
   );
 
   // Market type tab content component (filters markets by tab type)
@@ -525,6 +540,13 @@ const PerpsMarketListView = ({
                 onSortPress={() => setIsSortFieldSheetVisible(true)}
                 showWatchlistOnly={showFavoritesOnly}
                 onWatchlistToggle={handleFavoritesToggle}
+                showStocksCommoditiesDropdown={
+                  marketTypeFilter === 'stocks_and_commodities'
+                }
+                stocksCommoditiesFilter={stocksCommoditiesFilter}
+                onStocksCommoditiesPress={() =>
+                  setIsStocksCommoditiesSheetVisible(true)
+                }
                 testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
               />
             )}
@@ -579,6 +601,15 @@ const PerpsMarketListView = ({
         selectedOptionId={selectedOptionId}
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
+      />
+
+      {/* Stocks/Commodities Filter Bottom Sheet */}
+      <PerpsStocksCommoditiesBottomSheet
+        isVisible={isStocksCommoditiesSheetVisible}
+        onClose={() => setIsStocksCommoditiesSheetVisible(false)}
+        selectedFilter={stocksCommoditiesFilter}
+        onFilterSelect={setStocksCommoditiesFilter}
+        testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-sheet`}
       />
     </SafeAreaView>
   );

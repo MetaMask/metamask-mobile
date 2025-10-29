@@ -14,8 +14,15 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       backgroundColor: theme.colors.background.default,
     },
-    sortContainer: {
+    sortScrollView: {
       flex: 1,
+      maxWidth: '100%',
+    },
+    sortContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 6,
     },
     watchlistButton: {
       flexDirection: 'row',

@@ -25,6 +25,21 @@ export interface PerpsMarketFiltersBarProps {
   onWatchlistToggle: () => void;
 
   /**
+   * Whether to show stocks/commodities dropdown (only for Stocks tab)
+   */
+  showStocksCommoditiesDropdown?: boolean;
+
+  /**
+   * Selected stocks/commodities filter
+   */
+  stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
+
+  /**
+   * Callback when stocks/commodities dropdown is pressed
+   */
+  onStocksCommoditiesPress?: () => void;
+
+  /**
    * Optional test ID for testing
    */
   testID?: string;

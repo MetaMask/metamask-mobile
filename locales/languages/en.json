@@ -1538,6 +1538,7 @@
         "crypto": "Crypto",
         "stocks_and_commodities": "Stocks"
       },
+      "filter_by": "Filter by",
       "forex": "Forex",
       "watchlist": "Watchlist",
       "markets": "Markets"
