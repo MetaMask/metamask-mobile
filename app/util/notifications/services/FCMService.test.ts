@@ -236,9 +236,8 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
   it('sets up listeners for push notifications and returns an unsubscribe handler', async () => {
     const { mockHandler, firebaseMocks } = arrangeMocks();
 
-    const result = await FCMService.listenToPushNotificationsReceived(
-      mockHandler,
-    );
+    const result =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBeDefined();
     expect(firebaseMocks.mockOnMessage).toHaveBeenCalled();
   });
@@ -249,9 +248,8 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
       throw new Error('TEST ERROR');
     });
 
-    const result = await FCMService.listenToPushNotificationsReceived(
-      mockHandler,
-    );
+    const result =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBe(null);
   });
 
@@ -354,7 +352,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   ): FirebaseMessagingTypes.RemoteMessage =>
     ({
       data,
-    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+    }) as unknown as FirebaseMessagingTypes.RemoteMessage;
 
   const platformTestConfigs = [
     {
@@ -486,7 +484,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   ): FirebaseMessagingTypes.RemoteMessage =>
     ({
       data,
-    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+    }) as unknown as FirebaseMessagingTypes.RemoteMessage;
 
   const arrangeAct = (
     // Remote Message Data prop only contains string entries

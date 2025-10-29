@@ -219,7 +219,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
 
     const netPnlRows: DetailRow[] = [];
     const netPnlNumeric = isSell
-      ? activity.netPnlUsd ?? entryAmount
+      ? (activity.netPnlUsd ?? entryAmount)
       : activity.netPnlUsd;
     const netPnlValue = formatCurrencyValue(netPnlNumeric, { showSign: true });
     if (netPnlValue && isSell) {
