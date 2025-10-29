@@ -119,7 +119,7 @@ const EarnInputView = () => {
   // otherwise, use the contract exchange rate or 0 if undefined
   const exchangeRate = token.isETH
     ? 1
-    : contractExchangeRates?.[token.address as Hex]?.price ?? 0;
+    : (contractExchangeRates?.[token.address as Hex]?.price ?? 0);
 
   // other hooks
   const { styles, theme } = useStyles(styleSheet, {});

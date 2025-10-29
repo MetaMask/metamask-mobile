@@ -119,8 +119,8 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
           size === 32
             ? AvatarSize.Md
             : size === 40
-            ? AvatarSize.Lg
-            : AvatarSize.Md
+              ? AvatarSize.Lg
+              : AvatarSize.Md
         }
         style={style}
         testID={testID}

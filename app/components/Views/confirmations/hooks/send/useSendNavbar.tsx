@@ -90,16 +90,15 @@ export function useSendNavbar() {
   );
 
   const createHeaderLeft = useCallback(
-    (onPress: () => void) => () =>
-      (
-        <ButtonIcon
-          size={ButtonIconSize.Lg}
-          iconName={IconName.ArrowLeft}
-          onPress={onPress}
-          twClassName="ml-2"
-          testID="send-navbar-back-button"
-        />
-      ),
+    (onPress: () => void) => () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.ArrowLeft}
+        onPress={onPress}
+        twClassName="ml-2"
+        testID="send-navbar-back-button"
+      />
+    ),
     [],
   );
 

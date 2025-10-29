@@ -298,8 +298,8 @@ const QuoteDetailsCard: React.FC = () => {
                       isRewardsLoading
                         ? RewardAnimationState.Loading
                         : hasRewardsError
-                        ? RewardAnimationState.ErrorState
-                        : RewardAnimationState.Idle
+                          ? RewardAnimationState.ErrorState
+                          : RewardAnimationState.Idle
                     }
                   />
                 </Box>
