@@ -124,7 +124,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       totalNativeTokenBalance: '0',
       nativeTokenUnit: 'ETH',
       shouldShowAggregatedPercentage: true,
-      isPortfolioVieEnabled: false,
+      isPortfolioViewEnabled: false,
       aggregatedBalance,
     });
   });
@@ -216,7 +216,7 @@ describe('useSelectedAccountMultichainBalances', () => {
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(
-      result.current.selectedAccountMultichainBalance?.isPortfolioVieEnabled,
+      result.current.selectedAccountMultichainBalance?.isPortfolioViewEnabled,
     ).toBe(true);
     expect(
       result.current.selectedAccountMultichainBalance?.totalFiatBalance,

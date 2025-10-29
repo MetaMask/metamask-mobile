@@ -138,7 +138,7 @@ const PredictPositions = forwardRef<
         removeClippedSubviews
         decelerationRate={0}
         ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
-        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
+        ListFooterComponent={isTrulyEmpty ? null : <PredictNewButton />}
       />
       {claimablePositions.length > 0 && (
         <>
