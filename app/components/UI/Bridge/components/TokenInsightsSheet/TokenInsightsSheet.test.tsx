@@ -32,6 +32,15 @@ jest.mock('@metamask/controller-utils', () => ({
 
 jest.mock('@metamask/bridge-controller', () => ({
   formatChainIdToCaip: jest.fn().mockReturnValue('eip155:1'),
+  isNonEvmChainId: jest.fn().mockReturnValue(false),
+  isNativeAddress: jest
+    .fn()
+    .mockImplementation(
+      (address) =>
+        address === '0x0000000000000000000000000000000000000000' ||
+        address === '0x0' ||
+        address === '0',
+    ),
 }));
 
 jest.mock('../../../../../actions/alert', () => ({
@@ -54,6 +63,7 @@ jest.mock('../../hooks/useBridgeExchangeRates', () => ({
 }));
 
 import TokenInsightsSheet from './TokenInsightsSheet';
+import { isNativeAddress } from '@metamask/bridge-controller';
 
 const mockGoBack = jest.fn();
 const mockRoute = {
@@ -77,7 +87,7 @@ jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useRoute: () => mockRoute,
+    useRoute: jest.fn(() => mockRoute),
     useNavigation: () => ({
       goBack: mockGoBack,
     }),
@@ -269,12 +279,13 @@ describe('TokenInsightsSheet', () => {
 
       (handleFetch as jest.Mock).mockResolvedValueOnce({});
 
-      const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
+      const { getAllByText } = renderWithProvider(<TokenInsightsSheet />, {
         state: emptyState,
       });
 
       await waitFor(() => {
-        expect(getByText('—')).toBeTruthy();
+        const dashElements = getAllByText('—');
+        expect(dashElements.length).toBeGreaterThan(0);
       });
     });
 
@@ -399,21 +410,13 @@ describe('TokenInsightsSheet', () => {
     it('does not copy when address is not available', async () => {
       mockRoute.params.token.address = '';
 
-      const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
+      const { queryByText } = renderWithProvider(<TokenInsightsSheet />, {
         state: mockState,
       });
 
-      const addressElement = getByText('—');
-      const touchableParent = addressElement.parent?.parent;
-
-      if (touchableParent) {
-        await act(async () => {
-          fireEvent.press(touchableParent);
-        });
-      }
-
+      // When address is empty, contract address section should not be shown at all
+      expect(queryByText(strings('bridge.contract_address'))).toBeNull();
       expect(ClipboardManager.setString).not.toHaveBeenCalled();
-      expect(showAlert).not.toHaveBeenCalled();
     });
   });
 
@@ -560,6 +563,134 @@ describe('TokenInsightsSheet', () => {
 
       expect(getByText('$1.23T')).toBeTruthy();
       expect(getByText('$9.88T')).toBeTruthy();
+    });
+  });
+
+  describe('Contract Address Display', () => {
+    it('hides contract address for EVM native tokens', () => {
+      mockRoute.params.token = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+        chainId: '0x1',
+        balance: '100',
+        balanceFiat: '$100.00',
+        image: 'https://example.com/eth.png',
+        currencyExchangeRate: 3000.0,
+      };
+
+      const { queryByText } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      // Contract address section should not be visible
+      expect(queryByText(strings('bridge.contract_address'))).toBeNull();
+    });
+
+    it('hides contract address for Solana native tokens', () => {
+      mockRoute.params.token = {
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+        symbol: 'SOL',
+        name: 'Solana',
+        decimals: 9,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        balance: '10',
+        balanceFiat: '$1000.00',
+        image: 'https://example.com/sol.png',
+        currencyExchangeRate: 100.0,
+      };
+
+      const { queryByText } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      expect(queryByText(strings('bridge.contract_address'))).toBeNull();
+    });
+
+    it('hides contract address for Bitcoin native tokens', () => {
+      mockRoute.params.token = {
+        address: '0',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        decimals: 8,
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        balance: '0.5',
+        balanceFiat: '$25000.00',
+        image: 'https://example.com/btc.png',
+        currencyExchangeRate: 50000.0,
+      };
+
+      const { queryByText } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      expect(queryByText(strings('bridge.contract_address'))).toBeNull();
+    });
+
+    it('shows contract address for regular tokens', () => {
+      const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      expect(getByText(strings('bridge.contract_address'))).toBeTruthy();
+      expect(getByText('0x12345...67890')).toBeTruthy();
+    });
+
+    it('displays parsed CAIP address for Solana tokens', async () => {
+      mockRoute.params.token = {
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        balance: '100',
+        balanceFiat: '$100.00',
+        image: 'https://example.com/usdc-sol.png',
+        currencyExchangeRate: 1.0,
+      };
+
+      (isNativeAddress as jest.Mock).mockImplementation(() => false);
+
+      // Mock the API fetch for Solana token market data
+      (handleFetch as jest.Mock).mockResolvedValueOnce({
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+          {
+            usd: 1.0,
+            pricePercentChange: { P1D: 0 },
+          },
+      });
+
+      const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      await waitFor(() => {
+        expect(getByText(strings('bridge.contract_address'))).toBeTruthy();
+      });
+
+      expect(getByText('EPjFWd...Dt1v')).toBeTruthy();
+    });
+
+    it('copies parsed address for EVM tokens', async () => {
+      const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
+        state: mockState,
+      });
+
+      const addressText = getByText('0x12345...67890');
+      const touchableOpacity = addressText.parent?.parent;
+
+      await act(async () => {
+        if (touchableOpacity) {
+          fireEvent.press(touchableOpacity);
+        }
+      });
+
+      expect(ClipboardManager.setString).toHaveBeenCalledWith(
+        '0x1234567890123456789012345678901234567890',
+      );
     });
   });
 });

@@ -34,7 +34,12 @@ import i18n, { strings } from '../../../../../../locales/i18n';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { showAlert } from '../../../../../actions/alert';
 import { useDispatch, useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
+import {
+  Hex,
+  isCaipChainId,
+  isCaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { formatWithThreshold } from '../../../../../util/assets';
@@ -42,7 +47,7 @@ import {
   formatVolume,
   formatPercentage,
 } from '../../../Perps/utils/formatUtils';
-import { formatAddress } from '../../../../../util/address';
+import { formatAddress, renderShortAddress } from '../../../../../util/address';
 
 import { RootState } from '../../../../../reducers';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -51,7 +56,11 @@ import { selectTokenDisplayData } from '../../../../../selectors/tokenSearchDisc
 
 import Engine from '../../../../../core/Engine';
 import { handleFetch } from '@metamask/controller-utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  isNonEvmChainId,
+  isNativeAddress,
+} from '@metamask/bridge-controller';
 import { toAssetId } from '../../hooks/useAssetMetadata/utils';
 
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
@@ -60,13 +69,8 @@ import { setDestTokenExchangeRate } from '../../../../../core/redux/slices/bridg
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { Theme } from '../../../../../util/theme/models';
 
-interface TokenInsightsRouteParams {
-  token: BridgeToken;
-  networkName: string;
-}
-
 type TokenInsightsSheetRouteProp = RouteProp<
-  { TokenInsights: TokenInsightsRouteParams },
+  { TokenInsights: { token: BridgeToken } },
   'TokenInsights'
 >;
 
@@ -137,9 +141,12 @@ const TokenInsightsSheet: React.FC = () => {
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  // Get cached market data from TokenRatesController
+  const isEvmChain =
+    token && !isCaipChainId(token.chainId) && !isNonEvmChainId(token.chainId);
+
+  // Get cached market data from TokenRatesController (EVM only)
   const evmMarketData = useSelector((state: RootState) =>
-    token
+    token && isEvmChain
       ? selectEvmTokenMarketData(state, {
           chainId: token.chainId as Hex,
           tokenAddress: token.address,
@@ -147,9 +154,9 @@ const TokenInsightsSheet: React.FC = () => {
       : null,
   );
 
-  // Get token display data from TokenSearchDiscoveryDataController
+  // Get token display data from TokenSearchDiscoveryDataController (EVM only)
   const tokenSearchResult = useSelector((state: RootState) =>
-    token
+    token && isEvmChain
       ? selectTokenDisplayData(
           state,
           token.chainId as Hex,
@@ -165,15 +172,15 @@ const TokenInsightsSheet: React.FC = () => {
     action: setDestTokenExchangeRate,
   });
 
-  // Fetch token discovery data if not available
+  // Fetch token discovery data if not available (EVM only)
   useEffect(() => {
-    if (token && !tokenSearchResult?.found) {
+    if (token && isEvmChain && !tokenSearchResult?.found) {
       Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(
         token.chainId as Hex,
         token.address,
       );
     }
-  }, [token, tokenSearchResult]);
+  }, [token, isEvmChain, tokenSearchResult]);
 
   // Determine cached market data based on source
   let cachedMarketData: MarketDataDetails | undefined;
@@ -197,7 +204,9 @@ const TokenInsightsSheet: React.FC = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const caipChainId = formatChainIdToCaip(token.chainId as Hex);
+        const caipChainId = isCaipChainId(token.chainId)
+          ? token.chainId
+          : formatChainIdToCaip(token.chainId as Hex);
         const assetId = toAssetId(token.address, caipChainId);
         if (!assetId) return;
 
@@ -260,7 +269,13 @@ const TokenInsightsSheet: React.FC = () => {
   const handleCopyAddress = useCallback(async () => {
     if (!token?.address) return;
 
-    await ClipboardManager.setString(token.address);
+    let addressToCopy = token.address;
+    if (isCaipAssetType(token.address)) {
+      const { assetReference } = parseCaipAssetType(token.address);
+      addressToCopy = assetReference;
+    }
+
+    await ClipboardManager.setString(addressToCopy);
     dispatch(
       showAlert({
         isVisible: true,
@@ -276,9 +291,30 @@ const TokenInsightsSheet: React.FC = () => {
     return formatPercentage(change);
   };
 
+  const formatVolumeOrMarketCap = (value?: number) => {
+    if (value === undefined || value === null) return '—';
+    return formatVolume(value);
+  };
+
   const formatContractAddress = (address: string) => {
     if (!address) return '—';
+
+    if (isCaipAssetType(address)) {
+      const { assetReference } = parseCaipAssetType(address);
+      return renderShortAddress(assetReference, 4);
+    }
+
     return formatAddress(address, 'short');
+  };
+
+  const shouldShowContractAddress = () => {
+    if (!token?.address) return false;
+
+    // Check if it's a native address using the standard utility
+    if (isNativeAddress(token.address)) return false;
+
+    // Additional check for edge cases after CAIP parsing
+    return !['0', '0x0', '0x'].includes(token.address.toLowerCase());
   };
 
   if (!token) return null;
@@ -398,7 +434,7 @@ const TokenInsightsSheet: React.FC = () => {
               {strings('bridge.volume')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {formatVolume(totalVolume || 0)}
+              {formatVolumeOrMarketCap(totalVolume)}
             </Text>
           </View>
 
@@ -408,30 +444,35 @@ const TokenInsightsSheet: React.FC = () => {
               {strings('bridge.market_cap_fdv')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {formatVolume(dilutedMarketCap || marketCap || 0)}
+              {formatVolumeOrMarketCap(dilutedMarketCap || marketCap)}
             </Text>
           </View>
 
-          {/* Contract Address */}
-          <View style={styles.row}>
-            <View style={styles.labelContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('bridge.contract_address')}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={handleCopyAddress}>
-              <View style={styles.valueContainer}>
-                <Icon
-                  name={IconName.Copy}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
-                <Text variant={TextVariant.BodyMD}>
-                  {formatContractAddress(token.address)}
+          {/* Contract Address - Only show for non-native tokens */}
+          {shouldShowContractAddress() && (
+            <View style={styles.row}>
+              <View style={styles.labelContainer}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('bridge.contract_address')}
                 </Text>
               </View>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity onPress={handleCopyAddress}>
+                <View style={styles.valueContainer}>
+                  <Icon
+                    name={IconName.Copy}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                  <Text variant={TextVariant.BodyMD}>
+                    {formatContractAddress(token.address)}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
         </Box>
       </View>
     </BottomSheet>
