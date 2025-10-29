@@ -21,7 +21,10 @@ export function useRegions(screenLocation?: string): UseRegionsResult {
   const [{ data: regions, error, isFetching }, retryFetchRegions] =
     useDepositSdkMethod('getCountries');
 
-  const { userDetails } = useDepositUser(screenLocation);
+  const { userDetails } = useDepositUser({
+    screenLocation,
+    shouldTrackFetch: true,
+  });
   const [userRegionLocked, setUserRegionLocked] = useState<boolean>(false);
 
   useEffect(() => {

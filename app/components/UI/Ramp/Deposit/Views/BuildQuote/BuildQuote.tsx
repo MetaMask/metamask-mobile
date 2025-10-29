@@ -98,7 +98,10 @@ const BuildQuote = () => {
     isFetching: isFetchingUserDetails,
     error: userDetailsError,
     fetchUserDetails,
-  } = useDepositUser('BuildQuote Screen');
+  } = useDepositUser({
+    screenLocation: 'BuildQuote Screen',
+    shouldTrackFetch: true,
+  });
 
   const {
     cryptoCurrencies,

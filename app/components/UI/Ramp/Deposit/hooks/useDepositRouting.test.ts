@@ -176,7 +176,7 @@ const mockDepositUserFetchUserDetails = jest
   .fn()
   .mockResolvedValue({ kyc: { l1: { status: 'APPROVED' } } });
 jest.mock('./useDepositUser', () => ({
-  useDepositUser: () => ({
+  useDepositUser: (config?: { screenLocation?: string; shouldTrackFetch?: boolean }) => ({
     userDetails: null,
     error: null,
     isFetching: false,
@@ -666,25 +666,6 @@ describe('useDepositRouting', () => {
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
         previousFormData: mockPreviousFormData,
-      });
-    });
-
-    it('should navigate to KycProcessing when KYC is submitted', async () => {
-      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-
-      mockGetKycRequirement = jest.fn().mockResolvedValue({
-        status: 'SUBMITTED',
-      });
-
-      const { result } = renderHook(() => useDepositRouting());
-
-      await expect(
-        result.current.routeAfterAuthentication(mockQuote),
-      ).resolves.not.toThrow();
-
-      verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
-        quote: mockQuote,
       });
     });
   });

@@ -5,7 +5,13 @@ import type { AxiosError } from 'axios';
 import Logger from '../../../../../util/Logger';
 import { trackEvent } from '../../hooks/useAnalytics';
 
-export function useDepositUser(screenLocation?: string) {
+export interface UseDepositUserConfig {
+  screenLocation?: string;
+  shouldTrackFetch?: boolean;
+}
+
+export function useDepositUser(config?: UseDepositUserConfig) {
+  const { screenLocation, shouldTrackFetch = false } = config || {};
   const { isAuthenticated, logoutFromProvider, selectedRegion } =
     useDepositSDK();
 
@@ -18,12 +24,12 @@ export function useDepositUser(screenLocation?: string) {
 
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
-      if (screenLocation) {
+      if (shouldTrackFetch) {
         trackEvent('RAMPS_USER_DETAILS_FETCHED', {
           logged_in: isAuthenticated,
           region:
             userDetails?.address?.countryCode || selectedRegion?.isoCode || '',
-          location: screenLocation,
+          location: screenLocation || '',
         });
       }
       const result = await fetchUserDetails();
@@ -41,6 +47,7 @@ export function useDepositUser(screenLocation?: string) {
     logoutFromProvider,
     isAuthenticated,
     userDetails,
+    shouldTrackFetch,
     screenLocation,
     selectedRegion?.isoCode,
   ]);

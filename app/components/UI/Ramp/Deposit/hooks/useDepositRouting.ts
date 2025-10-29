@@ -42,7 +42,10 @@ export const useDepositRouting = (screenLocation?: string) => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
-  const { fetchUserDetails } = useDepositUser(screenLocation);
+  const { fetchUserDetails } = useDepositUser({
+    screenLocation,
+    shouldTrackFetch: true,
+  });
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',

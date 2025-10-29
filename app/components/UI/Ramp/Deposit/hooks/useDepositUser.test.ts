@@ -328,7 +328,7 @@ describe('useDepositUser', () => {
       mockTrackEvent.mockClear();
     });
 
-    it('tracks user details fetched event when screenLocation is provided', async () => {
+    it('tracks user details fetched event when shouldTrackFetch is true', async () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
@@ -338,7 +338,12 @@ describe('useDepositUser', () => {
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
       setupMockSdkMethod({ data: mockUserDetails });
 
-      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+      const { result } = renderHook(() =>
+        useDepositUser({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: true,
+        }),
+      );
 
       await result.current.fetchUserDetails();
 
@@ -352,7 +357,29 @@ describe('useDepositUser', () => {
       );
     });
 
-    it('does not track event when screenLocation is not provided', async () => {
+    it('does not track event when shouldTrackFetch is false', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      const { result } = renderHook(() =>
+        useDepositUser({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: false,
+        }),
+      );
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track event when config is not provided', async () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           isAuthenticated: true,
@@ -389,7 +416,10 @@ describe('useDepositUser', () => {
       setupMockSdkMethod({ data: userDetailsWithoutCountry });
 
       const { result } = renderHook(() =>
-        useDepositUser('EnterAddress Screen'),
+        useDepositUser({
+          screenLocation: 'EnterAddress Screen',
+          shouldTrackFetch: true,
+        }),
       );
 
       await result.current.fetchUserDetails();
@@ -422,7 +452,12 @@ describe('useDepositUser', () => {
       mockFetchUserDetails.mockResolvedValue(userDetailsWithoutAddress);
       setupMockSdkMethod({ data: userDetailsWithoutAddress });
 
-      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+      const { result } = renderHook(() =>
+        useDepositUser({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: true,
+        }),
+      );
 
       await result.current.fetchUserDetails();
 
@@ -456,7 +491,10 @@ describe('useDepositUser', () => {
       setupMockSdkMethod({ data: userDetailsWithoutCountry });
 
       const { result } = renderHook(() =>
-        useDepositUser('EnterAddress Screen'),
+        useDepositUser({
+          screenLocation: 'EnterAddress Screen',
+          shouldTrackFetch: true,
+        }),
       );
 
       await result.current.fetchUserDetails();
@@ -481,7 +519,12 @@ describe('useDepositUser', () => {
       mockFetchUserDetails.mockResolvedValue(mockUserDetails);
       setupMockSdkMethod({ data: mockUserDetails });
 
-      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+      const { result } = renderHook(() =>
+        useDepositUser({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: true,
+        }),
+      );
 
       await result.current.fetchUserDetails();
 
@@ -516,7 +559,12 @@ describe('useDepositUser', () => {
 
       setupMockSdkMethod({ data: mockUserDetails });
 
-      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+      const { result } = renderHook(() =>
+        useDepositUser({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: true,
+        }),
+      );
 
       await result.current.fetchUserDetails();
 
