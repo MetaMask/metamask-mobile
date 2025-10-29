@@ -34,6 +34,11 @@ const PerpsModalStack = () => (
           cardStyle: {
             backgroundColor: 'transparent',
           },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
         }}
       >
         <ModalStack.Screen

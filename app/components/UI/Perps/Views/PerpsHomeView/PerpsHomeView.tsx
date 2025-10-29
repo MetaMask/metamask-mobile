@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -43,6 +43,9 @@ import {
 } from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
+import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 
 const PerpsHomeView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -57,6 +60,12 @@ const PerpsHomeView = () => {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  // Bottom sheet state and refs
+  const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
+  const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
+  const closeAllSheetRef = useRef<BottomSheetRef>(null);
+  const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
   // Fetch all home screen data with search filtering
   const {
@@ -122,18 +131,36 @@ const PerpsHomeView = () => {
     );
   }, [navigation, trackEvent, createEventBuilder]);
 
-  // Modal handlers - now using navigation to modal stack
+  // Bottom sheet handlers - open sheets directly
   const handleCloseAllPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
-    });
-  }, [navigation]);
+    setShowCloseAllSheet(true);
+  }, []);
 
   const handleCancelAllPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
-    });
-  }, [navigation]);
+    setShowCancelAllSheet(true);
+  }, []);
+
+  // Open bottom sheets when state changes
+  useEffect(() => {
+    if (showCloseAllSheet) {
+      closeAllSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [showCloseAllSheet]);
+
+  useEffect(() => {
+    if (showCancelAllSheet) {
+      cancelAllSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [showCancelAllSheet]);
+
+  // Handle sheet close callbacks
+  const handleCloseAllSheetClose = useCallback(() => {
+    setShowCloseAllSheet(false);
+  }, []);
+
+  const handleCancelAllSheetClose = useCallback(() => {
+    setShowCancelAllSheet(false);
+  }, []);
 
   // Back button handler - now uses navigation hook
   const handleBackPress = perpsNavigation.navigateBack;
@@ -316,6 +343,22 @@ const PerpsHomeView = () => {
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Close All Positions Bottom Sheet */}
+      {showCloseAllSheet && (
+        <PerpsCloseAllPositionsView
+          sheetRef={closeAllSheetRef}
+          onClose={handleCloseAllSheetClose}
+        />
+      )}
+
+      {/* Cancel All Orders Bottom Sheet */}
+      {showCancelAllSheet && (
+        <PerpsCancelAllOrdersView
+          sheetRef={cancelAllSheetRef}
+          onClose={handleCancelAllSheetClose}
+        />
+      )}
     </SafeAreaView>
   );
 };

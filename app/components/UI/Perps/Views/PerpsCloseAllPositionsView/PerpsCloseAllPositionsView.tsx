@@ -40,11 +40,20 @@ import {
 } from '../../constants/eventNames';
 import type { ClosePositionsResult } from '../../controllers/types';
 
-const PerpsCloseAllPositionsView: React.FC = () => {
+interface PerpsCloseAllPositionsViewProps {
+  sheetRef?: React.RefObject<BottomSheetRef>;
+  onClose?: () => void;
+}
+
+const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
+  sheetRef: externalSheetRef,
+  onClose: onExternalClose,
+}) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const internalSheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
 
   // Fetch positions from live stream
@@ -164,6 +173,7 @@ const PerpsCloseAllPositionsView: React.FC = () => {
     usePerpsCloseAllPositions(positions, {
       onSuccess: handleSuccess,
       onError: handleError,
+      navigateBackOnSuccess: !externalSheetRef, // Don't navigate if using external ref
       calculations: {
         totalMargin: String(calculations.totalMargin),
         totalPnl: String(calculations.totalPnl),
@@ -173,8 +183,14 @@ const PerpsCloseAllPositionsView: React.FC = () => {
     });
 
   const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    if (externalSheetRef) {
+      sheetRef.current?.onCloseBottomSheet(() => {
+        onExternalClose?.();
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
   const footerButtons = useMemo(
     () => [
@@ -202,7 +218,7 @@ const PerpsCloseAllPositionsView: React.FC = () => {
   // Show loading state while fetching positions
   if (isInitialLoading) {
     return (
-      <BottomSheet ref={sheetRef}>
+      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.close_all_modal.title')}
@@ -221,7 +237,7 @@ const PerpsCloseAllPositionsView: React.FC = () => {
   // Show empty state if no positions
   if (!positions || positions.length === 0) {
     return (
-      <BottomSheet ref={sheetRef}>
+      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.close_all_modal.title')}
@@ -237,7 +253,7 @@ const PerpsCloseAllPositionsView: React.FC = () => {
   }
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.close_all_modal.title')}

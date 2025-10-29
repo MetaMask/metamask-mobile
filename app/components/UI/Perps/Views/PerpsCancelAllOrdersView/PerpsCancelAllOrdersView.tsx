@@ -34,11 +34,20 @@ import {
 } from '../../constants/eventNames';
 import type { CancelOrdersResult } from '../../controllers/types';
 
-const PerpsCancelAllOrdersView: React.FC = () => {
+interface PerpsCancelAllOrdersViewProps {
+  sheetRef?: React.RefObject<BottomSheetRef>;
+  onClose?: () => void;
+}
+
+const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
+  sheetRef: externalSheetRef,
+  onClose: onExternalClose,
+}) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const internalSheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
 
   // Fetch orders from live stream (excluding TP/SL orders)
@@ -146,8 +155,14 @@ const PerpsCancelAllOrdersView: React.FC = () => {
     });
 
   const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    if (externalSheetRef) {
+      sheetRef.current?.onCloseBottomSheet(() => {
+        onExternalClose?.();
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
   const footerButtons = useMemo(
     () => [
@@ -175,7 +190,7 @@ const PerpsCancelAllOrdersView: React.FC = () => {
   // Show empty state if no orders (WebSocket data loads instantly, no loading state needed)
   if (!orders || orders.length === 0) {
     return (
-      <BottomSheet ref={sheetRef}>
+      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.cancel_all_modal.title')}
@@ -191,7 +206,7 @@ const PerpsCancelAllOrdersView: React.FC = () => {
   }
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.cancel_all_modal.title')}
