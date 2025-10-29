@@ -87,7 +87,7 @@ export const useCurrencyConversions = () => {
   const exchangeRate = useMemo(
     () =>
       asset?.address
-        ? contractExchangeRates?.[asset?.address as Hex]?.price ?? 1
+        ? (contractExchangeRates?.[asset?.address as Hex]?.price ?? 1)
         : 1,
     [asset?.address, contractExchangeRates],
   );

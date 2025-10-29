@@ -730,9 +730,8 @@ describe('CardSDK', () => {
         cardFeatureFlag: emptyTokensCardFeatureFlag,
       });
 
-      const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
-        testAddress,
-      );
+      const result =
+        await emptyTokensCardSDK.getSupportedTokensAllowances(testAddress);
       expect(result).toEqual([]);
     });
 
@@ -962,9 +961,8 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await cardSDK.initiateCardProviderAuthentication(
-        mockQueryParams,
-      );
+      const result =
+        await cardSDK.initiateCardProviderAuthentication(mockQueryParams);
 
       expect(result).toEqual(mockResponse);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -1777,12 +1775,14 @@ describe('CardSDK', () => {
       const mockPriorityWalletResponse = [
         {
           id: 1,
+          address: '0x1234567890123456789012345678901234567890',
           currency: 'USDC',
           network: 'linea',
           priority: 1,
         },
         {
           id: 2,
+          address: '0x0987654321098765432109876543210987654321',
           currency: 'USDT',
           network: 'linea',
           priority: 2,
@@ -1804,7 +1804,7 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
@@ -1839,7 +1839,7 @@ describe('CardSDK', () => {
         }),
       );
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toEqual([]);
     });
@@ -1861,7 +1861,7 @@ describe('CardSDK', () => {
       });
 
       await expect(
-        cardSDK.getCardExternalWalletDetails(),
+        cardSDK.getCardExternalWalletDetails([]),
       ).rejects.toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message:
@@ -1894,7 +1894,7 @@ describe('CardSDK', () => {
       });
 
       await expect(
-        cardSDK.getCardExternalWalletDetails(),
+        cardSDK.getCardExternalWalletDetails([]),
       ).rejects.toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message:
@@ -1923,12 +1923,14 @@ describe('CardSDK', () => {
       const mockPriorityWalletResponse = [
         {
           id: 1,
+          address: '0x1234567890123456789012345678901234567890',
           currency: 'USDC',
           network: 'linea',
           priority: 5, // Lower priority
         },
         {
           id: 2,
+          address: '0x0987654321098765432109876543210987654321',
           currency: 'USDT',
           network: 'linea',
           priority: 1, // Higher priority
@@ -1950,7 +1952,7 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       // Should be sorted by priority ascending (1 comes before 5)
       expect(result[0].priority).toBe(1);
@@ -1985,7 +1987,7 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toEqual([]);
     });

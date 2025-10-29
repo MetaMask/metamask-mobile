@@ -1,48 +1,42 @@
-import { Messenger } from '@metamask/base-controller';
 import {
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerGetNetworkConfigurationByNetworkClientId,
-  NetworkControllerGetSelectedNetworkClientAction,
-  NetworkControllerGetStateAction,
-  NetworkControllerNetworkDidChangeEvent,
-} from '@metamask/network-controller';
-import { PreferencesControllerStateChangeEvent } from '@metamask/preferences-controller';
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
 
-type AllowedActions =
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerGetNetworkConfigurationByNetworkClientId
-  | NetworkControllerGetSelectedNetworkClientAction
-  | NetworkControllerGetStateAction;
-
-type AllowedEvents =
-  | NetworkControllerNetworkDidChangeEvent
-  | PreferencesControllerStateChangeEvent;
-
-export type AssetsContractControllerMessenger = ReturnType<
-  typeof getAssetsContractControllerMessenger
->;
+import { RootMessenger } from '../types';
+import { AssetsContractControllerMessenger } from '@metamask/assets-controllers';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * assets contract controller is allowed to handle.
+ * Get the AssetsContractControllerMessenger for the AssetsContractController.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The AssetsContractControllerMessenger.
  */
 export function getAssetsContractControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'AssetsContractController',
-    allowedActions: [
+  rootMessenger: RootMessenger,
+): AssetsContractControllerMessenger {
+  const messenger = new Messenger<
+    'AssetsContractController',
+    MessengerActions<AssetsContractControllerMessenger>,
+    MessengerEvents<AssetsContractControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'AssetsContractController',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByNetworkClientId',
       'NetworkController:getSelectedNetworkClient',
       'NetworkController:getState',
     ],
-    allowedEvents: [
+    events: [
       'NetworkController:networkDidChange',
       'PreferencesController:stateChange',
     ],
+    messenger,
   });
+  return messenger;
 }

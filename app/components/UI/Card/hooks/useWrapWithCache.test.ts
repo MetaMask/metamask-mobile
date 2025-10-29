@@ -480,17 +480,11 @@ describe('useWrapWithCache', () => {
 
       await waitForNextUpdate();
 
-      // Then: Should handle null return value
+      // Then: Should handle null return value but NOT cache it (null indicates missing dependencies)
       expect(result.current.data).toBeNull();
       expect(result.current.error).toBe(false);
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'card/setCacheData',
-        payload: {
-          key: mockCacheKey,
-          data: null,
-          timestamp: expect.any(Number),
-        },
-      });
+      // Null values are not cached to prevent caching "null" responses when dependencies aren't ready
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
     it('should handle fetch function that returns undefined', async () => {
