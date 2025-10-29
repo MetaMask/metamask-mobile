@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -24,6 +24,12 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
@@ -32,6 +38,8 @@ const ConfirmEmail = () => {
   const [resendCooldown, setResendCooldown] = useState(0);
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
+  const { toastRef } = useContext(ToastContext);
+  const theme = useTheme();
 
   const { email, password } = useParams<{
     email: string;
@@ -111,7 +119,21 @@ const ConfirmEmail = () => {
         dispatch(setOnboardingId(onboardingId));
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (hasAccount) {
-        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+        navigation.navigate(Routes.CARD.AUTHENTICATION);
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          hasNoTimeout: false,
+          iconName: IconName.Info,
+          iconColor: theme.colors.info.default,
+          labelOptions: [
+            {
+              label: strings(
+                'card.card_onboarding.confirm_email.account_exists',
+              ),
+              isBold: true,
+            },
+          ],
+        });
       }
     } catch (error) {
       if (
@@ -128,9 +150,11 @@ const ConfirmEmail = () => {
     dispatch,
     email,
     navigation,
+    theme,
     password,
     selectedCountry,
     verifyEmailVerification,
+    toastRef,
   ]);
 
   const isDisabled =

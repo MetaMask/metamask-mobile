@@ -273,6 +273,32 @@ jest.mock('../../../SelectComponent', () => {
   };
 });
 
+// Mock utility functions
+jest.mock('../../util/cardTokenVault');
+jest.mock('../../util/mapCountryToLocation');
+jest.mock('../../util/extractTokenExpiration');
+jest.mock('../../../../../util/Logger');
+
+// Mock Routes
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  CARD: {
+    ONBOARDING: {
+      COMPLETE: 'CardOnboardingComplete',
+      SIGN_UP: 'CardOnboardingSignUp',
+    },
+  },
+}));
+
+// Mock CardError
+jest.mock('../../types', () => ({
+  CardError: class CardError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'CardError';
+    }
+  },
+}));
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -305,10 +331,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock Redux selector
+// Mock Redux selector and dispatch
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 // Create test store
@@ -854,6 +881,705 @@ describe('MailingAddress Component', () => {
         'Enter your Mailing address information',
       );
       expect(buttonText.props.children).toBe('Continue');
+    });
+  });
+
+  describe('handleContinue', () => {
+    let mockRegisterAddress: jest.Mock;
+    let mockStoreCardBaanxToken: jest.Mock;
+    let mockMapCountryToLocation: jest.Mock;
+    let mockExtractTokenExpiration: jest.Mock;
+    let mockDispatch: jest.Mock;
+
+    beforeEach(() => {
+      mockRegisterAddress = jest.fn();
+      mockStoreCardBaanxToken = jest.fn();
+      mockMapCountryToLocation = jest.fn();
+      mockExtractTokenExpiration = jest.fn();
+      mockDispatch = jest.fn();
+
+      // Mock the utility functions
+      const cardTokenVault = jest.requireMock('../../util/cardTokenVault');
+      cardTokenVault.storeCardBaanxToken = mockStoreCardBaanxToken;
+
+      const mapCountry = jest.requireMock('../../util/mapCountryToLocation');
+      mapCountry.mapCountryToLocation = mockMapCountryToLocation;
+
+      const extractToken = jest.requireMock(
+        '../../util/extractTokenExpiration',
+      );
+      extractToken.extractTokenExpiration = mockExtractTokenExpiration;
+
+      // Mock react-redux dispatch
+      const { useDispatch } = jest.requireMock('react-redux');
+      useDispatch.mockReturnValue(mockDispatch);
+    });
+
+    it('returns early when onboarding ID is missing', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'US',
+              onboardingId: null,
+            },
+          },
+        }),
+      );
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      expect(mockRegisterAddress).not.toHaveBeenCalled();
+    });
+
+    it('returns early when address line 1 is missing', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      expect(mockRegisterAddress).not.toHaveBeenCalled();
+    });
+
+    it('returns early when city is missing', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      expect(mockRegisterAddress).not.toHaveBeenCalled();
+    });
+
+    it('returns early when state is missing for US users', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      expect(mockRegisterAddress).not.toHaveBeenCalled();
+    });
+
+    it('returns early when zip code is missing', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      expect(mockRegisterAddress).not.toHaveBeenCalled();
+    });
+
+    it('calls registerAddress with correct parameters for US users', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockMapCountryToLocation.mockReturnValue('us');
+      mockExtractTokenExpiration.mockReturnValue(3600000);
+      mockStoreCardBaanxToken.mockResolvedValue({ success: true });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('address-line-2-input'), 'Apt 4B');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockRegisterAddress).toHaveBeenCalledWith({
+        onboardingId: 'test-id',
+        addressLine1: '123 Main St',
+        addressLine2: 'Apt 4B',
+        city: 'San Francisco',
+        usState: 'CA',
+        zip: '94102',
+      });
+    });
+
+    it('calls registerAddress without state for non-US users', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'CA',
+              onboardingId: 'test-id',
+            },
+          },
+        }),
+      );
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockMapCountryToLocation.mockReturnValue('intl');
+      mockExtractTokenExpiration.mockReturnValue(3600000);
+      mockStoreCardBaanxToken.mockResolvedValue({ success: true });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockRegisterAddress).toHaveBeenCalledWith({
+        onboardingId: 'test-id',
+        addressLine1: '123 Main St',
+        addressLine2: '',
+        city: 'Toronto',
+        usState: undefined,
+        zip: 'M5H 2N2',
+      });
+    });
+
+    it('updates user via setUser when registration returns updated user', async () => {
+      const updatedUser = { id: 'user-123', email: 'updated@example.com' };
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: updatedUser,
+      });
+
+      mockMapCountryToLocation.mockReturnValue('us');
+      mockExtractTokenExpiration.mockReturnValue(3600000);
+      mockStoreCardBaanxToken.mockResolvedValue({ success: true });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockSetUser).toHaveBeenCalledWith(updatedUser);
+    });
+
+    it('stores access token and dispatches Redux actions on success', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-access-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockMapCountryToLocation.mockReturnValue('us');
+      mockExtractTokenExpiration.mockReturnValue(3600000);
+      mockStoreCardBaanxToken.mockResolvedValue({ success: true });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
+        accessToken: 'test-access-token',
+        accessTokenExpiresAt: 3600000,
+        location: 'us',
+      });
+    });
+
+    it('navigates to complete screen after successful registration', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockMapCountryToLocation.mockReturnValue('us');
+      mockExtractTokenExpiration.mockReturnValue(3600000);
+      mockStoreCardBaanxToken.mockResolvedValue({ success: true });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
+    });
+
+    it('logs error when token storage fails', async () => {
+      const mockLogger = jest.requireMock('../../../../../util/Logger').default;
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-123', email: 'test@example.com' },
+      });
+
+      mockMapCountryToLocation.mockReturnValue('us');
+      mockExtractTokenExpiration.mockReturnValue(3600000);
+      mockStoreCardBaanxToken.mockResolvedValue({
+        success: false,
+        error: 'Storage failed',
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'MailingAddress: Failed to store access token',
+        'Storage failed',
+      );
+    });
+
+    it('navigates to sign up when Onboarding ID not found error occurs', async () => {
+      const { CardError } = jest.requireMock('../../types');
+
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockRejectedValue(
+        new CardError('Onboarding ID not found'),
+      );
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingSignUp');
+    });
+
+    it('allows error display for general registration errors', async () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockRegisterAddress.mockRejectedValue(new Error('Network error'));
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      fireEvent.press(button);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Should not navigate on general errors
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Input Change Handler Error Resets', () => {
+    let mockReset: jest.Mock;
+
+    beforeEach(() => {
+      mockReset = jest.fn();
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: mockReset,
+      });
+    });
+
+    it('calls reset when address line 1 changes', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      const input = getByTestId('address-line-1-input');
+      fireEvent.changeText(input, '123 Main St');
+
+      expect(mockReset).toHaveBeenCalled();
+    });
+
+    it('calls reset when address line 2 changes', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      const input = getByTestId('address-line-2-input');
+      fireEvent.changeText(input, 'Apt 4B');
+
+      expect(mockReset).toHaveBeenCalled();
+    });
+
+    it('calls reset when city changes', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      const input = getByTestId('city-input');
+      fireEvent.changeText(input, 'San Francisco');
+
+      expect(mockReset).toHaveBeenCalled();
+    });
+
+    it('calls reset when state changes', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      const input = getByTestId('state-select');
+      fireEvent.press(input);
+
+      expect(mockReset).toHaveBeenCalled();
+    });
+
+    it('calls reset when zip code changes', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      const input = getByTestId('zip-code-input');
+      fireEvent.changeText(input, '94102');
+
+      expect(mockReset).toHaveBeenCalled();
+    });
+  });
+
+  describe('Additional Validation Edge Cases', () => {
+    it('disables button when onboarding ID is missing', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'US',
+              onboardingId: null,
+            },
+          },
+        }),
+      );
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('enables button for non-US users without state field', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'CA',
+              onboardingId: 'test-id',
+            },
+          },
+        }),
+      );
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'Toronto');
+      fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const button = getByTestId('mailing-address-continue-button');
+      expect(button.props.disabled).toBe(false);
+    });
+
+    it('disables button when registration is in error state', () => {
+      mockUseRegisterMailingAddress.mockReturnValue({
+        registerAddress: jest.fn(),
+        isLoading: false,
+        isSuccess: false,
+        isError: true,
+        error: 'Registration failed',
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '94102');
+      fireEvent.press(getByTestId('state-select'));
+
+      const button = getByTestId('mailing-address-continue-button');
+      expect(button.props.disabled).toBe(true);
+    });
+
+    it('hides error message when no registration error exists', () => {
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <MailingAddress />
+        </Provider>,
+      );
+
+      expect(queryByTestId('mailing-address-error')).toBeFalsy();
     });
   });
 });

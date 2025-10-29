@@ -151,7 +151,7 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="w-24 border border-solid border-border-default rounded-lg py-1">
+        <Box twClassName="w-30 border border-solid border-border-default rounded-lg py-1">
           <SelectComponent
             options={selectOptions}
             selectedValue={selectedCountryAreaCode}

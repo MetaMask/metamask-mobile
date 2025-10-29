@@ -50,6 +50,8 @@ import {
 } from 'react-native-confirmation-code-field';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
+import { useDispatch } from 'react-redux';
+import { setOnboardingId } from '../../../../../core/redux/slices/card';
 
 const CELL_COUNT = 6;
 
@@ -98,7 +100,7 @@ const CardAuthentication = () => {
   >(null);
   const [resendCountdown, setResendCountdown] = useState(60);
   const otpInputRef = useRef<TextInput>(null);
-
+  const dispatch = useDispatch();
   const theme = useTheme();
   const {
     login,
@@ -197,6 +199,16 @@ const CardAuthentication = () => {
           return;
         }
 
+        if (
+          loginResponse?.verificationState === 'PENDING' ||
+          loginResponse?.phase
+        ) {
+          // Switch to OTP step instead of navigating
+          dispatch(setOnboardingId(loginResponse.userId));
+          navigation.navigate(Routes.CARD.ONBOARDING.ROOT);
+          return;
+        }
+
         // Successful login - navigate to home
         navigation.reset({
           index: 0,
@@ -208,7 +220,7 @@ const CardAuthentication = () => {
         setLoading(false);
       }
     },
-    [email, location, login, password, navigation],
+    [email, location, login, password, navigation, dispatch],
   );
 
   // Auto-submit when all OTP digits are entered

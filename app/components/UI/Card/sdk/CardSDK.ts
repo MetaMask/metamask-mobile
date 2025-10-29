@@ -804,6 +804,13 @@ export class CardSDK {
     );
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Invalid credentials. Please try logging in again.',
+        );
+      }
+
       if (response.status === 404) {
         throw new CardError(
           CardErrorType.NO_CARD,
