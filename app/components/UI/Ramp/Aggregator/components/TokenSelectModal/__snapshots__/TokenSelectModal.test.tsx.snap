@@ -546,6 +546,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                 onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
+                                shouldEnableAndroidPressIn={true}
                                 style={
                                   {
                                     "alignItems": "center",

@@ -146,6 +146,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -201,6 +202,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -310,6 +312,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -557,6 +560,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -612,6 +616,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -721,6 +726,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
