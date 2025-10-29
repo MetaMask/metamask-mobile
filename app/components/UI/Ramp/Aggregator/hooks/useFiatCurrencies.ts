@@ -18,10 +18,7 @@ export default function useFiatCurrencies() {
     },
     queryDefaultFiatCurrency,
   ] = useSDKMethod(
-    {
-      method: isBuy ? 'getDefaultFiatCurrency' : 'getDefaultSellFiatCurrency',
-      onMount: false,
-    },
+    isBuy ? 'getDefaultFiatCurrency' : 'getDefaultSellFiatCurrency',
     selectedRegion?.id,
     [],
   );
@@ -34,20 +31,10 @@ export default function useFiatCurrencies() {
     },
     queryGetFiatCurrencies,
   ] = useSDKMethod(
-    {
-      method: isBuy ? 'getFiatCurrencies' : 'getSellFiatCurrencies',
-      onMount: false,
-    },
+    isBuy ? 'getFiatCurrencies' : 'getSellFiatCurrencies',
     selectedRegion?.id,
     [],
   );
-
-  useEffect(() => {
-    if (selectedRegion?.id) {
-      queryDefaultFiatCurrency();
-      queryGetFiatCurrencies();
-    }
-  }, [selectedRegion?.id, queryDefaultFiatCurrency, queryGetFiatCurrencies]);
 
   /**
    * Select the default fiat currency as selected if none is selected.

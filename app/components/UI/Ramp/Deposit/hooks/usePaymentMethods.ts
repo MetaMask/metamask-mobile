@@ -15,7 +15,7 @@ export function usePaymentMethods() {
     { data: paymentMethods, error, isFetching },
     retryFetchPaymentMethods,
   ] = useDepositSdkMethod(
-    { method: 'getPaymentMethods', onMount: false },
+    'getPaymentMethods',
     selectedRegion?.isoCode,
     selectedCryptoCurrency?.assetId,
     selectedRegion?.currency,

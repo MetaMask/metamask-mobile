@@ -18,22 +18,11 @@ function usePaymentMethods() {
 
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
     useSDKMethod(
-      { method: paymentMethodsMethod, onMount: false },
+      paymentMethodsMethod,
       selectedRegion?.id,
       selectedAsset?.id,
       selectedFiatCurrencyId,
     );
-
-  useEffect(() => {
-    if (selectedRegion?.id && selectedAsset?.id && selectedFiatCurrencyId) {
-      queryGetPaymentMethods();
-    }
-  }, [
-    selectedRegion?.id,
-    selectedAsset?.id,
-    selectedFiatCurrencyId,
-    queryGetPaymentMethods,
-  ]);
 
   const currentPaymentMethod = useMemo(
     () =>

@@ -91,7 +91,7 @@ export interface RampSDK {
   setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
 
   selectedAsset: CryptoCurrency | null;
-  setSelectedAsset: (asset: CryptoCurrency | null) => void;
+  setSelectedAsset: (asset: CryptoCurrency) => void;
 
   selectedFiatCurrencyId: string | null;
   setSelectedFiatCurrencyId: (currencyId: string | null) => void;
