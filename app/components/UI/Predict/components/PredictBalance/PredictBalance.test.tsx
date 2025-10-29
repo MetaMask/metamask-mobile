@@ -35,7 +35,7 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
 }));
 
 // Mock usePredictActionGuard hook
-const mockExecuteGuardedAction = jest.fn((action) => action());
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
 jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
@@ -85,7 +85,9 @@ describe('PredictBalance', () => {
     });
 
     // Reset executeGuardedAction mock to default behavior
-    mockExecuteGuardedAction.mockImplementation((action) => action());
+    mockExecuteGuardedAction.mockImplementation(
+      async (action) => await action(),
+    );
   });
 
   afterEach(() => {
