@@ -41090,11 +41090,11 @@ __metadata:
 
 "rive-react-native@patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch":
   version: 9.3.4
-  resolution: "rive-react-native@patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch::version=9.3.4&hash=369f04"
+  resolution: "rive-react-native@patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch::version=9.3.4&hash=8583ee"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/f37953be5b9b7d3f97be234a4c3742c47afc291ced83ebe40bca3c6d260aa60f96dbd9507481540e11e64d3dfcb81dbb9187b6ba1d77263809088963b93aded0
+  checksum: 10/f8aaa7e08d08501bc9995ae4b3bb7bfca5afcc848a3a0d5460a41e3a34a0fbdc24c2e67af0c4284b423f23e781a6f18e9ace6d80d57092cdf93c4c3ab09d3fc8
   languageName: node
   linkType: hard
 
