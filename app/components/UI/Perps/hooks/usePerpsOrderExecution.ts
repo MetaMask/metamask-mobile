@@ -1,17 +1,17 @@
-import { captureException } from '@sentry/react-native';
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
+import type { OrderParams, OrderResult, Position } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { TraceName, TraceOperation } from '../../../../util/trace';
+import { captureException } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../constants/eventNames';
-import type { OrderParams, OrderResult, Position } from '../controllers/types';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
-import { usePerpsTrading } from './usePerpsTrading';
+import { TraceName, TraceOperation } from '../../../../util/trace';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -71,9 +71,9 @@ export function usePerpsOrderExecution(
           );
 
           // Check if order was partially filled
-          const orderSize = Number.parseFloat(orderParams.size.toString());
+          const orderSize = parseFloat(orderParams.size.toString());
           const filledSize = result.filledSize
-            ? Number.parseFloat(result.filledSize)
+            ? parseFloat(result.filledSize)
             : orderSize;
           const isPartiallyFilled = filledSize > 0 && filledSize < orderSize;
 

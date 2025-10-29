@@ -105,7 +105,6 @@ describe('usePredictPlaceOrder', () => {
       claim: mockClaim,
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),
-      prepareWithdraw: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
       balance: 1000,
@@ -116,10 +115,6 @@ describe('usePredictPlaceOrder', () => {
       loadBalance: jest.fn(),
     });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('initial state', () => {

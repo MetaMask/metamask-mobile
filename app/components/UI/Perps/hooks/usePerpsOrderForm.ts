@@ -63,7 +63,7 @@ export function usePerpsOrderForm(
   const { marketData } = usePerpsMarketData(initialAsset);
 
   // Get available balance from live account data
-  const availableBalance = Number.parseFloat(
+  const availableBalance = parseFloat(
     account?.availableBalance?.toString() || '0',
   );
 
@@ -85,8 +85,9 @@ export function usePerpsOrderForm(
 
     const tempMaxAmount = getMaxAllowedAmountUtils({
       availableBalance,
-      assetPrice: Number.parseFloat(currentPrice.price),
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetPrice: parseFloat(currentPrice.price),
+      assetSzDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
@@ -96,8 +97,9 @@ export function usePerpsOrderForm(
         (tempMaxAmount < defaultAmount
           ? tempMaxAmount.toString()
           : defaultAmount.toString()),
-      price: Number.parseFloat(currentPrice.price),
-      szDecimals: marketData?.szDecimals ?? 6,
+      price: parseFloat(currentPrice.price),
+      szDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
       maxAllowedAmount: tempMaxAmount,
       minAllowedAmount: defaultAmount,
     });
@@ -112,7 +114,7 @@ export function usePerpsOrderForm(
 
   // Calculate initial balance percentage
   const initialMarginRequired =
-    Number.parseFloat(initialAmountValue) / defaultLeverage;
+    parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
     availableBalance > 0
       ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
@@ -136,8 +138,9 @@ export function usePerpsOrderForm(
     () =>
       getMaxAllowedAmountUtils({
         availableBalance,
-        assetPrice: Number.parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals: marketData?.szDecimals ?? 6,
+        assetPrice: parseFloat(currentPrice?.price) || 0,
+        assetSzDecimals:
+          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
         leverage: orderForm.leverage, // Use current leverage instead of default
       }),
     [
@@ -152,7 +155,7 @@ export function usePerpsOrderForm(
   const optimizeOrderAmount = useMemo(() => {
     const optimizeFunction = (price: number, szDecimals?: number) => {
       setOrderForm((prev) => {
-        if (!prev.amount || Number.parseFloat(prev.amount) === 0) {
+        if (!prev.amount || parseFloat(prev.amount) === 0) {
           return prev;
         }
 
@@ -164,7 +167,7 @@ export function usePerpsOrderForm(
           minAllowedAmount: defaultAmount,
         });
 
-        const optimizedAmountNum = Number.parseFloat(optimizedAmount);
+        const optimizedAmountNum = parseFloat(optimizedAmount);
 
         // Only update if the optimized amount is different
         if (

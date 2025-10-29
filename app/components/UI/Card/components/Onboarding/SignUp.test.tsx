@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { useNavigation } from '@react-navigation/native';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
@@ -11,12 +10,10 @@ import SignUp from './SignUp';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+  })),
 }));
-
-const mockUseNavigation = useNavigation as jest.MockedFunction<
-  typeof useNavigation
->;
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -44,7 +41,7 @@ jest.mock('../../util/validatePassword');
 
 // Mock SelectComponent with proper interaction simulation
 jest.mock('../../../SelectComponent', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   return (props: {
@@ -62,14 +59,14 @@ jest.mock('../../../SelectComponent', () => {
       }
     };
 
-    return ReactActual.createElement(
+    return React.createElement(
       TouchableOpacity,
       {
         testID: props.testID,
         onPress: handlePress,
         ...props,
       },
-      ReactActual.createElement(
+      React.createElement(
         Text,
         {},
         props.selectedValue || props.defaultValue || 'Select...',
@@ -80,38 +77,35 @@ jest.mock('../../../SelectComponent', () => {
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
-  const ReactActual = jest.requireActual('react');
+  const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
-  return (props: {
-    title?: unknown;
-    description?: unknown;
-    formFields?: unknown;
-    actions?: unknown;
+  return ({
+    title,
+    description,
+    formFields,
+    actions,
+  }: {
+    title?: React.ReactNode;
+    description?: React.ReactNode;
+    formFields?: React.ReactNode;
+    actions?: React.ReactNode;
   }) =>
-    ReactActual.createElement(
+    React.createElement(
       View,
       { testID: 'onboarding-step' },
-      ReactActual.createElement(
-        View,
-        { testID: 'onboarding-step-title' },
-        props.title,
-      ),
-      ReactActual.createElement(
+      React.createElement(View, { testID: 'onboarding-step-title' }, title),
+      React.createElement(
         View,
         { testID: 'onboarding-step-description' },
-        props.description,
+        description,
       ),
-      ReactActual.createElement(
+      React.createElement(
         View,
         { testID: 'onboarding-step-form-fields' },
-        props.formFields,
+        formFields,
       ),
-      ReactActual.createElement(
-        View,
-        { testID: 'onboarding-step-actions' },
-        props.actions,
-      ),
+      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
     );
 });
 
@@ -156,14 +150,9 @@ const createTestStore = (initialState = {}) =>
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
   let mockSendEmailVerification: jest.Mock;
-  let mockNavigate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate = jest.fn();
-    mockUseNavigation.mockReturnValue({
-      navigate: mockNavigate,
-    } as unknown as ReturnType<typeof useNavigation>);
     mockSendEmailVerification = jest
       .fn()
       .mockResolvedValue({ contactVerificationId: '123' });
@@ -577,23 +566,6 @@ describe('SignUp Component', () => {
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
-    });
-  });
-
-  describe('Navigation', () => {
-    it('navigates to authentication screen when "I already have an account" is pressed', () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <SignUp />
-        </Provider>,
-      );
-
-      const alreadyHaveAccountButton = getByTestId(
-        'signup-i-already-have-an-account-text',
-      );
-      fireEvent.press(alreadyHaveAccountButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
     });
   });
 });

@@ -28,8 +28,6 @@ import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
 
@@ -71,7 +69,7 @@ const ConfirmPhoneNumber = () => {
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
+
   const { phoneNumber, phoneCountryCode } = useParams<{
     phoneNumber: string;
     phoneCountryCode: string;
@@ -107,13 +105,6 @@ const ConfirmPhoneNumber = () => {
       return;
     }
     try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
-          .addProperties({
-            action: OnboardingActions.CONFIRM_PHONE_NUMBER_BUTTON_CLICKED,
-          })
-          .build(),
-      );
       const { user } = await verifyPhoneVerification({
         onboardingId,
         phoneNumber,
@@ -150,8 +141,6 @@ const ConfirmPhoneNumber = () => {
     verifyPhoneVerification,
     setUser,
     navigation,
-    trackEvent,
-    createEventBuilder,
   ]);
 
   const handleValueChange = useCallback(
@@ -173,14 +162,6 @@ const ConfirmPhoneNumber = () => {
       return;
     }
     try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
-          .addProperties({
-            action:
-              OnboardingActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON_CLICKED,
-          })
-          .build(),
-      );
       await sendPhoneVerification({
         phoneCountryCode,
         phoneNumber,
@@ -196,19 +177,7 @@ const ConfirmPhoneNumber = () => {
     phoneCountryCode,
     contactVerificationId,
     sendPhoneVerification,
-    trackEvent,
-    createEventBuilder,
   ]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
-        .addProperties({
-          page: OnboardingScreens.CONFIRM_PHONE_NUMBER,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
 
   // Cooldown timer effect
   useEffect(() => {

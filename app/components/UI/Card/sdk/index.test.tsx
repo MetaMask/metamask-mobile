@@ -36,6 +36,7 @@ import { UserResponse } from '../types';
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
     isCardEnabled: true,
+    isBaanxLoginEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getGeoLocation: jest.fn(),
@@ -156,6 +157,7 @@ describe('CardSDK Context', () => {
     overrides: Partial<CardSDK> = {},
   ): Partial<CardSDK> => ({
     isCardEnabled: true,
+    isBaanxLoginEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getGeoLocation: jest.fn(),

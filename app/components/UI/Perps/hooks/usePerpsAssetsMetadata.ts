@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+// import { useTheme } from '../../../../util/theme'; // Available for future dark mode support
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 

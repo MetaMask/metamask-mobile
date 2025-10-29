@@ -23,6 +23,7 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import { selectChainId } from '../../../selectors/networkController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,34 +104,44 @@ interface Props {
   onBlur: () => void;
 
   /**
-   * The selected network chain ID
+   * Whether all networks are enabled
    */
-  selectedChainId: Hex | null;
+  allNetworksEnabled: boolean;
 }
 
 // eslint-disable-next-line react/display-name
-const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
+const AssetSearch = ({
+  onSearch,
+  onFocus,
+  onBlur,
+  allNetworksEnabled,
+}: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [inputDimensions, setInputDimensions] = useState<DimensionValue>('85%');
   const [isFocus, setIsFocus] = useState(false);
+  const chainId = useSelector(selectChainId);
   const tokenListForAllChains = useSelector(selectERC20TokensByChain);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const tokenList = useMemo(() => {
-    // If no network is selected, return empty list
-    if (!selectedChainId) {
-      return [];
+    if (allNetworksEnabled) {
+      return Object.entries(tokenListForAllChains).flatMap(
+        ([networkId, { data }]) =>
+          Object.values(data).map((item) => ({
+            ...item,
+            chainId: networkId,
+          })),
+      );
     }
 
-    // Use the selected network's tokens
     return Object.values(
-      tokenListForAllChains?.[selectedChainId]?.data ?? [],
+      tokenListForAllChains?.[chainId as Hex]?.data ?? [],
     ).map((item) => ({
       ...item,
-      chainId: selectedChainId,
+      chainId: chainId as Hex,
     }));
-  }, [selectedChainId, tokenListForAllChains]);
+  }, [allNetworksEnabled, tokenListForAllChains, chainId]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -162,7 +173,7 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
     setSearchQuery('');
     handleSearch('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedChainId]);
+  }, [allNetworksEnabled]);
 
   return (
     <View

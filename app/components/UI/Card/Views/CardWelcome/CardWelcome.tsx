@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { Image, useWindowDimensions, View } from 'react-native';
+import { Image, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -12,7 +12,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import MM_CARDS_MOCKUP from '../../../../../images/mm-cards-mockup.png';
+import MetalCard from '../../../../../images/metal-card.png';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,8 +24,8 @@ const CardWelcome = () => {
   const { navigate } = useNavigation();
   const isCardholder = useIsCardholder();
   const theme = useTheme();
-  const deviceWidth = useWindowDimensions().width;
-  const styles = createStyles(theme, deviceWidth);
+
+  const styles = createStyles(theme);
 
   const cardWelcomeCopies = useMemo(() => {
     if (isCardholder) {
@@ -60,7 +60,7 @@ const CardWelcome = () => {
       <View style={styles.container}>
         <View style={styles.imageWrapper}>
           <Image
-            source={MM_CARDS_MOCKUP}
+            source={MetalCard}
             style={styles.image}
             resizeMode="contain"
             testID={CardWelcomeSelectors.CARD_IMAGE}

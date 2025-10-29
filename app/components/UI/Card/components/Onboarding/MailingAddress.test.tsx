@@ -451,6 +451,7 @@ describe('MailingAddress Component', () => {
             termsAndConditions: '',
             accountOpeningDisclosure: '',
             noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
           },
           intl: { termsAndConditions: '', rightToInformation: '' },
         },

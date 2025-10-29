@@ -19,7 +19,6 @@ import React, {
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { PredictPositionsHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import Icon, {
   IconColor,
   IconName,
@@ -30,7 +29,6 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictClaimablePositions } from '../../selectors/predictController';
 import {
@@ -54,10 +52,6 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const navigation =
       useNavigation<NavigationProp<PredictNavigationParamList>>();
     const tw = useTailwind();
-    const { executeGuardedAction } = usePredictActionGuard({
-      providerId: POLYMARKET_PROVIDER_ID,
-      navigation,
-    });
     const {
       balance,
       loadBalance,
@@ -136,9 +130,7 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
     const handleClaim = async () => {
-      await executeGuardedAction(async () => {
-        await claim();
-      });
+      await claim();
     };
 
     if (isBalanceLoading || isUnrealizedPnLLoading) {
@@ -149,7 +141,6 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
       <Box twClassName="gap-4 pb-4 pt-2">
         {hasClaimableAmount && (
           <Button
-            testID={PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON}
             variant={ButtonVariant.Secondary}
             onPress={handleClaim}
             twClassName="min-w-full bg-primary-default"

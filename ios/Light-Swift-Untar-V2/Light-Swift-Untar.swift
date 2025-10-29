@@ -15,12 +15,10 @@ public typealias Closure = (Double) -> Void
 enum UntarError: Error, LocalizedError {
   case notFound(file: String)
   case corruptFile(type: UnicodeScalar)
-  case invalidPaths
   public var errorDescription: String? {
     switch self {
     case let .notFound(file: file): return "Source file \(file) not found"
     case let .corruptFile(type: type): return "Invalid block type \(type) found"
-    case .invalidPaths: return "Tarball failed to extract due to invalid paths"
     }
   }
 }
@@ -39,7 +37,6 @@ public extension FileManager {
   private func createFilesAndDirectories(path: String, tarObject: Any, size: UInt64,
                                          progress progressClosure: Closure?) throws -> Bool {
     try! createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
-    let rootPath = URL(fileURLWithPath: path).resolvingSymlinksInPath().path + "/"
     var location: UInt64 = 0
     while location < size {
       var blockCount: UInt64 = 1
@@ -49,10 +46,7 @@ public extension FileManager {
       switch type {
       case "0": // File
         let name = self.name(object: tarObject, offset: location)
-        let filePath = URL(fileURLWithPath: path).appendingPathComponent(name).resolvingSymlinksInPath().path
-        guard filePath.hasPrefix(rootPath) else {
-            throw UntarError.invalidPaths
-        }
+        let filePath = URL(fileURLWithPath: path).appendingPathComponent(name).path
         let size = self.size(object: tarObject, offset: location)
         if size == 0 { try "".write(toFile: filePath, atomically: true, encoding: .utf8) } else {
           blockCount += (size - 1) / FileManager.tarBlockSize + 1 // size / tarBlockSize rounded up
@@ -61,10 +55,7 @@ public extension FileManager {
         }
       case "5": // Directory
         let name = self.name(object: tarObject, offset: location)
-        let directoryPath = URL(fileURLWithPath: path).appendingPathComponent(name).resolvingSymlinksInPath().path
-        guard directoryPath.hasPrefix(rootPath) else {
-            throw UntarError.invalidPaths
-        }
+        let directoryPath = URL(fileURLWithPath: path).appendingPathComponent(name).path
         try createDirectory(atPath: directoryPath, withIntermediateDirectories: true,
                             attributes: nil)
       case "\0": break // Null block

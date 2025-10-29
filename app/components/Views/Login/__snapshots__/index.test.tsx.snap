@@ -220,9 +220,9 @@ exports[`Login renders matching snapshot 1`] = `
                     "color": "#121314",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
+                    "fontWeight": "400",
                     "height": 46,
                     "letterSpacing": 0,
-                    "lineHeight": 20,
                     "opacity": 1,
                     "paddingVertical": 2,
                     "textAlignVertical": "center",
@@ -270,9 +270,6 @@ exports[`Login renders matching snapshot 1`] = `
             activeOpacity={1}
             disabled={true}
             loading={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -311,7 +308,6 @@ exports[`Login renders matching snapshot 1`] = `
             disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
-            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -584,9 +580,9 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                     "color": "#121314",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
+                    "fontWeight": "400",
                     "height": 46,
                     "letterSpacing": 0,
-                    "lineHeight": 20,
                     "opacity": 1,
                     "paddingVertical": 2,
                     "textAlignVertical": "center",
@@ -636,7 +632,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             loading={false}
             onPress={[Function]}
             onPressIn={[Function]}
-            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -674,7 +669,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
-            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",

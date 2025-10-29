@@ -12,15 +12,6 @@ import PredictBuyPreview from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 
-// Mock Engine
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackPredictOrderEvent: jest.fn(),
-    },
-  },
-}));
-
 // Mock navigation hooks
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
@@ -310,10 +301,6 @@ describe('PredictBuyPreview', () => {
     mockUseRoute.mockReturnValue(mockRoute);
 
     // Format mocks are already set up in the jest.mock above
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('initial rendering', () => {
@@ -1575,61 +1562,6 @@ describe('PredictBuyPreview', () => {
       const placeBetButton = getByText('Yes • 50¢');
       fireEvent.press(placeBetButton);
 
-      expect(mockPlaceOrder).toHaveBeenCalled();
-    });
-  });
-
-  describe('rate limiting', () => {
-    it('button is enabled when rateLimited is undefined (backward compatibility)', () => {
-      mockExpectedAmount = 120;
-      mockBalance = 1000;
-      mockBalanceLoading = false;
-
-      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Enter valid amount
-      act(() => {
-        capturedOnChange?.({
-          value: '50',
-          valueAsNumber: 50,
-        });
-      });
-
-      const doneButton = getByText('Done');
-      fireEvent.press(doneButton);
-
-      const placeBetButton = getByText('Yes • 50¢');
-      fireEvent.press(placeBetButton);
-
-      // Button should work (backward compatibility)
-      expect(mockPlaceOrder).toHaveBeenCalled();
-    });
-
-    it('place bet button works with sufficient funds when not rate limited', () => {
-      mockBalance = 1000;
-      mockBalanceLoading = false;
-      mockExpectedAmount = 120;
-
-      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Enter valid amount
-      act(() => {
-        capturedOnChange?.({
-          value: '50',
-          valueAsNumber: 50,
-        });
-      });
-
-      const doneButton = getByText('Done');
-      fireEvent.press(doneButton);
-
-      // With default mocks (no rateLimited), button should work
-      const placeBetButton = getByText('Yes • 50¢');
-      fireEvent.press(placeBetButton);
       expect(mockPlaceOrder).toHaveBeenCalled();
     });
   });

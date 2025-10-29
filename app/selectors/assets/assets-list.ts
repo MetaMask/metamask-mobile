@@ -198,18 +198,9 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       .flatMap(([_, chainAssets]) => chainAssets)
       .filter((asset) => {
         // We need to filter out Tron energy and bandwidth from this list
-        const tronResourceNames = [
-          'energy',
-          'bandwidth',
-          'max-energy',
-          'max-bandwidth',
-          'strx-energy',
-          'strx-bandwidth',
-        ];
-
         if (
           asset.chainId?.includes('tron:') &&
-          tronResourceNames.includes(asset.symbol?.toLowerCase())
+          (asset.name === 'Energy' || asset.name === 'Bandwidth')
         ) {
           return false;
         }
@@ -351,30 +342,3 @@ function assetToToken(
     accountType: asset.accountType,
   };
 }
-
-// This is used to select Tron resources (Energy & Bandwidth)
-export const selectTronResourcesBySelectedAccountGroup =
-  createDeepEqualSelector(
-    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
-    (bip44Assets, enabledNetworks) => {
-      const tronResourceNames = [
-        'energy',
-        'bandwidth',
-        'max-energy',
-        'max-bandwidth',
-        'strx-energy',
-        'strx-bandwidth',
-      ];
-
-      const assets = Object.entries(bip44Assets)
-        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-        .flatMap(([_, chainAssets]) => chainAssets)
-        .filter(
-          (asset) =>
-            asset.chainId?.includes('tron:') &&
-            tronResourceNames.includes(asset.symbol?.toLowerCase()),
-        );
-
-      return assets;
-    },
-  );

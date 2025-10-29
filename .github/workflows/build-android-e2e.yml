@@ -84,11 +84,11 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
+      # Generate fingerprint AFTER setup but BEFORE any build modifications
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
-          FINGERPRINT="60951c57f7d44284529cf40308b84becbf3c9876"
+          FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
@@ -132,7 +132,7 @@ jobs:
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          # cp android/gradle.properties.github android/gradle.properties - Build for all apps to stabilize e2e 
+          cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
         env:

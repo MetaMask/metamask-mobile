@@ -114,6 +114,7 @@ describe('selectCardFeatureFlag', () => {
     expect(result).toBeDefined();
     expect(result.constants).toBeDefined();
     expect(result.chains).toBeDefined();
+    expect(result.isBaanxLoginEnabled).toBe(false);
   });
 
   it('returns default card feature flag when RemoteFeatureFlagController state is undefined', () => {

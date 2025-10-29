@@ -10,17 +10,12 @@ import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
-import {
   formatPercentage,
   formatPerpsFiat,
   formatPnl,
   formatVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsMarketRowItem.styles';
@@ -39,7 +34,6 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const displayMarket = useMemo(() => {
     const livePrice = livePrices[market.symbol];
     if (!livePrice) {
-      // No live price available, use existing formatted price from market data
       return market;
     }
 
@@ -105,8 +99,6 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
 
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
-  const badgeType = getMarketBadgeType(displayMarket);
-
   return (
     <TouchableOpacity
       style={styles.container}
@@ -128,23 +120,17 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
         <View style={styles.tokenInfo}>
           <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {getPerpsDisplaySymbol(displayMarket.symbol)}
+              {displayMarket.symbol}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
-          <View style={styles.secondRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {displayMarket.volume}
-            </Text>
-            {badgeType && (
-              <PerpsBadge
-                type={badgeType}
-                testID={getPerpsMarketRowItemSelector.badge(
-                  displayMarket.symbol,
-                )}
-              />
-            )}
-          </View>
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            style={styles.tokenVolume}
+          >
+            {displayMarket.volume}
+          </Text>
         </View>
       </View>
 

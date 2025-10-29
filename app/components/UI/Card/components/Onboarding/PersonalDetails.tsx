@@ -29,15 +29,13 @@ import {
 } from '../../util/validateDateOfBirth';
 import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
   const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-  const { trackEvent, createEventBuilder } = useMetrics();
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -144,13 +142,6 @@ const PersonalDetails = () => {
     }
 
     try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
-          .addProperties({
-            action: OnboardingActions.PERSONAL_DETAILS_BUTTON_CLICKED,
-          })
-          .build(),
-      );
       const { user } = await registerPersonalDetails({
         onboardingId,
         firstName,
@@ -176,16 +167,6 @@ const PersonalDetails = () => {
       // Allow error message to display
     }
   };
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
-        .addProperties({
-          page: OnboardingScreens.PERSONAL_DETAILS,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
 
   const isDisabled = useMemo(
     () =>

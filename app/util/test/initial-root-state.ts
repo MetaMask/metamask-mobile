@@ -13,7 +13,6 @@ import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
 import { initialOnboardingState } from '../../reducers/onboarding';
 import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
-import { initialState as initialSampleCounterState } from '../../features/SampleFeature/reducers/sample-counter';
 import { isTest } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
 import { initialState as initialNetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
@@ -64,7 +63,6 @@ const initialRootState: RootState = {
   banners: {
     dismissedBanners: [],
   },
-  sampleCounter: initialSampleCounterState,
   card: initialCardState,
   rewards: initialRewardsState,
   networkConnectionBanner: initialNetworkConnectionBannerState,

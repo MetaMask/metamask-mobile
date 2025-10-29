@@ -227,7 +227,6 @@ describe('Engine', () => {
         claimTransaction: null,
         claimablePositions: [],
         depositTransaction: null,
-        withdrawTransaction: null,
         isOnboarded: {},
       },
       GatorPermissionsController: {
@@ -241,16 +240,6 @@ describe('Engine', () => {
         gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
         isFetchingGatorPermissions: false,
         isGatorPermissionsEnabled: false,
-      },
-      PerpsController: {
-        ...backgroundState.PerpsController,
-        depositRequests: [],
-        withdrawalRequests: [],
-        withdrawalProgress: {
-          progress: 0,
-          lastUpdated: 0,
-          activeWithdrawalId: undefined,
-        },
       },
     };
 

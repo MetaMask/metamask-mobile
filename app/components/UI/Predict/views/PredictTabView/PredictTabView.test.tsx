@@ -264,10 +264,6 @@ describe('PredictTabView', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders without crashing', () => {
     renderWithProviders(<PredictTabView />);
 

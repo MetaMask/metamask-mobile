@@ -193,16 +193,6 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockBalanceResult,
 }));
 
-// Mock usePredictActionGuard hook
-const mockExecuteGuardedAction = jest.fn((action) => action());
-jest.mock('../../hooks/usePredictActionGuard', () => ({
-  usePredictActionGuard: () => ({
-    executeGuardedAction: mockExecuteGuardedAction,
-    isEligible: true,
-    hasNoBalance: false,
-  }),
-}));
-
 // Mock usePredictClaimablePositions hook
 const mockLoadClaimablePositions = jest.fn();
 const mockClaimablePositionsResult: {
@@ -373,10 +363,6 @@ describe('MarketsWonCard', () => {
     mockClaimResult.loading = false;
     mockClaimResult.completed = false;
     mockClaimResult.error = false;
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('Component Rendering', () => {

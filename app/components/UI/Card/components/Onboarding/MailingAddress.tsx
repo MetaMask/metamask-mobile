@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonSize,
@@ -24,8 +24,6 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
@@ -33,23 +31,12 @@ const MailingAddress = () => {
   const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
-        .addProperties({
-          page: OnboardingScreens.MAILING_ADDRESS,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
 
   const {
     registerAddress,
@@ -132,13 +119,6 @@ const MailingAddress = () => {
     }
 
     try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
-          .addProperties({
-            action: OnboardingActions.MAILING_ADDRESS_BUTTON_CLICKED,
-          })
-          .build(),
-      );
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,

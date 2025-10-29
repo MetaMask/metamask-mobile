@@ -256,6 +256,7 @@ describe('ActivityTab', () => {
     },
     balance: {
       total: 0,
+      refereePortion: 0,
       updatedAt: Date.now(),
     },
     tier: {

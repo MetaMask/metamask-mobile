@@ -2,7 +2,6 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -19,6 +18,7 @@ import {
   DEFAULT_BUTTONBASE_ICON_SIZE,
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
 } from './ButtonBase.constants';
+import TempTouchableOpacity from '../../../../../components-temp/TempTouchableOpacity';
 
 const ButtonBase = ({
   label,
@@ -27,10 +27,10 @@ const ButtonBase = ({
   startIconName,
   endIconName,
   size = DEFAULT_BUTTONBASE_SIZE,
-  onPress,
   style,
   width = DEFAULT_BUTTONBASE_WIDTH,
   isDisabled,
+  shouldEnableAndroidPressIn = false,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -41,13 +41,13 @@ const ButtonBase = ({
   });
 
   return (
-    <TouchableOpacity
+    <TempTouchableOpacity
       disabled={isDisabled}
       activeOpacity={1}
-      onPress={onPress}
       style={styles.base}
       accessibilityRole="button"
       accessible
+      shouldEnableAndroidPressIn={shouldEnableAndroidPressIn}
       {...props}
     >
       {startIconName && (
@@ -77,7 +77,7 @@ const ButtonBase = ({
           style={styles.endIcon}
         />
       )}
-    </TouchableOpacity>
+    </TempTouchableOpacity>
   );
 };
 

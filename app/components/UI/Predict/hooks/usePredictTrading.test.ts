@@ -24,10 +24,6 @@ describe('usePredictTrading', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('getPositions', () => {
     it('calls PredictController.getPositions and returns positions', async () => {
       const mockPositions = [
