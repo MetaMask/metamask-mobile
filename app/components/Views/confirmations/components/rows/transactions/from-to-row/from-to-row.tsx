@@ -57,7 +57,7 @@ const FromToRow = () => {
 
         <View style={[styles.nameContainer, styles.rightNameContainer]}>
           {/* Intentional empty label to trigger the alert row without a label */}
-          <AlertRow alertField={RowAlertKey.BurnAddress} label={''}>
+          <AlertRow alertField={RowAlertKey.BurnAddress}>
             <Name
               type={NameType.EthereumAddress}
               value={toAddress as string}

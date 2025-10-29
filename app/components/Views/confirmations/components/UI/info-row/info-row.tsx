@@ -15,7 +15,7 @@ import styleSheet from './info-row.styles';
 import CopyIcon from './copy-icon/copy-icon';
 
 export interface InfoRowProps {
-  label: string;
+  label?: string;
   children?: ReactNode | string;
   onTooltipPress?: () => void;
   tooltip?: ReactNode;
