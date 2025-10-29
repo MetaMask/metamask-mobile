@@ -1330,6 +1330,7 @@ const Wallet = ({
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
         contentContainerStyle={scrollViewContentStyle}
         scrollEnabled={isHomepageRedesignV1Enabled}
+        showsVerticalScrollIndicator={false}
       >
         <AssetPollingProvider />
         <View style={styles.banner}>
