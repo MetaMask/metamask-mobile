@@ -15,6 +15,8 @@ import ToastModal from '../../pages/wallet/ToastModal';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 
 describe(RegressionAssets('Transaction'), () => {
   beforeAll(async () => {
@@ -29,12 +31,25 @@ describe(RegressionAssets('Transaction'), () => {
     const TOKEN_NAME = enContent.unit.eth;
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withNetworkEnabledMap({
-            eip155: { '0x539': true },
-          })
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .build();
+        },
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(

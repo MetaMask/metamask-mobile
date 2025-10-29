@@ -9,6 +9,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { LocalNode } from '../../framework/types';
 
 describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {
@@ -19,12 +20,20 @@ describe(RegressionAssets('Import custom token'), () => {
   it('should Import custom token with auto-population', async () => {
     await withFixtures(
       {
-        fixture: ({ localNodes }) => {
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
           const node = localNodes?.[0] as unknown as { getPort?: () => number };
           const anvilPort = node?.getPort ? node.getPort() : undefined;
 
           return new FixtureBuilder()
-            .withGanacheNetwork(undefined, anvilPort ?? AnvilPort())
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
             .withNetworkEnabledMap({
               eip155: { '0x539': true },
             })

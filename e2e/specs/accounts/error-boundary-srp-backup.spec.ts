@@ -22,6 +22,7 @@ import {
   SECURITY_ALERTS_REQUEST_BODY,
   securityAlertsUrl,
 } from '../../api-mocking/mock-responses/security-alerts-mock';
+import { LocalNode } from '../../framework/types';
 
 const PASSWORD = '123123123';
 
@@ -39,12 +40,20 @@ describe(RegressionAccounts('Error Boundary Screen'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: ({ localNodes }) => {
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
           const node = localNodes?.[0] as unknown as { getPort?: () => number };
           const anvilPort = node?.getPort ? node.getPort() : undefined;
 
           return new FixtureBuilder()
-            .withGanacheNetwork(undefined, anvilPort ?? AnvilPort())
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0x539']),
             )

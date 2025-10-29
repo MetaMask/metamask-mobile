@@ -9,6 +9,7 @@ import { SmokeConfirmationsRedesigned } from '../../tags';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode } from '../../framework/types';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
@@ -21,7 +22,7 @@ describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: ({ localNodes }) => {
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
           const node = localNodes?.[0] as unknown as { getPort?: () => number };
           const anvilPort = node?.getPort ? node.getPort() : undefined;
 

@@ -7,7 +7,10 @@ import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/Confirm
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
 import Assertions from '../../../../framework/Assertions';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
@@ -17,6 +20,7 @@ import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../../framework/types';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - setApprovalForAll method'),
@@ -45,20 +49,34 @@ describe(
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as {
+              getPort?: () => number;
+            };
+            const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(['0x539']),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
           smartContracts: [ERC_721_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc721Address = await contractRegistry?.getContractAddress(
-            ERC_721_CONTRACT,
-          );
+          const erc721Address =
+            await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
 
           await loginToApp();
 
@@ -114,20 +132,34 @@ describe(
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as {
+              getPort?: () => number;
+            };
+            const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(['0x539']),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
           smartContracts: [ERC_1155_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc1155Address = await contractRegistry?.getContractAddress(
-            ERC_1155_CONTRACT,
-          );
+          const erc1155Address =
+            await contractRegistry?.getContractAddress(ERC_1155_CONTRACT);
 
           await loginToApp();
 
@@ -169,20 +201,34 @@ describe(
                 dappVariant: DappVariants.TEST_DAPP,
               },
             ],
-            fixture: new FixtureBuilder()
-              .withGanacheNetwork()
-              .withPermissionControllerConnectedToTestDapp(
-                buildPermissions(['0x539']),
-              )
-              .build(),
+            fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+              const node = localNodes?.[0] as unknown as {
+                getPort?: () => number;
+              };
+              const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+              return new FixtureBuilder()
+                .withNetworkController({
+                  providerConfig: {
+                    chainId: '0x539',
+                    rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                    type: 'custom',
+                    nickname: 'Local RPC',
+                    ticker: 'ETH',
+                  },
+                })
+                .withPermissionControllerConnectedToTestDapp(
+                  buildPermissions(['0x539']),
+                )
+                .build();
+            },
             restartDevice: true,
             testSpecificMock,
             smartContracts: [ERC_721_CONTRACT],
           },
           async ({ contractRegistry }) => {
-            const erc721Address = await contractRegistry?.getContractAddress(
-              ERC_721_CONTRACT,
-            );
+            const erc721Address =
+              await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
 
             await loginToApp();
 

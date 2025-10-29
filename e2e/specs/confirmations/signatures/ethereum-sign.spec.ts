@@ -6,12 +6,13 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../framework/Assertions';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import { buildPermissions , AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 import { RegressionConfirmations } from '../../../tags';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../framework/types';
 
 describe(RegressionConfirmations('Ethereum Sign'), () => {
   it('Sign in with Ethereum', async () => {
@@ -29,12 +30,25 @@ describe(RegressionConfirmations('Ethereum Sign'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
+            .build();
+        },
         restartDevice: true,
         testSpecificMock,
       },

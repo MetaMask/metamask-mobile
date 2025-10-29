@@ -1268,6 +1268,12 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * @deprecated Use withNetworkController instead
+   * @param chainId
+   * @param port
+   * @returns
+   */
   withGanacheNetwork(chainId = '0x539', port = AnvilPort()) {
     const fixtures = this.fixture.state.engine.backgroundState;
 

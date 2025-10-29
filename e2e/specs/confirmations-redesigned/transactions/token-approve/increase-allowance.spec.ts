@@ -7,7 +7,10 @@ import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/Confirm
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
 import Assertions from '../../../../framework/Assertions';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
@@ -17,6 +20,7 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { LocalNode } from '../../../../framework/types';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
@@ -44,20 +48,34 @@ describe(
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as {
+              getPort?: () => number;
+            };
+            const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(['0x539']),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
           smartContracts: [ERC_20_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc20Address = await contractRegistry?.getContractAddress(
-            ERC_20_CONTRACT,
-          );
+          const erc20Address =
+            await contractRegistry?.getContractAddress(ERC_20_CONTRACT);
 
           await loginToApp();
 

@@ -1,6 +1,6 @@
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils.ts';
+import { buildPermissions , AnvilPort } from '../../../framework/fixtures/FixtureUtils.ts';
 import Browser from '../../../pages/Browser/BrowserView.ts';
 import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions.ts';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes.ts';
@@ -19,6 +19,7 @@ import { DappVariants } from '../../../framework/Constants.ts';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
 import { Mockttp } from 'mockttp';
+import { LocalNode } from '../../../framework/types';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -67,12 +68,27 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([LOCAL_CHAIN_ID]),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as {
+              getPort?: () => number;
+            };
+            const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions([LOCAL_CHAIN_ID]),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
         },
@@ -147,12 +163,27 @@ describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([LOCAL_CHAIN_ID]),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as {
+              getPort?: () => number;
+            };
+            const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions([LOCAL_CHAIN_ID]),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
         },

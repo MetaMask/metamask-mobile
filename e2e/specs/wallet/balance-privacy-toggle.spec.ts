@@ -5,6 +5,8 @@ import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
+import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 
@@ -16,10 +18,23 @@ describe(RegressionWalletPlatform('Balance Privacy Toggle'), (): void => {
   it('should toggle balance visibility when balance container is tapped', async (): Promise<void> => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withETHAsPrimaryCurrency() // Set primary currency to ETH
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withETHAsPrimaryCurrency() // Set primary currency to ETH
+            .build();
+        },
         restartDevice: true,
       },
       async (): Promise<void> => {

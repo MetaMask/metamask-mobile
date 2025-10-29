@@ -8,13 +8,14 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../framework/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { buildPermissions , AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
+import { LocalNode } from '../../framework/types';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -34,20 +35,32 @@ describe(RegressionConfirmations('ERC20 - Increase Allowance'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
+            .build();
+        },
         restartDevice: true,
         smartContracts: [HST_CONTRACT],
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
-          HST_CONTRACT,
-        );
+        const hstAddress =
+          await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
