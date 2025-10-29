@@ -79,10 +79,8 @@ const PerpsHeroCardView: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [isSharing, setIsSharing] = useState(false);
 
-  // Get data from route params
   const params = route.params as {
     position: Position;
-    // Market price at time of closing
     marketPrice?: string;
   };
   const { position, marketPrice } = params;
