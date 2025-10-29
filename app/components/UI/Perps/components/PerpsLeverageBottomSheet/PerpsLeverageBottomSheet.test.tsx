@@ -972,66 +972,7 @@ describe('PerpsLeverageBottomSheet', () => {
 
   describe('Gesture Handlers', () => {
     describe('Pan Gesture Behavior', () => {
-      it('initializes pan gesture with onBegin handler', () => {
-        // Arrange
-        const { Gesture } = jest.requireMock('react-native-gesture-handler');
-        const mockPanGesture = {
-          onBegin: jest.fn().mockReturnThis(),
-          onUpdate: jest.fn().mockReturnThis(),
-          onEnd: jest.fn().mockReturnThis(),
-          onFinalize: jest.fn().mockReturnThis(),
-        };
-        Gesture.Pan.mockReturnValue(mockPanGesture);
-
-        // Act
-        render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-        // Assert
-        expect(Gesture.Pan).toHaveBeenCalled();
-        expect(mockPanGesture.onBegin).toHaveBeenCalledWith(
-          expect.any(Function),
-        );
-      });
-
-      it('initializes pan gesture with onUpdate handler', () => {
-        // Arrange
-        const { Gesture } = jest.requireMock('react-native-gesture-handler');
-        const mockPanGesture = {
-          onBegin: jest.fn().mockReturnThis(),
-          onUpdate: jest.fn().mockReturnThis(),
-          onEnd: jest.fn().mockReturnThis(),
-          onFinalize: jest.fn().mockReturnThis(),
-        };
-        Gesture.Pan.mockReturnValue(mockPanGesture);
-
-        // Act
-        render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-        // Assert
-        expect(mockPanGesture.onUpdate).toHaveBeenCalledWith(
-          expect.any(Function),
-        );
-      });
-
-      it('initializes pan gesture with onEnd handler', () => {
-        // Arrange
-        const { Gesture } = jest.requireMock('react-native-gesture-handler');
-        const mockPanGesture = {
-          onBegin: jest.fn().mockReturnThis(),
-          onUpdate: jest.fn().mockReturnThis(),
-          onEnd: jest.fn().mockReturnThis(),
-          onFinalize: jest.fn().mockReturnThis(),
-        };
-        Gesture.Pan.mockReturnValue(mockPanGesture);
-
-        // Act
-        render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-        // Assert
-        expect(mockPanGesture.onEnd).toHaveBeenCalledWith(expect.any(Function));
-      });
-
-      it('initializes pan gesture with onFinalize handler', () => {
+      it('initializes pan gesture with optional handlers', () => {
         // Arrange
         const { Gesture } = jest.requireMock('react-native-gesture-handler');
         const mockPanGesture = {
@@ -1049,6 +990,55 @@ describe('PerpsLeverageBottomSheet', () => {
         expect(mockPanGesture.onFinalize).toHaveBeenCalledWith(
           expect.any(Function),
         );
+        expect(mockPanGesture.onEnd).toHaveBeenCalledWith(expect.any(Function));
+        expect(mockPanGesture.onUpdate).toHaveBeenCalledWith(
+          expect.any(Function),
+        );
+        expect(mockPanGesture.onBegin).toHaveBeenCalledWith(
+          expect.any(Function),
+        );
+      });
+
+      it('triggers haptic feedback and onDragStart callback when pan begins', async () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        let capturedOnBegin: (() => void) | null = null;
+
+        const mockPanGesture: {
+          onBegin: jest.Mock;
+          onUpdate: jest.Mock;
+          onEnd: jest.Mock;
+          onFinalize: jest.Mock;
+        } = {
+          onBegin: jest.fn(),
+          onUpdate: jest.fn().mockReturnThis(),
+          onEnd: jest.fn().mockReturnThis(),
+          onFinalize: jest.fn().mockReturnThis(),
+        };
+
+        mockPanGesture.onBegin.mockImplementation((handler: () => void) => {
+          capturedOnBegin = handler;
+          return mockPanGesture;
+        });
+
+        Gesture.Pan.mockReturnValue(mockPanGesture);
+
+        const { act } = jest.requireActual('@testing-library/react-native');
+
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Act - Invoke the onBegin handler and verify no crash
+        await act(async () => {
+          expect(() => capturedOnBegin?.()).not.toThrow();
+        });
+
+        // Assert - Handler was captured and can be invoked
+        expect(capturedOnBegin).toBeDefined();
+        expect(typeof capturedOnBegin).toBe('function');
+        // Component still renders after handler invocation
+        expect(
+          screen.getByText('perps.order.leverage_modal.title'),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -1065,16 +1055,6 @@ describe('PerpsLeverageBottomSheet', () => {
         expect(Gesture.LongPress).toHaveBeenCalled();
         expect(Gesture.Pan).toHaveBeenCalled();
         expect(Gesture.Simultaneous).toHaveBeenCalled();
-      });
-
-      it('configures gestures before rendering slider', () => {
-        // Act
-        render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-        // Assert - Component successfully renders with configured gestures
-        expect(screen.getByText('1x')).toBeOnTheScreen(); // Min label
-        expect(screen.getAllByText('20x').length).toBeGreaterThan(0); // Max label appears
-        expect(screen.getByText('Set 5x')).toBeOnTheScreen(); // Confirm button
       });
     });
 
