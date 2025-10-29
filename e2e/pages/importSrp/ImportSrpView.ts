@@ -18,10 +18,17 @@ class ImportSrpView {
   }
 
   async tapImportButton() {
-    await Gestures.waitAndTap(this.importButton, {
-      elemDescription: 'Import button',
-      checkVisibility: device.getPlatform() !== 'ios',
-    });
+    if (device.getPlatform() === 'ios') {
+      await Gestures.dblTap(this.importButton, {
+        elemDescription: 'Import button',
+        checkVisibility: false,
+        checkEnabled: false,
+      });
+    } else {
+      await Gestures.waitAndTap(this.importButton, {
+        elemDescription: 'Import button',
+      });
+    }
   }
 
   async enterSrp(mnemonic: string): Promise<void> {
@@ -31,12 +38,6 @@ class ImportSrpView {
       await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
         hideKeyboard: false,
-      });
-
-      await Gestures.swipe(this.container, 'up', {
-        speed: 'slow',
-        percentage: 0.5,
-        elemDescription: 'Scroll to make Import button visible',
       });
     } else {
       await Gestures.replaceText(this.textareaInput, mnemonic, {
