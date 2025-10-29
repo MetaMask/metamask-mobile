@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { View, Animated, Keyboard } from 'react-native';
+import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -25,7 +25,6 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
-import PerpsBottomTabBar from '../../components/PerpsBottomTabBar';
 import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
 import {
   usePerpsMarketListView,
@@ -54,7 +53,6 @@ const PerpsMarketListView = ({
   variant: propVariant,
   title: propTitle,
   showBalanceActions: propShowBalanceActions,
-  showBottomNav: propShowBottomNav,
   defaultSearchVisible: propDefaultSearchVisible,
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
@@ -70,8 +68,6 @@ const PerpsMarketListView = ({
   const title = route.params?.title ?? propTitle;
   const showBalanceActions =
     route.params?.showBalanceActions ?? propShowBalanceActions ?? true;
-  const showBottomNav =
-    route.params?.showBottomNav ?? propShowBottomNav ?? true;
   const defaultSearchVisible =
     route.params?.defaultSearchVisible ?? propDefaultSearchVisible ?? false;
   const showWatchlistOnly =
@@ -82,7 +78,6 @@ const PerpsMarketListView = ({
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const tabsListRef = useRef<TabsListRef>(null);
   const noPaddingContentStyle = useMemo(() => ({ paddingHorizontal: 0 }), []);
-  const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
 
   // Use the combined market list view hook for all business logic
@@ -273,9 +268,7 @@ const PerpsMarketListView = ({
 
     if (isSearchVisible) {
       clearSearch();
-      setShouldShowNavbar(true);
     } else {
-      setShouldShowNavbar(false);
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
           PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
@@ -292,19 +285,6 @@ const PerpsMarketListView = ({
     traceName: TraceName.PerpsMarketListView,
     conditions: [filteredMarkets.length > 0],
   });
-
-  // Render navbar when keyboard is dismissed. We hide the navbar to give extra room when the OS keyboard is visible.
-  useEffect(() => {
-    if (!isSearchVisible) return;
-
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setShouldShowNavbar(true);
-    });
-
-    return () => {
-      hideSubscription?.remove();
-    };
-  }, [isSearchVisible]);
 
   // Track markets screen viewed event
   const source =
@@ -501,13 +481,6 @@ const PerpsMarketListView = ({
       {/* Show regular list when searching or loading */}
       {(isSearchVisible || isLoadingMarkets || error) && (
         <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
-      )}
-
-      {/* Bottom navbar - only show in full variant, hidden when search visible */}
-      {showBottomNav && variant === 'full' && shouldShowNavbar && (
-        <View style={styles.tabBarContainer}>
-          <PerpsBottomTabBar activeTab="trade" />
-        </View>
       )}
 
       {/* Sort Field Bottom Sheet */}

@@ -31,7 +31,6 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsBottomTabBar from '../../components/PerpsBottomTabBar';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -325,11 +324,6 @@ const PerpsHomeView = () => {
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacer} />
       </ScrollView>
-
-      {/* Bottom Tab Bar - Using extracted component */}
-      <View style={styles.tabBarContainer}>
-        <PerpsBottomTabBar activeTab="trade" />
-      </View>
     </SafeAreaView>
   );
 };
