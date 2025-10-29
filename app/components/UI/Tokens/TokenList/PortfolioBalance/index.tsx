@@ -15,6 +15,8 @@ import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMulti
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import BalanceEmptyState from '../../../BalanceEmptyState';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -25,6 +27,9 @@ export const PortfolioBalance = React.memo(() => {
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const renderAggregatedPercentage = () => {
     if (
@@ -57,10 +62,24 @@ export const PortfolioBalance = React.memo(() => {
     [PreferencesController],
   );
 
+  // Check if balance is zero (empty state) - only check when we have balance data
+  const hasZeroBalance =
+    selectedAccountMultichainBalance &&
+    selectedAccountMultichainBalance.totalFiatBalance === 0;
+
+  const shouldShowEmptyState = hasZeroBalance && isHomepageRedesignV1Enabled;
+
   return (
     <View style={styles.portfolioBalance}>
       <View>
-        {selectedAccountMultichainBalance?.displayBalance ? (
+        {!selectedAccountMultichainBalance?.displayBalance ? (
+          <View style={styles.loaderWrapper}>
+            <Skeleton width={100} height={40} />
+            <Skeleton width={100} height={20} />
+          </View>
+        ) : shouldShowEmptyState ? (
+          <BalanceEmptyState testID="portfolio-balance-empty-state" />
+        ) : (
           <TouchableOpacity
             onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
             testID="balance-container"
@@ -75,14 +94,8 @@ export const PortfolioBalance = React.memo(() => {
                 {selectedAccountMultichainBalance?.displayBalance}
               </SensitiveText>
             </View>
-
             {renderAggregatedPercentage()}
           </TouchableOpacity>
-        ) : (
-          <View style={styles.loaderWrapper}>
-            <Skeleton width={100} height={40} />
-            <Skeleton width={100} height={20} />
-          </View>
         )}
       </View>
     </View>
