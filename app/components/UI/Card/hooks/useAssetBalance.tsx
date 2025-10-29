@@ -29,6 +29,7 @@ import {
 } from '../../../../util/number';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { createSelector } from 'reselect';
+import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -49,24 +50,33 @@ export const useAssetBalance = (
   });
 
   let asset = useSelector((state: RootState) =>
-    token
+    token && token?.caipChainId
       ? selectAsset(state, {
-          address: token.address,
-          chainId: token.chainId as string,
-          isStaked: token.isStaked,
+          address: token.address ?? '',
+          chainId: isSolanaChainId(token?.caipChainId ?? '')
+            ? token?.caipChainId
+            : (safeFormatChainIdToHex(token?.caipChainId ?? '') as string),
         })
       : undefined,
   );
 
   if (!asset && token) {
-    const assetAddress =
-      token.chainId && isSolanaChainId(token.chainId)
-        ? `${token.chainId}/token:${token.address}`
-        : token.address.toLowerCase();
-    const iconUrl = buildTokenIconUrl(token.chainId, token.address);
+    const isSolana = token.caipChainId && isSolanaChainId(token.caipChainId);
+
+    const assetAddress = isSolana
+      ? `${token.caipChainId}/token:${token.address}`
+      : token.address?.toLowerCase();
+
+    const iconUrl = buildTokenIconUrl(token.caipChainId, token.address ?? '');
     const filteredToken = tokensWithBalance.find(
-      (t) => t.address === assetAddress && t.chainId === token.chainId,
+      (t) => t.address === assetAddress && t.chainId === token.caipChainId,
     );
+
+    // For Solana tokens, keep the CAIP chain ID as-is
+    // For EVM tokens, convert to hex format
+    const assetChainId = isSolana
+      ? token.caipChainId
+      : safeFormatChainIdToHex(token.caipChainId);
 
     asset = {
       ...token,
@@ -76,6 +86,7 @@ export const useAssetBalance = (
       aggregators: [],
       balance: filteredToken?.balance ?? '0',
       balanceFiat: filteredToken?.balanceFiat ?? '0',
+      chainId: assetChainId,
     } as TokenI;
   }
   const chainId = asset?.chainId as Hex;

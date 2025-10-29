@@ -7,14 +7,14 @@ describe('truncateAddress', () => {
     expect(result).toBe('0x12...5678');
   });
 
-  it('should return "0x" when address is undefined', () => {
+  it('should return undefined when address is undefined', () => {
     const result = truncateAddress(undefined);
-    expect(result).toBe('0x');
+    expect(result).toBeUndefined();
   });
 
-  it('should return "0x" when address is an empty string', () => {
+  it('should return undefined when address is an empty string', () => {
     const result = truncateAddress('');
-    expect(result).toBe('0x');
+    expect(result).toBeUndefined();
   });
 
   it('should handle short addresses (less than 8 characters)', () => {

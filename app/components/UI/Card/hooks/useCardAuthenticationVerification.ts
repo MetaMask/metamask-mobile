@@ -1,7 +1,11 @@
 import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import { verifyCardAuthentication } from '../../../../core/redux/slices/card';
+import {
+  resetAuthenticatedData,
+  selectIsAuthenticatedCard,
+  verifyCardAuthentication,
+} from '../../../../core/redux/slices/card';
 import { selectUserLoggedIn } from '../../../../reducers/user';
 import Logger from '../../../../util/Logger';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
@@ -15,6 +19,7 @@ export const useCardAuthenticationVerification = () => {
   const dispatch = useThunkDispatch();
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
   const checkAuthentication = useCallback(() => {
     dispatch(
@@ -28,6 +33,7 @@ export const useCardAuthenticationVerification = () => {
     // Only run authentication check when:
     // 1. User is logged in
     // 2. Baanx login is enabled
+    // As a fallback, set the authentication state to false
     if (userLoggedIn && isBaanxLoginEnabled) {
       try {
         checkAuthentication();
@@ -37,6 +43,19 @@ export const useCardAuthenticationVerification = () => {
           'useCardAuthenticationVerification::Error verifying authentication',
         );
       }
+    } else if (userLoggedIn && !isBaanxLoginEnabled) {
+      if (isAuthenticated) {
+        Logger.log(
+          'useCardAuthenticationVerification::User is logged in but Baanx login is disabled, setting authentication state to false',
+        );
+        dispatch(resetAuthenticatedData());
+      }
     }
-  }, [userLoggedIn, isBaanxLoginEnabled, checkAuthentication]);
+  }, [
+    userLoggedIn,
+    isBaanxLoginEnabled,
+    checkAuthentication,
+    dispatch,
+    isAuthenticated,
+  ]);
 };

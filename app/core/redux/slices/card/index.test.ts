@@ -104,8 +104,7 @@ const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
 
 const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
   address: '0xToken1',
-  chainId: '1',
-  isStaked: false,
+  caipChainId: 'eip155:1' as const,
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',

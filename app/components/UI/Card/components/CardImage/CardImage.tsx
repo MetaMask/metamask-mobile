@@ -491,7 +491,7 @@ const MetalCardImage = (
 
 const CardImage = (props: CardImageProps) => {
   const { type, address: rawAddress, status } = props;
-  const address = rawAddress ? truncateAddress(rawAddress) : undefined;
+  const address = truncateAddress(rawAddress);
   const hasLowerOpacity =
     status === CardStatus.FROZEN || status === CardStatus.BLOCKED;
 

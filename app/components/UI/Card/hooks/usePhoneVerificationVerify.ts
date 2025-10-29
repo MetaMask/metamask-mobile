@@ -50,11 +50,11 @@ const usePhoneVerificationVerify = (): {
         setIsSuccess(false);
         setError(null);
 
-        const RegisterUserResponse = await sdk.phoneVerificationVerify(request);
+        const registerUserResponse = await sdk.phoneVerificationVerify(request);
 
         setIsSuccess(true);
 
-        return RegisterUserResponse;
+        return registerUserResponse;
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);

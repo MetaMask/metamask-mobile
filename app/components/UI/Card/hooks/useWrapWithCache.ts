@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { setCacheData } from '../../../../core/redux/slices/card';
@@ -40,7 +40,6 @@ interface CacheHookReturn<T> {
  * @param cacheKey Unique identifier for this cache entry
  * @param fetchFn Async function that fetches the data
  * @param config Optional configuration for cache behavior
- * @param deps Dependencies array that triggers refetch when changed
  * @returns Object containing data, loading state, error, and fetch function
  *
  * @example
@@ -49,13 +48,12 @@ interface CacheHookReturn<T> {
  *   'registration-settings',
  *   () => api.getRegistrationSettings(),
  *   { cacheDuration: 10 * 60 * 1000 }, // 10 minutes
- *   []
  * );
  * ```
  */
 export const useWrapWithCache = <T>(
   cacheKey: string,
-  fetchFn: () => Promise<T>,
+  fetchFn: () => Promise<T | null>,
   config: CacheConfig = {},
 ): CacheHookReturn<T> => {
   const {
@@ -85,8 +83,7 @@ export const useWrapWithCache = <T>(
     return lastFetchedDate > cacheExpiry;
   }, [lastFetched, cacheDuration]);
 
-  // Memoize cache validity to prevent unnecessary re-runs
-  const cacheIsValid = useMemo(() => isCacheValid(), [isCacheValid]);
+  const cacheIsValid = isCacheValid();
 
   // Fetch function that updates cache
   const fetchData: () => Promise<T | null> = useCallback(async () => {
@@ -96,14 +93,17 @@ export const useWrapWithCache = <T>(
     try {
       const result = await fetchFn();
 
-      // Update cache in Redux store with both data and timestamp
-      dispatch(
-        setCacheData({
-          key: cacheKey,
-          data: result,
-          timestamp: Date.now(),
-        }),
-      );
+      // Only update cache if we got actual data (not null from missing dependencies)
+      // This prevents caching "null" responses when dependencies aren't ready
+      if (result !== null) {
+        dispatch(
+          setCacheData({
+            key: cacheKey,
+            data: result,
+            timestamp: Date.now(),
+          }),
+        );
+      }
 
       return result;
     } catch (err) {
@@ -114,7 +114,9 @@ export const useWrapWithCache = <T>(
     }
   }, [fetchFn, cacheKey, dispatch]);
 
-  // Effect to handle initial fetch and dependency changes
+  // Effect to handle initial fetch - runs on mount and when cache becomes invalid
+  // We DON'T include fetchData in dependencies to prevent refetching when the fetch function changes
+  // (e.g., when delegationSettings loads, it shouldn't trigger a refetch if cache is still valid)
   useEffect(() => {
     if (!fetchOnMount) {
       return;
@@ -127,8 +129,11 @@ export const useWrapWithCache = <T>(
 
     // Cache is stale or we don't have data, fetch new data
     fetchData();
+    // We deliberately exclude fetchData from dependencies to prevent unnecessary refetches
+    // when the fetch function reference changes but the cache is still valid
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cacheIsValid, cachedData, fetchOnMount, fetchData]);
+  }, [cacheIsValid, cachedData, fetchOnMount]);
 
   // Determine loading state: only show loading if actively fetching AND no cached data
   const shouldShowLoading = isLoading && (!cachedData || !cacheIsValid);

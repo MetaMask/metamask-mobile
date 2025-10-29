@@ -17,6 +17,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsAuthenticatedCard,
@@ -82,6 +83,41 @@ export const cardAuthenticationNavigationOptions = ({
   headerRight: () => <View />,
 });
 
+export const cardSpendingLimitNavigationOptions = ({
+  navigation,
+  route,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+  route: { params?: { flow?: 'manage' | 'enable' } };
+}): StackNavigationOptions => {
+  const flow = route.params?.flow || 'manage';
+  const titleKey =
+    flow === 'enable'
+      ? 'card.card_spending_limit.title_enable_token'
+      : 'card.card_spending_limit.title_change_token';
+
+  return {
+    headerLeft: () => (
+      <ButtonIcon
+        style={headerStyle.icon}
+        size={ButtonIconSizes.Md}
+        iconName={IconName.ArrowLeft}
+        onPress={() => navigation.goBack()}
+      />
+    ),
+    headerTitle: () => (
+      <Text
+        variant={TextVariant.HeadingSM}
+        style={headerStyle.title}
+        testID={'spending-limit-title'}
+      >
+        {strings(titleKey)}
+      </Text>
+    ),
+    headerRight: () => <View />,
+  };
+};
+
 const CardRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
@@ -108,6 +144,11 @@ const CardRoutes = () => {
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
         options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.SPENDING_LIMIT}
+        component={SpendingLimit}
+        options={cardSpendingLimitNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.ROOT}

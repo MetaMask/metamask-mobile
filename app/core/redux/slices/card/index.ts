@@ -148,6 +148,12 @@ const slice = createSlice({
         contactVerificationId: null,
       };
     },
+    resetAuthenticatedData: (state) => {
+      state.authenticatedPriorityToken = null;
+      state.authenticatedPriorityTokenLastFetched = null;
+      state.userCardLocation = 'international';
+      state.isAuthenticated = false;
+    },
     setCacheData: (
       state,
       action: PayloadAction<{ key: string; data: unknown; timestamp: number }>,
@@ -372,4 +378,5 @@ export const {
   setCacheData,
   clearCacheData,
   clearAllCache,
+  resetAuthenticatedData,
 } = actions;
