@@ -53,7 +53,9 @@ import Logger from '../../util/Logger';
 
 interface FieldMetadata {
   persist: boolean;
-  anonymous: boolean;
+  includeInDebugSnapshot: boolean;
+  includeInStateLogs: boolean;
+  usedInUi: boolean;
 }
 
 interface ControllerMetadata {

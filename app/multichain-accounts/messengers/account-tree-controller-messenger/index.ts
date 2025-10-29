@@ -1,26 +1,37 @@
-import { AccountTreeControllerSelectedAccountGroupChangeEvent } from '@metamask/account-tree-controller';
-import { BaseControllerMessenger } from '../../../core/Engine/types';
-import { Messenger } from '@metamask/base-controller';
+import {
+  AccountTreeControllerMessenger,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
+import {
+  RootExtendedMessenger,
+  RootMessenger,
+} from '../../../core/Engine/types';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
 
 /**
- * Get the AccountTreeControllerMessenger for the AccountTreeController.
+ * Get the messenger for the AccountTreeController.
  *
- * @param baseControllerMessenger - The base controller messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The AccountTreeControllerMessenger.
  */
 export function getAccountTreeControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
-) {
-  return baseControllerMessenger.getRestricted({
-    name: 'AccountTreeController',
-    allowedEvents: [
-      'AccountsController:accountAdded',
-      'AccountsController:accountRemoved',
-      'AccountsController:selectedAccountChange',
-      'UserStorageController:stateChange',
-      'MultichainAccountService:walletStatusChange',
-    ],
-    allowedActions: [
+  rootExtendedMessenger: RootExtendedMessenger,
+): AccountTreeControllerMessenger {
+  const messenger = new Messenger<
+    'AccountTreeController',
+    MessengerActions<AccountTreeControllerMessenger>,
+    MessengerEvents<AccountTreeControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'AccountTreeController',
+    parent: rootExtendedMessenger,
+  });
+  rootExtendedMessenger.delegate({
+    actions: [
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccount',
       'AccountsController:getSelectedMultichainAccount',
@@ -35,7 +46,16 @@ export function getAccountTreeControllerMessenger(
       'SnapController:get',
       'KeyringController:getState',
     ],
+    events: [
+      'AccountsController:accountAdded',
+      'AccountsController:accountRemoved',
+      'AccountsController:selectedAccountChange',
+      'UserStorageController:stateChange',
+      'MultichainAccountService:walletStatusChange',
+    ],
+    messenger,
   });
+  return messenger;
 }
 
 export type AllowedInitializationEvents =
@@ -46,18 +66,28 @@ export type AccountTreeControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get a messenger restricted to the actions and events that the
- * AccountTreeController requires during initialization.
+ * Get a messenger for the AccountTreeController during initialization. This is scoped to the
+ * actions and events that the AccountTreeController requires during initialization.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The AccountTreeControllerInitMessenger.
  */
 export function getAccountTreeControllerInitMessenger(
-  messenger: Messenger<never, AllowedInitializationEvents>,
+  rootMessenger: RootMessenger,
 ) {
-  return messenger.getRestricted({
-    name: 'AccountTreeControllerInit',
-    allowedActions: [],
-    allowedEvents: ['AccountTreeController:selectedAccountGroupChange'],
+  const messenger = new Messenger<
+    'AccountTreeControllerInit',
+    never,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
+    namespace: 'AccountTreeControllerInit',
+    parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: [],
+    events: ['AccountTreeController:selectedAccountGroupChange'],
+    messenger,
+  });
+  return messenger;
 }
