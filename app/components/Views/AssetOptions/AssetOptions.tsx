@@ -33,12 +33,11 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { SolScope } from '@metamask/keyring-api';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -113,8 +112,10 @@ const AssetOptions = (props: Props) => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
-  const selectedSolanaAccount =
-    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
+  // Get the selected account for the current network (works for all non-EVM chains)
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
 
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
@@ -269,14 +270,17 @@ const AssetOptions = (props: Props) => {
             try {
               let tokenSymbol;
               if (isNonEvmChainId(networkId)) {
-                if (!selectedSolanaAccount) {
+                const selectedNonEvmAccount = selectInternalAccountByScope(
+                  networkId as CaipChainId,
+                );
+                if (!selectedNonEvmAccount) {
                   Logger.log('AssetDetails: No account ID found');
                   return;
                 }
                 const { MultichainAssetsController } = Engine.context;
                 await MultichainAssetsController.ignoreAssets(
                   [address as CaipAssetType],
-                  selectedSolanaAccount.id,
+                  selectedNonEvmAccount.id,
                 );
                 tokenSymbol =
                   MultichainAssetsController.state.assetsMetadata[
@@ -356,6 +360,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
+      !isNonEvmChainId(networkId) && // TODO: Remove this once we have a way to add tokens on non-EVM chains
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,
