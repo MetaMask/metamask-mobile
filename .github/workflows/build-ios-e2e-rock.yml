@@ -142,12 +142,6 @@ jobs:
           
           echo "✅ Prebuild steps completed"
 
-      # Install Foundry (for smart contract testing if needed)
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@50d5a8956f2e319df19e6b57539d7e2acb9f8c1e
-        with:
-          version: stable
-
       - name: Rock Build - iOS E2E App (Simulator)
         id: rock-build-ios
         uses: MetaMask/ios@95beb7735eb374ff8dda13043af06ef93a184d2a
