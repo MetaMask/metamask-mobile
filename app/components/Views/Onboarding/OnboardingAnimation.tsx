@@ -137,12 +137,15 @@ const OnboardingAnimation = ({
           <Rive
             ref={logoRef}
             style={styles.image}
-            source={MetaMaskWordmarkAnimation}
+            resourceName='metamask_wordmark_animation_build-up'
             fit={Fit.Contain}
             alignment={Alignment.Center}
             autoplay={false}
             stateMachineName="WordmarkBuildUp"
             testID="metamask-wordmark-animation"
+            onError={(error) => {
+              alert('Error loading Rive animation: ' + JSON.stringify(error) );
+            }}
           />
         </Animated.View>
       </View>
