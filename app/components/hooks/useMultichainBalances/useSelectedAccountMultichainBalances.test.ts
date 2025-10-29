@@ -244,7 +244,7 @@ describe('useSelectedAccountMultichainBalances', () => {
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(
-      result.current.selectedAccountMultichainBalance?.isPortfolioVieEnabled,
+      result.current.selectedAccountMultichainBalance?.isPortfolioViewEnabled,
     ).toBe(true);
     expect(
       result.current.selectedAccountMultichainBalance?.totalFiatBalance,
