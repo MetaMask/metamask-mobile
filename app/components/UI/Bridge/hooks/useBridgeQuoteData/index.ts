@@ -206,10 +206,13 @@ export const useBridgeQuoteData = ({
   );
 
   const abortController = useRef<AbortController | null>(new AbortController());
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       abortController.current?.abort();
       abortController.current = null;
-    }, []);
+    },
+    [],
+  );
 
   const validateQuote = useCallback(async () => {
     // Increment validation ID for this request
