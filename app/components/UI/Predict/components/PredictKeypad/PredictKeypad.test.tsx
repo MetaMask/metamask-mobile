@@ -2,7 +2,21 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictKeypad, { PredictKeypadHandles } from './PredictKeypad';
 
+// Mock the Keypad component to capture onChange callback
+let mockOnChange:
+  | ((data: { value: string; valueAsNumber: number }) => void)
+  | null = null;
+jest.mock('../../../../Base/Keypad', () =>
+  jest.fn((props) => {
+    mockOnChange = props.onChange;
+    return null;
+  }),
+);
+
 describe('PredictKeypad', () => {
+  beforeAll(() => {
+    mockOnChange = null;
+  });
   const defaultProps = {
     isInputFocused: true,
     currentValue: 1,
@@ -13,6 +27,10 @@ describe('PredictKeypad', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -144,27 +162,271 @@ describe('PredictKeypad', () => {
   });
 
   describe('Keypad Integration', () => {
-    it('renders with correct props', () => {
-      // Arrange
+    it('renders Keypad component with correct currency and decimals', () => {
       const props = { ...defaultProps };
 
-      // Act
       const { toJSON } = render(<PredictKeypad {...props} />);
 
-      // Assert
       expect(toJSON()).toBeTruthy();
     });
+  });
 
-    it('handles keypad input changes internally', () => {
-      // Arrange
-      const props = { ...defaultProps };
+  describe('Add Funds Button', () => {
+    it('renders Add Funds button when hasInsufficientFunds is true and onAddFunds is provided', () => {
+      const onAddFundsMock = jest.fn();
+      const props = {
+        ...defaultProps,
+        hasInsufficientFunds: true,
+        onAddFunds: onAddFundsMock,
+      };
 
-      // Act - Component handles keypad changes internally, so we test that it renders
+      const { getByText, queryByText } = render(<PredictKeypad {...props} />);
+
+      expect(getByText('Add funds')).toBeOnTheScreen();
+      expect(queryByText('$20')).toBeNull();
+      expect(queryByText('$50')).toBeNull();
+      expect(queryByText('$100')).toBeNull();
+    });
+
+    it('calls onAddFunds when Add Funds button is pressed', () => {
+      const onAddFundsMock = jest.fn();
+      const props = {
+        ...defaultProps,
+        hasInsufficientFunds: true,
+        onAddFunds: onAddFundsMock,
+      };
+
+      const { getByText } = render(<PredictKeypad {...props} />);
+      fireEvent.press(getByText('Add funds'));
+
+      expect(onAddFundsMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders quick amount buttons when hasInsufficientFunds is false', () => {
+      const props = {
+        ...defaultProps,
+        hasInsufficientFunds: false,
+      };
+
+      const { getByText, queryByText } = render(<PredictKeypad {...props} />);
+
+      expect(getByText('$20')).toBeOnTheScreen();
+      expect(getByText('$50')).toBeOnTheScreen();
+      expect(getByText('$100')).toBeOnTheScreen();
+      expect(queryByText('predict.deposit.add_funds')).toBeNull();
+    });
+
+    it('renders quick amount buttons when onAddFunds is not provided', () => {
+      const props = {
+        ...defaultProps,
+        hasInsufficientFunds: true,
+        onAddFunds: undefined,
+      };
+
+      const { getByText, queryByText } = render(<PredictKeypad {...props} />);
+
+      expect(getByText('$20')).toBeOnTheScreen();
+      expect(queryByText('predict.deposit.add_funds')).toBeNull();
+    });
+  });
+
+  describe('handleDonePress', () => {
+    it('removes trailing decimal point when Done is pressed', () => {
+      const props = {
+        ...defaultProps,
+        currentValueUSDString: '25.',
+      };
+      const ref = React.createRef<PredictKeypadHandles>();
+
+      render(<PredictKeypad ref={ref} {...props} />);
+      ref.current?.handleDonePress();
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('25');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(25);
+      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
+    });
+
+    it('handles empty string after removing decimal point', () => {
+      const props = {
+        ...defaultProps,
+        currentValueUSDString: '.',
+      };
+      const ref = React.createRef<PredictKeypadHandles>();
+
+      render(<PredictKeypad ref={ref} {...props} />);
+      ref.current?.handleDonePress();
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(0);
+    });
+
+    it('does not modify value when no trailing decimal point', () => {
+      const props = {
+        ...defaultProps,
+        currentValueUSDString: '25.50',
+      };
+      const ref = React.createRef<PredictKeypadHandles>();
+
+      render(<PredictKeypad ref={ref} {...props} />);
+      ref.current?.handleDonePress();
+
+      expect(props.setCurrentValueUSDString).not.toHaveBeenCalled();
+      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('handleKeypadChange', () => {
+    it('updates value when keypad input changes', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 0,
+        currentValueUSDString: '0',
+      };
+
       render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '5', valueAsNumber: 5 });
 
-      // Assert - The component should render without errors and handle changes internally
-      expect(props.setCurrentValue).toBeDefined();
-      expect(props.setCurrentValueUSDString).toBeDefined();
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('5');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(5);
+    });
+
+    it('blocks input exceeding 9 digits', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 123456789,
+        currentValueUSDString: '123456789',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '1234567890', valueAsNumber: 1234567890 });
+
+      expect(props.setCurrentValueUSDString).not.toHaveBeenCalled();
+      expect(props.setCurrentValue).not.toHaveBeenCalled();
+    });
+
+    it('limits decimal places to 2 digits', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 25,
+        currentValueUSDString: '25',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '25.999', valueAsNumber: 25.999 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('25.99');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(25.99);
+    });
+
+    it('preserves decimal point when user just typed it', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 25,
+        currentValueUSDString: '25',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '25.', valueAsNumber: 25 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('25.');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(25);
+    });
+
+    it('handles value with trailing decimal remaining the same', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 25,
+        currentValueUSDString: '25.',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '25.', valueAsNumber: 25 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('25.');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(25);
+    });
+
+    it('removes decimal when deleting digit after decimal point', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 2.5,
+        currentValueUSDString: '2.5',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '2.', valueAsNumber: 2 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('2');
+    });
+
+    it('handles empty input value', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 25,
+        currentValueUSDString: '25',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '', valueAsNumber: 0 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(0);
+    });
+
+    it('handles single decimal point input', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 0,
+        currentValueUSDString: '0',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '.', valueAsNumber: 0 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('.');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(0);
+    });
+
+    it('handles decimal value with no integer part', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 0,
+        currentValueUSDString: '0',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '.5', valueAsNumber: 0.5 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('.5');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(0.5);
+    });
+
+    it('handles normal numeric input', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 0,
+        currentValueUSDString: '0',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '123', valueAsNumber: 123 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('123');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(123);
+    });
+
+    it('handles decimal input with multiple digits', () => {
+      const props = {
+        ...defaultProps,
+        currentValue: 0,
+        currentValueUSDString: '0',
+      };
+
+      render(<PredictKeypad {...props} />);
+      mockOnChange?.({ value: '123.45', valueAsNumber: 123.45 });
+
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('123.45');
+      expect(props.setCurrentValue).toHaveBeenCalledWith(123.45);
     });
   });
 });

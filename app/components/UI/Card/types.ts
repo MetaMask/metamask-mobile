@@ -40,11 +40,13 @@ export interface CardToken {
 
 // Card token data interface
 // Used on Keychain storage
+// Note: refreshToken and refreshTokenExpiresAt are optional to support
+// the onboarding flow where we only receive a short-lived accessToken
 export interface CardTokenData {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   accessTokenExpiresAt: number;
-  refreshTokenExpiresAt: number;
+  refreshTokenExpiresAt?: number;
   location: CardLocation;
 }
 
@@ -300,6 +302,7 @@ export interface RegistrationSettingsResponse {
       termsAndConditions: string;
       accountOpeningDisclosure: string;
       noticeOfPrivacy: string;
+      eSignConsentDisclosure: string;
     };
     intl: {
       termsAndConditions: string;
@@ -324,18 +327,26 @@ export interface ConsentMetadata {
   ipAddress?: string;
   userAgent?: string;
   timestamp?: string;
+  clientId?: string;
+  version?: string;
+}
+
+export interface Consent {
+  consentType:
+    | 'eSignAct'
+    | 'termsAndPrivacy'
+    | 'marketingNotifications'
+    | 'smsNotifications'
+    | 'emailNotifications';
+  consentStatus: 'granted' | 'denied';
+  metadata: ConsentMetadata;
 }
 
 export interface CreateOnboardingConsentRequest {
+  policyType: 'US' | 'global';
   onboardingId: string;
-  policy: string;
-  consents: {
-    eSignAct?: string;
-    termsAndPrivacy: string;
-    marketingNotifications: string;
-    smsNotifications: string;
-    emailNotifications: string;
-  };
+  tenantId: string;
+  consents: Consent[];
   metadata?: ConsentMetadata;
 }
 

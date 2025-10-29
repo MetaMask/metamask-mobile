@@ -55,6 +55,8 @@ describe('usePhoneVerificationSend', () => {
   const mockCardSDKReturn = {
     sdk: mockSDK,
     isLoading: false,
+    user: null,
+    setUser: jest.fn(),
     logoutFromProvider: mockLogoutFromProvider,
     userCardLocation: 'us' as CardLocation,
   };
@@ -130,6 +132,8 @@ describe('usePhoneVerificationSend', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 
@@ -150,6 +154,8 @@ describe('usePhoneVerificationSend', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 
@@ -333,6 +339,8 @@ describe('usePhoneVerificationSend', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: sdkWithoutMethod,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 

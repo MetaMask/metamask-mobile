@@ -13,9 +13,11 @@ import {
   CardAuthorizeResponse,
   CardExchangeTokenResponse,
   CardLocation,
+  CreateOnboardingConsentRequest,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
+import AppConstants from '../../../../core/AppConstants';
 
 // Type definition for accessing private methods in tests
 interface CardSDKPrivateAccess {
@@ -1557,47 +1559,6 @@ describe('CardSDK', () => {
     });
   });
 
-  describe('isBaanxLoginEnabled', () => {
-    it('returns true when Baanx login is enabled', () => {
-      const enabledFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-        isBaanxLoginEnabled: true,
-      };
-
-      const enabledSDK = new CardSDK({
-        cardFeatureFlag: enabledFeatureFlag,
-      });
-
-      expect(enabledSDK.isBaanxLoginEnabled).toBe(true);
-    });
-
-    it('returns false when Baanx login is disabled', () => {
-      const disabledFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-        isBaanxLoginEnabled: false,
-      };
-
-      const disabledSDK = new CardSDK({
-        cardFeatureFlag: disabledFeatureFlag,
-      });
-
-      expect(disabledSDK.isBaanxLoginEnabled).toBe(false);
-    });
-
-    it('returns false when Baanx login flag is undefined', () => {
-      const undefinedFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-      };
-      delete undefinedFeatureFlag.isBaanxLoginEnabled;
-
-      const undefinedSDK = new CardSDK({
-        cardFeatureFlag: undefinedFeatureFlag,
-      });
-
-      expect(undefinedSDK.isBaanxLoginEnabled).toBe(false);
-    });
-  });
-
   describe('makeRequest error scenarios', () => {
     it('handles unknown error type', async () => {
       const unknownError = 'string error';
@@ -2588,14 +2549,14 @@ describe('CardSDK', () => {
 
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
-      const mockRequest = {
+      const mockRequest: CreateOnboardingConsentRequest = {
+        policyType: 'US',
         onboardingId: 'onboarding123',
-        policy: 'terms_and_conditions',
-        consents: {
-          termsAndPrivacy: 'granted',
-          marketingNotifications: 'granted',
-          smsNotifications: 'granted',
-          emailNotifications: 'granted',
+        consents: [],
+        tenantId: 'tenant_baanx_global',
+        metadata: {
+          userAgent: AppConstants.USER_AGENT,
+          timestamp: new Date().toISOString(),
         },
       };
 
@@ -2623,14 +2584,14 @@ describe('CardSDK', () => {
     });
 
     it('handles create onboarding consent error', async () => {
-      const mockRequest = {
+      const mockRequest: CreateOnboardingConsentRequest = {
+        policyType: 'US',
         onboardingId: 'onboarding123',
-        policy: 'terms_and_conditions',
-        consents: {
-          termsAndPrivacy: 'granted',
-          marketingNotifications: 'granted',
-          smsNotifications: 'granted',
-          emailNotifications: 'granted',
+        consents: [],
+        tenantId: 'tenant_baanx_global',
+        metadata: {
+          userAgent: AppConstants.USER_AGENT,
+          timestamp: new Date().toISOString(),
         },
       };
 

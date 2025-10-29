@@ -39,6 +39,10 @@ describe('usePredictEligibility', () => {
     mockUseSelector.mockImplementation((selector) => selector(mockState));
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns isEligible for the specified provider', () => {
     mockState.engine.backgroundState.PredictController.eligibility = {
       polymarket: true,

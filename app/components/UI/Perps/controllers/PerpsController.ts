@@ -25,7 +25,7 @@ import {
   TransactionStatus,
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import { generateTransferData } from '../../../../util/transactions';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
@@ -721,9 +721,8 @@ export class PerpsController extends BaseController<
       }
 
       const orderExecutionFeeDiscountStartTime = performance.now();
-      const discountBips = await RewardsController.getPerpsDiscountForAccount(
-        caipAccountId,
-      );
+      const discountBips =
+        await RewardsController.getPerpsDiscountForAccount(caipAccountId);
       const orderExecutionFeeDiscountDuration =
         performance.now() - orderExecutionFeeDiscountStartTime;
 
@@ -849,23 +848,36 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Generate standard error context for Logger.error calls
-   * Ensures consistent error reporting to Sentry with minimal but complete context
+   * Generate standard error context for Logger.error calls with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature, provider, and network.
+   *
    * @param method - The method name where the error occurred
-   * @param extra - Optional additional context fields
-   * @returns Standardized error context object
+   * @param extra - Optional additional context fields (becomes searchable context data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
    * @private
+   *
+   * @example
+   * Logger.error(error, this.getErrorContext('placeOrder', { coin: 'BTC', operation: 'validate' }));
+   * // Creates searchable tags: feature:perps, provider:hyperliquid, network:mainnet
+   * // Creates searchable context: perps_controller.method:placeOrder, perps_controller.coin:BTC, perps_controller.operation:validate
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      context: `PerpsController.${method}`,
-      provider: this.state.activeProvider,
-      network: this.state.isTestnet ? 'testnet' : 'mainnet',
-      ...extra,
+      tags: {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        provider: this.state.activeProvider,
+        network: this.state.isTestnet ? 'testnet' : 'mainnet',
+      },
+      context: {
+        name: 'PerpsController',
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 
@@ -1698,6 +1710,14 @@ export class PerpsController extends BaseController<
     const traceId = uuidv4();
     const startTime = performance.now();
     let traceData: { success: boolean; error?: string } | undefined;
+    let result: OrderResult | undefined;
+    let errorMessage: string | undefined;
+
+    // Extract tracking data with defaults
+    const direction = params.trackingData?.direction;
+    const positionSize = params.trackingData?.positionSize;
+    const source =
+      params.trackingData?.source || PerpsEventValues.SOURCE.TP_SL_VIEW;
 
     try {
       const traceSpan = trace({
@@ -1725,7 +1745,6 @@ export class PerpsController extends BaseController<
         provider.setUserFeeDiscount(feeDiscountBips);
       }
 
-      let result: OrderResult;
       try {
         result = await provider.updatePositionTPSL(params);
       } finally {
@@ -1735,101 +1754,65 @@ export class PerpsController extends BaseController<
         }
       }
 
-      const completionDuration = performance.now() - startTime;
-
       if (result.success) {
         this.update((state) => {
           state.lastUpdateTimestamp = Date.now();
         });
-
-        // Track TP/SL update executed - ONE event with both properties
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-              [PerpsEventProperties.ASSET]: params.coin,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              ...(params.takeProfitPrice && {
-                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                  params.takeProfitPrice,
-                ),
-              }),
-              ...(params.stopLossPrice && {
-                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                  params.stopLossPrice,
-                ),
-              }),
-            })
-            .build(),
-        );
-
         traceData = { success: true };
       } else {
-        // Track TP/SL update failed - ONE event with both properties
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.ASSET]: params.coin,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              [PerpsEventProperties.ERROR_MESSAGE]:
-                result.error || 'Unknown error',
-              ...(params.takeProfitPrice && {
-                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                  params.takeProfitPrice,
-                ),
-              }),
-              ...(params.stopLossPrice && {
-                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                  params.stopLossPrice,
-                ),
-              }),
-            })
-            .build(),
-        );
-
-        traceData = { success: false, error: result.error || 'Unknown error' };
+        errorMessage = result.error || 'Unknown error';
+        traceData = { success: false, error: errorMessage };
       }
 
       return result;
     } catch (error) {
+      errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      traceData = { success: false, error: errorMessage };
+      throw error;
+    } finally {
       const completionDuration = performance.now() - startTime;
 
-      // Track TP/SL update exception
+      // Build common event properties
+      const eventProperties = {
+        [PerpsEventProperties.STATUS]: result?.success
+          ? PerpsEventValues.STATUS.EXECUTED
+          : PerpsEventValues.STATUS.FAILED,
+        [PerpsEventProperties.ASSET]: params.coin,
+        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+        [PerpsEventProperties.SOURCE]: source,
+        ...(direction && {
+          [PerpsEventProperties.DIRECTION]:
+            direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+        }),
+        ...(positionSize !== undefined && {
+          [PerpsEventProperties.POSITION_SIZE]: positionSize,
+        }),
+        ...(params.takeProfitPrice && {
+          [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+            params.takeProfitPrice,
+          ),
+        }),
+        ...(params.stopLossPrice && {
+          [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+            params.stopLossPrice,
+          ),
+        }),
+        ...(errorMessage && {
+          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+        }),
+      };
+
+      // Track event once with all properties
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
         )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              error instanceof Error ? error.message : 'Unknown error',
-            ...(params.takeProfitPrice && {
-              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                params.takeProfitPrice,
-              ),
-            }),
-            ...(params.stopLossPrice && {
-              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                params.stopLossPrice,
-              ),
-            }),
-          })
+          .addProperties(eventProperties)
           .build(),
       );
 
-      traceData = {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-      throw error;
-    } finally {
       endTrace({
         name: TraceName.PerpsUpdateTPSL,
         id: traceId,

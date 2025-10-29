@@ -544,6 +544,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -871,9 +872,9 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
+                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",

@@ -35,6 +35,11 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       },
     },
     {
+      urlEndpoint: /^https:\/\/min-api\.cryptocompare\.com\/data\/price\?.*$/,
+      responseCode: 200,
+      response: {},
+    },
+    {
       urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/chains\/\d+\/spot-prices\?.*$/,
       responseCode: 200,
