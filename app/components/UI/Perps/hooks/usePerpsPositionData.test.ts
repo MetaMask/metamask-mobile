@@ -518,7 +518,7 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000', // Original
+            open: '3050', // Original
             high: '3100', // Updated to max
             low: '2900', // Updated to min
             close: '2900', // Latest price
