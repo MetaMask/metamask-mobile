@@ -1066,7 +1066,7 @@ export class PredictController extends BaseController<
 
       // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
       const prepareClaimResult = await provider.prepareClaim({
-        positions: claimablePositions.splice(0, 1),
+        positions: claimablePositions,
         signer,
       });
 
