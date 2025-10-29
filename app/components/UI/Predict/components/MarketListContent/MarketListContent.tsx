@@ -58,14 +58,13 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   const scrollHandler = scrollCoordinator?.getScrollHandler(category);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: PredictMarketType; index: number }) => (
+    (info: { item: PredictMarketType; index: number }) => (
       <PredictMarket
-        key={item.id}
-        market={item}
+        market={info.item}
         entryPoint={entryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
-          index + 1,
+          info.index + 1,
         )}
       />
     ),
