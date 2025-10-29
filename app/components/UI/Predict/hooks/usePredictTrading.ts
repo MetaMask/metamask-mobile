@@ -6,6 +6,7 @@ import {
   OrderPreview,
   PlaceOrderParams,
   PrepareWithdrawParams,
+  PrepareDepositParams,
   PreviewOrderParams,
 } from '../providers/types';
 import { ClaimParams } from '../types';
@@ -44,6 +45,11 @@ export function usePredictTrading() {
     return controller.prepareWithdraw(params);
   }, []);
 
+  const deposit = useCallback(async (params: PrepareDepositParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.depositWithConfirmation(params);
+  }, []);
+
   return {
     getPositions,
     placeOrder,
@@ -51,5 +57,6 @@ export function usePredictTrading() {
     getBalance,
     previewOrder,
     prepareWithdraw,
+    deposit,
   };
 }
