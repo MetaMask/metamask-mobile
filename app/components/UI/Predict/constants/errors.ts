@@ -20,26 +20,27 @@ export const PREDICT_ERROR_CODES = {
   WITHDRAW_FAILED: 'PREDICT_WITHDRAW_FAILED',
 } as const;
 
-export const PREDICT_ERROR_MESSAGES = {
-  [PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK]: strings(
-    'predict.error_messages.preview_no_order_book',
-  ),
-  [PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY]: strings(
-    'predict.error_messages.preview_no_order_match_buy',
-  ),
-  [PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL]: strings(
-    'predict.error_messages.preview_no_order_match_sell',
-  ),
-  [PREDICT_ERROR_CODES.PLACE_ORDER_FAILED]: strings(
-    'predict.error_messages.place_order_failed',
-  ),
-  [PREDICT_ERROR_CODES.PREVIEW_FAILED]: strings(
-    'predict.error_messages.preview_failed',
-  ),
-  [PREDICT_ERROR_CODES.CLAIM_FAILED]: strings(
-    'predict.error_messages.claim_failed',
-  ),
-  [PREDICT_ERROR_CODES.UNKNOWN_ERROR]: strings(
-    'predict.error_messages.unknown_error',
-  ),
-} as const;
+export const getPredictErrorMessages = () =>
+  ({
+    [PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK]: strings(
+      'predict.error_messages.preview_no_order_book',
+    ),
+    [PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY]: strings(
+      'predict.error_messages.preview_no_order_match_buy',
+    ),
+    [PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL]: strings(
+      'predict.error_messages.preview_no_order_match_sell',
+    ),
+    [PREDICT_ERROR_CODES.PLACE_ORDER_FAILED]: strings(
+      'predict.error_messages.place_order_failed',
+    ),
+    [PREDICT_ERROR_CODES.PREVIEW_FAILED]: strings(
+      'predict.error_messages.preview_failed',
+    ),
+    [PREDICT_ERROR_CODES.CLAIM_FAILED]: strings(
+      'predict.error_messages.claim_failed',
+    ),
+    [PREDICT_ERROR_CODES.UNKNOWN_ERROR]: strings(
+      'predict.error_messages.unknown_error',
+    ),
+  }) as const;
