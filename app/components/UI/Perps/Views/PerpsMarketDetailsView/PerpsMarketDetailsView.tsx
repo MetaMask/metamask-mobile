@@ -630,12 +630,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                         existingPosition.liquidationPrice || undefined,
                     }
                   : selectedOrderTPSL.takeProfitPrice ||
-                    selectedOrderTPSL.stopLossPrice
-                  ? {
-                      takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
-                      stopLossPrice: selectedOrderTPSL.stopLossPrice,
-                    }
-                  : undefined
+                      selectedOrderTPSL.stopLossPrice
+                    ? {
+                        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+                        stopLossPrice: selectedOrderTPSL.stopLossPrice,
+                      }
+                    : undefined
               }
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
             />

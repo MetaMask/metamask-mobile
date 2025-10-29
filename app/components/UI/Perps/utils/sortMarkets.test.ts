@@ -21,7 +21,7 @@ describe('sortMarkets', () => {
       openInterest: '$500K',
       price: '$50000',
       ...overrides,
-    } as PerpsMarketData);
+    }) as PerpsMarketData;
 
   beforeEach(() => {
     jest.clearAllMocks();
