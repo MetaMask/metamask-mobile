@@ -29,10 +29,14 @@ class ImportSrpView {
     if (device.getPlatform() === 'ios') {
       await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
-        hideKeyboard: true,
+        hideKeyboard: false,
+      });
+
+      await Gestures.tap(this.container, {
+        elemDescription: 'Import SRP container to dismiss keyboard',
+        checkVisibility: false,
       });
     } else {
-      // For Android, we use replaceText to avoid autocomplete issue
       await Gestures.replaceText(this.textareaInput, mnemonic, {
         elemDescription,
         checkVisibility: false,
