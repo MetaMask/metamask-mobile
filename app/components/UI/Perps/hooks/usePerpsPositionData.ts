@@ -219,6 +219,7 @@ export const usePerpsPositionData = ({
     const newLiveCandle = lastCandle
       ? {
           ...lastCandle,
+          time: currentCandleTime,
           close,
           high,
           low,
