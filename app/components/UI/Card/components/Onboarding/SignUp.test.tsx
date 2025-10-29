@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { useNavigation } from '@react-navigation/native';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
@@ -10,10 +11,12 @@ import SignUp from './SignUp';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(() => ({
-    navigate: jest.fn(),
-  })),
+  useNavigation: jest.fn(),
 }));
+
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -27,8 +30,10 @@ jest.mock('../../hooks/useRegistrationSettings', () => ({
   default: jest.fn(() => ({
     data: {
       countries: [
-        { iso3166alpha2: 'US', name: 'United States' },
-        { iso3166alpha2: 'CA', name: 'Canada' },
+        { iso3166alpha2: 'US', name: 'United States', canSignUp: true },
+        { iso3166alpha2: 'CA', name: 'Canada', canSignUp: true },
+        { iso3166alpha2: 'GB', name: 'United Kingdom', canSignUp: false },
+        { iso3166alpha2: 'DE', name: 'Germany', canSignUp: true },
       ],
     },
   })),
@@ -41,7 +46,7 @@ jest.mock('../../util/validatePassword');
 
 // Mock SelectComponent with proper interaction simulation
 jest.mock('../../../SelectComponent', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   return (props: {
@@ -59,14 +64,14 @@ jest.mock('../../../SelectComponent', () => {
       }
     };
 
-    return React.createElement(
+    return ReactActual.createElement(
       TouchableOpacity,
       {
         testID: props.testID,
         onPress: handlePress,
         ...props,
       },
-      React.createElement(
+      ReactActual.createElement(
         Text,
         {},
         props.selectedValue || props.defaultValue || 'Select...',
@@ -77,35 +82,38 @@ jest.mock('../../../SelectComponent', () => {
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
-  return ({
-    title,
-    description,
-    formFields,
-    actions,
-  }: {
-    title?: React.ReactNode;
-    description?: React.ReactNode;
-    formFields?: React.ReactNode;
-    actions?: React.ReactNode;
+  return (props: {
+    title?: unknown;
+    description?: unknown;
+    formFields?: unknown;
+    actions?: unknown;
   }) =>
-    React.createElement(
+    ReactActual.createElement(
       View,
       { testID: 'onboarding-step' },
-      React.createElement(View, { testID: 'onboarding-step-title' }, title),
-      React.createElement(
+      ReactActual.createElement(
+        View,
+        { testID: 'onboarding-step-title' },
+        props.title,
+      ),
+      ReactActual.createElement(
         View,
         { testID: 'onboarding-step-description' },
-        description,
+        props.description,
       ),
-      React.createElement(
+      ReactActual.createElement(
         View,
         { testID: 'onboarding-step-form-fields' },
-        formFields,
+        props.formFields,
       ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
+      ReactActual.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        props.actions,
+      ),
     );
 });
 
@@ -150,9 +158,14 @@ const createTestStore = (initialState = {}) =>
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
   let mockSendEmailVerification: jest.Mock;
+  let mockNavigate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+    } as unknown as ReturnType<typeof useNavigation>);
     mockSendEmailVerification = jest
       .fn()
       .mockResolvedValue({ contactVerificationId: '123' });
@@ -566,6 +579,54 @@ describe('SignUp Component', () => {
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
+    });
+  });
+
+  describe('Country Selection', () => {
+    it('filters selectOptions by country.canSignUp property', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId('signup-country-select');
+
+      // The SelectComponent mock should receive only countries where canSignUp is true
+      // Based on the mock data, we should have US, Canada, and Germany (3 countries)
+      expect(countrySelect.props.options).toHaveLength(3);
+
+      // Verify that only countries with canSignUp: true are included
+      const optionValues = countrySelect.props.options.map(
+        (option: { value: string }) => option.value,
+      );
+      expect(optionValues).toContain('US');
+      expect(optionValues).toContain('CA');
+      expect(optionValues).toContain('DE');
+      expect(optionValues).not.toContain('GB');
+
+      // Verify the options are sorted alphabetically by name
+      const optionLabels = countrySelect.props.options.map(
+        (option: { label: string }) => option.label,
+      );
+      expect(optionLabels).toEqual(['Canada', 'Germany', 'United States']);
+    });
+  });
+
+  describe('Navigation', () => {
+    it('navigates to authentication screen when "I already have an account" is pressed', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const alreadyHaveAccountButton = getByTestId(
+        'signup-i-already-have-an-account-text',
+      );
+      fireEvent.press(alreadyHaveAccountButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
     });
   });
 });

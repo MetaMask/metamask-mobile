@@ -830,7 +830,9 @@ describe('PerpsOrderView', () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     const leverageText = await screen.findByText('Leverage');
-    fireEvent.press(leverageText);
+    await act(async () => {
+      fireEvent.press(leverageText);
+    });
 
     // The bottom sheet should become visible
     await waitFor(() => {
@@ -1150,7 +1152,9 @@ describe('PerpsOrderView', () => {
     const placeOrderButton = await screen.findByTestId(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
     );
-    fireEvent.press(placeOrderButton);
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
 
     // Should not call placeOrder due to validation failure
     await waitFor(() => {
@@ -1753,11 +1757,8 @@ describe('PerpsOrderView', () => {
       );
 
       // Press the TP/SL button
-      fireEvent.press(tpSlButton);
-
-      // Give the event handler time to execute
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        fireEvent.press(tpSlButton);
       });
 
       // Verify that showToast was called with the correct argument
@@ -1855,7 +1856,9 @@ describe('PerpsOrderView', () => {
       const tpSlButton = screen.getByTestId(
         PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON,
       );
-      fireEvent.press(tpSlButton);
+      await act(async () => {
+        fireEvent.press(tpSlButton);
+      });
 
       // Verify that navigation to TP/SL screen was triggered
       await waitFor(() => {

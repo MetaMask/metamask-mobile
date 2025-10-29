@@ -39,6 +39,11 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
+// Mock Redux selectors for chart preferences
+jest.mock('../../selectors/chartPreferences', () => ({
+  selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
+}));
+
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
@@ -784,7 +789,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: mockRefreshPosition,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -794,7 +799,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Act - Switch to statistics tab
-      const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
+      const statisticsTab = getByText('Overview');
       fireEvent.press(statisticsTab);
 
       const scrollView = getByTestId(

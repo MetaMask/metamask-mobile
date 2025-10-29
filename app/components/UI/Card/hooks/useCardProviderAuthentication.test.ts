@@ -52,9 +52,6 @@ const mockSetUserCardLocation = setUserCardLocation as jest.MockedFunction<
 
 describe('useCardProviderAuthentication', () => {
   const mockSdk = {
-    get isBaanxLoginEnabled() {
-      return true;
-    },
     get isCardEnabled() {
       return true;
     },

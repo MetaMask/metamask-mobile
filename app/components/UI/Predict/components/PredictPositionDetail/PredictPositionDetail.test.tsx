@@ -1,5 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PredictPositionDetail from './PredictPositionDetail';
 import {
   type PredictPosition as PredictPositionType,
@@ -34,10 +36,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
   const mockNavigate = jest.fn() as jest.Mock;
   // expose for tests without out-of-scope reference
   global.__mockNavigate = mockNavigate;
   return {
+    ...actualNav,
     useNavigation: () => ({ navigate: mockNavigate }),
   };
 });
@@ -65,6 +69,15 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
     useTailwind: () => mockTw,
   };
 });
+
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+    isEligible: true,
+    hasNoBalance: false,
+  }),
+}));
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
@@ -130,6 +143,12 @@ const baseMarket: PredictMarket = {
   volume: 200000,
 };
 
+const initialState = {
+  engine: {
+    backgroundState,
+  },
+};
+
 const renderComponent = (
   overrides?: Partial<PredictPositionType>,
   marketOverrides?: Partial<PredictMarket>,
@@ -143,18 +162,27 @@ const renderComponent = (
     ...baseMarket,
     ...marketOverrides,
   } as PredictMarket;
-  return render(
+  return renderWithProvider(
     <PredictPositionDetail
       position={position}
       market={market}
       marketStatus={marketStatus}
     />,
+    { state: initialState },
   );
 };
 
 describe('PredictPositionDetail', () => {
   beforeEach(() => {
     global.__mockNavigate.mockClear();
+    mockExecuteGuardedAction.mockClear();
+    mockExecuteGuardedAction.mockImplementation(
+      async (action) => await action(),
+    );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('renders open position with current value, percent change and cash out', () => {

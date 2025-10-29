@@ -289,8 +289,8 @@ export class HyperLiquidSubscriptionService {
    * Fast hash function for change detection
    * Uses string concatenation of key fields instead of JSON.stringify()
    * Performance: ~100x faster than JSON.stringify() for typical objects
-   * Only tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
-   * Value-based changes like unrealizedPnl should not trigger notifications
+   * Tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
+   * and value changes (unrealizedPnl, returnOnEquity) for live P&L updates
    */
   private hashPositions(positions: Position[]): string {
     if (!positions || positions.length === 0) return '0';
@@ -299,7 +299,9 @@ export class HyperLiquidSubscriptionService {
         (p) =>
           `${p.coin}:${p.size}:${p.entryPrice}:${p.leverage.value}:${
             p.takeProfitPrice || ''
-          }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}`,
+          }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
+            p.unrealizedPnl
+          }:${p.returnOnEquity}`,
       )
       .join('|');
   }

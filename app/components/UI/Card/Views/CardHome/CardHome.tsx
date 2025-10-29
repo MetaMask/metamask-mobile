@@ -16,7 +16,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -54,10 +54,19 @@ import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
 import useCardDetails from '../../hooks/useCardDetails';
-import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
+import {
+  selectIsAuthenticatedCard,
+  setIsAuthenticatedCard,
+  setAuthenticatedPriorityToken,
+  setAuthenticatedPriorityTokenLastFetched,
+  setUserCardLocation,
+} from '../../../../../core/redux/slices/card';
 import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import { isAuthenticationError } from '../../util/isAuthenticationError';
+import { removeCardBaanxToken } from '../../util/cardTokenVault';
+import Logger from '../../../../../util/Logger';
 
 /**
  * CardHome Component
@@ -80,6 +89,7 @@ const CardHome = () => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const theme = useTheme();
 
   const styles = createStyles(theme);
@@ -389,6 +399,34 @@ const CardHome = () => {
     [priorityTokenError, cardDetailsError],
   );
 
+  // Handle authentication errors (expired token, invalid credentials, etc.)
+  useEffect(() => {
+    const handleAuthenticationError = async () => {
+      if (!error) {
+        return;
+      }
+
+      // Check if the error is authentication-related
+      if (isAuthenticated && isAuthenticationError(cardDetailsError)) {
+        Logger.log(
+          'CardHome: Authentication error detected, clearing auth state and redirecting',
+        );
+
+        // Clear authentication state
+        await removeCardBaanxToken();
+        dispatch(setIsAuthenticatedCard(false));
+        dispatch(setAuthenticatedPriorityToken(null));
+        dispatch(setAuthenticatedPriorityTokenLastFetched(null));
+        dispatch(setUserCardLocation(null));
+
+        // Redirect to welcome screen for re-authentication
+        navigation.navigate(Routes.CARD.WELCOME);
+      }
+    };
+
+    handleAuthenticationError();
+  }, [error, isAuthenticated, dispatch, navigation, cardDetailsError]);
+
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -410,7 +448,7 @@ const CardHome = () => {
         >
           {strings('card.card_home.error_description')}
         </Text>
-        {retries < 3 && (
+        {retries < 3 && !isAuthenticationError(error) && (
           <View style={styles.tryAgainButtonContainer}>
             <Button
               variant={ButtonVariants.Primary}

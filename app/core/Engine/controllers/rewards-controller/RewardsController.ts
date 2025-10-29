@@ -252,6 +252,7 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #isDisabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -389,9 +390,11 @@ export class RewardsController extends BaseController<
   constructor({
     messenger,
     state,
+    isDisabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
+    isDisabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -402,6 +405,8 @@ export class RewardsController extends BaseController<
         ...state,
       },
     });
+
+    this.#isDisabled = isDisabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -644,7 +649,7 @@ export class RewardsController extends BaseController<
    * Handle authentication triggers (account changes, keyring unlock)
    */
   async handleAuthenticationTrigger(reason?: string): Promise<void> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
 
     if (!rewardsEnabled) {
       await this.performSilentAuth(null, true, true);
@@ -666,8 +671,14 @@ export class RewardsController extends BaseController<
         // Try silent auth on each account until one succeeds
         for (const account of sortedAccounts) {
           try {
-            await this.performSilentAuth(account, true, true);
-            break; // Stop on first success
+            const subscriptionId = await this.performSilentAuth(
+              account,
+              true,
+              true,
+            );
+            if (subscriptionId) {
+              break; // Stop on first success
+            }
           } catch {
             // Continue to next account
           }
@@ -1070,7 +1081,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<boolean> - True if the account has opted in, false otherwise
    */
   async getHasAccountOptedIn(account: CaipAccountId): Promise<boolean> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
     const accountState = this.#getAccountState(account);
     if (accountState?.hasOptedIn) return accountState.hasOptedIn;
@@ -1148,7 +1159,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<OptInStatusDto> - The opt-in status response
    */
   async getOptInStatus(params: OptInStatusInputDto): Promise<OptInStatusDto> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       // Return empty arrays when feature flag is disabled
       const result = {
@@ -1281,7 +1292,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<number> - The discount in basis points
    */
   async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return 0;
     const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
     return perpsDiscountData?.discountBips || 0;
@@ -1362,7 +1373,7 @@ export class RewardsController extends BaseController<
   async getPointsEvents(
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return { has_more: false, cursor: null, results: [] };
 
     // If cursor is provided, always fetch fresh and do not touch cache
@@ -1487,7 +1498,7 @@ export class RewardsController extends BaseController<
   async getPointsEventsLastUpdated(
     params: GetPointsEventsLastUpdatedDto,
   ): Promise<Date | null> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return null;
     Logger.log(
       'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
@@ -1508,7 +1519,7 @@ export class RewardsController extends BaseController<
   async hasPointsEventsChanged(
     params: GetPointsEventsLastUpdatedDto,
   ): Promise<boolean> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
 
     const cached =
@@ -1534,11 +1545,13 @@ export class RewardsController extends BaseController<
    * Estimate points for a given activity
    * @param request - The estimate points request containing activity type and context
    * @returns Promise<EstimatedPointsDto> - The estimated points and bonus information
+   * @note For PERPS activities, perpsContext can be a single position or an array for batch estimation.
+   * When an array is provided, returns aggregated points (sum) and average bonus.
    */
   async estimatePoints(
     request: EstimatePointsDto,
   ): Promise<EstimatedPointsDto> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return { pointsEstimate: 0, bonusBips: 0 };
     try {
       const estimatedPoints = await this.messagingSystem.call(
@@ -1561,6 +1574,8 @@ export class RewardsController extends BaseController<
    * @returns boolean - True if rewards feature is enabled, false otherwise
    */
   isRewardsFeatureEnabled(): boolean {
+    const isDisabled = this.#isDisabled();
+    if (isDisabled) return false;
     return selectRewardsEnabledFlag(store.getState());
   }
 
@@ -1572,7 +1587,12 @@ export class RewardsController extends BaseController<
    */
   async getSeasonMetadata(
     type: 'current' | 'next' = 'current',
-  ): Promise<SeasonDtoState> {
+  ): Promise<SeasonDtoState | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return null;
+    }
+
     const result = await wrapWithCache<SeasonDtoState>({
       key: type,
       ttl: SEASON_METADATA_CACHE_THRESHOLD_MS,
@@ -1656,7 +1676,7 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
     seasonId: string,
   ): Promise<SeasonStatusState | null> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return null;
     }
@@ -1816,7 +1836,7 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
     seasonId: string,
   ): Promise<SubscriptionSeasonReferralDetailState | null> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return null;
     }
@@ -1872,7 +1892,7 @@ export class RewardsController extends BaseController<
    * @param referralCode - Optional referral code
    */
   async optIn(referralCode?: string): Promise<string | null> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
         'RewardsController: Rewards feature is disabled, skipping optin',
@@ -1965,7 +1985,7 @@ export class RewardsController extends BaseController<
     account: InternalAccount,
     referralCode?: string,
   ): Promise<{ subscription: SubscriptionDto; sessionId: string } | null> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
         'RewardsController: Rewards feature is disabled, skipping optin',
@@ -2100,7 +2120,7 @@ export class RewardsController extends BaseController<
    * Reset rewards account state and clear all access tokens
    */
   async resetAll(): Promise<void> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
         'RewardsController: Rewards feature is disabled, skipping reset',
@@ -2142,7 +2162,7 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - Optional subscription ID to logout from
    */
   async logout(): Promise<void> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
         'RewardsController: Rewards feature is disabled, skipping logout',
@@ -2191,7 +2211,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
    */
   async getGeoRewardsMetadata(): Promise<GeoRewardsMetadata> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return {
         geoLocation: 'UNKNOWN',
@@ -2246,7 +2266,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<boolean> - True if the code is valid, false otherwise
    */
   async validateReferralCode(code: string): Promise<boolean> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return false;
     }
@@ -2279,7 +2299,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<string | null> - The subscription ID or null if none found
    */
   async getCandidateSubscriptionId(): Promise<string | null> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return null;
     }
@@ -2401,7 +2421,7 @@ export class RewardsController extends BaseController<
     account: InternalAccount,
     invalidateRelatedData: boolean = true,
   ): Promise<boolean> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log('RewardsController: Rewards feature is disabled');
       return false;
@@ -2558,7 +2578,7 @@ export class RewardsController extends BaseController<
   async linkAccountsToSubscriptionCandidate(
     accounts: InternalAccount[],
   ): Promise<{ account: InternalAccount; success: boolean }[]> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log('RewardsController: Rewards feature is disabled');
       return accounts.map((account) => ({ account, success: false }));
@@ -2595,6 +2615,8 @@ export class RewardsController extends BaseController<
             lastSuccessfullyLinked = accountStateForLinked;
           }
           results.push({ account: accountToLink, success });
+        } else {
+          results.push({ account: accountToLink, success: false });
         }
       } catch {
         // Continue with other accounts even if one fails
@@ -2688,7 +2710,7 @@ export class RewardsController extends BaseController<
     seasonId: string,
     subscriptionId: string,
   ): Promise<PointsBoostDto[]> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return [];
     }
@@ -2748,7 +2770,7 @@ export class RewardsController extends BaseController<
     seasonId: string,
     subscriptionId: string,
   ): Promise<RewardDto[]> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return [];
     }
@@ -2809,7 +2831,7 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
     dto?: ClaimRewardDto,
   ): Promise<void> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       throw new Error('Rewards are not enabled');
     }

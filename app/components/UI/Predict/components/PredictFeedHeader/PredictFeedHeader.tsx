@@ -55,6 +55,7 @@ const PredictFeedHeader: React.FC<PredictFeedHeaderProps> = ({
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
           twClassName="w-full py-2"
+          style={{ backgroundColor: colors.background.default }}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}

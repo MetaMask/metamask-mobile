@@ -11,26 +11,28 @@ import {
 } from '@metamask/keyring-controller';
 import { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import {
+  TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
+  TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex, numberToHex } from '@metamask/utils';
+import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
-import Engine from '../../../../core/Engine';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
-import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { ensureError } from '../utils/predictErrorHandler';
 import {
   PredictEventProperties,
   PredictEventType,
   PredictEventTypeValue,
 } from '../constants/eventNames';
+import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
   GetAccountStateParams,
@@ -41,6 +43,7 @@ import {
   PlaceOrderParams,
   PredictProvider,
   PrepareDepositParams,
+  PrepareWithdrawParams,
   PreviewOrderParams,
 } from '../providers/types';
 import {
@@ -54,10 +57,13 @@ import {
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PredictWithdraw,
+  PredictWithdrawStatus,
   Result,
   Side,
   UnrealizedPnL,
 } from '../types';
+import { ensureError } from '../utils/predictErrorHandler';
 
 /**
  * Error codes for PredictController
@@ -81,6 +87,8 @@ export const PREDICT_ERROR_CODES = {
   PLACE_ORDER_FAILED: 'PLACE_ORDER_FAILED',
   ENABLE_WALLET_FAILED: 'ENABLE_WALLET_FAILED',
   ACTIVITY_NOT_AVAILABLE: 'ACTIVITY_NOT_AVAILABLE',
+  DEPOSIT_FAILED: 'DEPOSIT_FAILED',
+  WITHDRAW_FAILED: 'WITHDRAW_FAILED',
 } as const;
 
 export type PredictErrorCode =
@@ -98,12 +106,21 @@ export type PredictControllerState = {
   lastError: string | null;
   lastUpdateTimestamp: number;
 
+  // Account balances
+  balances: { [providerId: string]: { [address: string]: number } };
+
   // Claim management
+  // TODO: change to be per-account basis
   claimablePositions: PredictPosition[];
   claimTransaction: PredictClaim | null;
 
   // Deposit management
+  // TODO: change to be per-account basis
   depositTransaction: PredictDeposit | null;
+
+  // Withdraw management
+  // TODO: change to be per-account basis
+  withdrawTransaction: PredictWithdraw | null;
 
   // Persisted data
   // --------------
@@ -118,9 +135,11 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  balances: {},
   claimablePositions: [],
   claimTransaction: null,
   depositTransaction: null,
+  withdrawTransaction: null,
   isOnboarded: {},
 });
 
@@ -131,9 +150,11 @@ const metadata = {
   eligibility: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
+  balances: { persist: false, anonymous: false },
   claimablePositions: { persist: false, anonymous: false },
   claimTransaction: { persist: false, anonymous: false },
   depositTransaction: { persist: false, anonymous: false },
+  withdrawTransaction: { persist: false, anonymous: false },
   isOnboarded: { persist: true, anonymous: false },
 };
 
@@ -166,8 +187,9 @@ export type PredictControllerActions =
  * External actions the PredictController can call
  */
 export type AllowedActions =
-  | AccountsControllerGetSelectedAccountAction['type']
-  | NetworkControllerGetStateAction['type'];
+  | AccountsControllerGetSelectedAccountAction
+  | NetworkControllerGetStateAction
+  | TransactionControllerEstimateGasAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -183,9 +205,9 @@ export type AllowedEvents =
  */
 export type PredictControllerMessenger = RestrictedMessenger<
   'PredictController',
-  PredictControllerActions,
+  PredictControllerActions | AllowedActions,
   PredictControllerEvents | AllowedEvents,
-  AllowedActions,
+  AllowedActions['type'],
   AllowedEvents['type']
 >;
 
@@ -922,6 +944,10 @@ export class PredictController extends BaseController<
       return result as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
 
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
@@ -930,7 +956,22 @@ export class PredictController extends BaseController<
         providerId,
         sharePrice,
         completionDuration,
-        failureReason: error instanceof Error ? error.message : 'Unknown error',
+        failureReason: errorMessage,
+      });
+
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Place order failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+        params,
       });
 
       // Log to Sentry with order context (excluding sensitive data like amounts)
@@ -948,10 +989,7 @@ export class PredictController extends BaseController<
 
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        error: errorMessage,
       };
     }
   }
@@ -967,7 +1005,13 @@ export class PredictController extends BaseController<
 
       const { AccountsController, KeyringController, NetworkController } =
         Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      // Get selected account - can fail if no account is selected
+      const selectedAccount = AccountsController.getSelectedAccount();
+      if (!selectedAccount?.address) {
+        throw new Error('No account selected');
+      }
+      const selectedAddress = selectedAccount.address;
 
       const signer = {
         address: selectedAddress,
@@ -979,34 +1023,63 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(params),
       };
 
+      // Get claimable positions - can fail if network request fails
       const claimablePositions = await this.getPositions({
         claimable: true,
       });
 
-      const { transactions, chainId } = await provider.prepareClaim({
+      if (!claimablePositions || claimablePositions.length === 0) {
+        throw new Error('No claimable positions found');
+      }
+
+      // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
+      const prepareClaimResult = await provider.prepareClaim({
         positions: claimablePositions,
         signer,
       });
+
+      if (!prepareClaimResult) {
+        throw new Error('Failed to prepare claim transaction');
+      }
+
+      const { transactions, chainId } = prepareClaimResult;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from claim preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by claim preparation');
+      }
+
+      // Find network client - can fail if chain is not supported
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         numberToHex(chainId),
       );
 
-      const { batchId } = await addTransactionBatch({
+      if (!networkClientId) {
+        throw new Error(
+          `Network client not found for chain ID: ${numberToHex(chainId)}`,
+        );
+      }
+
+      // Add transaction batch - can fail if transaction submission fails
+      const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
         disableHook: true,
         disableSequential: true,
-        transactions: [
-          {
-            params: {
-              to: signer.address as Hex,
-              value: '0x1',
-            },
-          },
-          ...transactions,
-        ],
+        transactions,
       });
+
+      if (!batchResult?.batchId) {
+        throw new Error(
+          'Failed to get batch ID from claim transaction submission',
+        );
+      }
+
+      const { batchId } = batchResult;
 
       const predictClaim: PredictClaim = {
         batchId,
@@ -1016,18 +1089,49 @@ export class PredictController extends BaseController<
 
       this.update((state) => {
         state.claimTransaction = predictClaim;
+        state.lastError = null; // Clear any previous errors
+        state.lastUpdateTimestamp = Date.now();
       });
 
       return predictClaim;
     } catch (error) {
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        // ignore error, as the user cancelled the tx
+        return {
+          batchId: 'NA',
+          chainId: 0,
+          status: PredictClaimStatus.CANCELLED,
+        };
+      }
       // Log to Sentry with claim context (no user address or amounts)
       Logger.error(
-        ensureError(error),
+        e,
         this.getErrorContext('claimWithConfirmation', {
           providerId,
         }),
       );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.CLAIM_FAILED;
 
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        state.claimTransaction = null; // Clear any partial claim transaction
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Claim failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+      });
+
+      // Re-throw the error so the hook can handle it and show the toast
       throw error;
     }
   }
@@ -1103,7 +1207,12 @@ export class PredictController extends BaseController<
         state.depositTransaction = null;
       });
 
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAccount = AccountsController.getSelectedAccount();
+      if (!selectedAccount?.address) {
+        throw new Error('No account selected for deposit');
+      }
+
+      const selectedAddress = selectedAccount.address;
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
@@ -1114,15 +1223,33 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(_params),
       };
 
-      const { transactions, chainId } = await provider.prepareDeposit({
+      const depositPreparation = await provider.prepareDeposit({
         ...params,
         signer,
       });
 
+      if (!depositPreparation) {
+        throw new Error('Deposit preparation returned undefined');
+      }
+
+      const { transactions, chainId } = depositPreparation;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from deposit preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by deposit preparation');
+      }
+
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(chainId);
 
-      const { batchId } = await addTransactionBatch({
+      if (!networkClientId) {
+        throw new Error(`Network client not found for chain ID: ${chainId}`);
+      }
+
+      const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
@@ -1131,10 +1258,22 @@ export class PredictController extends BaseController<
         transactions,
       });
 
+      if (!batchResult?.batchId) {
+        throw new Error('Failed to get batch ID from transaction submission');
+      }
+
+      const { batchId } = batchResult;
+
+      // Validate chainId format before parsing
+      const parsedChainId = hexToNumber(chainId);
+      if (isNaN(parsedChainId)) {
+        throw new Error(`Invalid chain ID format: ${chainId}`);
+      }
+
       // Store deposit transaction for tracking (mirrors claim pattern)
       const predictDeposit: PredictDeposit = {
         batchId,
-        chainId: parseInt(chainId, 16),
+        chainId: parsedChainId,
         status: PredictDepositStatus.PENDING,
         providerId: params.providerId,
       };
@@ -1161,7 +1300,7 @@ export class PredictController extends BaseController<
       throw new Error(
         error instanceof Error
           ? error.message
-          : PREDICT_ERROR_CODES.ENABLE_WALLET_FAILED,
+          : PREDICT_ERROR_CODES.DEPOSIT_FAILED,
       );
     }
   }
@@ -1208,10 +1347,18 @@ export class PredictController extends BaseController<
       }
       const { AccountsController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
-      return provider.getBalance({
+      const address = params.address ?? selectedAddress;
+      const balance = await provider.getBalance({
         ...params,
-        address: params.address ?? selectedAddress,
+        address,
       });
+      this.update((state) => {
+        state.balances[params.providerId] = {
+          ...state.balances[params.providerId],
+          [address]: balance,
+        };
+      });
+      return balance;
     } catch (error) {
       // Log to Sentry with balance query context (no user address)
       Logger.error(
@@ -1223,5 +1370,224 @@ export class PredictController extends BaseController<
 
       throw error;
     }
+  }
+
+  public async prepareWithdraw(
+    params: PrepareWithdrawParams,
+  ): Promise<Result<string>> {
+    try {
+      const provider = this.providers.get(params.providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const { AccountsController, KeyringController, NetworkController } =
+        Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const signer = {
+        address: selectedAddress,
+        signTypedMessage: (
+          typedMessageParams: TypedMessageParams,
+          version: SignTypedDataVersion,
+        ) => KeyringController.signTypedMessage(typedMessageParams, version),
+        signPersonalMessage: (personalMessageParams: PersonalMessageParams) =>
+          KeyringController.signPersonalMessage(personalMessageParams),
+      };
+      const { chainId, transaction, predictAddress } =
+        await provider.prepareWithdraw({
+          ...params,
+          signer,
+        });
+
+      this.update((state) => {
+        state.withdrawTransaction = {
+          chainId: hexToNumber(chainId),
+          status: PredictWithdrawStatus.IDLE,
+          providerId: params.providerId,
+          predictAddress: predictAddress as Hex,
+          transactionId: '',
+          amount: 0,
+        };
+      });
+
+      const { batchId } = await addTransactionBatch({
+        from: selectedAddress as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId:
+          NetworkController.findNetworkClientIdByChainId(chainId),
+        disableHook: true,
+        disableSequential: true,
+        requireApproval: true,
+        transactions: [transaction],
+      });
+
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.transactionId = batchId;
+        }
+      });
+
+      return {
+        success: true,
+        response: batchId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.WITHDRAW_FAILED;
+
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        // ignore error, as the user cancelled the tx
+        return {
+          success: true,
+          response: 'User cancelled transaction',
+        };
+      }
+
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        state.withdrawTransaction = null; // Clear any partial withdraw transaction
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Prepare withdraw failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId: params.providerId,
+      });
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('prepareWithdraw', {
+          providerId: params.providerId,
+        }),
+      );
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  public async beforeSign(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<
+    | {
+        updateTransaction?: (transaction: TransactionMeta) => void;
+      }
+    | undefined
+  > {
+    if (!this.state.withdrawTransaction) {
+      return;
+    }
+
+    const withdrawTransaction =
+      request.transactionMeta?.nestedTransactions?.find(
+        (tx) => tx.type === TransactionType.predictWithdraw,
+      );
+
+    if (!withdrawTransaction) {
+      return;
+    }
+
+    const provider = this.providers.get(
+      this.state.withdrawTransaction.providerId,
+    );
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+
+    if (!provider.signWithdraw) {
+      return;
+    }
+
+    const { KeyringController, NetworkController } = Engine.context;
+
+    const signer = {
+      address: request.transactionMeta.txParams.from,
+      signTypedMessage: (
+        params: TypedMessageParams,
+        version: SignTypedDataVersion,
+      ) => KeyringController.signTypedMessage(params, version),
+      signPersonalMessage: (params: PersonalMessageParams) =>
+        KeyringController.signPersonalMessage(params),
+    };
+
+    const chainId = this.state.withdrawTransaction.chainId;
+
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      numberToHex(chainId),
+    );
+
+    const { callData, amount } = await provider.signWithdraw({
+      callData: withdrawTransaction?.data as Hex,
+      signer,
+    });
+
+    const newParams = {
+      ...withdrawTransaction,
+      from: request.transactionMeta.txParams.from,
+      data: callData,
+      to: this.state.withdrawTransaction?.predictAddress as Hex,
+    };
+
+    // Attempt to estimate gas for the updated transaction
+    let updatedGas: Hex | undefined;
+    try {
+      const estimateResult = await this.messagingSystem.call(
+        'TransactionController:estimateGas',
+        newParams,
+        networkClientId,
+      );
+      updatedGas = estimateResult.gas;
+    } catch (error) {
+      // Log the error but continue - we'll use the original gas values
+      DevLogger.log(
+        'PredictController: Gas estimation failed in beforeSign, using original gas values',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+        },
+      );
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.status = PredictWithdrawStatus.ERROR;
+        }
+      });
+
+      return;
+    }
+
+    this.update((state) => {
+      if (state.withdrawTransaction) {
+        state.withdrawTransaction.amount = amount;
+        state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
+      }
+    });
+
+    return {
+      updateTransaction: (transaction: TransactionMeta) => {
+        transaction.txParams.data = callData;
+        transaction.txParams.to = this.state.withdrawTransaction
+          ?.predictAddress as Hex;
+        // Only update gas if estimation succeeded
+        if (updatedGas) {
+          transaction.txParams.gas = updatedGas;
+          transaction.txParams.gasLimit = updatedGas;
+        }
+      },
+    };
+  }
+
+  public clearWithdrawTransaction(): void {
+    this.update((state) => {
+      state.withdrawTransaction = null;
+    });
   }
 }

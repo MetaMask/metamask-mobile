@@ -3250,14 +3250,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       }
 
-      // Validate limit orders have a price
-      if (params.orderType === 'limit' && !params.price) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.limit_price_required'),
-        };
-      }
-
       // Validate order value against max limits
       if (params.currentPrice && params.leverage) {
         try {

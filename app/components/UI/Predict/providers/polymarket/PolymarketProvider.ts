@@ -18,8 +18,8 @@ import {
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
-  UnrealizedPnL,
   Side,
+  UnrealizedPnL,
 } from '../../types';
 import {
   AccountState,
@@ -34,6 +34,10 @@ import {
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
+  SignWithdrawParams,
+  SignWithdrawResponse,
+  PrepareWithdrawParams,
+  PrepareWithdrawResponse,
   PreviewOrderParams,
   Signer,
 } from '../types';
@@ -46,25 +50,29 @@ import {
   ROUNDING_CONFIG,
 } from './constants';
 import {
-  computeSafeAddress,
+  computeProxyAddress,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
+  getSafeUsdcAmount,
+  getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
 import {
   ApiKeyCreds,
   OrderData,
   OrderType,
-  PolymarketPosition,
   PolymarketApiActivity,
+  PolymarketPosition,
   SignatureType,
-  UtilsSide,
   TickSize,
+  UtilsSide,
 } from './types';
 import {
   createApiKey,
+  encodeErc20Transfer,
+  generateSalt,
   getBalance,
   getContractConfig,
   getL2Headers,
@@ -72,13 +80,12 @@ import {
   getOrderTypedData,
   getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
+  parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
-  parsePolymarketActivity,
-  submitClobOrder,
   previewOrder,
-  generateSalt,
   roundOrderAmount,
+  submitClobOrder,
 } from './utils';
 
 export type SignTypedMessageFn = (
@@ -263,16 +270,7 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Address is required');
     }
 
-    const predictAddress =
-      this.#accountStateByAddress.get(address)?.address ??
-      (await this.getAccountState({ ownerAddress: address })).address;
-
-    if (!predictAddress) {
-      throw new Error('Predict address not found');
-    }
-
-    // NOTE: hardcoded address for testing
-    // address = '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00';
+    const predictAddress = computeProxyAddress(address);
 
     const queryParams = new URLSearchParams({
       limit: limit.toString(),
@@ -292,6 +290,7 @@ export class PolymarketProvider implements PredictProvider {
         },
       },
     );
+
     if (!response.ok) {
       throw new Error('Failed to get positions');
     }
@@ -383,7 +382,7 @@ export class PolymarketProvider implements PredictProvider {
 
     const data = (await response.json()) as UnrealizedPnL[];
 
-    if (!Array.isArray(data) || data.length === 0) {
+    if (!Array.isArray(data)) {
       throw new Error('No unrealized P&L data found');
     }
 
@@ -516,7 +515,7 @@ export class PolymarketProvider implements PredictProvider {
 
       let feeAuthorization;
       if (fees !== undefined && fees.totalFee > 0) {
-        const safeAddress = await computeSafeAddress(signer.address);
+        const safeAddress = computeProxyAddress(signer.address);
         const feeAmountInUsdc = BigInt(
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
@@ -555,6 +554,20 @@ export class PolymarketProvider implements PredictProvider {
         },
         error,
       } as OrderResult;
+    } catch (error) {
+      // Catch all errors and return them in consistent format
+      // instead of throwing for better error handling
+      DevLogger.log('PolymarketProvider: Place order failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        side,
+        outcomeTokenId,
+      });
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to place order',
+      } as OrderResult;
     } finally {
       if (side === Side.BUY) {
         this.#buyOrderInProgressByAddress.set(signer.address, false);
@@ -565,22 +578,68 @@ export class PolymarketProvider implements PredictProvider {
   public async prepareClaim(
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
-    const { positions, signer } = params;
-    const safeAddress =
-      this.#accountStateByAddress.get(signer.address)?.address ??
-      (await this.getAccountState({ ownerAddress: signer.address })).address;
-    if (!safeAddress) {
-      throw new Error('Safe address not found');
+    try {
+      const { positions, signer } = params;
+
+      if (!positions || positions.length === 0) {
+        throw new Error('No positions provided for claim');
+      }
+
+      if (!signer?.address) {
+        throw new Error('Signer address is required for claim');
+      }
+
+      // Get safe address from cache or fetch it
+      let safeAddress: string | undefined;
+      try {
+        safeAddress = computeProxyAddress(signer.address);
+      } catch (error) {
+        throw new Error(
+          `Failed to retrieve account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      if (!safeAddress) {
+        throw new Error('Safe address not found for claim');
+      }
+
+      // Generate claim transaction
+      let claimTransaction;
+      try {
+        claimTransaction = await getClaimTransaction({
+          signer,
+          positions,
+          safeAddress,
+        });
+      } catch (error) {
+        throw new Error(
+          `Failed to generate claim transaction: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      if (!claimTransaction || claimTransaction.length === 0) {
+        throw new Error('No claim transaction generated');
+      }
+
+      return {
+        chainId: POLYGON_MAINNET_CHAIN_ID,
+        transactions: claimTransaction,
+      };
+    } catch (error) {
+      // Log error for debugging
+      DevLogger.log('PolymarketProvider: prepareClaim failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Re-throw with clear error message
+      throw error;
     }
-    const claimTransaction = await getClaimTransaction({
-      signer,
-      positions,
-      safeAddress,
-    });
-    return {
-      chainId: POLYGON_MAINNET_CHAIN_ID,
-      transactions: claimTransaction,
-    };
   }
 
   public async isEligible(): Promise<boolean> {
@@ -618,11 +677,27 @@ export class PolymarketProvider implements PredictProvider {
     const transactions = [];
     const { signer } = params;
 
+    if (!signer?.address) {
+      throw new Error('Signer address is required for deposit preparation');
+    }
+
     const { collateral } = MATIC_CONTRACTS;
+
+    if (!collateral) {
+      throw new Error('Collateral contract address not configured');
+    }
 
     const accountState = await this.getAccountState({
       ownerAddress: signer.address,
     });
+
+    if (!accountState) {
+      throw new Error('Failed to retrieve account state');
+    }
+
+    if (!accountState.address) {
+      throw new Error('Account address not found in account state');
+    }
 
     if (!accountState.isDeployed) {
       const deployTransaction = await getDeployProxyWalletTransaction({
@@ -632,6 +707,11 @@ export class PolymarketProvider implements PredictProvider {
       if (!deployTransaction) {
         throw new Error('Failed to get deploy proxy wallet transaction params');
       }
+
+      if (!deployTransaction.params?.to || !deployTransaction.params?.data) {
+        throw new Error('Invalid deploy transaction: missing params');
+      }
+
       transactions.push(deployTransaction);
     }
 
@@ -639,6 +719,18 @@ export class PolymarketProvider implements PredictProvider {
       const allowanceTransaction = await getProxyWalletAllowancesTransaction({
         signer,
       });
+
+      if (!allowanceTransaction) {
+        throw new Error('Failed to get proxy wallet allowances transaction');
+      }
+
+      if (
+        !allowanceTransaction.params?.to ||
+        !allowanceTransaction.params?.data
+      ) {
+        throw new Error('Invalid allowance transaction: missing params');
+      }
+
       transactions.push(allowanceTransaction);
     }
 
@@ -646,6 +738,13 @@ export class PolymarketProvider implements PredictProvider {
       toAddress: accountState.address,
       amount: '0x0',
     });
+
+    if (!depositTransactionCallData) {
+      throw new Error(
+        'Failed to generate transfer data for deposit transaction',
+      );
+    }
+
     transactions.push({
       params: {
         to: collateral as Hex,
@@ -663,24 +762,66 @@ export class PolymarketProvider implements PredictProvider {
   public async getAccountState(params: {
     ownerAddress: string;
   }): Promise<AccountState> {
-    const { ownerAddress } = params;
-    const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
-    const address =
-      cachedAddress?.address ?? (await computeSafeAddress(ownerAddress));
-    const [isDeployed, hasAllowancesResult] = await Promise.all([
-      isSmartContractAddress(address, numberToHex(POLYGON_MAINNET_CHAIN_ID)),
-      hasAllowances({ address }),
-    ]);
+    try {
+      const { ownerAddress } = params;
 
-    const accountState = {
-      address,
-      isDeployed,
-      hasAllowances: hasAllowancesResult,
-    };
+      if (!ownerAddress) {
+        throw new Error('Owner address is required');
+      }
 
-    this.#accountStateByAddress.set(ownerAddress, accountState);
+      // Get or compute safe address
+      const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
+      let address: string;
+      try {
+        address = cachedAddress?.address ?? computeProxyAddress(ownerAddress);
+      } catch (error) {
+        throw new Error(
+          `Failed to compute safe address: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
 
-    return accountState;
+      if (!address) {
+        throw new Error('Failed to get safe address');
+      }
+
+      // Check deployment status and allowances
+      let isDeployed: boolean;
+      let hasAllowancesResult: boolean;
+      try {
+        [isDeployed, hasAllowancesResult] = await Promise.all([
+          isSmartContractAddress(
+            address,
+            numberToHex(POLYGON_MAINNET_CHAIN_ID),
+          ),
+          hasAllowances({ address }),
+        ]);
+      } catch (error) {
+        throw new Error(
+          `Failed to check account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      const accountState = {
+        address: address as `0x${string}`,
+        isDeployed,
+        hasAllowances: hasAllowancesResult,
+      };
+
+      this.#accountStateByAddress.set(ownerAddress, accountState);
+
+      return accountState;
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: getAccountState failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   public async getBalance({ address }: GetBalanceParams): Promise<number> {
@@ -689,8 +830,66 @@ export class PolymarketProvider implements PredictProvider {
     }
     const cachedAddress = this.#accountStateByAddress.get(address);
     const predictAddress =
-      cachedAddress?.address ?? (await computeSafeAddress(address));
+      cachedAddress?.address ?? computeProxyAddress(address);
     const balance = await getBalance({ address: predictAddress });
     return balance;
+  }
+
+  public async prepareWithdraw(
+    params: PrepareWithdrawParams & { signer: Signer },
+  ): Promise<PrepareWithdrawResponse> {
+    const { signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      (await this.getAccountState({ ownerAddress: signer.address })).address;
+
+    const callData = encodeErc20Transfer({
+      to: signer.address,
+      value: '0x0',
+    });
+
+    return {
+      chainId: CHAIN_IDS.POLYGON,
+      transaction: {
+        params: {
+          to: MATIC_CONTRACTS.collateral as Hex,
+          data: callData as Hex,
+        },
+        type: TransactionType.predictWithdraw,
+      },
+      predictAddress: safeAddress,
+    };
+  }
+
+  public async signWithdraw(
+    params: SignWithdrawParams,
+  ): Promise<SignWithdrawResponse> {
+    const { callData, signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      computeProxyAddress(signer.address);
+
+    const signedCallData = await getWithdrawTransactionCallData({
+      data: callData,
+      signer,
+      safeAddress,
+    });
+
+    const amount = getSafeUsdcAmount(callData);
+
+    return {
+      callData: signedCallData,
+      amount,
+    };
   }
 }

@@ -214,6 +214,8 @@ const Routes = {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
+    NFTS_FULL_VIEW: 'NftFullView',
+    TOKENS_FULL_VIEW: 'TokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -249,6 +251,7 @@ const Routes = {
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
+    MARKET_LIST: 'PerpsTrendingView',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
@@ -366,6 +369,7 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
+      WEBVIEW: 'CardOnboardingWebview',
     },
   },
   SEND: {
