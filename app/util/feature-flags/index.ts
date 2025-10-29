@@ -21,22 +21,31 @@ export interface FeatureFlagInfo {
  * Gets the type of a feature flag value
  */
 export const getFeatureFlagType = (value: unknown): FeatureFlagInfo['type'] => {
-  if (typeof value === 'boolean') return 'boolean';
-  if (typeof value === 'string') return 'string';
-  if (typeof value === 'number') return 'number';
-  if (Array.isArray(value)) return 'array';
-  if (
+  if (value === null) {
+    return 'object'
+  }
+  if (typeof value === 'boolean') {
+    return 'boolean'
+  }else if (typeof value === 'string') {
+    return 'string'
+  } else if (typeof value === 'number'){
+    return 'number'
+  }else if (Array.isArray(value)) {
+    return 'array'
+  }else if (
     value &&
     typeof value === 'object' &&
     value.hasOwnProperty('enabled') &&
     value.hasOwnProperty('minimumVersion')
   ) {
     return 'boolean with minimumVersion';
+  } else if (typeof value === 'object' && typeof (value as { value: boolean })?.value === 'boolean') {
+    return 'boolean nested'
+  } else if (typeof value === 'object') {
+    return 'object'
+  } else {
+    return 'string'
   }
-  if (typeof value === 'object' && typeof (value as { value: boolean })?.value === 'boolean')
-    return 'boolean nested';
-  if (typeof value === 'object' && value !== null) return 'object';
-  return 'string';
 };
 
 /**
