@@ -48,6 +48,8 @@ describe('useStartVerification', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
     mockUseSelector.mockReturnValue('US'); // selectedCountry
@@ -60,6 +62,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -80,6 +84,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -184,6 +190,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
       const { result, rerender } = renderHook(() => useStartVerification());
@@ -199,6 +207,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: mockSDK,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
       mockStartUserVerification.mockResolvedValue(
@@ -223,6 +233,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -277,6 +289,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
       mockUseSelector.mockReturnValue('US');
@@ -403,6 +417,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
       mockUseSelector.mockReturnValue(null);
@@ -418,6 +434,8 @@ describe('useStartVerification', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: mockSDK,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
       mockStartUserVerification.mockResolvedValue(

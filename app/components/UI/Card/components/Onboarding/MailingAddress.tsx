@@ -12,16 +12,16 @@ import { AddressFields } from './PhysicalAddress';
 import {
   selectOnboardingId,
   selectSelectedCountry,
-  setUser,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { CardError } from '../../types';
+import { useCardSDK } from '../../sdk';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
 
@@ -122,7 +122,7 @@ const MailingAddress = () => {
       });
 
       if (updatedUser) {
-        dispatch(setUser(updatedUser));
+        setUser(updatedUser);
       }
 
       if (accessToken) {

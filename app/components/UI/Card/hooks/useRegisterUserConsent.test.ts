@@ -58,6 +58,8 @@ describe('useRegisterUserConsent', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
 
@@ -223,6 +225,8 @@ describe('useRegisterUserConsent', () => {
         mockUseCardSDK.mockReturnValue({
           sdk: null,
           isLoading: false,
+          user: null,
+          setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
         });
 
@@ -572,6 +576,8 @@ describe('useRegisterUserConsent', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: customSDK,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -589,6 +595,8 @@ describe('useRegisterUserConsent', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: mockSDK,
         isLoading: true,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -605,6 +613,8 @@ describe('useRegisterUserConsent', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -682,6 +692,8 @@ describe('useRegisterUserConsent', () => {
           linkUserToConsent: jest.fn(),
         } as unknown as CardSDK,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 

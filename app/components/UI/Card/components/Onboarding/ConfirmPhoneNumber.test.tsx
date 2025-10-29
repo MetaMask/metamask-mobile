@@ -273,6 +273,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 // Mock hooks
 const mockUsePhoneVerificationVerify = jest.fn();
 const mockUsePhoneVerificationSend = jest.fn();
+const mockSetUser = jest.fn();
 
 jest.mock('../../hooks/usePhoneVerificationVerify', () => ({
   __esModule: true,
@@ -282,6 +283,17 @@ jest.mock('../../hooks/usePhoneVerificationVerify', () => ({
 jest.mock('../../hooks/usePhoneVerificationSend', () => ({
   __esModule: true,
   default: () => mockUsePhoneVerificationSend(),
+}));
+
+// Mock SDK
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(() => ({
+    sdk: {},
+    isLoading: false,
+    user: { id: 'user-123', email: 'test@example.com' },
+    setUser: mockSetUser,
+    logoutFromProvider: jest.fn(),
+  })),
 }));
 
 // Create test store

@@ -9,6 +9,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import { useCardSDK } from '../../sdk';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -19,6 +20,11 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useRegisterPhysicalAddress');
 jest.mock('../../hooks/useRegisterUserConsent');
 jest.mock('../../hooks/useRegistrationSettings');
+
+// Mock SDK
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(),
+}));
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -362,6 +368,7 @@ const mockUseRegistrationSettings =
   useRegistrationSettings as jest.MockedFunction<
     typeof useRegistrationSettings
   >;
+const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 
 describe('PhysicalAddress Component', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -455,6 +462,18 @@ describe('PhysicalAddress Component', () => {
       isLoading: false,
       error: false,
       fetchData: jest.fn(),
+    });
+
+    // Mock useCardSDK
+    mockUseCardSDK.mockReturnValue({
+      sdk: null,
+      isLoading: false,
+      user: {
+        id: 'user-id',
+        email: 'test@example.com',
+      },
+      setUser: jest.fn(),
+      logoutFromProvider: jest.fn(),
     });
 
     // Mock useSelector

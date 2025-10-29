@@ -54,9 +54,6 @@ describe('useUserRegistrationStatus', () => {
 
     // Default mocks - handle multiple useSelector calls
     mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectUser')) {
-        return null; // No user by default
-      }
       if (selector.toString().includes('selectOnboardingId')) {
         return 'onboarding-123';
       }
@@ -76,6 +73,8 @@ describe('useUserRegistrationStatus', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
@@ -104,7 +103,6 @@ describe('useUserRegistrationStatus', () => {
 
       // Then: Initial state should have PENDING verification state and not be loading after initial fetch
       expect(result.current.verificationState).toBe('PENDING');
-      expect(result.current.userResponse).toEqual(pendingUserResponse);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isError).toBe(false);
       expect(result.current.error).toBeNull();
@@ -127,7 +125,7 @@ describe('useUserRegistrationStatus', () => {
       });
 
       // Then: Should have completed the fetch
-      expect(result.current.userResponse).toEqual(mockUserResponse);
+      expect(result.current.verificationState).toBe('VERIFIED');
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -136,6 +134,8 @@ describe('useUserRegistrationStatus', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -183,6 +183,8 @@ describe('useUserRegistrationStatus', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -223,7 +225,7 @@ describe('useUserRegistrationStatus', () => {
 
       // Then: Should fetch immediately
       expect(mockGetRegistrationStatus).toHaveBeenCalledTimes(1);
-      expect(result.current.userResponse).toEqual(mockUserResponse);
+      expect(result.current.verificationState).toBe('VERIFIED');
     });
 
     it('sets up polling interval after initial fetch', async () => {
@@ -499,11 +501,8 @@ describe('useUserRegistrationStatus', () => {
         result.current.startPolling();
       });
 
-      // Then: Should handle gracefully - verificationState should be 'PENDING' after fetch
+      // Then: Should handle gracefully - verificationState should be 'PENDING' (default fallback)
       expect(result.current.verificationState).toBe('PENDING');
-      expect(result.current.userResponse).toEqual(
-        responseWithoutVerificationState,
-      );
       expect(result.current.isError).toBe(false);
     });
 

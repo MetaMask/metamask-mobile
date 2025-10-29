@@ -23,11 +23,11 @@ import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
   selectContactVerificationId,
   selectOnboardingId,
-  setUser,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
+import { useCardSDK } from '../../sdk';
 
 const CELL_COUNT = 6;
 
@@ -61,7 +61,7 @@ const createStyles = (params: { theme: Theme }) => {
 
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const { setUser } = useCardSDK();
   const { styles } = useStyles(createStyles, {});
   const inputRef = useRef<TextInput>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -113,7 +113,7 @@ const ConfirmPhoneNumber = () => {
         contactVerificationId,
       });
       if (user) {
-        dispatch(setUser(user));
+        setUser(user);
         navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
       }
     } catch (error) {
@@ -139,7 +139,7 @@ const ConfirmPhoneNumber = () => {
     phoneCountryCode,
     contactVerificationId,
     verifyPhoneVerification,
-    dispatch,
+    setUser,
     navigation,
   ]);
 
