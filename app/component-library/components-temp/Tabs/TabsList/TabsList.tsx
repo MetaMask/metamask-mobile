@@ -1,4 +1,3 @@
-// Third party dependencies.
 import React, {
   useState,
   useEffect,
@@ -17,13 +16,17 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 
-// External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 
-// Internal dependencies.
 import TabsBar from '../TabsBar';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
+
+const SCROLL_SETTLE_DELAY = 200;
+const HEIGHT_MEASURE_DELAY = 100;
+const NEW_TAB_MEASURE_DELAY = 250;
+const ADJACENT_PRELOAD_DELAY = 500;
+const HEIGHT_CHANGE_THRESHOLD = 5;
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
@@ -62,7 +65,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const goToTabTimeout = useRef<NodeJS.Timeout | null>(null);
     const measurementTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-    // Extract tab items from children
     const tabs: TabItem[] = useMemo(
       () =>
         React.Children.map(children, (child, index) => {
@@ -92,7 +94,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [children],
     );
 
-    // Create a separate array of only enabled tabs for ScrollView content
     const enabledTabs = useMemo(
       () =>
         tabs
@@ -101,7 +102,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [tabs],
     );
 
-    // Create mapping functions between tab index and content index
     const getContentIndexFromTabIndex = useCallback(
       (tabIndex: number): number => {
         if (
@@ -128,28 +128,23 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [enabledTabs],
     );
 
-    // Check if there are any enabled tabs and if current active tab is enabled
     const hasAnyEnabledTabs = useMemo(
       () => tabs.some((tab) => !tab.isDisabled),
       [tabs],
     );
 
     const shouldShowContent = useMemo(() => {
-      // Don't show any content if all tabs are disabled
       if (!hasAnyEnabledTabs) return false;
-      // Don't show content if active tab is disabled
       if (activeIndex < 0 || activeIndex >= tabs.length) return false;
       return !tabs[activeIndex]?.isDisabled;
     }, [hasAnyEnabledTabs, activeIndex, tabs]);
 
-    // Clean up stale heights when tabs change
     useEffect(() => {
       const currentTabKeys = new Set(tabs.map((tab) => tab.key));
       setTabHeights((prev) => {
         const newHeights = new Map(prev);
         let hasChanges = false;
 
-        // Remove heights for tabs that no longer exist
         Array.from(newHeights.keys()).forEach((key) => {
           if (!currentTabKeys.has(key)) {
             newHeights.delete(key);
@@ -160,14 +155,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         return hasChanges ? newHeights : prev;
       });
 
-      // Clean up refs for removed tabs
       Array.from(tabContentRefs.current.keys()).forEach((key) => {
         if (!currentTabKeys.has(key)) {
           tabContentRefs.current.delete(key);
         }
       });
 
-      // Clean up timers for removed tabs
       Array.from(measurementTimers.current.keys()).forEach((key) => {
         if (!currentTabKeys.has(key)) {
           const timer = measurementTimers.current.get(key);
@@ -179,18 +172,15 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       });
     }, [tabs]);
 
-    // Debounced measurement function using tab key
     const measureTabHeight = useCallback((tabKey: string) => {
       const tabContentRef = tabContentRefs.current.get(tabKey);
       if (!tabContentRef) return;
 
-      // Clear any existing measurement timer for this tab
       const existingTimer = measurementTimers.current.get(tabKey);
       if (existingTimer) {
         clearTimeout(existingTimer);
       }
 
-      // Debounce measurement to allow content to settle
       const timer = setTimeout(() => {
         if (tabContentRefs.current.has(tabKey)) {
           tabContentRef.measure(
@@ -205,8 +195,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               if (height > 0 && tabContentRefs.current.has(tabKey)) {
                 setTabHeights((prev) => {
                   const currentHeight = prev.get(tabKey);
-                  // Only update if height changed significantly
-                  if (!currentHeight || Math.abs(currentHeight - height) > 5) {
+                  if (
+                    !currentHeight ||
+                    Math.abs(currentHeight - height) > HEIGHT_CHANGE_THRESHOLD
+                  ) {
                     const newHeights = new Map(prev);
                     newHeights.set(tabKey, height);
                     return newHeights;
@@ -218,13 +210,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           );
         }
         measurementTimers.current.delete(tabKey);
-      }, 100);
+      }, HEIGHT_MEASURE_DELAY);
 
       measurementTimers.current.set(tabKey, timer);
     }, []);
 
     useEffect(() => {
-      // Only measure heights when autoHeight mode is enabled
       if (!autoHeight) {
         setScrollViewHeight(undefined);
         return;
@@ -239,21 +230,16 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       const currentTabHeight = tabHeights.get(activeTab.key);
 
       if (currentTabHeight && currentTabHeight > 0) {
-        // If we have a cached height, use it immediately for smooth transitions
         setScrollViewHeight(currentTabHeight);
       } else {
-        // Don't set a height until we measure the actual content
-        // This allows the content to render at its natural height
         setScrollViewHeight(undefined);
 
-        // Trigger measurement after a brief delay to let content render
         if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
           let isMeasurementRelevant = true;
           let rafCleanup: (() => void) | undefined;
 
           const timeoutId = setTimeout(() => {
             if (isMeasurementRelevant) {
-              // Use RAF for measurement
               const rafId = requestAnimationFrame(() => {
                 if (tabContentRefs.current.has(activeTab.key)) {
                   measureTabHeight(activeTab.key);
@@ -291,7 +277,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
     }, [activeIndex, tabs.length]);
 
-    // Pre-load adjacent tabs after current tab settles (for smoother swipe experience)
     useEffect(() => {
       if (!isScrolling.current && activeIndex >= 0) {
         const preloadTimer = setTimeout(() => {
@@ -299,7 +284,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             const newLoadedTabs = new Set(prev);
             let hasChanges = false;
 
-            // Pre-load previous tab if it exists and is enabled
             if (activeIndex > 0 && !tabs[activeIndex - 1]?.isDisabled) {
               if (!newLoadedTabs.has(activeIndex - 1)) {
                 newLoadedTabs.add(activeIndex - 1);
@@ -307,7 +291,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               }
             }
 
-            // Pre-load next tab if it exists and is enabled
             if (
               activeIndex < tabs.length - 1 &&
               !tabs[activeIndex + 1]?.isDisabled
@@ -320,13 +303,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
             return hasChanges ? newLoadedTabs : prev;
           });
-        }, 500); // Wait 500ms after settling before pre-loading
+        }, ADJACENT_PRELOAD_DELAY);
 
         return () => clearTimeout(preloadTimer);
       }
     }, [activeIndex, tabs]);
 
-    // Cleanup effect to clear all timers on unmount
     useEffect(
       () => () => {
         if (scrollTimeout.current) {
@@ -345,7 +327,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           clearTimeout(goToTabTimeout.current);
           goToTabTimeout.current = null;
         }
-        // Clean up all measurement timers
         Array.from(measurementTimers.current.values()).forEach((timer) => {
           clearTimeout(timer);
         });
@@ -416,15 +397,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
         const tabChanged = tabIndex !== activeIndex;
 
-        // Update activeIndex immediately for TabsBar animation
         setActiveIndex(tabIndex);
 
-        // In test environment, load immediately to avoid timing issues
         if (process.env.JEST_WORKER_ID && !loadedTabs.has(tabIndex)) {
           setLoadedTabs((prev) => new Set(prev).add(tabIndex));
         } else if (!loadedTabs.has(tabIndex)) {
-          // In production, defer content loading until after scroll animation
-          // Store the tab to load after animation completes
           pendingTabToLoad.current = tabIndex;
         }
 
@@ -473,10 +450,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const newTabIndex = getTabIndexFromContentIndex(contentIndex);
 
         if (newTabIndex >= 0 && newTabIndex !== activeIndex) {
-          // Update activeIndex immediately for TabsBar animation
           setActiveIndex(newTabIndex);
 
-          // Defer content loading to avoid blocking scroll animation
           if (!loadedTabs.has(newTabIndex)) {
             pendingTabToLoad.current = newTabIndex;
           }
@@ -513,7 +488,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       scrollTimeout.current = setTimeout(() => {
         isScrolling.current = false;
 
-        // Load pending tab content after animation completes
         if (pendingTabToLoad.current !== null) {
           const tabToLoad = pendingTabToLoad.current;
           pendingTabToLoad.current = null;
@@ -523,7 +497,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             return new Set(prev).add(tabToLoad);
           });
 
-          // Delay height measurement to avoid interfering with settling
           if (autoHeight) {
             if (loadTabTimeout.current) {
               clearTimeout(loadTabTimeout.current);
@@ -532,17 +505,15 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               const tab = tabs[tabToLoad];
               if (tab) measureTabHeight(tab.key);
               loadTabTimeout.current = null;
-            }, 250);
+            }, NEW_TAB_MEASURE_DELAY);
           }
         } else if (autoHeight) {
-          // Only update height if no pending load (already loaded tabs)
           const activeTab = tabs[activeIndex];
           if (activeTab && loadedTabs.has(activeIndex)) {
             const cachedHeight = tabHeights.get(activeTab.key);
             if (cachedHeight && cachedHeight > 0) {
               setScrollViewHeight(cachedHeight);
             }
-            // Delayed measurement to ensure animation is complete
             if (loadTabTimeout.current) {
               clearTimeout(loadTabTimeout.current);
             }
@@ -551,10 +522,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                 measureTabHeight(tabs[activeIndex].key);
               }
               loadTabTimeout.current = null;
-            }, 100);
+            }, HEIGHT_MEASURE_DELAY);
           }
         }
-      }, 200);
+      }, SCROLL_SETTLE_DELAY);
     }, [
       activeIndex,
       loadedTabs,
@@ -589,10 +560,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
           const tabChanged = tabIndex !== activeIndex;
 
-          // Update activeIndex immediately for TabsBar animation
           setActiveIndex(tabIndex);
 
-          // Defer content loading until after scroll animation (production only)
           if (process.env.JEST_WORKER_ID && !loadedTabs.has(tabIndex)) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           } else if (!loadedTabs.has(tabIndex)) {
@@ -646,7 +615,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [tabs, activeIndex, handleTabPress, testID, tabsBarProps],
     );
 
-    // Common ScrollView props (memoized to avoid recreation)
     const commonScrollViewProps = useMemo(
       () => ({
         ref: scrollViewRef,
@@ -667,17 +635,22 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [handleScroll, handleScrollEnd, handleScrollBegin, handleLayout, testID],
     );
 
-    // Memoized height measurement handler for auto-height mode
     const handleAutoHeightLayout = useCallback(
       (enabledTab: (typeof enabledTabs)[0], layoutEvent: LayoutChangeEvent) => {
         const { height } = layoutEvent.nativeEvent.layout;
         if (height > 0) {
           const currentHeight = tabHeights.get(enabledTab.key);
 
-          if (!currentHeight || Math.abs(currentHeight - height) > 5) {
+          if (
+            !currentHeight ||
+            Math.abs(currentHeight - height) > HEIGHT_CHANGE_THRESHOLD
+          ) {
             setTabHeights((prev) => {
               const latestHeight = prev.get(enabledTab.key);
-              if (latestHeight && Math.abs(latestHeight - height) <= 5) {
+              if (
+                latestHeight &&
+                Math.abs(latestHeight - height) <= HEIGHT_CHANGE_THRESHOLD
+              ) {
                 return prev;
               }
               const newHeights = new Map(prev);
@@ -685,7 +658,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               return newHeights;
             });
 
-            // Only update scrollViewHeight if we're on this tab and not actively scrolling
             if (
               enabledTab.originalIndex === activeIndex &&
               tabContentRefs.current.has(enabledTab.key) &&
@@ -709,7 +681,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         <TabsBar {...tabBarPropsComputed} />
 
         {autoHeight ? (
-          /* Auto-height mode: Dynamic height based on content */
           <View
             style={tw.style(
               'mt-2',
@@ -745,7 +716,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             </ScrollView>
           </View>
         ) : (
-          /* Fixed-height mode */
           <ScrollView
             {...commonScrollViewProps}
             style={tw.style('flex-1 mt-2')}
