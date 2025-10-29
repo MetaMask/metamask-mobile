@@ -383,6 +383,7 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
 };
 
 export default Routes;
