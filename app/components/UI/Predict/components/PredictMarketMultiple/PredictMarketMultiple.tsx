@@ -211,7 +211,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Button
                     variant={ButtonVariants.Secondary}
                     size={ButtonSize.Md}
-                    // width={ButtonWidthTypes.Full}
                     label={
                       <Text
                         style={tw.style('font-medium')}
