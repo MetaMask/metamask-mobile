@@ -104,10 +104,6 @@ const styleSheet = (params: {
         ? darkTheme.colors.success.default
         : darkTheme.colors.error.default,
     },
-    pnlText: {
-      fontSize: 40,
-      fontWeight: '600',
-    },
     pnlPositive: {
       color: darkTheme.colors.success.default,
     },
@@ -130,9 +126,6 @@ const styleSheet = (params: {
     },
     priceValue: {
       color: darkTheme.colors.text.default,
-    },
-    qrCodeContainer: {
-      alignSelf: 'flex-start',
     },
     carouselDotIndicator: {
       flexDirection: 'row',
