@@ -173,19 +173,70 @@ describe('TokenInsightsSheet', () => {
       state: mockState,
     });
 
-    expect(getByText('USDC Insights')).toBeTruthy();
+    expect(getByText('USDC Insights')).toBeOnTheScreen();
 
-    expect(getByText(strings('bridge.price'))).toBeTruthy();
-    expect(getByText(strings('bridge.percent_change'))).toBeTruthy();
-    expect(getByText(strings('bridge.volume'))).toBeTruthy();
-    expect(getByText(strings('bridge.market_cap_fdv'))).toBeTruthy();
-    expect(getByText(strings('bridge.contract_address'))).toBeTruthy();
+    expect(getByText(strings('bridge.price'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.percent_change'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.volume'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.market_cap_fdv'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.contract_address'))).toBeOnTheScreen();
 
-    expect(getByText('$1.00')).toBeTruthy();
-    expect(getByText('-0.01%')).toBeTruthy();
-    expect(getByText('$54.44M')).toBeTruthy();
-    expect(getByText('$33.59B')).toBeTruthy();
-    expect(getByText('0x12345...67890')).toBeTruthy();
+    expect(getByText('$1.00')).toBeOnTheScreen();
+    expect(getByText('-0.01%')).toBeOnTheScreen();
+    expect(getByText('$54.44M')).toBeOnTheScreen();
+    expect(getByText('$33.59B')).toBeOnTheScreen();
+    expect(getByText('0x12345...67890')).toBeOnTheScreen();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with Solana token data', async () => {
+    mockRoute.params.token = {
+      address:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      balance: '100',
+      balanceFiat: '$100.00',
+      image: 'https://example.com/usdc-sol.png',
+      currencyExchangeRate: 1.0,
+    };
+
+    (isNativeAddress as jest.Mock).mockImplementation(() => false);
+
+    const solAssetId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+    (handleFetch as jest.Mock).mockResolvedValueOnce({
+      [solAssetId]: {
+        usd: 1.0,
+        pricePercentChange: { P1D: -0.01 },
+        totalVolume: 54440464.6,
+        marketCap: 33591234567,
+        dilutedMarketCap: 33591234567,
+      },
+    });
+
+    const { getByText, toJSON } = renderWithProvider(<TokenInsightsSheet />, {
+      state: mockState,
+    });
+
+    await waitFor(() => {
+      expect(getByText('USDC Insights')).toBeOnTheScreen();
+
+      expect(getByText(strings('bridge.price'))).toBeOnTheScreen();
+      expect(getByText(strings('bridge.percent_change'))).toBeOnTheScreen();
+      expect(getByText(strings('bridge.volume'))).toBeOnTheScreen();
+      expect(getByText(strings('bridge.market_cap_fdv'))).toBeOnTheScreen();
+      expect(getByText(strings('bridge.contract_address'))).toBeOnTheScreen();
+
+      expect(getByText('$1.00')).toBeOnTheScreen();
+      expect(getByText('-0.01%')).toBeOnTheScreen();
+      expect(getByText('$54.44M')).toBeOnTheScreen();
+      expect(getByText('$33.59B')).toBeOnTheScreen();
+      expect(getByText('EPjFWd...Dt1v')).toBeOnTheScreen();
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -238,8 +289,8 @@ describe('TokenInsightsSheet', () => {
 
       await waitFor(() => {
         expect(handleFetch).toHaveBeenCalled();
-        expect(getByText('USDC Insights')).toBeTruthy();
-        expect(getByText('$1.00')).toBeTruthy();
+        expect(getByText('USDC Insights')).toBeOnTheScreen();
+        expect(getByText('$1.00')).toBeOnTheScreen();
       });
     });
 
@@ -303,7 +354,7 @@ describe('TokenInsightsSheet', () => {
         state: stateWithNegativeChange,
       });
 
-      expect(getByText('-0.01%')).toBeTruthy();
+      expect(getByText('-0.01%')).toBeOnTheScreen();
     });
 
     it('formats positive percent change correctly', () => {
@@ -339,7 +390,7 @@ describe('TokenInsightsSheet', () => {
         state: stateWithPositiveChange,
       });
 
-      expect(getByText('+5.25%')).toBeTruthy();
+      expect(getByText('+5.25%')).toBeOnTheScreen();
       expect(toJSON()).toMatchSnapshot();
     });
 
@@ -376,12 +427,12 @@ describe('TokenInsightsSheet', () => {
         state: stateWithZeroChange,
       });
 
-      expect(getByText('+0.00%')).toBeTruthy();
+      expect(getByText('+0.00%')).toBeOnTheScreen();
     });
   });
 
   describe('User Interactions', () => {
-    it('handles contract address copy', async () => {
+    it('copies contract address to clipboard when the copy button is pressed', async () => {
       const { getByText } = renderWithProvider(<TokenInsightsSheet />, {
         state: mockState,
       });
@@ -420,7 +471,7 @@ describe('TokenInsightsSheet', () => {
     });
   });
 
-  describe('Data Fetching', () => {
+  describe('Token Display Data', () => {
     it('fetches token display data when not found', () => {
       const stateWithoutTokenData = {
         ...mockState,
@@ -492,7 +543,7 @@ describe('TokenInsightsSheet', () => {
       });
 
       await waitFor(() => {
-        expect(getByText('USDC Insights')).toBeTruthy();
+        expect(getByText('USDC Insights')).toBeOnTheScreen();
       });
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -522,10 +573,10 @@ describe('TokenInsightsSheet', () => {
         state: stateWithEUR,
       });
 
-      expect(getByText(/€/)).toBeTruthy();
+      expect(getByText(/€/)).toBeOnTheScreen();
     });
 
-    it('formats large numbers correctly', () => {
+    it('formats large numbers using abbreviated notation (T for trillion)', () => {
       const stateWithLargeNumbers = {
         ...mockState,
         engine: {
@@ -561,8 +612,8 @@ describe('TokenInsightsSheet', () => {
         state: stateWithLargeNumbers,
       });
 
-      expect(getByText('$1.23T')).toBeTruthy();
-      expect(getByText('$9.88T')).toBeTruthy();
+      expect(getByText('$1.23T')).toBeOnTheScreen();
+      expect(getByText('$9.88T')).toBeOnTheScreen();
     });
   });
 
@@ -634,11 +685,11 @@ describe('TokenInsightsSheet', () => {
         state: mockState,
       });
 
-      expect(getByText(strings('bridge.contract_address'))).toBeTruthy();
-      expect(getByText('0x12345...67890')).toBeTruthy();
+      expect(getByText(strings('bridge.contract_address'))).toBeOnTheScreen();
+      expect(getByText('0x12345...67890')).toBeOnTheScreen();
     });
 
-    it('displays parsed CAIP address for Solana tokens', async () => {
+    it('displays extracted token address from CAIP address for Solana tokens', async () => {
       mockRoute.params.token = {
         address:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -668,10 +719,10 @@ describe('TokenInsightsSheet', () => {
       });
 
       await waitFor(() => {
-        expect(getByText(strings('bridge.contract_address'))).toBeTruthy();
+        expect(getByText(strings('bridge.contract_address'))).toBeOnTheScreen();
       });
 
-      expect(getByText('EPjFWd...Dt1v')).toBeTruthy();
+      expect(getByText('EPjFWd...Dt1v')).toBeOnTheScreen();
     });
 
     it('copies parsed address for EVM tokens', async () => {
