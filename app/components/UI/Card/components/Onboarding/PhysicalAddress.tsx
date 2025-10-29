@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -33,6 +33,8 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { Linking, TouchableOpacity } from 'react-native';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 export const AddressFields = ({
   addressLine1,
@@ -193,7 +195,7 @@ const PhysicalAddress = () => {
   const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');
@@ -434,6 +436,13 @@ const PhysicalAddress = () => {
       return;
     }
     try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+          .addProperties({
+            action: OnboardingActions.PHYSICAL_ADDRESS_BUTTON_CLICKED,
+          })
+          .build(),
+      );
       await registerUserConsent(onboardingId, user.id);
 
       const { accessToken, user: updatedUser } = await registerAddress({
@@ -493,6 +502,16 @@ const PhysicalAddress = () => {
       // Allow error message to display
     }
   };
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+        .addProperties({
+          page: OnboardingScreens.PHYSICAL_ADDRESS,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
     <>
