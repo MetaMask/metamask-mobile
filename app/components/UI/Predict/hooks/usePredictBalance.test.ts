@@ -21,6 +21,14 @@ jest.mock('./usePredictTrading', () => ({
   }),
 }));
 
+// Mock usePredictNetworkManagement
+const mockEnsurePolygonNetworkExists = jest.fn();
+jest.mock('./usePredictNetworkManagement', () => ({
+  usePredictNetworkManagement: () => ({
+    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
+  }),
+}));
+
 // Mock selectors - balance comes from Redux state now
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 let mockCachedBalance = 0;
@@ -82,6 +90,7 @@ describe('usePredictBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetBalance.mockResolvedValue(100);
+    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
     mockCachedBalance = 0;
     mockFocusCallback = null;
   });

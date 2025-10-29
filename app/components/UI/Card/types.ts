@@ -311,6 +311,7 @@ export interface RegistrationSettingsResponse {
       termsAndConditions: string;
       accountOpeningDisclosure: string;
       noticeOfPrivacy: string;
+      eSignConsentDisclosure: string;
     };
     intl: {
       termsAndConditions: string;
