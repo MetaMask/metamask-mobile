@@ -29,8 +29,9 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('SmartTransactionsControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } =
-      smartTransactionsControllerInit(getInitRequestMock());
+    const { controller } = smartTransactionsControllerInit(
+      getInitRequestMock(),
+    );
     expect(controller).toBeInstanceOf(SmartTransactionsController);
   });
 

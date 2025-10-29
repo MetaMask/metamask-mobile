@@ -102,7 +102,7 @@ describe('Confirmations Bridge Utils', () => {
       (state) =>
         ({
           sortedQuotes: state.engine.backgroundState.BridgeController.quotes,
-        }) as never,
+        } as never),
     );
 
     bridgeControllerMock.fetchQuotes

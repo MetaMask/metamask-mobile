@@ -524,7 +524,7 @@ const CardHome = () => {
                 testID={CardHomeSelectors.BALANCE_SKELETON}
               />
             ) : (
-              (balanceAmount ?? '0')
+              balanceAmount ?? '0'
             )}
           </SensitiveText>
           <TouchableOpacity
