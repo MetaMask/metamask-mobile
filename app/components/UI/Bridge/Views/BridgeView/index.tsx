@@ -443,6 +443,7 @@ const BridgeView = () => {
 
           {!shouldDisplayKeypad && (
             <Button
+              loading={!isQuoteForCurrentTokens}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               label={getButtonLabel()}
@@ -474,18 +475,6 @@ const BridgeView = () => {
               />
             )}
           </Box>
-          {!shouldDisplayKeypad && (
-            <Button
-              loading={!isQuoteForCurrentTokens}
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              label={getButtonLabel()}
-              onPress={handleContinue}
-              style={styles.button}
-              testID="bridge-confirm-button"
-              isDisabled={submitDisabled}
-            />
-          )}
         </Box>
       )
     );
