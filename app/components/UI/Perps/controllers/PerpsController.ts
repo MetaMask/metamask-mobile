@@ -539,8 +539,8 @@ export class PerpsController extends BaseController<
 > {
   private providers: Map<string, IPerpsProvider>;
   private isInitialized = false;
-  private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
+  private pendingReinitialization = false;
 
   // Geo-location cache
   private geoLocationCache: { location: string; timestamp: number } | null =
@@ -630,9 +630,9 @@ export class PerpsController extends BaseController<
       );
     }
 
-    this.messagingSystem.subscribe(
+    this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      (remoteFeatureFlagState) => {
+      (remoteFeatureFlagState: RemoteFeatureFlagControllerState) => {
         this.refreshEligibilityOnFeatureFlagChange(remoteFeatureFlagState);
         // Re-initialize providers with new feature flag configuration.
         this.refreshHIP3ConfigOnFeatureFlagChange(remoteFeatureFlagState);
@@ -960,77 +960,119 @@ export class PerpsController extends BaseController<
   /**
    * Initialize the PerpsController providers
    * Must be called before using any other methods
-   * Prevents double initialization with promise caching
+   * Delegates to performInitialization() which handles concurrency via queue
    */
   async initializeProviders(): Promise<void> {
-    // TODO: Check to see if this prevents re-initializing when feature flags change.
-    // if (this.isInitialized) {
-    //   return;
-    // }
-
-    // if (this.initializationPromise) {
-    //   return this.initializationPromise;
-    // }
-
-    this.initializationPromise = this.performInitialization();
-    return this.initializationPromise;
+    return this.performInitialization();
   }
 
   /**
-   * Actual initialization implementation
+   * Actual initialization implementation with queue-based concurrency control
+   *
+   * This method prevents concurrent initializations while ensuring feature flag updates
+   * are never dropped. If called while already initializing, it queues a re-initialization
+   * that will run with the latest configuration after the current one completes.
+   *
+   * The do-while loop ensures that the final provider configuration always reflects
+   * the most recent HIP-3 feature flags (remote values trump fallback via source tracking).
    */
   private async performInitialization(): Promise<void> {
-    DevLogger.log('PerpsController: Initializing providers', {
-      currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
-      existingProviders: Array.from(this.providers.keys()),
-      timestamp: new Date().toISOString(),
-    });
+    // If already initializing, queue a re-initialization to run after
+    if (this.isReinitializing) {
+      DevLogger.log(
+        'PerpsController: Initialization in progress, queuing re-initialization',
+        {
+          timestamp: new Date().toISOString(),
+        },
+      );
+      this.pendingReinitialization = true;
+      return;
+    }
 
-    // Disconnect existing providers to close WebSocket connections
-    const existingProviders = Array.from(this.providers.values());
-    if (existingProviders.length > 0) {
-      DevLogger.log('PerpsController: Disconnecting existing providers', {
-        count: existingProviders.length,
+    this.isReinitializing = true;
+
+    try {
+      // Loop until no more pending re-initializations
+      do {
+        this.pendingReinitialization = false;
+
+        DevLogger.log('PerpsController: Initializing providers', {
+          currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
+          existingProviders: Array.from(this.providers.keys()),
+          equityEnabled: this.hip3EnabledFlag.enabled,
+          equityEnabledSource: this.hip3EnabledFlag.source,
+          enabledDexs: this.enabledHIP3Dexs.dexs,
+          enabledDexsSource: this.enabledHIP3Dexs.source,
+          timestamp: new Date().toISOString(),
+        });
+
+        // Disconnect existing providers to close WebSocket connections
+        const existingProviders = Array.from(this.providers.values());
+        if (existingProviders.length > 0) {
+          DevLogger.log('PerpsController: Disconnecting existing providers', {
+            count: existingProviders.length,
+            timestamp: new Date().toISOString(),
+          });
+          await Promise.all(
+            existingProviders.map((provider) => provider.disconnect()),
+          );
+        }
+        this.providers.clear();
+
+        DevLogger.log(
+          'PerpsController: Creating provider with HIP-3 configuration',
+          {
+            equityEnabled: this.hip3EnabledFlag.enabled,
+            enabledDexs: this.enabledHIP3Dexs.dexs,
+            isTestnet: this.state.isTestnet,
+          },
+        );
+
+        this.providers.set(
+          'hyperliquid',
+          new HyperLiquidProvider({
+            isTestnet: this.state.isTestnet,
+            equityEnabled: this.hip3EnabledFlag.enabled,
+            enabledDexs: this.enabledHIP3Dexs.dexs,
+          }),
+        );
+
+        // Future providers can be added here with their own authentication patterns:
+        // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
+        // - Some might use different wallet patterns: new GMXProvider({ signer })
+        // - Some might not need auth at all: new DydxProvider()
+
+        // Wait for WebSocket transport to be ready before marking as initialized
+        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+
+        DevLogger.log('PerpsController: Providers initialized successfully', {
+          providerCount: this.providers.size,
+          activeProvider: this.state.activeProvider,
+          timestamp: new Date().toISOString(),
+          willReinitialize: this.pendingReinitialization,
+        });
+
+        // If pendingReinitialization was set during this iteration,
+        // the loop will run again with the latest config
+        if (this.pendingReinitialization) {
+          DevLogger.log(
+            'PerpsController: Config changed during initialization, re-running with latest config',
+            {
+              timestamp: new Date().toISOString(),
+            },
+          );
+        }
+      } while (this.pendingReinitialization);
+
+      this.isInitialized = true;
+      DevLogger.log('PerpsController: Providers initialization complete', {
+        providerCount: this.providers.size,
+        activeProvider: this.state.activeProvider,
         timestamp: new Date().toISOString(),
       });
-      await Promise.all(
-        existingProviders.map((provider) => provider.disconnect()),
-      );
+    } finally {
+      this.isReinitializing = false;
     }
-    this.providers.clear();
-
-    DevLogger.log(
-      'PerpsController: Creating provider with HIP-3 configuration',
-      {
-        equityEnabled: this.hip3EnabledFlag.enabled,
-        enabledDexs: this.enabledHIP3Dexs.dexs,
-        isTestnet: this.state.isTestnet,
-      },
-    );
-
-    this.providers.set(
-      'hyperliquid',
-      new HyperLiquidProvider({
-        isTestnet: this.state.isTestnet,
-        equityEnabled: this.hip3EnabledFlag.enabled,
-        enabledDexs: this.enabledHIP3Dexs.dexs,
-      }),
-    );
-
-    // Future providers can be added here with their own authentication patterns:
-    // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-    // - Some might use different wallet patterns: new GMXProvider({ signer })
-    // - Some might not need auth at all: new DydxProvider()
-
-    // Wait for WebSocket transport to be ready before marking as initialized
-    await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
-
-    this.isInitialized = true;
-    DevLogger.log('PerpsController: Providers initialized successfully', {
-      providerCount: this.providers.size,
-      activeProvider: this.state.activeProvider,
-      timestamp: new Date().toISOString(),
-    });
   }
 
   /**
@@ -3217,9 +3259,10 @@ export class PerpsController extends BaseController<
 
   /**
    * Toggle between testnet and mainnet
+   * Uses the queue-based performInitialization() for concurrency safety
    */
   async toggleTestnet(): Promise<ToggleTestnetResult> {
-    // Prevent concurrent reinitializations
+    // Check if already reinitializing to provide better user feedback
     if (this.isReinitializing) {
       DevLogger.log(
         'PerpsController: Already reinitializing, skipping toggle',
@@ -3233,8 +3276,6 @@ export class PerpsController extends BaseController<
         error: PERPS_ERROR_CODES.CLIENT_REINITIALIZING,
       };
     }
-
-    this.isReinitializing = true;
 
     try {
       const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3254,8 +3295,6 @@ export class PerpsController extends BaseController<
 
       // Reset initialization state and reinitialize provider with new testnet setting
       this.isInitialized = false;
-      this.initializationPromise = null;
-      // await this.initializeProviders();
       await this.performInitialization();
 
       DevLogger.log('PerpsController: Network toggle completed', {
@@ -3274,8 +3313,6 @@ export class PerpsController extends BaseController<
             ? error.message
             : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
-    } finally {
-      this.isReinitializing = false;
     }
   }
 
@@ -3465,7 +3502,6 @@ export class PerpsController extends BaseController<
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
-    this.initializationPromise = null;
   }
 
   /**

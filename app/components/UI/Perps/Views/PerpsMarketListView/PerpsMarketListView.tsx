@@ -141,6 +141,9 @@ const PerpsMarketListView = ({
     enablePolling: false,
   });
 
+  const xyzMarket = markets.find((market) => market.name.startsWith('xyz:'));
+  console.log('xyzMarket', xyzMarket);
+
   useEffect(() => {
     if (markets.length > 0) {
       Animated.timing(fadeAnimation, {
