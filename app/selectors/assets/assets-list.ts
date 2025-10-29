@@ -23,6 +23,10 @@ import {
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { selectAccountsByChainId } from '../accountTrackerController';
+import {
+  TRON_RESOURCE_SYMBOLS_SET,
+  TronResourceSymbol,
+} from '../../core/Multichain/constants';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -197,20 +201,14 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets)
       .filter((asset) => {
-        // We need to filter out Tron resource pseudo-assets from this list
-        if (asset.chainId?.includes('tron:')) {
-          const symbolLc = asset.symbol?.toLowerCase();
-          const tronResourceSymbols = new Set([
-            'energy',
-            'bandwidth',
-            'max-energy',
-            'max-bandwidth',
-            'strx-energy',
-            'strx-bandwidth',
-          ]);
-          if (symbolLc && tronResourceSymbols.has(symbolLc)) {
-            return false;
-          }
+        // We need to filter out Tron resources from this list
+        if (
+          asset.chainId?.includes('tron:') &&
+          TRON_RESOURCE_SYMBOLS_SET.has(
+            asset.symbol?.toLowerCase() as TronResourceSymbol,
+          )
+        ) {
+          return false;
         }
         return true;
       });
@@ -356,22 +354,15 @@ export const selectTronResourcesBySelectedAccountGroup =
   createDeepEqualSelector(
     [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
     (bip44Assets, enabledNetworks) => {
-      const tronResourceNames = [
-        'energy',
-        'bandwidth',
-        'max-energy',
-        'max-bandwidth',
-        'strx-energy',
-        'strx-bandwidth',
-      ];
-
       const assets = Object.entries(bip44Assets)
         .filter(([networkId, _]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) => chainAssets)
         .filter(
           (asset) =>
             asset.chainId?.includes('tron:') &&
-            tronResourceNames.includes(asset.symbol?.toLowerCase()),
+            TRON_RESOURCE_SYMBOLS_SET.has(
+              asset.symbol?.toLowerCase() as TronResourceSymbol,
+            ),
         );
 
       return assets;
