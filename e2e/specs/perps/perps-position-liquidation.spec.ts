@@ -15,6 +15,7 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
+import { TestSuiteParams } from '../../framework';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
@@ -27,9 +28,13 @@ describe(SmokeTrade('Perps Position'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        useCommandQueueServer: true,
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
-      async () => {
+      async ({ commandQueueServer }: TestSuiteParams) => {
+        if (!commandQueueServer) {
+          throw new Error('Command queue server not found');
+        }
         await loginToApp();
         await device.disableSynchronization();
         // Navigate to Perps tab using manual sync management
@@ -50,8 +55,16 @@ describe(SmokeTrade('Perps Position'), () => {
         await TabBarComponent.tapHome();
 
         // add price change and liquidation -> not yet liquidated
-        await PerpsE2EModifiers.updateMarketPrice('BTC', '50000.00');
-        await PerpsE2EModifiers.triggerLiquidation('BTC');
+        await PerpsE2EModifiers.updateMarketPriceServer(
+          commandQueueServer,
+          'BTC',
+          '50000.00',
+        );
+        await PerpsE2EModifiers.triggerLiquidationServer(
+          commandQueueServer,
+          'BTC',
+        );
+
         logger.info('🔥 E2E Mock: Liquidation triggered. Not yet liquidated.');
 
         // Assertion 1: still have 2 positions (the default and the recently opened)
@@ -59,8 +72,15 @@ describe(SmokeTrade('Perps Position'), () => {
         await PerpsView.ensurePerpsTabPositionVisible('ETH', 3, 'long', 1);
 
         // add price change and force liquidation - BTC below 30k triggers default BTC liquidation
-        await PerpsE2EModifiers.updateMarketPrice('BTC', '10000.00');
-        await PerpsE2EModifiers.triggerLiquidation('BTC');
+        await PerpsE2EModifiers.updateMarketPriceServer(
+          commandQueueServer,
+          'BTC',
+          '10000.00',
+        );
+        await PerpsE2EModifiers.triggerLiquidationServer(
+          commandQueueServer,
+          'BTC',
+        );
         logger.info('🔥 E2E Mock: Liquidation triggered. Liquidated.');
 
         // Assertion 2: only BTC 3x is visible

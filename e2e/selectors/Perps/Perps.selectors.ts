@@ -54,6 +54,9 @@ export const PerpsPositionCardSelectorsIDs = {
     'position-card-tpsl-count-warning-tooltip-view-orders',
   TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
     'position-card-tpsl-count-warning-tooltip-got-it',
+  POSITION_TAB: 'undefined-tab-0',
+  NOTIFICATION_TOOLTIP_TURN_ON_BUTTON:
+    'perps-position-card-notification-tooltip-turn-on-button',
 };
 
 // ========================================

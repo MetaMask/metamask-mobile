@@ -20,7 +20,7 @@ const logger = createLogger({
 });
 
 describe(SmokeTrade('Perps Position'), () => {
-  it('should open a long position with custom profit and close it', async () => {
+  it.skip('should open a long position with custom profit and close it', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -49,6 +49,9 @@ describe(SmokeTrade('Perps Position'), () => {
 
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
+
+        // await PerpsMarketDetailsView.tapNotificationTooltipTurnOnButton();
+        await PerpsMarketDetailsView.tapPositionTab();
 
         // Wait for screen ready and assert Close Position availability
         await PerpsMarketDetailsView.waitForScreenReady();

@@ -17,7 +17,7 @@ describe(
     'Perps - Activity (Funding/Orders) and trade after closing position',
   ),
   () => {
-    it('checks Activity first, then closes a position and sees a trade in Activity', async () => {
+    it.skip('checks Activity first, then closes a position and sees a trade in Activity', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()

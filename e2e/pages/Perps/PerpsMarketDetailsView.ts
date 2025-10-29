@@ -171,6 +171,19 @@ class PerpsMarketDetailsView {
     );
   }
 
+  get positionTab() {
+    return Matchers.getElementIDWithAncestor(
+      PerpsPositionCardSelectorsIDs.POSITION_TAB,
+      PerpsPositionCardSelectorsIDs.CARD,
+    );
+  }
+
+  get notificationTooltipTurnOnButton() {
+    return Matchers.getElementByID(
+      PerpsPositionCardSelectorsIDs.NOTIFICATION_TOOLTIP_TURN_ON_BUTTON,
+    );
+  }
+
   // Actions
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
@@ -309,6 +322,18 @@ class PerpsMarketDetailsView {
       elemDescription: 'Close order button',
       checkStability: true,
       timeout: 10000,
+    });
+  }
+
+  async tapPositionTab() {
+    await Gestures.waitAndTap(this.positionTab, {
+      elemDescription: 'Position tab',
+    });
+  }
+
+  async tapNotificationTooltipTurnOnButton() {
+    await Gestures.waitAndTap(this.notificationTooltipTurnOnButton, {
+      elemDescription: 'Notification tooltip turn on button',
     });
   }
 }

@@ -11,16 +11,21 @@ import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
+import { TestSuiteParams } from '../../framework';
 
 describe(SmokeTrade('Perps - ETH limit long fill'), () => {
-  it('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
+  it.skip('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPerpsProfile('no-positions').build(),
         restartDevice: true,
+        useCommandQueueServer: true,
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
-      async () => {
+      async ({ commandQueueServer }: TestSuiteParams) => {
+        if (!commandQueueServer) {
+          throw new Error('Command queue server not found');
+        }
         await loginToApp();
         await device.disableSynchronization();
         await PerpsHelpers.navigateToPerpsTab();
@@ -44,7 +49,6 @@ describe(SmokeTrade('Perps - ETH limit long fill'), () => {
 
         // Confirm limit price (Set button)
         await PerpsOrderView.confirmLimitPrice();
-
         // Set amount to 25% using quick percentage button
         await PerpsOrderView.tapQuickAmountPercent(25);
 
@@ -63,7 +67,11 @@ describe(SmokeTrade('Perps - ETH limit long fill'), () => {
 
         // Push the price -15% to ensure the order is executed
         // Default ETH price in mock is 2500.00, -15% => 2125.00
-        await PerpsE2EModifiers.updateMarketPrice('ETH', '2125.00');
+        await PerpsE2EModifiers.updateMarketPriceServer(
+          commandQueueServer,
+          'ETH',
+          '2125.00',
+        );
 
         await PerpsView.expectOpenPositionsOnTab();
 

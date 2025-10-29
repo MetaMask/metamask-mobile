@@ -80,7 +80,6 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
 
         // Read initial balance text for later comparison
         const initialBalance = await PerpsTabView.getBalance();
-        await PerpsE2EModifiers.applyDepositUSDServer(commandQueueServer, '80');
 
         // Open Add Funds from balance menu
         await PerpsTabView.tapBalanceButton();
