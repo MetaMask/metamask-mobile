@@ -123,6 +123,12 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
             count: result.successCount,
           }),
         );
+        // Close sheet after success when using external ref
+        if (externalSheetRef && result.successCount > 0) {
+          sheetRef.current?.onCloseBottomSheet(() => {
+            onExternalClose?.();
+          });
+        }
       } else if (result.successCount > 0 && result.failureCount > 0) {
         showSuccessToast(
           strings('perps.cancel_all_modal.success_title'),
@@ -131,9 +137,15 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
             totalCount: result.successCount + result.failureCount,
           }),
         );
+        // Close sheet after partial success when using external ref
+        if (externalSheetRef && result.successCount > 0) {
+          sheetRef.current?.onCloseBottomSheet(() => {
+            onExternalClose?.();
+          });
+        }
       }
     },
-    [showSuccessToast],
+    [showSuccessToast, externalSheetRef, sheetRef, onExternalClose],
   );
 
   // Handle error callback from hook
@@ -152,6 +164,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
     usePerpsCancelAllOrders(orders, {
       onSuccess: handleSuccess,
       onError: handleError,
+      navigateBackOnSuccess: !externalSheetRef, // Don't navigate if using external ref
     });
 
   const handleClose = useCallback(() => {
