@@ -36,6 +36,7 @@ import {
   formatPerpsFiat,
   parseCurrencyString,
   PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import MetaMaskLogo from '../../../../../images/branding/metamask-name.png';
 import NegativePnlCharacter1 from '../../../../../images/negative_pnl_character_1_3x.png';
@@ -87,7 +88,6 @@ const PerpsHeroCardView: React.FC = () => {
   const { position, marketPrice } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
-  // const rewardsReferralCode = null;
 
   const { track } = usePerpsEventTracking();
 
@@ -110,7 +110,7 @@ const PerpsHeroCardView: React.FC = () => {
       roe: roeValue,
       entryPrice,
       markPrice: formatPerpsFiat(marketPriceParsed ?? '', {
-        ranges: PRICE_RANGES_MINIMAL_VIEW,
+        ranges: PRICE_RANGES_UNIVERSAL,
       }),
       isLong,
     };

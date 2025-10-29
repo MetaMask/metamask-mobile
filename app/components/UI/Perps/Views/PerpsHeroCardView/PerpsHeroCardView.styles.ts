@@ -3,8 +3,9 @@ import type { Theme } from '../../../../../util/theme/models';
 import { darkTheme } from '@metamask/design-tokens';
 
 /**
- * Note: DO NOT USE replace darkTheme.colors occurrences with theme.colors in this file.
+ * Note: DO NOT REPLACE darkTheme.colors occurrences with theme.colors in this file.
  * We intentionally use darkTheme in this file to ensure consistent styling regardless of device theme.
+ * This way exported P&L cards are uniform.
  */
 const styleSheet = (params: {
   theme: Theme;
@@ -41,13 +42,14 @@ const styleSheet = (params: {
       alignItems: 'center',
     },
     carousel: {
-      width: 340,
+      width: 372,
       height: 340,
       alignSelf: 'center',
     },
     cardContainer: {
       width: 340,
       height: 340,
+      marginHorizontal: 16,
       backgroundColor: darkTheme.colors.accent04.dark,
       borderRadius: 16,
       borderWidth: 1,
