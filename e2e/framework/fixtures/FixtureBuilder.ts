@@ -4,6 +4,7 @@ import {
   getTestDappLocalUrl,
   getMockServerPort,
   getTestDappLocalUrlByDappCounter,
+  AnvilPort,
 } from './FixtureUtils';
 import { merge } from 'lodash';
 import { encryptVault } from './helpers';
@@ -172,8 +173,7 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withTestNetworksOff() {
-    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks =
-      false;
+    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks = false;
     return this;
   }
 
@@ -1244,9 +1244,8 @@ class FixtureBuilder {
           const balanceInWei = (
             finalBalance * Math.pow(10, token.decimals)
           ).toString(16);
-          tokenBalances[accountAddress][chainId][
-            token.address
-          ] = `0x${balanceInWei}`;
+          tokenBalances[accountAddress][chainId][token.address] =
+            `0x${balanceInWei}`;
         });
       });
     });
@@ -1269,7 +1268,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withGanacheNetwork(chainId = '0x539') {
+  withGanacheNetwork(chainId = '0x539', port = AnvilPort()) {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
@@ -1284,7 +1283,7 @@ class FixtureBuilder {
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: `http://localhost:${getGanachePort()}`,
+          url: `http://localhost:${port}`,
           type: 'custom',
           name: 'Localhost',
         },

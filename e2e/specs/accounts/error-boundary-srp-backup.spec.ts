@@ -11,7 +11,10 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../framework/fixtures/FixtureUtils';
 import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import {
@@ -36,12 +39,17 @@ describe(RegressionAccounts('Error Boundary Screen'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: ({ localNodes }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withGanacheNetwork(undefined, anvilPort ?? AnvilPort())
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
+            .build();
+        },
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupMockPostRequest(

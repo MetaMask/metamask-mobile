@@ -8,6 +8,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 
 describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {
@@ -18,12 +19,17 @@ describe(RegressionAssets('Import custom token'), () => {
   it('should Import custom token with auto-population', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withNetworkEnabledMap({
-            eip155: { '0x539': true },
-          })
-          .build(),
+        fixture: ({ localNodes }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withGanacheNetwork(undefined, anvilPort ?? AnvilPort())
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .build();
+        },
         restartDevice: true,
         smartContracts: [SMART_CONTRACTS.HST],
       },
@@ -34,11 +40,8 @@ describe(RegressionAssets('Import custom token'), () => {
 
         await loginToApp();
         await WalletView.tapImportTokensButton();
-        await ImportTokensView.switchToCustomTab();
-        await ImportTokensView.tapOnNetworkInput();
-        await ImportTokensView.swipeNetworkList();
-        await ImportTokensView.tapNetworkOption('Localhost');
         await ImportTokensView.typeTokenAddress(hstAddress);
+        await new Promise((resolve) => setTimeout(resolve, 20000));
         await Assertions.expectElementToHaveText(
           ImportTokensView.symbolInput,
           'TST',

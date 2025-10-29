@@ -4,7 +4,7 @@ import SendView from '../../pages/Send/RedesignedSendView';
 import WalletView from '../../pages/wallet/WalletView';
 import { DappVariants } from '../../framework/Constants';
 import { SmokeConfirmationsRedesigned } from '../../tags';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
@@ -19,32 +19,42 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-              name: 'Ethereum',
-            },
-            {
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-            {
-              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-              symbol: 'DAI',
-              decimals: 18,
-              name: 'Dai Stablecoin',
-            },
-          ])
-          .build(),
+        fixture: ({ localNodes }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withTokensForAllPopularNetworks([
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'ETH',
+                decimals: 18,
+                name: 'Ethereum',
+              },
+              {
+                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+              },
+              {
+                address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                symbol: 'DAI',
+                decimals: 18,
+                name: 'Dai Stablecoin',
+              },
+            ])
+            .build();
+        },
         restartDevice: true,
       },
       async () => {
@@ -71,32 +81,42 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-              name: 'Ethereum',
-            },
-            {
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-            {
-              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-              symbol: 'DAI',
-              decimals: 18,
-              name: 'Dai Stablecoin',
-            },
-          ])
-          .build(),
+        fixture: ({ localNodes }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withTokensForAllPopularNetworks([
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'ETH',
+                decimals: 18,
+                name: 'Ethereum',
+              },
+              {
+                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+              },
+              {
+                address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                symbol: 'DAI',
+                decimals: 18,
+                name: 'Dai Stablecoin',
+              },
+            ])
+            .build();
+        },
         restartDevice: true,
       },
       async () => {
@@ -123,32 +143,42 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-              name: 'Ethereum',
-            },
-            {
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-            {
-              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-              symbol: 'DAI',
-              decimals: 18,
-              name: 'Dai Stablecoin',
-            },
-          ])
-          .build(),
+        fixture: ({ localNodes }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withTokensForAllPopularNetworks([
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'ETH',
+                decimals: 18,
+                name: 'Ethereum',
+              },
+              {
+                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+              },
+              {
+                address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                symbol: 'DAI',
+                decimals: 18,
+                name: 'Dai Stablecoin',
+              },
+            ])
+            .build();
+        },
         restartDevice: true,
       },
       async () => {
