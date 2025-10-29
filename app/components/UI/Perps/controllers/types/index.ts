@@ -81,6 +81,13 @@ export interface TrackingData {
   realizedPnl?: number; // Realized P&L from close
 }
 
+// TP/SL-specific tracking data for analytics events
+export interface TPSLTrackingData {
+  direction: 'long' | 'short'; // Position direction
+  source: string; // Source of the TP/SL update (e.g., 'tp_sl_view', 'position_card')
+  positionSize: number; // Unsigned position size for metrics
+}
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
@@ -620,6 +627,8 @@ export interface UpdatePositionTPSLParams {
   coin: string; // Asset symbol
   takeProfitPrice?: string; // Optional: undefined to remove
   stopLossPrice?: string; // Optional: undefined to remove
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TPSLTrackingData;
 }
 
 export interface Order {

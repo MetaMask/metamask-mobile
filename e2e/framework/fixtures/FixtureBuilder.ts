@@ -172,8 +172,7 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withTestNetworksOff() {
-    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks =
-      false;
+    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks = false;
     return this;
   }
 
@@ -1244,9 +1243,8 @@ class FixtureBuilder {
           const balanceInWei = (
             finalBalance * Math.pow(10, token.decimals)
           ).toString(16);
-          tokenBalances[accountAddress][chainId][
-            token.address
-          ] = `0x${balanceInWei}`;
+          tokenBalances[accountAddress][chainId][token.address] =
+            `0x${balanceInWei}`;
         });
       });
     });

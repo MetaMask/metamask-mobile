@@ -14,10 +14,10 @@ const TimeEstimateInfoModal = ({ timeEstimateId, isVisible, onHideModal }) => (
       timeEstimateId === AppConstants.GAS_TIMES.MAYBE
         ? strings('times_eip1559.warning_low_title')
         : timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN
-        ? strings('times_eip1559.warning_unknown_title')
-        : timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY
-        ? strings('times_eip1559.warning_very_likely_title')
-        : null
+          ? strings('times_eip1559.warning_unknown_title')
+          : timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY
+            ? strings('times_eip1559.warning_very_likely_title')
+            : null
     }
     body={
       <View>

@@ -16,9 +16,11 @@ import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Pred
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 
-interface PredictTabViewProps {}
+interface PredictTabViewProps {
+  isVisible?: boolean;
+}
 
-const PredictTabView: React.FC<PredictTabViewProps> = () => {
+const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [positionsError, setPositionsError] = useState<string | null>(null);
@@ -86,6 +88,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
           <PredictPositions
             ref={predictPositionsRef}
             onError={handlePositionsError}
+            isVisible={isVisible}
           />
           <PredictAddFundsSheet />
         </ScrollView>

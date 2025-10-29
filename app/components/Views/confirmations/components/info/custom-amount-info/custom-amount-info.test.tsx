@@ -107,12 +107,9 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders amount', () => {
-    const { getByTestId } = render();
+    const { getByText } = render();
 
-    expect(getByTestId('custom-amount-input')).toHaveProp(
-      'defaultValue',
-      '123.45',
-    );
+    expect(getByText('123.45')).toBeOnTheScreen();
   });
 
   it('renders payment token', () => {

@@ -13,7 +13,6 @@ import TextComponent, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem, TokenListItemBip44 } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
@@ -148,9 +147,7 @@ const TokenListComponent = ({
         }}
         decelerationRate="fast"
         ListFooterComponent={
-          !isHomepageRedesignV1Enabled ? (
-            <TokenListFooter />
-          ) : shouldShowViewAllButton ? (
+          isHomepageRedesignV1Enabled && shouldShowViewAllButton ? (
             <Box twClassName="pt-3 pb-9">
               <Button
                 variant={ButtonVariant.Secondary}
