@@ -19,6 +19,7 @@ import type {
   WithdrawResult,
   Funding,
   UpdatePositionTPSLParams,
+  UserHistoryItem,
 } from '../../../../app/components/UI/Perps/controllers/types';
 
 export class PerpsE2EMockService {
@@ -41,6 +42,7 @@ export class PerpsE2EMockService {
   private mockOrderFills: OrderFill[] = [];
   private mockPricesMap: Record<string, PriceUpdate> = {};
   private orderMeta: Record<string, { leverage: number }> = {};
+  private mockUserHistory: UserHistoryItem[] = [];
 
   private orderIdCounter = 1;
   private fillIdCounter = 1;
@@ -138,6 +140,7 @@ export class PerpsE2EMockService {
     this.mockOrders = [];
     this.mockOrdersHistory = [];
     this.mockOrderFills = [];
+    this.mockUserHistory = [];
     this.orderIdCounter = 1;
     this.fillIdCounter = 1;
     this.orderMeta = {};
@@ -200,6 +203,18 @@ export class PerpsE2EMockService {
       this.mockOrders.push(ethOrder);
       this.mockOrders.push(solOrder);
     }
+
+    // Seed a completed deposit so Activity > Deposits is populated
+    this.mockUserHistory.push({
+      id: `seed_deposit_${Date.now()}`,
+      timestamp: Date.now() - 5 * 60 * 1000,
+      type: 'deposit',
+      amount: '100.00',
+      asset: 'USDC',
+      txHash: '0xseeddeposit',
+      status: 'completed',
+      details: { source: 'e2e-mock' },
+    });
   }
 
   // Mock successful order placement
@@ -539,6 +554,10 @@ export class PerpsE2EMockService {
 
   public getMockOrderFills(): OrderFill[] {
     return [...this.mockOrderFills];
+  }
+
+  public getMockUserHistory(): UserHistoryItem[] {
+    return [...this.mockUserHistory];
   }
 
   public getMockMarkets(): PerpsMarketData[] {

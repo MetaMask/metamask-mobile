@@ -716,7 +716,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       style={styles.container}
       testID={PerpsMarketTabsSelectorsIDs.CONTAINER}
     >
-      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList
+        key={tabsKey}
+        ref={tabsListRef}
+        onChangeTab={handleTabChange}
+        testID="perps-market-tabs-tab"
+      >
         {tabsToRender}
       </TabsList>
       {renderTooltipModal()}

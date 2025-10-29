@@ -6,7 +6,10 @@
  * configures itself when the isE2E flag is detected.
  */
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { isE2E , getCommandQueueServerPortInApp } from '../../../../util/test/utils';
+import {
+  isE2E,
+  getCommandQueueServerPortInApp,
+} from '../../../../util/test/utils';
 import { Linking } from 'react-native';
 import axios, { AxiosResponse } from 'axios';
 import { PerpsModifiersCommandTypes } from '../../../../../e2e/framework/types';
@@ -50,8 +53,9 @@ function registerE2EPerpsDeepLinkHandler(): void {
         if (!url) return;
 
         const isExpoMappedScheme = url.startsWith('metamask://e2e/perps/');
-        // Backward-compat: tolerate accidental double-colon variant
-        if (!isExpoMappedScheme) {
+        const isRawScheme = url.startsWith('e2e://perps/');
+        // Support both the Expo-mapped scheme and the raw e2e scheme used in tests
+        if (!isExpoMappedScheme && !isRawScheme) {
           return;
         }
 

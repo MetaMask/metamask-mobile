@@ -270,7 +270,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 isDisabled={tab.isDisabled}
                 onPress={() => handleTabPress(index)}
                 onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
-                testID={`${testID}-tab-${index}`}
+                testID={testID ? `${testID}-${tab.key}` : undefined}
               />
             ))}
 
@@ -299,7 +299,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
               isDisabled={tab.isDisabled}
               onPress={() => handleTabPress(index)}
               onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
-              testID={`${testID}-tab-${index}`}
+              testID={testID ? `${testID}-${tab.key}` : undefined}
             />
           ))}
 

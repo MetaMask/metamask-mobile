@@ -14,7 +14,7 @@ import PerpsE2EModifiers from './helpers/perps-modifiers';
 import { TestSuiteParams } from '../../framework';
 
 describe(SmokeTrade('Perps - ETH limit long fill'), () => {
-  it.skip('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
+  it('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPerpsProfile('no-positions').build(),

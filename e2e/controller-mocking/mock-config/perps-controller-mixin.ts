@@ -18,7 +18,8 @@ import type {
   ClosePositionParams,
   LiquidationPriceParams,
   Funding,
- UpdatePositionTPSLParams } from '../../../app/components/UI/Perps/controllers/types';
+  UpdatePositionTPSLParams,
+} from '../../../app/components/UI/Perps/controllers/types';
 import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
 
 // Interface for controller with update method access
@@ -292,6 +293,37 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       console.log(`Mocked ${method} method`);
     }
   });
+
+  // Wrap getActiveProvider so history calls made via provider use mocks too
+  const controllerRecord = controller as unknown as Record<string, unknown>;
+  const originalGetActiveProvider = controllerRecord.getActiveProvider as
+    | (() => unknown)
+    | undefined;
+  controllerRecord._original_getActiveProvider = originalGetActiveProvider;
+  controllerRecord.getActiveProvider = function getActiveProviderMocked() {
+    const provider = originalGetActiveProvider
+      ? originalGetActiveProvider.call(controller)
+      : {};
+    const providerRecord = provider as Record<string, unknown>;
+
+    // Patch only the methods we need for Activity history
+    providerRecord.getOrders = (
+      overrides.getOrders as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getOrderFills = (
+      overrides.getOrderFills as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getFunding = (
+      overrides.getFunding as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getUserHistory = () => {
+      const service = PerpsE2EMockService.getInstance();
+      return service.getMockUserHistory();
+    };
+
+    // Pass-through others unchanged
+    return providerRecord;
+  };
 
   // Initialize Redux state with mock data immediately
   const mockService = PerpsE2EMockService.getInstance();

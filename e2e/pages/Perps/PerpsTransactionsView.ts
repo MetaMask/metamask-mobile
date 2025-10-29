@@ -17,6 +17,10 @@ class PerpsTransactionsView {
     return Matchers.getElementByTextContains('Funding');
   }
 
+  get depositsTab(): DetoxElement {
+    return Matchers.getElementByTextContains('Deposits');
+  }
+
   get anyTransactionItem(): DetoxElement {
     return Matchers.getElementByID(
       PerpsTransactionSelectorsIDs.TRANSACTION_ITEM,
@@ -39,7 +43,6 @@ class PerpsTransactionsView {
     await Assertions.expectElementToBeVisible(this.ordersTab, {
       description: 'Orders tab visible',
     });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   async openFunding(): Promise<void> {
@@ -51,6 +54,14 @@ class PerpsTransactionsView {
     });
   }
 
+  async openDeposits(): Promise<void> {
+    await Gestures.waitAndTap(this.depositsTab, {
+      elemDescription: 'Open Deposits tab',
+    });
+    await Assertions.expectElementToBeVisible(this.depositsTab, {
+      description: 'Deposits tab visible',
+    });
+  }
   async expectTextsInList(itemsText: string[]): Promise<void> {
     for (let i = 0; i < itemsText.length; i++) {
       const transactionItem = await Matchers.getElementByID(

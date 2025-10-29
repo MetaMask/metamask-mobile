@@ -172,10 +172,11 @@ class PerpsMarketDetailsView {
   }
 
   get positionTab() {
-    return Matchers.getElementIDWithAncestor(
-      PerpsPositionCardSelectorsIDs.POSITION_TAB,
-      PerpsPositionCardSelectorsIDs.CARD,
-    );
+    return Matchers.getElementByID(PerpsMarketTabsSelectorsIDs.POSITION_TAB);
+  }
+
+  get ordersTab() {
+    return Matchers.getElementByID(PerpsMarketTabsSelectorsIDs.ORDERS_TAB);
   }
 
   get notificationTooltipTurnOnButton() {
@@ -327,7 +328,15 @@ class PerpsMarketDetailsView {
 
   async tapPositionTab() {
     await Gestures.waitAndTap(this.positionTab, {
+      checkVisibility: false,
       elemDescription: 'Position tab',
+    });
+  }
+
+  async tapOrdersTab() {
+    await Gestures.waitAndTap(this.ordersTab, {
+      checkVisibility: false,
+      elemDescription: 'Orders tab',
     });
   }
 

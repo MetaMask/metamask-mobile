@@ -462,9 +462,9 @@ export const PerpsMarketTabsSelectorsIDs = {
 
   // Tab bar and tabs
   TAB_BAR: 'perps-market-tabs-tab-bar',
-  POSITION_TAB: 'perps-market-tabs-position-tab',
-  ORDERS_TAB: 'perps-market-tabs-orders-tab',
-  STATISTICS_TAB: 'perps-market-tabs-statistics-tab',
+  POSITION_TAB: 'perps-market-tabs-tab-bar-position-tab',
+  ORDERS_TAB: 'perps-market-tabs-tab-bar-orders-tab',
+  STATISTICS_TAB: 'perps-market-tabs-tab-bar-statistics-tab',
 
   // Tab content areas
   TAB_CONTENT: 'perps-market-tabs-tab-content',

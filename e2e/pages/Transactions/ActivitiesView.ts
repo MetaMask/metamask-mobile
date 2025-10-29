@@ -145,6 +145,9 @@ class ActivitiesView {
     const fundingTab = Matchers.getElementByTextContains(
       'Funding',
     ) as DetoxElement;
+    const depositsTab = Matchers.getElementByTextContains(
+      'Funding',
+    ) as DetoxElement;
 
     // 1) Try tapping the top "Perps" tab directly
     const perpsTabVisible = await Utilities.isElementVisible(
@@ -158,14 +161,23 @@ class ActivitiesView {
     }
 
     // 2) Verify sub-tabs; if not visible, fall back to swipes with retries
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const isTradesVisible = await Utilities.isElementVisible(tradesTab, 600);
       const isOrdersVisible = await Utilities.isElementVisible(ordersTab, 600);
       const isFundingVisible = await Utilities.isElementVisible(
         fundingTab,
         600,
       );
-      if (isTradesVisible && isOrdersVisible && isFundingVisible) {
+      const isDepositsVisible = await Utilities.isElementVisible(
+        depositsTab,
+        600,
+      );
+      if (
+        isTradesVisible &&
+        isOrdersVisible &&
+        isFundingVisible &&
+        isDepositsVisible
+      ) {
         return;
       }
       await Gestures.swipe(this.container, 'left', {
