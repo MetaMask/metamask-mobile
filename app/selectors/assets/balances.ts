@@ -14,9 +14,13 @@ import {
 } from '@metamask/assets-controllers';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
+import { parseCaipChainId, Hex, CaipChainId } from '@metamask/utils';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../constants/popular-networks';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
+import { selectNetworkConfigurationsByCaipChainId } from '../networkController';
 import {
   selectAccountTreeControllerState,
   selectSelectedAccountGroupId,
@@ -240,6 +244,126 @@ export const selectBalanceBySelectedAccountGroup = createSelector(
       };
     }
     return wallet.groups[selectedGroupId];
+  },
+);
+
+/**
+ * Selector that returns the wallet-level balance for the selected account group,
+ * checking only mainnet networks (excluding testnets).
+ * This aggregates balance across all mainnet networks regardless of enabled/disabled status,
+ * used for empty state logic instead of group-specific balance.
+ */
+export const selectWalletBalanceForEmptyState = createSelector(
+  [
+    selectSelectedAccountGroupId,
+    selectNetworkConfigurationsByCaipChainId,
+    selectAccountTreeStateForBalances,
+    selectAccountsStateForBalances,
+    selectTokenBalancesStateForBalances,
+    selectTokenRatesStateForBalances,
+    selectMultichainAssetsRatesStateForBalances,
+    selectMultichainBalancesStateForBalances,
+    selectTokensStateForBalances,
+    selectCurrencyRateStateForBalances,
+  ],
+  (
+    selectedGroupId,
+    networkConfigurationsByChainId,
+    accountTreeState,
+    accountsState,
+    tokenBalancesState,
+    tokenRatesState,
+    multichainRatesState,
+    multichainBalancesState,
+    tokensState,
+    currencyRateState,
+  ) => {
+    if (!selectedGroupId) {
+      return null;
+    }
+
+    // Filter to mainnet networks only (exclude testnets)
+    const mainnetCaipChainIds = Object.keys(networkConfigurationsByChainId).filter(
+      (caipChainId) => {
+        const networkConfig = networkConfigurationsByChainId[caipChainId as CaipChainId];
+
+        // For EVM networks, check if they're in popular networks (mainnet)
+        if (caipChainId.startsWith('eip155:')) {
+          return POPULAR_NETWORK_CHAIN_IDS.has(networkConfig.chainId as Hex);
+        }
+
+        // For non-EVM networks, exclude testnets
+        return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
+      }
+    );
+
+    // Build custom enabledNetworkMap from mainnet CAIP chainIds
+    const enabledNetworkMap: Record<string, Record<string, boolean>> = {};
+
+    mainnetCaipChainIds.forEach((caipChainId) => {
+      if (caipChainId.startsWith('eip155:')) {
+        // EVM networks: convert CAIP to hex format
+        const chainIdDecimal = caipChainId.split(':')[1];
+        const chainIdHex = `0x${parseInt(chainIdDecimal, 10).toString(16)}`;
+
+        if (!enabledNetworkMap.eip155) {
+          enabledNetworkMap.eip155 = {};
+        }
+        enabledNetworkMap.eip155[chainIdHex] = true;
+      } else {
+        // Non-EVM networks: use full CAIP format
+        const { namespace } = parseCaipChainId(caipChainId as CaipChainId);
+        if (!enabledNetworkMap[namespace]) {
+          enabledNetworkMap[namespace] = {};
+        }
+        enabledNetworkMap[namespace][caipChainId] = true;
+      }
+    });
+
+    // Debug: Log the enabled networks map we're using
+    console.log('🔍 selectWalletBalanceForEmptyState - enabledNetworkMap:', JSON.stringify(enabledNetworkMap, null, 2));
+    console.log('🔍 selectWalletBalanceForEmptyState - mainnetCaipChainIds:', mainnetCaipChainIds);
+
+    // Calculate balance using custom mainnet network map
+    const allBalances = calculateBalanceForAllWallets(
+      accountTreeState,
+      accountsState,
+      tokenBalancesState,
+      tokenRatesState,
+      multichainRatesState,
+      multichainBalancesState,
+      tokensState,
+      currencyRateState,
+      enabledNetworkMap,
+    );
+
+    // Debug: Log the full balance calculation result
+    console.log('🔍 selectWalletBalanceForEmptyState - allBalances:', JSON.stringify(allBalances, null, 2));
+
+    // Extract ACCOUNT GROUP-level balance across mainnet networks (not wallet-level)
+    const walletId = selectedGroupId.split('/')[0];
+    const wallet = allBalances.wallets[walletId] ?? null;
+    const { userCurrency } = allBalances;
+
+    if (!wallet?.groups[selectedGroupId]) {
+      return {
+        walletId,
+        groupId: selectedGroupId,
+        totalBalanceInUserCurrency: 0,
+        userCurrency,
+      };
+    }
+
+    // Return the selected account group balance across mainnet networks
+    const accountGroupBalance = wallet.groups[selectedGroupId];
+    console.log('🔍 selectWalletBalanceForEmptyState - returning account group balance:', accountGroupBalance);
+
+    return {
+      walletId,
+      groupId: selectedGroupId,
+      totalBalanceInUserCurrency: accountGroupBalance.totalBalanceInUserCurrency,
+      userCurrency,
+    };
   },
 );
 

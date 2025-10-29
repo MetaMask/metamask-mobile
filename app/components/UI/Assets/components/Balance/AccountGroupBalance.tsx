@@ -7,6 +7,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
+  selectWalletBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import SensitiveText, {
@@ -25,6 +26,7 @@ const AccountGroupBalance = () => {
   const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
   const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
+  const walletBalance = useSelector(selectWalletBalanceForEmptyState);
   const balanceChange1d = useSelector(
     selectBalanceChangeBySelectedAccountGroup('1d'),
   );
@@ -43,11 +45,37 @@ const AccountGroupBalance = () => {
   const userCurrency = groupBalance?.userCurrency ?? '';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
-  // Check if balance is zero (empty state) - only check when we have balance data
-  const hasZeroBalance =
-    groupBalance && groupBalance.totalBalanceInUserCurrency === 0;
+  // Check if wallet balance (across all mainnet networks) is zero for empty state
+  const hasZeroWalletBalance =
+    walletBalance && walletBalance.totalBalanceInUserCurrency === 0;
 
-  const shouldShowEmptyState = hasZeroBalance && isHomepageRedesignV1Enabled;
+  const shouldShowEmptyState =
+    hasZeroWalletBalance && isHomepageRedesignV1Enabled;
+
+  console.log('hasZeroWalletBalance', hasZeroWalletBalance);
+  console.log('shouldShowEmptyState', shouldShowEmptyState);
+
+  // Debug logging for empty state troubleshooting
+  console.log('🔍 AccountGroupBalance Debug Info:', {
+    groupBalance: groupBalance
+      ? {
+          walletId: groupBalance.walletId,
+          groupId: groupBalance.groupId,
+          totalBalanceInUserCurrency: groupBalance.totalBalanceInUserCurrency,
+          userCurrency: groupBalance.userCurrency,
+        }
+      : null,
+    walletBalance: walletBalance
+      ? {
+          walletId: walletBalance.walletId,
+          totalBalanceInUserCurrency: walletBalance.totalBalanceInUserCurrency,
+          userCurrency: walletBalance.userCurrency,
+        }
+      : null,
+    hasZeroWalletBalance,
+    isHomepageRedesignV1Enabled,
+    shouldShowEmptyState,
+  });
 
   return (
     <View style={styles.accountGroupBalance}>
