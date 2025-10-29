@@ -6,9 +6,12 @@ import { darkTheme } from '@metamask/design-tokens';
  * Note: DO NOT USE replace darkTheme.colors occurrences with theme.colors in this file.
  * We intentionally use darkTheme in this file to ensure consistent styling regardless of device theme.
  */
-const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isLong: boolean; hasReferralCode: boolean };
+}) => {
   const { theme, vars } = params;
-  const { isLong } = vars;
+  const { isLong, hasReferralCode } = vars;
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -48,7 +51,7 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       backgroundColor: darkTheme.colors.accent04.dark,
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: colors.info.default,
+      borderColor: darkTheme.colors.accent04.normal,
       padding: 20,
       overflow: 'hidden',
     },
@@ -87,9 +90,8 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       marginRight: 4,
     },
     directionBadge: {
-      minWidth: 64,
       alignItems: 'center',
-      paddingVertical: 1,
+      paddingHorizontal: 5,
       borderRadius: 4,
       backgroundColor: isLong
         ? darkTheme.colors.success.muted
@@ -111,12 +113,15 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       color: darkTheme.colors.error.default,
     },
     priceRowsContainer: {
-      marginBottom: 16,
+      marginBottom: hasReferralCode ? 16 : 0,
     },
     priceRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+    },
+    priceLabelContainer: {
+      width: 36,
     },
     priceLabel: {
       color: darkTheme.colors.accent04.light,
@@ -146,6 +151,24 @@ const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
       height: 12,
       borderRadius: 9,
       backgroundColor: darkTheme.colors.text.default,
+    },
+    referralCodeTagContainer: {
+      position: 'absolute',
+      bottom: 60,
+      left: 20,
+    },
+    referralCodeContentContainer: {
+      position: 'absolute',
+      bottom: 20,
+      left: 20,
+    },
+    referralCodeText: {
+      color: darkTheme.colors.accent04.light,
+      width: 175,
+      lineHeight: 16,
+      position: 'absolute',
+      bottom: 20,
+      left: 20,
     },
     footerButtonContainer: {
       padding: 16,

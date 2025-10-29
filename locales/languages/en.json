@@ -1699,13 +1699,12 @@
     "pnl_hero_card": {
       "title": "PnL Hero Card",
       "header_title": "Share your trade",
-      "entry_price": "Entry",
-      "mark_price": "Mark",
       "share_button": "Share",
-      "share_message": "Trade {{asset}}-USD perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
-      "referral_link": "link.metamask.io/rewards/referrals={{code}}",
-      "share_failed": "Failed to share card",
-      "export_success": "Card exported successfully"
+      "share_message_with_referral_code": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
+      "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
+      "share_failed": "Failed to export image",
+      "export_success": "Exported image",
+      "referral_code_text": "Use my referral code to earn extra rewards."
     }
   },
   "predict": {

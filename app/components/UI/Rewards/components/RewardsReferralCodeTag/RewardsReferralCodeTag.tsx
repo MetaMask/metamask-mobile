@@ -1,11 +1,9 @@
 import React, { useContext } from 'react';
-import { View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import FoxRewardIcon from '../../../../../images/rewards/metamask-rewards-points.svg';
-import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 import styleSheet from './RewardsReferralCodeTag.styles';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import {
@@ -14,6 +12,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { TouchableOpacity } from 'react-native';
 interface RewardsReferralCodeTagProps {
   referralCode: string;
   backgroundColor?: string;
@@ -49,18 +48,13 @@ const RewardsReferralCodeTag: React.FC<RewardsReferralCodeTagProps> = ({
   };
 
   return (
-    <TempTouchableOpacity
-      style={styles.container}
-      onPress={handleCopyToClipboard}
-    >
-      <View style={styles.iconContainer}>
-        {/* We can add support for configurable icons later */}
-        <FoxRewardIcon name="fox-reward-icon" width={14} height={14} />
-      </View>
-      <Text style={styles.referralCode} variant={TextVariant.BodyMDMedium}>
+    <TouchableOpacity style={styles.container} onPress={handleCopyToClipboard}>
+      {/* We can add support for configurable icons later */}
+      <FoxRewardIcon name="fox-reward-icon" width={12} height={12} />
+      <Text style={styles.referralCode} variant={TextVariant.BodySMMedium}>
         {referralCode}
       </Text>
-    </TempTouchableOpacity>
+    </TouchableOpacity>
   );
 };
 

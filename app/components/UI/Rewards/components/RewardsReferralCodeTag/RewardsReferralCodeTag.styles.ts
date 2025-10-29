@@ -12,10 +12,10 @@ const styleSheet = (params: {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
       paddingTop: 4,
       paddingBottom: 4,
-      paddingLeft: 4,
+      paddingLeft: 8,
+      gap: 4,
       paddingRight: 8,
       backgroundColor: backgroundColor || theme.colors.background.mutedHover,
       borderRadius: 24,
@@ -24,17 +24,9 @@ const styleSheet = (params: {
     referralCode: {
       color: fontColor || theme.colors.accent04.light,
     },
-    iconContainer: {
-      height: 24,
-      width: 24,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      overflow: 'hidden',
-    },
     icon: {
-      width: 24,
-      height: 24,
+      width: 16,
+      height: 16,
     },
   });
 };

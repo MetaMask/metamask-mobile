@@ -3,7 +3,6 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Text as RNText,
   ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,7 +32,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
-import RewardsReferralQRCode from '../../../Rewards/components/RewardsReferralQRCode';
 import {
   formatPerpsFiat,
   parseCurrencyString,
@@ -65,10 +63,10 @@ import {
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
   [
-    { image: NegativePnlCharacter1, id: 0, name: 'Negative PNL Character 1' },
-    { image: NegativePnlCharacter2, id: 1, name: 'Negative PNL Character 2' },
-    { image: PositivePnlCharacter2, id: 2, name: 'Positive PNL Character 2' },
-    { image: PositivePnlCharacter3, id: 3, name: 'Positive PNL Character 3' },
+    { image: PositivePnlCharacter2, id: 0, name: 'Positive PNL Character 2' },
+    { image: NegativePnlCharacter1, id: 1, name: 'Negative PNL Character 1' },
+    { image: PositivePnlCharacter3, id: 2, name: 'Positive PNL Character 3' },
+    { image: NegativePnlCharacter2, id: 3, name: 'Negative PNL Character 2' },
   ];
 
 const PerpsHeroCardView: React.FC = () => {
@@ -89,6 +87,7 @@ const PerpsHeroCardView: React.FC = () => {
   const { position, marketPrice } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
+  // const rewardsReferralCode = null;
 
   const { track } = usePerpsEventTracking();
 
@@ -129,7 +128,10 @@ const PerpsHeroCardView: React.FC = () => {
     setCurrentTab(obj.i);
   }, []);
 
-  const { styles } = useStyles(styleSheet, { isLong: data.isLong });
+  const { styles } = useStyles(styleSheet, {
+    isLong: data.isLong,
+    hasReferralCode: Boolean(rewardsReferralCode),
+  });
 
   const handleClose = () => {
     navigation.goBack();
@@ -168,17 +170,6 @@ const PerpsHeroCardView: React.FC = () => {
               style={styles.metamaskLogo}
               resizeMode="contain"
             />
-            {rewardsReferralCode !== null && (
-              <View
-                testID={getPerpsHeroCardViewSelector.referralCodeTag(index)}
-              >
-                <RewardsReferralCodeTag
-                  referralCode={rewardsReferralCode}
-                  backgroundColor={darkTheme.colors.background.mutedHover}
-                  fontColor={darkTheme.colors.accent04.light}
-                />
-              </View>
-            )}
           </View>
 
           {/* Asset Info Row */}
@@ -209,65 +200,86 @@ const PerpsHeroCardView: React.FC = () => {
             </View>
           </View>
 
-          {/* P&L Percentage */}
-          <RNText
-            style={[
-              styles.pnlText,
-              data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative,
-            ]}
-            testID={getPerpsHeroCardViewSelector.pnlText(index)}
+          <View
+            style={
+              rewardsReferralCode
+                ? undefined
+                : styles.referralCodeContentContainer
+            }
           >
-            {pnlDisplay}
-          </RNText>
+            {/* P&L Percentage */}
+            <Text
+              variant={TextVariant.DisplayLG}
+              style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
+              testID={getPerpsHeroCardViewSelector.pnlText(index)}
+            >
+              {pnlDisplay}
+            </Text>
 
-          {/* Price Rows Container */}
-          <View style={styles.priceRowsContainer}>
-            {/* Entry Price */}
-            <View style={styles.priceRow}>
-              <Text
-                style={styles.priceLabel}
-                variant={TextVariant.BodyXSMedium}
-              >
-                {strings('perps.pnl_hero_card.entry_price')}
-              </Text>
-              <Text
-                style={styles.priceValue}
-                variant={TextVariant.BodySMMedium}
-              >
-                {formatPerpsFiat(data.entryPrice, {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
-                })}
-              </Text>
-            </View>
+            {/* Price Rows Container */}
+            <View style={styles.priceRowsContainer}>
+              {/* Entry Price */}
+              <View style={styles.priceRow}>
+                <View style={styles.priceLabelContainer}>
+                  <Text
+                    style={styles.priceLabel}
+                    variant={TextVariant.BodySMMedium}
+                  >
+                    {/* Intentionally not using i18n string */}
+                    Entry
+                  </Text>
+                </View>
+                <Text
+                  style={styles.priceValue}
+                  variant={TextVariant.BodySMMedium}
+                >
+                  {formatPerpsFiat(data.entryPrice, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })}
+                </Text>
+              </View>
 
-            {/* Mark Price */}
-            <View style={styles.priceRow}>
-              <Text
-                style={styles.priceLabel}
-                variant={TextVariant.BodyXSMedium}
-              >
-                {strings('perps.pnl_hero_card.mark_price')}
-              </Text>
-              <Text
-                style={styles.priceValue}
-                variant={TextVariant.BodySMMedium}
-              >
-                {data.markPrice}
-              </Text>
+              {/* Mark Price */}
+              <View style={styles.priceRow}>
+                <View style={styles.priceLabelContainer}>
+                  <Text
+                    style={styles.priceLabel}
+                    variant={TextVariant.BodySMMedium}
+                  >
+                    {/* Intentionally not using i18n  */}
+                    Mark
+                  </Text>
+                </View>
+
+                <Text
+                  style={styles.priceValue}
+                  variant={TextVariant.BodySMMedium}
+                >
+                  {data.markPrice}
+                </Text>
+              </View>
             </View>
           </View>
 
-          {/* Bottom Row: QR Code */}
-          {rewardsReferralCode !== null && (
-            <View
-              style={styles.qrCodeContainer}
-              testID={getPerpsHeroCardViewSelector.qrCode(index)}
-            >
-              <RewardsReferralQRCode
-                referralCode={rewardsReferralCode}
-                size={100}
-              />
-            </View>
+          {rewardsReferralCode && (
+            <>
+              <View
+                style={styles.referralCodeTagContainer}
+                testID={getPerpsHeroCardViewSelector.referralCodeTag(index)}
+              >
+                <RewardsReferralCodeTag
+                  referralCode={rewardsReferralCode}
+                  backgroundColor={darkTheme.colors.background.mutedHover}
+                  fontColor={darkTheme.colors.accent04.light}
+                />
+              </View>
+              <Text
+                variant={TextVariant.BodyXS}
+                style={styles.referralCodeText}
+              >
+                {strings('perps.pnl_hero_card.referral_code_text')}
+              </Text>
+            </>
           )}
         </View>
       )),
@@ -329,16 +341,20 @@ const PerpsHeroCardView: React.FC = () => {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
         });
 
+        const message = rewardsReferralCode
+          ? strings('perps.pnl_hero_card.share_message_with_referral_code', {
+              asset: data.asset,
+              code: rewardsReferralCode,
+              link: rewardsReferralCode
+                ? buildReferralUrl(rewardsReferralCode)
+                : '',
+            })
+          : strings('perps.pnl_hero_card.share_message_without_referral_code');
+
         result = await Share.open({
           failOnCancel: false,
           url: imageUri,
-          message: strings('perps.pnl_hero_card.share_message', {
-            asset: data.asset,
-            code: rewardsReferralCode,
-            link: rewardsReferralCode
-              ? buildReferralUrl(rewardsReferralCode)
-              : '',
-          }),
+          message,
           // File mime type (required for sharing file with Instagram)
           type: 'image/png',
         });

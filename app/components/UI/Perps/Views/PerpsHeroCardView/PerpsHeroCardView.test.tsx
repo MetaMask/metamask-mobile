@@ -155,10 +155,6 @@ jest.mock(
   () => 'RewardsReferralCodeTag',
 );
 jest.mock(
-  '../../../Rewards/components/RewardsReferralQRCode',
-  () => 'RewardsReferralQRCode',
-);
-jest.mock(
   '@tommasini/react-native-scrollable-tab-view',
   () => 'ScrollableTabView',
 );
@@ -215,14 +211,6 @@ describe('PerpsHeroCardView', () => {
       expect(referralCodeTag).toBeOnTheScreen();
     });
 
-    it('displays QR code', () => {
-      const { getByTestId } = render(<PerpsHeroCardView />);
-
-      const qrCode = getByTestId(getPerpsHeroCardViewSelector.qrCode(0));
-
-      expect(qrCode).toBeOnTheScreen();
-    });
-
     it('displays asset symbol from position', () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
@@ -265,14 +253,6 @@ describe('PerpsHeroCardView', () => {
       );
 
       expect(referralCodeTag).toBeNull();
-    });
-
-    it('does not render QR code', () => {
-      const { queryByTestId } = render(<PerpsHeroCardView />);
-
-      const qrCode = queryByTestId(getPerpsHeroCardViewSelector.qrCode(0));
-
-      expect(qrCode).toBeNull();
     });
 
     it('renders asset symbol', () => {
