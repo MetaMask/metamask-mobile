@@ -220,6 +220,7 @@ const PerpsPositionTransactionView: React.FC = () => {
               width={ButtonWidthTypes.Full}
               label={strings('perps.transactions.view_on_explorer')}
               onPress={handleViewOnBlockExplorer}
+              style={styles.blockExplorerButton}
             />
           </View>
         </View>
