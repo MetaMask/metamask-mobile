@@ -35,11 +35,11 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
 
         // Then: Empty state should be visible
         const emptyStateContainer = Matchers.getElementByID(
-          'portfolio-balance-empty-state',
+          'account-group-balance-empty-state',
         );
         await Assertions.expectElementToBeVisible(emptyStateContainer, {
           description:
-            'Portfolio balance empty state should be visible for zero balance',
+            'Account balance empty state should be visible for zero balance',
         });
 
         // And: User should NOT see "$0.00" balance display
@@ -71,7 +71,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
 
         // Verify empty state is initially visible on default network
         const emptyStateContainer = Matchers.getElementByID(
-          'portfolio-balance-empty-state',
+          'account-group-balance-empty-state',
         );
         await Assertions.expectElementToBeVisible(emptyStateContainer, {
           description:
@@ -163,7 +163,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         const emptyStateActionButton = Matchers.getElementByID(
-          'portfolio-balance-empty-state-action-button',
+          'account-group-balance-empty-state-action-button',
         );
         await Assertions.expectElementToBeVisible(emptyStateActionButton, {
           description: 'Empty state action button should be visible',
@@ -200,7 +200,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
 
         // Verify empty state is initially visible
         const emptyStateContainer = Matchers.getElementByID(
-          'portfolio-balance-empty-state',
+          'account-group-balance-empty-state',
         );
         await Assertions.expectElementToBeVisible(emptyStateContainer, {
           description: 'Empty state should be visible after app restart',
@@ -219,14 +219,14 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
 
         // And: All empty state components should still be present
         const emptyStateTitle = Matchers.getElementByID(
-          'portfolio-balance-empty-state-title',
+          'account-group-balance-empty-state-title',
         );
         await Assertions.expectElementToBeVisible(emptyStateTitle, {
           description: 'Empty state title should be visible after restart',
         });
 
         const emptyStateActionButton = Matchers.getElementByID(
-          'portfolio-balance-empty-state-action-button',
+          'account-group-balance-empty-state-action-button',
         );
         await Assertions.expectElementToBeVisible(emptyStateActionButton, {
           description:
