@@ -32,7 +32,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 import { TouchableOpacity } from 'react-native';
 
 const SignUp = () => {
@@ -51,9 +51,9 @@ const SignUp = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.SIGN_UP,
+          screen: CardScreens.SIGN_UP,
         })
         .build(),
     );
@@ -77,6 +77,7 @@ const SignUp = () => {
     }
     return [...registrationSettings.countries]
       .sort((a, b) => a.name.localeCompare(b.name))
+      .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
         value: country.iso3166alpha2,
@@ -156,9 +157,9 @@ const SignUp = () => {
     }
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.SIGN_UP_BUTTON_CLICKED,
+            action: CardActions.SIGN_UP_BUTTON,
           })
           .build(),
       );

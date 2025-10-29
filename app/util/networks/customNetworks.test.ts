@@ -18,6 +18,7 @@ describe('popularNetwork', () => {
       Polygon: toHex('137'),
       'zkSync Era': toHex('324'),
       Sei: toHex('1329'),
+      Monad: toHex('143'),
     };
 
     PopularList.forEach((rpc) => {

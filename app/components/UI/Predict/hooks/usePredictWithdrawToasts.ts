@@ -5,11 +5,16 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { usePredictToasts } from './usePredictToasts';
 import { PredictWithdrawStatus } from '../types';
 import { useEffect } from 'react';
+import { usePredictBalance } from './usePredictBalance';
 
 export const usePredictWithdrawToasts = () => {
+  const { loadBalance } = usePredictBalance();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
 
   const { showPendingToast } = usePredictToasts({
+    onConfirmed: () => {
+      loadBalance({ isRefresh: true });
+    },
     transactionType: TransactionType.predictWithdraw,
     confirmedToastConfig: {
       title: strings('predict.withdraw.withdraw_completed'),
