@@ -48,9 +48,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
   return (
     <KeyValueRowStubs.Root>
       <Box style={styles.recipientFieldSection}>
-        <Text variant={TextVariant.BodyMDMedium}>
-          {strings('bridge.recipient')}
-        </Text>
+        <Text variant={TextVariant.BodyMD}>{strings('bridge.recipient')}</Text>
       </Box>
       <Box
         style={styles.recipientValueSection}

@@ -2763,6 +2763,10 @@
       "generate_trace_test_desc": "Generate a Developer Test Sentry trace.",
       "navigate_to_sample_feature": "Navigate to Sample Feature",
       "sample_feature_desc": "A sample feature as a template for developers."
+    },
+    "feature_flag_override":  {
+      "title": "Feature Flag Override",
+      "description": "Override the feature flags for the app locally."
     }
   },
   "aes_crypto_test_form": {
@@ -5963,8 +5967,8 @@
     "wallet_details": {
       "wallet_name": "Wallet Name",
       "balance": "Balance",
-      "create_account": "Create account",
-      "creating_account": "Creating account...",
+      "create_account": "Add account",
+      "creating_account": "Adding account...",
       "discovering_accounts": "Discovering accounts...",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
@@ -6206,6 +6210,10 @@
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "logout": "Log out",
       "logout_description": "Log out from your MetaMask Card account",
+      "logout_confirmation_title": "Log out of Card?",
+      "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
+      "logout_confirmation_cancel": "Cancel",
+      "logout_confirmation_confirm": "Log out",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6251,7 +6259,8 @@
       "set_new_limit": "Set a limit",
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
-      "update_error": "Failed to update spending limit"
+      "update_error": "Failed to update spending limit",
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -6275,7 +6284,9 @@
       "limited": "Limited",
       "not_enabled": "Not enabled",
       "update_success": "Spend priority updated successfully",
-      "update_error": "Failed to update spend priority"
+      "update_error": "Failed to update spend priority",
+      "solana_not_supported_button_title": "Others tokens on Solana",
+      "solana_not_supported_button_description": "Enable on card.metamask.io"
     },
     "card_authentication": {
       "title": "Log in to your MetaMask Card account",

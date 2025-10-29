@@ -356,6 +356,8 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    SPENDING_LIMIT: 'CardSpendingLimit',
+    CHANGE_ASSET: 'CardChangeAsset',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -381,6 +383,7 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
 };
 
 export default Routes;

@@ -1,6 +1,5 @@
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { ControllerInitRequest, getRootExtendedMessenger } from '../../types';
 import {
   RewardsController,
   RewardsControllerMessenger,
@@ -34,7 +33,7 @@ describe('rewardsControllerInit', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = getRootExtendedMessenger();
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
