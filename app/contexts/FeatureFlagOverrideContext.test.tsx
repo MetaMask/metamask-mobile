@@ -33,6 +33,13 @@ jest.mock('../component-library/components/Toast', () => {
     ToastContext: React.createContext({
       toastRef: { current: { showToast: jest.fn() } },
     }),
+    ToastVariants: {
+      Plain: 'Plain',
+      Account: 'Account',
+      Network: 'Network',
+      App: 'App',
+      Icon: 'Icon',
+    },
   };
 });
 
