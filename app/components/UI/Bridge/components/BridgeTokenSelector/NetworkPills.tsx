@@ -12,7 +12,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { PopularList } from '../../../../../util/networks/customNetworks';
@@ -66,8 +65,8 @@ const createStyles = (params: { theme: Theme }) => {
 };
 
 interface NetworkPillsProps {
-  selectedChainId?: Hex | CaipChainId;
-  onChainSelect: (chainId?: Hex | CaipChainId) => void;
+  selectedChainId?: CaipChainId;
+  onChainSelect: (chainId?: CaipChainId) => void;
 }
 
 export const NetworkPills: React.FC<NetworkPillsProps> = ({
@@ -87,28 +86,17 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       return [];
     }
 
-    // Filter to only include chains that are active in feature flags and add network names
-    return bridgeFeatureFlags.chainRanking
-      .filter((chain) => {
-        const caipChainId = formatChainIdToCaip(chain.chainId);
-        return bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc;
-      })
-      .map((chain) => ({
-        ...chain,
-        name: getNetworkName(chain.chainId, networkConfigurations),
-      }));
+    return bridgeFeatureFlags.chainRanking.map((chain) => ({
+      ...chain,
+      name: getNetworkName(chain.chainId, networkConfigurations),
+    }));
   }, [bridgeFeatureFlags, networkConfigurations]);
-
-  // Generate chainIds string for API requests
-  // const chainIds = useMemo(() => {
-  //   return chainRanking.map(({ chainId }) => chainId).join(',');
-  // }, [chainRanking]);
 
   const handleAllPress = () => {
     onChainSelect(undefined);
   };
 
-  const handleChainPress = (chainId: Hex | CaipChainId) => {
+  const handleChainPress = (chainId: CaipChainId) => {
     onChainSelect(chainId);
   };
 

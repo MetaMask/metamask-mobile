@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -26,6 +31,7 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selec
 import { EthScope } from '@metamask/keyring-api';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { getTokenIconUrl } from '../../utils';
+import { toHex } from '@metamask/controller-utils';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -176,10 +182,21 @@ export const useTokensWithBalance: ({
       return [];
     }
 
+    // Convert CAIP chain IDs to Hex for EVM chains
+    const evmChainIds = chainIds.reduce((acc, chainId) => {
+      if (isCaipChainId(chainId)) {
+        const { namespace, reference } = parseCaipChainId(chainId);
+        if (namespace === 'eip155') {
+          return [...acc, toHex(reference)];
+        }
+      }
+      return [...acc, chainId as Hex];
+    }, [] as Hex[]);
+
     const allEvmAccountTokens = (
       Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
     )
-      .filter((token) => chainIds.includes(token.chainId as Hex))
+      .filter((token) => evmChainIds.includes(token.chainId as Hex))
       .filter((token) => !token.isStaked);
 
     const allNonEvmAccountTokens = Object.values(nonEvmTokens)

@@ -18,7 +18,11 @@ import Text, {
 import { strings } from '../../../../../../locales/i18n';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
-import { Hex, CaipChainId, CaipAssetType , parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipChainId,
+  CaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import { Theme } from '../../../../../util/theme/models';
@@ -28,7 +32,10 @@ import {
   selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import {
   Box,
   ButtonIcon,
@@ -36,10 +43,11 @@ import {
   IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
-import { SolScope } from '@metamask/keyring-api';
 import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { BridgeToken } from '../../types';
+import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 
 export interface BridgeTokenSelectorRouteParams {
   type: 'source' | 'dest';
@@ -62,7 +70,6 @@ const createStyles = (params: { theme: Theme }) => {
     },
     buttonContainer: {
       paddingHorizontal: 8,
-      paddingVertical: 12,
     },
     searchInput: {
       marginVertical: 12,
@@ -82,35 +89,29 @@ export const BridgeTokenSelector: React.FC = () => {
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
-  const [assets, setAssets] = useState<PopularToken[]>([]);
+  const [popularTokens, setPopularTokens] = useState<BridgeToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchString, setSearchString] = useState<string>('');
 
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
   );
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-
-  // Get type from route params
-  const type = route.params?.type || 'source';
-
-  // Determine selected token based on type
-  const selectedToken = type === 'source' ? sourceToken : destToken;
+  const selectedToken =
+    route.params?.type === 'source' ? sourceToken : destToken;
 
   // Initialize selectedChainId with the initial chain id
   const [selectedChainId, setSelectedChainId] = useState<
-    Hex | CaipChainId | undefined
+    CaipChainId | undefined
   >(
     selectedToken?.chainId
       ? formatChainIdToCaip(selectedToken.chainId)
       : undefined,
   );
 
-  // Search string should always start empty
-  const [searchString, setSearchString] = useState<string>('');
-
-  // Generate chainIds for API request based on selection
-  const chainIdsForApi = useMemo(() => {
+  // Chain IDs to display in the token selector
+  const displayChainIds = useMemo(() => {
     if (!bridgeFeatureFlags.chainRanking) {
       return [];
     }
@@ -121,33 +122,17 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     // If "All" is selected, use all chains from chainRanking
-    return (
-      bridgeFeatureFlags.chainRanking
-        .map((chain) => chain.chainId)
-        // Temporarily exclude Solana due to API not supporting it
-        .filter((chainId) => chainId !== SolScope.Mainnet)
-    );
+    return bridgeFeatureFlags.chainRanking.map((chain) => chain.chainId);
   }, [selectedChainId, bridgeFeatureFlags]);
 
-  const handleClose = () => {
-    navigation.goBack();
-  };
-
-  const handleChainSelect = (chainId?: Hex | CaipChainId) => {
-    setSelectedChainId(chainId);
-    // TODO: Implement token filtering based on selected chain
-  };
-
-  const handleSearchTextChange = (text: string) => {
-    setSearchString(text);
-    // TODO: Implement token search functionality
-  };
+  const tokensWithBalance = useTokensWithBalance({ chainIds: displayChainIds });
 
   useEffect(() => {
-    const fetchPopularAssets = async () => {
+    const fetchPopularTokens = async () => {
       setIsLoading(true);
-      // TODO: Implement assets with balance
-      const assetsWithBalance: PopularToken[] = [];
+
+      // List of assetIds for assets with balance so we can exclude them from the popular tokens query
+      const assetsWithBalanceAssetIds = tokensWithBalance.map((token) => formatAddressToAssetId(token.address, token.chainId));
 
       const response = await fetch(
         'https://bridge.dev-api.cx.metamask.io/getTokens/popular',
@@ -157,30 +142,45 @@ export const BridgeTokenSelector: React.FC = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            chainIds: chainIdsForApi,
-            excludeAssetIds: [],
+            chainIds: displayChainIds,
+            excludeAssetIds: assetsWithBalanceAssetIds,
           }),
         },
       );
-      // Merge assets with balance and popular assets from API
       const popularAssets: PopularToken[] = await response.json();
-      const mergedAssets = [...assetsWithBalance, ...popularAssets];
+      // Convert PopularToken to BridgeToken format for display
+      const popularBridgeTokens: BridgeToken[] = popularAssets.map((asset) => ({
+          ...asset,
+          address: parseCaipAssetType(asset.assetId).assetReference,
+        }));
 
-      setAssets(mergedAssets);
+      setPopularTokens(popularBridgeTokens);
       setIsLoading(false);
     };
 
-    fetchPopularAssets();
-  }, [selectedChainId, chainIdsForApi]);
+    fetchPopularTokens();
+  }, [selectedChainId, displayChainIds, tokensWithBalance]);
 
-  // Create skeleton placeholders while loading
   const displayData = useMemo(() => {
     if (isLoading) {
       // Show 8 skeleton items while loading
       return Array(8).fill(null);
     }
-    return assets;
-  }, [isLoading, assets]);
+    return [...tokensWithBalance, ...popularTokens];
+  }, [isLoading, tokensWithBalance, popularTokens]);
+
+  const handleClose = () => {
+    navigation.goBack();
+  };
+
+  const handleChainSelect = (chainId?: CaipChainId) => {
+    setSelectedChainId(chainId);
+  };
+
+  const handleSearchTextChange = (text: string) => {
+    setSearchString(text);
+    // TODO: Implement token search functionality
+  };
 
   const handleTokenPress = useCallback(() => {
     // TODO: Implement token selection - dispatch to Redux and navigate back
@@ -188,21 +188,12 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [navigation]);
 
   const renderToken = useCallback(
-    ({ item }: { item: PopularToken | null }) => {
+    ({ item }: { item: BridgeToken | null }) => {
       // This is to support a partial loading state for top tokens
       // We can show tokens with balance immediately, but we need to wait for the top tokens to load
       if (!item) {
         return <SkeletonItem />;
       }
-
-      // Parse the CAIP assetId to extract the address
-      const { assetReference: itemAddress } = parseCaipAssetType(item.assetId);
-
-      // Convert PopularToken to BridgeToken for TokenSelectorItem
-      const tokenForDisplay = {
-        ...item,
-        address: itemAddress,
-      };
 
       // Open the asset details screen as a bottom sheet
       // Use dispatch with unique key to force new modal instance
@@ -211,7 +202,7 @@ export const BridgeTokenSelector: React.FC = () => {
           type: 'NAVIGATE',
           payload: {
             name: 'Asset',
-            key: `Asset-${itemAddress}-${item.chainId}-${Date.now()}`,
+            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
             params: { ...item },
           },
         });
@@ -231,13 +222,13 @@ export const BridgeTokenSelector: React.FC = () => {
 
       return (
         <TokenSelectorItem
-          token={tokenForDisplay}
+          token={item}
           isSelected={
             selectedToken &&
-            selectedToken.address.toLowerCase() === itemAddress.toLowerCase() &&
+            selectedToken.address === item.address &&
             formatChainIdToCaip(selectedToken.chainId) === item.chainId
           }
-          onPress={() => handleTokenPress(item)}
+          onPress={handleTokenPress}
           networkImageSource={getNetworkImageSource({
             chainId: item.chainId,
           })}
@@ -254,8 +245,8 @@ export const BridgeTokenSelector: React.FC = () => {
     [navigation, selectedToken, handleTokenPress],
   );
 
-  const keyExtractor = (item: PopularToken | null, index: number) =>
-    item?.assetId ? item.assetId : `skeleton-${index}`;
+  const keyExtractor = (item: BridgeToken | null, index: number) =>
+    item ? `${item.chainId}-${item.address}` : `skeleton-${index}`;
 
   return (
     <BottomSheet
