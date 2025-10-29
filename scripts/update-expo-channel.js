@@ -31,7 +31,7 @@ const CONFIG_MAP = {
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
-    updatesEnabled: false,
+    updatesEnabled: true,
     updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
   },
 };

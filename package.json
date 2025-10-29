@@ -477,7 +477,7 @@
     "redux-saga": "^1.3.0",
     "redux-thunk": "^2.4.2",
     "reselect": "^5.1.1",
-    "rive-react-native": "^9.3.4",
+    "rive-react-native": "patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch",
     "rxjs": "^7.8.1",
     "socket.io-client": "^4.5.3",
     "stream-browserify": "3.0.0",
