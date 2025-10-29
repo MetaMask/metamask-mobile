@@ -2,19 +2,17 @@ import Gestures from '../../framework/Gestures.ts';
 import Matchers from '../../framework/Matchers.ts';
 import { SwitchAccountModalSelectorIDs } from '../../selectors/wallet/SwitchAccountModal.selectors.js';
 class SwitchAccountModal {
-  get smartAccountLink(): DetoxElement {
-    return Matchers.getElementByID(
-      SwitchAccountModalSelectorIDs.SMART_ACCOUNT_LINK,
-    );
+  get smartAccountLink() {
+    return Matchers.getElementByText('Smart account');
   }
 
-  get switchAccountButton(): DetoxElement {
+  get switchAccountButton() {
     return Matchers.getElementByID(
       SwitchAccountModalSelectorIDs.SWITCH_ACCOUNT_BUTTON_LOCALHOST,
     );
   }
 
-  get smartAccountBackButton(): DetoxElement {
+  get smartAccountBackButton() {
     return Matchers.getElementByID(
       SwitchAccountModalSelectorIDs.SMART_ACCOUNT_BACK_BUTTON,
     );

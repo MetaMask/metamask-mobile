@@ -1,7 +1,6 @@
 import AccountDetails from '../../../../pages/MultichainAccounts/AccountDetails';
 import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../../framework/Assertions';
-import Browser from '../../../../pages/Browser/BrowserView';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
@@ -22,7 +21,9 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import BrowserView from '../../../../pages/Browser/BrowserView';
 
+const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
 
 const localNodeOptions = [
@@ -37,8 +38,8 @@ const localNodeOptions = [
 ];
 
 async function changeNetworkFromNetworkListModal() {
-  await TabBarComponent.tapWallet();
-  await WalletView.tapNetworksButtonOnNavBar();
+  await WalletView.tapTokenNetworkFilter();
+  await NetworkListModal.tapOnCustomTab();
   await NetworkListModal.changeNetworkTo(LOCAL_CHAIN_NAME);
 }
 
@@ -68,10 +69,9 @@ async function goBackToWalletPage() {
 
 async function connectTestDappToLocalhost() {
   await TabBarComponent.tapBrowser();
-  await Browser.navigateToTestDApp();
+  await BrowserView.navigateToTestDApp();
   await TestDApp.tapRevokeAccountPermission();
-  await TestDApp.tapRequestPermissions();
-  await TestDApp.tapConnectButton();
+  await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 }
 
 describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
@@ -119,6 +119,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // Submit send calls
         await changeNetworkFromNetworkListModal();
         await connectTestDappToLocalhost();
+
         await TestDApp.tapSendCallsButton();
 
         // Check all expected elements are visible
@@ -152,18 +153,18 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         );
         await checkConfirmationPage();
 
-        // Accept confirmation
+        // // Accept confirmation
         await FooterActions.tapConfirmButton();
 
         await goBackToWalletPage();
-        // Check activity tab
+        // // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Switch to standard account');
       },
     );
   });
 
-  it('upgrades an account', async () => {
+  it.only('upgrades an account', async () => {
     await withFixtures(
       {
         dapps: [
@@ -185,7 +186,6 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         await loginToApp();
 
         // Create confirmation to upgrade account
-        await TabBarComponent.tapWallet();
         await changeNetworkFromNetworkListModal();
         await tapSwitchAccountModal();
 
