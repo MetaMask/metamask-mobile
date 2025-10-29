@@ -158,11 +158,9 @@ const TokenInsightsSheet: React.FC = () => {
     return token.chainId as Hex;
   }, [token?.chainId]);
 
-  const isEvmChain = Boolean(token && evmHexChainId);
-
   // Get cached market data from TokenRatesController (EVM only)
   const evmMarketData = useSelector((state: RootState) =>
-    token && isEvmChain && evmHexChainId
+    token && evmHexChainId
       ? selectEvmTokenMarketData(state, {
           chainId: evmHexChainId,
           tokenAddress: token.address,
@@ -172,7 +170,7 @@ const TokenInsightsSheet: React.FC = () => {
 
   // Get token display data from TokenSearchDiscoveryDataController (EVM only)
   const tokenSearchResult = useSelector((state: RootState) =>
-    token && isEvmChain && evmHexChainId
+    token && evmHexChainId
       ? selectTokenDisplayData(state, evmHexChainId, token.address as Hex)
       : null,
   );
@@ -186,13 +184,13 @@ const TokenInsightsSheet: React.FC = () => {
 
   // Fetch token discovery data if not available (EVM only)
   useEffect(() => {
-    if (token && isEvmChain && evmHexChainId && !tokenSearchResult?.found) {
+    if (token && evmHexChainId && !tokenSearchResult?.found) {
       Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(
         evmHexChainId,
         token.address,
       );
     }
-  }, [token, isEvmChain, evmHexChainId, tokenSearchResult]);
+  }, [token, evmHexChainId, tokenSearchResult]);
 
   // Determine cached market data based on source
   let cachedMarketData: MarketDataDetails | undefined;
