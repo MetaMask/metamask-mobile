@@ -55,40 +55,25 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       </View>
       <View style={styles.positionDetails}>
         <Text
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMD}
           color={TextColor.Default}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
           {title}
         </Text>
-        <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           ${initialValue.toFixed(2)} on {outcome} • Ended{' '}
           {formatRelativeTime(endDate)}
         </Text>
       </View>
       <View>
         {percentPnl > 0 ? (
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Success}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
             Won {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
         ) : (
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Error}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
             Lost{' '}
             {formatPrice(initialValue - currentValue, { maximumDecimals: 2 })}
           </Text>
