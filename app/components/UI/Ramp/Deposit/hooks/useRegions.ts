@@ -15,13 +15,13 @@ export interface UseRegionsResult {
   retryFetchRegions: DepositSdkMethodQuery<'getCountries'>;
 }
 
-export function useRegions(): UseRegionsResult {
+export function useRegions(screenLocation?: string): UseRegionsResult {
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
   const [{ data: regions, error, isFetching }, retryFetchRegions] =
     useDepositSdkMethod('getCountries');
 
-  const { userDetails } = useDepositUser();
+  const { userDetails } = useDepositUser(screenLocation);
   const [userRegionLocked, setUserRegionLocked] = useState<boolean>(false);
 
   useEffect(() => {

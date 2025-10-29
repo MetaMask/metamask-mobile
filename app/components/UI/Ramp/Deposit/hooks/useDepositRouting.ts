@@ -31,7 +31,7 @@ import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useDepositUser } from './useDepositUser';
 
-export const useDepositRouting = () => {
+export const useDepositRouting = (screenLocation?: string) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const {
@@ -42,7 +42,7 @@ export const useDepositRouting = () => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
-  const { fetchUserDetails } = useDepositUser();
+  const { fetchUserDetails } = useDepositUser(screenLocation);
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',

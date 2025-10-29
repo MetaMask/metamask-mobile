@@ -69,7 +69,7 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const { routeAfterAuthentication } = useDepositRouting();
+  const { routeAfterAuthentication } = useDepositRouting('EnterAddress Screen');
 
   const initialFormData: AddressFormData = {
     addressLine1: previousFormData?.addressLine1 || '',

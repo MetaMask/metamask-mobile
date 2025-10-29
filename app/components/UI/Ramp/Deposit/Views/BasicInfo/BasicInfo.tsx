@@ -94,7 +94,7 @@ const BasicInfo = (): JSX.Element => {
     ssn: '',
   };
 
-  const { regions } = useRegions();
+  const { regions } = useRegions('BasicInfo Screen');
 
   const validateForm = (
     formData: BasicInfoFormData,

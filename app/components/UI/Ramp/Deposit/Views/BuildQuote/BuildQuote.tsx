@@ -91,14 +91,14 @@ const BuildQuote = () => {
     error: regionsError,
     retryFetchRegions,
     userRegionLocked,
-  } = useRegions();
+  } = useRegions('BuildQuote Screen');
 
   const {
     userDetails,
     isFetching: isFetchingUserDetails,
     error: userDetailsError,
     fetchUserDetails,
-  } = useDepositUser();
+  } = useDepositUser('BuildQuote Screen');
 
   const {
     cryptoCurrencies,
@@ -128,7 +128,7 @@ const BuildQuote = () => {
   const [quoteError, setError] = useState<string | null>();
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
-    useDepositRouting();
+    useDepositRouting('BuildQuote Screen');
 
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,

@@ -21,7 +21,8 @@ jest.mock('../sdk', () => ({
 
 const mockUseDepositUser = jest.fn();
 jest.mock('./useDepositUser', () => ({
-  useDepositUser: () => mockUseDepositUser(),
+  useDepositUser: (screenLocation?: string) =>
+    mockUseDepositUser(screenLocation),
 }));
 
 describe('useRegions', () => {
@@ -633,6 +634,47 @@ describe('useRegions', () => {
       ]);
       rerender({});
       expect(result.current.userRegionLocked).toBe(false);
+    });
+  });
+
+  describe('screenLocation parameter', () => {
+    it('passes screenLocation to useDepositUser when provided', () => {
+      mockUseDepositUser.mockReturnValue({
+        userDetails: null,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      renderHook(() => useRegions('BuildQuote Screen'));
+
+      expect(mockUseDepositUser).toHaveBeenCalledWith('BuildQuote Screen');
+    });
+
+    it('passes undefined to useDepositUser when screenLocation is not provided', () => {
+      mockUseDepositUser.mockReturnValue({
+        userDetails: null,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      renderHook(() => useRegions());
+
+      expect(mockUseDepositUser).toHaveBeenCalledWith(undefined);
+    });
+
+    it('passes different screenLocation values correctly', () => {
+      mockUseDepositUser.mockReturnValue({
+        userDetails: null,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      renderHook(() => useRegions('EnterAddress Screen'));
+
+      expect(mockUseDepositUser).toHaveBeenCalledWith('EnterAddress Screen');
     });
   });
 });
