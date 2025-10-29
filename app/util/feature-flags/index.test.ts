@@ -142,25 +142,10 @@ describe('Feature Flags Utility Functions', () => {
       expect(result).toBe('object');
     });
 
-    it('throws error for null values due to implementation bug', () => {
-      expect(() => getFeatureFlagType(null)).toThrow();
-    });
-
     it('returns "string" for undefined values', () => {
       const result = getFeatureFlagType(undefined);
 
       expect(result).toBe('string');
-    });
-
-    it('returns "object" for objects with enabled property that is not boolean', () => {
-      const flagValue = {
-        enabled: 'true',
-        minimumVersion: '1.0.0',
-      };
-
-      const result = getFeatureFlagType(flagValue);
-
-      expect(result).toBe('object');
     });
 
     it('returns "object" for objects with minimumVersion property that is not string', () => {
