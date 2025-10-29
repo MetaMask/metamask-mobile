@@ -42,8 +42,13 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
         const token = chainTokens[toChecksumAddress(address)];
         const networkConfiguration = networkConfigurations[chainId];
 
+        const conversionRates =
+          currencyRates?.[networkConfiguration?.nativeCurrency];
+
         const conversionRate =
-          currencyRates?.[networkConfiguration?.nativeCurrency]?.conversionRate;
+          currency === 'usd'
+            ? conversionRates?.usdConversionRate
+            : conversionRates?.conversionRate;
 
         if (!conversionRate || !networkConfiguration) {
           return undefined;

@@ -47,6 +47,7 @@ export const PredictEventValues = {
  * Event type constants for analytics tracking
  */
 export const PredictEventType = {
+  INITIATED: 'INITIATED',
   SUBMITTED: 'SUBMITTED',
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED',

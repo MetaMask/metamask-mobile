@@ -584,6 +584,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -634,6 +635,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

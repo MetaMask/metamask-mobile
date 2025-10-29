@@ -1,16 +1,41 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import Complete from './Complete';
-import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
+
+jest.mock('../../../../../core/redux/slices/card', () => ({
+  resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
+}));
+
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    CARD_ONBOARDING_PAGE_VIEWED: 'CARD_ONBOARDING_PAGE_VIEWED',
+    CARD_ONBOARDING_BUTTON_CLICKED: 'CARD_ONBOARDING_BUTTON_CLICKED',
+  },
+}));
+
+jest.mock('../../util/cardTokenVault', () => ({
+  getCardBaanxToken: jest.fn(),
+}));
+
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
@@ -45,6 +70,7 @@ jest.mock('./OnboardingStep', () => {
 
 // Mock Button component
 jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -64,6 +90,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     Auto: 'auto',
   };
 
+  // Mock Button component to match the actual component structure
   const Button = ({
     label,
     onPress,
@@ -71,6 +98,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     size,
     width,
     disabled,
+    testID,
     ...props
   }: {
     label: string;
@@ -79,11 +107,12 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     size?: string;
     width?: string;
     disabled?: boolean;
+    testID?: string;
   }) =>
     React.createElement(
       TouchableOpacity,
       {
-        testID: 'button',
+        testID: testID || 'button',
         onPress: disabled ? undefined : onPress,
         disabled,
         ...props,
@@ -119,47 +148,61 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 describe('Complete Component', () => {
   const mockNavigate = jest.fn();
+  const mockDispatch = jest.fn();
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
+    });
+
+    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+
+    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    });
+    useMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
+
+    const { getCardBaanxToken } = jest.requireMock('../../util/cardTokenVault');
+    getCardBaanxToken.mockResolvedValue({
+      success: true,
+      tokenData: { accessToken: 'mock-token' },
     });
   });
 
   describe('Component Rendering', () => {
-    it('should render the component successfully', () => {
+    it('renders the Complete component', () => {
       const { getByTestId } = render(<Complete />);
 
       expect(getByTestId('onboarding-step')).toBeTruthy();
     });
 
-    it('should display the correct title', () => {
+    it('renders with correct title and description', () => {
       const { getByTestId } = render(<Complete />);
 
       const title = getByTestId('onboarding-step-title');
       expect(title).toBeTruthy();
       expect(title.props.children).toBe('Complete');
-    });
-
-    it('should display the correct description', () => {
-      const { getByTestId } = render(<Complete />);
 
       const description = getByTestId('onboarding-step-description');
       expect(description).toBeTruthy();
       expect(description.props.children).toBe('Your card setup is complete!');
     });
 
-    it('should render form fields section (empty)', () => {
+    it('renders OnboardingStep with correct structure', () => {
       const { getByTestId } = render(<Complete />);
 
       const formFields = getByTestId('onboarding-step-form-fields');
       expect(formFields).toBeTruthy();
       expect(formFields.props.children).toBeNull();
-    });
-
-    it('should render actions section', () => {
-      const { getByTestId } = render(<Complete />);
 
       const actions = getByTestId('onboarding-step-actions');
       expect(actions).toBeTruthy();
@@ -167,49 +210,75 @@ describe('Complete Component', () => {
   });
 
   describe('Continue Button', () => {
-    it('should render the continue button', () => {
+    it('renders the continue button', () => {
       const { getByTestId } = render(<Complete />);
-
-      const button = getByTestId('button');
+      const button = getByTestId('complete-confirm-button');
       expect(button).toBeTruthy();
     });
 
-    it('should display the correct button text', () => {
+    it('displays the correct button text', () => {
       const { getByTestId } = render(<Complete />);
-
       const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel).toBeTruthy();
       expect(buttonLabel.props.children).toBe('Continue');
     });
 
-    it('should not be disabled', () => {
+    it('is not disabled', () => {
       const { getByTestId } = render(<Complete />);
-
-      const button = getByTestId('button');
+      const button = getByTestId('complete-confirm-button');
       expect(button.props.disabled).toBeFalsy();
     });
 
-    it('should navigate to card home when pressed', () => {
+    it('navigates to card home when pressed', async () => {
       const { getByTestId } = render(<Complete />);
 
-      const button = getByTestId('button');
+      const button = getByTestId('complete-confirm-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+      });
+    });
+
+    it('calls navigate only once per button press', async () => {
+      const { getByTestId } = render(<Complete />);
+
+      const button = getByTestId('complete-confirm-button');
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+      });
+
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(2);
+        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+      });
     });
   });
 
   describe('Navigation Integration', () => {
-    it('should use navigation hook', () => {
+    it('uses navigation hook', () => {
       render(<Complete />);
 
       expect(useNavigation).toHaveBeenCalledTimes(1);
     });
+
+    it('navigates to correct route on continue', async () => {
+      const { getByTestId } = render(<Complete />);
+
+      const button = getByTestId('complete-confirm-button');
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+      });
+    });
   });
 
   describe('OnboardingStep Integration', () => {
-    it('should pass correct props to OnboardingStep', () => {
+    it('passes correct props to OnboardingStep', () => {
       const { getByTestId } = render(<Complete />);
 
       const onboardingStep = getByTestId('onboarding-step');
@@ -231,10 +300,26 @@ describe('Complete Component', () => {
       const actions = getByTestId('onboarding-step-actions');
       expect(actions).toBeTruthy();
     });
+
+    it('renders correct OnboardingStep structure', () => {
+      const { getByTestId } = render(<Complete />);
+
+      const onboardingStep = getByTestId('onboarding-step');
+      const title = getByTestId('onboarding-step-title');
+      const description = getByTestId('onboarding-step-description');
+      const formFields = getByTestId('onboarding-step-form-fields');
+      const actions = getByTestId('onboarding-step-actions');
+
+      expect(onboardingStep).toBeTruthy();
+      expect(title).toBeTruthy();
+      expect(description).toBeTruthy();
+      expect(formFields).toBeTruthy();
+      expect(actions).toBeTruthy();
+    });
   });
 
   describe('i18n Integration', () => {
-    it('should use correct translation keys', () => {
+    it('uses correct translation keys', () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
       render(<Complete />);
@@ -249,31 +334,92 @@ describe('Complete Component', () => {
         'card.card_onboarding.confirm_button',
       );
     });
+
+    it('renders translated title', () => {
+      const { getByTestId } = render(<Complete />);
+
+      const title = getByTestId('onboarding-step-title');
+      expect(title.props.children).toBe('Complete');
+    });
+
+    it('renders translated description', () => {
+      const { getByTestId } = render(<Complete />);
+
+      const description = getByTestId('onboarding-step-description');
+      expect(description.props.children).toBe('Your card setup is complete!');
+    });
+
+    it('renders translated button label', () => {
+      const { getByTestId } = render(<Complete />);
+
+      const buttonLabel = getByTestId('button-label');
+      expect(buttonLabel.props.children).toBe('Continue');
+    });
   });
 
   describe('Button Configuration', () => {
-    it('should configure button with correct variant', () => {
+    it('configures button with correct variant', () => {
       const { getByTestId } = render(<Complete />);
 
-      const button = getByTestId('button');
+      const button = getByTestId('complete-confirm-button');
       // The button should be rendered with primary variant
       expect(button).toBeTruthy();
     });
 
-    it('should configure button with correct size', () => {
+    it('configures button with correct size', () => {
       const { getByTestId } = render(<Complete />);
 
-      const button = getByTestId('button');
+      const button = getByTestId('complete-confirm-button');
       // The button should be rendered with large size
       expect(button).toBeTruthy();
     });
 
-    it('should configure button with full width', () => {
+    it('configures button with full width', () => {
       const { getByTestId } = render(<Complete />);
 
-      const button = getByTestId('button');
+      const button = getByTestId('complete-confirm-button');
       // The button should be rendered with full width
       expect(button).toBeTruthy();
+    });
+
+    it('renders button with correct label', () => {
+      const { getByTestId } = render(<Complete />);
+
+      const buttonLabel = getByTestId('button-label');
+      expect(buttonLabel.props.children).toBe('Continue');
+    });
+  });
+
+  describe('Critical Path Testing', () => {
+    it('completes the onboarding flow successfully', async () => {
+      const { getByTestId } = render(<Complete />);
+
+      // Verify component renders
+      expect(getByTestId('complete-confirm-button')).toBeTruthy();
+
+      // Verify user can complete the flow
+      const button = getByTestId('complete-confirm-button');
+      fireEvent.press(button);
+
+      // Verify navigation to final destination
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+      });
+    });
+
+    it('handles user flow continuity', async () => {
+      const { getByTestId } = render(<Complete />);
+
+      // Verify the component is ready for user interaction
+      const button = getByTestId('complete-confirm-button');
+      expect(button.props.disabled).toBeFalsy();
+
+      // Verify successful completion leads to proper navigation
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+      });
     });
   });
 });
