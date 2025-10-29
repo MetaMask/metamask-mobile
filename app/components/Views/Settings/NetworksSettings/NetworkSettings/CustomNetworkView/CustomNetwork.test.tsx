@@ -17,9 +17,9 @@ jest.mock(
 
 const getMockState = (blacklistedChainIds: string[] = []) => {
   // Set up the mock selector to return the blacklist
-  (selectAdditionalNetworksBlacklistFeatureFlag as jest.Mock).mockReturnValue(
-    blacklistedChainIds,
-  );
+  (
+    selectAdditionalNetworksBlacklistFeatureFlag as unknown as jest.Mock
+  ).mockReturnValue(blacklistedChainIds);
 
   return { engine: { backgroundState } };
 };
