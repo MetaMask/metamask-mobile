@@ -1,9 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { TokensController } from '@metamask/assets-controllers';
 import {
-  TokensControllerInitMessenger,
-  TokensControllerMessenger,
-} from '../messengers/tokens-controller-messenger';
+  TokensController,
+  type TokensControllerMessenger,
+} from '@metamask/assets-controllers';
+import { TokensControllerInitMessenger } from '../messengers/tokens-controller-messenger';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { assert } from '@metamask/utils';
 
