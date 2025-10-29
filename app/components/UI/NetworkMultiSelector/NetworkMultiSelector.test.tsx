@@ -168,7 +168,6 @@ const mockStore = createStore(() => ({
 
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
-  const mockOpenRpcModal = jest.fn();
   const mockSelectPopularNetwork = jest.fn();
 
   const mockToggleAll = jest.fn();
@@ -318,10 +317,7 @@ describe('NetworkMultiSelector', () => {
   describe('basic functionality', () => {
     it('renders without crashing', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
       expect(
         getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER),
@@ -329,22 +325,12 @@ describe('NetworkMultiSelector', () => {
     });
 
     it('calls useNetworkEnablement', () => {
-      renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
-      );
+      renderWithProvider(<NetworkMultiSelector openModal={mockOpenModal} />);
       expect(mockUseNetworkEnablement).toHaveBeenCalled();
     });
 
     it('calls useNetworksByNamespace with Popular network type', () => {
-      renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
-      );
+      renderWithProvider(<NetworkMultiSelector openModal={mockOpenModal} />);
       expect(mockUseNetworksByNamespace).toHaveBeenCalledWith({
         networkType: NetworkType.Popular,
       });
@@ -372,12 +358,7 @@ describe('NetworkMultiSelector', () => {
           totalEnabledNetworksCount: 2,
         });
 
-      renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
-      );
+      renderWithProvider(<NetworkMultiSelector openModal={mockOpenModal} />);
       // Since multichain is enabled and both accounts exist, it should combine networks
       const expectedNetworks = [...mockNetworks, ...mockNetworks]; // Both EVM and Solana networks
       expect(mockUseNetworkSelection).toHaveBeenCalledWith({
@@ -387,10 +368,7 @@ describe('NetworkMultiSelector', () => {
 
     it('renders NetworkMultiSelectorList', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
       expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
     });
@@ -399,10 +377,7 @@ describe('NetworkMultiSelector', () => {
   describe('namespace handling', () => {
     it('renders custom network component for EIP155 namespace', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -427,10 +402,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -445,10 +417,7 @@ describe('NetworkMultiSelector', () => {
   describe('selected chain IDs', () => {
     it('calculates selectedChainIds from enabled networks', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -470,10 +439,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -493,10 +459,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       expect(
@@ -530,10 +493,7 @@ describe('NetworkMultiSelector', () => {
         });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -588,12 +548,7 @@ describe('NetworkMultiSelector', () => {
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
 
-      renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
-      );
+      renderWithProvider(<NetworkMultiSelector openModal={mockOpenModal} />);
 
       // Should call useNetworksToUse with correct parameters
       expect(mockUseNetworksToUse).toHaveBeenCalledWith({
@@ -678,10 +633,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -761,10 +713,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -840,10 +789,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -927,10 +873,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -995,10 +938,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1043,10 +983,7 @@ describe('NetworkMultiSelector', () => {
         .mockReturnValueOnce(() => ({ id: 'bitcoin-account' })); // selectedBitcoinAccount
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1065,7 +1002,6 @@ describe('NetworkMultiSelector', () => {
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector
           openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
           dismissModal={mockDismissModal}
         />,
       );
@@ -1085,7 +1021,6 @@ describe('NetworkMultiSelector', () => {
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector
           openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
           dismissModal={mockDismissModal}
         />,
       );
@@ -1101,10 +1036,7 @@ describe('NetworkMultiSelector', () => {
 
     it('works without dismissModal prop', async () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1145,10 +1077,7 @@ describe('NetworkMultiSelector', () => {
         .mockReturnValueOnce(() => null); // selectedBitcoinAccount
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1160,10 +1089,7 @@ describe('NetworkMultiSelector', () => {
 
     it('passes correct customNetworkProps to CustomNetwork', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1201,10 +1127,7 @@ describe('NetworkMultiSelector', () => {
 
     it('provides showNetworkModal function in customNetworkProps', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1220,10 +1143,7 @@ describe('NetworkMultiSelector', () => {
 
     it('has hideKeyFromUrl functionality available', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1251,10 +1171,7 @@ describe('NetworkMultiSelector', () => {
 
     it('handles network configuration with warning property', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1278,10 +1195,7 @@ describe('NetworkMultiSelector', () => {
 
     it('modal state starts with correct initial values', () => {
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1337,10 +1251,7 @@ describe('NetworkMultiSelector', () => {
         });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1419,10 +1330,7 @@ describe('NetworkMultiSelector', () => {
       });
 
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
@@ -1439,10 +1347,7 @@ describe('NetworkMultiSelector', () => {
       expect(NetworkMultiSelector).toBeDefined();
       // Verify it can render without errors
       const { getByTestId } = renderWithProvider(
-        <NetworkMultiSelector
-          openModal={mockOpenModal}
-          openRpcModal={mockOpenRpcModal}
-        />,
+        <NetworkMultiSelector openModal={mockOpenModal} />,
       );
       expect(
         getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER),

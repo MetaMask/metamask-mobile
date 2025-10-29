@@ -282,7 +282,9 @@ const NetworkMultiSelectList = ({
                 : undefined
             }
             onPress={() => debouncedSelectNetwork(caipChainId)}
-            onTextClick={() => openRpcModal({ chainId, networkName: name })}
+            onTextClick={() =>
+              openRpcModal && openRpcModal({ chainId, networkName: name })
+            }
             avatarProps={createAvatarProps(network)}
             buttonIcon={IconName.MoreVertical}
             disabled={isDisabled}

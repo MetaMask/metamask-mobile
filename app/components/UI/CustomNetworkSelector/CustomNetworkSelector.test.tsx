@@ -316,7 +316,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
       expect(getByTestId('mock-flash-list')).toBeTruthy();
@@ -327,7 +326,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
 
@@ -341,7 +339,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
 
@@ -357,7 +354,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
 
@@ -369,7 +365,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
 
@@ -426,7 +421,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
 
@@ -441,7 +435,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
 
@@ -457,7 +450,6 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
-          openRpcModal={mockOpenRpcModal}
         />,
       );
 

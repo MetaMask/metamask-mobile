@@ -53,5 +53,5 @@ export interface NetworkMultiSelectorListProps {
   selectAllNetworksComponent?: React.ReactNode;
   openModal: (networkMenuModal: NetworkMenuModalState) => void;
   areAllNetworksSelected?: boolean;
-  openRpcModal: (params: { chainId: string; networkName: string }) => void;
+  openRpcModal?: (params: { chainId: string; networkName: string }) => void;
 }

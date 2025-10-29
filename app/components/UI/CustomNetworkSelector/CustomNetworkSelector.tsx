@@ -119,7 +119,9 @@ const CustomNetworkSelector = ({
                 : undefined
             }
             onPress={handlePress}
-            onTextClick={() => openRpcModal({ chainId, networkName: name })}
+            onTextClick={() =>
+              openRpcModal && openRpcModal({ chainId, networkName: name })
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
