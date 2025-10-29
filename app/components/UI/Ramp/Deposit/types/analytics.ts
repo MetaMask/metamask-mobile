@@ -213,6 +213,12 @@ interface RampsPaymentMethodAdded {
   payment_method_id: string;
 }
 
+interface RampsUserDetailsFetched {
+  logged_in: boolean;
+  region: string;
+  location: string;
+}
+
 export interface AnalyticsEvents {
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
@@ -235,4 +241,5 @@ export interface AnalyticsEvents {
   RAMPS_TRANSACTION_FAILED: RampsTransactionFailed;
   RAMPS_KYC_APPLICATION_FAILED: RampsKycApplicationFailed;
   RAMPS_KYC_APPLICATION_APPROVED: RampsKycApplicationApproved;
+  RAMPS_USER_DETAILS_FETCHED: RampsUserDetailsFetched;
 }

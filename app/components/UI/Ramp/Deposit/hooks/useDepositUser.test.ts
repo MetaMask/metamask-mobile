@@ -17,6 +17,11 @@ jest.mock('../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
 
+const mockTrackEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => ({
+  trackEvent: jest.fn((...args) => mockTrackEvent(...args)),
+}));
+
 describe('useDepositUser', () => {
   const mockFetchUserDetails = jest.fn();
   const mockUserDetails = {
@@ -315,6 +320,207 @@ describe('useDepositUser', () => {
       );
 
       expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('analytics tracking', () => {
+    beforeEach(() => {
+      mockTrackEvent.mockClear();
+    });
+
+    it('tracks user details fetched event when screenLocation is provided', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        {
+          logged_in: true,
+          region: 'US',
+          location: 'BuildQuote Screen',
+        },
+      );
+    });
+
+    it('does not track event when screenLocation is not provided', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      const { result } = renderHook(() => useDepositUser());
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('uses selectedRegion when user details have no countryCode', async () => {
+      const userDetailsWithoutCountry = {
+        ...mockUserDetails,
+        address: {
+          ...mockUserDetails.address,
+          countryCode: '',
+        },
+      };
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: { isoCode: 'CA', currency: 'CAD' },
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(userDetailsWithoutCountry);
+      setupMockSdkMethod({ data: userDetailsWithoutCountry });
+
+      const { result } = renderHook(() =>
+        useDepositUser('EnterAddress Screen'),
+      );
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        {
+          logged_in: true,
+          region: 'CA',
+          location: 'EnterAddress Screen',
+        },
+      );
+    });
+
+    it('uses selectedRegion when user details have no address', async () => {
+      const userDetailsWithoutAddress = {
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1234567890',
+        dob: '1990-01-01',
+      };
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: { isoCode: 'GB', currency: 'GBP' },
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(userDetailsWithoutAddress);
+      setupMockSdkMethod({ data: userDetailsWithoutAddress });
+
+      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        {
+          logged_in: true,
+          region: 'GB',
+          location: 'BuildQuote Screen',
+        },
+      );
+    });
+
+    it('tracks event with empty region when both user countryCode and selectedRegion are missing', async () => {
+      const userDetailsWithoutCountry = {
+        ...mockUserDetails,
+        address: {
+          ...mockUserDetails.address,
+          countryCode: '',
+        },
+      };
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+          selectedRegion: null,
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(userDetailsWithoutCountry);
+      setupMockSdkMethod({ data: userDetailsWithoutCountry });
+
+      const { result } = renderHook(() =>
+        useDepositUser('EnterAddress Screen'),
+      );
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        {
+          logged_in: true,
+          region: '',
+          location: 'EnterAddress Screen',
+        },
+      );
+    });
+
+    it('tracks event with not authenticated status when user is logged out', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: false,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+
+      await result.current.fetchUserDetails();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        {
+          logged_in: false,
+          region: 'US',
+          location: 'BuildQuote Screen',
+        },
+      );
+    });
+
+    it('tracks event before calling fetchUserDetails', async () => {
+      const callOrder: string[] = [];
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+
+      mockTrackEvent.mockImplementation(() => {
+        callOrder.push('trackEvent');
+      });
+
+      mockFetchUserDetails.mockImplementation(() => {
+        callOrder.push('fetchUserDetails');
+        return Promise.resolve(mockUserDetails);
+      });
+
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      const { result } = renderHook(() => useDepositUser('BuildQuote Screen'));
+
+      await result.current.fetchUserDetails();
+
+      expect(callOrder).toEqual(['trackEvent', 'fetchUserDetails']);
     });
   });
 });

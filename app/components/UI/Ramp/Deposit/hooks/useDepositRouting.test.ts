@@ -172,6 +172,18 @@ jest.mock('../sdk', () => ({
 
 jest.mock('./useHandleNewOrder');
 
+const mockDepositUserFetchUserDetails = jest
+  .fn()
+  .mockResolvedValue({ kyc: { l1: { status: 'APPROVED' } } });
+jest.mock('./useDepositUser', () => ({
+  useDepositUser: () => ({
+    userDetails: null,
+    error: null,
+    isFetching: false,
+    fetchUserDetails: mockDepositUserFetchUserDetails,
+  }),
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => '0x123'),
@@ -274,7 +286,7 @@ describe('useDepositRouting', () => {
     });
   });
 
-  it('should create the hook with correct parameters', () => {
+  it('creates the hook with correct parameters', () => {
     const { result } = renderHook(() => useDepositRouting());
 
     expect(result.current.routeAfterAuthentication).toBeDefined();
@@ -301,7 +313,7 @@ describe('useDepositRouting', () => {
       ).resolves.not.toThrow();
 
       expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
-      expect(mockFetchUserDetails).toHaveBeenCalled();
+      expect(mockDepositUserFetchUserDetails).toHaveBeenCalled();
       expect(mockCreateOrder).toHaveBeenCalledWith(
         mockQuote,
         '0x123',
@@ -347,7 +359,7 @@ describe('useDepositRouting', () => {
       ).resolves.not.toThrow();
 
       expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
-      expect(mockFetchUserDetails).toHaveBeenCalled();
+      expect(mockDepositUserFetchUserDetails).toHaveBeenCalled();
       expect(mockRequestOtt).toHaveBeenCalled();
       expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
         'test-ott-token',
@@ -662,7 +674,7 @@ describe('useDepositRouting', () => {
     it('should throw error when user details are missing', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      mockFetchUserDetails = jest.fn().mockResolvedValue(null);
+      mockDepositUserFetchUserDetails.mockResolvedValueOnce(null);
       const { result } = renderHook(() => useDepositRouting());
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -772,9 +784,9 @@ describe('useDepositRouting', () => {
     it('should throw error when fetchUserDetails throws', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      mockFetchUserDetails = jest
-        .fn()
-        .mockRejectedValue(new Error('User details fetch failed'));
+      mockDepositUserFetchUserDetails.mockRejectedValueOnce(
+        new Error('User details fetch failed'),
+      );
 
       const { result } = renderHook(() => useDepositRouting());
 
@@ -1296,6 +1308,26 @@ describe('useDepositRouting', () => {
 
       expect(mockCreateOrder).not.toHaveBeenCalled();
       expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('screenLocation parameter', () => {
+    it('accepts screenLocation parameter without errors', () => {
+      const { result } = renderHook(() =>
+        useDepositRouting('BuildQuote Screen'),
+      );
+
+      expect(result.current.routeAfterAuthentication).toBeDefined();
+      expect(result.current.navigateToKycWebview).toBeDefined();
+      expect(result.current.navigateToVerifyIdentity).toBeDefined();
+    });
+
+    it('works without screenLocation parameter', () => {
+      const { result } = renderHook(() => useDepositRouting());
+
+      expect(result.current.routeAfterAuthentication).toBeDefined();
+      expect(result.current.navigateToKycWebview).toBeDefined();
+      expect(result.current.navigateToVerifyIdentity).toBeDefined();
     });
   });
 });

@@ -3,9 +3,11 @@ import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 import type { AxiosError } from 'axios';
 import Logger from '../../../../../util/Logger';
+import { trackEvent } from '../../hooks/useAnalytics';
 
-export function useDepositUser() {
-  const { isAuthenticated, logoutFromProvider } = useDepositSDK();
+export function useDepositUser(screenLocation?: string) {
+  const { isAuthenticated, logoutFromProvider, selectedRegion } =
+    useDepositSDK();
 
   const [{ data: userDetails, error, isFetching }, fetchUserDetails] =
     useDepositSdkMethod({
@@ -16,6 +18,14 @@ export function useDepositUser() {
 
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
+      if (screenLocation) {
+        trackEvent('RAMPS_USER_DETAILS_FETCHED', {
+          logged_in: isAuthenticated,
+          region:
+            userDetails?.address?.countryCode || selectedRegion?.isoCode || '',
+          location: screenLocation,
+        });
+      }
       const result = await fetchUserDetails();
       return result;
     } catch (error) {
@@ -26,7 +36,14 @@ export function useDepositUser() {
         throw error;
       }
     }
-  }, [fetchUserDetails, logoutFromProvider]);
+  }, [
+    fetchUserDetails,
+    logoutFromProvider,
+    isAuthenticated,
+    userDetails,
+    screenLocation,
+    selectedRegion?.isoCode,
+  ]);
 
   useEffect(() => {
     if (isAuthenticated && !userDetails && !isFetching && !error) {
