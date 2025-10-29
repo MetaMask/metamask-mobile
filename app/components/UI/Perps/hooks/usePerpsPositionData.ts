@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { isEqual } from 'lodash';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -8,7 +8,7 @@ import {
   TimeDuration,
 } from '../constants/chartConfig';
 import type { PriceUpdate } from '../controllers/types';
-import type { CandleData, CandleStick } from '../types/perps-types';
+import type { CandleData } from '../types/perps-types';
 
 interface UsePerpsPositionDataProps {
   coin: string;
@@ -24,7 +24,6 @@ export const usePerpsPositionData = ({
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [liveCandle, setLiveCandle] = useState<CandleStick | null>(null);
   const prevMergedDataRef = useRef<CandleData | null>(null);
 
   // Helper function to get the current candle's start time based on interval
@@ -194,50 +193,53 @@ export const usePerpsPositionData = ({
     };
   }, [candleData, isLoadingHistory, selectedInterval, fetchHistoricalCandles]);
 
-  // Build live candle from price updates
-  useEffect(() => {
-    if (!priceData?.price) return;
+  const liveCandle = useMemo(() => {
+    if (!priceData?.price || isLoadingHistory) return null;
 
-    const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
     const currentPrice = Number.parseFloat(priceData.price.toString());
+    const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
+    const existingCandleIndex =
+      candleData?.candles.findIndex(
+        (candle) => candle.time === currentCandleTime,
+      ) ?? -1;
 
-    setLiveCandle((prevLive) => {
-      // If no previous live candle or time period changed, create new one
-      if (!prevLive || prevLive.time !== currentCandleTime) {
-        return {
+    const lastCandle =
+      existingCandleIndex >= 0
+        ? candleData?.candles[existingCandleIndex]
+        : candleData?.candles[candleData?.candles.length - 1];
+
+    const close = currentPrice.toString();
+    const high = lastCandle
+      ? Math.max(currentPrice, Number.parseFloat(lastCandle.high)).toString()
+      : currentPrice.toString();
+    const low = lastCandle
+      ? Math.min(currentPrice, Number.parseFloat(lastCandle.low)).toString()
+      : currentPrice.toString();
+
+    const newLiveCandle = lastCandle
+      ? {
+          ...lastCandle,
+          close,
+          high,
+          low,
+        }
+      : {
           time: currentCandleTime,
           open: currentPrice.toString(),
-          high: currentPrice.toString(),
-          low: currentPrice.toString(),
-          close: currentPrice.toString(),
+          high,
+          low,
+          close,
           volume: '0', // We don't have live volume
         };
-      }
 
-      // Update existing live candle with new price
-      const prevHigh = Number.parseFloat(prevLive.high);
-      const prevLow = Number.parseFloat(prevLive.low);
-      const newHigh = Math.max(prevHigh, currentPrice).toString();
-      const newLow = Math.min(prevLow, currentPrice).toString();
-      const newClose = currentPrice.toString();
-
-      // Only create new object if values actually changed
-      if (
-        prevLive.high === newHigh &&
-        prevLive.low === newLow &&
-        prevLive.close === newClose
-      ) {
-        return prevLive; // Keep same reference to prevent unnecessary re-renders
-      }
-
-      return {
-        ...prevLive,
-        high: newHigh,
-        low: newLow,
-        close: newClose,
-      };
-    });
-  }, [priceData, selectedInterval, getCurrentCandleStartTime]);
+    return newLiveCandle;
+  }, [
+    priceData,
+    selectedInterval,
+    candleData,
+    getCurrentCandleStartTime,
+    isLoadingHistory,
+  ]);
 
   // Merge historical candles with live candle for chart display
   const candleDataWithLive = useMemo(() => {
