@@ -53,7 +53,6 @@ import {
   createTrackFunction,
   handleSkipBackup,
   showSeedphraseDefinition,
-  showSkipAccountSecurityBottomsheet,
 } from '../../../util/onboarding/backupUtils';
 
 /**
@@ -202,15 +201,14 @@ const ManualBackupStep1 = ({
     });
   }, [navigation, route.params, isMetricsEnabled, track]);
 
-  const showRemindLater = useCallback(() => {
+  const showRemindLater = useCallback(async () => {
     if (hasFunds) return;
 
-    showSkipAccountSecurityBottomsheet({
-      navigation,
-      onConfirm: skip,
-      track,
-    });
-  }, [hasFunds, navigation, skip, track]);
+    // Track skip initiation
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
+
+    await skip();
+  }, [hasFunds, skip, track]);
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
