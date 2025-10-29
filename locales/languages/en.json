@@ -5785,7 +5785,7 @@
     "volume": "Volume",
     "market_cap_fdv": "Market cap (FDV)",
     "listed_on": "Listed on",
-    "centralised_exchanges": "Centralised exchanges",
+    "centralized_exchanges": "Centralized exchanges",
     "contract_address": "Contract address"
   },
   "quote_expired_modal": {
