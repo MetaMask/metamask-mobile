@@ -92,12 +92,15 @@ export const CardSDKProvider = ({
       if (!sdk || !onboardingId) {
         return;
       }
+      setIsLoading(true);
 
       try {
         const userData = await sdk.getRegistrationStatus(onboardingId);
         setUser(userData);
       } catch {
         // Assume user is not registered
+      } finally {
+        setIsLoading(false);
       }
     };
 

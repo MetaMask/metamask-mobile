@@ -362,6 +362,7 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
+      WEBVIEW: 'CardOnboardingWebview',
     },
   },
   SEND: {

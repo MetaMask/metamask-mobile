@@ -1,4 +1,25 @@
 {
+  "sample_feature": {
+    "title": "Sample Feature",
+    "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
+    "counter": {
+      "title": "Counter",
+      "value": "Value: {{value}}",
+      "increment": "Increment Redux Counter"
+    },
+    "pet_name": {
+      "list_count_text": "Pet Names on this network",
+      "add_pet_name_button": "Add Pet Name",
+      "address": "Address",
+      "address_placeholder": "0x...",
+      "name": "Name",
+      "name_placeholder": "Name",
+      "duplicate_title": "Address already exists",
+      "duplicate_message": "This address already has a pet name. Do you want to update it?",
+      "cancel": "Cancel",
+      "update": "Update"
+    }
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
@@ -5945,7 +5966,7 @@
       },
       "set_phone_number": {
         "title": "Phone number",
-        "description": "We'll send your confirmation code to this number.",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Phone number",
         "phone_number_placeholder": "Enter your phone number",
         "country_area_code_label": "Country area code",
