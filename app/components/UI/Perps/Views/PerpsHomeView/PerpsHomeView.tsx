@@ -64,8 +64,7 @@ const PerpsHomeView = () => {
     orders,
     watchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
-    stocksMarkets,
-    commoditiesMarkets,
+    stocksAndCommoditiesMarkets,
     forexMarkets,
     recentActivity,
     sortBy,
@@ -179,7 +178,7 @@ const PerpsHomeView = () => {
           isLoading={isLoading.positions}
           isEmpty={positions.length === 0}
           showWhenEmpty={false}
-          actionLabel={strings('perps.home.close_all')}
+          showActionIcon
           onActionPress={handleCloseAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
@@ -200,7 +199,7 @@ const PerpsHomeView = () => {
           isLoading={isLoading.orders}
           isEmpty={orders.length === 0}
           showWhenEmpty={false}
-          actionLabel={strings('perps.home.cancel_all')}
+          showActionIcon
           onActionPress={handleCancelAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
@@ -230,19 +229,12 @@ const PerpsHomeView = () => {
           isLoading={isLoading.markets}
         />
 
-        {/* Stocks Markets List */}
+        {/* Stocks & Commodities Markets List */}
         <PerpsMarketTypeSection
-          title={strings('perps.home.stocks')}
-          markets={stocksMarkets}
-          marketType="equity"
-          isLoading={isLoading.markets}
-        />
-
-        {/* Commodities Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.commodities')}
-          markets={commoditiesMarkets}
-          marketType="commodity"
+          title={strings('perps.home.stocks_and_commodities')}
+          markets={stocksAndCommoditiesMarkets}
+          marketType="all"
+          sortBy={sortBy}
           isLoading={isLoading.markets}
         />
 

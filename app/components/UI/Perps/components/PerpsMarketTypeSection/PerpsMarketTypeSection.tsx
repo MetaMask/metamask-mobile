@@ -105,9 +105,11 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   // Show skeleton during initial load
   if (isLoading) {
     return (
-      <View style={styles.container} testID={testID}>
+      <View style={styles.section} testID={testID}>
         <SectionHeader />
-        <PerpsRowSkeleton count={5} />
+        <View style={styles.contentContainer}>
+          <PerpsRowSkeleton count={5} />
+        </View>
       </View>
     );
   }
@@ -119,14 +121,16 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
 
   // Render market list
   return (
-    <View style={styles.container} testID={testID}>
-      <PerpsMarketList
-        markets={markets}
-        sortBy={sortBy}
-        onMarketPress={handleMarketPress}
-        ListHeaderComponent={SectionHeader}
-        showBadge={false}
-      />
+    <View style={styles.section} testID={testID}>
+      <SectionHeader />
+      <View style={styles.contentContainer}>
+        <PerpsMarketList
+          markets={markets}
+          sortBy={sortBy}
+          onMarketPress={handleMarketPress}
+          showBadge={false}
+        />
+      </View>
     </View>
   );
 };

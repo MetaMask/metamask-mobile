@@ -37,6 +37,7 @@ interface UsePerpsHomeDataReturn {
   perpsMarkets: PerpsMarketData[]; // Crypto markets (renamed from trending)
   stocksMarkets: PerpsMarketData[]; // Equity markets
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
+  stocksAndCommoditiesMarkets: PerpsMarketData[]; // Combined stocks & commodities markets
   forexMarkets: PerpsMarketData[]; // Forex markets
   recentActivity: OrderFill[];
   sortBy: SortField;
@@ -143,6 +144,19 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter((m) => m.marketType === 'commodity'),
+        sortBy,
+        direction,
+      }).slice(0, trendingLimit),
+    [allMarkets, sortBy, direction, trendingLimit],
+  );
+
+  // Stocks & Commodities combined - top N by user preference
+  const stocksAndCommoditiesMarkets = useMemo(
+    () =>
+      sortMarkets({
+        markets: allMarkets.filter(
+          (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -263,6 +277,15 @@ export const usePerpsHomeData = ({
     return filteredData.markets.filter((m) => m.marketType === 'commodity');
   }, [searchQuery, commoditiesMarkets, filteredData.markets]);
 
+  const searchedStocksAndCommoditiesMarkets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return stocksAndCommoditiesMarkets;
+    }
+    return filteredData.markets.filter(
+      (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+    );
+  }, [searchQuery, stocksAndCommoditiesMarkets, filteredData.markets]);
+
   const searchedForexMarkets = useMemo(() => {
     if (!searchQuery.trim()) {
       return forexMarkets;
@@ -277,6 +300,7 @@ export const usePerpsHomeData = ({
     perpsMarkets: searchedPerpsMarkets, // Crypto markets (renamed from trendingMarkets)
     stocksMarkets: searchedStocksMarkets,
     commoditiesMarkets: searchedCommoditiesMarkets,
+    stocksAndCommoditiesMarkets: searchedStocksAndCommoditiesMarkets,
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,

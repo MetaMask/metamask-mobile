@@ -4,6 +4,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 
 export interface PerpsHomeSectionProps {
   /**
@@ -28,6 +33,10 @@ export interface PerpsHomeSectionProps {
    * Optional action label (e.g., "Close All", "See All")
    */
   actionLabel?: string;
+  /**
+   * Whether to show an icon instead of action label text (shows more horizontal icon)
+   */
+  showActionIcon?: boolean;
   /**
    * Optional action handler
    */
@@ -92,6 +101,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   isEmpty,
   showWhenEmpty = false,
   actionLabel,
+  showActionIcon = false,
   onActionPress,
   renderSkeleton,
   children,
@@ -109,13 +119,27 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {title}
         </Text>
-        {actionLabel && onActionPress && !isLoading && !isEmpty && (
-          <TouchableOpacity onPress={onActionPress}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {actionLabel}
-            </Text>
-          </TouchableOpacity>
-        )}
+        {(actionLabel || showActionIcon) &&
+          onActionPress &&
+          !isLoading &&
+          !isEmpty && (
+            <TouchableOpacity onPress={onActionPress}>
+              {showActionIcon ? (
+                <Icon
+                  name={IconName.MoreHorizontal}
+                  size={IconSize.Md}
+                  color={IconColor.Alternative}
+                />
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {actionLabel}
+                </Text>
+              )}
+            </TouchableOpacity>
+          )}
       </View>
 
       {/* Section Content */}
