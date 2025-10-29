@@ -160,8 +160,8 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                       isRecording || !lastProfilePath
                         ? 'bg-muted'
                         : pressed
-                        ? 'bg-pressed'
-                        : 'bg-primary-default',
+                          ? 'bg-pressed'
+                          : 'bg-primary-default',
                     )
                   }
                   onPress={exportTrace}

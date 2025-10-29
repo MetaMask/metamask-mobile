@@ -50,7 +50,7 @@ export const createMockHyperLiquidProvider =
       subscribeToOrders: jest.fn(),
       subscribeToAccount: jest.fn(),
       setUserFeeDiscount: jest.fn(),
-    } as unknown as jest.Mocked<HyperLiquidProvider>);
+    }) as unknown as jest.Mocked<HyperLiquidProvider>;
 
 export const createMockOrderResult = () => ({
   success: true,

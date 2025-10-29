@@ -191,9 +191,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const feeDiscountStartTime = performance.now();
-        const discountBips = await RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        );
+        const discountBips =
+          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance
@@ -284,9 +283,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const pointsEstimationStartTime = performance.now();
-        const result = await RewardsController.estimatePoints(
-          estimatePointsDto,
-        );
+        const result =
+          await RewardsController.estimatePoints(estimatePointsDto);
         const pointsEstimationDuration =
           performance.now() - pointsEstimationStartTime;
 
