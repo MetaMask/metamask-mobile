@@ -39,6 +39,7 @@ import {
   isCaipChainId,
   isCaipAssetType,
   parseCaipAssetType,
+  parseCaipChainId,
 } from '@metamask/utils';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
@@ -55,10 +56,9 @@ import { selectEvmTokenMarketData } from '../../../../../selectors/multichain/ev
 import { selectTokenDisplayData } from '../../../../../selectors/tokenSearchDiscoveryDataController';
 
 import Engine from '../../../../../core/Engine';
-import { handleFetch } from '@metamask/controller-utils';
+import { handleFetch, toHex } from '@metamask/controller-utils';
 import {
   formatChainIdToCaip,
-  isNonEvmChainId,
   isNativeAddress,
 } from '@metamask/bridge-controller';
 import { toAssetId } from '../../hooks/useAssetMetadata/utils';
@@ -141,14 +141,30 @@ const TokenInsightsSheet: React.FC = () => {
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const isEvmChain =
-    token && !isCaipChainId(token.chainId) && !isNonEvmChainId(token.chainId);
+  const evmHexChainId = useMemo(() => {
+    if (!token?.chainId) return undefined;
+    const chainIdString = String(token.chainId);
+    if (isCaipChainId(chainIdString)) {
+      const { namespace, reference } = parseCaipChainId(chainIdString);
+      if (namespace === 'eip155') {
+        try {
+          return toHex(reference) as Hex;
+        } catch {
+          return undefined;
+        }
+      }
+      return undefined;
+    }
+    return token.chainId as Hex;
+  }, [token?.chainId]);
+
+  const isEvmChain = Boolean(token && evmHexChainId);
 
   // Get cached market data from TokenRatesController (EVM only)
   const evmMarketData = useSelector((state: RootState) =>
-    token && isEvmChain
+    token && isEvmChain && evmHexChainId
       ? selectEvmTokenMarketData(state, {
-          chainId: token.chainId as Hex,
+          chainId: evmHexChainId,
           tokenAddress: token.address,
         })
       : null,
@@ -156,12 +172,8 @@ const TokenInsightsSheet: React.FC = () => {
 
   // Get token display data from TokenSearchDiscoveryDataController (EVM only)
   const tokenSearchResult = useSelector((state: RootState) =>
-    token && isEvmChain
-      ? selectTokenDisplayData(
-          state,
-          token.chainId as Hex,
-          token.address as Hex,
-        )
+    token && isEvmChain && evmHexChainId
+      ? selectTokenDisplayData(state, evmHexChainId, token.address as Hex)
       : null,
   );
 
@@ -174,13 +186,13 @@ const TokenInsightsSheet: React.FC = () => {
 
   // Fetch token discovery data if not available (EVM only)
   useEffect(() => {
-    if (token && isEvmChain && !tokenSearchResult?.found) {
+    if (token && isEvmChain && evmHexChainId && !tokenSearchResult?.found) {
       Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(
-        token.chainId as Hex,
+        evmHexChainId,
         token.address,
       );
     }
-  }, [token, isEvmChain, tokenSearchResult]);
+  }, [token, isEvmChain, evmHexChainId, tokenSearchResult]);
 
   // Determine cached market data based on source
   let cachedMarketData: MarketDataDetails | undefined;
