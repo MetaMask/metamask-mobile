@@ -11,7 +11,7 @@ import {
 } from '../../../../util/confusables';
 import { memoizedGetTokenStandardAndDetails } from './token';
 
-const LOWER_CASED_BURN_ADDRESSES = [
+export const LOWER_CASED_BURN_ADDRESSES = [
   '0x0000000000000000000000000000000000000000',
   '0x000000000000000000000000000000000000dead',
 ];
