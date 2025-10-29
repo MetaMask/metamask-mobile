@@ -323,9 +323,7 @@ const AssetDetails = (props: Props) => {
         : undefined;
 
     const balance = tokenBalance
-      ? address in allTokenBalances || !tokenBalance
-        ? renderFromTokenMinimalUnit(tokenBalance.toString(), decimals)
-        : undefined
+      ? renderFromTokenMinimalUnit(tokenBalance.toString(), decimals)
       : undefined;
 
     const balanceFiat = balance
