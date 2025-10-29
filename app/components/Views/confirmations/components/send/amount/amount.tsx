@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../../../locales/i18n';
 import Icon, {
@@ -18,6 +19,7 @@ import Text, {
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
+import Device from '../../../../../../util/device';
 import { AssetType, TokenStandard } from '../../../types/token';
 import { formatToFixedDecimals } from '../../../utils/send';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
@@ -52,6 +54,7 @@ export const Amount = () => {
     contentLength: amount.length + assetDisplaySymbol.length,
     isNFT,
   });
+  const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
   useRouteParams();
@@ -105,7 +108,10 @@ export const Amount = () => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaView
+      edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
+      style={styles.container}
+    >
       <View style={styles.topSection}>
         {isNFT && (
           <View style={styles.nftImageWrapper}>
@@ -170,6 +176,6 @@ export const Amount = () => {
           updateAmount={setAmount}
         />
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 };

@@ -3,12 +3,18 @@ import { TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
 import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
+import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 
 const COPY_METRICS = [
   'mm_pay',
   'mm_pay_use_case',
   'mm_pay_transaction_step_total',
 ] as const;
+
+const PAY_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   transactionMeta,
@@ -23,12 +29,10 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   const parentTransaction = allTransactions.find(
     (tx) =>
       tx.requiredTransactionIds?.includes(transactionId) ||
-      (batchId &&
-        tx.type === TransactionType.perpsDeposit &&
-        tx.batchId === batchId),
+      (batchId && hasTransactionType(tx, PAY_TYPES) && tx.batchId === batchId),
   );
 
-  if (type === TransactionType.perpsDeposit || !parentTransaction) {
+  if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
     return {
       properties,
       sensitiveProperties,

@@ -1,8 +1,27 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, act } from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('../../hooks/usePredictDepositToasts', () => ({
   usePredictDepositToasts: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictClaimToasts', () => ({
+  usePredictClaimToasts: jest.fn(() => ({
+    showSuccessToast: jest.fn(),
+    showErrorToast: jest.fn(),
+  })),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+  })),
+  useFocusEffect: jest.fn((callback: () => void) => {
+    // Execute callback immediately for testing
+    callback();
+  }),
 }));
 
 const renderWithProviders = (component: React.ReactElement) =>
@@ -59,6 +78,29 @@ jest.mock('../../components/PredictAddFundsSheet/PredictAddFundsSheet', () => {
       return (
         <View testID="predict-add-funds-sheet">
           <Text>Add Funds</Text>
+        </View>
+      );
+    },
+  };
+});
+
+jest.mock('../../components/PredictOffline', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockPredictOffline({
+      onRetry,
+    }: {
+      onRetry?: () => void;
+    }) {
+      return (
+        <View testID="predict-error-state">
+          <Text>Error State</Text>
+          {onRetry && (
+            <Text testID="retry-button" onPress={onRetry}>
+              Retry
+            </Text>
+          )}
         </View>
       );
     },
@@ -177,6 +219,25 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => '0x123'),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+  context: {
+    TransactionController: {
+      addTransaction: jest.fn(),
+      approveTransaction: jest.fn(),
+      cancelTransaction: jest.fn(),
+      speedUpTransaction: jest.fn(),
+      updateEditableParams: jest.fn(),
+      updateTransaction: jest.fn(),
+      updateTransactionGasFees: jest.fn(),
+      updatePreviousGasParams: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('@shopify/flash-list', () => {
   const { View, ScrollView } = jest.requireActual('react-native');
   const ReactLib = jest.requireActual('react');
@@ -247,6 +308,10 @@ import PredictTabView from './PredictTabView';
 
 describe('PredictTabView', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -374,5 +439,252 @@ describe('PredictTabView', () => {
 
     // After refresh completes, should be false again
     expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  describe('error handling', () => {
+    it('renders error state when positions error occurs', () => {
+      // Mock PredictPositions to trigger error
+      const PredictPositionsMock = jest.requireMock(
+        '../../components/PredictPositions/PredictPositions',
+      );
+
+      PredictPositionsMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
+        ) => {
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+
+          // Simulate error on mount
+          React.useEffect(() => {
+            onError?.('Positions error occurred');
+          }, [onError]);
+
+          return (
+            <View testID="predict-positions">
+              <Text>Positions</Text>
+            </View>
+          );
+        },
+      );
+
+      renderWithProviders(<PredictTabView />);
+
+      // Should render error state instead of normal components
+      expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-account-state'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('predict-positions')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-add-funds-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders error state when header error occurs', () => {
+      // Mock PredictPositionsHeader to trigger error
+      const PredictAccountStateMock = jest.requireMock(
+        '../../components/PredictPositionsHeader',
+      );
+
+      PredictAccountStateMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
+        ) => {
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+
+          // Simulate error on mount
+          React.useEffect(() => {
+            onError?.('Header error occurred');
+          }, [onError]);
+
+          return (
+            <View testID="predict-account-state">
+              <Text>Account State</Text>
+            </View>
+          );
+        },
+      );
+
+      renderWithProviders(<PredictTabView />);
+
+      // Should render error state instead of normal components
+      expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-account-state'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('predict-positions')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-add-funds-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('calls handleRefresh when retry button is pressed in error state', async () => {
+      // Set up component in normal state first
+      renderWithProviders(<PredictTabView />);
+
+      // Switch to error state by calling the error callbacks
+      // (This simulates what would happen if child components reported errors)
+
+      // Mock the components to trigger errors and capture error callbacks
+      const PredictPositionsMock = jest.requireMock(
+        '../../components/PredictPositions/PredictPositions',
+      );
+      const PredictAccountStateMock = jest.requireMock(
+        '../../components/PredictPositionsHeader',
+      );
+
+      let positionsOnError: ((error: string | null) => void) | undefined;
+
+      PredictPositionsMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
+        ) => {
+          React.useEffect(() => {
+            positionsOnError = onError;
+          }, [onError]);
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+          return (
+            <View testID="predict-positions">
+              <Text>Positions</Text>
+            </View>
+          );
+        },
+      );
+
+      PredictAccountStateMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (_props: unknown, ref: any) => {
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+          return (
+            <View testID="predict-account-state">
+              <Text>Account State</Text>
+            </View>
+          );
+        },
+      );
+
+      // Re-render to apply the new mocks
+      const { rerender } = renderWithProviders(<PredictTabView />);
+      rerender(<PredictTabView />);
+
+      // Now trigger errors to switch to error state
+      act(() => {
+        positionsOnError?.('Test error');
+      });
+
+      // Should now show error state
+      expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
+
+      // The retry button should be present in the error state
+      expect(screen.getByTestId('retry-button')).toBeOnTheScreen();
+    });
+
+    it('handles positions error callback', () => {
+      // Mock PredictPositions to call onError prop
+      const PredictPositionsMock = jest.requireMock(
+        '../../components/PredictPositions/PredictPositions',
+      );
+
+      let capturedOnError: ((error: string | null) => void) | undefined;
+
+      PredictPositionsMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
+        ) => {
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+
+          // Capture the onError callback
+          React.useEffect(() => {
+            capturedOnError = onError;
+          }, [onError]);
+
+          return (
+            <View testID="predict-positions">
+              <Text>Positions</Text>
+            </View>
+          );
+        },
+      );
+
+      renderWithProviders(<PredictTabView />);
+
+      // Simulate calling the error callback
+      act(() => {
+        capturedOnError?.('Test positions error');
+      });
+
+      // Should render error state
+      expect(
+        screen.queryByTestId('predict-account-state'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('handles header error callback', () => {
+      // Mock PredictPositionsHeader to call onError prop
+      const PredictAccountStateMock = jest.requireMock(
+        '../../components/PredictPositionsHeader',
+      );
+
+      let capturedOnError: ((error: string | null) => void) | undefined;
+
+      PredictAccountStateMock.default = React.forwardRef(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (
+          { onError }: { onError?: (error: string | null) => void },
+          ref: any,
+        ) => {
+          const { View, Text } = jest.requireActual('react-native');
+          React.useImperativeHandle(ref, () => ({
+            refresh: jest.fn(),
+          }));
+
+          // Capture the onError callback
+          React.useEffect(() => {
+            capturedOnError = onError;
+          }, [onError]);
+
+          return (
+            <View testID="predict-account-state">
+              <Text>Account State</Text>
+            </View>
+          );
+        },
+      );
+
+      renderWithProviders(<PredictTabView />);
+
+      // Simulate calling the error callback
+      act(() => {
+        capturedOnError?.('Test header error');
+      });
+
+      // Should render error state
+      expect(
+        screen.queryByTestId('predict-account-state'),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

@@ -158,7 +158,6 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -185,8 +184,9 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NftGrid from '../../UI/NftGrid';
+import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -196,12 +196,11 @@ const createStyles = ({ colors }: Theme) =>
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
+      gap: 16,
+      flexDirection: 'column',
     },
-    walletAccount: { marginTop: 28 },
-
     tabContainer: {
       flex: 1,
-      marginTop: 8,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -210,14 +209,11 @@ const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      marginTop: 20,
+      flexDirection: 'column',
+      gap: 16,
       paddingHorizontal: 16,
     },
-    assetsActionsContainer: {
-      marginBottom: 16,
-    },
     carousel: {
-      marginBottom: 16,
       overflow: 'hidden', // Allow for smooth height animations
     },
   });
@@ -1059,7 +1055,7 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   useEffect(() => {
@@ -1078,7 +1074,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        isCardholder,
+        shouldDisplayCardButton,
         isRewardsEnabled,
       ),
     );
@@ -1094,7 +1090,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    isCardholder,
+    shouldDisplayCardButton,
     isRewardsEnabled,
   ]);
 
@@ -1299,8 +1295,8 @@ const Wallet = ({
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
         <AssetPollingProvider />
-        {!basicFunctionalityEnabled ? (
-          <View style={styles.banner}>
+        <View style={styles.banner}>
+          {!basicFunctionalityEnabled ? (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               title={strings('wallet.banner.title')}
@@ -1313,30 +1309,27 @@ const Wallet = ({
                 </CustomText>
               }
             />
-          </View>
-        ) : null}
-        <NetworkConnectionBanner />
+          ) : null}
+          <NetworkConnectionBanner />
+        </View>
         <>
           {isMultichainAccountsState2Enabled ? (
             <AccountGroupBalance />
           ) : (
             <PortfolioBalance />
           )}
-          <View style={styles.assetsActionsContainer}>
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton}
-              displaySwapsButton={displaySwapsButton}
-              goToSwaps={goToSwaps}
-              onReceive={onReceive}
-              onSend={onSend}
-              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-              receiveButtonActionID={
-                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-              }
-            />
-          </View>
+
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToSwaps={goToSwaps}
+            onReceive={onReceive}
+            onSend={onSend}
+            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+          />
 
           {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
@@ -1352,7 +1345,6 @@ const Wallet = ({
     ),
     [
       styles.banner,
-      styles.assetsActionsContainer,
       styles.carousel,
       styles.wrapper,
       basicFunctionalityEnabled,

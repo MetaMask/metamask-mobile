@@ -1,8 +1,11 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-
-import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
-import { Interface, parseUnits } from 'ethers/lib/utils';
+import { query } from '@metamask/controller-utils';
+import EthQuery from '@metamask/eth-query';
+import { Hex, numberToHex } from '@metamask/utils';
+import { ethers } from 'ethers';
+import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   OnchainTradeParams,
   PredictMarketStatus,
@@ -14,15 +17,24 @@ import {
   PredictActivity,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
+import type {
+  GetMarketsParams,
+  OrderPreview,
+  PredictFees,
+  PreviewOrderParams,
+} from '../types';
 import {
   ClobAuthDomain,
+  SLIPPAGE,
   EIP712Domain,
   FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
+  ROUNDING_CONFIG,
 } from './constants';
+import { SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -33,24 +45,14 @@ import {
   OrderData,
   OrderResponse,
   OrderSummary,
-  OrderType,
   PolymarketApiEvent,
   PolymarketApiActivity,
   PolymarketApiMarket,
   PolymarketPosition,
-  RoundConfig,
-  SignatureType,
   TickSize,
-  TickSizeResponse,
-  UserMarketOrder,
-  UtilsSide,
+  OrderBook,
+  RoundConfig,
 } from './types';
-import { GetMarketsParams } from '../types';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { SafeFeeAuthorization } from './safe/types';
-import { ethers } from 'ethers';
-import EthQuery from '@metamask/eth-query';
-import { query } from '@metamask/controller-utils';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -204,22 +206,6 @@ export const createApiKey = async ({ address }: { address: string }) => {
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
-export const getTickSize = async ({ tokenId }: { tokenId: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  const response = await fetch(
-    `${CLOB_ENDPOINT}/tick-size?token_id=${tokenId}`,
-    {
-      method: 'GET',
-    },
-  );
-  if (!response.ok) {
-    throw new Error('Failed to get tick size');
-  }
-  const responseData = await response.json();
-  return responseData as TickSizeResponse;
-};
-
 export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
 
@@ -229,258 +215,12 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   if (!response.ok) {
     throw new Error('Failed to get order book');
   }
-  const responseData = await response.json();
+  const responseData = (await response.json()) as OrderBook;
   return responseData;
-};
-
-/**
- * calculateBuyMarketPrice calculates the market price to buy a $$ amount
- * @param positions
- * @param amountToMatch worth to buy
- * @returns
- */
-export const calculateBuyMarketPrice = (
-  positions: OrderSummary[],
-  amountToMatch: number,
-  orderType: OrderType,
-) => {
-  if (!positions.length) {
-    throw new Error('no match');
-  }
-  let sum = 0;
-  /*
-  Asks:
-  [
-      { price: '0.6', size: '100' },
-      { price: '0.55', size: '100' },
-      { price: '0.5', size: '100' }
-  ]
-  So, if the amount to match is $150 that will be reached at first position so price will be 0.6
-  */
-  for (let i = positions.length - 1; i >= 0; i--) {
-    const p = positions[i];
-    sum += parseFloat(p.size) * parseFloat(p.price);
-    if (sum >= amountToMatch) {
-      return parseFloat(p.price);
-    }
-  }
-  if (orderType === OrderType.FOK) {
-    throw new Error('no match');
-  }
-  return parseFloat(positions[0].price);
-};
-
-/**
- * calculateSellMarketPrice calculates the market price to sell a shares
- * @param positions
- * @param amountToMatch sells to share
- * @returns
- */
-export const calculateSellMarketPrice = (
-  positions: OrderSummary[],
-  amountToMatch: number,
-  orderType: OrderType,
-) => {
-  if (!positions.length) {
-    throw new Error('no match');
-  }
-  let sum = 0;
-  /*
-  Bids:
-  [
-      { price: '0.4', size: '100' },
-      { price: '0.45', size: '100' },
-      { price: '0.5', size: '100' }
-  ]
-  So, if the amount to match is 300 that will be reached at the first position so price will be 0.4
-  */
-  for (let i = positions.length - 1; i >= 0; i--) {
-    const p = positions[i];
-    sum += parseFloat(p.size);
-    if (sum >= amountToMatch) {
-      return parseFloat(p.price);
-    }
-  }
-  if (orderType === OrderType.FOK) {
-    throw new Error('no match');
-  }
-  return parseFloat(positions[0].price);
-};
-
-export const decimalPlaces = (num: number): number => {
-  if (Number.isInteger(num)) {
-    return 0;
-  }
-
-  const arr = num.toString().split('.');
-  if (arr.length <= 1) {
-    return 0;
-  }
-
-  return arr[1].length;
-};
-
-export const roundNormal = (num: number, decimals: number): number => {
-  if (decimalPlaces(num) <= decimals) {
-    return num;
-  }
-  return Math.round((num + Number.EPSILON) * 10 ** decimals) / 10 ** decimals;
-};
-
-export const roundDown = (num: number, decimals: number): number => {
-  if (decimalPlaces(num) <= decimals) {
-    return num;
-  }
-  return Math.floor(num * 10 ** decimals) / 10 ** decimals;
-};
-
-export const roundUp = (num: number, decimals: number): number => {
-  if (decimalPlaces(num) <= decimals) {
-    return num;
-  }
-  return Math.ceil(num * 10 ** decimals) / 10 ** decimals;
-};
-
-export const calculateMarketPrice = async (
-  tokenId: string,
-  side: Side,
-  size: number,
-  orderType: OrderType = OrderType.FOK,
-): Promise<number> => {
-  const book = await getOrderBook({ tokenId });
-  if (!book) {
-    throw new Error('no orderbook');
-  }
-  if (side === Side.BUY) {
-    if (!book.asks) {
-      throw new Error('no match');
-    }
-    return calculateBuyMarketPrice(book.asks, size, orderType);
-  }
-  if (!book.bids) {
-    throw new Error('no match');
-  }
-  return calculateSellMarketPrice(book.bids, size, orderType);
-};
-
-export const getMarketOrderRawAmounts = (
-  side: Side,
-  amount: number,
-  price: number,
-  roundConfig: RoundConfig,
-): { side: UtilsSide; rawMakerAmt: number; rawTakerAmt: number } => {
-  // force 2 decimals places
-  const rawPrice = roundDown(price, roundConfig.price);
-
-  if (side === Side.BUY) {
-    const rawMakerAmt = roundDown(amount, roundConfig.size);
-    let rawTakerAmt = rawMakerAmt / rawPrice;
-    if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-      rawTakerAmt = roundUp(rawTakerAmt, roundConfig.amount + 4);
-      if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-        rawTakerAmt = roundDown(rawTakerAmt, roundConfig.amount);
-      }
-    }
-    return {
-      side: UtilsSide.BUY,
-      rawMakerAmt,
-      rawTakerAmt,
-    };
-  }
-  const rawMakerAmt = roundDown(amount, roundConfig.size);
-  let rawTakerAmt = rawMakerAmt * rawPrice;
-  if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-    rawTakerAmt = roundUp(rawTakerAmt, roundConfig.amount + 4);
-    if (decimalPlaces(rawTakerAmt) > roundConfig.amount) {
-      rawTakerAmt = roundDown(rawTakerAmt, roundConfig.amount);
-    }
-  }
-
-  return {
-    side: UtilsSide.SELL,
-    rawMakerAmt,
-    rawTakerAmt,
-  };
 };
 
 export const generateSalt = (): Hex =>
   `0x${BigInt(Math.floor(Math.random() * 1000000)).toString(16)}`;
-
-/**
- * Translate simple user market order to args used to generate Orders
- */
-export const buildMarketOrderCreationArgs = async ({
-  signer,
-  maker,
-  signatureType,
-  userMarketOrder,
-  roundConfig,
-}: {
-  signer: string;
-  maker: string;
-  signatureType: SignatureType;
-  userMarketOrder: UserMarketOrder;
-  roundConfig: RoundConfig;
-}): Promise<OrderData & { salt: string }> => {
-  const { side, rawMakerAmt, rawTakerAmt } = getMarketOrderRawAmounts(
-    userMarketOrder.side,
-    userMarketOrder.size,
-    userMarketOrder.price || 1,
-    roundConfig,
-  );
-
-  const makerAmount = parseUnits(
-    rawMakerAmt.toString(),
-    COLLATERAL_TOKEN_DECIMALS,
-  ).toString();
-  const takerAmount = parseUnits(
-    rawTakerAmt.toString(),
-    COLLATERAL_TOKEN_DECIMALS,
-  ).toString();
-
-  let taker;
-  if (typeof userMarketOrder.taker !== 'undefined' && userMarketOrder.taker) {
-    taker = userMarketOrder.taker;
-  } else {
-    taker = '0x0000000000000000000000000000000000000000';
-  }
-
-  let feeRateBps;
-  if (
-    typeof userMarketOrder.feeRateBps !== 'undefined' &&
-    userMarketOrder.feeRateBps
-  ) {
-    feeRateBps = userMarketOrder.feeRateBps.toString();
-  } else {
-    feeRateBps = '0';
-  }
-
-  let nonce;
-  if (typeof userMarketOrder.nonce !== 'undefined' && userMarketOrder.nonce) {
-    nonce = userMarketOrder.nonce.toString();
-  } else {
-    nonce = '0';
-  }
-
-  /**
-   * Do NOT change the order below.
-   * This order needs to match the order on the relayer.
-   */
-  return {
-    salt: hexToNumber(generateSalt()).toString(),
-    maker,
-    signer,
-    taker,
-    tokenId: userMarketOrder.tokenID,
-    makerAmount,
-    takerAmount,
-    expiration: '0',
-    nonce,
-    feeRateBps,
-    side,
-    signatureType,
-  };
-};
 
 export const getContractConfig = (chainID: number): ContractConfig => {
   switch (chainID) {
@@ -553,6 +293,17 @@ export const encodeErc1155Approve = ({
   new Interface([
     'function setApprovalForAll(address operator, bool approved)',
   ]).encodeFunctionData('setApprovalForAll', [spender, approved]) as Hex;
+
+export const encodeErc20Transfer = ({
+  to,
+  value,
+}: {
+  to: string;
+  value: bigint | string | number;
+}): Hex =>
+  new Interface([
+    'function transfer(address to, uint256 value)',
+  ]).encodeFunctionData('transfer', [to, value]) as Hex;
 
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
@@ -669,8 +420,11 @@ export const parsePolymarketEvents = (
             negRisk: market.negRisk,
             tickSize: market.orderPriceMinTickSize.toString(),
             resolvedBy: market.resolvedBy,
+            resolutionStatus: market.umaResolutionStatus,
           };
         }),
+      liquidity: event.liquidity,
+      volume: event.volume,
     }),
   );
   return parsedMarkets;
@@ -706,6 +460,8 @@ export const parsePolymarketActivity = (
     const amount = Number(activity.usdcSize ?? 0);
 
     const outcomeId = String(activity.conditionId ?? '');
+    const marketId = String(activity.conditionId ?? '');
+    const outcomeTokenId = Number(activity.outcomeIndex ?? 0);
     const title = String(activity.title ?? 'Market');
     const outcome = activity.outcome ? String(activity.outcome) : undefined;
     const icon = activity.icon as string | undefined;
@@ -719,7 +475,9 @@ export const parsePolymarketActivity = (
           : {
               type: entryType,
               timestamp,
+              marketId,
               outcomeId,
+              outcomeTokenId,
               amount,
               price,
             },
@@ -750,10 +508,16 @@ export const getParsedMarketsFromPolymarketApi = async (
     offset,
   );
 
-  let queryParamsEvents = `limit=${limit}&active=true&archived=false&closed=false&ascending=false&offset=${offset}`;
-  const queryParamsSearch = `limit_per_type=${limit}&page=${
-    Math.floor(offset / limit) + 1
-  }&ascending=false`;
+  const limitParam = `limit=${limit}`;
+  const active = `active=true`;
+  const archived = `archived=false`;
+  const closed = `closed=false`;
+  const ascending = `ascending=false`;
+  const offsetParam = `offset=${offset}`;
+  const volume = `volume_min=${10000.0}`;
+  const liquidity = `liquidity_min=${10000.0}`;
+
+  let queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
 
   const categoryTagMap: Record<PredictCategory, string> = {
     trending: '&exclude_tag_id=100639&order=volume24hr',
@@ -764,6 +528,16 @@ export const getParsedMarketsFromPolymarketApi = async (
   };
 
   queryParamsEvents += categoryTagMap[category];
+
+  const limitPerType = `limit_per_type=${limit}`;
+  const type = `type=events`;
+  const eventsStatus = `events_status=active`;
+  const sort = `sort=volume_24hr`;
+  const presetsTitle = `presets=EventsTitle`;
+  const presetsEvents = `presets=Events`;
+  const page = `page=${Math.floor(offset / limit) + 1}`;
+
+  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${presetsEvents}&${limitPerType}&${page}`;
 
   // Use search endpoint if q parameter is provided
   const endpoint = q
@@ -941,11 +715,40 @@ export function encodeClaim(
   });
 }
 
-export function calculateFeeAmount(order: OrderData): bigint {
-  if (order.side !== UtilsSide.BUY) {
-    return BigInt(0);
+async function waiveFees({ marketId }: { marketId: string }) {
+  const market = await getMarketDetailsFromGammaApi({ marketId });
+  const { tags } = market;
+  return tags?.map((t) => t.slug).includes('middle-east') ?? false;
+}
+
+export async function calculateFees({
+  marketId,
+  userBetAmount,
+}: {
+  marketId: string;
+  userBetAmount: number;
+}): Promise<PredictFees> {
+  if (await waiveFees({ marketId })) {
+    return {
+      metamaskFee: 0,
+      providerFee: 0,
+      totalFee: 0,
+    };
   }
-  return (BigInt(order.makerAmount) * BigInt(FEE_PERCENTAGE)) / BigInt(100);
+
+  let totalFee = 0;
+
+  totalFee = (userBetAmount * FEE_PERCENTAGE) / 100;
+
+  // split total 50/50 between metamask and provider
+  const metamaskFee = totalFee / 2;
+  const providerFee = totalFee - metamaskFee;
+
+  return {
+    metamaskFee,
+    providerFee,
+    totalFee,
+  };
 }
 
 export const getAllowanceCalls = (params: { address: string }) => {
@@ -1155,4 +958,244 @@ export const getBalance = async ({
   // Decode the result and convert to USDC (6 decimals)
   const balance = Number(BigInt(res)) / 10 ** COLLATERAL_TOKEN_DECIMALS;
   return balance;
+};
+
+const matchBuyOrder = ({
+  asks,
+  dollarAmount,
+}: {
+  asks: OrderSummary[];
+  dollarAmount: number;
+}): { price: number; size: number } => {
+  if (!asks.length) {
+    throw new Error('no order match');
+  }
+
+  const sharePrice = parseFloat(asks[asks.length - 1].price);
+
+  let quantity = 0;
+  let sum = 0;
+
+  for (let i = asks.length - 1; i >= 0; i--) {
+    const e = asks[i];
+    const entrySize = parseFloat(e.size);
+    const entryPrice = parseFloat(e.price);
+    const entryValue = entrySize * entryPrice;
+
+    if (sum + entryValue <= dollarAmount) {
+      quantity += entrySize;
+      sum += entryValue;
+    } else {
+      const remainingAmount = dollarAmount - sum;
+      const partialQuantity = remainingAmount / entryPrice;
+      quantity += partialQuantity;
+      return { price: sharePrice, size: quantity };
+    }
+  }
+
+  if (sum === dollarAmount) {
+    return {
+      price: sharePrice,
+      size: quantity,
+    };
+  }
+
+  throw new Error('not enough shares to match user bet amount');
+};
+
+const matchSellOrder = ({
+  bids,
+  shareAmount,
+}: {
+  bids: OrderSummary[];
+  shareAmount: number;
+}): { price: number; size: number } => {
+  if (!bids.length) {
+    throw new Error('no order match');
+  }
+
+  const sharePrice = parseFloat(bids[bids.length - 1].price);
+
+  let dollarAmount = 0;
+  let sharesMatched = 0;
+
+  for (let i = bids.length - 1; i >= 0; i--) {
+    const e = bids[i];
+    const entrySize = parseFloat(e.size);
+    const entryPrice = parseFloat(e.price);
+
+    if (sharesMatched + entrySize <= shareAmount) {
+      sharesMatched += entrySize;
+      dollarAmount += entrySize * entryPrice;
+    } else {
+      const remainingShares = shareAmount - sharesMatched;
+      dollarAmount += remainingShares * entryPrice;
+      return { price: sharePrice, size: dollarAmount };
+    }
+  }
+
+  if (sharesMatched === shareAmount) {
+    return {
+      price: sharePrice,
+      size: dollarAmount,
+    };
+  }
+
+  throw new Error('not enough bids to match user share amount');
+};
+
+export const decimalPlaces = (num: number): number => {
+  if (Number.isInteger(num)) {
+    return 0;
+  }
+
+  const arr = num.toString().split('.');
+  if (arr.length <= 1) {
+    return 0;
+  }
+
+  return arr[1].length;
+};
+
+export const roundNormal = (num: number, decimals: number): number => {
+  if (decimalPlaces(num) <= decimals) {
+    return num;
+  }
+  return Math.round((num + Number.EPSILON) * 10 ** decimals) / 10 ** decimals;
+};
+
+export const roundDown = (num: number, decimals: number): number => {
+  if (decimalPlaces(num) <= decimals) {
+    return num;
+  }
+  return Math.floor(num * 10 ** decimals) / 10 ** decimals;
+};
+
+export const roundUp = (num: number, decimals: number): number => {
+  if (decimalPlaces(num) <= decimals) {
+    return num;
+  }
+  return Math.ceil(num * 10 ** decimals) / 10 ** decimals;
+};
+
+export const roundOrderAmount = ({
+  amount,
+  decimals,
+}: {
+  amount: number;
+  decimals: number;
+}): number => {
+  if (decimalPlaces(amount) > decimals) {
+    amount = roundUp(amount, decimals + 4);
+    if (decimalPlaces(amount) > decimals) {
+      amount = roundDown(amount, decimals);
+    }
+  }
+  return amount;
+};
+
+export const roundOrderAmounts = ({
+  roundConfig,
+  side,
+  size,
+  price,
+}: {
+  roundConfig: RoundConfig;
+  side: Side;
+  size: number;
+  price: number;
+}): { makerAmount: number; takerAmount: number } => {
+  const rawPrice = roundDown(price, roundConfig.price);
+  const rawMakerAmt = roundDown(size, roundConfig.size);
+  let rawTakerAmt;
+  if (side === Side.BUY) {
+    rawTakerAmt = rawMakerAmt / rawPrice;
+  } else {
+    rawTakerAmt = rawMakerAmt * rawPrice;
+  }
+  rawTakerAmt = roundOrderAmount({
+    amount: rawTakerAmt,
+    decimals: roundConfig.amount,
+  });
+  return {
+    makerAmount: rawMakerAmt,
+    takerAmount: rawTakerAmt,
+  };
+};
+
+export const previewOrder = async (
+  params: Omit<PreviewOrderParams, 'providerId'>,
+): Promise<OrderPreview> => {
+  const { marketId, outcomeId, outcomeTokenId, side, size } = params;
+  const book = await getOrderBook({ tokenId: outcomeTokenId });
+  if (!book) {
+    throw new Error('no orderbook');
+  }
+  const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
+
+  if (side === Side.BUY) {
+    const { asks } = book;
+    if (!asks || asks.length === 0) {
+      throw new Error('no order match (buy)');
+    }
+    const { price: bestPrice, size: shareAmount } = matchBuyOrder({
+      asks,
+      dollarAmount: size,
+    });
+    const avgPrice = size / shareAmount;
+    const { makerAmount, takerAmount } = roundOrderAmounts({
+      roundConfig,
+      side,
+      size,
+      price: avgPrice,
+    });
+    return {
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      timestamp: new Date(book.timestamp).getTime(),
+      side: Side.BUY,
+      sharePrice: bestPrice,
+      maxAmountSpent: makerAmount,
+      minAmountReceived: takerAmount,
+      slippage: SLIPPAGE,
+      tickSize: parseFloat(book.tick_size),
+      minOrderSize: parseFloat(book.min_order_size),
+      negRisk: book.neg_risk,
+      fees: await calculateFees({
+        marketId,
+        userBetAmount: size,
+      }),
+    };
+  }
+  const { bids } = book;
+  if (!bids || bids.length === 0) {
+    throw new Error('no order match (sell)');
+  }
+  const { price: bestPrice, size: dollarAmount } = matchSellOrder({
+    bids,
+    shareAmount: size,
+  });
+  const avgPrice = dollarAmount / size;
+  const { makerAmount, takerAmount } = roundOrderAmounts({
+    roundConfig,
+    side,
+    size,
+    price: avgPrice,
+  });
+  return {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    timestamp: new Date(book.timestamp).getTime(),
+    side: Side.SELL,
+    sharePrice: bestPrice,
+    maxAmountSpent: makerAmount,
+    minAmountReceived: takerAmount,
+    slippage: SLIPPAGE,
+    tickSize: parseFloat(book.tick_size),
+    minOrderSize: parseFloat(book.min_order_size),
+    negRisk: book.neg_risk,
+    // no fees for sell orders
+  };
 };

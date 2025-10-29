@@ -62,7 +62,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
     try {
       const selector = selectIconSeedAddressByAccountGroupId(accountGroup.id);
       return selector(state);
-    } catch (error) {
+    } catch {
       return undefined;
     }
   });
@@ -204,9 +204,9 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
           twClassName="gap-4"
           testID={`rewards-account-group-actions-${accountGroup.id}`}
         >
-          {/* QR Code button to show account addresses */}
+          {/* Menu button to show account addresses */}
           <ButtonIcon
-            iconName={IconNameDS.QrCode}
+            iconName={IconNameDS.Details}
             size={ButtonIconSize.Lg}
             onPress={handleShowAddresses}
             isDisabled={isLoading}

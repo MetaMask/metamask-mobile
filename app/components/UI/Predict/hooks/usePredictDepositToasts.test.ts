@@ -15,6 +15,11 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
+// Mock @react-navigation/stack
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: jest.fn(),
+}));
+
 // Mock useConfirmNavigation
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(() => ({
@@ -26,6 +31,18 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('./usePredictEligibility', () => ({
   usePredictEligibility: jest.fn(() => ({
     isEligible: true,
+  })),
+}));
+
+// Mock usePredictBalance
+jest.mock('./usePredictBalance', () => ({
+  usePredictBalance: jest.fn(() => ({
+    balance: 100,
+    hasNoBalance: false,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadBalance: jest.fn(),
   })),
 }));
 
@@ -137,6 +154,10 @@ describe('usePredictDepositToasts', () => {
         },
       },
     };
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('initialization', () => {

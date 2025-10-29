@@ -14,7 +14,7 @@ import {
   getEventsPayloads,
   onboardingEvents,
 } from './helpers';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 
 describe(
   RegressionWalletPlatform(

@@ -3,25 +3,33 @@ import { render } from '@testing-library/react-native';
 import PredictFeeSummary from './PredictFeeSummary';
 
 jest.mock('../../utils/format', () => ({
-  formatPrice: jest.fn(
-    (value, options) => `$${value.toFixed(options?.maximumDecimals ?? 2)}`,
+  formatPrice: jest.fn((value, options) =>
+    value !== undefined
+      ? `$${value.toFixed(options?.maximumDecimals ?? 2)}`
+      : '$0.00',
   ),
 }));
 
 describe('PredictFeeSummary', () => {
   const defaultProps = {
-    isInputFocused: false,
-    currentValue: 1,
+    disabled: false,
+    providerFee: 0,
+    metamaskFee: 0.04,
+    total: 1.04,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Rendering', () => {
-    it('renders fee summary when input is not focused', () => {
+    it('renders fee summary when not disabled', () => {
       // Arrange
-      const props = { ...defaultProps, isInputFocused: false };
+      const props = { ...defaultProps, disabled: false };
 
       // Act
       const { getByText } = render(<PredictFeeSummary {...props} />);
@@ -32,9 +40,9 @@ describe('PredictFeeSummary', () => {
       expect(getByText('Total')).toBeTruthy();
     });
 
-    it('does not render fee summary when input is focused', () => {
+    it('does not render fee summary when disabled', () => {
       // Arrange
-      const props = { ...defaultProps, isInputFocused: true };
+      const props = { ...defaultProps, disabled: true };
 
       // Act
       const { queryByText } = render(<PredictFeeSummary {...props} />);
@@ -48,43 +56,45 @@ describe('PredictFeeSummary', () => {
 
   describe('Fee Display', () => {
     it('displays provider fee correctly', () => {
-      // Arrange - Provider fee is always 0 (currentValue * 0)
-      const props = { ...defaultProps, currentValue: 10 };
+      // Arrange
+      const props = { ...defaultProps, providerFee: 0.1 };
 
       // Act
       const { getByText } = render(<PredictFeeSummary {...props} />);
 
-      // Assert - Provider fee should always be $0.00
-      expect(getByText('$0.00')).toBeTruthy();
+      // Assert
+      expect(getByText('$0.10')).toBeTruthy();
     });
 
     it('displays MetaMask fee correctly', () => {
-      // Arrange - MetaMask fee is currentValue * 0.04
-      const props = { ...defaultProps, currentValue: 2 };
+      // Arrange
+      const props = { ...defaultProps, metamaskFee: 0.08 };
 
       // Act
       const { getByText } = render(<PredictFeeSummary {...props} />);
 
-      // Assert - 2 * 0.04 = $0.08
+      // Assert
       expect(getByText('$0.08')).toBeTruthy();
     });
 
     it('displays total correctly', () => {
-      // Arrange - Total is currentValue + providerFee + metamaskFee
-      const props = { ...defaultProps, currentValue: 2 };
+      // Arrange
+      const props = { ...defaultProps, total: 2.12 };
 
       // Act
       const { getByText } = render(<PredictFeeSummary {...props} />);
 
-      // Assert - 2 + 0 + 0.08 = $2.08
-      expect(getByText('$2.08')).toBeTruthy();
+      // Assert
+      expect(getByText('$2.12')).toBeTruthy();
     });
 
     it('displays zero fees correctly', () => {
       // Arrange
       const props = {
         ...defaultProps,
-        currentValue: 0,
+        providerFee: 0,
+        metamaskFee: 0,
+        total: 0,
       };
 
       // Act

@@ -8,7 +8,10 @@ import CustomText from '../../../../../Base/Text';
 import EmptyPopularList from '../emptyList';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import { PopularList } from '../../../../../../util/networks/customNetworks';
+import {
+  getFilteredPopularNetworks,
+  PopularList,
+} from '../../../../../../util/networks/customNetworks';
 import createStyles, { createCustomNetworkStyles } from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import {
@@ -29,6 +32,7 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -50,7 +54,18 @@ const CustomNetwork = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
   const { safeChains } = useSafeChains();
-  const supportedNetworkList = (customNetworksList ?? PopularList).map(
+  const blacklistedChainIds = useSelector(
+    selectAdditionalNetworksBlacklistFeatureFlag,
+  );
+
+  // Apply blacklist filter to the network list
+  const baseNetworkList = customNetworksList ?? PopularList;
+  const filteredNetworkList = getFilteredPopularNetworks(
+    blacklistedChainIds,
+    baseNetworkList,
+  );
+
+  const supportedNetworkList = filteredNetworkList.map(
     (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
         (

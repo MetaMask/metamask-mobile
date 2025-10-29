@@ -210,7 +210,9 @@
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0,
-    "urlScanCache": {}
+    "tokenScanCache": {},
+    "urlScanCache": {},
+    "whitelistPaths": {}
   },
   "PreferencesController": {
     "featureFlags": {},
@@ -250,7 +252,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x8f": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -637,6 +640,9 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
   },
   "RewardsController": {
     "accounts": {},

@@ -924,7 +924,12 @@ export const getRpcMethodMiddleware = ({
         if (!appVersion) {
           appVersion = await getVersion();
         }
-        res.result = `MetaMask/${appVersion}/Mobile`;
+        const buildType = process.env.METAMASK_BUILD_TYPE;
+        const version =
+          buildType === 'main' || buildType === 'qa'
+            ? appVersion
+            : `${appVersion}-${buildType}`;
+        res.result = `MetaMask/${version}/Mobile`;
       },
 
       wallet_scanQRCode: () =>
