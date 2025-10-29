@@ -54,6 +54,7 @@ export interface CardTokenData {
 export interface AuthenticatedCardTokenAllowanceData {
   availableBalance?: string;
   walletAddress?: string;
+  priority?: number; // Lower number = higher priority (1 is highest)
 }
 
 export type CardTokenAllowance = {

@@ -14,6 +14,7 @@ import {
   selectIsAuthenticatedCard,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
+  clearCacheData,
 } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
@@ -50,7 +51,6 @@ import { FlatList } from 'react-native-gesture-handler';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { SolScope } from '@metamask/keyring-api';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
-import Logger from '../../../../../util/Logger';
 import {
   ToastContext,
   ToastVariants,
@@ -60,6 +60,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
+import Logger from '../../../../../util/Logger';
 
 export interface SupportedTokenWithChain {
   address: string;
@@ -77,6 +78,7 @@ export interface SupportedTokenWithChain {
   allowanceState: AllowanceState;
   allowance?: string;
   delegationContract?: string;
+  priority?: number; // Lower number = higher priority (1 is highest)
 }
 
 export interface AssetSelectionBottomSheetProps {
@@ -117,18 +119,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
-  // bottomsheet_selected_token_symbol:
-  //   type: string
-  //   description: The symbol of the token that was selected on the select token bottomsheet.
-  //   required: false
-  // bottomsheet_selected_token_chain_id:
-  //   type: string
-  //   description: The chain ID of the token that was selected on the select token bottomsheet.
-  //   required: false
-  // bottomsheet_selected_token_limit_amount:
-  //   type: number
-  //   description: The amount of the limit for the token that was selected on the select token bottomsheet.
-  //   required: false
 
   // Map user's actual wallets/tokens to display format
   // This preserves duplicates (same token on same chain but different wallet addresses)
@@ -171,6 +161,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           allowanceState: userToken.allowanceState,
           allowance: userToken.allowance || '0',
           delegationContract: userToken.delegationContract ?? undefined,
+          priority: userToken.priority, // Preserve priority from API
         };
       })
       .filter((token) => {
@@ -200,8 +191,24 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         return true;
       });
 
-    // Sort: Priority token first, then enabled tokens, then disabled tokens
+    // Sort tokens based on priority values from API
     return allTokens.sort((a, b) => {
+      // If both tokens have priority values (authenticated mode), sort by priority
+      // Lower number = higher priority (1 is highest)
+      if (
+        a.priority !== undefined &&
+        a.priority !== null &&
+        b.priority !== undefined &&
+        b.priority !== null
+      ) {
+        return a.priority - b.priority;
+      }
+
+      // If only one has priority, that one comes first
+      if (a.priority !== undefined && a.priority !== null) return -1;
+      if (b.priority !== undefined && b.priority !== null) return 1;
+
+      // If neither has priority (unauthenticated mode), check if either matches priorityToken
       const aIsPriority =
         priorityToken &&
         a.address?.toLowerCase() === priorityToken.address?.toLowerCase() &&
@@ -296,17 +303,33 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           return;
         }
 
-        // Create new priority order: selected token becomes priority 1, others shift down
-        const newPriorities = cardExternalWalletDetails.walletDetails.map(
-          (wallet: CardExternalWalletDetail, index: number) => ({
-            id: wallet.id,
-            priority: wallet.id === selectedWallet.id ? 1 : index + 2,
-          }),
+        // First, sort by current priority to maintain order
+        const sortedWallets = [...cardExternalWalletDetails.walletDetails].sort(
+          (a, b) => a.priority - b.priority,
         );
+
+        // Build new priorities: selected gets 1, others shift down maintaining their order
+        let nextPriority = 2;
+        const newPriorities = sortedWallets.map((wallet) => {
+          const isSelected =
+            wallet.id === selectedWallet.id &&
+            wallet.walletAddress?.toLowerCase() ===
+              selectedWallet.walletAddress?.toLowerCase();
+
+          const priority = isSelected ? 1 : nextPriority++;
+
+          return {
+            id: wallet.id,
+            priority,
+          };
+        });
 
         await sdk.updateWalletPriority(newPriorities);
 
-        // Update priority token in Redux
+        // Invalidate external wallet details cache to force refetch with updated priorities
+        dispatch(clearCacheData('card-external-wallet-details'));
+
+        // Update priority token in Redux with new priority value
         const priorityTokenData: CardTokenAllowance = {
           address: token.address,
           decimals: token.decimals,
@@ -318,6 +341,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           walletAddress: selectedWallet.walletAddress,
           caipChainId: token.caipChainId,
           delegationContract: token.delegationContract,
+          priority: 1, // New priority is always 1 (highest)
         };
 
         dispatch(setAuthenticatedPriorityToken(priorityTokenData));
