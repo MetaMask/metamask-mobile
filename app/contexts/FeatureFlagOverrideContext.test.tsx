@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { renderHook, act, render, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';

@@ -24,7 +24,7 @@ interface FeatureFlagOverrides {
 export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
-  getFeatureFlag: (key: string) => FeatureFlagInfo;
+  getFeatureFlag: (key: string) => unknown;
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
