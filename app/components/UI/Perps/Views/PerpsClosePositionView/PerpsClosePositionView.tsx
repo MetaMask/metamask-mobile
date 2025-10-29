@@ -599,8 +599,8 @@ const PerpsClosePositionView: React.FC = () => {
                 rewardsState.isLoading
                   ? RewardAnimationState.Loading
                   : rewardsState.hasError
-                  ? RewardAnimationState.ErrorState
-                  : RewardAnimationState.Idle
+                    ? RewardAnimationState.ErrorState
+                    : RewardAnimationState.Idle
               }
             />
           </View>

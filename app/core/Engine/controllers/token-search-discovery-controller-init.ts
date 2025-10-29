@@ -3,8 +3,8 @@ import {
   TokenDiscoveryApiService,
   TokenSearchApiService,
   TokenSearchDiscoveryController,
+  type TokenSearchDiscoveryControllerMessenger,
 } from '@metamask/token-search-discovery-controller';
-import { TokenSearchDiscoveryControllerMessenger } from '../messengers/token-search-discovery-controller-messenger';
 
 const PORTFOLIO_API_URL = {
   dev: 'https://portfolio.dev-api.cx.metamask.io/',
