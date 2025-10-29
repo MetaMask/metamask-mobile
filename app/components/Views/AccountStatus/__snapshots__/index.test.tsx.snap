@@ -7,7 +7,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -192,7 +192,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -377,7 +377,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -562,7 +562,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -747,7 +747,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -932,7 +932,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
