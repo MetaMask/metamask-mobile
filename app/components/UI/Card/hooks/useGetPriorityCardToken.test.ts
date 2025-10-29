@@ -418,6 +418,8 @@ describe('useGetPriorityCardToken', () => {
       address: '0xCachedToken',
       symbol: 'CACHED',
       name: 'Cached Token',
+      caipChainId: `eip155:${LINEA_CHAIN_ID}`,
+      allowance: '1000000000000',
       decimals: 18,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
@@ -1136,10 +1138,6 @@ describe('useGetPriorityCardToken', () => {
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
         caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
-        balance: '5000000000000',
-        availableBalance: '1000000000000',
-        isStaked: false,
-        enabled: true,
       };
 
       const externalWalletDetailsData = {
@@ -1788,7 +1786,7 @@ describe('useGetPriorityCardToken', () => {
       chainId: LINEA_CHAIN_ID,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
-    } as CardTokenAllowance;
+    };
 
     const STATIC_EMPTY_TOKEN_LIST: unknown[] = [];
     const STATIC_EXISTING_TOKEN_LIST = [
