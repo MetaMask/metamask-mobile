@@ -259,7 +259,6 @@ export const usePerpsPositionData = ({
     selectedInterval,
     getCurrentCandleStartTime,
     isLoadingHistory,
-    prevMergedDataRef,
     candleData,
   ]);
 
