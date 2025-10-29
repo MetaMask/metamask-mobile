@@ -165,7 +165,7 @@ export const DEFAULT_MOCKS = {
             decimals: 18,
           },
           network: 'monad-mainnet',
-          explorer: 'https://mainnet-beta.monvision.io',
+          explorer: 'http://monadscan.com/',
           confirmations: true,
           smartTransactions: false,
           relayTransactions: false,
