@@ -721,9 +721,8 @@ export class PerpsController extends BaseController<
       }
 
       const orderExecutionFeeDiscountStartTime = performance.now();
-      const discountBips = await RewardsController.getPerpsDiscountForAccount(
-        caipAccountId,
-      );
+      const discountBips =
+        await RewardsController.getPerpsDiscountForAccount(caipAccountId);
       const orderExecutionFeeDiscountDuration =
         performance.now() - orderExecutionFeeDiscountStartTime;
 
