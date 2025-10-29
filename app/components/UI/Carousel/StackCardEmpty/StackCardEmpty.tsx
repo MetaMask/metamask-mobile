@@ -30,6 +30,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
   const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
   const hasTriggeredAnimation = useRef(false);
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fire the confetti animation when the card transitions to full visibility (becomes current)
   useEffect(() => {
@@ -37,7 +38,12 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
     const listenerId = emptyStateOpacity.addListener(({ value }) => {
       // Trigger animation when opacity is close to 1 (card is fully visible/current)
       if (value >= 0.95 && !hasTriggeredAnimation.current) {
-        const timeoutId = setTimeout(() => {
+        // Clear any existing timeout before creating a new one
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+        }
+
+        timeoutIdRef.current = setTimeout(() => {
           if (riveRef.current && !hasTriggeredAnimation.current) {
             try {
               // Fire the Confetti state machine with "Start" trigger
@@ -47,14 +53,18 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
               console.warn('Error triggering Rive confetti animation:', error);
             }
           }
+          timeoutIdRef.current = null;
         }, 50);
-
-        return () => clearTimeout(timeoutId);
       }
     });
 
     return () => {
       emptyStateOpacity.removeListener(listenerId);
+      // Clear any pending timeout when the effect cleanup runs
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
     };
   }, [emptyStateOpacity]);
 
