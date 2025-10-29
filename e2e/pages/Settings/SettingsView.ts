@@ -27,10 +27,6 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get networksButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
-  }
-
   get notificationsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
@@ -123,12 +119,6 @@ class SettingsView {
   async tapSecurityAndPrivacy(): Promise<void> {
     await Gestures.waitAndTap(this.securityAndPrivacyButton, {
       elemDescription: 'Settings - Security and Privacy Button',
-    });
-  }
-
-  async tapNetworks(): Promise<void> {
-    await Gestures.waitAndTap(this.networksButton, {
-      elemDescription: 'Settings - Networks Button',
     });
   }
 

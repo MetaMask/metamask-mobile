@@ -70,7 +70,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   };
 });
 
-const mockExecuteGuardedAction = jest.fn((action) => action());
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
 jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
@@ -176,7 +176,9 @@ describe('PredictPositionDetail', () => {
   beforeEach(() => {
     global.__mockNavigate.mockClear();
     mockExecuteGuardedAction.mockClear();
-    mockExecuteGuardedAction.mockImplementation((action) => action());
+    mockExecuteGuardedAction.mockImplementation(
+      async (action) => await action(),
+    );
   });
 
   afterEach(() => {

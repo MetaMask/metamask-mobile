@@ -31,16 +31,20 @@ export interface PredictPositionsHandle {
 
 interface PredictPositionsProps {
   isVisible?: boolean;
+  /**
+   * Callback when an error occurs during positions fetch
+   */
+  onError?: (error: string | null) => void;
 }
 
 const PredictPositions = forwardRef<
   PredictPositionsHandle,
   PredictPositionsProps
->(({ isVisible }, ref) => {
+>(({ isVisible, onError }, ref) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { positions, isRefreshing, loadPositions, isLoading } =
+  const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,
       refreshOnFocus: true,
@@ -48,12 +52,19 @@ const PredictPositions = forwardRef<
   const {
     positions: claimablePositions,
     loadPositions: loadClaimablePositions,
+    error: claimableError,
   } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
     refreshOnFocus: true,
   });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
+
+  // Notify parent of errors while keeping state isolated
+  useEffect(() => {
+    const combinedError = error || claimableError;
+    onError?.(combinedError);
+  }, [error, claimableError, onError]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
@@ -141,7 +152,7 @@ const PredictPositions = forwardRef<
         removeClippedSubviews
         decelerationRate={0}
         ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
-        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
+        ListFooterComponent={isTrulyEmpty ? null : <PredictNewButton />}
       />
       {claimablePositions.length > 0 && (
         <>
