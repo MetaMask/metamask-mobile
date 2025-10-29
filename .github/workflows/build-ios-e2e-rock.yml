@@ -1,8 +1,9 @@
 name: Build iOS E2E Apps (Rock CLI)
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - '**'
   workflow_dispatch:
   workflow_call:
     outputs:
