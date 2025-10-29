@@ -20,6 +20,7 @@ import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
+import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
@@ -1126,6 +1127,15 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
+      {process.env.NODE_ENV !== 'production' && (
+        <Stack.Screen
+          name={Routes.FEATURE_FLAG_OVERRIDE}
+          component={FeatureFlagOverride}
+          options={{
+            headerShown: true,
+          }}
+        />
+      )}
       <Stack.Screen
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}
