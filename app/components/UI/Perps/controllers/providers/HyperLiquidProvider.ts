@@ -270,19 +270,29 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * since HIP-3 configuration is immutable after construction
    */
   private async ensureReady(): Promise<void> {
+    console.log('HyperLiquidProvider: ensureReady called');
     this.clientService.ensureInitialized();
 
     // Build asset mapping on first call only (flags are immutable)
     if (this.coinToAssetId.size === 0) {
+      console.log('HyperLiquidProvider: Building asset mapping', {
+        equityEnabled: this.equityEnabled,
+        enabledDexs: this.enabledDexs,
+        isTestnet: this.clientService.isTestnetMode(),
+      });
       DevLogger.log('HyperLiquidProvider: Building asset mapping', {
         equityEnabled: this.equityEnabled,
         enabledDexs: this.enabledDexs,
       });
       await this.buildAssetMapping();
+      console.log('HyperLiquidProvider: Asset mapping complete, size:', this.coinToAssetId.size);
+    } else {
+      console.log('HyperLiquidProvider: Asset mapping already built, size:', this.coinToAssetId.size);
     }
 
     // Attempt to enable native balance abstraction
     await this.ensureDexAbstractionEnabled();
+    console.log('HyperLiquidProvider: ensureReady complete');
   }
 
   /**
@@ -300,13 +310,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @returns Array of DEX names to use (null = main DEX, strings = HIP-3 DEXs)
    */
   private async getValidatedDexs(): Promise<(string | null)[]> {
+    console.log('HyperLiquidProvider: getValidatedDexs called', {
+      hasCached: this.cachedValidatedDexs !== null,
+      equityEnabled: this.equityEnabled,
+      enabledDexs: this.enabledDexs,
+    });
+
     // Return cached result if available
     if (this.cachedValidatedDexs !== null) {
+      console.log('HyperLiquidProvider: Returning cached validated DEXs:', this.cachedValidatedDexs);
       return this.cachedValidatedDexs;
     }
 
     // Kill switch: HIP-3 disabled, return main DEX only
     if (!this.equityEnabled) {
+      console.log('HyperLiquidProvider: HIP-3 disabled, returning main DEX only');
       DevLogger.log(
         'HyperLiquidProvider: HIP-3 disabled via equityEnabled flag',
       );
@@ -319,8 +337,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const infoClient = this.clientService.getInfoClient();
     let allDexs;
     try {
+      console.log('HyperLiquidProvider: Fetching perpDexs from API...');
       allDexs = await infoClient.perpDexs();
+      console.log('HyperLiquidProvider: perpDexs API response:', allDexs);
     } catch (error) {
+      console.log('HyperLiquidProvider: perpDexs API failed, falling back to main DEX');
       Logger.error(
         ensureError(error),
         this.getErrorContext('getValidatedDexs.perpDexs'),
@@ -359,6 +380,29 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Auto-discovery mode: Show all available DEXs
     if (this.enabledDexs.length === 0) {
+      // TESTNET: Limit auto-discovery to main DEX only due to unstable HIP-3 DEXs
+      if (this.clientService.isTestnetMode()) {
+        console.log('HyperLiquidProvider: Testnet - limiting to main DEX only in auto-discovery', {
+          reason: 'Many testnet HIP-3 DEXs are experimental/unstable',
+          availableHip3DexCount: availableHip3Dexs.length,
+        });
+        DevLogger.log(
+          'HyperLiquidProvider: Testnet auto-discovery limited to main DEX',
+          {
+            reason: 'Many testnet HIP-3 DEXs are experimental/unstable',
+            availableHip3DexCount: availableHip3Dexs.length,
+          },
+        );
+        this.cachedValidatedDexs = [null]; // Main DEX only
+        console.log('HyperLiquidProvider: Cached validated DEXs:', this.cachedValidatedDexs);
+        return this.cachedValidatedDexs;
+      }
+
+      // MAINNET: Show all available DEXs (more stable, curated)
+      console.log('HyperLiquidProvider: Mainnet auto-discovery mode activated', {
+        availableHip3Dexs,
+        willReturn: [null, ...availableHip3Dexs],
+      });
       DevLogger.log(
         'HyperLiquidProvider: Auto-discovery mode - all DEXs enabled',
         {
@@ -368,6 +412,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         },
       );
       this.cachedValidatedDexs = [null, ...availableHip3Dexs];
+      console.log('HyperLiquidProvider: Cached validated DEXs:', this.cachedValidatedDexs);
       return this.cachedValidatedDexs;
     }
 
@@ -2862,8 +2907,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @param params - Optional parameters for filtering
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
+    console.log('HyperLiquidProvider: getMarkets called', {
+      hasParams: !!params,
+      symbolCount: params?.symbols?.length,
+      dex: params?.dex,
+      isTestnet: this.clientService.isTestnetMode(),
+    });
     try {
+      console.log('HyperLiquidProvider: getMarkets - calling ensureReady');
       await this.ensureReady();
+      console.log('HyperLiquidProvider: getMarkets - ensureReady complete');
       const infoClient = this.clientService.getInfoClient();
 
       // Path 1: Symbol filtering - group by DEX and fetch in parallel

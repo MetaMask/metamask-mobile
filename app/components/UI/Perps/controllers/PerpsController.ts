@@ -633,6 +633,9 @@ export class PerpsController extends BaseController<
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
       (remoteFeatureFlagState: RemoteFeatureFlagControllerState) => {
+        console.log(
+          'PerpsController: RemoteFeatureFlagController:stateChange DETECTED!',
+        );
         this.refreshEligibilityOnFeatureFlagChange(remoteFeatureFlagState);
         // Re-initialize providers with new feature flag configuration.
         this.refreshHIP3ConfigOnFeatureFlagChange(remoteFeatureFlagState);
@@ -732,6 +735,7 @@ export class PerpsController extends BaseController<
   ): void {
     const previousEquityEnabled = this.hip3EnabledFlag.enabled;
     const previousEnabledDexs = [...this.enabledHIP3Dexs.dexs];
+    const previousEnabledDexsSource = this.enabledHIP3Dexs.source;
 
     this.refreshHIP3EnabledFlagOnFeatureFlagChange(
       remoteFeatureFlagControllerState,
@@ -743,11 +747,15 @@ export class PerpsController extends BaseController<
 
     const equityEnabledChanged =
       previousEquityEnabled !== this.hip3EnabledFlag.enabled;
+
+    // Order-independent comparison: check if sets are different
+    const previousDexsSet = new Set(previousEnabledDexs);
+    const currentDexsSet = new Set(this.enabledHIP3Dexs.dexs);
     const hasDexsChanged =
-      previousEnabledDexs.length !== this.enabledHIP3Dexs.dexs.length ||
-      previousEnabledDexs.some(
-        (dex, index) => dex !== this.enabledHIP3Dexs.dexs[index],
-      );
+      previousDexsSet.size !== currentDexsSet.size ||
+      [...previousDexsSet].some((dex) => !currentDexsSet.has(dex)) ||
+      // Also trigger re-init if source changed (fallback -> remote)
+      previousEnabledDexsSource !== this.enabledHIP3Dexs.source;
 
     if (equityEnabledChanged || hasDexsChanged) {
       Logger.log(
@@ -760,6 +768,10 @@ export class PerpsController extends BaseController<
           enabledDexs: {
             from: previousEnabledDexs,
             to: this.enabledHIP3Dexs.dexs,
+          },
+          enabledDexsSource: {
+            from: previousEnabledDexsSource,
+            to: this.enabledHIP3Dexs.source,
           },
         },
       );
@@ -994,6 +1006,7 @@ export class PerpsController extends BaseController<
     try {
       // Loop until no more pending re-initializations
       do {
+        console.log('PerpsController: Performing initialization loop');
         this.pendingReinitialization = false;
 
         DevLogger.log('PerpsController: Initializing providers', {
@@ -1068,10 +1081,13 @@ export class PerpsController extends BaseController<
       DevLogger.log('PerpsController: Providers initialization complete', {
         providerCount: this.providers.size,
         activeProvider: this.state.activeProvider,
+        isInitialized: this.isInitialized,
         timestamp: new Date().toISOString(),
       });
+      console.log('PerpsController: isInitialized SET TO TRUE');
     } finally {
       this.isReinitializing = false;
+      console.log('PerpsController: isReinitializing SET TO FALSE');
     }
   }
 
@@ -1115,8 +1131,15 @@ export class PerpsController extends BaseController<
    * @throws Error if provider is not initialized or reinitializing
    */
   getActiveProvider(): IPerpsProvider {
+    console.log('PerpsController: getActiveProvider called', {
+      isReinitializing: this.isReinitializing,
+      isInitialized: this.isInitialized,
+      hasProvider: this.providers.has(this.state.activeProvider),
+    });
+
     // Check if we're in the middle of reinitializing
     if (this.isReinitializing) {
+      console.log('PerpsController: getActiveProvider - REINITIALIZING ERROR');
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.CLIENT_REINITIALIZING;
         state.lastUpdateTimestamp = Date.now();
@@ -1126,6 +1149,7 @@ export class PerpsController extends BaseController<
 
     // Check if not initialized
     if (!this.isInitialized) {
+      console.log('PerpsController: getActiveProvider - NOT INITIALIZED ERROR');
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
         state.lastUpdateTimestamp = Date.now();
@@ -1135,6 +1159,9 @@ export class PerpsController extends BaseController<
 
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
+      console.log(
+        'PerpsController: getActiveProvider - PROVIDER NOT AVAILABLE ERROR',
+      );
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
         state.lastUpdateTimestamp = Date.now();
@@ -1142,6 +1169,7 @@ export class PerpsController extends BaseController<
       throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
+    console.log('PerpsController: getActiveProvider - SUCCESS');
     return provider;
   }
 
