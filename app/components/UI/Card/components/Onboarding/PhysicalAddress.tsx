@@ -150,17 +150,24 @@ export const AddressFields = ({
       </Box>
       {/* State */}
       {selectedCountry === 'US' && (
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <SelectComponent
-            options={selectOptions}
-            selectedValue={state}
-            onValueChange={handleStateChange}
-            label={strings('card.card_onboarding.physical_address.state_label')}
-            defaultValue={strings(
-              'card.card_onboarding.physical_address.state_placeholder',
-            )}
-            testID="state-select"
-          />
+        <Box>
+          <Label>
+            {strings('card.card_onboarding.physical_address.state_label')}
+          </Label>
+          <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+            <SelectComponent
+              options={selectOptions}
+              selectedValue={state}
+              onValueChange={handleStateChange}
+              label={strings(
+                'card.card_onboarding.physical_address.state_label',
+              )}
+              defaultValue={strings(
+                'card.card_onboarding.physical_address.state_placeholder',
+              )}
+              testID="state-select"
+            />
+          </Box>
         </Box>
       )}
       {/* ZIP Code */}
