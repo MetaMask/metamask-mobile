@@ -85,6 +85,7 @@ import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
+import { useIsBridgeQuoteForCurrentPair } from '../../hooks/useIsBridgeQuoteForCurrentPair/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -204,12 +205,21 @@ const BridgeView = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
+  // Check if the active quote matches the currently selected tokens
+  // This prevents submitting with stale quotes when user changes tokens
+  const isQuoteForCurrentTokens = useIsBridgeQuoteForCurrentPair({
+    activeQuote,
+    sourceToken,
+    destToken,
+  });
+
   const isSubmitDisabled =
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
-    !hasSufficientGas;
+    !hasSufficientGas ||
+    !isQuoteForCurrentTokens;
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
@@ -437,10 +447,10 @@ const BridgeView = () => {
                     feePercentage,
                   })
                 : !hasFee && isNoFeeDestinationAsset
-                ? strings('bridge.no_mm_fee_disclaimer', {
-                    destTokenSymbol: destToken?.symbol,
-                  })
-                : ''}
+                  ? strings('bridge.no_mm_fee_disclaimer', {
+                      destTokenSymbol: destToken?.symbol,
+                    })
+                  : ''}
               {approval
                 ? ` ${strings('bridge.approval_needed', approval)}`
                 : ''}{' '}
@@ -454,6 +464,7 @@ const BridgeView = () => {
           </Box>
           {!shouldDisplayKeypad && (
             <Button
+              loading={!isQuoteForCurrentTokens}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               label={getButtonLabel()}
