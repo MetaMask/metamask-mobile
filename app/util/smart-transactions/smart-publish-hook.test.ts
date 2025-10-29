@@ -79,7 +79,7 @@ const createTransactionControllerMock = () =>
     ),
     state: { transactions: [] },
     update: jest.fn(),
-  } as unknown as jest.Mocked<TransactionController>);
+  }) as unknown as jest.Mocked<TransactionController>;
 
 const getDefaultAddAndShowApprovalRequest = () => jest.fn();
 const createApprovalControllerMock = ({
@@ -95,7 +95,7 @@ const createApprovalControllerMock = ({
     },
     addAndShowApprovalRequest,
     updateRequestState: jest.fn(),
-  } as unknown as jest.Mocked<ApprovalController>);
+  }) as unknown as jest.Mocked<ApprovalController>;
 
 const defaultTransactionMeta: TransactionMeta = {
   origin: 'http://localhost',

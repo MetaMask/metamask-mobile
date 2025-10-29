@@ -385,7 +385,7 @@ describe('Transaction Controller Init', () => {
           () =>
             ({
               getHook: () => mockDelegation7702Hook,
-            } as unknown as InstanceType<typeof Delegation7702PublishHook>),
+            }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
         );
       });
 

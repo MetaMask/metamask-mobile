@@ -178,7 +178,7 @@ const createMockState = (
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 // Additional test utility functions
 const createStateWithNetworkConfigurations = (
@@ -233,7 +233,7 @@ const createStateWithNetworkConfigurations = (
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 // Ensure all states created with createStateWithNetworkConfigurations have KeyringController
 const createStateWithNetworkConfigurationsAndKeyring = (

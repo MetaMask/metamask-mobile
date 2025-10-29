@@ -154,12 +154,11 @@ export const useCardSDK = () => {
  * Higher-order component that wraps a component with CardSDKProvider.
  */
 export const withCardSDK =
-  (Component: React.ComponentType) => (props: Record<string, unknown>) =>
-    (
-      <CardSDKProvider>
-        <Component {...props} />
-      </CardSDKProvider>
-    );
+  (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+    <CardSDKProvider>
+      <Component {...props} />
+    </CardSDKProvider>
+  );
 
 /**
  * Component that performs cardholder verification.

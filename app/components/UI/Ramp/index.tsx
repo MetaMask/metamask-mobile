@@ -81,9 +81,8 @@ async function processCustomOrderId(
     dispatchThunk: (thunk: ThunkAction) => void;
   },
 ) {
-  const [customOrderId, fiatOrderResponse] = await processCustomOrderIdData(
-    customOrderIdData,
-  );
+  const [customOrderId, fiatOrderResponse] =
+    await processCustomOrderIdData(customOrderIdData);
 
   if (fiatOrderResponse) {
     const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);

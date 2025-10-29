@@ -59,9 +59,8 @@ describe(RegressionConfirmations('Send ETH'), () => {
         smartContracts: [MULTISIG_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const multisigAddress = await contractRegistry?.getContractAddress(
-          MULTISIG_CONTRACT,
-        );
+        const multisigAddress =
+          await contractRegistry?.getContractAddress(MULTISIG_CONTRACT);
         await loginToApp();
 
         await WalletView.tapWalletSendButton();

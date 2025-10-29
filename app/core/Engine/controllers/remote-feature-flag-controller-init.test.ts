@@ -45,9 +45,8 @@ describe('remoteFeatureFlagControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } = remoteFeatureFlagControllerInit(
-      getInitRequestMock(),
-    );
+    const { controller } =
+      remoteFeatureFlagControllerInit(getInitRequestMock());
 
     expect(controller).toBeInstanceOf(Object);
   });
