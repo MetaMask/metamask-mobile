@@ -22,30 +22,32 @@ export interface FeatureFlagInfo {
  */
 export const getFeatureFlagType = (value: unknown): FeatureFlagInfo['type'] => {
   if (value === null) {
-    return 'object'
+    return 'object';
   }
   if (typeof value === 'boolean') {
-    return 'boolean'
-  }else if (typeof value === 'string') {
-    return 'string'
-  } else if (typeof value === 'number'){
-    return 'number'
-  }else if (Array.isArray(value)) {
-    return 'array'
-  }else if (
+    return 'boolean';
+  } else if (typeof value === 'string') {
+    return 'string';
+  } else if (typeof value === 'number') {
+    return 'number';
+  } else if (Array.isArray(value)) {
+    return 'array';
+  } else if (
     value &&
     typeof value === 'object' &&
-    value.hasOwnProperty('enabled') &&
-    value.hasOwnProperty('minimumVersion')
+    Object.hasOwnProperty.call(value, 'enabled') &&
+    Object.hasOwnProperty.call(value, 'minimumVersion')
   ) {
     return 'boolean with minimumVersion';
-  } else if (typeof value === 'object' && typeof (value as { value: boolean })?.value === 'boolean') {
-    return 'boolean nested'
+  } else if (
+    typeof value === 'object' &&
+    typeof (value as { value: boolean })?.value === 'boolean'
+  ) {
+    return 'boolean nested';
   } else if (typeof value === 'object') {
-    return 'object'
-  } else {
-    return 'string'
+    return 'object';
   }
+  return 'string';
 };
 
 /**

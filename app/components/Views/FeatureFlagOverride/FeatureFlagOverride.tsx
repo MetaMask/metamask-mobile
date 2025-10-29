@@ -37,9 +37,11 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
+  const minimumVersion = (localValue as MinimumVersionFlagValue)
+    ?.minimumVersion;
   const isVersionSupported = useMemo(
-    () => isMinimumRequiredVersionSupported((localValue as MinimumVersionFlagValue)?.minimumVersion),
-    [(localValue as MinimumVersionFlagValue)?.minimumVersion],
+    () => isMinimumRequiredVersionSupported(minimumVersion || ''),
+    [minimumVersion],
   );
 
   const handleResetOverride = () => {
@@ -56,7 +58,10 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               value={(localValue as MinimumVersionFlagValue).enabled}
               disabled //={!isVersionSupported} TODO: Uncomment this when we support overrides for minimum version
               onValueChange={(newValue: boolean) => {
-                setLocalValue({ ...(localValue as MinimumVersionFlagValue), enabled: newValue });
+                setLocalValue({
+                  ...(localValue as MinimumVersionFlagValue),
+                  enabled: newValue,
+                });
                 onToggle(flag.key, newValue);
               }}
               trackColor={{
@@ -76,7 +81,8 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
                   isVersionSupported ? 'bg-success-default' : 'bg-error-default'
                 }`}
               />{' '}
-              Minimum Version: {(localValue as MinimumVersionFlagValue).minimumVersion}
+              Minimum Version:{' '}
+              {(localValue as MinimumVersionFlagValue).minimumVersion}
             </Text>
           </Box>
         );
@@ -84,7 +90,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         return (
           <Switch
             disabled
-            value={(localValue as boolean)}
+            value={localValue as boolean}
             onValueChange={(newValue: boolean) => {
               setLocalValue(newValue);
               onToggle(flag.key, newValue);
@@ -129,7 +135,10 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <View>
             {Object.keys(localValue as object).map((itemKey: string) => (
               <Text key={itemKey}>
-                {itemKey}: {JSON.stringify((localValue as object)[itemKey as keyof object])}
+                {itemKey}:{' '}
+                {JSON.stringify(
+                  (localValue as object)[itemKey as keyof object],
+                )}
               </Text>
             ))}
           </View>
