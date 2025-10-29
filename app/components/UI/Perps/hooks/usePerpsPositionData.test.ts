@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { usePerpsPositionData } from './usePerpsPositionData';
+import { act, renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+import { usePerpsPositionData } from './usePerpsPositionData';
 
 // Type definitions for test helpers
 interface PriceUpdate {
@@ -255,7 +255,7 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000',
+            open: '3050',
             close: '3000',
           }),
         ]),
@@ -458,8 +458,8 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000',
-            high: '3000',
+            open: '3050',
+            high: '3050',
             low: '3000',
             close: '3000',
             volume: '0',

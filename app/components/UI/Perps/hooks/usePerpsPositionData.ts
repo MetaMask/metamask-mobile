@@ -222,8 +222,8 @@ export const usePerpsPositionData = ({
         ? previousCandle.close.toString()
         : currentPrice.toString();
       const close = currentPrice.toString();
-      const high = currentPrice.toString();
-      const low = currentPrice.toString();
+      const high = Math.max(currentPrice, Number.parseFloat(open)).toString();
+      const low = Math.min(currentPrice, Number.parseFloat(open)).toString();
 
       return {
         time: currentCandleTime,
