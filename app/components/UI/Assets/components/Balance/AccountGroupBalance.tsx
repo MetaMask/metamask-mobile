@@ -10,6 +10,8 @@ import {
   selectWalletBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -33,6 +35,7 @@ const AccountGroupBalance = () => {
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const selectedChainId = useSelector(selectEvmChainId);
 
   const togglePrivacy = useCallback(
     (value: boolean) => {
@@ -49,33 +52,14 @@ const AccountGroupBalance = () => {
   const hasZeroWalletBalance =
     walletBalance && walletBalance.totalBalanceInUserCurrency === 0;
 
+  // Check if current network is a testnet
+  const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
+
+  // Show empty state on accounts with an aggregated mainnet balance of zero
   const shouldShowEmptyState =
-    hasZeroWalletBalance && isHomepageRedesignV1Enabled;
-
-  console.log('hasZeroWalletBalance', hasZeroWalletBalance);
-  console.log('shouldShowEmptyState', shouldShowEmptyState);
-
-  // Debug logging for empty state troubleshooting
-  console.log('🔍 AccountGroupBalance Debug Info:', {
-    groupBalance: groupBalance
-      ? {
-          walletId: groupBalance.walletId,
-          groupId: groupBalance.groupId,
-          totalBalanceInUserCurrency: groupBalance.totalBalanceInUserCurrency,
-          userCurrency: groupBalance.userCurrency,
-        }
-      : null,
-    walletBalance: walletBalance
-      ? {
-          walletId: walletBalance.walletId,
-          totalBalanceInUserCurrency: walletBalance.totalBalanceInUserCurrency,
-          userCurrency: walletBalance.userCurrency,
-        }
-      : null,
-    hasZeroWalletBalance,
-    isHomepageRedesignV1Enabled,
-    shouldShowEmptyState,
-  });
+    hasZeroWalletBalance &&
+    isHomepageRedesignV1Enabled &&
+    !isCurrentNetworkTestnet;
 
   return (
     <View style={styles.accountGroupBalance}>

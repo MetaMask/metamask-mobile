@@ -283,19 +283,20 @@ export const selectWalletBalanceForEmptyState = createSelector(
     }
 
     // Filter to mainnet networks only (exclude testnets)
-    const mainnetCaipChainIds = Object.keys(networkConfigurationsByChainId).filter(
-      (caipChainId) => {
-        const networkConfig = networkConfigurationsByChainId[caipChainId as CaipChainId];
+    const mainnetCaipChainIds = Object.keys(
+      networkConfigurationsByChainId,
+    ).filter((caipChainId) => {
+      const networkConfig =
+        networkConfigurationsByChainId[caipChainId as CaipChainId];
 
-        // For EVM networks, check if they're in popular networks (mainnet)
-        if (caipChainId.startsWith('eip155:')) {
-          return POPULAR_NETWORK_CHAIN_IDS.has(networkConfig.chainId as Hex);
-        }
-
-        // For non-EVM networks, exclude testnets
-        return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
+      // For EVM networks, check if they're in popular networks (mainnet)
+      if (caipChainId.startsWith('eip155:')) {
+        return POPULAR_NETWORK_CHAIN_IDS.has(networkConfig.chainId as Hex);
       }
-    );
+
+      // For non-EVM networks, exclude testnets
+      return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
+    });
 
     // Build custom enabledNetworkMap from mainnet CAIP chainIds
     const enabledNetworkMap: Record<string, Record<string, boolean>> = {};
@@ -320,10 +321,6 @@ export const selectWalletBalanceForEmptyState = createSelector(
       }
     });
 
-    // Debug: Log the enabled networks map we're using
-    console.log('🔍 selectWalletBalanceForEmptyState - enabledNetworkMap:', JSON.stringify(enabledNetworkMap, null, 2));
-    console.log('🔍 selectWalletBalanceForEmptyState - mainnetCaipChainIds:', mainnetCaipChainIds);
-
     // Calculate balance using custom mainnet network map
     const allBalances = calculateBalanceForAllWallets(
       accountTreeState,
@@ -336,9 +333,6 @@ export const selectWalletBalanceForEmptyState = createSelector(
       currencyRateState,
       enabledNetworkMap,
     );
-
-    // Debug: Log the full balance calculation result
-    console.log('🔍 selectWalletBalanceForEmptyState - allBalances:', JSON.stringify(allBalances, null, 2));
 
     // Extract ACCOUNT GROUP-level balance across mainnet networks (not wallet-level)
     const walletId = selectedGroupId.split('/')[0];
@@ -356,12 +350,12 @@ export const selectWalletBalanceForEmptyState = createSelector(
 
     // Return the selected account group balance across mainnet networks
     const accountGroupBalance = wallet.groups[selectedGroupId];
-    console.log('🔍 selectWalletBalanceForEmptyState - returning account group balance:', accountGroupBalance);
 
     return {
       walletId,
       groupId: selectedGroupId,
-      totalBalanceInUserCurrency: accountGroupBalance.totalBalanceInUserCurrency,
+      totalBalanceInUserCurrency:
+        accountGroupBalance.totalBalanceInUserCurrency,
       userCurrency,
     };
   },
