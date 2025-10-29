@@ -1,26 +1,28 @@
-import { Messenger } from '@metamask/base-controller';
-
-type AllowedActions = never;
-
-type AllowedEvents = never;
-
-export type LoggingControllerMessenger = ReturnType<
-  typeof getLoggingControllerMessenger
->;
+import { LoggingControllerMessenger } from '@metamask/logging-controller';
+import {
+  Messenger,
+  MessengerEvents,
+  MessengerActions,
+} from '@metamask/messenger';
+import { RootMessenger } from '../types';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * logging controller is allowed to handle.
+ * Get the LoggingControllerMessenger for the LoggingController.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The LoggingControllerMessenger.
  */
 export function getLoggingControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'LoggingController',
-    allowedActions: [],
-    allowedEvents: [],
+  rootMessenger: RootMessenger,
+): LoggingControllerMessenger {
+  const messenger = new Messenger<
+    'LoggingController',
+    MessengerActions<LoggingControllerMessenger>,
+    MessengerEvents<LoggingControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'LoggingController',
+    parent: rootMessenger,
   });
+  return messenger;
 }

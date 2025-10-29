@@ -1,4 +1,4 @@
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
 import {
@@ -8,6 +8,7 @@ import {
 } from '../../../../components/UI/Perps/controllers';
 import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
 import { perpsControllerInit } from '.';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../components/UI/Perps/controllers', () => {
   const actualPerpsController = jest.requireActual(
@@ -30,7 +31,9 @@ describe('perps controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
 

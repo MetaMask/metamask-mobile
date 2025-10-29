@@ -141,14 +141,6 @@ describe('PerpsController', () => {
         registerActionHandler: jest.fn(),
         registerEventHandler: jest.fn(),
         registerInitialEventPayload: jest.fn(),
-        getRestricted: jest.fn().mockReturnValue({
-          call: mockCall,
-          publish: jest.fn(),
-          subscribe: jest.fn(),
-          registerActionHandler: jest.fn(),
-          registerEventHandler: jest.fn(),
-          registerInitialEventPayload: jest.fn(),
-        }),
       } as unknown as any,
       state: getDefaultPerpsControllerState(),
     });
@@ -192,14 +184,6 @@ describe('PerpsController', () => {
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
-          getRestricted: jest.fn().mockReturnValue({
-            call: mockCall,
-            publish: jest.fn(),
-            subscribe: jest.fn(),
-            registerActionHandler: jest.fn(),
-            registerEventHandler: jest.fn(),
-            registerInitialEventPayload: jest.fn(),
-          }),
         } as unknown as any,
         state: getDefaultPerpsControllerState(),
       });
@@ -235,14 +219,6 @@ describe('PerpsController', () => {
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
-          getRestricted: jest.fn().mockReturnValue({
-            call: mockCall,
-            publish: jest.fn(),
-            subscribe: jest.fn(),
-            registerActionHandler: jest.fn(),
-            registerEventHandler: jest.fn(),
-            registerInitialEventPayload: jest.fn(),
-          }),
         } as unknown as any,
         state: getDefaultPerpsControllerState(),
         clientConfig: {
@@ -279,14 +255,6 @@ describe('PerpsController', () => {
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
-          getRestricted: jest.fn().mockReturnValue({
-            call: mockCall,
-            publish: jest.fn(),
-            subscribe: jest.fn(),
-            registerActionHandler: jest.fn(),
-            registerEventHandler: jest.fn(),
-            registerInitialEventPayload: jest.fn(),
-          }),
         } as unknown as any,
         state: getDefaultPerpsControllerState(),
         clientConfig: {
@@ -326,14 +294,6 @@ describe('PerpsController', () => {
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
-          getRestricted: jest.fn().mockReturnValue({
-            call: mockCall,
-            publish: jest.fn(),
-            subscribe: jest.fn(),
-            registerActionHandler: jest.fn(),
-            registerEventHandler: jest.fn(),
-            registerInitialEventPayload: jest.fn(),
-          }),
         } as unknown as any,
         state: getDefaultPerpsControllerState(),
         clientConfig: {
@@ -379,14 +339,6 @@ describe('PerpsController', () => {
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
-          getRestricted: jest.fn().mockReturnValue({
-            call: mockCall,
-            publish: jest.fn(),
-            subscribe: jest.fn(),
-            registerActionHandler: jest.fn(),
-            registerEventHandler: jest.fn(),
-            registerInitialEventPayload: jest.fn(),
-          }),
         } as unknown as any,
         state: getDefaultPerpsControllerState(),
         clientConfig: {
@@ -1971,14 +1923,6 @@ describe('PerpsController', () => {
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
-          getRestricted: jest.fn().mockReturnValue({
-            call: mockCallTestnet,
-            publish: jest.fn(),
-            subscribe: jest.fn(),
-            registerActionHandler: jest.fn(),
-            registerEventHandler: jest.fn(),
-            registerInitialEventPayload: jest.fn(),
-          }),
         } as unknown as any,
         state: { ...getDefaultPerpsControllerState(), isTestnet: true },
       });

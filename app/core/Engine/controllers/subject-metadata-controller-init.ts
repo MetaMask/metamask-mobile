@@ -1,6 +1,8 @@
 import { ControllerInitFunction } from '../types';
-import { SubjectMetadataController } from '@metamask/permission-controller';
-import { SubjectMetadataControllerMessenger } from '../messengers/subject-metadata-controller-messenger';
+import {
+  SubjectMetadataController,
+  type SubjectMetadataControllerMessenger,
+} from '@metamask/permission-controller';
 
 /**
  * Initialize the subject metadata controller.
