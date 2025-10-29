@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
-import { useRampSDK, SDK } from '../sdk';
+import Engine from '../../../../../core/Engine';
+import { SDK } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
 type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
@@ -92,7 +93,6 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   const method = typeof config === 'string' ? config : config.method;
   const onMount = typeof config === 'string' ? true : config.onMount ?? true;
 
-  const { sdk } = useRampSDK();
   const [data, setData] = useState<Awaited<
     ReturnType<RegionsService[T]>
   > | null>(null);
@@ -125,19 +125,20 @@ export default function useSDKMethod<T extends keyof RegionsService>(
         setError(null);
         setData(null);
 
-        if (sdk) {
-          const methodParams = abortController
-            ? [...queryParams, abortController]
-            : queryParams;
-          const response = (await sdk[method](
-            // @ts-expect-error spreading params error
-            ...methodParams,
-          )) as Awaited<ReturnType<RegionsService[T]>>;
-          setData(response);
-          setIsFetching(false);
+        const methodParams = abortController
+          ? [...queryParams, abortController]
+          : queryParams;
+        const response = (await (Engine.controllerMessenger as unknown as {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          call: (action: string, ...args: any[]) => Promise<unknown>;
+        }).call(
+          `RampsController:${String(method)}`,
+          ...methodParams,
+        )) as Awaited<ReturnType<RegionsService[T]>>;
+        setData(response);
+        setIsFetching(false);
 
-          return response;
-        }
+        return response;
       } catch (responseError) {
         if (abortController?.signal.aborted) {
           return;
@@ -149,7 +150,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [method, stringifiedParams, sdk],
+    [method, stringifiedParams],
   );
 
   useEffect(() => {

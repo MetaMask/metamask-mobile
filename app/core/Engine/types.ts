@@ -355,6 +355,12 @@ import {
   DelegationControllerEvents,
   DelegationControllerState,
 } from '@metamask/delegation-controller/dist/types.cjs';
+import {
+  RampsController,
+  RampsControllerActions,
+  RampsControllerEvents,
+  RampsControllerState,
+} from '@metamask/ramps-controller';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
@@ -672,6 +678,7 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  RampsController: RampsController;
 };
 
 /**
@@ -747,6 +754,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  RampsController: RampsControllerState;
 };
 
 /** Controller names */
@@ -839,6 +847,7 @@ export type ControllersToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'PreferencesController'
+  | 'RampsController'
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
