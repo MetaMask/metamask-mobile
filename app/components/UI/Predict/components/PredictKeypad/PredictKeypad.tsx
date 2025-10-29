@@ -54,8 +54,20 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     );
 
     const handleDonePress = useCallback(() => {
+      // Clean up trailing decimal point if user finished with just a dot
+      let cleanedValue = currentValueUSDString;
+      if (cleanedValue.endsWith('.')) {
+        cleanedValue = cleanedValue.slice(0, -1);
+        setCurrentValueUSDString(cleanedValue);
+        setCurrentValue(parseFloat(cleanedValue) || 0);
+      }
       setIsInputFocused(false);
-    }, [setIsInputFocused]);
+    }, [
+      setIsInputFocused,
+      currentValueUSDString,
+      setCurrentValueUSDString,
+      setCurrentValue,
+    ]);
 
     useImperativeHandle(ref, () => ({
       handleAmountPress,
@@ -114,7 +126,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
 
         // Update all states in batch to prevent race conditions
         setCurrentValueUSDString(formattedUSDString);
-        setCurrentValue(parseFloat(formattedUSDString));
+        // parseFloat handles "2." correctly (returns 2), and handles empty/"." as NaN
+        const numericValue = parseFloat(formattedUSDString);
+        setCurrentValue(isNaN(numericValue) ? 0 : numericValue);
       },
       [
         currentValue,
@@ -128,8 +142,8 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     if (!isInputFocused) return null;
 
     return (
-      <View style={tw.style('pt-4 bg-background-section pb-8 rounded-t-3xl')}>
-        <View style={tw.style('px-4 mb-3')}>
+      <View style={tw.style('py-4')}>
+        <View style={tw.style('px-4 mb-4')}>
           {hasInsufficientFunds && onAddFunds ? (
             <Button
               variant={ButtonVariants.Primary}

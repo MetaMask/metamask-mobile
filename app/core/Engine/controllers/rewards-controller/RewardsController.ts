@@ -1545,6 +1545,8 @@ export class RewardsController extends BaseController<
    * Estimate points for a given activity
    * @param request - The estimate points request containing activity type and context
    * @returns Promise<EstimatedPointsDto> - The estimated points and bonus information
+   * @note For PERPS activities, perpsContext can be a single position or an array for batch estimation.
+   * When an array is provided, returns aggregated points (sum) and average bonus.
    */
   async estimatePoints(
     request: EstimatePointsDto,
