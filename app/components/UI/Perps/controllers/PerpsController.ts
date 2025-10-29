@@ -717,9 +717,8 @@ export class PerpsController extends BaseController<
       }
 
       const orderExecutionFeeDiscountStartTime = performance.now();
-      const discountBips = await RewardsController.getPerpsDiscountForAccount(
-        caipAccountId,
-      );
+      const discountBips =
+        await RewardsController.getPerpsDiscountForAccount(caipAccountId);
       const orderExecutionFeeDiscountDuration =
         performance.now() - orderExecutionFeeDiscountStartTime;
 
@@ -1707,6 +1706,14 @@ export class PerpsController extends BaseController<
     const traceId = uuidv4();
     const startTime = performance.now();
     let traceData: { success: boolean; error?: string } | undefined;
+    let result: OrderResult | undefined;
+    let errorMessage: string | undefined;
+
+    // Extract tracking data with defaults
+    const direction = params.trackingData?.direction;
+    const positionSize = params.trackingData?.positionSize;
+    const source =
+      params.trackingData?.source || PerpsEventValues.SOURCE.TP_SL_VIEW;
 
     try {
       const traceSpan = trace({
@@ -1734,7 +1741,6 @@ export class PerpsController extends BaseController<
         provider.setUserFeeDiscount(feeDiscountBips);
       }
 
-      let result: OrderResult;
       try {
         result = await provider.updatePositionTPSL(params);
       } finally {
@@ -1744,101 +1750,65 @@ export class PerpsController extends BaseController<
         }
       }
 
-      const completionDuration = performance.now() - startTime;
-
       if (result.success) {
         this.update((state) => {
           state.lastUpdateTimestamp = Date.now();
         });
-
-        // Track TP/SL update executed - ONE event with both properties
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-              [PerpsEventProperties.ASSET]: params.coin,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              ...(params.takeProfitPrice && {
-                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                  params.takeProfitPrice,
-                ),
-              }),
-              ...(params.stopLossPrice && {
-                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                  params.stopLossPrice,
-                ),
-              }),
-            })
-            .build(),
-        );
-
         traceData = { success: true };
       } else {
-        // Track TP/SL update failed - ONE event with both properties
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.ASSET]: params.coin,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              [PerpsEventProperties.ERROR_MESSAGE]:
-                result.error || 'Unknown error',
-              ...(params.takeProfitPrice && {
-                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                  params.takeProfitPrice,
-                ),
-              }),
-              ...(params.stopLossPrice && {
-                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                  params.stopLossPrice,
-                ),
-              }),
-            })
-            .build(),
-        );
-
-        traceData = { success: false, error: result.error || 'Unknown error' };
+        errorMessage = result.error || 'Unknown error';
+        traceData = { success: false, error: errorMessage };
       }
 
       return result;
     } catch (error) {
+      errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      traceData = { success: false, error: errorMessage };
+      throw error;
+    } finally {
       const completionDuration = performance.now() - startTime;
 
-      // Track TP/SL update exception
+      // Build common event properties
+      const eventProperties = {
+        [PerpsEventProperties.STATUS]: result?.success
+          ? PerpsEventValues.STATUS.EXECUTED
+          : PerpsEventValues.STATUS.FAILED,
+        [PerpsEventProperties.ASSET]: params.coin,
+        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+        [PerpsEventProperties.SOURCE]: source,
+        ...(direction && {
+          [PerpsEventProperties.DIRECTION]:
+            direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+        }),
+        ...(positionSize !== undefined && {
+          [PerpsEventProperties.POSITION_SIZE]: positionSize,
+        }),
+        ...(params.takeProfitPrice && {
+          [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+            params.takeProfitPrice,
+          ),
+        }),
+        ...(params.stopLossPrice && {
+          [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+            params.stopLossPrice,
+          ),
+        }),
+        ...(errorMessage && {
+          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+        }),
+      };
+
+      // Track event once with all properties
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
         )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              error instanceof Error ? error.message : 'Unknown error',
-            ...(params.takeProfitPrice && {
-              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                params.takeProfitPrice,
-              ),
-            }),
-            ...(params.stopLossPrice && {
-              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                params.stopLossPrice,
-              ),
-            }),
-          })
+          .addProperties(eventProperties)
           .build(),
       );
 
-      traceData = {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-      throw error;
-    } finally {
       endTrace({
         name: TraceName.PerpsUpdateTPSL,
         id: traceId,
