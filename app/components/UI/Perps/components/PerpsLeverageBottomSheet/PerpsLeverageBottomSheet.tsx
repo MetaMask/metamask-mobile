@@ -284,7 +284,11 @@ const LeverageSlider: React.FC<{
   return (
     <GestureHandlerRootView style={styles.leverageSliderContainer}>
       <GestureDetector gesture={composed}>
-        <View style={styles.leverageTrack} onLayout={handleLayout}>
+        <View
+          style={styles.leverageTrack}
+          onLayout={handleLayout}
+          testID="leverage-slider-track"
+        >
           {/* Progress bar with clipped gradient */}
           <Animated.View style={[styles.progressContainer, progressStyle]}>
             {/* Using leverage risk colors - will be replaced with design tokens */}
