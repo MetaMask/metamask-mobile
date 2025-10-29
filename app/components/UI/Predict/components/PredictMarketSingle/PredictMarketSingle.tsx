@@ -186,7 +186,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
-            entryPoint,
           },
         });
       }}

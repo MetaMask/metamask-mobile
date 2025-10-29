@@ -26,15 +26,6 @@ export const PredictEventProperties = {
 
   // Performance metrics
   COMPLETION_DURATION: 'completion_duration',
-
-  // Market details specific
-  MARKET_DETAILS_VIEWED: 'market_details_viewed',
-
-  // Position specific
-  OPEN_POSITIONS_COUNT: 'open_positions_count',
-
-  // Activity specific
-  ACTIVITY_TYPE: 'activity_type',
 } as const;
 
 /**
@@ -45,22 +36,10 @@ export const PredictEventValues = {
     PREDICT_FEED: 'predict_feed',
     PREDICT_MARKET_DETAILS: 'predict_market_details',
     SEARCH: 'search',
-    HOMEPAGE_POSITIONS: 'homepage_positions',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
     MM_PREDICT_SELL: 'mm_predict_sell',
-  },
-  MARKET_DETAILS_TAB: {
-    ABOUT: 'about',
-    POSITIONS: 'positions',
-    OUTCOMES: 'outcomes',
-  },
-  ACTIVITY_TYPE: {
-    ACTIVITY_LIST: 'activity_list',
-    PREDICTED: 'predicted',
-    CASHED_OUT: 'cashed_out',
-    CLAIMED: 'claimed',
   },
 } as const;
 

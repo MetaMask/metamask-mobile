@@ -14,11 +14,9 @@ import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
 
-interface PredictTabViewProps {
-  isVisible?: boolean;
-}
+interface PredictTabViewProps {}
 
-const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
+const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [positionsError, setPositionsError] = useState<string | null>(null);
@@ -77,7 +75,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
           <PredictPositions
             ref={predictPositionsRef}
             onError={handlePositionsError}
-            isVisible={isVisible}
           />
           <PredictAddFundsSheet />
         </ScrollView>

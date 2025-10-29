@@ -4,7 +4,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -25,7 +25,6 @@ import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume, formatAddress } from '../../utils/format';
-import Engine from '../../../../../core/Engine';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import {
   Box,
@@ -92,7 +91,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const insets = useSafeAreaInsets();
 
-  const { marketId, entryPoint } = route.params || {};
+  const { marketId } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
@@ -313,20 +312,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   type TabKey = 'positions' | 'outcomes' | 'about';
 
-  const trackMarketDetailsOpened = useCallback(
-    (tabKey: TabKey) => {
-      if (!market) return;
-
-      Engine.context.PredictController.trackMarketDetailsOpened({
-        marketId: market.id,
-        marketTitle: market.title,
-        marketCategory: market.categories?.[0],
-        entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        marketDetailsViewed: tabKey,
-      });
-    },
-    [market, entryPoint],
-  );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
     // positions first if user has any
@@ -355,16 +340,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       setActiveTab(0);
     }
   }, [tabsReady, tabs.length, activeTab]);
-
-  // Track market details opened on initial load and tab changes
-  useEffect(() => {
-    if (!tabsReady || activeTab === null || !market) return;
-
-    const tabKey = tabs[activeTab]?.key;
-    if (tabKey) {
-      trackMarketDetailsOpened(tabKey);
-    }
-  }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
   const renderCustomTabBar = () => (
     <Box

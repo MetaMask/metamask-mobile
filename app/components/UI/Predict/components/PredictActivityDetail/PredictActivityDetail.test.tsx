@@ -108,14 +108,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackActivityViewed: jest.fn(),
-    },
-  },
-}));
-
 const baseBuyActivity: PredictActivityItem = {
   id: '1',
   type: PredictActivityType.BUY,

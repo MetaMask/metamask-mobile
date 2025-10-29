@@ -405,7 +405,6 @@ describe('PredictPositions', () => {
         params: {
           marketId: mockPositions[0].marketId,
           headerShown: false,
-          entryPoint: 'homepage_positions',
         },
       });
     });
@@ -434,7 +433,6 @@ describe('PredictPositions', () => {
         params: {
           marketId: claimablePosition.marketId,
           headerShown: false,
-          entryPoint: 'homepage_positions',
         },
       });
     });
