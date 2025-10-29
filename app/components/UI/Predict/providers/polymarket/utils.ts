@@ -294,17 +294,6 @@ export const encodeErc1155Approve = ({
     'function setApprovalForAll(address operator, bool approved)',
   ]).encodeFunctionData('setApprovalForAll', [spender, approved]) as Hex;
 
-export const encodeErc20Transfer = ({
-  to,
-  value,
-}: {
-  to: string;
-  value: bigint | string | number;
-}): Hex =>
-  new Interface([
-    'function transfer(address to, uint256 value)',
-  ]).encodeFunctionData('transfer', [to, value]) as Hex;
-
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }

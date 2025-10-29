@@ -3,9 +3,9 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { HYPERLIQUID_ASSET_CONFIGS } from '../constants/hyperLiquidConfig';
 import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
-import { parseCurrencyString } from '../utils/formatUtils';
 import { usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
+import { parseCurrencyString } from '../utils/formatUtils';
 
 interface UseWithdrawValidationParams {
   withdrawAmount: string;
@@ -47,28 +47,26 @@ export const useWithdrawValidation = ({
   // Validation checks
   const hasInsufficientBalance = useMemo(() => {
     if (!withdrawAmount || !availableBalance) return false;
-    return (
-      Number.parseFloat(withdrawAmount) > Number.parseFloat(availableBalance)
-    );
+    return parseFloat(withdrawAmount) > parseFloat(availableBalance);
   }, [withdrawAmount, availableBalance]);
 
   const isBelowMinimum = useMemo(() => {
     if (!withdrawAmount) return false;
-    const minAmount = Number.parseFloat(
+    const minAmount = parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
         WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );
-    return Number.parseFloat(withdrawAmount) < minAmount;
+    return parseFloat(withdrawAmount) < minAmount;
   }, [withdrawAmount, withdrawalRoute]);
 
-  const hasAmount = withdrawAmount && Number.parseFloat(withdrawAmount) > 0;
+  const hasAmount = withdrawAmount && parseFloat(withdrawAmount) > 0;
 
   // Button label helper
   const getButtonLabel = () => {
     if (hasInsufficientBalance)
       return strings('perps.withdrawal.insufficient_funds');
     if (isBelowMinimum) {
-      const minAmount = Number.parseFloat(
+      const minAmount = parseFloat(
         withdrawalRoute?.constraints?.minAmount ||
           WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
       );
@@ -76,14 +74,14 @@ export const useWithdrawValidation = ({
         amount: minAmount,
       });
     }
-    if (!withdrawAmount || Number.parseFloat(withdrawAmount) === 0)
+    if (!withdrawAmount || parseFloat(withdrawAmount) === 0)
       return strings('perps.withdrawal.enter_amount');
     return strings('perps.withdrawal.withdraw_usdc');
   };
 
   // Get minimum amount for display
   const getMinimumAmount = () =>
-    Number.parseFloat(
+    parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
         WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );

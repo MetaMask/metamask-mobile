@@ -55,6 +55,11 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * An optional loading state of Button.
    */
   loading?: boolean;
+  /**
+   * Optional prop to enable Android press handling.
+   * @default false
+   */
+  shouldEnableAndroidPressIn?: boolean;
 }
 
 /**

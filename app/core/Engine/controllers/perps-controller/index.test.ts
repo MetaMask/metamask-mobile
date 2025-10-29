@@ -32,23 +32,6 @@ describe('perps controller init', () => {
     const baseControllerMessenger = new ExtendedControllerMessenger();
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
-
-    // Mock getState to return proper Redux state structure for feature flags
-    // Using Partial since we only need RemoteFeatureFlagController for this test
-    initRequestMock.getState.mockReturnValue({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {},
-            cacheTimestamp: 0,
-          },
-        } as Partial<
-          ReturnType<
-            typeof initRequestMock.getState
-          >['engine']['backgroundState']
-        >,
-      },
-    } as ReturnType<typeof initRequestMock.getState>);
   });
 
   it('returns controller instance', () => {
@@ -118,13 +101,6 @@ describe('perps controller init', () => {
       },
       withdrawInProgress: false,
       lastWithdrawResult: null,
-      withdrawalRequests: [],
-      withdrawalProgress: {
-        progress: 0,
-        lastUpdated: Date.now(),
-        activeWithdrawalId: undefined,
-      },
-      depositRequests: [],
     };
 
     initRequestMock.persistedState = {

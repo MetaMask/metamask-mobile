@@ -1,6 +1,6 @@
-import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useMemo } from 'react';
+import { BigNumber } from 'bignumber.js';
 import { RootState } from '../../../../reducers';
 import { selectConversionRateBySymbol } from '../../../../selectors/currencyRateController';
 import { selectPerpsBalances } from '../selectors/perpsController';
@@ -48,7 +48,7 @@ export function usePerpsPortfolioBalance() {
       let historical1dAgoBalance = 0;
 
       // Aggregate historical balance across all providers
-      for (const providerBalance of Object.values(perpsBalances)) {
+      Object.values(perpsBalances).forEach((providerBalance) => {
         if (
           providerBalance &&
           typeof providerBalance === 'object' &&
@@ -61,7 +61,7 @@ export function usePerpsPortfolioBalance() {
             .multipliedBy(conversionRate)
             .toNumber();
         }
-      }
+      });
 
       return {
         totalBalance: currentTotalBalance,

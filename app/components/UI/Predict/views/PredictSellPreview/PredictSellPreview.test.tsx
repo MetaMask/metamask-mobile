@@ -16,15 +16,6 @@ import {
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
-// Mock Engine
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackPredictOrderEvent: jest.fn(),
-    },
-  },
-}));
-
 // Mock Alert
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
@@ -236,27 +227,10 @@ const mockOutcome: PredictOutcome = {
   groupItemTitle: 'Bitcoin Price',
 };
 
-const mockMarket = {
-  id: 'market-123',
-  providerId: 'polymarket',
-  slug: 'bitcoin-price',
-  title: 'Will Bitcoin reach $150,000?',
-  description: 'Market description',
-  image: 'https://example.com/market.png',
-  status: 'open' as const,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  recurrence: 'none' as any,
-  categories: ['crypto' as const],
-  outcomes: [mockOutcome],
-  liquidity: 1000000,
-  volume: 1000000,
-};
-
 const mockRoute: RouteProp<PredictNavigationParamList, 'PredictSellPreview'> = {
   key: 'PredictSellPreview-key',
   name: 'PredictSellPreview',
   params: {
-    market: mockMarket,
     position: mockPosition,
     outcome: mockOutcome,
   },
@@ -446,16 +420,6 @@ describe('PredictSellPreview', () => {
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         providerId: 'polymarket',
-        analyticsProperties: expect.objectContaining({
-          marketId: 'market-123',
-          marketTitle: 'Will Bitcoin reach $150,000?',
-          marketCategory: 'crypto',
-          entryPoint: 'predict_market_details',
-          transactionType: 'mm_predict_sell',
-          liquidity: 1000000,
-          volume: 1000000,
-          sharePrice: 0.5,
-        }),
         preview: expect.objectContaining({
           marketId: 'market-1',
           outcomeId: 'outcome-456',

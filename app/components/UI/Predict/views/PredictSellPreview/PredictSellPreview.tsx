@@ -5,7 +5,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
@@ -17,15 +17,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
-import Engine from '../../../../../core/Engine';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import {
-  PredictEventType,
-  PredictEventValues,
-} from '../../constants/eventNames';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictSellPreview.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -40,27 +35,11 @@ const PredictSellPreview = () => {
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
-  const { market, position, outcome, entryPoint } = route.params;
+  const { position } = route.params;
 
   const { icon, title, outcome: outcomeSideText, initialValue } = position;
 
   const outcomeTitle = title;
-
-  // Prepare analytics properties for sell/cash-out action
-  const analyticsProperties = useMemo(
-    () => ({
-      marketId: market?.id,
-      marketTitle: market?.title,
-      marketCategory: market?.categories?.[0],
-      entryPoint:
-        entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
-      liquidity: market?.liquidity,
-      volume: outcome?.volume,
-      sharePrice: position?.price,
-    }),
-    [market, position, outcome, entryPoint],
-  );
 
   const { placeOrder, isLoading } = usePredictPlaceOrder();
 
@@ -74,20 +53,6 @@ const PredictSellPreview = () => {
     autoRefreshTimeout: 5000,
   });
 
-  // Track Predict Action Initiated when screen mounts
-  useEffect(() => {
-    const controller = Engine.context.PredictController;
-
-    controller.trackPredictOrderEvent({
-      eventType: PredictEventType.INITIATED,
-      analyticsProperties,
-      providerId: position.providerId,
-      sharePrice: position?.price,
-      amount: position?.amount,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const currentValue = preview?.minAmountReceived ?? 0;
   const { cashPnl, percentPnl } = position;
 
@@ -98,7 +63,6 @@ const PredictSellPreview = () => {
     // Implement cash out action here
     placeOrder({
       providerId: position.providerId,
-      analyticsProperties,
       preview,
     });
     dispatch(StackActions.pop());

@@ -33,11 +33,6 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  // Sample feature
-  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
-  ///: END:ONLY_INCLUDE_IF
-
   // Approval
   APPROVAL_STARTED = 'Approval Started',
   APPROVAL_COMPLETED = 'Approval Completed',
@@ -627,13 +622,6 @@ enum ACTIONS {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
-
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  // Sample feature
-  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
-  ///: END:ONLY_INCLUDE_IF
-
-  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),

@@ -23,10 +23,6 @@ import BottomSheetFooter from '../../../../../component-library/components/Botto
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../types/navigation';
 
 interface PredictAddFundsSheetProps {
   onDismiss?: () => void;
@@ -44,13 +40,7 @@ const PredictAddFundsSheet = forwardRef<
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { deposit } = usePredictDeposit();
-  const { executeGuardedAction } = usePredictActionGuard({
-    providerId: POLYMARKET_PROVIDER_ID,
-    navigation,
-  });
 
   const handleSheetClosed = useCallback(() => {
     setIsVisible(false);
@@ -75,9 +65,7 @@ const PredictAddFundsSheet = forwardRef<
 
   const handleAddFunds = () => {
     handleClose();
-    executeGuardedAction(() => {
-      deposit();
-    });
+    deposit();
   };
 
   useImperativeHandle(

@@ -419,6 +419,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -802,6 +803,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -820,7 +822,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       activeOpacity={1}
                                       onPress={[Function]}
                                       onPressIn={[Function]}
-                                      onPressOut={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -1384,6 +1385,7 @@ exports[`BridgeView renders 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -1767,6 +1769,7 @@ exports[`BridgeView renders 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
+                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -1785,7 +1788,6 @@ exports[`BridgeView renders 1`] = `
                                       activeOpacity={1}
                                       onPress={[Function]}
                                       onPressIn={[Function]}
-                                      onPressOut={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",

@@ -1,6 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
@@ -113,22 +112,6 @@ export function usePredictPositions(
           err instanceof Error ? err.message : 'Failed to load positions';
         setError(errorMessage);
         DevLogger.log('usePredictPositions: Error loading positions', err);
-
-        // Capture exception with positions loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
-          tags: {
-            component: 'usePredictPositions',
-            action: 'positions_load',
-            operation: 'data_fetching',
-          },
-          extra: {
-            positionsContext: {
-              providerId,
-              claimable,
-              marketId,
-            },
-          },
-        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);

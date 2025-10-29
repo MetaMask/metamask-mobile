@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AssetSearch renders correctly with selected chain 1`] = `
+exports[`AssetSearch should render correctly 1`] = `
 <View
   style={
     [

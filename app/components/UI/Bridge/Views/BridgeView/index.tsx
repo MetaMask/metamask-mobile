@@ -13,7 +13,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import Text, {
   TextColor,
   TextVariant,
@@ -78,7 +77,7 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
-import ApprovalTooltip from '../../components/ApprovalText';
+import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
@@ -405,11 +404,6 @@ const BridgeView = () => {
     const isNoFeeDestinationAsset =
       destToken?.address && noFeeDestAssets?.includes(destToken.address);
 
-    const approval =
-      activeQuote?.approval && sourceAmount && sourceToken
-        ? { amount: sourceAmount, symbol: sourceToken.symbol }
-        : null;
-
     return (
       activeQuote &&
       quotesLastFetched && (
@@ -429,28 +423,6 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
-          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {hasFee
-                ? strings('bridge.fee_disclaimer', {
-                    feePercentage,
-                  })
-                : !hasFee && isNoFeeDestinationAsset
-                ? strings('bridge.no_mm_fee_disclaimer', {
-                    destTokenSymbol: destToken?.symbol,
-                  })
-                : ''}
-              {approval
-                ? ` ${strings('bridge.approval_needed', approval)}`
-                : ''}{' '}
-            </Text>
-            {approval && (
-              <ApprovalTooltip
-                amount={approval.amount}
-                symbol={approval.symbol}
-              />
-            )}
-          </Box>
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
@@ -460,6 +432,31 @@ const BridgeView = () => {
             testID="bridge-confirm-button"
             isDisabled={submitDisabled}
           />
+          {hasFee ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.fee_disclaimer', {
+                feePercentage,
+              })}
+            </Text>
+          ) : null}
+          {!hasFee && isNoFeeDestinationAsset ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.no_mm_fee_disclaimer', {
+                destTokenSymbol: destToken?.symbol,
+              })}
+            </Text>
+          ) : null}
+          {activeQuote?.approval && sourceAmount && sourceToken && (
+            <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
+          )}
         </Box>
       )
     );
