@@ -102,7 +102,7 @@ const createStyles = ({
 interface TokenSelectorItemProps {
   token: BridgeToken;
   onPress: (token: BridgeToken) => void;
-  networkName: string;
+  networkName?: string;
   networkImageSource?: ImageSourcePropType;
   isSelected?: boolean;
   shouldShowBalance?: boolean;
