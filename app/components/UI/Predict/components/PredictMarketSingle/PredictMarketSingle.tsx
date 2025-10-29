@@ -168,9 +168,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           />
         </Svg>
         <Text
-          variant={TextVariant.HeadingSM}
+          variant={TextVariant.BodyMDMedium}
           color={TextColor.Success}
-          style={tw.style('-mb-1')}
+          style={tw.style('-mb-1.5')}
         >
           {percentage}%
         </Text>
@@ -209,9 +209,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
               )}
             </Box>
             <Text
-              variant={TextVariant.HeadingMD}
+              variant={TextVariant.BodyMDMedium}
               color={TextColor.Default}
               style={tw.style('flex-1 font-medium')}
+              numberOfLines={2}
             >
               {getTitle()}
             </Text>
