@@ -48,6 +48,11 @@ import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesCont
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+import {
+  ACCOUNT_TYPE_LABEL_TEST_ID,
+  accountTypeLabel,
+} from '../../Tokens/TokenList/TokenListItem/TokenListItemBip44';
+import Tag from '../../../../component-library/components/Tags/Tag';
 
 interface BalanceProps {
   asset: TokenI;
@@ -195,6 +200,10 @@ const Balance = ({
     [asset.address, asset.chainId, asset.isNative, navigation],
   );
 
+  const label = asset.accountType
+    ? accountTypeLabel[asset.accountType]
+    : undefined;
+
   return (
     <View style={styles.wrapper}>
       {!hideTitleHeading && (
@@ -229,7 +238,12 @@ const Balance = ({
         </BadgeWrapper>
 
         <View style={styles.percentageChange}>
-          <Text variant={TextVariant.BodyMD}>{asset.name || asset.symbol}</Text>
+          <View style={styles.assetName}>
+            <Text variant={TextVariant.BodyMD}>
+              {asset.name || asset.symbol}
+            </Text>
+            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
+          </View>
 
           {secondaryBalance && (
             <SensitiveText
