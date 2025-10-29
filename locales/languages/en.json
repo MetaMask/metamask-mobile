@@ -5314,6 +5314,10 @@
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
+    "tron": {
+      "bandwidth": "Bandwidth",
+      "energy": "Energy"
+    },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
     "staked_balance": "Staked balance",
