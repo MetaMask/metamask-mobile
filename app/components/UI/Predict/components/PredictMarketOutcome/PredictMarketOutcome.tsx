@@ -186,7 +186,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {outcome.tokens[0].title} •{' '}
+                {outcome.tokens[1].title} •{' '}
                 {(outcome.tokens[1].price * 100).toFixed(2)}¢
               </Text>
             }
