@@ -61,6 +61,9 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   setUserCardLocation: jest.fn(),
   selectOnboardingId: jest.fn(),
   resetOnboardingState: jest.fn(),
+  resetAuthenticatedData: jest.fn(() => ({
+    type: 'card/resetAuthenticatedData',
+  })),
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
