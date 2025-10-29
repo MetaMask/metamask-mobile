@@ -16,5 +16,5 @@ export interface CustomNetworkItem {
 export interface CustomNetworkSelectorProps {
   openModal: (networkMenuModal: NetworkMenuModalState) => void;
   dismissModal: () => void;
-  openRpcModal?: (params: { chainId: string; networkName: string }) => void;
+  openRpcModal: (params: { chainId: string; networkName: string }) => void;
 }
