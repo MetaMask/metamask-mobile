@@ -129,7 +129,7 @@ const NetworkManager = () => {
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] =
     useState<ShowMultiRpcSelectModalState>({
       isVisible: false,
-      chainId: '',
+      chainId: '0x1',
       networkName: '',
     });
 
@@ -263,7 +263,7 @@ const NetworkManager = () => {
   const closeRpcModal = useCallback(() => {
     setShowMultiRpcSelectModal({
       isVisible: false,
-      chainId: '',
+      chainId: '0x1',
       networkName: '',
     });
     rpcMenuSheetRef.current?.onCloseBottomSheet();

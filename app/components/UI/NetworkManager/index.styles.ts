@@ -81,7 +81,7 @@ const createStyles = (params: { theme: Theme }) => {
       flexDirection: 'column',
       justifyContent: 'center',
     },
-    cellBorder: { borderWidth: 0, paddingVertical: 4 },
+    cellBorder: { borderWidth: 0, paddingTop: 10, paddingBottom: 5 },
     baseHeader: { paddingVertical: 8 },
     rpcText: {
       width: '100%',
