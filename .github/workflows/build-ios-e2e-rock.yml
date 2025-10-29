@@ -22,7 +22,6 @@ jobs:
   build-ios-app:
     name: Build iOS E2E App with Rock CLI
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     timeout-minutes: 45
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
@@ -154,7 +153,7 @@ jobs:
 
       - name: Rock Build - iOS E2E App (Simulator)
         id: rock-build-ios
-        uses: callstackincubator/ios@7c072d8d6acaa7cc3b038f9f6c5a81bb54da10c7
+        uses: MetaMask/ios@95beb7735eb374ff8dda13043af06ef93a184d2a
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
         with:
