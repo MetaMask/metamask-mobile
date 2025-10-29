@@ -50,25 +50,21 @@ export function usePredictPlaceOrder(
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
-      // NOTE: When cashing out happens fast, stacking toasts messes the UX.
-      // Figure out how toast behavior can be improved to avoid this.
-      setTimeout(() => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Check,
-          labelOptions: [
-            { label: strings('predict.order.cashed_out'), isBold: true },
-            { label: '\n', isBold: false },
-            {
-              label: strings('predict.order.cashed_out_subtitle', {
-                amount,
-              }),
-              isBold: false,
-            },
-          ],
-          hasNoTimeout: false,
-        });
-      }, 2000);
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Check,
+        labelOptions: [
+          { label: strings('predict.order.cashed_out'), isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: strings('predict.order.cashed_out_subtitle', {
+              amount,
+            }),
+            isBold: false,
+          },
+        ],
+        hasNoTimeout: false,
+      });
     },
     [toastRef],
   );
@@ -94,42 +90,6 @@ export function usePredictPlaceOrder(
 
       try {
         setIsLoading(true);
-
-        DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
-        if (side === Side.BUY) {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.Loading,
-            labelOptions: [
-              { label: strings('predict.order.placing_prediction') },
-            ],
-            hasNoTimeout: false,
-          });
-        } else {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.Loading,
-            labelOptions: [
-              {
-                label: strings('predict.order.cashing_out', {
-                  amount: formatPrice(minAmountReceived, {
-                    maximumDecimals: 2,
-                  }),
-                }),
-                isBold: true,
-              },
-              { label: '\n', isBold: false },
-              {
-                label: strings('predict.order.cashing_out_subtitle', {
-                  time: 5,
-                }),
-                isBold: false,
-              },
-            ],
-            hasNoTimeout: false,
-          });
-        }
-
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
 
@@ -183,18 +143,6 @@ export function usePredictPlaceOrder(
 
         setError(errorMessage);
         onError?.(errorMessage);
-
-        // Show error toast to user
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          labelOptions: [
-            { label: strings('predict.order.order_failed'), isBold: true },
-            { label: '\n', isBold: false },
-            { label: errorMessage, isBold: false },
-          ],
-          hasNoTimeout: false,
-        });
       } finally {
         setIsLoading(false);
       }
@@ -203,7 +151,6 @@ export function usePredictPlaceOrder(
       controllerPlaceOrder,
       onComplete,
       loadBalance,
-      toastRef,
       showCashedOutToast,
       showOrderPlacedToast,
       onError,

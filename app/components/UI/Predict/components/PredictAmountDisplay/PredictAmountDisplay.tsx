@@ -11,33 +11,18 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { formatPositionSize, formatPrice } from '../../utils/format';
 
 interface PredictAmountDisplayProps {
   amount: string;
-  showWarning?: boolean;
-  warningMessage?: string;
   onPress?: () => void;
   isActive?: boolean;
-  label?: string;
-  showTokenAmount?: boolean;
-  tokenAmount?: string;
-  tokenSymbol?: string;
-  showMaxAmount?: boolean;
   hasError?: boolean;
 }
 
 const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   amount,
-  showWarning = false,
-  warningMessage = 'No funds available. Please deposit first.',
   onPress,
   isActive = false,
-  label,
-  showTokenAmount = false,
-  tokenAmount,
-  tokenSymbol,
-  showMaxAmount = true,
   hasError = false,
 }) => {
   const tw = useTailwind();
@@ -66,21 +51,14 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
     }
   }, [isActive, fadeAnim]);
 
+  const amountValue = amount ? `$${amount}` : '$0';
+
   const content = (
     <Box
       alignItems={BoxAlignItems.Center}
       twClassName="px-6"
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
-      {label && (
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={tw.style('mb-2')}
-        >
-          {label}
-        </Text>
-      )}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -94,11 +72,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
             'text-[64px] tracking-tight leading-[74px] font-medium',
           )}
         >
-          {showTokenAmount && tokenAmount && tokenSymbol
-            ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
-            : amount
-            ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
-            : '$0'}
+          {amountValue}
         </Text>
         {isActive && (
           <Animated.View
@@ -112,26 +86,6 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           />
         )}
       </Box>
-      {/* Display token amount equivalent for current input */}
-      {showMaxAmount && tokenAmount && tokenSymbol && (
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={tw.style('mt-1')}
-          testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
-        >
-          {formatPositionSize(tokenAmount)} {tokenSymbol}
-        </Text>
-      )}
-      {showWarning && (
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Warning}
-          style={tw.style('mt-3')}
-        >
-          {warningMessage}
-        </Text>
-      )}
     </Box>
   );
 

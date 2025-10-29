@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
+import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
@@ -47,7 +47,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };
 
-describe(SmokeTrade('Predictions'), () => {
+describe(SmokePredictions('Predictions'), () => {
   it('should cash out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
