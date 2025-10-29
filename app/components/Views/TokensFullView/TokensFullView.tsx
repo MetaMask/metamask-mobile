@@ -35,6 +35,7 @@ const TokensFullView = () => {
             size={ButtonIconSizes.Lg}
             onPress={handleBackPress}
             iconName={IconName.ArrowLeft}
+            testID="back-button"
           />
         }
         style={tw`p-4`}

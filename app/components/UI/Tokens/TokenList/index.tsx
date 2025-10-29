@@ -91,12 +91,10 @@ const TokenListComponent = ({
   }, [navigation]);
 
   // Apply maxItems limit if specified
-  const displayTokenKeys = useMemo(() => {
-    if (maxItems === undefined) {
-      return tokenKeys;
-    }
-    return tokenKeys?.slice(0, maxItems);
-  }, [tokenKeys, maxItems]);
+  const displayTokenKeys = useMemo(
+    () => tokenKeys?.slice(0, maxItems || undefined),
+    [tokenKeys, maxItems],
+  );
 
   // Determine if we should show the "View all tokens" button
   const shouldShowViewAllButton = useMemo(

@@ -358,18 +358,22 @@ describe('NftGrid', () => {
     });
   });
 
-  it('shows view all button when maxItems is exceeded', async () => {
+  it('shows view all button when homepage redesign is enabled and NFT count exceeds limit', async () => {
     const mockCollectibles = {
-      '0x1': [mockNft, { ...mockNft, tokenId: '789' }],
+      '0x1': Array.from({ length: 20 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+      })),
     };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+      .mockReturnValueOnce(mockCollectibles) // multichainCollectiblesByEnabledNetworksSelector
+      .mockReturnValueOnce(true); // selectHomepageRedesignV1Enabled (maxItems = 18)
     const store = mockStore(initialState);
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGrid maxItems={1} />
+        <NftGrid />
       </Provider>,
     );
 
@@ -382,16 +386,22 @@ describe('NftGrid', () => {
     });
   });
 
-  it('hides view all button when maxItems is not exceeded', async () => {
-    const mockCollectibles = { '0x1': [mockNft] };
+  it('hides view all button when homepage redesign is disabled', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 20 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+      })),
+    };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+      .mockReturnValueOnce(mockCollectibles) // multichainCollectiblesByEnabledNetworksSelector
+      .mockReturnValueOnce(false); // selectHomepageRedesignV1Enabled (maxItems = undefined)
     const store = mockStore(initialState);
 
     const { queryByTestId } = render(
       <Provider store={store}>
-        <NftGrid maxItems={5} />
+        <NftGrid />
       </Provider>,
     );
 
@@ -602,16 +612,20 @@ describe('NftGrid', () => {
 
   it('navigates to full view when view all button is pressed', async () => {
     const mockCollectibles = {
-      '0x1': [mockNft, { ...mockNft, tokenId: '789' }],
+      '0x1': Array.from({ length: 20 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+      })),
     };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+      .mockReturnValueOnce(mockCollectibles) // multichainCollectiblesByEnabledNetworksSelector
+      .mockReturnValueOnce(true); // selectHomepageRedesignV1Enabled (maxItems = 18)
     const store = mockStore(initialState);
 
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGrid maxItems={1} />
+        <NftGrid />
       </Provider>,
     );
 
