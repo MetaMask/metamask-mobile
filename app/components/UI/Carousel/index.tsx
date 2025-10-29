@@ -89,43 +89,6 @@ export function useFetchCarouselSlides() {
     CarouselSlide[]
   >([]);
 
-  // Dummy slides for testing
-  const dummySlides: CarouselSlide[] = [
-    {
-      id: 'fdsafsafasf-slide-1',
-      title: 'Test Slide 1',
-      description: 'This is a test slide to verify carousel functionality',
-      navigation: {
-        type: 'url',
-        href: 'https://metamask.io',
-      },
-      variableName: 'test1',
-      cardPlacement: 1,
-    },
-    {
-      id: 'fdsafsafasf-slide-2',
-      title: 'Test Slide 2',
-      description: 'Another test slide with different content',
-      navigation: {
-        type: 'url',
-        href: 'https://ethereum.org',
-      },
-      variableName: 'test2',
-      cardPlacement: 2,
-    },
-    {
-      id: 'fdsafsafasf-slide-3',
-      title: 'Test Slide 3',
-      description: 'Third test slide for comprehensive testing',
-      navigation: {
-        type: 'url',
-        href: 'https://consensys.io',
-      },
-      variableName: 'test3',
-      cardPlacement: 3,
-    },
-  ];
-
   const fetchCallback = useCallback(async () => {
     if (!isContentfulCarouselEnabled) return;
     try {
@@ -154,7 +117,7 @@ export function useFetchCarouselSlides() {
   }, [fetchCallback, isContentfulCarouselEnabled]);
 
   return {
-    priorityContentfulSlides: [...priorityContentfulSlides, ...dummySlides],
+    priorityContentfulSlides,
     regularContentfulSlides,
   };
 }
