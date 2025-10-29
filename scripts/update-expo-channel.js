@@ -18,7 +18,6 @@ const VALID_ENVIRONMENTS = ['production', 'beta', 'rc', 'exp', 'test', 'e2e', 'd
 // File paths
 const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
-const IOS_INFO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'MetaMask', 'Info.plist');
 
 // Configuration map for each environment
 const CONFIG_MAP = {
@@ -262,10 +261,6 @@ function main() {
     process.exit(1);
   }
 
-  if (!fs.existsSync(IOS_INFO_PLIST_PATH)) {
-    console.error(`❌ Error: Info.plist not found at ${IOS_INFO_PLIST_PATH}`);
-    process.exit(1);
-  }
 
   try {
     updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl);
