@@ -141,7 +141,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       totalNativeTokenBalance: '0',
       nativeTokenUnit: 'ETH',
       shouldShowAggregatedPercentage: true,
-      isPortfolioVieEnabled: true,
+      isPortfolioViewEnabled: true,
       aggregatedBalance,
     });
   });
