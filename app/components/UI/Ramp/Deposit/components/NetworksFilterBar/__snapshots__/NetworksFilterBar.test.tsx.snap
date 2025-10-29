@@ -25,7 +25,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
-      shouldEnableAndroidPressIn={true}
       style={
         {
           "alignItems": "center",
@@ -93,7 +92,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
-      shouldEnableAndroidPressIn={true}
       style={
         {
           "alignItems": "center",
@@ -157,7 +155,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
-      shouldEnableAndroidPressIn={true}
       style={
         {
           "alignItems": "center",
@@ -221,7 +218,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
-      shouldEnableAndroidPressIn={true}
       style={
         {
           "alignItems": "center",
@@ -282,7 +278,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
-      shouldEnableAndroidPressIn={true}
       style={
         {
           "alignItems": "center",
@@ -472,7 +467,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
-      shouldEnableAndroidPressIn={true}
       style={
         {
           "alignItems": "center",
