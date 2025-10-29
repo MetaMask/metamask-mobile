@@ -2325,7 +2325,7 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no orderbook');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_BOOK');
     });
 
     it('throws error for BUY when no asks available', async () => {
@@ -2351,7 +2351,7 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (buy)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_BUY');
     });
 
     it('throws error for SELL when no bids available', async () => {
@@ -2377,7 +2377,7 @@ describe('polymarket utils', () => {
           side: Side.SELL,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (sell)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_SELL');
     });
 
     it('includes fees for BUY orders', async () => {

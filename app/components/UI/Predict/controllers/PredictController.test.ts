@@ -452,9 +452,9 @@ describe('PredictController', () => {
             marketId: 'market-1',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
 
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -483,9 +483,11 @@ describe('PredictController', () => {
 
         await expect(
           controller.getMarket({ marketId: 'market-1' }),
-        ).rejects.toThrow('MARKET_DETAILS_FAILED');
+        ).rejects.toThrow('PREDICT_MARKET_DETAILS_FAILED');
 
-        expect(controller.state.lastError).toBe('MARKET_DETAILS_FAILED');
+        expect(controller.state.lastError).toBe(
+          'PREDICT_MARKET_DETAILS_FAILED',
+        );
       });
     });
 
@@ -619,9 +621,9 @@ describe('PredictController', () => {
             marketId: 'market-1',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
 
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -652,7 +654,7 @@ describe('PredictController', () => {
           controller.getPriceHistory({ marketId: 'market-1' }),
         ).rejects.toBe('String error');
 
-        expect(controller.state.lastError).toBe('PRICE_HISTORY_FAILED');
+        expect(controller.state.lastError).toBe('PREDICT_PRICE_HISTORY_FAILED');
       });
     });
 
@@ -728,13 +730,14 @@ describe('PredictController', () => {
 
         const preview = createMockOrderPreview({ side: Side.SELL });
 
-        const result = await controller.placeOrder({
-          providerId: 'polymarket',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          }),
+        ).rejects.toThrow('Order placement failed');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('Order placement failed');
+        expect(controller.state.lastError).toBe('Order placement failed');
       });
     });
 
@@ -746,10 +749,12 @@ describe('PredictController', () => {
 
         const preview = createMockOrderPreview({ side: Side.BUY });
 
-        await controller.placeOrder({
-          providerId: 'polymarket',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          }),
+        ).rejects.toThrow('Network error');
 
         expect(controller.state.lastError).toBe('Network error');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
@@ -768,7 +773,9 @@ describe('PredictController', () => {
           preview,
         };
 
-        await controller.placeOrder(params);
+        await expect(controller.placeOrder(params)).rejects.toThrow(
+          'Provider error',
+        );
 
         expect(DevLogger.log).toHaveBeenCalledWith(
           'PredictController: Place order failed',
@@ -791,13 +798,14 @@ describe('PredictController', () => {
 
         const preview = createMockOrderPreview({ side: Side.SELL });
 
-        const result = await controller.placeOrder({
-          providerId: 'polymarket',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'polymarket',
+            preview,
+          }),
+        ).rejects.toThrow('PREDICT_PLACE_ORDER_FAILED');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PLACE_ORDER_FAILED');
+        expect(controller.state.lastError).toBe('PREDICT_PLACE_ORDER_FAILED');
       });
     });
 
@@ -805,13 +813,14 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         const preview = createMockOrderPreview({ side: Side.BUY });
 
-        const result = await controller.placeOrder({
-          providerId: 'nonexistent',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'nonexistent',
+            preview,
+          }),
+        ).rejects.toThrow('Provider not available');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -819,26 +828,13 @@ describe('PredictController', () => {
       const mockTxMeta = { id: 'tx-signer-sell' } as any;
       await withController(async ({ controller }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue({
-          id: 'sell-order-signer',
-          providerId: 'polymarket',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'outcome-token-1',
-          isBuy: false,
-          size: 2,
-          price: 0.8,
-          status: 'idle',
-          timestamp: Date.now(),
-          lastUpdated: Date.now(),
-          onchainTradeParams: [
-            {
-              data: '0xsell-data',
-              to: '0x000000000000000000000000000000000000sell',
-              value: '0x0',
-            },
-          ],
-          offchainTradeParams: {},
-          chainId: 1,
-        } as any);
+          success: true as const,
+          response: {
+            id: 'sell-order-signer',
+            spentAmount: '100',
+            receivedAmount: '200',
+          },
+        });
 
         (addTransaction as jest.Mock).mockResolvedValue({
           transactionMeta: mockTxMeta,
@@ -974,13 +970,14 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         const preview = createMockOrderPreview({ side: Side.BUY });
 
-        const result = await controller.placeOrder({
-          providerId: 'nonexistent',
-          preview,
-        });
+        await expect(
+          controller.placeOrder({
+            providerId: 'nonexistent',
+            preview,
+          }),
+        ).rejects.toThrow('Provider not available');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -990,8 +987,8 @@ describe('PredictController', () => {
           controller.getMarkets({
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -1002,8 +999,8 @@ describe('PredictController', () => {
             address: '0x1234567890123456789012345678901234567890',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
   });
@@ -1268,7 +1265,7 @@ describe('PredictController', () => {
           controller.getMarkets({
             providerId: 'nonexistent-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
   });
@@ -1518,7 +1515,7 @@ describe('PredictController', () => {
           controller.claimWithConfirmation({
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
@@ -1852,9 +1849,9 @@ describe('PredictController', () => {
             address: '0x1234567890123456789012345678901234567890',
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
 
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -2025,9 +2022,9 @@ describe('PredictController', () => {
           controller.getActivity({
             providerId: 'nonexistent',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
 
-        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -2052,7 +2049,9 @@ describe('PredictController', () => {
 
         await expect(controller.getActivity({})).rejects.toBe('String error');
 
-        expect(controller.state.lastError).toBe('ACTIVITY_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe(
+          'PREDICT_ACTIVITY_NOT_AVAILABLE',
+        );
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -2183,7 +2182,7 @@ describe('PredictController', () => {
           controller.depositWithConfirmation({
             providerId: 'invalid-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
@@ -2653,7 +2652,7 @@ describe('PredictController', () => {
           controller.getAccountState({
             providerId: 'invalid-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
   });
@@ -2712,7 +2711,7 @@ describe('PredictController', () => {
           controller.getBalance({
             providerId: 'invalid-provider',
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
@@ -2783,7 +2782,7 @@ describe('PredictController', () => {
             side: Side.BUY,
             size: 100,
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 
@@ -2853,12 +2852,12 @@ describe('PredictController', () => {
       );
 
       await withController(async ({ controller }) => {
-        const result = await controller.prepareWithdraw({
-          providerId: 'polymarket',
-        });
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Provider error');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('Provider error');
         expect(controller.state.lastError).toBe('Provider error');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(controller.state.withdrawTransaction).toBeNull();
@@ -2871,9 +2870,11 @@ describe('PredictController', () => {
       );
 
       await withController(async ({ controller }) => {
-        await controller.prepareWithdraw({
-          providerId: 'polymarket',
-        });
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Network error');
 
         expect(DevLogger.log).toHaveBeenCalledWith(
           'PredictController: Prepare withdraw failed',
@@ -2888,12 +2889,13 @@ describe('PredictController', () => {
 
     it('returns error when provider is not available', async () => {
       await withController(async ({ controller }) => {
-        const result = await controller.prepareWithdraw({
-          providerId: 'nonexistent',
-        });
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('Provider not available');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -2976,12 +2978,15 @@ describe('PredictController', () => {
       );
 
       await withController(async ({ controller }) => {
-        const result = await controller.prepareWithdraw({
-          providerId: 'polymarket',
-        });
+        await expect(
+          controller.prepareWithdraw({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Transaction batch submission failed');
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('Transaction batch submission failed');
+        expect(controller.state.lastError).toBe(
+          'Transaction batch submission failed',
+        );
       });
     });
 
@@ -3284,7 +3289,7 @@ describe('PredictController', () => {
           controller.beforeSign({
             transactionMeta: mockTransactionMeta as any,
           }),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        ).rejects.toThrow('Provider not available');
       });
     });
 

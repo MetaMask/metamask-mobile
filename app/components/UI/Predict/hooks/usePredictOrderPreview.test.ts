@@ -212,7 +212,7 @@ describe('usePredictOrderPreview', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.error).toBe(errorMessage);
+      expect(result.current.error).toBe('Failed to preview order');
       expect(result.current.preview).toBeNull();
       expect(result.current.isCalculating).toBe(false);
 
@@ -238,7 +238,7 @@ describe('usePredictOrderPreview', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.error).toBe('String error');
+      expect(result.current.error).toBe('Failed to preview order');
       expect(result.current.isCalculating).toBe(false);
 
       consoleErrorSpy.mockRestore();
@@ -264,7 +264,7 @@ describe('usePredictOrderPreview', () => {
       await waitForNextUpdate();
 
       expect(result.current.isCalculating).toBe(false);
-      expect(result.current.error).toBe('Error');
+      expect(result.current.error).toBe('Failed to preview order');
 
       consoleErrorSpy.mockRestore();
     });
