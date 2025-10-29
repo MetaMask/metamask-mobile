@@ -307,19 +307,41 @@ jobs:
           echo "All files in artifacts:"
           find ./artifacts -type f | head -20
 
-          # Find the APK files - look for the renamed files we created
-          WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" -type f | head -1)
-          WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" -type f | head -1)
+          # Find the APK files - GitHub Actions creates a directory named after the artifact name
+          # Artifact name is: android-apk-{build_type}
+          # File inside is: app-prod-release-{build_type}.apk
+          # So structure is: artifacts/android-apk-{type}/app-prod-release-{type}.apk
+          WITH_SRP_APK=$(find ./artifacts/android-apk-with-srp -name "app-prod-release-with-srp.apk" -type f 2>/dev/null | head -1)
+          WITHOUT_SRP_APK=$(find ./artifacts/android-apk-without-srp -name "app-prod-release-without-srp.apk" -type f 2>/dev/null | head -1)
 
-          # Alternative search if files are in artifact subdirectories
+          # Fallback: search for any APK file in the artifact directories
+          # Handle case where path structure might be preserved (upload-artifacts/ subdirectory)
           if [ -z "$WITH_SRP_APK" ]; then
-            echo "With-SRP APK not found by name, trying subdirectory search..."
-            WITH_SRP_APK=$(find ./artifacts/android-apk-with-srp -name "*.apk" 2>/dev/null | head -1)
+            echo "With-SRP APK not found by name, trying broader search..."
+            # Try with preserved path structure
+            WITH_SRP_APK=$(find ./artifacts/android-apk-with-srp -path "*/upload-artifacts/app-prod-release-with-srp.apk" -type f 2>/dev/null | head -1)
+            if [ -z "$WITH_SRP_APK" ]; then
+              # Try any APK in the artifact directory
+              WITH_SRP_APK=$(find ./artifacts/android-apk-with-srp -name "*.apk" -type f 2>/dev/null | head -1)
+            fi
+            if [ -z "$WITH_SRP_APK" ]; then
+              # Last resort: search entire artifacts directory
+              WITH_SRP_APK=$(find ./artifacts -name "*with-srp*.apk" -type f 2>/dev/null | head -1)
+            fi
           fi
 
           if [ -z "$WITHOUT_SRP_APK" ]; then
-            echo "Without-SRP APK not found by name, trying subdirectory search..."
-            WITHOUT_SRP_APK=$(find ./artifacts/android-apk-without-srp -name "*.apk" 2>/dev/null | head -1)
+            echo "Without-SRP APK not found by name, trying broader search..."
+            # Try with preserved path structure
+            WITHOUT_SRP_APK=$(find ./artifacts/android-apk-without-srp -path "*/upload-artifacts/app-prod-release-without-srp.apk" -type f 2>/dev/null | head -1)
+            if [ -z "$WITHOUT_SRP_APK" ]; then
+              # Try any APK in the artifact directory
+              WITHOUT_SRP_APK=$(find ./artifacts/android-apk-without-srp -name "*.apk" -type f 2>/dev/null | head -1)
+            fi
+            if [ -z "$WITHOUT_SRP_APK" ]; then
+              # Last resort: search entire artifacts directory
+              WITHOUT_SRP_APK=$(find ./artifacts -name "*without-srp*.apk" -type f 2>/dev/null | head -1)
+            fi
           fi
 
           echo "Found APKs:"
