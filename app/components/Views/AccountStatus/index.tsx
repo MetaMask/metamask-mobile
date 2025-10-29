@@ -1,12 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
-import {
-  View,
-  Image,
-  ScrollView,
-  Dimensions,
-  SafeAreaView,
-  Platform,
-} from 'react-native';
+import { View, Image, ScrollView, Dimensions, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import Text from '../../../component-library/components/Texts/Text';
@@ -158,7 +152,7 @@ const AccountStatus = ({
   }, []);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
