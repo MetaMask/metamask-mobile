@@ -359,26 +359,6 @@ const TokenInsightsSheet: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Verified Token Badge */}
-        {/* For now we are not showing the verified token badge until the backend supports it*/}
-        {/* {false && (
-          <Box
-            style={styles.verifiedBadge}
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.center}
-            justifyContent={BoxJustifyContent.center}
-          >
-            <Icon
-              name={IconName.Verified}
-              size={IconSize.Sm}
-              color={IconColor.Success}
-            />
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-              {strings('bridge.verified_token')}
-            </Text>
-          </Box>
-        )} */}
-
         {/* Token Details */}
         <Box
           flexDirection={BoxFlexDirection.Column}
