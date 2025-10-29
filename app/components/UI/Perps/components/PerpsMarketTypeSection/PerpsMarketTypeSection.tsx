@@ -58,7 +58,7 @@ export interface PerpsMarketTypeSectionProps {
 const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   title,
   markets,
-  marketType,
+  marketType: _marketType, // Unused but kept for API compatibility
   sortBy = 'volume',
   isLoading,
   testID,
@@ -67,13 +67,14 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   const handleViewAll = useCallback(() => {
+    // Always navigate to "All" tab when "See all" is pressed
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
-        defaultMarketTypeFilter: marketType,
+        defaultMarketTypeFilter: 'all',
       },
     });
-  }, [navigation, marketType]);
+  }, [navigation]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {

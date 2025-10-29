@@ -212,11 +212,23 @@ export const usePerpsMarketListView = ({
 
     // If not searching, filter by current tab
     if (marketTypeFilter === 'all') {
-      return searchedMarkets;
+      // 'All' shows Crypto + Stocks + Commodities (excluding forex)
+      return searchedMarkets.filter(
+        (m) =>
+          !m.marketType ||
+          m.marketType === 'equity' ||
+          m.marketType === 'commodity',
+      );
     }
     if (marketTypeFilter === 'crypto') {
       // Crypto markets have no marketType set
       return searchedMarkets.filter((m) => !m.marketType);
+    }
+    if (marketTypeFilter === 'stocks_and_commodities') {
+      // Combined stocks and commodities filter
+      return searchedMarkets.filter(
+        (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+      );
     }
     // Filter by specific market type (equity, commodity, forex)
     return searchedMarkets.filter((m) => m.marketType === marketTypeFilter);

@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { View, Animated } from 'react-native';
+import { View, Animated, ScrollView, Dimensions } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -16,10 +16,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  TabsList,
-  type TabsListRef,
-} from '../../../../../component-library/components-temp/Tabs';
+import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
@@ -76,9 +73,11 @@ const PerpsMarketListView = ({
     route.params?.defaultMarketTypeFilter ?? 'all';
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const tabsListRef = useRef<TabsListRef>(null);
-  const noPaddingContentStyle = useMemo(() => ({ paddingHorizontal: 0 }), []);
+  const tabScrollViewRef = useRef<ScrollView>(null);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(
+    Dimensions.get('window').width,
+  );
 
   // Use the combined market list view hook for all business logic
   const {
@@ -128,125 +127,187 @@ const PerpsMarketListView = ({
     [onMarketSelect, perpsNavigation, route.params?.source],
   );
 
-  // Market type tab content component (reusable for all types)
+  // Get filtered markets for specific tab (used within each tab)
+  const getFilteredMarketsForTab = useCallback(
+    (filter: 'all' | 'crypto' | 'stocks_and_commodities') => {
+      if (searchQuery.trim()) {
+        // When searching, show all search results (filtering handled by search)
+        return filteredMarkets;
+      }
+
+      // Filter by tab when not searching
+      if (filter === 'all') {
+        // All = Crypto + Stocks + Commodities (excluding forex)
+        return filteredMarkets.filter(
+          (m) =>
+            !m.marketType ||
+            m.marketType === 'equity' ||
+            m.marketType === 'commodity',
+        );
+      }
+      if (filter === 'crypto') {
+        // Crypto markets have no marketType set
+        return filteredMarkets.filter((m) => !m.marketType);
+      }
+      if (filter === 'stocks_and_commodities') {
+        // Stocks and Commodities combined
+        return filteredMarkets.filter(
+          (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+        );
+      }
+      return filteredMarkets;
+    },
+    [filteredMarkets, searchQuery],
+  );
+
+  // Market type tab content component (filters markets by tab type)
+  // tabLabel is extracted by TabsList component for display, not used here
   const MarketTypeTabContent = useCallback(
-    ({ tabLabel }: { tabLabel: string }) => (
-      <Animated.View
-        style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
-      >
-        <PerpsMarketList
-          markets={filteredMarkets}
-          onMarketPress={handleMarketPress}
-          sortBy={sortBy}
-          showBadge={false}
-          contentContainerStyle={noPaddingContentStyle}
-          testID={`${PerpsMarketListViewSelectorsIDs.MARKET_LIST}-${tabLabel}`}
-        />
-      </Animated.View>
-    ),
+    ({
+      tabFilter,
+      tabLabel: _tabLabel,
+    }: {
+      tabFilter: 'all' | 'crypto' | 'stocks_and_commodities';
+      tabLabel: string;
+    }) => {
+      const tabMarkets = getFilteredMarketsForTab(tabFilter);
+      return (
+        <Animated.View
+          style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
+        >
+          <PerpsMarketList
+            markets={tabMarkets}
+            onMarketPress={handleMarketPress}
+            sortBy={sortBy}
+            showBadge={false}
+            contentContainerStyle={styles.tabContentContainer}
+            testID={`${PerpsMarketListViewSelectorsIDs.MARKET_LIST}-${tabFilter}`}
+          />
+        </Animated.View>
+      );
+    },
     [
-      filteredMarkets,
+      getFilteredMarketsForTab,
       handleMarketPress,
       sortBy,
       fadeAnimation,
       styles.animatedListContainer,
-      noPaddingContentStyle,
+      styles.tabContentContainer,
     ],
   );
 
-  // Build tabs array dynamically based on available markets (hide empty tabs)
-  const tabsToRender = useMemo(() => {
+  // Build tabs data for TabsBar
+  const tabsData = useMemo(() => {
     const tabs = [];
+    const hasCryptoOrStocksCommodities =
+      marketCounts.crypto > 0 ||
+      marketCounts.equity > 0 ||
+      marketCounts.commodity > 0;
 
-    if (marketCounts.crypto > 0) {
-      tabs.push(
-        <MarketTypeTabContent
-          key="crypto-tab"
-          tabLabel={strings('perps.home.crypto')}
-        />,
-      );
-    }
+    // Only show tabs if there are relevant markets
+    if (hasCryptoOrStocksCommodities) {
+      // Tab 1: All (Crypto + Stocks + Commodities)
+      tabs.push({
+        key: 'all-tab',
+        label: strings('perps.home.tabs.all'),
+        filter: 'all' as const,
+      });
 
-    if (marketCounts.equity > 0) {
-      tabs.push(
-        <MarketTypeTabContent
-          key="equity-tab"
-          tabLabel={strings('perps.home.stocks')}
-        />,
-      );
-    }
+      // Tab 2: Crypto (only if crypto markets exist)
+      if (marketCounts.crypto > 0) {
+        tabs.push({
+          key: 'crypto-tab',
+          label: strings('perps.home.tabs.crypto'),
+          filter: 'crypto' as const,
+        });
+      }
 
-    if (marketCounts.commodity > 0) {
-      tabs.push(
-        <MarketTypeTabContent
-          key="commodity-tab"
-          tabLabel={strings('perps.home.commodities')}
-        />,
-      );
-    }
-
-    if (marketCounts.forex > 0) {
-      tabs.push(
-        <MarketTypeTabContent
-          key="forex-tab"
-          tabLabel={strings('perps.home.forex')}
-        />,
-      );
+      // Tab 3: Stocks and Commodities (only if stocks or commodities exist)
+      if (marketCounts.equity > 0 || marketCounts.commodity > 0) {
+        tabs.push({
+          key: 'stocks-and-commodities-tab',
+          label: strings('perps.home.tabs.stocks_and_commodities'),
+          filter: 'stocks_and_commodities' as const,
+        });
+      }
     }
 
     return tabs;
-  }, [marketCounts, MarketTypeTabContent]);
+  }, [marketCounts]);
+
+  // Build tab content components
+  const tabsToRender = useMemo(
+    () =>
+      tabsData.map((tab) => (
+        <MarketTypeTabContent
+          key={tab.key}
+          tabFilter={tab.filter}
+          tabLabel={tab.label}
+        />
+      )),
+    [tabsData, MarketTypeTabContent],
+  );
 
   // Calculate active tab index from current marketTypeFilter
   const activeTabIndex = useMemo(() => {
-    if (marketTypeFilter === 'all' || tabsToRender.length === 0) {
-      return 0; // Default to first tab
+    if (tabsData.length === 0) {
+      return 0;
     }
 
-    // Map filter to index based on available tabs
-    const filterToKeyMap = {
+    // Map filter to tab key
+    const filterToKeyMap: Record<string, string> = {
+      all: 'all-tab',
       crypto: 'crypto-tab',
-      equity: 'equity-tab',
-      commodity: 'commodity-tab',
-      forex: 'forex-tab',
+      stocks_and_commodities: 'stocks-and-commodities-tab',
+      // Legacy mappings for backwards compatibility
+      equity: 'stocks-and-commodities-tab',
+      commodity: 'stocks-and-commodities-tab',
     };
 
-    const targetKey =
-      filterToKeyMap[marketTypeFilter as keyof typeof filterToKeyMap];
-    const index = tabsToRender.findIndex((tab) => tab.key === targetKey);
+    const targetKey = filterToKeyMap[marketTypeFilter] || 'all-tab';
+    const index = tabsData.findIndex((tab) => tab.key === targetKey);
     return index >= 0 ? index : 0;
-  }, [marketTypeFilter, tabsToRender]);
+  }, [marketTypeFilter, tabsData]);
 
-  // Handle tab change (when user swipes)
-  const handleTabChange = useCallback(
-    ({ i }: { i: number }) => {
-      // Map index back to market type filter
-      const keyToFilterMap: Record<
-        string,
-        'crypto' | 'equity' | 'commodity' | 'forex'
-      > = {
-        'crypto-tab': 'crypto',
-        'equity-tab': 'equity',
-        'commodity-tab': 'commodity',
-        'forex-tab': 'forex',
-      };
-
-      const tabKey = tabsToRender[i]?.key;
-      const filter = tabKey ? keyToFilterMap[tabKey as string] : undefined;
-
-      if (filter) {
-        setMarketTypeFilter(filter);
+  // Handle tab press
+  const handleTabPress = useCallback(
+    (index: number) => {
+      const tab = tabsData[index];
+      if (tab) {
+        setMarketTypeFilter(tab.filter);
       }
     },
-    [tabsToRender, setMarketTypeFilter],
+    [tabsData, setMarketTypeFilter],
   );
 
-  // Sync TabsList when active tab changes (e.g., from navigation param)
+  // Handle scroll to sync active tab
+  const handleScroll = useCallback(
+    (event: { nativeEvent: { contentOffset: { x: number } } }) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / containerWidth);
+      if (index >= 0 && index < tabsData.length) {
+        const tab = tabsData[index];
+        if (tab && tab.filter !== marketTypeFilter) {
+          setMarketTypeFilter(tab.filter);
+        }
+      }
+    },
+    [containerWidth, tabsData, marketTypeFilter, setMarketTypeFilter],
+  );
+
+  // Sync scroll position when active tab changes (e.g., from navigation param)
   useEffect(() => {
-    if (tabsListRef.current && activeTabIndex >= 0 && tabsToRender.length > 0) {
-      tabsListRef.current.goToTabIndex(activeTabIndex);
+    if (
+      tabScrollViewRef.current &&
+      activeTabIndex >= 0 &&
+      tabsData.length > 0
+    ) {
+      tabScrollViewRef.current.scrollTo({
+        x: activeTabIndex * containerWidth,
+        animated: true,
+      });
     }
-  }, [activeTabIndex, tabsToRender.length]);
+  }, [activeTabIndex, containerWidth, tabsData.length]);
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
@@ -438,33 +499,61 @@ const PerpsMarketListView = ({
         <PerpsMarketBalanceActions />
       )}
 
-      {/* Filter Bar - Only visible when search is NOT active */}
-      {!isSearchVisible &&
-        !isLoadingMarkets &&
-        !error &&
-        (filteredMarkets.length > 0 || showFavoritesOnly) && (
-          <PerpsMarketFiltersBar
-            selectedOptionId={selectedOptionId}
-            onSortPress={() => setIsSortFieldSheetVisible(true)}
-            showWatchlistOnly={showFavoritesOnly}
-            onWatchlistToggle={handleFavoritesToggle}
-            testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
-          />
-        )}
-
       {/* Market Type Tabs - Only visible when search is NOT active and tabs exist */}
       {!isSearchVisible &&
         !isLoadingMarkets &&
         !error &&
-        tabsToRender.length > 0 && (
+        tabsData.length > 0 && (
           <View style={styles.tabsContainer}>
-            <TabsList
-              ref={tabsListRef}
-              onChangeTab={handleTabChange}
-              key={`market-tabs-${tabsToRender.length}`}
+            {/* Tab Bar */}
+            <TabsBar
+              tabs={tabsData.map((tab) => ({
+                key: tab.key,
+                label: tab.label,
+                content: null, // Content is rendered separately in ScrollView
+                isDisabled: false,
+              }))}
+              activeIndex={activeTabIndex}
+              onTabPress={handleTabPress}
+              testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
+            />
+
+            {/* Filter Bar - Between tabs and content */}
+            {(filteredMarkets.length > 0 || showFavoritesOnly) && (
+              <PerpsMarketFiltersBar
+                selectedOptionId={selectedOptionId}
+                onSortPress={() => setIsSortFieldSheetVisible(true)}
+                showWatchlistOnly={showFavoritesOnly}
+                onWatchlistToggle={handleFavoritesToggle}
+                testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
+              />
+            )}
+
+            {/* Tab Content - Scrollable */}
+            <ScrollView
+              ref={tabScrollViewRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              onLayout={(event) => {
+                setContainerWidth(event.nativeEvent.layout.width);
+              }}
+              style={styles.tabScrollView}
             >
-              {tabsToRender}
-            </TabsList>
+              {tabsToRender.map((tabContent, index) => (
+                <View
+                  key={tabsData[index]?.key || index}
+                  style={[
+                    styles.tabContentContainer,
+                    { width: containerWidth },
+                  ]}
+                >
+                  {tabContent}
+                </View>
+              ))}
+            </ScrollView>
           </View>
         )}
 

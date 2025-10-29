@@ -21,9 +21,8 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
       paddingVertical: 6,
-      marginLeft: 8,
     },
   });
 };

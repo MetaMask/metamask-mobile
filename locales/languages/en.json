@@ -1528,10 +1528,16 @@
       "positions": "Your positions",
       "orders": "Your orders",
       "perps": "Perps",
+      "all": "All",
       "crypto": "Explore crypto",
       "stocks": "Stocks",
       "commodities": "Commodities",
       "stocks_and_commodities": "Explore stocks and commodities",
+      "tabs": {
+        "all": "All",
+        "crypto": "Crypto",
+        "stocks_and_commodities": "Stocks"
+      },
       "forex": "Forex",
       "watchlist": "Watchlist",
       "markets": "Markets"
