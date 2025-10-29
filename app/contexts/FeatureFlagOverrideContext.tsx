@@ -14,7 +14,10 @@ import {
   getFeatureFlagType,
   isMinimumRequiredVersionSupported,
 } from '../util/feature-flags';
-import { ToastContext } from '../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
 
 interface FeatureFlagOverrides {
@@ -140,6 +143,32 @@ export const FeatureFlagOverrideProvider: React.FC<
     a.key.localeCompare(b.key),
   );
 
+  const validateMinimumVersion = useCallback(
+    (flagKey: string, flagValue: MinimumVersionFlagValue) => {
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
+      ) {
+        toastRef?.current?.showToast({
+          labelOptions: [
+            {
+              label: 'Unsupported version',
+              isBold: true,
+            },
+            {
+              label: `${flagKey} is not supported on your version of the app.`,
+            },
+          ],
+          hasNoTimeout: false,
+          variant: ToastVariants.Plain,
+        });
+        return false;
+      }
+      return flagValue.enabled;
+    },
+    [toastRef],
+  );
+
   /**
    * get a specific feature flag value with overrides applied
    */
@@ -158,32 +187,6 @@ export const FeatureFlagOverrideProvider: React.FC<
 
     return flag.value;
   };
-  const validateMinimumVersion = useCallback(
-    (flagKey: string, flagValue: MinimumVersionFlagValue) => {
-      if (
-        process.env.NODE_ENV !== 'production' &&
-        !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
-      ) {
-        toastRef?.current?.showToast({
-          variant: 'Icon' as any,
-          labelOptions: [
-            {
-              label: 'Unsupported version',
-              isBold: true,
-            },
-            {
-              label: `${flagKey} is not supported on your version of the app.`,
-            },
-          ],
-          iconName: 'Warning' as any,
-          hasNoTimeout: false,
-        });
-        return false;
-      }
-      return flagValue.enabled;
-    },
-    [],
-  );
 
   const getOverrideCount = useCallback(
     (): number => Object.keys(overrides).length,
