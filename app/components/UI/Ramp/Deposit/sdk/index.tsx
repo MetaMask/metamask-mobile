@@ -13,6 +13,7 @@ import { selectDepositProviderApiKey } from '../../../../../selectors/featureFla
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
+  NativeTransakUserDetails,
   Context,
   DepositPaymentMethod,
   DepositRegion,
@@ -37,6 +38,7 @@ import {
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import useAnalytics from '../../hooks/useAnalytics';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -56,6 +58,10 @@ export interface DepositSDK {
   setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
   selectedCryptoCurrency: DepositCryptoCurrency | null;
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
+  userDetails: NativeTransakUserDetails | null;
+  userDetailsError: string | null;
+  isFetchingUserDetails: boolean;
+  fetchUserDetails: () => Promise<NativeTransakUserDetails | undefined>;
 }
 
 const environment = getSdkEnvironment();
@@ -80,11 +86,15 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
+  const trackEventCallback = useAnalytics();
 
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
+  const [userDetails, setUserDetails] = useState<NativeTransakUserDetails | null>(null);
+  const [userDetailsError, setUserDetailsError] = useState<string | null>(null);
+  const [isFetchingUserDetails, setIsFetchingUserDetails] = useState<boolean>(false);
 
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedDeposit);
   const INITIAL_SELECTED_REGION: DepositRegion | null = useSelector(
@@ -226,9 +236,59 @@ export const DepositSDKProvider = ({
       await resetProviderToken();
       setAuthToken(undefined);
       setIsAuthenticated(false);
+      // Clear user details on logout
+      setUserDetails(null);
+      setUserDetailsError(null);
     },
     [sdk],
   );
+
+  const fetchUserDetails = useCallback(async () => {
+    if (!sdk || !isAuthenticated) {
+      return;
+    }
+
+    if (isFetchingUserDetails) {
+      return;
+    }
+
+    try {
+      setIsFetchingUserDetails(true);
+      setUserDetailsError(null);
+      
+      const result = await sdk.getUserDetails();
+      setUserDetails(result);
+      
+      // Track analytics once at SDK level
+      trackEventCallback('RAMPS_USER_DETAILS_FETCHED', {
+        logged_in: isAuthenticated,
+        region: result?.address?.countryCode || selectedRegion?.isoCode || '',
+        location: 'SDK Provider',
+      });
+      
+      return result;
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      setUserDetailsError(errorMessage);
+      
+      // Handle 401 by logging out
+      if ((error as any).status === 401) {
+        Logger.log('DepositSDK: 401 error, clearing authentication');
+        await logoutFromProvider(false);
+      }
+      
+      throw error;
+    } finally {
+      setIsFetchingUserDetails(false);
+    }
+  }, [sdk, isAuthenticated, isFetchingUserDetails, logoutFromProvider, trackEventCallback, selectedRegion?.isoCode]);
+
+  // Auto-fetch user details when authenticated
+  useEffect(() => {
+    if (isAuthenticated && sdk && !userDetails && !isFetchingUserDetails && !userDetailsError) {
+      fetchUserDetails();
+    }
+  }, [isAuthenticated, sdk, userDetails, isFetchingUserDetails, userDetailsError, fetchUserDetails]);
 
   const contextValue = useMemo(
     (): DepositSDK => ({
@@ -249,6 +309,10 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrency: setSelectedCryptoCurrencyCallback,
+      userDetails,
+      userDetailsError,
+      isFetchingUserDetails,
+      fetchUserDetails,
     }),
     [
       sdk,
@@ -268,6 +332,10 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrencyCallback,
+      userDetails,
+      userDetailsError,
+      isFetchingUserDetails,
+      fetchUserDetails,
     ],
   );
 
