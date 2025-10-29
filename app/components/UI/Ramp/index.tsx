@@ -33,6 +33,7 @@ import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+import useDetectGeolocation from './hooks/useDetectGeolocation';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
 
 function FiatOrders() {
   useFetchRampNetworks();
+  useDetectGeolocation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
