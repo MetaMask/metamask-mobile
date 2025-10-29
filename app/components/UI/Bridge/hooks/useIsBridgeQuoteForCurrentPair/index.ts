@@ -1,11 +1,9 @@
-import {
-  formatAddressToAssetId,
-  isNonEvmChainId,
-} from '@metamask/bridge-controller';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { BridgeToken } from '../../types';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 interface Props {
   activeQuote?: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -31,34 +29,37 @@ export const useIsBridgeQuoteForCurrentPair = ({
       return false;
     }
 
-    // Normalizes asset ID for comparison (lowercase for EVM, preserve case for non-EVM)
-    const normalizeAssetId = (assetId: string, chainId: Hex | CaipChainId) => {
+    // Compare chain IDs and addresses directly from the quote
+    const normalizeAddress = (addr: string, chainId: Hex | CaipChainId) => {
       const isEvmChain = !isNonEvmChainId(chainId);
-      return isEvmChain ? assetId.toLowerCase() : assetId;
+      return isEvmChain ? addr.toLowerCase() : addr;
     };
 
-    // Generate asset IDs from selected tokens
-    const getTokenAssetId = (token: BridgeToken) => {
-      const isEvmChain = !isNonEvmChainId(token.chainId);
-      const formattedAddress = isEvmChain
-        ? token.address.toLowerCase()
-        : token.address;
-      return formatAddressToAssetId(formattedAddress, token.chainId);
-    };
+    const srcChainIdMatch =
+      activeQuote.quote.srcChainId.toString() ===
+      getDecimalChainId(sourceToken.chainId).toString();
+    const destChainIdMatch =
+      activeQuote.quote.destChainId.toString() ===
+      getDecimalChainId(destToken.chainId).toString();
 
-    // Compare normalized asset IDs
-    const srcMatch =
-      normalizeAssetId(
-        activeQuote.quote.srcAsset.assetId,
+    const srcAddressMatch =
+      normalizeAddress(
+        activeQuote.quote.srcAsset.address,
         sourceToken.chainId,
-      ) === getTokenAssetId(sourceToken);
+      ) === normalizeAddress(sourceToken.address, sourceToken.chainId);
 
-    const destMatch =
-      normalizeAssetId(
-        activeQuote.quote.destAsset.assetId,
+    const destAddressMatch =
+      normalizeAddress(
+        activeQuote.quote.destAsset.address,
         destToken.chainId,
-      ) === getTokenAssetId(destToken);
+      ) === normalizeAddress(destToken.address, destToken.chainId);
 
-    return srcMatch && destMatch;
+    const allMatch =
+      srcChainIdMatch &&
+      destChainIdMatch &&
+      srcAddressMatch &&
+      destAddressMatch;
+
+    return allMatch;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuote?.quote.requestId, sourceToken, destToken]);
