@@ -177,7 +177,7 @@ class TestableRewardsController extends RewardsController {
 
     // Call the messaging system with the expected parameters and properly handle errors
     // This will use the mock that's set up in the test
-    return this.messagingSystem
+    return this.messenger
       .call('KeyringController:signPersonalMessage', {
         data: hexMessage,
         from: account.address,
@@ -815,6 +815,38 @@ describe('RewardsController', () => {
       await expect(controller.estimatePoints(mockRequest)).rejects.toThrow(
         'API error',
       );
+    });
+
+    it('estimates points for batch PERPS positions with array', async () => {
+      const mockRequest = {
+        activityType: 'PERPS' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {
+          perpsContext: [
+            {
+              type: 'CLOSE_POSITION' as const,
+              coin: 'BTC',
+              usdFeeValue: '10.50',
+            },
+            {
+              type: 'CLOSE_POSITION' as const,
+              coin: 'ETH',
+              usdFeeValue: '5.25',
+            },
+          ],
+        },
+      };
+      const mockResponse = { pointsEstimate: 200, bonusBips: 100 };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      const result = await controller.estimatePoints(mockRequest);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:estimatePoints',
+        mockRequest,
+      );
+      expect(result).toEqual(mockResponse);
     });
   });
 
@@ -5081,7 +5113,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle messagingSystem.call throwing an error', async () => {
+    it('should handle messenger.call throwing an error', async () => {
       // Arrange
       mockMessenger.call.mockImplementation(() => {
         throw new Error('Messaging system error');
@@ -9578,7 +9610,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Mock messagingSystem.call to return accounts
+      // Mock messenger.call to return accounts
       mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
 
       // Mock getOptInStatus to return no opted-in accounts
@@ -9622,7 +9654,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Mock messagingSystem.call to return accounts
+      // Mock messenger.call to return accounts
       mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
 
       // Mock getOptInStatus to return opted-in accounts
@@ -9661,7 +9693,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Mock messagingSystem.call to return accounts
+      // Mock messenger.call to return accounts
       mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
 
       // Mock getOptInStatus to throw an error
@@ -12817,7 +12849,7 @@ describe('RewardsController', () => {
         deriveStateFromMetadata(
           controller.state,
           controller.metadata,
-          'anonymous',
+          'includeInDebugSnapshot',
         ),
       ).toMatchInlineSnapshot(`{}`);
     });

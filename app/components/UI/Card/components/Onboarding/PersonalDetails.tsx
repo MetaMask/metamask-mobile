@@ -16,10 +16,11 @@ import OnboardingStep from './OnboardingStep';
 import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
+  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SelectComponent from '../../../SelectComponent';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -30,10 +31,11 @@ import {
 import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { setUser, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
@@ -158,9 +160,10 @@ const PersonalDetails = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.PERSONAL_DETAILS_BUTTON_CLICKED,
+            action: CardActions.PERSONAL_DETAILS_BUTTON,
+            country_of_residence: selectedCountry,
           })
           .build(),
       );
@@ -183,6 +186,7 @@ const PersonalDetails = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
+        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
@@ -192,9 +196,9 @@ const PersonalDetails = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.PERSONAL_DETAILS,
+          screen: CardScreens.PERSONAL_DETAILS,
         })
         .build(),
     );
