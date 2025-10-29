@@ -28,6 +28,7 @@ import { PERPS_CONSTANTS, TP_SL_CONFIG } from '../../constants/perpsConfig';
 import type {
   PerpsNavigationParamList,
   Position,
+  TPSLTrackingData,
 } from '../../controllers/types';
 import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
@@ -153,8 +154,17 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       position,
       initialTakeProfitPrice: position.takeProfitPrice,
       initialStopLossPrice: position.stopLossPrice,
-      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
-        await handleUpdateTPSL(position, takeProfitPrice, stopLossPrice);
+      onConfirm: async (
+        takeProfitPrice?: string,
+        stopLossPrice?: string,
+        trackingData?: TPSLTrackingData,
+      ) => {
+        await handleUpdateTPSL(
+          position,
+          takeProfitPrice,
+          stopLossPrice,
+          trackingData,
+        );
       },
     });
   }, [
