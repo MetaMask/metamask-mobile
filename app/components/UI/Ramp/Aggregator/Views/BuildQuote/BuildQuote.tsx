@@ -255,7 +255,6 @@ const BuildQuote = () => {
       ) {
         const newRegionCurrency = await queryDefaultFiatCurrency(
           selectedRegion.id,
-          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
         );
         if (newRegionCurrency?.id) {
           setSelectedFiatCurrencyId(newRegionCurrency.id);
