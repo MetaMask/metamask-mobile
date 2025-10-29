@@ -132,7 +132,7 @@ jobs:
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: e2e
+          METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
           IS_TEST: false
           E2E: 'true'
@@ -159,7 +159,7 @@ jobs:
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
           MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_IOS_GOOGLE_REDIRECT_URxI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
           MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
           MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
