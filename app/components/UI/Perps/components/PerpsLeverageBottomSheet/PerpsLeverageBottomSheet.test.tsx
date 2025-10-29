@@ -1218,6 +1218,40 @@ describe('PerpsLeverageBottomSheet', () => {
         // Assert - Long press gesture was configured with end handler
         expect(longPressEndHandler).not.toBeNull();
       });
+
+      it('handles gesture tap without crashing', async () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        let capturedHandler: ((event: { x: number }) => void) | null = null;
+
+        Gesture.Tap.mockImplementation(() => ({
+          onEnd: (handler: (event: { x: number }) => void) => {
+            capturedHandler = handler;
+            return { onEnd: jest.fn().mockReturnThis() };
+          },
+        }));
+
+        const { act } = jest.requireActual('@testing-library/react-native');
+
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        const slider = screen.getByTestId('leverage-slider-track');
+        fireEvent(slider, 'layout', {
+          nativeEvent: { layout: { width: 300, height: 8 } },
+        });
+
+        // Act - Call handler and verify no crash
+        await act(async () => {
+          expect(() => capturedHandler?.({ x: 150 })).not.toThrow();
+        });
+
+        // Assert - Component still renders after handler invocation
+        expect(
+          screen.getByText('perps.order.leverage_modal.title'),
+        ).toBeOnTheScreen();
+        // Verify button text matches pattern "Set Nx"
+        expect(screen.getByText(/Set \d+x/)).toBeOnTheScreen();
+      });
     });
   });
 
