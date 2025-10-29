@@ -48,11 +48,10 @@ import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesCont
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import {
-  ACCOUNT_TYPE_LABEL_TEST_ID,
-  accountTypeLabel,
-} from '../../Tokens/TokenList/TokenListItem/TokenListItemBip44';
 import Tag from '../../../../component-library/components/Tags/Tag';
+import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+
+export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 interface BalanceProps {
   asset: TokenI;
@@ -201,7 +200,7 @@ const Balance = ({
   );
 
   const label = asset.accountType
-    ? accountTypeLabel[asset.accountType]
+    ? ACCOUNT_TYPE_LABELS[asset.accountType]
     : undefined;
 
   return (
