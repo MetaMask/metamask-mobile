@@ -14,6 +14,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   View,
+  LayoutChangeEvent,
 } from 'react-native';
 
 // External dependencies.
@@ -577,13 +578,66 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [tabs, activeIndex, handleTabPress, testID, tabsBarProps],
     );
 
+    // Common ScrollView props (memoized to avoid recreation)
+    // Note: ref is NOT included here as it should be passed directly to avoid ref conflicts
+    const commonScrollViewProps = useMemo(
+      () => ({
+        horizontal: true,
+        pagingEnabled: true,
+        showsHorizontalScrollIndicator: false,
+        onScroll: handleScroll,
+        onScrollAnimationEnd: handleScrollEnd,
+        onScrollBeginDrag: handleScrollBegin,
+        onScrollEndDrag: handleScrollEnd,
+        onMomentumScrollBegin: handleScrollBegin,
+        onMomentumScrollEnd: handleScrollEnd,
+        scrollEventThrottle: 16,
+        onLayout: handleLayout,
+        decelerationRate: 'fast' as const,
+        testID: testID ? `${testID}-content` : undefined,
+      }),
+      [handleScroll, handleScrollEnd, handleScrollBegin, handleLayout, testID],
+    );
+
+    // Memoized height measurement handler for auto-height mode
+    const handleAutoHeightLayout = useCallback(
+      (enabledTab: (typeof enabledTabs)[0], layoutEvent: LayoutChangeEvent) => {
+        const { height } = layoutEvent.nativeEvent.layout;
+        if (height > 0) {
+          const currentHeight = tabHeights.get(enabledTab.key);
+
+          if (!currentHeight || Math.abs(currentHeight - height) > 5) {
+            setTabHeights((prev) => {
+              const latestHeight = prev.get(enabledTab.key);
+              if (latestHeight && Math.abs(latestHeight - height) <= 5) {
+                return prev;
+              }
+              const newHeights = new Map(prev);
+              newHeights.set(enabledTab.key, height);
+              return newHeights;
+            });
+
+            // Only update scrollViewHeight if we're on this tab and not actively scrolling
+            if (
+              enabledTab.originalIndex === activeIndex &&
+              tabContentRefs.current.has(enabledTab.key) &&
+              !isScrolling.current &&
+              !isProgrammaticScroll.current
+            ) {
+              setScrollViewHeight(height);
+            }
+          }
+        }
+      },
+      [activeIndex, tabHeights],
+    );
+
     return (
       <Box
         twClassName={autoHeight ? '' : 'flex-1'}
         testID={testID}
         {...boxProps}
       >
-        {/* Render TabsBar */}
         <TabsBar {...tabBarPropsComputed} />
 
         {autoHeight ? (
@@ -598,20 +652,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           >
             <ScrollView
               ref={scrollViewRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              onScrollAnimationEnd={handleScrollEnd}
-              onScrollBeginDrag={handleScrollBegin}
-              onScrollEndDrag={handleScrollEnd}
-              onMomentumScrollBegin={handleScrollBegin}
-              onMomentumScrollEnd={handleScrollEnd}
-              scrollEventThrottle={16}
-              onLayout={handleLayout}
+              {...commonScrollViewProps}
               style={tw.style('w-full')}
-              decelerationRate="fast"
-              testID={testID ? `${testID}-content` : undefined}
             >
               {enabledTabs.map((enabledTab) => (
                 <View
@@ -625,44 +667,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                         tabContentRefs.current.set(enabledTab.key, viewRef);
                       }
                     }}
-                    onLayout={(layoutEvent) => {
-                      // Only measure heights in autoHeight mode
-                      if (!autoHeight) return;
-
-                      const { height } = layoutEvent.nativeEvent.layout;
-                      if (height > 0) {
-                        const currentHeight = tabHeights.get(enabledTab.key);
-
-                        if (
-                          !currentHeight ||
-                          Math.abs(currentHeight - height) > 5
-                        ) {
-                          setTabHeights((prev) => {
-                            const latestHeight = prev.get(enabledTab.key);
-                            if (
-                              latestHeight &&
-                              Math.abs(latestHeight - height) <= 5
-                            ) {
-                              return prev;
-                            }
-
-                            const newHeights = new Map(prev);
-                            newHeights.set(enabledTab.key, height);
-                            return newHeights;
-                          });
-
-                          // Only update scrollViewHeight if we're on this tab and not actively scrolling
-                          if (
-                            enabledTab.originalIndex === activeIndex &&
-                            tabContentRefs.current.has(enabledTab.key) &&
-                            !isScrolling.current &&
-                            !isProgrammaticScroll.current
-                          ) {
-                            setScrollViewHeight(height);
-                          }
-                        }
-                      }
-                    }}
+                    onLayout={(layoutEvent) =>
+                      handleAutoHeightLayout(enabledTab, layoutEvent)
+                    }
                   >
                     {loadedTabs.has(enabledTab.originalIndex) &&
                     shouldShowContent
@@ -674,23 +681,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             </ScrollView>
           </View>
         ) : (
-          /* Fixed-height mode: Original behavior matching main branch */
+          /* Fixed-height mode */
           <ScrollView
             ref={scrollViewRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            onScrollAnimationEnd={handleScrollEnd}
-            onScrollBeginDrag={handleScrollBegin}
-            onScrollEndDrag={handleScrollEnd}
-            onMomentumScrollBegin={handleScrollBegin}
-            onMomentumScrollEnd={handleScrollEnd}
-            scrollEventThrottle={16}
-            onLayout={handleLayout}
+            {...commonScrollViewProps}
             style={tw.style('flex-1 mt-2')}
-            decelerationRate="fast"
-            testID={testID ? `${testID}-content` : undefined}
           >
             {enabledTabs.map((enabledTab) => (
               <Box
