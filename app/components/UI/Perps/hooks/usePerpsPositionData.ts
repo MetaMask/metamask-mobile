@@ -193,53 +193,74 @@ export const usePerpsPositionData = ({
     };
   }, [candleData, isLoadingHistory, selectedInterval, fetchHistoricalCandles]);
 
+  useEffect(() => {
+    prevMergedDataRef.current = null;
+  }, [selectedInterval]);
+
   const liveCandle = useMemo(() => {
     if (!priceData?.price || isLoadingHistory) return null;
 
     const currentPrice = Number.parseFloat(priceData.price.toString());
     const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
+    const existingCandles =
+      prevMergedDataRef.current?.candles ?? candleData?.candles ?? [];
     const existingCandleIndex =
-      candleData?.candles.findIndex(
+      existingCandles.findIndex(
         (candle) => candle.time === currentCandleTime,
       ) ?? -1;
 
-    const lastCandle =
-      existingCandleIndex >= 0
-        ? candleData?.candles[existingCandleIndex]
-        : candleData?.candles[candleData?.candles.length - 1];
+    const existingLiveCandle =
+      existingCandleIndex >= 0 ? existingCandles[existingCandleIndex] : null;
+
+    if (!existingLiveCandle) {
+      const existingCandlesLength = existingCandles.length;
+      const previousCandle =
+        existingCandlesLength > 0
+          ? existingCandles[existingCandlesLength - 1]
+          : null;
+      const open = previousCandle
+        ? previousCandle.close.toString()
+        : currentPrice.toString();
+      const close = currentPrice.toString();
+      const high = currentPrice.toString();
+      const low = currentPrice.toString();
+
+      return {
+        time: currentCandleTime,
+        open,
+        high,
+        low,
+        close,
+        volume: '0',
+      };
+    }
 
     const close = currentPrice.toString();
-    const high = lastCandle
-      ? Math.max(currentPrice, Number.parseFloat(lastCandle.high)).toString()
-      : currentPrice.toString();
-    const low = lastCandle
-      ? Math.min(currentPrice, Number.parseFloat(lastCandle.low)).toString()
-      : currentPrice.toString();
+    const high = Math.max(
+      currentPrice,
+      Number.parseFloat(existingLiveCandle.high),
+    ).toString();
+    const low = Math.min(
+      currentPrice,
+      Number.parseFloat(existingLiveCandle.low),
+    ).toString();
 
-    const newLiveCandle = lastCandle
-      ? {
-          ...lastCandle,
-          time: currentCandleTime,
-          close,
-          high,
-          low,
-        }
-      : {
-          time: currentCandleTime,
-          open: currentPrice.toString(),
-          high,
-          low,
-          close,
-          volume: '0', // We don't have live volume
-        };
+    const newLiveCandle = {
+      ...existingLiveCandle,
+      time: currentCandleTime,
+      close,
+      high,
+      low,
+    };
 
     return newLiveCandle;
   }, [
     priceData,
     selectedInterval,
-    candleData,
     getCurrentCandleStartTime,
     isLoadingHistory,
+    prevMergedDataRef,
+    candleData,
   ]);
 
   // Merge historical candles with live candle for chart display
@@ -247,11 +268,13 @@ export const usePerpsPositionData = ({
     if (!candleData || !liveCandle) return candleData;
 
     // Check if live candle already exists in historical data
-    const existingCandleIndex = candleData.candles.findIndex(
+    const existingCandles =
+      prevMergedDataRef.current?.candles ?? candleData.candles;
+    const existingCandleIndex = existingCandles.findIndex(
       (candle) => candle.time === liveCandle.time,
     );
 
-    const updatedCandles = [...candleData.candles];
+    const updatedCandles = [...existingCandles];
 
     if (existingCandleIndex >= 0) {
       // Replace existing candle with live version
