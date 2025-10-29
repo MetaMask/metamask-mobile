@@ -880,10 +880,6 @@ export class CardSDK {
     const priorityWalletDetails =
       (await responses[1].json()) as CardWalletExternalPriorityResponse[];
 
-    // Debug: Log what we received from the API
-    Logger.log('CardSDK: External wallet details:', externalWalletDetails);
-    Logger.log('CardSDK: Priority wallet details:', priorityWalletDetails);
-
     if (
       externalWalletDetails.length === 0 ||
       priorityWalletDetails.length === 0

@@ -162,7 +162,7 @@ const SpendingLimit = ({
     }
 
     // For 'manage' flow, determine the best token to pre-select
-    if (flow === 'manage') {
+    if (flow === 'manage' && !selectedToken) {
       // Check if priority token is Solana
       const isPriorityTokenSolana =
         priorityToken?.caipChainId === SolScope.Mainnet ||
@@ -183,7 +183,7 @@ const SpendingLimit = ({
         });
       }
     }
-  }, [flow, selectedTokenFromRoute, priorityToken, allTokens]);
+  }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
 
   // Update limit amount when spending limit settings change
   useEffect(() => {
@@ -229,12 +229,14 @@ const SpendingLimit = ({
       if (option === 'full') {
         setShowOptions(false);
       }
-      // If switching to restricted, set the limit amount to stored spending limit
-      else if (option === 'restricted' && spendingLimitSettings.limitAmount) {
-        setTempLimitAmount(spendingLimitSettings.limitAmount);
+      // If switching to restricted, set the limit amount to stored spending limit or priority token allowance
+      else if (option === 'restricted') {
+        const limitValue =
+          spendingLimitSettings.limitAmount || priorityToken?.allowance || '0';
+        setTempLimitAmount(limitValue);
       }
     },
-    [spendingLimitSettings.limitAmount],
+    [spendingLimitSettings.limitAmount, priorityToken],
   );
 
   const handleEditLimit = useCallback(() => {
@@ -248,11 +250,13 @@ const SpendingLimit = ({
     // When "Set a limit" is clicked, show both options and default to restricted
     setTempSelectedOption('restricted');
 
-    // Use stored spending limit settings
-    setTempLimitAmount(spendingLimitSettings.limitAmount || '0');
+    // Use stored spending limit settings or priority token allowance
+    const limitValue =
+      spendingLimitSettings.limitAmount || priorityToken?.allowance || '0';
+    setTempLimitAmount(limitValue);
 
     setShowOptions(true);
-  }, [spendingLimitSettings, trackEvent, createEventBuilder]);
+  }, [spendingLimitSettings, priorityToken, trackEvent, createEventBuilder]);
 
   const handleConfirm = useCallback(async () => {
     trackEvent(

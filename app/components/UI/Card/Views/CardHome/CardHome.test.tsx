@@ -38,6 +38,7 @@ jest.mock('../../hooks/isBaanxLoginEnabled', () => ({
 }));
 
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -294,6 +295,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.try_again': 'Try again',
       'card.card_home.logout': 'Logout',
       'card.card_home.logout_description': 'Logout of your Card account',
+      'card.card_home.logout_confirmation_title': 'Confirm Logout',
+      'card.card_home.logout_confirmation_message':
+        'Are you sure you want to logout?',
+      'card.card_home.logout_confirmation_cancel': 'Cancel',
+      'card.card_home.logout_confirmation_confirm': 'Logout',
     };
     return strings[key] || key;
   },
@@ -433,6 +439,16 @@ function render() {
 describe('CardHome Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock Alert.alert
+    jest
+      .spyOn(Alert, 'alert')
+      .mockImplementation((_title, _message, buttons) => {
+        // For logout confirmation, immediately call the confirm button's onPress
+        if (buttons && buttons.length > 1 && buttons[1].onPress) {
+          buttons[1].onPress();
+        }
+      });
 
     // Clear SDK mocks
     mockLogoutFromProvider.mockClear();
@@ -1239,22 +1255,69 @@ describe('CardHome Component', () => {
       expect(screen.getByText('Logout of your Card account')).toBeTruthy();
     });
 
-    it('calls logout and navigates back when logout button pressed', async () => {
+    it('shows logout confirmation alert when logout button pressed', () => {
       // Given: user is authenticated
       setupMockSelectors({ isAuthenticated: true });
       setupLoadCardDataMock({ isAuthenticated: true });
 
       render();
 
-      // When: user presses logout
+      // When: user presses logout button
+      const logoutButton = screen.getByText('Logout');
+      fireEvent.press(logoutButton);
+
+      // Then: should show confirmation alert with correct buttons
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Confirm Logout',
+        'Are you sure you want to logout?',
+        expect.arrayContaining([
+          expect.objectContaining({ text: 'Cancel', style: 'cancel' }),
+          expect.objectContaining({
+            text: 'Logout',
+            style: 'destructive',
+            onPress: expect.any(Function),
+          }),
+        ]),
+      );
+    });
+
+    it('calls logout and navigates back when logout confirmed', () => {
+      // Given: user is authenticated
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      // When: user presses logout and confirms the Alert
       const logoutButton = screen.getByText('Logout');
       fireEvent.press(logoutButton);
 
       // Then: should call logout and navigate back
-      await waitFor(() => {
-        expect(mockLogoutFromProvider).toHaveBeenCalled();
-        expect(mockGoBack).toHaveBeenCalled();
-      });
+      expect(mockLogoutFromProvider).toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('does not logout when alert is cancelled', () => {
+      // Given: user is authenticated and Alert will be cancelled
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation((_title, _message, buttons) => {
+          // Simulate pressing Cancel button (button at index 0)
+          buttons?.[0].onPress?.();
+        });
+
+      render();
+
+      // When: user presses logout but cancels the Alert
+      const logoutButton = screen.getByText('Logout');
+      fireEvent.press(logoutButton);
+
+      // Then: should not call logout or navigate back
+      expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('does not show logout button when user is not authenticated', () => {

@@ -89,6 +89,7 @@ describe('useOpenSwaps', () => {
     decimals: 6,
     name: 'USD Coin',
     chainId: '0xe708',
+    caipChainId: 'eip155:59144',
   };
 
   const mockTopToken = {
@@ -306,12 +307,10 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
-    expect(buildTokenIconUrl).toHaveBeenCalledWith('0xe708', '0xdead');
+    expect(buildTokenIconUrl).toHaveBeenCalledWith('eip155:59144', '0xdead');
   });
 
   it('uses tokens with balance correctly', () => {

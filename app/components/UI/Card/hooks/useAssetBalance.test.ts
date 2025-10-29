@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useAssetBalance } from './useAssetBalance';
 import { CardTokenAllowance } from '../types';
+import { CaipChainId } from '@metamask/utils';
 import { TOKEN_RATE_UNDEFINED } from '../../Tokens/constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { formatWithThreshold } from '../../../../util/assets';
@@ -127,6 +128,7 @@ describe('useAssetBalance', () => {
   const mockToken: CardTokenAllowance = {
     address: '0x1234567890123456789012345678901234567890',
     chainId: '0x1',
+    caipChainId: 'eip155:1' as CaipChainId,
     isStaked: false,
     decimals: 18,
     symbol: 'TEST',
@@ -197,13 +199,9 @@ describe('useAssetBalance', () => {
       if (typeof selector === 'function') {
         if (useSelectorCallCount % 2 === 1) {
           // Odd call: inline selector that calls selectAsset
-          try {
-            const mockState = {} as any;
-            return selector(mockState);
-          } catch (e) {
-            return undefined;
-          }
-        } else {
+          // Return the value that was set via mockSelectAsset.mockReturnValue()
+          return mockSelectAsset();
+        }
           // Even call: assetBalanceSelector - return mocked balance info
           return {
             primaryCurrency: defaults.primaryCurrency,
@@ -212,7 +210,7 @@ describe('useAssetBalance', () => {
             exchangeRates: overrides.exchangeRates ?? defaults.exchangeRates,
             currentCurrency: defaults.currentCurrency,
           };
-        }
+
       }
 
       if (selector.toString().includes('selectSelectedInternalAccountAddress'))
@@ -261,7 +259,9 @@ describe('useAssetBalance', () => {
 
   describe('null/undefined token handling', () => {
     it('should return default values when token is null/undefined', () => {
-      // Given: token is null or undefined
+      // Given: token is null or undefined, selector should return undefined
+      mockSelectAsset.mockReturnValue(undefined);
+
       // When token is null/undefined, the hook returns early with empty values
       const { result: nullResult } = renderHook(() => useAssetBalance(null));
       const { result: undefinedResult } = renderHook(() =>
@@ -278,7 +278,9 @@ describe('useAssetBalance', () => {
     });
 
     it('should handle evmAsset selector returning undefined when token is falsy', () => {
-      // Given: token is null/undefined
+      // Given: token is null/undefined, selector should return undefined
+      mockSelectAsset.mockReturnValue(undefined);
+
       // The hook checks if (!asset || !token) and returns empty values
       const { result: nullResult } = renderHook(() => useAssetBalance(null));
       const { result: undefinedResult } = renderHook(() =>
@@ -459,7 +461,7 @@ describe('useAssetBalance', () => {
         'https://example.com/token-icon.png',
       );
       expect(mockBuildTokenIconUrl).toHaveBeenCalledWith(
-        mockToken.chainId,
+        mockToken.caipChainId,
         mockToken.address,
       );
     });

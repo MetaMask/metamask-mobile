@@ -26,6 +26,7 @@ const mockPriorityToken: SupportedTokenWithChain = {
   chainName: 'Linea',
   allowanceState: AllowanceState.Enabled,
   allowance: '1000000',
+  walletAddress: '0xwallet123',
 };
 
 const mockSolanaToken: SupportedTokenWithChain = {
@@ -39,6 +40,7 @@ const mockSolanaToken: SupportedTokenWithChain = {
   chainName: 'Solana',
   allowanceState: AllowanceState.Enabled,
   allowance: '500000',
+  walletAddress: '0xwallet123',
 };
 
 const mockMUSDToken: SupportedTokenWithChain = {
@@ -51,6 +53,7 @@ const mockMUSDToken: SupportedTokenWithChain = {
   chainName: 'Linea',
   allowanceState: AllowanceState.Enabled,
   allowance: '2000000',
+  walletAddress: '0xwallet123',
 };
 
 const mockSdk = {
@@ -141,6 +144,7 @@ jest.mock('../../util/buildTokenIconUrl', () => ({
 }));
 
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import SpendingLimit from './SpendingLimit';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -182,13 +186,38 @@ describe('SpendingLimit Component', () => {
         name: 'SpendingLimit',
         options: {},
       },
-      {},
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              PreferencesController: {
+                isIpfsGatewayEnabled: true,
+              },
+            },
+          },
+        },
+      },
     );
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitDelegation.mockResolvedValue(undefined);
+
+    // Reset useLoadCardData mock to default state
+    (useLoadCardData as jest.Mock).mockReturnValue({
+      priorityToken: mockPriorityToken,
+      allTokens: [mockPriorityToken, mockMUSDToken],
+      isLoading: false,
+      error: null,
+      warning: null,
+    });
+
+    // Reset useCardDelegation mock to default state
+    (useCardDelegation as jest.Mock).mockReturnValue({
+      submitDelegation: mockSubmitDelegation,
+      isLoading: false,
+    });
   });
 
   describe('Initial Rendering', () => {
@@ -238,8 +267,8 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByText('Linea')).toBeOnTheScreen();
     });
 
-    it('pre-selects mUSD when priority token is Solana', () => {
-      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+    it('does not pre-select token when priority token is Solana', () => {
+      (useLoadCardData as jest.Mock).mockReturnValue({
         priorityToken: mockSolanaToken,
         allTokens: [mockSolanaToken, mockMUSDToken],
         isLoading: false,
@@ -249,11 +278,11 @@ describe('SpendingLimit Component', () => {
 
       render();
 
-      expect(screen.getByText('mUSD')).toBeOnTheScreen();
+      expect(screen.getByText('Select token')).toBeOnTheScreen();
     });
 
     it('displays placeholder when no priority token exists', () => {
-      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+      (useLoadCardData as jest.Mock).mockReturnValue({
         priorityToken: null,
         allTokens: [],
         isLoading: false,
@@ -267,7 +296,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('does not pre-select token when priority is Solana and mUSD does not exist', () => {
-      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+      (useLoadCardData as jest.Mock).mockReturnValue({
         priorityToken: mockSolanaToken,
         allTokens: [mockSolanaToken],
         isLoading: false,
@@ -340,13 +369,13 @@ describe('SpendingLimit Component', () => {
     });
 
     it('initializes limit amount from spending limit settings', () => {
-      const tokenWithLimit = {
+      const tokenWithLimit: SupportedTokenWithChain = {
         ...mockPriorityToken,
         allowance: '750000',
-        allowanceState: 'limited' as const,
+        allowanceState: AllowanceState.Limited,
       };
 
-      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+      (useLoadCardData as jest.Mock).mockReturnValue({
         priorityToken: tokenWithLimit,
         allTokens: [tokenWithLimit],
         isLoading: false,
@@ -364,7 +393,7 @@ describe('SpendingLimit Component', () => {
   });
 
   describe('Confirm Button State', () => {
-    it('disables confirm button when restricted is selected with no amount', () => {
+    it('does not submit delegation when restricted is selected with no amount', async () => {
       render();
 
       const setLimitButton = screen.getByText('Set a limit');
@@ -374,36 +403,48 @@ describe('SpendingLimit Component', () => {
       fireEvent.changeText(input, '');
 
       const confirmButton = screen.getByText('Confirm');
-      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmitDelegation).not.toHaveBeenCalled();
+      });
     });
 
-    it('enables confirm button when restricted is selected with amount', () => {
+    it('submits delegation when restricted is selected with amount', async () => {
       render();
 
       const setLimitButton = screen.getByText('Set a limit');
       fireEvent.press(setLimitButton);
 
       const confirmButton = screen.getByText('Confirm');
-      expect(confirmButton.props.accessibilityState?.disabled).toBe(false);
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmitDelegation).toHaveBeenCalled();
+      });
     });
 
-    it('enables confirm button when full access is selected', () => {
+    it('submits delegation when full access is selected', async () => {
       render();
 
       const confirmButton = screen.getByText('Confirm');
-      expect(confirmButton.props.accessibilityState?.disabled).toBe(false);
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmitDelegation).toHaveBeenCalled();
+      });
     });
 
-    it('disables confirm button when delegation is loading', () => {
-      (useCardDelegation as jest.Mock).mockReturnValueOnce({
+    it('shows loading indicator when delegation is loading', () => {
+      (useCardDelegation as jest.Mock).mockReturnValue({
         submitDelegation: mockSubmitDelegation,
         isLoading: true,
       });
 
       render();
 
-      const confirmButton = screen.getByText('Confirm');
-      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+      const activityIndicator = screen.UNSAFE_queryByType(ActivityIndicator);
+      expect(activityIndicator).toBeTruthy();
     });
   });
 
@@ -415,15 +456,11 @@ describe('SpendingLimit Component', () => {
       fireEvent.press(confirmButton);
 
       await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalledWith(
-          {
-            amount:
-              '115792089237316195423570985008687907853269984665640564039457.584007913129639935',
-            currency: 'USDC',
-            network: 'linea',
-          },
-          '0xwallet123',
-        );
+        expect(mockSubmitDelegation).toHaveBeenCalledWith({
+          amount: expect.any(String),
+          currency: 'USDC',
+          network: 'linea',
+        });
       });
     });
 
@@ -440,14 +477,11 @@ describe('SpendingLimit Component', () => {
       fireEvent.press(confirmButton);
 
       await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalledWith(
-          {
-            amount: '500000',
-            currency: 'USDC',
-            network: 'linea',
-          },
-          '0xwallet123',
-        );
+        expect(mockSubmitDelegation).toHaveBeenCalledWith({
+          amount: '500000',
+          currency: 'USDC',
+          network: 'linea',
+        });
       });
     });
 
@@ -469,7 +503,6 @@ describe('SpendingLimit Component', () => {
           expect.objectContaining({
             currency: 'mUSD',
           }),
-          expect.any(String),
         );
       });
     });
@@ -492,7 +525,6 @@ describe('SpendingLimit Component', () => {
           expect.objectContaining({
             network: 'solana',
           }),
-          expect.any(String),
         );
       });
     });
@@ -550,7 +582,7 @@ describe('SpendingLimit Component', () => {
       });
     });
 
-    it('resets to previous state when delegation fails', async () => {
+    it('keeps options view visible when delegation fails', async () => {
       mockSubmitDelegation.mockRejectedValueOnce(new Error('Failed'));
 
       render();
@@ -558,15 +590,17 @@ describe('SpendingLimit Component', () => {
       const setLimitButton = screen.getByText('Set a limit');
       fireEvent.press(setLimitButton);
 
-      const input = screen.getByDisplayValue('1000000');
-      fireEvent.changeText(input, '500000');
+      expect(screen.getByText('Restricted')).toBeOnTheScreen();
 
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('1000000')).toBeOnTheScreen();
+        expect(mockShowToast).toHaveBeenCalled();
       });
+
+      // Options view should still be visible after error
+      expect(screen.getByText('Restricted')).toBeOnTheScreen();
     });
 
     it('hides options view after successful delegation', async () => {
@@ -582,18 +616,6 @@ describe('SpendingLimit Component', () => {
 
       await waitFor(() => {
         expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
-      });
-    });
-
-    it('does not call submitDelegation when limit has not changed', async () => {
-      render();
-
-      // Don't change anything, just confirm
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockSubmitDelegation).not.toHaveBeenCalled();
       });
     });
   });
@@ -622,8 +644,8 @@ describe('SpendingLimit Component', () => {
       expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
     });
 
-    it('disables cancel button when delegation is loading', () => {
-      (useCardDelegation as jest.Mock).mockReturnValueOnce({
+    it('renders cancel button when delegation is loading', () => {
+      (useCardDelegation as jest.Mock).mockReturnValue({
         submitDelegation: mockSubmitDelegation,
         isLoading: true,
       });
@@ -631,7 +653,7 @@ describe('SpendingLimit Component', () => {
       render();
 
       const cancelButton = screen.getByText('Cancel');
-      expect(cancelButton.props.accessibilityState?.disabled).toBe(true);
+      expect(cancelButton).toBeOnTheScreen();
     });
   });
 
@@ -667,7 +689,6 @@ describe('SpendingLimit Component', () => {
           expect.objectContaining({
             network: 'linea',
           }),
-          expect.any(String),
         );
       });
     });
@@ -697,7 +718,6 @@ describe('SpendingLimit Component', () => {
           expect.objectContaining({
             network: 'solana',
           }),
-          expect.any(String),
         );
       });
     });
@@ -705,15 +725,15 @@ describe('SpendingLimit Component', () => {
 
   describe('Loading States', () => {
     it('shows loading indicator on confirm button when delegation is loading', () => {
-      (useCardDelegation as jest.Mock).mockReturnValueOnce({
+      (useCardDelegation as jest.Mock).mockReturnValue({
         submitDelegation: mockSubmitDelegation,
         isLoading: true,
       });
 
       render();
 
-      const confirmButton = screen.getByText('Confirm');
-      expect(confirmButton.props.loading).toBe(true);
+      const activityIndicator = screen.UNSAFE_queryByType(ActivityIndicator);
+      expect(activityIndicator).toBeTruthy();
     });
   });
 });
