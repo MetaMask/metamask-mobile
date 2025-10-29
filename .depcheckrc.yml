@@ -43,8 +43,6 @@ ignores:
   ## Unused dependencies to investigate
   - '@babel/preset-env'
   - '@babel/runtime'
-  - '@cucumber/message-streams'
-  - '@cucumber/messages'
   - '@metamask/mobile-provider'
   - '@rpii/wdio-html-reporter'
   - '@testing-library/react'
@@ -67,7 +65,6 @@ ignores:
   - 'execa'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
-  - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'prettier-2'

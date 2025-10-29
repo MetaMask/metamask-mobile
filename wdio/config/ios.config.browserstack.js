@@ -1,5 +1,4 @@
 import { removeSync } from 'fs-extra';
-import generateTestReports from '../utils/generateTestReports';
 import { config } from '../../wdio.conf';
 
 const browserstack = require('browserstack-local');
@@ -67,7 +66,8 @@ const { selectedCapabilities, defaultTagExpression } = (() => {
 
 // Apply the selected configuration
 config.capabilities = selectedCapabilities;
-config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
+// Note: Cucumber removed - configure test filtering as needed for your test framework
+// config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
 
 config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
@@ -82,7 +82,7 @@ config.onPrepare = function () {
 };
 
 config.onComplete = function () {
-  generateTestReports();
+  // Note: generateTestReports() removed with Cucumber - add custom reporting as needed
   return new Promise((resolve, reject) => {
     exports.bs_local.stop((error) => error ? reject(error) : resolve());
   });

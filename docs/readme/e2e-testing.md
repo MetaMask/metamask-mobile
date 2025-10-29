@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest and cucumber as test runners.
+Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest as the test runner.
 
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
@@ -360,7 +360,7 @@ yarn start:android:e2e:flask
 
 ## Appium
 
-We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.
+We currently utilize [Appium](https://appium.io/) and [Webdriver.io](http://webdriver.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices.
 
 **Supported Platform**: Android  
 **Test Location**: `wdio`
@@ -492,12 +492,6 @@ yarn test:wdio:ios
 
 ```bash
 yarn test:wdio:android
-```
-
-To run specific tests, use the `--spec` option:
-
-```bash
-yarn test:wdio:android --spec ./wdio/features/performance/ColdStartLaunchTimes.feature
 ```
 
 **Note**: Ensure that your installed simulator names match the configurations in `wdio/config/android.config.debug.js` and `wdio/config/ios.config.debug.js`.
