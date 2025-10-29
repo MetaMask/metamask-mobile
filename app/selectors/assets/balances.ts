@@ -248,10 +248,10 @@ export const selectBalanceBySelectedAccountGroup = createSelector(
 );
 
 /**
- * Selector that returns the wallet-level balance for the selected account group,
- * checking only mainnet networks (excluding testnets).
- * This aggregates balance across all mainnet networks regardless of enabled/disabled status,
- * used for empty state logic instead of group-specific balance.
+ * Selector that returns the selected account group's balance across mainnet networks only (excluding testnets).
+ * This aggregates balance for the current account group across all mainnet networks
+ * regardless of enabled/disabled status, used for empty state logic.
+ * Different from selectBalanceBySelectedAccountGroup which respects enabled network filtering.
  */
 export const selectWalletBalanceForEmptyState = createSelector(
   [
