@@ -356,6 +356,8 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    SPENDING_LIMIT: 'CardSpendingLimit',
+    CHANGE_ASSET: 'CardChangeAsset',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
