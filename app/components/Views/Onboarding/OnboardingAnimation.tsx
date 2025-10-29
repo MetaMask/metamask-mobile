@@ -137,7 +137,7 @@ const OnboardingAnimation = ({
           <Rive
             ref={logoRef}
             style={styles.image}
-            resourceName='metamask_wordmark_animation_build-up'
+            source={MetaMaskWordmarkAnimation}
             fit={Fit.Contain}
             alignment={Alignment.Center}
             autoplay={false}
