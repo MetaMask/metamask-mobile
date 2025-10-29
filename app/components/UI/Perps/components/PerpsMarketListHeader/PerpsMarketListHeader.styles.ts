@@ -23,10 +23,11 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     headerTitleContainer: {
       flex: 1,
-      paddingHorizontal: 12,
+      paddingLeft: 4,
+      paddingRight: 12,
     },
     headerTitle: {
-      textAlign: 'center',
+      textAlign: 'left',
     },
     titleButtonsRightContainer: {
       flexDirection: 'row',

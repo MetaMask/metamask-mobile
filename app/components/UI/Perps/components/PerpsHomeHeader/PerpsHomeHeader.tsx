@@ -73,14 +73,14 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
       <ButtonIcon
         iconName={IconName.ArrowLeft}
         onPress={handleBack}
-        size={ButtonIconSizes.Md}
+        size={ButtonIconSizes.Sm}
         iconColor={IconColor.Default}
         testID={testID ? `${testID}-back-button` : undefined}
       />
 
       {/* Title */}
       <Text
-        variant={TextVariant.HeadingLG}
+        variant={TextVariant.HeadingMD}
         color={TextColor.Default}
         style={styles.headerTitle}
       >

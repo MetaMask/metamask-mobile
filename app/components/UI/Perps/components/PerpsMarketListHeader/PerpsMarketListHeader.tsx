@@ -76,13 +76,13 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
         onPress={handleBack}
         testID={testID ? `${testID}-back-button` : undefined}
       >
-        <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
+        <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
       </TouchableOpacity>
 
       {/* Title */}
       <View style={styles.headerTitleContainer}>
         <Text
-          variant={TextVariant.HeadingLG}
+          variant={TextVariant.HeadingMD}
           color={TextColor.Default}
           style={styles.headerTitle}
         >

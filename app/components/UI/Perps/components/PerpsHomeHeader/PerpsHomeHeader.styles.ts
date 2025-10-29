@@ -18,8 +18,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     headerTitle: {
       flex: 1,
-      textAlign: 'center',
-      marginHorizontal: 8,
+      textAlign: 'left',
+      marginLeft: 4,
+      marginRight: 12,
     },
     searchButton: {
       padding: 4,
