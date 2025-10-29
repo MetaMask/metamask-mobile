@@ -18,6 +18,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   isSelected = false,
   isDisabled = false,
   children,
+  onPress,
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
@@ -29,6 +30,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
     <TouchableOpacity
       style={styles.base}
       disabled={isDisabled}
+      onPress={onPress}
       onLongPress={onLongPress}
       {...props}
     >
