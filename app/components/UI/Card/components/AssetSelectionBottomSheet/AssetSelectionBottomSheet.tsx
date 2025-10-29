@@ -120,18 +120,68 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
 
-  // Map user's actual wallets/tokens to display format
+  // Helper function to check if two chain IDs represent the same Solana chain
+  const isSameSolanaChain = useCallback(
+    (chainId1: CaipChainId, chainId2: CaipChainId): boolean => {
+      const isSolana1 =
+        chainId1 === SolScope.Mainnet || chainId1?.startsWith('solana:');
+      const isSolana2 =
+        chainId2 === SolScope.Mainnet || chainId2?.startsWith('solana:');
+      return isSolana1 && isSolana2;
+    },
+    [],
+  );
+
+  // Helper function to check if two chain IDs represent the same Linea chain
+  // This handles both 'linea' and 'linea-us' which may have the same or different chain IDs
+  const isSameLineaChain = useCallback(
+    (chainId1: CaipChainId, chainId2: CaipChainId): boolean => {
+      // Extract the numeric chain ID from CAIP format (e.g., "eip155:59144" -> "59144")
+      const getNumericChainId = (caipChainId: CaipChainId): string | null => {
+        if (caipChainId?.startsWith('eip155:')) {
+          return caipChainId.split(':')[1];
+        }
+        return null;
+      };
+
+      const chainNum1 = getNumericChainId(chainId1);
+      const chainNum2 = getNumericChainId(chainId2);
+
+      // If both are Linea chain IDs (59144 for mainnet, 59141 for Sepolia, 59140 for Goerli)
+      const lineaChainIds = ['59144', '59141', '59140'];
+      const isLinea1 = chainNum1 && lineaChainIds.includes(chainNum1);
+      const isLinea2 = chainNum2 && lineaChainIds.includes(chainNum2);
+
+      // If both are Linea chains and have the same chain ID, they're the same
+      return Boolean(isLinea1 && isLinea2 && chainNum1 === chainNum2);
+    },
+    [],
+  );
+
+  // Map user's actual wallets/tokens to display format + add supported tokens from delegation settings
   // This preserves duplicates (same token on same chain but different wallet addresses)
   const supportedTokens = useMemo<SupportedTokenWithChain[]>(() => {
-    if (!tokensWithAllowances?.length || !sdk) return [];
+    if (!sdk) return [];
 
-    const allTokens: SupportedTokenWithChain[] = tokensWithAllowances
+    // Start with user's actual wallet tokens (if any)
+    const userTokens: SupportedTokenWithChain[] = (tokensWithAllowances || [])
       .map((userToken) => {
-        // Determine chain name
+        // Determine chain name based on CAIP chain ID - only allow supported chains
         const isSolana =
           userToken.caipChainId === SolScope.Mainnet ||
           userToken.caipChainId?.startsWith('solana:');
-        const chainName = isSolana ? 'Solana' : 'Linea';
+
+        let chainName = 'Unknown'; // Default to Unknown for unsupported chains
+        if (isSolana) {
+          chainName = 'Solana';
+        } else if (
+          userToken.caipChainId?.includes(':59144') || // Linea Mainnet
+          userToken.caipChainId?.includes(':59141') || // Linea Sepolia
+          userToken.caipChainId?.includes(':59140') // Linea Goerli
+        ) {
+          chainName = 'Linea';
+        }
+        // Do not default other EIP155 chains to anything - they stay "Unknown" and get filtered out
 
         // Build token icon URL
         const iconUrl = buildTokenIconUrl(
@@ -165,11 +215,11 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         };
       })
       .filter((token) => {
-        // Filter out unsupported networks
+        // Filter out unsupported networks and unknown chains
         const networkLower = token.chainName.toLowerCase();
         if (
-          !SUPPORTED_ASSET_NETWORKS.includes(networkLower) &&
-          networkLower !== 'linea'
+          !SUPPORTED_ASSET_NETWORKS.includes(networkLower) ||
+          networkLower === 'unknown'
         ) {
           return false;
         }
@@ -183,13 +233,192 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           return false;
         }
 
-        // For Solana assets, only show enabled tokens
-        if (isSolana && !token.enabled) {
-          return false;
-        }
+        // Don't filter out Solana tokens by enabled state here - we want to show all
+        // delegation settings tokens so users can enable them
 
         return true;
       });
+
+    // Add supported tokens from delegation settings that user doesn't have in wallet
+    const supportedFromSettings: SupportedTokenWithChain[] = [];
+
+    if (delegationSettings?.networks) {
+      for (const network of delegationSettings.networks) {
+        // Only process supported networks
+        const networkLower = network.network?.toLowerCase();
+        if (!networkLower || !SUPPORTED_ASSET_NETWORKS.includes(networkLower)) {
+          continue;
+        }
+
+        // Skip if hiding Solana assets
+        const isSolana = network.network === 'solana';
+        if (hideSolanaAssets && isSolana) {
+          continue;
+        }
+
+        // Map network to display name
+        let chainName: string;
+        if (network.network === 'solana') {
+          chainName = 'Solana';
+        } else if (
+          network.network === 'linea' ||
+          network.network === 'linea-us'
+        ) {
+          chainName = 'Linea';
+        } else {
+          // Unsupported network, skip
+          continue;
+        }
+
+        // Map chain ID to CAIP format
+        let caipChainId: CaipChainId;
+        if (network.network === 'solana') {
+          caipChainId = SolScope.Mainnet;
+        } else {
+          // For EVM chains (linea, linea-us), ensure we always create a proper CAIP chain ID
+          const chainIdStr = network.chainId;
+          let numericChainId: number;
+
+          if (chainIdStr.startsWith('0x')) {
+            // Hex format: convert to decimal
+            numericChainId = parseInt(chainIdStr, 16);
+          } else {
+            // Already decimal format
+            numericChainId = parseInt(chainIdStr, 10);
+          }
+
+          // Filter out testnet chains to avoid showing duplicate-looking tokens
+          // 59144 = Linea Mainnet (keep)
+          // 59141 = Linea Sepolia (skip)
+          // 59140 = Linea Goerli (skip)
+          const testnetChainIds = [59141, 59140];
+          if (testnetChainIds.includes(numericChainId)) {
+            continue;
+          }
+
+          caipChainId = `eip155:${numericChainId}` as CaipChainId;
+        }
+
+        for (const [, tokenConfig] of Object.entries(network.tokens)) {
+          // Skip tokens without an address
+          if (!tokenConfig.address) {
+            continue;
+          }
+
+          const tokenAddressLower = tokenConfig.address.toLowerCase();
+
+          // Check if this token is already in user's wallet tokens
+          // Use special comparison for Solana and Linea to handle different chain ID formats
+          const existsInUserTokens = userTokens.some((userToken) => {
+            if (!userToken.address) return false;
+            const addressMatch =
+              userToken.address.toLowerCase() === tokenAddressLower;
+
+            // Determine chain match based on network type
+            let chainMatch: boolean;
+            if (isSolana) {
+              chainMatch = isSameSolanaChain(
+                userToken.caipChainId,
+                caipChainId,
+              );
+            } else {
+              // For Linea, use special comparison to handle 'linea' and 'linea-us'
+              chainMatch = isSameLineaChain(userToken.caipChainId, caipChainId);
+            }
+
+            return addressMatch && chainMatch;
+          });
+
+          // Also check if user already has a token with the same symbol on the same chain
+          // (to avoid showing different contract addresses with same symbol, which confuses UX)
+          const userHasSameSymbolOnChain = userTokens.some((userToken) => {
+            const symbolMatch =
+              userToken.symbol?.toUpperCase() ===
+              tokenConfig.symbol?.toUpperCase();
+
+            // Determine chain match based on network type
+            let chainMatch: boolean;
+            if (isSolana) {
+              chainMatch = isSameSolanaChain(
+                userToken.caipChainId,
+                caipChainId,
+              );
+            } else {
+              // For Linea, use special comparison to handle 'linea' and 'linea-us'
+              chainMatch = isSameLineaChain(userToken.caipChainId, caipChainId);
+            }
+
+            return symbolMatch && chainMatch;
+          });
+
+          // Also check if we've already added this token from delegation settings
+          // (to avoid duplicates from multiple network configs like 'linea' and 'linea-us')
+          const existsInSettings = supportedFromSettings.some(
+            (settingsToken) => {
+              if (!settingsToken.address) return false;
+              const addressMatch =
+                settingsToken.address.toLowerCase() === tokenAddressLower;
+
+              // Determine chain match based on network type
+              let chainMatch: boolean;
+              if (isSolana) {
+                chainMatch = isSameSolanaChain(
+                  settingsToken.caipChainId,
+                  caipChainId,
+                );
+              } else {
+                // For Linea, use special comparison to handle 'linea' and 'linea-us'
+                chainMatch = isSameLineaChain(
+                  settingsToken.caipChainId,
+                  caipChainId,
+                );
+              }
+
+              return addressMatch && chainMatch;
+            },
+          );
+
+          // Skip if:
+          // 1. User already has this exact token (same address + chain)
+          // 2. Token already exists in settings from previous network config
+          // 3. User already has a token with same symbol on same chain (avoid showing multiple USDC contracts)
+          // 4. For Solana tokens from delegation settings: don't show them (Solana delegation not supported)
+          //    Users can only see/enable Solana tokens they already have in their wallet
+          if (
+            existsInUserTokens ||
+            existsInSettings ||
+            userHasSameSymbolOnChain ||
+            isSolana
+          ) {
+            continue;
+          }
+
+          const iconUrl = buildTokenIconUrl(caipChainId, tokenConfig.address);
+
+          supportedFromSettings.push({
+            address: tokenConfig.address,
+            symbol: tokenConfig.symbol.toUpperCase(),
+            name: tokenConfig.symbol.toUpperCase(),
+            decimals: tokenConfig.decimals,
+            enabled: false, // Not enabled since user doesn't have it
+            caipChainId,
+            chainName,
+            walletAddress: undefined, // No wallet address since user doesn't have this token
+            balance: '0',
+            balanceFiat: '$0.00 USD',
+            image: iconUrl,
+            logo: iconUrl,
+            allowanceState: AllowanceState.NotEnabled,
+            allowance: '0',
+            delegationContract: network.delegationContract,
+            priority: undefined, // No priority for unsupported tokens
+          });
+        }
+      }
+    }
+
+    // Combine user tokens and supported tokens from settings
+    const allTokens = [...userTokens, ...supportedFromSettings];
 
     // Sort tokens based on priority values from API
     return allTokens.sort((a, b) => {
@@ -231,7 +460,15 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
       return 0;
     });
-  }, [tokensWithAllowances, priorityToken, sdk, hideSolanaAssets]);
+  }, [
+    tokensWithAllowances,
+    priorityToken,
+    sdk,
+    hideSolanaAssets,
+    delegationSettings,
+    isSameSolanaChain,
+    isSameLineaChain,
+  ]);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {

@@ -37,6 +37,7 @@ interface PriorityToken {
   walletAddress?: string | null;
   name?: string | null;
   delegationContract?: string | null;
+  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 /**
@@ -76,31 +77,70 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
    * Execute approval transaction
    */
   const executeApprovalTransaction = useCallback(
-    async (params: DelegationParams, address: string) => {
-      if (
-        !sdk ||
-        !priorityToken?.address ||
-        !priorityToken?.delegationContract
-      ) {
+    async (
+      params: DelegationParams,
+      address: string,
+      signature: string,
+      signatureMessage: string,
+      token: string,
+    ) => {
+      if (!sdk || !priorityToken?.delegationContract) {
         throw new Error('Missing token configuration');
+      }
+
+      // Check if we have a token address (either staging or regular)
+      if (!priorityToken?.stagingTokenAddress && !priorityToken?.address) {
+        throw new Error('Missing token address');
       }
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         safeFormatChainIdToHex(priorityToken.caipChainId ?? '') as Hex,
       );
 
-      const tokenDecimals = priorityToken.decimals || 6;
-      const amountInWei = ethers.utils.parseUnits(params.amount, tokenDecimals);
+      // Use standard decimals for the currency (e.g., 6 for USDC) for user input
+      // This ensures "5 USDC" means 5 actual USDC, not 5 * 10^18 wei
+      const userFacingDecimals = priorityToken.decimals || 6;
+
+      // Contract decimals might be different in staging (e.g., 18 for test USDC)
+      const contractDecimals = priorityToken.decimals || userFacingDecimals;
+
+      // Parse user input with standard decimals
+      const amountInStandardUnits = ethers.utils.parseUnits(
+        params.amount,
+        userFacingDecimals,
+      );
+
+      // Convert to contract decimals if different
+      let amountForContract: ethers.BigNumber;
+      if (contractDecimals !== userFacingDecimals) {
+        // Convert from user-facing decimals to contract decimals
+        // e.g., 5 USDC (6 decimals) -> 5 * 10^18 (18 decimals for staging)
+        const decimalsDiff = contractDecimals - userFacingDecimals;
+        amountForContract = amountInStandardUnits.mul(
+          ethers.BigNumber.from(10).pow(decimalsDiff),
+        );
+      } else {
+        amountForContract = amountInStandardUnits;
+      }
 
       const transactionData = sdk.encodeApproveTransaction(
         priorityToken.delegationContract,
-        amountInWei.toString(),
+        amountForContract.toString(),
       );
+
+      // Use stagingTokenAddress if present (for staging environment),
+      // otherwise use the regular address
+      const tokenAddress =
+        priorityToken.stagingTokenAddress || priorityToken.address;
+
+      if (!tokenAddress) {
+        throw new Error('Token address not found');
+      }
 
       const { result } = await TransactionController.addTransaction(
         {
           from: address,
-          to: priorityToken.address,
+          to: tokenAddress,
           data: transactionData,
         },
         {
@@ -112,24 +152,22 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
         },
       );
 
-      try {
-        const resultHash = await result;
+      const actualTxHash = await result;
 
-        return resultHash;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+      // Wait 10 seconds for the transaction to be confirmed on the blockchain
+      // This ensures the backend can verify the transaction when we complete delegation
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
-        if (errorMessage.includes('User denied')) {
-          return null;
-        }
-
-        if (errorMessage.includes('rejected')) {
-          throw new Error('Transaction was rejected by user');
-        }
-
-        throw error;
-      }
+      await sdk.completeEVMDelegation({
+        address,
+        network: params.network,
+        currency: params.currency.toLowerCase(),
+        amount: params.amount,
+        txHash: actualTxHash,
+        sigHash: signature,
+        sigMessage: signatureMessage,
+        token,
+      });
     },
     [sdk, priorityToken, TransactionController, NetworkController],
   );
@@ -183,26 +221,13 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
         });
 
         // Step 3: Execute approval transaction
-        const transactionHash = await executeApprovalTransaction(
+        await executeApprovalTransaction(
           params,
           address,
-        );
-
-        if (!transactionHash) {
-          throw new Error('Transaction was cancelled');
-        }
-
-        // Step 4: Complete delegation with API
-        const result = await sdk.completeEVMDelegation({
-          address,
-          network: params.network,
-          currency: params.currency.toLowerCase(),
-          amount: params.amount,
-          txHash: transactionHash,
-          sigHash: signature,
-          sigMessage: signatureMessage,
+          signature,
+          signatureMessage,
           token,
-        });
+        );
 
         trackEvent(
           createEventBuilder(
@@ -219,7 +244,6 @@ export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
             .build(),
         );
         setState({ isLoading: false, error: null });
-        return result;
       } catch (error) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)

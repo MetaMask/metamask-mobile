@@ -37,6 +37,7 @@ export interface CardToken {
   symbol: string | null;
   name: string | null;
   delegationContract?: string | null;
+  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 // Card token data interface
