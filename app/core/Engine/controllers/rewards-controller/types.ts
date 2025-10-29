@@ -1,4 +1,7 @@
-import { ControllerGetStateAction } from '@metamask/base-controller';
+import {
+  ControllerGetStateAction,
+  ControllerStateChangeEvent,
+} from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
@@ -693,10 +696,7 @@ export interface RewardsControllerPointsEventsUpdatedEvent {
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
-  | {
-      type: 'RewardsController:stateChange';
-      payload: [RewardsControllerState, Patch[]];
-    }
+  | ControllerStateChangeEvent<'RewardsController', RewardsControllerState>
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent

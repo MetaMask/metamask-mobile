@@ -110,7 +110,7 @@ const generateInitialStateWithSelectedAccount = (account: InternalAccount) =>
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 jest.mock('../../../core/Engine', () => ({
   context: {

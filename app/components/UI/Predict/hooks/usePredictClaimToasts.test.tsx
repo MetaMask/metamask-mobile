@@ -58,9 +58,7 @@ jest.mock('../../../../util/theme', () => ({
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    PredictController: {
-      clearClaimTransaction: jest.fn(),
-    },
+    PredictController: {},
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -130,9 +128,6 @@ describe('usePredictClaimToasts', () => {
     jest.clearAllMocks();
     mockToastRef.current.showToast.mockClear();
     mockClaim.mockClear();
-    (
-      Engine.context.PredictController.clearClaimTransaction as jest.Mock
-    ).mockClear();
 
     // Capture the subscribe callback
     mockSubscribeCallback = null;
@@ -214,9 +209,6 @@ describe('usePredictClaimToasts', () => {
       });
 
       // Assert
-      expect(
-        Engine.context.PredictController.clearClaimTransaction,
-      ).not.toHaveBeenCalled();
       expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
     });
 
@@ -289,9 +281,6 @@ describe('usePredictClaimToasts', () => {
       });
 
       // Assert
-      expect(
-        Engine.context.PredictController.clearClaimTransaction,
-      ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: expect.anything(),
@@ -321,9 +310,6 @@ describe('usePredictClaimToasts', () => {
       });
 
       // Assert
-      expect(
-        Engine.context.PredictController.clearClaimTransaction,
-      ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: expect.anything(),
@@ -336,46 +322,6 @@ describe('usePredictClaimToasts', () => {
           }),
         }),
       );
-    });
-
-    it('clears claim transaction when transaction is confirmed', async () => {
-      // Arrange
-      renderHook(() => usePredictClaimToasts(), { wrapper });
-
-      // Act
-      await act(async () => {
-        mockSubscribeCallback?.({
-          transactionMeta: {
-            status: TransactionStatus.confirmed,
-            nestedTransactions: [{ type: TransactionType.predictClaim }],
-          },
-        });
-      });
-
-      // Assert
-      expect(
-        Engine.context.PredictController.clearClaimTransaction,
-      ).toHaveBeenCalled();
-    });
-
-    it('clears claim transaction when transaction fails', async () => {
-      // Arrange
-      renderHook(() => usePredictClaimToasts(), { wrapper });
-
-      // Act
-      await act(async () => {
-        mockSubscribeCallback?.({
-          transactionMeta: {
-            status: TransactionStatus.failed,
-            nestedTransactions: [{ type: TransactionType.predictClaim }],
-          },
-        });
-      });
-
-      // Assert
-      expect(
-        Engine.context.PredictController.clearClaimTransaction,
-      ).toHaveBeenCalled();
     });
   });
 

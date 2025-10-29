@@ -430,9 +430,8 @@ export async function withFixtures(
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  const { mockServer, mockServerPort } = await createMockAPIServer(
-    testSpecificMock,
-  );
+  const { mockServer, mockServerPort } =
+    await createMockAPIServer(testSpecificMock);
 
   // Handle local nodes
   let localNodes;
