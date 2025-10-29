@@ -410,8 +410,8 @@ class SendFlow extends PureComponent {
     return filteredAddressBook[checksummedAddress]
       ? filteredAddressBook[checksummedAddress].name
       : matchingAccount
-      ? matchingAccount.metadata.name
-      : null;
+        ? matchingAccount.metadata.name
+        : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {

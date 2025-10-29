@@ -236,7 +236,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       color:
         loadedOutcomeTokenIds.length === 1
           ? colors.success.default
-          : palette[index] ?? colors.success.default,
+          : (palette[index] ?? colors.success.default),
       data: (priceHistories[index] ?? []).map((point) => ({
         timestamp: point.timestamp,
         value: Number((point.price * 100).toFixed(2)),
@@ -252,7 +252,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   ]);
 
   const chartEmptyLabel = hasAnyOutcomeToken
-    ? errors.find(Boolean) ?? undefined
+    ? (errors.find(Boolean) ?? undefined)
     : '';
 
   const handleTimeframeChange = (timeframe: string) => {

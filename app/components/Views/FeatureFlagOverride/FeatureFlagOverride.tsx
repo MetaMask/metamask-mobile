@@ -432,10 +432,10 @@ const FeatureFlagOverride: React.FC = () => {
               {searchQuery && typeFilter !== 'all'
                 ? `No ${typeFilter} feature flags match your search.`
                 : searchQuery
-                ? 'No feature flags match your search.'
-                : typeFilter !== 'all'
-                ? `No ${typeFilter} feature flags available.`
-                : 'No feature flags available.'}
+                  ? 'No feature flags match your search.'
+                  : typeFilter !== 'all'
+                    ? `No ${typeFilter} feature flags available.`
+                    : 'No feature flags available.'}
             </Text>
           </Box>
         ) : (

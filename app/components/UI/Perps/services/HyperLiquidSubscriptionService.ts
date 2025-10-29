@@ -671,9 +671,8 @@ export class HyperLiquidSubscriptionService {
     accountId?: CaipAccountId,
   ): Promise<void> {
     const enabledDexs = this.getEnabledDexs();
-    const userAddress = await this.walletService.getUserAddressWithDefault(
-      accountId,
-    );
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
 
     // Establish webData2 subscription for main DEX (if not exists)
     if (!this.webData2Subscriptions.has('')) {
@@ -732,9 +731,8 @@ export class HyperLiquidSubscriptionService {
       throw new Error('Subscription client not initialized');
     }
 
-    const userAddress = await this.walletService.getUserAddressWithDefault(
-      accountId,
-    );
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
 
     // Only subscribe to main DEX (webData2 doesn't support dex parameter)
     const dexName = ''; // Main DEX

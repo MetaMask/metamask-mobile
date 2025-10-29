@@ -146,9 +146,8 @@ async function getBatchProperties(transactionMeta: TransactionMeta) {
     properties.batch_transaction_count = nestedTransactions?.length;
     properties.batch_transaction_method = 'eip7702';
 
-    properties.transaction_contract_method = await getNestedMethodNames(
-      transactionMeta,
-    );
+    properties.transaction_contract_method =
+      await getNestedMethodNames(transactionMeta);
 
     properties.transaction_contract_address = nestedTransactions
       ?.filter(
@@ -207,9 +206,8 @@ export async function generateDefaultTransactionMetrics(
         error: error?.message,
         status,
         source: 'MetaMask Mobile',
-        transaction_contract_method: await getTransactionContractMethod(
-          transactionMeta,
-        ),
+        transaction_contract_method:
+          await getTransactionContractMethod(transactionMeta),
         transaction_envelope_type: transactionMeta.txParams.type,
         transaction_internal_id: id,
         transaction_type: getTransactionTypeValue(type),

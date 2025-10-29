@@ -32,9 +32,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('TokenSearchDiscoveryControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } = tokenSearchDiscoveryControllerInit(
-      getInitRequestMock(),
-    );
+    const { controller } =
+      tokenSearchDiscoveryControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(TokenSearchDiscoveryController);
   });
 

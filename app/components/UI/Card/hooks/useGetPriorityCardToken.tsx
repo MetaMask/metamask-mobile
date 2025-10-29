@@ -61,9 +61,8 @@ const fetchAllowances = async (
       name: TraceName.Card,
       op: TraceOperation.CardGetSupportedTokensAllowances,
     });
-    const supportedTokensAllowances = await sdk.getSupportedTokensAllowances(
-      selectedAddress,
-    );
+    const supportedTokensAllowances =
+      await sdk.getSupportedTokensAllowances(selectedAddress);
 
     const supportedTokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
 
