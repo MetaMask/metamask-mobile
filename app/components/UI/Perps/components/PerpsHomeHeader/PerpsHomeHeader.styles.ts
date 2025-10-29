@@ -25,6 +25,10 @@ const styleSheet = (params: { theme: Theme }) => {
     searchButton: {
       padding: 4,
     },
+    searchBarContainer: {
+      flex: 1,
+      marginRight: 8,
+    },
   });
 };
 

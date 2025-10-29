@@ -14,6 +14,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
 import styleSheet from './PerpsHomeHeader.styles';
@@ -50,6 +51,9 @@ import styleSheet from './PerpsHomeHeader.styles';
 const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   title,
   isSearchVisible = false,
+  searchQuery = '',
+  onSearchQueryChange,
+  onSearchClear,
   onBack,
   onSearchToggle,
   testID,
@@ -69,36 +73,77 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
 
   return (
     <View style={styles.header} testID={testID}>
-      {/* Back Button */}
-      <ButtonIcon
-        iconName={IconName.ArrowLeft}
-        onPress={handleBack}
-        size={ButtonIconSizes.Sm}
-        iconColor={IconColor.Default}
-        testID={testID ? `${testID}-back-button` : undefined}
-      />
+      {isSearchVisible ? (
+        <>
+          {/* Search Bar - Replaces back button and title */}
+          <View style={styles.searchBarContainer}>
+            {searchQuery.length > 0 && onSearchClear ? (
+              <TextFieldSearch
+                value={searchQuery}
+                onChangeText={onSearchQueryChange}
+                autoFocus
+                showClearButton
+                onPressClearButton={onSearchClear}
+                placeholder={strings('perps.search_by_token_symbol')}
+                testID={testID ? `${testID}-search-bar` : undefined}
+              />
+            ) : (
+              <TextFieldSearch
+                value={searchQuery}
+                onChangeText={onSearchQueryChange}
+                autoFocus
+                placeholder={strings('perps.search_by_token_symbol')}
+                testID={testID ? `${testID}-search-bar` : undefined}
+              />
+            )}
+          </View>
+          {/* Close Button */}
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={onSearchToggle}
+            testID={testID ? `${testID}-search-close` : undefined}
+          >
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Lg}
+              color={IconColor.Default}
+            />
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          {/* Back Button */}
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            onPress={handleBack}
+            size={ButtonIconSizes.Sm}
+            iconColor={IconColor.Default}
+            testID={testID ? `${testID}-back-button` : undefined}
+          />
 
-      {/* Title */}
-      <Text
-        variant={TextVariant.HeadingMD}
-        color={TextColor.Default}
-        style={styles.headerTitle}
-      >
-        {title || strings('perps.title')}
-      </Text>
+          {/* Title */}
+          <Text
+            variant={TextVariant.HeadingMD}
+            color={TextColor.Default}
+            style={styles.headerTitle}
+          >
+            {title || strings('perps.title')}
+          </Text>
 
-      {/* Search Toggle Button */}
-      <TouchableOpacity
-        style={styles.searchButton}
-        onPress={onSearchToggle}
-        testID={testID ? `${testID}-search-toggle` : undefined}
-      >
-        <Icon
-          name={isSearchVisible ? IconName.Close : IconName.Search}
-          size={IconSize.Lg}
-          color={IconColor.Default}
-        />
-      </TouchableOpacity>
+          {/* Search Toggle Button */}
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={onSearchToggle}
+            testID={testID ? `${testID}-search-toggle` : undefined}
+          >
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Lg}
+              color={IconColor.Default}
+            />
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 };

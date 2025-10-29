@@ -18,7 +18,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsStocksCommoditiesBottomSheet from '../../components/PerpsStocksCommoditiesBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
@@ -489,25 +488,13 @@ const PerpsMarketListView = ({
       <PerpsMarketListHeader
         title={title}
         isSearchVisible={isSearchVisible}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onSearchClear={() => setSearchQuery('')}
         onBack={handleBackPressed}
         onSearchToggle={handleSearchToggle}
         testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
       />
-
-      {/* Search Bar - Use design system component */}
-      {isSearchVisible && (
-        <View style={styles.searchContainer}>
-          <TextFieldSearch
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoFocus
-            showClearButton={searchQuery.length > 0}
-            onPressClearButton={() => setSearchQuery('')}
-            placeholder={strings('perps.search_by_token_symbol')}
-            testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
-          />
-        </View>
-      )}
 
       {/* Balance Actions Component - Only show in full variant when search not visible */}
       {!isSearchVisible && showBalanceActions && variant === 'full' && (

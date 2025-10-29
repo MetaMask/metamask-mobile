@@ -10,6 +10,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsMarketListHeaderProps } from './PerpsMarketListHeader.types';
 import styleSheet from './PerpsMarketListHeader.styles';
@@ -47,6 +48,9 @@ import styleSheet from './PerpsMarketListHeader.styles';
 const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
   title,
   isSearchVisible = false,
+  searchQuery = '',
+  onSearchQueryChange,
+  onSearchClear,
   onBack,
   onSearchToggle,
   testID,
@@ -70,39 +74,73 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
       onPress={() => Keyboard.dismiss()}
       testID={testID}
     >
-      {/* Back Button */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={handleBack}
-        testID={testID ? `${testID}-back-button` : undefined}
-      >
-        <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
-      </TouchableOpacity>
+      {isSearchVisible ? (
+        <>
+          {/* Search Bar - Replaces back button and title */}
+          <View style={styles.searchBarContainer}>
+            {searchQuery.length > 0 && onSearchClear ? (
+              <TextFieldSearch
+                value={searchQuery}
+                onChangeText={onSearchQueryChange}
+                autoFocus
+                showClearButton
+                onPressClearButton={onSearchClear}
+                placeholder={strings('perps.search_by_token_symbol')}
+                testID={testID ? `${testID}-search-bar` : undefined}
+              />
+            ) : (
+              <TextFieldSearch
+                value={searchQuery}
+                onChangeText={onSearchQueryChange}
+                autoFocus
+                placeholder={strings('perps.search_by_token_symbol')}
+                testID={testID ? `${testID}-search-bar` : undefined}
+              />
+            )}
+          </View>
+          {/* Close Button */}
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={onSearchToggle}
+            testID={testID ? `${testID}-search-close` : undefined}
+          >
+            <Icon name={IconName.Close} size={IconSize.Lg} />
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          {/* Back Button */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            testID={testID ? `${testID}-back-button` : undefined}
+          >
+            <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
+          </TouchableOpacity>
 
-      {/* Title */}
-      <View style={styles.headerTitleContainer}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.headerTitle}
-        >
-          {title || strings('perps.title')}
-        </Text>
-      </View>
+          {/* Title */}
+          <View style={styles.headerTitleContainer}>
+            <Text
+              variant={TextVariant.HeadingMD}
+              color={TextColor.Default}
+              style={styles.headerTitle}
+            >
+              {title || strings('perps.title')}
+            </Text>
+          </View>
 
-      {/* Search Toggle Button */}
-      <View style={styles.titleButtonsRightContainer}>
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={onSearchToggle}
-          testID={testID ? `${testID}-search-toggle` : undefined}
-        >
-          <Icon
-            name={isSearchVisible ? IconName.Close : IconName.Search}
-            size={IconSize.Lg}
-          />
-        </TouchableOpacity>
-      </View>
+          {/* Search Toggle Button */}
+          <View style={styles.titleButtonsRightContainer}>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={onSearchToggle}
+              testID={testID ? `${testID}-search-toggle` : undefined}
+            >
+              <Icon name={IconName.Search} size={IconSize.Lg} />
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </Pressable>
   );
 };

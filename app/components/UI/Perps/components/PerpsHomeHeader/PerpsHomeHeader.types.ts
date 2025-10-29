@@ -15,6 +15,21 @@ export interface PerpsHomeHeaderProps {
   isSearchVisible?: boolean;
 
   /**
+   * Search query value (required when isSearchVisible is true)
+   */
+  searchQuery?: string;
+
+  /**
+   * Callback when search query changes
+   */
+  onSearchQueryChange?: (query: string) => void;
+
+  /**
+   * Callback when search clear button is pressed
+   */
+  onSearchClear?: () => void;
+
+  /**
    * Callback when back button is pressed
    * If not provided, uses default navigation.goBack()
    */

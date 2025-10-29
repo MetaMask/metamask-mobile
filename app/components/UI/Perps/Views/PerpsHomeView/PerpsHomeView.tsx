@@ -24,7 +24,6 @@ import {
   usePerpsMeasurement,
 } from '../../hooks';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
@@ -170,25 +169,13 @@ const PerpsHomeView = () => {
       {/* Header - Using extracted component */}
       <PerpsHomeHeader
         isSearchVisible={isSearchVisible}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onSearchClear={() => setSearchQuery('')}
         onBack={handleBackPress}
         onSearchToggle={handleSearchToggle}
         testID={PerpsHomeViewSelectorsIDs.BACK_BUTTON}
       />
-
-      {/* Search Bar - Use design system component */}
-      {isSearchVisible && (
-        <View style={styles.searchContainer}>
-          <TextFieldSearch
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoFocus
-            showClearButton={searchQuery.length > 0}
-            onPressClearButton={() => setSearchQuery('')}
-            placeholder={strings('perps.search_by_token_symbol')}
-            testID={PerpsHomeViewSelectorsIDs.SEARCH_INPUT}
-          />
-        </View>
-      )}
 
       {/* Main Content - ScrollView with all carousels */}
       <ScrollView
