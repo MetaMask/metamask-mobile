@@ -1,8 +1,11 @@
 import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import {
   BaseController,
-  type RestrictedMessenger,
+  ControllerGetStateAction,
+  ControllerStateChangeEvent,
+  StateMetadata,
 } from '@metamask/base-controller';
+import type { Messenger } from '@metamask/messenger';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
   PersonalMessageParams,
@@ -106,6 +109,9 @@ export type PredictControllerState = {
   lastError: string | null;
   lastUpdateTimestamp: number;
 
+  // Account balances
+  balances: { [providerId: string]: { [address: string]: number } };
+
   // Claim management
   // TODO: change to be per-account basis
   claimablePositions: PredictPosition[];
@@ -132,6 +138,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  balances: {},
   claimablePositions: [],
   claimTransaction: null,
   depositTransaction: null,
@@ -142,33 +149,76 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
 /**
  * State metadata for the PredictController
  */
-const metadata = {
-  eligibility: { persist: false, anonymous: false },
-  lastError: { persist: false, anonymous: false },
-  lastUpdateTimestamp: { persist: false, anonymous: false },
-  claimablePositions: { persist: false, anonymous: false },
-  claimTransaction: { persist: false, anonymous: false },
-  depositTransaction: { persist: false, anonymous: false },
-  withdrawTransaction: { persist: false, anonymous: false },
-  isOnboarded: { persist: true, anonymous: false },
+const metadata: StateMetadata<PredictControllerState> = {
+  eligibility: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  lastError: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  lastUpdateTimestamp: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  balances: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  claimablePositions: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  claimTransaction: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  depositTransaction: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  withdrawTransaction: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  isOnboarded: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
 };
 
 /**
  * PredictController events
  */
-export interface PredictControllerEvents {
-  type: 'PredictController:stateChange';
-  payload: [PredictControllerState, PredictControllerState[]];
-}
+export type PredictControllerEvents = ControllerStateChangeEvent<
+  'PredictController',
+  PredictControllerState
+>;
 
 /**
  * PredictController actions
  */
 export type PredictControllerActions =
-  | {
-      type: 'PredictController:getState';
-      handler: () => PredictControllerState;
-    }
+  | ControllerGetStateAction<'PredictController', PredictControllerState>
   | {
       type: 'PredictController:refreshEligibility';
       handler: PredictController['refreshEligibility'];
@@ -181,7 +231,7 @@ export type PredictControllerActions =
 /**
  * External actions the PredictController can call
  */
-export type AllowedActions =
+type AllowedActions =
   | AccountsControllerGetSelectedAccountAction
   | NetworkControllerGetStateAction
   | TransactionControllerEstimateGasAction;
@@ -189,7 +239,7 @@ export type AllowedActions =
 /**
  * External events the PredictController can subscribe to
  */
-export type AllowedEvents =
+type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
@@ -198,12 +248,10 @@ export type AllowedEvents =
 /**
  * PredictController messenger constraints
  */
-export type PredictControllerMessenger = RestrictedMessenger<
+export type PredictControllerMessenger = Messenger<
   'PredictController',
   PredictControllerActions | AllowedActions,
-  PredictControllerEvents | AllowedEvents,
-  AllowedActions['type'],
-  AllowedEvents['type']
+  PredictControllerEvents | AllowedEvents
 >;
 
 /**
@@ -939,6 +987,10 @@ export class PredictController extends BaseController<
       return result as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
 
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
@@ -947,7 +999,22 @@ export class PredictController extends BaseController<
         providerId,
         sharePrice,
         completionDuration,
-        failureReason: error instanceof Error ? error.message : 'Unknown error',
+        failureReason: errorMessage,
+      });
+
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Place order failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+        params,
       });
 
       // Log to Sentry with order context (excluding sensitive data like amounts)
@@ -965,10 +1032,7 @@ export class PredictController extends BaseController<
 
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        error: errorMessage,
       };
     }
   }
@@ -984,7 +1048,13 @@ export class PredictController extends BaseController<
 
       const { AccountsController, KeyringController, NetworkController } =
         Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      // Get selected account - can fail if no account is selected
+      const selectedAccount = AccountsController.getSelectedAccount();
+      if (!selectedAccount?.address) {
+        throw new Error('No account selected');
+      }
+      const selectedAddress = selectedAccount.address;
 
       const signer = {
         address: selectedAddress,
@@ -996,19 +1066,48 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(params),
       };
 
+      // Get claimable positions - can fail if network request fails
       const claimablePositions = await this.getPositions({
         claimable: true,
       });
 
-      const { transactions, chainId } = await provider.prepareClaim({
+      if (!claimablePositions || claimablePositions.length === 0) {
+        throw new Error('No claimable positions found');
+      }
+
+      // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
+      const prepareClaimResult = await provider.prepareClaim({
         positions: claimablePositions,
         signer,
       });
+
+      if (!prepareClaimResult) {
+        throw new Error('Failed to prepare claim transaction');
+      }
+
+      const { transactions, chainId } = prepareClaimResult;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from claim preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by claim preparation');
+      }
+
+      // Find network client - can fail if chain is not supported
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         numberToHex(chainId),
       );
 
-      const { batchId } = await addTransactionBatch({
+      if (!networkClientId) {
+        throw new Error(
+          `Network client not found for chain ID: ${numberToHex(chainId)}`,
+        );
+      }
+
+      // Add transaction batch - can fail if transaction submission fails
+      const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
@@ -1016,6 +1115,14 @@ export class PredictController extends BaseController<
         disableSequential: true,
         transactions,
       });
+
+      if (!batchResult?.batchId) {
+        throw new Error(
+          'Failed to get batch ID from claim transaction submission',
+        );
+      }
+
+      const { batchId } = batchResult;
 
       const predictClaim: PredictClaim = {
         batchId,
@@ -1025,6 +1132,8 @@ export class PredictController extends BaseController<
 
       this.update((state) => {
         state.claimTransaction = predictClaim;
+        state.lastError = null; // Clear any previous errors
+        state.lastUpdateTimestamp = Date.now();
       });
 
       return predictClaim;
@@ -1045,6 +1154,27 @@ export class PredictController extends BaseController<
           providerId,
         }),
       );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.CLAIM_FAILED;
+
+      // Update error state for Sentry integration
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        state.claimTransaction = null; // Clear any partial claim transaction
+      });
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Claim failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+      });
+
+      // Re-throw the error so the hook can handle it and show the toast
       throw error;
     }
   }
@@ -1120,7 +1250,12 @@ export class PredictController extends BaseController<
         state.depositTransaction = null;
       });
 
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAccount = AccountsController.getSelectedAccount();
+      if (!selectedAccount?.address) {
+        throw new Error('No account selected for deposit');
+      }
+
+      const selectedAddress = selectedAccount.address;
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
@@ -1131,15 +1266,33 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(_params),
       };
 
-      const { transactions, chainId } = await provider.prepareDeposit({
+      const depositPreparation = await provider.prepareDeposit({
         ...params,
         signer,
       });
 
+      if (!depositPreparation) {
+        throw new Error('Deposit preparation returned undefined');
+      }
+
+      const { transactions, chainId } = depositPreparation;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from deposit preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by deposit preparation');
+      }
+
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(chainId);
 
-      const { batchId } = await addTransactionBatch({
+      if (!networkClientId) {
+        throw new Error(`Network client not found for chain ID: ${chainId}`);
+      }
+
+      const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
@@ -1148,10 +1301,22 @@ export class PredictController extends BaseController<
         transactions,
       });
 
+      if (!batchResult?.batchId) {
+        throw new Error('Failed to get batch ID from transaction submission');
+      }
+
+      const { batchId } = batchResult;
+
+      // Validate chainId format before parsing
+      const parsedChainId = hexToNumber(chainId);
+      if (isNaN(parsedChainId)) {
+        throw new Error(`Invalid chain ID format: ${chainId}`);
+      }
+
       // Store deposit transaction for tracking (mirrors claim pattern)
       const predictDeposit: PredictDeposit = {
         batchId,
-        chainId: parseInt(chainId, 16),
+        chainId: parsedChainId,
         status: PredictDepositStatus.PENDING,
         providerId: params.providerId,
       };
@@ -1178,7 +1343,7 @@ export class PredictController extends BaseController<
       throw new Error(
         error instanceof Error
           ? error.message
-          : PREDICT_ERROR_CODES.ENABLE_WALLET_FAILED,
+          : PREDICT_ERROR_CODES.DEPOSIT_FAILED,
       );
     }
   }
@@ -1225,10 +1390,18 @@ export class PredictController extends BaseController<
       }
       const { AccountsController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
-      return provider.getBalance({
+      const address = params.address ?? selectedAddress;
+      const balance = await provider.getBalance({
         ...params,
-        address: params.address ?? selectedAddress,
+        address,
       });
+      this.update((state) => {
+        state.balances[params.providerId] = {
+          ...state.balances[params.providerId],
+          [address]: balance,
+        };
+      });
+      return balance;
     } catch (error) {
       // Log to Sentry with balance query context (no user address)
       Logger.error(
@@ -1331,6 +1504,13 @@ export class PredictController extends BaseController<
         providerId: params.providerId,
       });
 
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('prepareWithdraw', {
+          providerId: params.providerId,
+        }),
+      );
+
       return {
         success: false,
         error: errorMessage,
@@ -1403,7 +1583,7 @@ export class PredictController extends BaseController<
     // Attempt to estimate gas for the updated transaction
     let updatedGas: Hex | undefined;
     try {
-      const estimateResult = await this.messagingSystem.call(
+      const estimateResult = await this.messenger.call(
         'TransactionController:estimateGas',
         newParams,
         networkClientId,

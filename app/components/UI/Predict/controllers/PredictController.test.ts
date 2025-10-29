@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Messenger } from '@metamask/base-controller';
+import {
+  MOCK_ANY_NAMESPACE,
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type { NetworkState } from '@metamask/network-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -18,6 +26,7 @@ import {
 import {
   getDefaultPredictControllerState,
   PredictController,
+  PredictControllerMessenger,
   type PredictControllerState,
 } from './PredictController';
 
@@ -70,8 +79,28 @@ jest.mock('@metamask/controller-utils', () => {
   };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UnrestrictedMessenger = Messenger<any, any>;
+type AllPredictControllerMessengerActions =
+  MessengerActions<PredictControllerMessenger>;
+
+type AllPredictControllerMessengerEvents =
+  MessengerEvents<PredictControllerMessenger>;
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  AllPredictControllerMessengerActions,
+  AllPredictControllerMessengerEvents
+>;
+
+/**
+ * Creates and returns a root messenger for testing
+ *
+ * @returns A messenger instance
+ */
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
 
 describe('PredictController', () => {
   let mockPolymarketProvider: jest.Mocked<PolymarketProvider>;
@@ -138,22 +167,22 @@ describe('PredictController', () => {
   function withController<ReturnValue>(
     fn: (args: {
       controller: PredictController;
-      messenger: UnrestrictedMessenger;
+      messenger: RootMessenger;
     }) => ReturnValue,
     options: {
       state?: Partial<PredictControllerState>;
       mocks?: {
-        getSelectedAccount?: jest.MockedFunction<() => unknown>;
-        getNetworkState?: jest.MockedFunction<() => unknown>;
+        getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
+        getNetworkState?: jest.MockedFunction<() => NetworkState>;
       };
     } = {},
   ): ReturnValue {
     const { state = {}, mocks = {} } = options;
 
-    const messenger = new Messenger<any, any>();
+    const rootMessenger = getRootMessenger();
 
     // Register mock external actions
-    messenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
       mocks.getSelectedAccount ??
         jest.fn().mockReturnValue({
@@ -163,7 +192,7 @@ describe('PredictController', () => {
         }),
     );
 
-    messenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'NetworkController:getState',
       mocks.getNetworkState ??
         jest.fn().mockReturnValue({
@@ -171,36 +200,44 @@ describe('PredictController', () => {
         }),
     );
 
-    messenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'TransactionController:estimateGas',
       jest.fn().mockResolvedValue({
         gas: '0x5208',
       }),
     );
 
-    const restrictedMessenger = messenger.getRestricted({
-      name: 'PredictController',
-      allowedActions: [
-        'AccountsController:getSelectedAccount' as never,
-        'NetworkController:getState' as never,
-        'TransactionController:estimateGas' as never,
+    const messenger = new Messenger<
+      'PredictController',
+      AllPredictControllerMessengerActions,
+      AllPredictControllerMessengerEvents,
+      RootMessenger
+    >({
+      namespace: 'PredictController',
+      parent: rootMessenger,
+    });
+
+    rootMessenger.delegate({
+      actions: [
+        'AccountsController:getSelectedAccount',
+        'NetworkController:getState',
+        'TransactionController:estimateGas',
       ],
-      allowedEvents: [
-        'AccountsController:selectedAccountChange' as never,
-        'NetworkController:stateChange' as never,
-        'TransactionController:transactionSubmitted' as never,
-        'TransactionController:transactionConfirmed' as never,
-        'TransactionController:transactionFailed' as never,
-        'TransactionController:transactionRejected' as never,
+      events: [
+        'TransactionController:transactionSubmitted',
+        'TransactionController:transactionConfirmed',
+        'TransactionController:transactionFailed',
+        'TransactionController:transactionRejected',
       ],
+      messenger,
     });
 
     const controller = new PredictController({
-      messenger: restrictedMessenger,
+      messenger,
       state,
     });
 
-    return fn({ controller, messenger });
+    return fn({ controller, messenger: rootMessenger });
   }
 
   describe('constructor', () => {
@@ -735,6 +772,50 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toBe('Order placement failed');
+      });
+    });
+
+    it('updates state with lastError when place order fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockImplementation(() =>
+          Promise.reject(new Error('Network error')),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          preview,
+        });
+
+        expect(controller.state.lastError).toBe('Network error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('logs error details when place order fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockImplementation(() =>
+          Promise.reject(new Error('Provider error')),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.SELL });
+        const params = {
+          providerId: 'polymarket',
+          preview,
+        };
+
+        await controller.placeOrder(params);
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Place order failed',
+          expect.objectContaining({
+            error: 'Provider error',
+            timestamp: expect.any(String),
+            providerId: 'polymarket',
+            params,
+          }),
+        );
       });
     });
 
@@ -1382,6 +1463,14 @@ describe('PredictController', () => {
     it('claim a single position successfully', async () => {
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockResolvedValue(mockClaim);
@@ -1409,6 +1498,20 @@ describe('PredictController', () => {
     it('claim multiple positions successfully using batch transaction', async () => {
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market-1',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome-1',
+            balance: '100',
+          },
+          {
+            marketId: 'test-market-2',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome-2',
+            balance: '200',
+          },
+        ]);
         const mockMultipleClaims = {
           chainId: 1,
           transactions: [
@@ -1458,6 +1561,14 @@ describe('PredictController', () => {
 
     it('handle general claim error', async () => {
       await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockImplementation(() => {
@@ -1474,6 +1585,18 @@ describe('PredictController', () => {
 
     it('return CANCELLED status when user denies transaction signature', async () => {
       await withController(async ({ controller }) => {
+        const mockClaimablePositions = [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            balance: '100',
+            providerId: 'polymarket',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockClaimablePositions as any,
+        );
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockImplementation(() => {
@@ -1492,6 +1615,18 @@ describe('PredictController', () => {
 
     it('return CANCELLED status when user denial error is wrapped', async () => {
       await withController(async ({ controller }) => {
+        const mockClaimablePositions = [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            balance: '100',
+            providerId: 'polymarket',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockClaimablePositions as any,
+        );
         (addTransactionBatch as jest.Mock).mockRejectedValue(
           new Error(
             'Error occurred during transaction batch: User denied transaction signature',
@@ -1508,6 +1643,194 @@ describe('PredictController', () => {
         expect(result.batchId).toBe('NA');
         expect(result.chainId).toBe(0);
         expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+      });
+    });
+
+    it('throws error when no claimable positions found', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('No claimable positions found');
+      });
+    });
+
+    it('updates error state when claim fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        const errorMessage = 'Claim preparation failed';
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.claimTransaction).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('throws error when network client not found', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
+          .fn()
+          .mockReturnValue(undefined);
+
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Network client not found for chain ID');
+      });
+    });
+
+    it('throws error when transaction batch returns no batchId', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
+          .fn()
+          .mockReturnValue('mainnet');
+
+        (addTransactionBatch as jest.Mock).mockResolvedValue({});
+
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Failed to get batch ID from claim transaction submission',
+        );
+      });
+    });
+
+    it('throws error when prepareClaim returns no transactions', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
+          chainId: 1,
+          transactions: [],
+        });
+
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('No transactions returned from claim preparation');
+      });
+    });
+
+    it('throws error when prepareClaim returns no chainId', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
+          transactions: [
+            {
+              params: {
+                to: '0xclaim' as `0x${string}`,
+                data: '0xclaimdata' as `0x${string}`,
+              },
+            },
+          ],
+        });
+
+        await expect(
+          controller.claimWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Chain ID not provided by claim preparation');
+      });
+    });
+
+    it('clears error state on successful claim', async () => {
+      const mockBatchId = 'claim-batch-1';
+      await withController(async ({ controller }) => {
+        // Set initial error state
+        controller.updateStateForTesting((state) => {
+          state.lastError = 'Previous error';
+        });
+
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
+          .fn()
+          .mockReturnValue('mainnet');
+
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+
+        const result = await controller.claimWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        expect(result.batchId).toBe(mockBatchId);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
   });
@@ -2028,32 +2351,130 @@ describe('PredictController', () => {
       });
     });
 
-    it('handle empty transaction array from prepareDeposit', async () => {
+    it('throw error when prepareDeposit returns empty transactions', async () => {
       // Given prepareDeposit returns empty transactions
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [],
         chainId: '0x89',
       });
 
-      (addTransactionBatch as jest.Mock).mockResolvedValue({
-        batchId: 'batch-empty',
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('No transactions returned from deposit preparation');
+
+        // And addTransactionBatch should not be called
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    // Note: Tests for account validation errors require mocking AccountsController
+    // at the module level, which is complex with the current test setup.
+    // These error paths are indirectly tested through integration tests.
+
+    it('throw error when prepareDeposit returns undefined', async () => {
+      // Given prepareDeposit returns undefined
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue(
+        undefined as never,
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Deposit preparation returned undefined');
+      });
+    });
+
+    it('throw error when chainId is not provided', async () => {
+      // Given prepareDeposit returns result without chainId
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: null as unknown as `0x${string}`,
       });
 
       await withController(async ({ controller }) => {
         // When calling depositWithConfirmation
-        const result = await controller.depositWithConfirmation({
-          providerId: 'polymarket',
-        });
-
-        // Then it should still succeed
-        expect(result.success).toBe(true);
-
-        // And addTransactionBatch should be called with empty array
-        expect(addTransactionBatch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            transactions: [],
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
           }),
-        );
+        ).rejects.toThrow('Chain ID not provided by deposit preparation');
+      });
+    });
+
+    // Note: Tests for NetworkController validation errors require mocking
+    // at the module level, which is complex with the current test setup.
+    // These error paths are indirectly tested through integration tests.
+
+    it('throw error when addTransactionBatch returns no batchId', async () => {
+      // Given addTransactionBatch returns empty result
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({});
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Failed to get batch ID from transaction submission');
+      });
+    });
+
+    it('throw error when chainId format is invalid', async () => {
+      // Given prepareDeposit returns invalid hex chainId
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: 'not-a-hex' as `0x${string}`,
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-123',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Value must be a hexadecimal string.');
       });
     });
   });

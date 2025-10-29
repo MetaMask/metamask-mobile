@@ -10,11 +10,14 @@ const statusBarHeight = StatusBar.currentHeight ?? 0;
 const androidPaddingTopWithStatusBar = statusBarHeight + 24;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   scrollView: {
     marginBottom: 0,
   },
   root: {
-    height: '100%',
+    flex: 1,
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? androidPaddingTopWithStatusBar : 24,
   },
