@@ -572,7 +572,7 @@ describe('usePerpsPositionData', () => {
       expect(result.current.candleData?.candles).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            open: '3200',
+            open: '3000', // Opens at previous candle's close price
             close: '3200',
           }),
         ]),
