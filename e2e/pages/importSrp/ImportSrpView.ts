@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import { ImportSRPIDs } from '../../selectors/MultiSRP/SRPImport.selectors';
 
 class ImportSrpView {
@@ -26,17 +27,28 @@ class ImportSrpView {
   async enterSrp(mnemonic: string): Promise<void> {
     const elemDescription = 'SRP textarea input';
 
+    // Wait for the textarea to be visible
+    await Assertions.expectElementToBeVisible(this.textareaInput, {
+      description: elemDescription,
+      timeout: 20000,
+    });
+
     if (device.getPlatform() === 'ios') {
       await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
         hideKeyboard: true,
-        timeout: 15000,
+        timeout: 20000,
       });
     } else {
       // For Android, we use replaceText to avoid autocomplete issue
+      // Tap first to ensure element is focused and fully visible
+      await Gestures.tap(this.textareaInput, {
+        elemDescription,
+      });
+
       await Gestures.replaceText(this.textareaInput, mnemonic, {
         elemDescription,
-        timeout: 15000,
+        timeout: 20000,
       });
     }
   }
