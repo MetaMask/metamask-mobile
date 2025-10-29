@@ -13,6 +13,6 @@ export const selectHomepageRedesignV1Enabled = createSelector(
     const remoteFlag = remoteFeatureFlags[
       homepageRedesignV1Key
     ] as unknown as VersionGatedFeatureFlag;
-    return false;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
