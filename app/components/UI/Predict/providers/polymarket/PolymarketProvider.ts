@@ -25,6 +25,7 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -585,14 +586,22 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  public async isEligible(): Promise<boolean> {
+  public async isEligible(): Promise<GeoBlockResponse> {
     const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
-    let eligible = false;
+    const result: GeoBlockResponse = {
+      isEligible: false,
+    };
+
     try {
       const res = await fetch(GEOBLOCK_API_ENDPOINT);
-      const { blocked } = (await res.json()) as { blocked: boolean };
-      if (blocked !== undefined) {
-        eligible = blocked === false;
+      const data = (await res.json()) as {
+        blocked?: boolean;
+        country?: string;
+      };
+
+      if (data.blocked !== undefined) {
+        result.isEligible = data.blocked === false;
+        result.country = data.country;
       }
     } catch (error) {
       DevLogger.log('PolymarketProvider: Error checking geoblock status', {
@@ -611,7 +620,7 @@ export class PolymarketProvider implements PredictProvider {
         operation: 'geoblock_check',
       });
     }
-    return eligible;
+    return result;
   }
 
   public async prepareDeposit(

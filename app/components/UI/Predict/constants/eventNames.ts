@@ -35,6 +35,10 @@ export const PredictEventProperties = {
 
   // Activity specific
   ACTIVITY_TYPE: 'activity_type',
+
+  // Geo-blocking specific
+  COUNTRY: 'country',
+  ATTEMPTED_ACTION: 'attempted_action',
 } as const;
 
 /**
@@ -61,6 +65,12 @@ export const PredictEventValues = {
     PREDICTED: 'predicted',
     CASHED_OUT: 'cashed_out',
     CLAIMED: 'claimed',
+  },
+  ATTEMPTED_ACTION: {
+    DEPOSIT: 'deposit',
+    PREDICT: 'predict',
+    CASHOUT: 'cashout',
+    CLAIM: 'claim',
   },
 } as const;
 

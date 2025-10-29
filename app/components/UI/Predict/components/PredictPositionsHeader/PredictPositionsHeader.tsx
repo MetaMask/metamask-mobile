@@ -38,6 +38,7 @@ import {
   PredictPosition,
   PredictPositionStatus,
 } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
 
@@ -136,9 +137,12 @@ const PredictPositionsHeader = forwardRef<PredictPositionsHeaderHandle>(
     const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
     const handleClaim = async () => {
-      await executeGuardedAction(async () => {
-        await claim();
-      });
+      await executeGuardedAction(
+        async () => {
+          await claim();
+        },
+        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+      );
     };
 
     if (isBalanceLoading || isUnrealizedPnLLoading) {

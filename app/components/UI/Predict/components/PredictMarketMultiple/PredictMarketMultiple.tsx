@@ -125,7 +125,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           },
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 

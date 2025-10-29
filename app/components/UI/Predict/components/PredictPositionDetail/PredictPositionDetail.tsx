@@ -47,20 +47,23 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   });
 
   const onCashOut = () => {
-    executeGuardedAction(() => {
-      const _outcome = market?.outcomes.find(
-        (o) => o.id === position.outcomeId,
-      );
-      navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-        params: {
-          market,
-          position,
-          outcome: _outcome,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
-      });
-    });
+    executeGuardedAction(
+      () => {
+        const _outcome = market?.outcomes.find(
+          (o) => o.id === position.outcomeId,
+        );
+        navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+          params: {
+            market,
+            position,
+            outcome: _outcome,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          },
+        });
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+    );
   };
 
   const renderValueText = () => {
