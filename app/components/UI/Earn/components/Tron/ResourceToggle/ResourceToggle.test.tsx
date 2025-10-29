@@ -5,7 +5,7 @@ import ResourceToggle from './ResourceToggle';
 import type { ButtonBaseProps } from '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 jest.mock(
-  '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
+  '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
   () => {
     const React = jest.requireActual('react');
     const { Pressable, Text } = jest.requireActual('react-native');
