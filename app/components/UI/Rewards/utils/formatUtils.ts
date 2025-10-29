@@ -52,17 +52,15 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
 
   // No time remaining
-  if (hours <= 0 && minutes <= 0) {
+  if (hours <= 0 && minutes <= 0 && days <= 0) {
     return null;
   }
 
-  // Only minutes remaining
-  if (hours <= 0) {
-    return `${minutes}m`;
-  }
+  const dayString = days > 0 ? `${days}d ` : '';
+  const hourString = hours > 0 ? `${hours}h ` : '';
+  const minuteString = minutes > 0 ? `${minutes}m` : '';
 
-  // Hours and days remaining
-  return `${days}d ${hours}h`;
+  return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
 export const PerpsEventType = {
