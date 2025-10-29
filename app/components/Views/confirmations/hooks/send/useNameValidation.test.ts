@@ -95,7 +95,7 @@ describe('useNameValidation', () => {
       resolvedAddress: 'dummy_address',
     });
     expect(mockSetResolvedAddress).toHaveBeenCalledWith(
-      '5eykt4usfv8p8njdtrepy1vzqkqzkvdp',
+      '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       'test.eth',
       'dummy_address',
     );
