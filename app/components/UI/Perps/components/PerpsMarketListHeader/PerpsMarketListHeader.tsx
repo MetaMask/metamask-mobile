@@ -1,17 +1,30 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Pressable, Keyboard } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Pressable,
+  Keyboard,
+  TextInput,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
 import type { PerpsMarketListHeaderProps } from './PerpsMarketListHeader.types';
 import styleSheet from './PerpsMarketListHeader.styles';
 
@@ -56,6 +69,8 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
+  const { colors } = useTheme();
   const navigation = useNavigation();
 
   // Default back handler
@@ -77,34 +92,49 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
       {isSearchVisible ? (
         <>
           {/* Search Bar - Replaces back button and title */}
-          <View style={styles.searchBarContainer}>
-            {searchQuery.length > 0 && onSearchClear ? (
-              <TextFieldSearch
-                value={searchQuery}
-                onChangeText={onSearchQueryChange}
-                autoFocus
-                showClearButton
-                onPressClearButton={onSearchClear}
-                placeholder={strings('perps.search_by_token_symbol')}
-                testID={testID ? `${testID}-search-bar` : undefined}
-              />
-            ) : (
-              <TextFieldSearch
-                value={searchQuery}
-                onChangeText={onSearchQueryChange}
-                autoFocus
-                placeholder={strings('perps.search_by_token_symbol')}
-                testID={testID ? `${testID}-search-bar` : undefined}
-              />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            style={styles.searchBarContainer}
+            twClassName="flex-1 bg-muted rounded-lg px-3 py-1 mr-2"
+          >
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+              style={tw.style('mr-2')}
+            />
+            <TextInput
+              value={searchQuery}
+              onChangeText={onSearchQueryChange}
+              placeholder={strings('perps.search_by_token_symbol')}
+              placeholderTextColor={colors.text.muted}
+              autoFocus
+              style={tw.style('flex-1 text-base text-default')}
+              testID={testID ? `${testID}-search-bar` : undefined}
+            />
+            {searchQuery.length > 0 && onSearchClear && (
+              <Pressable
+                onPress={onSearchClear}
+                testID={testID ? `${testID}-search-clear` : undefined}
+              >
+                <Icon
+                  name={IconName.CircleX}
+                  size={IconSize.Md}
+                  color={IconColor.Alternative}
+                />
+              </Pressable>
             )}
-          </View>
-          {/* Close Button */}
+          </Box>
+          {/* Cancel Button */}
           <TouchableOpacity
             style={styles.searchButton}
             onPress={onSearchToggle}
             testID={testID ? `${testID}-search-close` : undefined}
           >
-            <Icon name={IconName.Close} size={IconSize.Lg} />
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {strings('perps.cancel')}
+            </Text>
           </TouchableOpacity>
         </>
       ) : (
