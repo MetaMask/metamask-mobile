@@ -600,8 +600,8 @@ class ApproveTransactionReview extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -1334,12 +1334,12 @@ class ApproveTransactionReview extends PureComponent {
         {viewDetails
           ? this.renderTransactionReview()
           : shouldVerifyContractDetails
-          ? this.renderVerifyContractDetails()
-          : showBlockExplorerModal
-          ? this.renderBlockExplorerView()
-          : isSigningQRObject
-          ? this.renderQRDetails()
-          : this.renderDetails()}
+            ? this.renderVerifyContractDetails()
+            : showBlockExplorerModal
+              ? this.renderBlockExplorerView()
+              : isSigningQRObject
+                ? this.renderQRDetails()
+                : this.renderDetails()}
       </View>
     );
   };

@@ -246,9 +246,8 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
 
   it('should Stake Claim ETH', async (): Promise<void> => {
     const stakeAPIUrl: string = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`;
-    const response: AxiosResponse<StakingAPIResponse> = await axios.get(
-      stakeAPIUrl,
-    );
+    const response: AxiosResponse<StakingAPIResponse> =
+      await axios.get(stakeAPIUrl);
 
     if (response.status !== 200) {
       throw new Error('Error calling Staking API');

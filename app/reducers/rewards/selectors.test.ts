@@ -59,7 +59,7 @@ describe('Rewards selectors', () => {
   // Helper function to create mock root state
   const createMockRootState = (
     rewardsState: Partial<RewardsState>,
-  ): RootState => ({ rewards: rewardsState } as RootState);
+  ): RootState => ({ rewards: rewardsState }) as RootState;
 
   beforeEach(() => {
     jest.clearAllMocks();

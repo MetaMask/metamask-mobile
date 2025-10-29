@@ -70,10 +70,10 @@ function GasEditModal({
 }) {
   const [gasSelected, setGasSelected] = useState(
     customGasFee
-      ? customGasFee.selected ?? null
+      ? (customGasFee.selected ?? null)
       : gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-      ? defaultGasFeeOptionFeeMarket
-      : defaultGasFeeOptionLegacy,
+        ? defaultGasFeeOptionFeeMarket
+        : defaultGasFeeOptionLegacy,
   );
   const [stopUpdateGas, setStopUpdateGas] = useState(false);
   const [hasEnoughEthBalance, setHasEnoughEthBalance] = useState(true);
@@ -309,10 +309,10 @@ function GasEditModal({
   const cancelGasEdition = useCallback(() => {
     setGasSelected(
       customGasFee
-        ? customGasFee.selected ?? null
+        ? (customGasFee.selected ?? null)
         : gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-        ? GAS_OPTIONS.HIGH
-        : GAS_OPTIONS.MEDIUM,
+          ? GAS_OPTIONS.HIGH
+          : GAS_OPTIONS.MEDIUM,
     );
     dismiss();
   }, [customGasFee, dismiss, gasEstimateType]);
