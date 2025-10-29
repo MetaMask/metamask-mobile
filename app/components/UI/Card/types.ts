@@ -302,6 +302,7 @@ export interface RegistrationSettingsResponse {
       termsAndConditions: string;
       accountOpeningDisclosure: string;
       noticeOfPrivacy: string;
+      eSignConsentDisclosure: string;
     };
     intl: {
       termsAndConditions: string;
@@ -342,7 +343,7 @@ export interface Consent {
 }
 
 export interface CreateOnboardingConsentRequest {
-  policyType: 'us' | 'global';
+  policyType: 'US' | 'global';
   onboardingId: string;
   tenantId: string;
   consents: Consent[];
