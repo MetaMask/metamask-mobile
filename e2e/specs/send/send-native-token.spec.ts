@@ -6,7 +6,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import { Assertions } from '../../framework';
 import { DappVariants } from '../../framework/Constants';
 import { SmokeConfirmationsRedesigned } from '../../tags';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
@@ -21,12 +21,22 @@ describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: ({ localNodes }) => {
+          const node = localNodes?.[0] as unknown as { getPort?: () => number };
+          const anvilPort = node?.getPort ? node.getPort() : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .build();
+        },
         restartDevice: true,
       },
       async () => {

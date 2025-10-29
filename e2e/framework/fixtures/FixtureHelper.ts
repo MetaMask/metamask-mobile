@@ -405,7 +405,7 @@ export async function withFixtures(
   testSuite: TestSuiteFunction,
 ) {
   const {
-    fixture,
+    fixture: fixtureOption,
     restartDevice = false,
     smartContracts,
     disableLocalNodes = false,
@@ -430,9 +430,8 @@ export async function withFixtures(
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  const { mockServer, mockServerPort } = await createMockAPIServer(
-    testSpecificMock,
-  );
+  const { mockServer, mockServerPort } =
+    await createMockAPIServer(testSpecificMock);
 
   // Handle local nodes
   let localNodes;
@@ -466,6 +465,14 @@ export async function withFixtures(
       );
     }
 
+    // Resolve fixture after local nodes are started so dynamic ports are known
+    let resolvedFixture: FixtureBuilder;
+    if (typeof fixtureOption === 'function') {
+      resolvedFixture = await fixtureOption({ localNodes });
+    } else {
+      resolvedFixture = fixtureOption;
+    }
+
     // Handle dapps
     if (dapps && dapps.length > 0) {
       await handleDapps(dapps, dappServer);
@@ -473,7 +480,7 @@ export async function withFixtures(
 
     // Start fixture server
     await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
+    await loadFixture(fixtureServer, { fixture: resolvedFixture });
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
