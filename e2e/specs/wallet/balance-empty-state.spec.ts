@@ -52,11 +52,11 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
     );
   });
 
-  it('displays the empty state consistently across different networks', async (): Promise<void> => {
+  it('displays empty state on mainnet but numerical balance on testnets', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withDefaultFixture() // Zero balance on all networks
+          .withDefaultFixture() // Zero balance - should show empty state on mainnet, $0.00 on testnets
           .withSolanaFixture() // Add Solana support
           .ensureSolanaModalSuppressed() // Suppress Solana intro modal
           .build(),
@@ -88,14 +88,23 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         );
         await NetworkEducationModal.tapGotItButton();
 
-        // Then: Empty state should still be visible on Sepolia
-        await Assertions.expectElementToBeVisible(emptyStateContainer, {
+        // Then: Empty state should NOT be visible on Sepolia testnet (shows numerical balance instead)
+        await Assertions.expectElementToNotBeVisible(emptyStateContainer, {
           description:
-            'Empty state should remain visible on Sepolia testnet with zero balance',
+            'Empty state should NOT be visible on Sepolia testnet - shows numerical balance instead',
         });
-        await Assertions.expectElementToNotBeVisible(WalletView.totalBalance, {
-          description: 'Total balance should remain hidden on Sepolia',
+        await Assertions.expectElementToBeVisible(WalletView.totalBalance, {
+          description:
+            'Total balance ($0.00) should be visible on Sepolia testnet',
         });
+
+        // Verify the balance shows $0.00 (not empty state)
+        const sepoliaBalance = await WalletView.getBalanceText();
+        if (!sepoliaBalance.includes('$0.00')) {
+          throw new Error(
+            `Expected $0.00 balance on Sepolia testnet, but got: ${sepoliaBalance}`,
+          );
+        }
 
         // When: User switches to Ethereum Mainnet (should also have zero balance)
         await WalletView.tapNetworksButtonOnNavBar();
