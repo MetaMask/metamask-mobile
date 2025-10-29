@@ -122,12 +122,6 @@ class SettingsView {
     });
   }
 
-  async tapNetworks(): Promise<void> {
-    await Gestures.waitAndTap(this.networksButton, {
-      elemDescription: 'Settings - Networks Button',
-    });
-  }
-
   async tapNotifications(): Promise<void> {
     await Gestures.waitAndTap(this.notificationsButton, {
       elemDescription: 'Settings - Notifications Button',
