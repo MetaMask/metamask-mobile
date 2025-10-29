@@ -4,7 +4,6 @@
  * Converts various deep link formats into a standardized CoreUniversalLink format
  */
 
-import { URL as URLPolyfill } from 'react-native-url-polyfill';
 import qs from 'qs';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import AppConstants from '../AppConstants';
@@ -31,7 +30,7 @@ export class CoreLinkNormalizer {
     try {
       // Clean and validate URL
       const cleanedUrl = this.cleanUrl(url);
-      const urlObj = new URLPolyfill(cleanedUrl);
+      const urlObj = new URL(cleanedUrl);
 
       // Extract protocol
       const protocol = this.extractProtocol(urlObj);
@@ -42,7 +41,7 @@ export class CoreLinkNormalizer {
 
       // Convert metamask:// to https:// for normalizedUrl
       const processedUrl = this.convertToHttpsIfNeeded(cleanedUrl, urlObj);
-      const processedUrlObj = new URLPolyfill(processedUrl);
+      const processedUrlObj = new URL(processedUrl);
 
       // Check if action is supported
       const isSupportedAction = this.isSupportedAction(action);
