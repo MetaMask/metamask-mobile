@@ -160,6 +160,11 @@ const rewardsSlice = createSlice({
         typeof action.payload.balance.total === 'number'
           ? action.payload.balance.total
           : null;
+      state.balanceRefereePortion =
+        action.payload?.balance &&
+        typeof action.payload.balance.refereePortion === 'number'
+          ? action.payload.balance.refereePortion
+          : null;
       state.balanceUpdatedAt = action.payload?.balance?.updatedAt
         ? new Date(action.payload.balance.updatedAt)
         : null;
@@ -176,7 +181,6 @@ const rewardsSlice = createSlice({
       action: PayloadAction<{
         referralCode?: string;
         refereeCount?: number;
-        referralPoints?: number;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -184,9 +188,6 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.refereeCount !== undefined) {
         state.refereeCount = action.payload.refereeCount;
-      }
-      if (action.payload.referralPoints !== undefined) {
-        state.balanceRefereePortion = action.payload.referralPoints;
       }
       state.referralDetailsLoading = false;
     },

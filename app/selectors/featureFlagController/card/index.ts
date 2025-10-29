@@ -87,6 +87,7 @@ const defaultCardFeatureFlag: CardFeatureFlag = {
     accountsApiUrl: 'https://accounts.api.cx.metamask.io',
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
   },
+  isBaanxLoginEnabled: false,
 };
 
 const defaultCardSupportedCountries: CardSupportedCountries = {
@@ -155,6 +156,7 @@ export interface DisplayCardButtonFeatureFlag {
 }
 
 export interface CardFeatureFlag {
+  isBaanxLoginEnabled?: boolean;
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
 }

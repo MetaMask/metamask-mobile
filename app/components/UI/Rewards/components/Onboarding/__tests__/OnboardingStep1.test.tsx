@@ -2,7 +2,6 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import { renderWithProviders } from '../testUtils';
 import OnboardingStep1 from '../OnboardingStep1';
-import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -171,7 +170,7 @@ describe('OnboardingStep1', () => {
       renderWithProviders(<OnboardingStep1 />);
 
       // Verify skip button is rendered
-      const skipButton = screen.getByTestId(REWARDS_VIEW_SELECTORS.SKIP_BUTTON);
+      const skipButton = screen.getByTestId('skip-button');
       expect(skipButton).toBeDefined();
     });
 
@@ -179,7 +178,7 @@ describe('OnboardingStep1', () => {
       renderWithProviders(<OnboardingStep1 />);
 
       // Find and press the skip button
-      const skipButton = screen.getByTestId(REWARDS_VIEW_SELECTORS.SKIP_BUTTON);
+      const skipButton = screen.getByTestId('skip-button');
       fireEvent.press(skipButton);
 
       // Verify navigation and dispatch were called with correct arguments

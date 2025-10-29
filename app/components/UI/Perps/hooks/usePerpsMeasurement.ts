@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
-  endTrace,
   trace,
+  endTrace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 // Static helper functions - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.length > 0 && conditionArray.every(Boolean);
 
 const anyTrue = (conditionArray: boolean[]): boolean =>
-  conditionArray.some(Boolean);
+  conditionArray.length > 0 && conditionArray.some(Boolean);
 
 interface MeasurementOptions {
   traceName: TraceName;

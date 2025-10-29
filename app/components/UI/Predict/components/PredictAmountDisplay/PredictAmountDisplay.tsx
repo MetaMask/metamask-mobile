@@ -1,17 +1,17 @@
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
-import { Animated, TouchableOpacity } from 'react-native';
+import { Animated, Platform, TouchableOpacity } from 'react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { formatPositionSize, formatPrice } from '../../utils/format';
+import { formatPrice, formatPositionSize } from '../../utils/format';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+} from '@metamask/design-system-react-native';
 
 interface PredictAmountDisplayProps {
   amount: string;
@@ -69,7 +69,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   const content = (
     <Box
       alignItems={BoxAlignItems.Center}
-      twClassName="px-6"
+      twClassName="pt-12 px-6"
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
       {label && (
@@ -89,9 +89,10 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
         <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
           color={hasError ? TextColor.Error : TextColor.Default}
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMDBold}
           style={tw.style(
-            'text-[64px] tracking-tight leading-[74px] font-medium',
+            'text-[54px] tracking-tight leading-[74px]',
+            Platform.OS === 'android' ? 'font-medium' : 'font-black',
           )}
         >
           {showTokenAmount && tokenAmount && tokenSymbol

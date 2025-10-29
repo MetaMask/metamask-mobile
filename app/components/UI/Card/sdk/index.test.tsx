@@ -36,6 +36,7 @@ import { UserResponse } from '../types';
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
     isCardEnabled: true,
+    isBaanxLoginEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getGeoLocation: jest.fn(),
@@ -60,7 +61,6 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   selectUserCardLocation: jest.fn(),
   setUserCardLocation: jest.fn(),
   selectOnboardingId: jest.fn(),
-  resetOnboardingState: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -157,6 +157,7 @@ describe('CardSDK Context', () => {
     overrides: Partial<CardSDK> = {},
   ): Partial<CardSDK> => ({
     isCardEnabled: true,
+    isBaanxLoginEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getGeoLocation: jest.fn(),

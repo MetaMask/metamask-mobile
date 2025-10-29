@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PriceUpdate } from '../controllers/types';
-import { usePerpsConnection } from './usePerpsConnection';
-import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
+import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsConnection } from './usePerpsConnection';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Configuration options for the usePerpsPrices hook
@@ -57,9 +57,9 @@ export function usePerpsPrices(
       const updated = { ...prev };
 
       // Always update with pending prices when flushing
-      for (const [coin, price] of pendingUpdates) {
+      pendingUpdates.forEach(([coin, price]) => {
         updated[coin] = price;
-      }
+      });
 
       return updated;
     });
@@ -82,10 +82,10 @@ export function usePerpsPrices(
       );
 
       // Store updates in pending map
-      for (const price of newPrices) {
+      newPrices.forEach((price) => {
         pendingUpdatesRef.current.set(price.coin, price);
         hasReceivedFirstUpdate.current.add(price.coin);
-      }
+      });
 
       // If this is the first update for any symbol, flush immediately
       if (hasFirstUpdate) {

@@ -91,6 +91,7 @@ import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails
 import ShowBlockExplorer from './ShowBlockExplorer';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
+import SkeletonText from '../../../../../UI/Ramp/Aggregator/components/SkeletonText';
 import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
@@ -1016,20 +1017,30 @@ class ApproveTransactionReview extends PureComponent {
                     />
                     <View style={styles.paddingHorizontal}>
                       <View style={styles.section}>
-                        {tokenStandard && isERC2OToken && (
-                          <CustomSpendCap
-                            ticker={tokenSymbol}
-                            dappProposedValue={originalApproveAmount}
-                            tokenSpendValue={tokenSpendValue}
-                            accountBalance={tokenBalance}
-                            unroundedAccountBalance={unroundedAccountBalance}
-                            tokenDecimal={tokenDecimals}
-                            toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
-                            isEditDisabled={Boolean(isReadyToApprove)}
-                            editValue={this.goToSpendCap}
-                            onInputChanged={this.handleCustomSpendOnInputChange}
-                            isInputValid={this.handleSetIsCustomSpendInputValid}
-                          />
+                        {!tokenStandard ? (
+                          <SkeletonText style={styles.skeletalView} />
+                        ) : (
+                          isERC2OToken && (
+                            <CustomSpendCap
+                              ticker={tokenSymbol}
+                              dappProposedValue={originalApproveAmount}
+                              tokenSpendValue={tokenSpendValue}
+                              accountBalance={tokenBalance}
+                              unroundedAccountBalance={unroundedAccountBalance}
+                              tokenDecimal={tokenDecimals}
+                              toggleLearnMoreWebPage={
+                                this.toggleLearnMoreWebPage
+                              }
+                              isEditDisabled={Boolean(isReadyToApprove)}
+                              editValue={this.goToSpendCap}
+                              onInputChanged={
+                                this.handleCustomSpendOnInputChange
+                              }
+                              isInputValid={
+                                this.handleSetIsCustomSpendInputValid
+                              }
+                            />
+                          )
                         )}
                         {((isERC2OToken && isReadyToApprove) ||
                           isNonFungibleToken) && (

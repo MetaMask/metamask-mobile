@@ -7,9 +7,10 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { InteractionManager } from 'react-native';
+import { View, InteractionManager } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
+import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   selectChainId,
@@ -17,6 +18,7 @@ import {
   selectNativeNetworkCurrencies,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
+import createStyles from './styles';
 import { TokenList } from './TokenList';
 import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -24,7 +26,6 @@ import { strings } from '../../../../locales/i18n';
 import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Box } from '@metamask/design-system-react-native';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
@@ -35,27 +36,19 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import Loader from '../../../component-library/components-temp/Loader';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
 }
 
-interface TokensProps {
-  /**
-   * Whether this is the full view (with header and safe area) or tab view
-   */
-  isFullView?: boolean;
-}
-
-const Tokens = memo(({ isFullView = false }: TokensProps) => {
+const Tokens = memo(() => {
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
+  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const tw = useTailwind();
 
   // evm
   const evmNetworkConfigurationsByChainId = useSelector(
@@ -83,6 +76,8 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     typeof sortedTokenKeys
   >([]);
   const lastTokenDataRef = useRef<typeof sortedTokenKeys>();
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
   const isMultichainAccountsState2Enabled = useSelector(
@@ -253,18 +248,15 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   }, []);
 
   return (
-    <Box
-      twClassName="flex-1 bg-default"
+    <View
+      style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
-      <TokenListControlBar
-        goToAddToken={goToAddToken}
-        style={isFullView ? tw`px-4 pb-4` : undefined}
-      />
+      <TokenListControlBar goToAddToken={goToAddToken} />
       {!isTokensLoading &&
       renderedTokenKeys.length === 0 &&
       progressiveTokens.length === 0 ? (
-        <Box twClassName="flex-1 bg-default" />
+        <View style={styles.wrapper} />
       ) : (
         <>
           {isTokensLoading && progressiveTokens.length === 0 && (
@@ -279,13 +271,6 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
               onRefresh={onRefresh}
               showRemoveMenu={showRemoveMenu}
               setShowScamWarningModal={handleScamWarningModal}
-              flashListProps={
-                isFullView
-                  ? {
-                      contentContainerStyle: tw`px-4`,
-                    }
-                  : undefined
-              }
             />
           )}
         </>
@@ -304,7 +289,15 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
       />
-    </Box>
+      <ActionSheet
+        ref={actionSheet as LegacyRef<typeof ActionSheet>}
+        title={strings('wallet.remove_token_title')}
+        options={[strings('wallet.remove'), strings('wallet.cancel')]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={onActionSheetPress}
+      />
+    </View>
   );
 });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import PerpsTransactionItem, { FillType } from './PerpsTransactionItem';
+import PerpsTransactionItem from './PerpsTransactionItem';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   PerpsOrderTransactionStatus,
@@ -34,7 +34,6 @@ jest.mock('../../../../../component-library/base-components/TagBase', () => ({
   TagSeverity: {
     Default: 'default',
     Danger: 'danger',
-    Info: 'info',
   },
   TagShape: {
     Pill: 'pill',
@@ -46,7 +45,6 @@ jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
   default: ({ size, testID }: { size: number; testID?: string }) => {
     const { View } = jest.requireActual('react-native');
-
     return (
       <View
         testID={testID || 'perps-token-logo'}
@@ -137,7 +135,9 @@ const mockTransaction = {
     feeToken: 'USDC',
     action: 'Opened',
     dir: 'long',
-    fillType: FillType.Standard,
+    isLiquidation: false,
+    isTakeProfit: false,
+    isStopLoss: false,
   },
 };
 
@@ -384,7 +384,9 @@ describe('PerpsTransactionItem', () => {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.TakeProfit,
+          isTakeProfit: true,
+          isStopLoss: false,
+          isLiquidation: false,
         },
       };
 
@@ -406,7 +408,9 @@ describe('PerpsTransactionItem', () => {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.StopLoss,
+          isTakeProfit: false,
+          isStopLoss: true,
+          isLiquidation: false,
         },
       };
 
@@ -444,12 +448,14 @@ describe('PerpsTransactionItem', () => {
           fee: '5.00',
           feeToken: 'USDC',
           action: 'Closed',
+          isLiquidation: true,
+          isTakeProfit: false,
+          isStopLoss: false,
           liquidation: {
             liquidatedUser: '0x123',
             markPx: '44900',
             method: 'market',
           },
-          fillType: FillType.Liquidation,
         },
       };
 
@@ -466,36 +472,14 @@ describe('PerpsTransactionItem', () => {
       expect(getByTestId('tag-base-danger')).toBeTruthy();
     });
 
-    it('should display auto deleveraging badge for auto deleveraging fills', () => {
-      const adlTransaction = {
-        ...mockTransaction,
-        fill: {
-          ...mockTransaction.fill,
-          fillType: FillType.AutoDeleveraging,
-        },
-      };
-
-      const { getByText, getByTestId } = render(
-        <PerpsTransactionItem
-          item={adlTransaction}
-          styles={mockStyles}
-          onPress={mockOnPress}
-          renderRightContent={mockRenderRightContent}
-        />,
-      );
-
-      expect(
-        getByText('perps.transactions.order.auto_deleveraging'),
-      ).toBeTruthy();
-      expect(getByTestId('tag-base-info')).toBeTruthy();
-    });
-
     it('should not display badge for regular fills', () => {
       const regularTransaction = {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.Standard,
+          isTakeProfit: false,
+          isStopLoss: false,
+          isLiquidation: false,
         },
       };
 
@@ -519,7 +503,9 @@ describe('PerpsTransactionItem', () => {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.Liquidation,
+          isTakeProfit: false,
+          isStopLoss: false,
+          isLiquidation: true,
           liquidation: {
             liquidatedUser: '0x456', // Different user
             markPx: '44900',

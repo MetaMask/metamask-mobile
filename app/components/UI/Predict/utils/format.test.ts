@@ -21,10 +21,6 @@ describe('format utils', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('formatPercentage', () => {
     it('formats positive decimal percentage with 2 decimal places', () => {
       // Arrange & Act

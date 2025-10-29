@@ -28,10 +28,6 @@ describe('PredictAddFundsModal', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders without crashing', () => {
     render(<PredictAddFundsModal />);
     expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);

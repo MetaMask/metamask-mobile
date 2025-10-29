@@ -4,6 +4,7 @@ import type {
   OrderResult,
   OrderType,
   PerpsMarketData,
+  TPSLTrackingData,
 } from '../controllers/types';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
@@ -132,6 +133,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     onConfirm: (
       takeProfitPrice?: string,
       stopLossPrice?: string,
+      trackingData?: TPSLTrackingData,
     ) => Promise<void>;
   };
 

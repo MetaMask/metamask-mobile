@@ -3,6 +3,7 @@ import {
   render,
   fireEvent,
   waitFor,
+  userEvent,
   renderHook,
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -325,7 +326,7 @@ describe('Carousel Solana Integration', () => {
     const { findByTestId } = render(<Carousel />);
     const slide = await findByTestId('carousel-slide-solana');
     expect(slide).toBeVisible();
-    fireEvent.press(slide);
+    await userEvent.press(slide);
   };
 
   it('switches to existing Solana account when clicked', async () => {

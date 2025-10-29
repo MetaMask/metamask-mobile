@@ -275,7 +275,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#686e7d"
+                      color="#b7bbc8"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -596,7 +596,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#686e7d"
+                      color="#b7bbc8"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -902,7 +902,6 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -943,7 +942,6 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

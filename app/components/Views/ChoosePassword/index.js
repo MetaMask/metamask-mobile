@@ -496,10 +496,8 @@ class ChoosePassword extends PureComponent {
         });
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
-        this.props.navigation.replace('ManualBackupStep1', {
+        this.props.navigation.replace('AccountBackupStep1', {
           seedPhrase,
-          backupFlow: false,
-          settingsBackup: false,
         });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {

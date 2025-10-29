@@ -148,10 +148,6 @@ describe('PredictActivityDetail', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders BUY details: header, market info, predicted amount, shares, price and price impact; no amount badge', () => {
     const activity = renderWithActivity({
       type: PredictActivityType.BUY,

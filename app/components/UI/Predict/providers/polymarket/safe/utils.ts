@@ -1,31 +1,42 @@
-import { encode, encodePacked } from '@metamask/abi-utils';
-import { query } from '@metamask/controller-utils';
-import EthQuery from '@metamask/eth-query';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { TransactionType } from '@metamask/transaction-controller';
-import { Hex, numberToHex } from '@metamask/utils';
-import { BigNumber, ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import {
-  AbiCoder,
   arrayify,
-  getCreate2Address,
   hexlify,
   Interface,
-  keccak256,
   parseUnits,
-  solidityPack,
   splitSignature,
+  keccak256,
+  AbiCoder,
+  solidityPack,
 } from 'ethers/lib/utils';
-import { PredictPosition } from '../../..';
-import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
-import { isSmartContractAddress } from '../../../../../../util/transactions';
-import { Signer } from '../../types';
+import { multisendAbi, safeAbi, safeFactoryAbi } from './abi';
+import {
+  OperationType,
+  SafeFeeAuthorization,
+  SafeTransaction,
+  SplitSignature,
+} from './types';
+import { Hex, numberToHex } from '@metamask/utils';
 import {
   CONDITIONAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
 } from '../constants';
+import { Signer } from '../../types';
+import {
+  DOMAIN_SEPARATOR_TYPEHASH,
+  outcomeTokenSpenders,
+  SAFE_FACTORY_ADDRESS,
+  SAFE_FACTORY_NAME,
+  SAFE_MULTISEND_ADDRESS,
+  SAFE_TX_TYPEHASH,
+  usdcSpenders,
+} from './constants';
+import EthQuery from '@metamask/eth-query';
+import { query } from '@metamask/controller-utils';
+import Engine from '../../../../../../core/Engine';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { isSmartContractAddress } from '../../../../../../util/transactions';
 import {
   encodeApprove,
   encodeClaim,
@@ -34,24 +45,8 @@ import {
   getContractConfig,
   getIsApprovedForAll,
 } from '../utils';
-import { multisendAbi, safeAbi } from './abi';
-import {
-  DOMAIN_SEPARATOR_TYPEHASH,
-  MASTER_COPY_ADDRESS,
-  outcomeTokenSpenders,
-  PROXY_CREATION_CODE,
-  SAFE_FACTORY_ADDRESS,
-  SAFE_FACTORY_NAME,
-  SAFE_MULTISEND_ADDRESS,
-  SAFE_TX_TYPEHASH,
-  usdcSpenders,
-} from './constants';
-import {
-  OperationType,
-  SafeFeeAuthorization,
-  SafeTransaction,
-  SplitSignature,
-} from './types';
+import { PredictPosition } from '../../..';
+import { TransactionType } from '@metamask/transaction-controller';
 
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
@@ -266,6 +261,34 @@ const signSafetransaction = async (
 };
 
 /**
+ * Computes the safe address for a given signer
+ * @param signer Signer
+ * @returns Safe address
+ */
+export const computeSafeAddress = async (
+  ownerAddress: string,
+): Promise<Hex> => {
+  const { NetworkController } = Engine.context;
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    numberToHex(POLYGON_MAINNET_CHAIN_ID),
+  );
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(networkClientId).provider,
+  );
+  const res = (await query(ethQuery, 'call', [
+    {
+      to: SAFE_FACTORY_ADDRESS,
+      data: new Interface(safeFactoryAbi).encodeFunctionData(
+        'computeProxyAddress',
+        [ownerAddress],
+      ),
+    },
+  ])) as Hex;
+  const safeAddress = ('0x' + res.slice(-40)) as Hex;
+  return safeAddress;
+};
+
+/**
  * Creates a SafeFeeAuthorization for a given safe address, signer, amount, and to address
  * @param safeAddress Safe address
  * @param signer Signer
@@ -388,12 +411,6 @@ export const getDeployProxyWalletTransaction = async ({
     };
   } catch (error) {
     console.error('Error creating proxy wallet', error);
-
-    // Log to Sentry with proxy wallet deployment context (no user address)
-    Logger.error(error as Error, {
-      message: 'Predict: Failed to create proxy wallet transaction',
-      context: 'safeUtils.getDeployProxyWalletTransaction',
-    });
   }
 };
 
@@ -555,7 +572,7 @@ export const getProxyWalletAllowancesTransaction = async ({
 }: {
   signer: Signer;
 }) => {
-  const safeAddress = computeProxyAddress(signer.address);
+  const safeAddress = await computeSafeAddress(signer.address);
   const safeTxn = createAllowancesSafeTransaction();
   const callData = await getSafeTransactionCallData({
     signer,
@@ -654,98 +671,3 @@ export const getClaimTransaction = async ({
     },
   ];
 };
-
-export const getWithdrawTransactionCallData = async ({
-  signer,
-  safeAddress,
-  data,
-}: {
-  signer: Signer;
-  safeAddress: string;
-  data: Hex;
-}) => {
-  const safeTxn: SafeTransaction = {
-    to: MATIC_CONTRACTS.collateral,
-    data,
-    operation: OperationType.Call,
-    value: '0',
-  };
-
-  const callData = await getSafeTransactionCallData({
-    signer,
-    safeAddress,
-    txn: safeTxn,
-  });
-
-  return callData as Hex;
-};
-
-/*
- * Computes the proxy address for a given user address
- * @param userAddress User address
- * @returns Proxy address
- */
-export function computeProxyAddress(userAddress: string): Hex {
-  const salt = keccak256(encode(['address'], [userAddress]));
-  const encodedMasterCopy = encode(['address'], [MASTER_COPY_ADDRESS]);
-  const encoded = encodePacked(
-    ['bytes', 'bytes'],
-    [PROXY_CREATION_CODE, encodedMasterCopy],
-  );
-  const bytecodeHash = keccak256(encoded);
-
-  const predicted = getCreate2Address(SAFE_FACTORY_ADDRESS, salt, bytecodeHash);
-  return predicted as Hex;
-}
-
-/**
- * Decodes USDC amount from ERC20 transfer calldata
- * @param data ERC20 transfer calldata (0xa9059cbb...)
- * @returns USDC amount in decimal format (e.g., 1.5 for 1.5 USDC)
- */
-export function getSafeUsdcAmount(data: string): number {
-  if (!data.startsWith('0xa9059cbb')) {
-    throw new Error('Not an ERC20 transfer call');
-  }
-
-  // Validate data length
-  // Expected format: 0x + selector (8 chars) + address (64 chars) + amount (64 chars) = 138 chars
-  const expectedLength = 2 + 8 + 64 + 64;
-  if (data.length < expectedLength) {
-    throw new Error(
-      `Invalid calldata length: expected at least ${expectedLength} characters, got ${data.length}`,
-    );
-  }
-
-  // Extract amount (last 32 bytes)
-  // data format: 0x + selector (8 chars) + address (64 chars) + amount (64 chars)
-  // Account for the "0x" prefix (2 chars) in the string position
-  const encodedAmount = '0x' + data.slice(2 + 8 + 64, 2 + 8 + 64 + 64);
-  let amount: ethers.BigNumber;
-
-  try {
-    amount = ethers.BigNumber.from(encodedAmount);
-  } catch (e) {
-    throw new Error('Invalid encoded amount in calldata');
-  }
-
-  // Convert to USDC float
-  const usdcValue = parseFloat(ethers.utils.formatUnits(amount, 6));
-
-  // Check for unreasonably large values (likely corrupted data)
-  // USDC total supply is ~35 billion, so anything above 100 billion is invalid
-  const MAX_REASONABLE_USDC = 1e11; // 100 billion USDC
-  if (usdcValue > MAX_REASONABLE_USDC || !isFinite(usdcValue)) {
-    throw new Error(
-      `Decoded USDC amount is invalid or too large: ${usdcValue}`,
-    );
-  }
-
-  // Validate non-negative
-  if (usdcValue < 0) {
-    throw new Error(`Decoded USDC amount is negative: ${usdcValue}`);
-  }
-
-  // Round to 6 decimals to match USDC
-  return Math.round(usdcValue * 1e6) / 1e6;
-}

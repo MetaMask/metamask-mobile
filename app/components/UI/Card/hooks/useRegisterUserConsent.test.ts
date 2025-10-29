@@ -100,46 +100,15 @@ describe('useRegisterUserConsent', () => {
 
         // Verify Stage 1: createOnboardingConsent called with correct parameters
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith({
-          policyType: 'US',
+          policy: 'us',
           onboardingId: testOnboardingId,
-          consents: [
-            {
-              consentType: 'eSignAct',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-            {
-              consentType: 'termsAndPrivacy',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-            {
-              consentType: 'marketingNotifications',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-            {
-              consentType: 'smsNotifications',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-            {
-              consentType: 'emailNotifications',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-          ],
-          tenantId: 'tenant_baanx_global',
+          consents: {
+            eSignAct: 'granted',
+            termsAndPrivacy: 'granted',
+            marketingNotifications: 'granted',
+            smsNotifications: 'granted',
+            emailNotifications: 'granted',
+          },
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),
@@ -172,39 +141,15 @@ describe('useRegisterUserConsent', () => {
 
         // Verify Stage 1: createOnboardingConsent called with global policy
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith({
-          policyType: 'global',
+          policy: 'global',
           onboardingId: testOnboardingId,
-          consents: [
-            {
-              consentType: 'termsAndPrivacy',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-            {
-              consentType: 'marketingNotifications',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-            {
-              consentType: 'smsNotifications',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-            {
-              consentType: 'emailNotifications',
-              consentStatus: 'granted',
-              metadata: {
-                userAgent: AppConstants.USER_AGENT,
-              },
-            },
-          ],
-          tenantId: 'tenant_baanx_global',
+          consents: {
+            eSignAct: 'granted',
+            termsAndPrivacy: 'granted',
+            marketingNotifications: 'granted',
+            smsNotifications: 'granted',
+            emailNotifications: 'granted',
+          },
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),
@@ -577,7 +522,7 @@ describe('useRegisterUserConsent', () => {
     const countryTestCases = [
       {
         country: 'US',
-        expectedPolicy: 'US',
+        expectedPolicy: 'us',
         description: 'US users',
       },
       {
@@ -612,7 +557,7 @@ describe('useRegisterUserConsent', () => {
 
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith(
           expect.objectContaining({
-            policyType: expectedPolicy,
+            policy: expectedPolicy,
           }),
         );
       },

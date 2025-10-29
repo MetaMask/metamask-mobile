@@ -35,7 +35,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -56,10 +56,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
-    navigation,
-  });
+  const { hasNoBalance } = usePredictBalance();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -83,21 +80,42 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
-  const handleBuy = (token: PredictOutcomeToken) => {
-    executeGuardedAction(
-      () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint,
-          },
-        });
+  const handleYes = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[0],
+        entryPoint,
       },
-      { checkBalance: true },
-    );
+    });
+  };
+
+  const handleNo = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[1],
+        entryPoint,
+      },
+    });
   };
 
   return (
@@ -177,7 +195,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 {(outcome.tokens[0].price * 100).toFixed(2)}¢
               </Text>
             }
-            onPress={() => handleBuy(outcome.tokens[0])}
+            onPress={handleYes}
             style={styles.buttonYes}
           />
           <Button
@@ -190,7 +208,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 {(outcome.tokens[1].price * 100).toFixed(2)}¢
               </Text>
             }
-            onPress={() => handleBuy(outcome.tokens[1])}
+            onPress={handleNo}
             style={styles.buttonNo}
           />
         </View>

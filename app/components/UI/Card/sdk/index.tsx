@@ -23,7 +23,6 @@ import {
   selectUserCardLocation,
   setUserCardLocation,
   selectOnboardingId,
-  resetOnboardingState,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 
@@ -93,15 +92,12 @@ export const CardSDKProvider = ({
       if (!sdk || !onboardingId) {
         return;
       }
-      setIsLoading(true);
 
       try {
         const userData = await sdk.getRegistrationStatus(onboardingId);
         setUser(userData);
       } catch {
         // Assume user is not registered
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -116,12 +112,9 @@ export const CardSDKProvider = ({
     await removeCardBaanxToken();
     removeAuthenticatedData();
 
-    // reset onboarding state
-    dispatch(resetOnboardingState());
-
     // Clear user data from context
     setUser(null);
-  }, [sdk, removeAuthenticatedData, dispatch]);
+  }, [sdk, removeAuthenticatedData]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(

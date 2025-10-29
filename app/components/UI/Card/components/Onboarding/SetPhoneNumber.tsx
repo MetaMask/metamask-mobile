@@ -18,57 +18,43 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
-  resetOnboardingState,
   selectContactVerificationId,
   selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+
   const contactVerificationId = useSelector(selectContactVerificationId);
   const selectedCountry = useSelector(selectSelectedCountry);
-  const { trackEvent, createEventBuilder } = useMetrics();
+
   const { data: registrationSettings } = useRegistrationSettings();
 
   const selectOptions = useMemo(() => {
     if (!registrationSettings?.countries) {
       return [];
     }
-
-    const uniqueCallingCodes = new Map();
-
-    registrationSettings.countries
-      .filter((country) => country.canSignUp)
-      .forEach((country) => {
-        const callingCode = country.callingCode;
-        if (!uniqueCallingCodes.has(callingCode)) {
-          uniqueCallingCodes.set(callingCode, {
-            key: country.iso3166alpha2,
-            value: callingCode,
-            label: `+${callingCode}`,
-          });
-        }
-      });
-
-    // Convert Map values to array and sort
-    return Array.from(uniqueCallingCodes.values()).sort((a, b) =>
-      a.value.localeCompare(b.value),
-    );
+    return [...registrationSettings.countries]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((country) => ({
+        key: country.iso3166alpha2,
+        value: `+${country.callingCode}`,
+        label: `+${country.callingCode} ${country.name}`,
+      }));
   }, [registrationSettings]);
 
   const initialSelectedCountryAreaCode = useMemo(() => {
     if (!registrationSettings?.countries) {
-      return '1';
+      return '+1';
     }
     const selectedCountryWithCallingCode = registrationSettings.countries.find(
       (country) => country.iso3166alpha2 === selectedCountry,
     );
-    return selectedCountryWithCallingCode?.callingCode || '1';
+    return selectedCountryWithCallingCode?.callingCode
+      ? `+${selectedCountryWithCallingCode.callingCode}`
+      : '+1';
   }, [selectedCountry, registrationSettings]);
 
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -85,16 +71,6 @@ const SetPhoneNumber = () => {
     reset: resetPhoneVerificationSend,
   } = usePhoneVerificationSend();
 
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
-        .addProperties({
-          page: OnboardingScreens.SET_PHONE_NUMBER,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
-
   const handleContinue = async () => {
     if (
       !debouncedPhoneNumber ||
@@ -105,13 +81,6 @@ const SetPhoneNumber = () => {
     }
 
     try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
-          .addProperties({
-            action: OnboardingActions.SET_PHONE_NUMBER_BUTTON_CLICKED,
-          })
-          .build(),
-      );
       const { success } = await sendPhoneVerification({
         phoneCountryCode: selectedCountryAreaCode,
         phoneNumber: debouncedPhoneNumber,
@@ -129,7 +98,6 @@ const SetPhoneNumber = () => {
         error.message.includes('Invalid or expired contact verification ID')
       ) {
         // navigate back and restart the flow
-        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
       return;
@@ -183,7 +151,7 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="w-28 border border-solid border-border-default rounded-lg py-1">
+        <Box twClassName="w-30 border border-solid border-border-default rounded-lg py-1">
           <SelectComponent
             options={selectOptions}
             selectedValue={selectedCountryAreaCode}

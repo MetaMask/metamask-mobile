@@ -16,7 +16,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
-import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/pay/useTransactionTotalFiat');
 jest.mock('../../../hooks/pay/useIsTransactionPayLoading');
@@ -34,7 +33,6 @@ function render({
     {},
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
-    otherControllersMock,
     {
       confirmationMetrics: {
         transactionBridgeQuotesById: {
@@ -76,14 +74,6 @@ describe('BridgeFeeRow', () => {
     });
 
     expect(getByText(TRANSACTION_FEE_MOCK)).toBeDefined();
-  });
-
-  it('renders metamask fee', async () => {
-    const { getByText } = render({
-      quotes: [{}],
-    });
-
-    expect(getByText('$0')).toBeDefined();
   });
 
   it('renders network fee in tooltip', async () => {

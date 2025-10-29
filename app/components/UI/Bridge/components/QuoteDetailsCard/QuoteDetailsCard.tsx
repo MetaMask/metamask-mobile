@@ -34,7 +34,6 @@ import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
-import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 
 if (
@@ -51,7 +50,7 @@ const QuoteDetailsCard: React.FC = () => {
 
   const locale = I18n.locale;
   const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumSignificantDigits: 8,
+    maximumFractionDigits: 6,
   });
 
   const {
@@ -102,23 +101,14 @@ const QuoteDetailsCard: React.FC = () => {
       <Box style={styles.container}>
         <KeyValueRow
           field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text variant={TextVariant.BodyMDMedium}>
-                  {strings('bridge.rate')}
-                </Text>
-                <QuoteCountdownTimer />
-              </Box>
-            ),
+            label: {
+              text: strings('bridge.rate'),
+              variant: TextVariant.BodyMDMedium,
+            },
             tooltip: {
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
-              iconName: IconName.Info,
             },
           }}
           value={{
@@ -170,13 +160,39 @@ const QuoteDetailsCard: React.FC = () => {
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
               },
             }}
             value={{
               label: {
                 text: networkFee,
                 variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
+
+        {priceImpact && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.price_impact'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.price_impact_info_title'),
+                content: gasIncluded
+                  ? strings('bridge.price_impact_info_gasless_description')
+                  : strings('bridge.price_impact_info_description'),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: priceImpact,
+                variant: TextVariant.BodyMD,
+                color: shouldShowPriceImpactWarning
+                  ? TextColor.Error
+                  : undefined,
               },
             }}
           />
@@ -192,7 +208,6 @@ const QuoteDetailsCard: React.FC = () => {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
-              iconName: IconName.Info,
             },
           }}
           value={{
@@ -225,41 +240,12 @@ const QuoteDetailsCard: React.FC = () => {
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
               },
             }}
             value={{
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariant.BodyMD,
-              },
-            }}
-          />
-        )}
-
-        {priceImpact && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.price_impact'),
-                variant: TextVariant.BodyMDMedium,
-              },
-              tooltip: {
-                title: strings('bridge.price_impact_info_title'),
-                content: gasIncluded
-                  ? strings('bridge.price_impact_info_gasless_description')
-                  : strings('bridge.price_impact_info_description'),
-                size: TooltipSizes.Sm,
-                iconName: IconName.Info,
-              },
-            }}
-            value={{
-              label: {
-                text: priceImpact,
-                variant: TextVariant.BodyMD,
-                color: shouldShowPriceImpactWarning
-                  ? TextColor.Error
-                  : undefined,
               },
             }}
           />
@@ -281,7 +267,6 @@ const QuoteDetailsCard: React.FC = () => {
                   'bridge.points_tooltip_content_1',
                 )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
               },
             }}
             value={{
@@ -309,7 +294,6 @@ const QuoteDetailsCard: React.FC = () => {
                   title: strings('bridge.points_error'),
                   content: strings('bridge.points_error_content'),
                   size: TooltipSizes.Sm,
-                  iconName: IconName.Info,
                 },
               }),
             }}

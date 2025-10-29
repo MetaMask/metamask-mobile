@@ -1,7 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import type { PredictActivity } from '../types';
@@ -56,20 +55,6 @@ export function usePredictActivity(
         const message =
           err instanceof Error ? err.message : 'Failed to load activity';
         setError(message);
-
-        // Capture exception with activity loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
-          tags: {
-            component: 'usePredictActivity',
-            action: 'activity_load',
-            operation: 'data_fetching',
-          },
-          extra: {
-            activityContext: {
-              providerId,
-            },
-          },
-        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
