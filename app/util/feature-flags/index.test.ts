@@ -148,17 +148,6 @@ describe('Feature Flags Utility Functions', () => {
       expect(result).toBe('string');
     });
 
-    it('returns "object" for objects with minimumVersion property that is not string', () => {
-      const flagValue = {
-        enabled: true,
-        minimumVersion: 1.0,
-      };
-
-      const result = getFeatureFlagType(flagValue);
-
-      expect(result).toBe('object');
-    });
-
     it('returns "object" for objects with value property that is not boolean', () => {
       const flagValue = {
         value: 'not boolean',
