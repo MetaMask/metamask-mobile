@@ -1265,7 +1265,7 @@ describe('useDepositRouting', () => {
       expect(mockRequestOtt).not.toHaveBeenCalled();
     });
 
-    it('should throw error when getUserLimits returns null', async () => {
+    it('allows user to continue when getUserLimits returns null', async () => {
       const mockQuote = {
         quoteId: 'test-quote-id',
         fiatAmount: 100,
@@ -1282,13 +1282,13 @@ describe('useDepositRouting', () => {
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('Failed to check your deposit limits');
+      ).resolves.not.toThrow();
 
-      expect(mockCreateOrder).not.toHaveBeenCalled();
-      expect(mockRequestOtt).not.toHaveBeenCalled();
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalled();
     });
 
-    it('should throw error when any limit value is undefined', async () => {
+    it('allows user to continue when any limit value is undefined', async () => {
       const mockQuote = {
         quoteId: 'test-quote-id',
         fiatAmount: 100,
@@ -1311,10 +1311,35 @@ describe('useDepositRouting', () => {
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('Failed to check your deposit limits');
+      ).resolves.not.toThrow();
 
-      expect(mockCreateOrder).not.toHaveBeenCalled();
-      expect(mockRequestOtt).not.toHaveBeenCalled();
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalled();
+    });
+
+    it('allows user to continue when getUserLimits API fails', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote-id',
+        fiatAmount: 100,
+      } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      mockGetUserLimits = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalled();
     });
   });
 });
