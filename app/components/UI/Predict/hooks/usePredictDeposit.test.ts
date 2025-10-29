@@ -3,6 +3,7 @@ import React from 'react';
 import { captureException } from '@sentry/react-native';
 import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
+import { PredictDepositStatus } from '../types';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 
@@ -66,42 +67,17 @@ interface MockReduxState {
   engine: {
     backgroundState: {
       PredictController: {
-        pendingDeposits: {
-          [providerId: string]: { [address: string]: boolean };
-        };
-      };
-      AccountsController: {
-        internalAccounts: {
-          selectedAccount: string;
-          accounts: {
-            [key: string]: {
-              address: string;
-            };
-          };
-        };
+        depositTransaction: unknown;
       };
     };
   };
 }
 
-const mockAccountId = 'mock-account-id';
-const mockAccountAddress = '0x1234567890123456789012345678901234567890';
-
 let mockState: MockReduxState = {
   engine: {
     backgroundState: {
       PredictController: {
-        pendingDeposits: {},
-      },
-      AccountsController: {
-        internalAccounts: {
-          selectedAccount: mockAccountId,
-          accounts: {
-            [mockAccountId]: {
-              address: mockAccountAddress,
-            },
-          },
-        },
+        depositTransaction: null,
       },
     },
   },
@@ -136,6 +112,17 @@ const mockCaptureException = captureException as jest.MockedFunction<
   typeof captureException
 >;
 
+// Helper to create mock deposit transaction
+function createMockDepositTransaction(overrides = {}) {
+  return {
+    batchId: 'batch-123',
+    chainId: 137,
+    status: PredictDepositStatus.PENDING,
+    providerId: 'polymarket',
+    ...overrides,
+  };
+}
+
 // Helper to setup test
 function setupUsePredictDepositTest(
   stateOverrides = {},
@@ -150,18 +137,8 @@ function setupUsePredictDepositTest(
     engine: {
       backgroundState: {
         PredictController: {
-          pendingDeposits: {},
+          depositTransaction: null,
           ...stateOverrides,
-        },
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: mockAccountId,
-            accounts: {
-              [mockAccountId]: {
-                address: mockAccountAddress,
-              },
-            },
-          },
         },
       },
     },
@@ -206,64 +183,72 @@ describe('usePredictDeposit', () => {
   });
 
   describe('initial state', () => {
-    it('returns false for isDepositPending when no deposit transaction exists', () => {
+    it('returns undefined status when no deposit transaction exists', () => {
       const { result } = setupUsePredictDepositTest();
 
-      expect(result.current.isDepositPending).toBe(false);
+      // No action needed - testing initial state
+
+      expect(result.current.status).toBeUndefined();
       expect(typeof result.current.deposit).toBe('function');
     });
 
     it('returns callable deposit function', () => {
       const { result } = setupUsePredictDepositTest();
 
+      // No action needed - testing initial state
+
       expect(result.current.deposit).toBeDefined();
       expect(typeof result.current.deposit).toBe('function');
     });
   });
 
-  describe('isDepositPending from pendingDeposits', () => {
-    it('returns true when deposit is pending for current address', () => {
-      const { result } = setupUsePredictDepositTest({
-        pendingDeposits: {
-          polymarket: {
-            [mockAccountAddress]: true,
-          },
-        },
+  describe('status from depositTransaction', () => {
+    it('returns confirmed status when transaction is confirmed', () => {
+      const depositTransaction = createMockDepositTransaction({
+        status: PredictDepositStatus.CONFIRMED,
       });
 
-      expect(result.current.isDepositPending).toBe(true);
+      const { result } = setupUsePredictDepositTest({ depositTransaction });
+
+      expect(result.current.status).toBe(PredictDepositStatus.CONFIRMED);
     });
 
-    it('returns false when deposit is not pending for current address', () => {
-      const { result } = setupUsePredictDepositTest({
-        pendingDeposits: {
-          polymarket: {
-            [mockAccountAddress]: false,
-          },
-        },
+    it('returns pending status when transaction is pending', () => {
+      const depositTransaction = createMockDepositTransaction({
+        status: PredictDepositStatus.PENDING,
       });
 
-      expect(result.current.isDepositPending).toBe(false);
+      const { result } = setupUsePredictDepositTest({ depositTransaction });
+
+      expect(result.current.status).toBe(PredictDepositStatus.PENDING);
     });
 
-    it('returns false when pendingDeposits is empty', () => {
-      const { result } = setupUsePredictDepositTest({
-        pendingDeposits: {},
+    it('returns error status when transaction has error status', () => {
+      const depositTransaction = createMockDepositTransaction({
+        status: PredictDepositStatus.ERROR,
       });
 
-      expect(result.current.isDepositPending).toBe(false);
+      const { result } = setupUsePredictDepositTest({ depositTransaction });
+
+      expect(result.current.status).toBe(PredictDepositStatus.ERROR);
     });
 
-    it('returns false when provider does not exist in pendingDeposits', () => {
+    it('returns undefined status when transaction is null', () => {
       const { result } = setupUsePredictDepositTest({
-        pendingDeposits: {
-          'other-provider': {
-            [mockAccountAddress]: true,
-          },
-        },
+        depositTransaction: null,
       });
 
-      expect(result.current.isDepositPending).toBe(false);
+      expect(result.current.status).toBeUndefined();
+    });
+
+    it('returns cancelled status when transaction is cancelled', () => {
+      const depositTransaction = createMockDepositTransaction({
+        status: PredictDepositStatus.CANCELLED,
+      });
+
+      const { result } = setupUsePredictDepositTest({ depositTransaction });
+
+      expect(result.current.status).toBe(PredictDepositStatus.CANCELLED);
     });
   });
 
@@ -381,31 +366,19 @@ describe('usePredictDeposit', () => {
       expect(result.current.deposit).toBe(initialDeposit);
     });
 
-    it('updates isDepositPending when pendingDeposits changes', () => {
+    it('updates status when depositTransaction changes', () => {
       const { result, rerender } = setupUsePredictDepositTest();
 
-      expect(result.current.isDepositPending).toBe(false);
+      expect(result.current.status).toBeUndefined();
 
-      // Update state with pending deposit
+      // Update state with pending transaction
       mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              pendingDeposits: {
-                polymarket: {
-                  [mockAccountAddress]: true,
-                },
-              },
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: mockAccountId,
-                accounts: {
-                  [mockAccountId]: {
-                    address: mockAccountAddress,
-                  },
-                },
-              },
+              depositTransaction: createMockDepositTransaction({
+                status: PredictDepositStatus.PENDING,
+              }),
             },
           },
         },
@@ -413,36 +386,24 @@ describe('usePredictDeposit', () => {
 
       rerender({});
 
-      expect(result.current.isDepositPending).toBe(true);
+      expect(result.current.status).toBe(PredictDepositStatus.PENDING);
     });
   });
 
   describe('state transitions', () => {
-    it('updates isDepositPending when pendingDeposits changes to true', () => {
+    it('updates status when depositTransaction changes to confirmed', () => {
       const { result, rerender } = setupUsePredictDepositTest();
 
-      expect(result.current.isDepositPending).toBe(false);
+      expect(result.current.status).toBeUndefined();
 
-      // Update state with pending deposit
+      // Update state with confirmed transaction
       mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              pendingDeposits: {
-                polymarket: {
-                  [mockAccountAddress]: true,
-                },
-              },
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: mockAccountId,
-                accounts: {
-                  [mockAccountId]: {
-                    address: mockAccountAddress,
-                  },
-                },
-              },
+              depositTransaction: createMockDepositTransaction({
+                status: PredictDepositStatus.CONFIRMED,
+              }),
             },
           },
         },
@@ -450,40 +411,22 @@ describe('usePredictDeposit', () => {
 
       rerender({});
 
-      expect(result.current.isDepositPending).toBe(true);
+      expect(result.current.status).toBe(PredictDepositStatus.CONFIRMED);
     });
 
-    it('updates isDepositPending when pendingDeposits changes to false', () => {
-      const { result, rerender } = setupUsePredictDepositTest({
-        pendingDeposits: {
-          polymarket: {
-            [mockAccountAddress]: true,
-          },
-        },
-      });
+    it('updates status when depositTransaction changes to pending', () => {
+      const { result, rerender } = setupUsePredictDepositTest();
 
-      expect(result.current.isDepositPending).toBe(true);
+      expect(result.current.status).toBeUndefined();
 
-      // Clear pending deposit
+      // Add pending transaction
       mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              pendingDeposits: {
-                polymarket: {
-                  [mockAccountAddress]: false,
-                },
-              },
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: mockAccountId,
-                accounts: {
-                  [mockAccountId]: {
-                    address: mockAccountAddress,
-                  },
-                },
-              },
+              depositTransaction: createMockDepositTransaction({
+                status: PredictDepositStatus.PENDING,
+              }),
             },
           },
         },
@@ -491,7 +434,30 @@ describe('usePredictDeposit', () => {
 
       rerender({});
 
-      expect(result.current.isDepositPending).toBe(false);
+      expect(result.current.status).toBe(PredictDepositStatus.PENDING);
+    });
+
+    it('updates status when depositTransaction changes to error', () => {
+      const { result, rerender } = setupUsePredictDepositTest();
+
+      expect(result.current.status).toBeUndefined();
+
+      // Add error transaction
+      mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              depositTransaction: createMockDepositTransaction({
+                status: PredictDepositStatus.ERROR,
+              }),
+            },
+          },
+        },
+      };
+
+      rerender({});
+
+      expect(result.current.status).toBe(PredictDepositStatus.ERROR);
     });
   });
 
@@ -818,6 +784,28 @@ describe('usePredictDeposit', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('selector', () => {
+    it('selects depositTransaction from Redux state', () => {
+      const mockDepositTransaction = createMockDepositTransaction({
+        status: PredictDepositStatus.CONFIRMED,
+        batchId: 'custom-batch',
+      });
+      const { result } = setupUsePredictDepositTest({
+        depositTransaction: mockDepositTransaction,
+      });
+
+      expect(result.current.status).toBe(PredictDepositStatus.CONFIRMED);
+    });
+
+    it('returns undefined status when depositTransaction has no status', () => {
+      const { result } = setupUsePredictDepositTest({
+        depositTransaction: { batchId: 'test' },
+      });
+
+      expect(result.current.status).toBeUndefined();
     });
   });
 });

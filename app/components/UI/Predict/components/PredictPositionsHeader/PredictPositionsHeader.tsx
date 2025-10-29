@@ -33,7 +33,11 @@ import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictClaimablePositions } from '../../selectors/predictController';
-import { PredictPosition, PredictPositionStatus } from '../../types';
+import {
+  PredictDepositStatus,
+  PredictPosition,
+  PredictPositionStatus,
+} from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
 
@@ -73,7 +77,7 @@ const PredictPositionsHeader = forwardRef<
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const { isDepositPending } = usePredictDeposit();
+  const { status } = usePredictDeposit();
   const claimablePositions = useSelector(selectPredictClaimablePositions);
 
   const {
@@ -92,10 +96,10 @@ const PredictPositionsHeader = forwardRef<
   }, [balanceError, pnlError, onError]);
 
   useEffect(() => {
-    if (!isDepositPending) {
+    if (status === PredictDepositStatus.CONFIRMED) {
       loadBalance({ isRefresh: true });
     }
-  }, [isDepositPending, loadBalance]);
+  }, [status, loadBalance]);
 
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {

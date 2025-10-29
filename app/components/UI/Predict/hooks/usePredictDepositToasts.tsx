@@ -4,15 +4,8 @@ import Engine from '../../../../core/Engine';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictToasts } from './usePredictToasts';
 import { usePredictBalance } from './usePredictBalance';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 
-interface UsePredictDepositToastsParams {
-  providerId?: string;
-}
-
-export const usePredictDepositToasts = ({
-  providerId = POLYMARKET_PROVIDER_ID,
-}: UsePredictDepositToastsParams = {}) => {
+export const usePredictDepositToasts = () => {
   const { loadBalance } = usePredictBalance();
   const { deposit } = usePredictDeposit();
 
@@ -42,8 +35,6 @@ export const usePredictDepositToasts = ({
       onRetry: deposit,
     },
     clearTransaction: () =>
-      Engine.context.PredictController.clearPendingDeposit({
-        providerId,
-      }),
+      Engine.context.PredictController.clearDepositTransaction(),
   });
 };

@@ -78,7 +78,7 @@ jest.mock('../../../../util/theme', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      clearPendingDeposit: jest.fn(),
+      clearDepositTransaction: jest.fn(),
       depositWithConfirmation: jest.fn(() => Promise.resolve()),
     },
   },
@@ -94,17 +94,7 @@ let mockState: any = {
   engine: {
     backgroundState: {
       PredictController: {
-        pendingDeposits: {},
-      },
-      AccountsController: {
-        internalAccounts: {
-          selectedAccount: 'account1',
-          accounts: {
-            account1: {
-              address: '0x1234567890123456789012345678901234567890',
-            },
-          },
-        },
+        depositTransaction: null,
       },
     },
   },
@@ -140,7 +130,10 @@ describe('usePredictDepositToasts', () => {
     jest.clearAllMocks();
     mockToastRef.current.showToast.mockClear();
     (
-      Engine.context.PredictController.clearPendingDeposit as jest.Mock
+      Engine.context.PredictController.clearDepositTransaction as jest.Mock
+    ).mockClear();
+    (
+      Engine.context.PredictController.clearDepositTransaction as jest.Mock
     ).mockClear();
 
     // Capture the subscribe callback
@@ -156,17 +149,7 @@ describe('usePredictDepositToasts', () => {
       engine: {
         backgroundState: {
           PredictController: {
-            pendingDeposits: {},
-          },
-          AccountsController: {
-            internalAccounts: {
-              selectedAccount: 'account1',
-              accounts: {
-                account1: {
-                  address: '0x1234567890123456789012345678901234567890',
-                },
-              },
-            },
+            depositTransaction: null,
           },
         },
       },
@@ -216,7 +199,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearPendingDeposit,
+        Engine.context.PredictController.clearDepositTransaction,
       ).not.toHaveBeenCalled();
       expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
     });
@@ -234,7 +217,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearPendingDeposit,
+        Engine.context.PredictController.clearDepositTransaction,
       ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -262,7 +245,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearPendingDeposit,
+        Engine.context.PredictController.clearDepositTransaction,
       ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -285,7 +268,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearPendingDeposit,
+        Engine.context.PredictController.clearDepositTransaction,
       ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({

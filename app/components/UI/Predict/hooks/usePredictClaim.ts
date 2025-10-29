@@ -1,15 +1,18 @@
-import { useNavigation } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
 import { useCallback, useContext } from 'react';
-import { strings } from '../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
+import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import Routes from '../../../../constants/navigation/Routes';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { RootState } from '../../../../reducers';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { usePredictTrading } from './usePredictTrading';
+import { useAppThemeFromContext } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { useNavigation } from '@react-navigation/native';
 
 interface UsePredictClaimParams {
   providerId?: string;
@@ -23,6 +26,12 @@ export const usePredictClaim = ({
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation();
+
+  const selectClaimTransaction = createSelector(
+    (state: RootState) => state.engine.backgroundState.PredictController,
+    (predictState) => predictState.claimTransaction,
+  );
+  const claimTransaction = useSelector(selectClaimTransaction);
 
   const claim = useCallback(async () => {
     try {
@@ -83,5 +92,6 @@ export const usePredictClaim = ({
 
   return {
     claim,
+    status: claimTransaction?.status,
   };
 };

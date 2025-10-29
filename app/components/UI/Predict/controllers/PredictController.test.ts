@@ -17,7 +17,12 @@ import {
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import type { OrderPreview } from '../providers/types';
-import { PredictClaimStatus, PredictWithdrawStatus, Side } from '../types';
+import {
+  PredictClaimStatus,
+  PredictDepositStatus,
+  PredictWithdrawStatus,
+  Side,
+} from '../types';
 import {
   getDefaultPredictControllerState,
   PredictController,
@@ -1319,15 +1324,19 @@ describe('PredictController', () => {
       });
     });
 
-    it('handles complex state updates', () => {
+    it('handle complex state updates', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
+          state.claimTransaction = {
+            batchId: 'test-tx',
+            chainId: 1,
+            status: PredictClaimStatus.PENDING,
+          };
           state.isOnboarded = { '0x123': true };
-          state.lastError = null;
         });
 
+        expect(controller.state.claimTransaction?.batchId).toBe('test-tx');
         expect(controller.state.isOnboarded['0x123']).toBe(true);
-        expect(controller.state.lastError).toBeNull();
       });
     });
   });
@@ -1394,6 +1403,47 @@ describe('PredictController', () => {
         }).not.toThrow();
       });
     });
+
+    it('handle transaction submitted for claim transaction', () => {
+      withController(({ controller, messenger }) => {
+        const txId = 'tx1';
+
+        // Set up claim transaction
+        controller.updateStateForTesting((state) => {
+          state.claimTransaction = {
+            batchId: txId,
+            chainId: 1,
+            status: PredictClaimStatus.PENDING,
+          };
+        });
+
+        const event = {
+          transactionMeta: {
+            id: txId,
+            hash: '0xabc123',
+            status: 'submitted',
+            txParams: {
+              from: '0x1',
+              to: '0xclaim',
+              data: '0xdata',
+              value: '0x0',
+            },
+          },
+        };
+
+        // Currently handleTransactionSubmitted is a TODO, so it should not modify state
+        const initialState = { ...controller.state };
+
+        messenger.publish(
+          'TransactionController:transactionSubmitted',
+          // @ts-ignore
+          event,
+        );
+
+        // State should remain unchanged (since method is not implemented yet)
+        expect(controller.state).toEqual(initialState);
+      });
+    });
   });
 
   describe('claim', () => {
@@ -1434,6 +1484,7 @@ describe('PredictController', () => {
 
         expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
+        expect(controller.state.claimTransaction?.batchId).toBe(mockBatchId);
         expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith({
           positions: expect.any(Array),
           signer: expect.objectContaining({
@@ -1493,6 +1544,7 @@ describe('PredictController', () => {
 
         expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
+        expect(controller.state.claimTransaction?.batchId).toBe(mockBatchId);
         expect(addTransactionBatch).toHaveBeenCalled();
       });
     });
@@ -1628,6 +1680,7 @@ describe('PredictController', () => {
         ).rejects.toThrow(errorMessage);
 
         expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.claimTransaction).toBeNull();
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
@@ -2053,6 +2106,49 @@ describe('PredictController', () => {
     });
   });
 
+  describe('clearClaimTransactions', () => {
+    it('clear all claim transactions from state', () => {
+      withController(({ controller }) => {
+        // Set up initial claim transaction
+        controller.updateStateForTesting((state) => {
+          state.claimTransaction = {
+            batchId: 'test-tx',
+            chainId: 1,
+            status: PredictClaimStatus.PENDING,
+          };
+        });
+
+        // Verify transaction exists
+        expect(controller.state.claimTransaction).toEqual({
+          batchId: 'test-tx',
+          chainId: 1,
+          status: PredictClaimStatus.PENDING,
+        });
+
+        // Clear claim transaction
+        controller.clearClaimTransaction();
+
+        // Verify transaction is cleared
+        expect(controller.state.claimTransaction).toBeNull();
+      });
+    });
+
+    it('handle clearing empty claim transaction', () => {
+      withController(({ controller }) => {
+        // Ensure claim transaction is null
+        controller.updateStateForTesting((state) => {
+          state.claimTransaction = null;
+        });
+
+        // Clear should work without error
+        expect(() => controller.clearClaimTransaction()).not.toThrow();
+
+        // Should remain null
+        expect(controller.state.claimTransaction).toBeNull();
+      });
+    });
+  });
+
   describe('depositWithConfirmation', () => {
     it('successfully prepare and submit deposit transactions', async () => {
       // Given a valid deposit request
@@ -2384,54 +2480,46 @@ describe('PredictController', () => {
   });
 
   describe('clearDepositTransaction', () => {
-    it('clears deposit transaction from state', () => {
+    it('clear deposit transaction from state', () => {
       withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
-
         // Set up initial deposit transaction
         controller.updateStateForTesting((state) => {
-          state.pendingDeposits = {
-            [providerId]: {
-              [address]: true,
-            },
+          state.depositTransaction = {
+            batchId: 'batch-123',
+            chainId: 137,
+            status: PredictDepositStatus.PENDING,
+            providerId: 'polymarket',
           };
         });
 
         // Verify transaction exists
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
-        );
+        expect(controller.state.depositTransaction).toEqual({
+          batchId: 'batch-123',
+          chainId: 137,
+          status: PredictDepositStatus.PENDING,
+          providerId: 'polymarket',
+        });
 
         // Clear deposit transaction
-        controller.clearPendingDeposit({ providerId });
+        controller.clearDepositTransaction();
 
         // Verify transaction is cleared
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
-        );
+        expect(controller.state.depositTransaction).toBeNull();
       });
     });
 
-    it('handles clearing empty deposit transaction', () => {
+    it('handle clearing empty deposit transaction', () => {
       withController(({ controller }) => {
-        const providerId = 'polymarket';
-
-        // Ensure deposit transaction is empty
+        // Ensure deposit transaction is null
         controller.updateStateForTesting((state) => {
-          state.pendingDeposits = {};
+          state.depositTransaction = null;
         });
 
         // Clear should work without error
-        expect(() =>
-          controller.clearPendingDeposit({ providerId }),
-        ).not.toThrow();
+        expect(() => controller.clearDepositTransaction()).not.toThrow();
 
-        // Should set to false
-        const address = '0x1234567890123456789012345678901234567890';
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
-        );
+        // Should remain null
+        expect(controller.state.depositTransaction).toBeNull();
       });
     });
   });
@@ -2440,17 +2528,17 @@ describe('PredictController', () => {
     // Deposit transaction status updates are now handled by usePredictDepositToasts hook
     // rather than the controller's event handlers
 
-    it('does not modify deposit state when different batchId', () => {
+    it('not modify deposit state when different batchId', () => {
       withController(({ controller, messenger }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
+        const batchId = 'deposit-batch-1';
 
         // Set up deposit transaction
         controller.updateStateForTesting((state) => {
-          state.pendingDeposits = {
-            [providerId]: {
-              [address]: true,
-            },
+          state.depositTransaction = {
+            batchId,
+            chainId: 137,
+            status: PredictDepositStatus.PENDING,
+            providerId: 'polymarket',
           };
         });
 
@@ -2480,10 +2568,8 @@ describe('PredictController', () => {
       });
     });
 
-    it('updates deposit transaction in depositWithConfirmation', async () => {
+    it('update deposit transaction in depositWithConfirmation', async () => {
       const mockBatchId = 'batch-store-test';
-      const providerId = 'polymarket';
-      const address = '0x1234567890123456789012345678901234567890';
 
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [
@@ -2502,24 +2588,26 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
-        // Ensure depositTransaction is empty initially
-        expect(controller.state.pendingDeposits).toEqual({});
+        // Ensure depositTransaction is null initially
+        expect(controller.state.depositTransaction).toBeNull();
 
         await controller.depositWithConfirmation({
-          providerId,
+          providerId: 'polymarket',
         });
 
         // Verify depositTransaction was stored with correct structure
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
-        );
+        expect(controller.state.depositTransaction).toEqual({
+          batchId: mockBatchId,
+          chainId: 137,
+          status: PredictDepositStatus.PENDING,
+          providerId: 'polymarket',
+        });
       });
     });
 
-    it('clears previous deposit transaction when starting new deposit', async () => {
+    it('clear previous deposit transaction when starting new deposit', async () => {
+      const oldBatchId = 'old-batch';
       const newBatchId = 'new-batch';
-      const providerId = 'polymarket';
-      const address = '0x1234567890123456789012345678901234567890';
 
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [
@@ -2540,26 +2628,23 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         // Set up old deposit transaction
         controller.updateStateForTesting((state) => {
-          state.pendingDeposits = {
-            [providerId]: {
-              [address]: true,
-            },
+          state.depositTransaction = {
+            batchId: oldBatchId,
+            chainId: 137,
+            status: PredictDepositStatus.CONFIRMED,
+            providerId: 'polymarket',
           };
         });
 
-        // Verify old transaction exists
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
-        );
-
-        // Start new deposit (should clear and set to false first, then true)
+        // Start new deposit
         await controller.depositWithConfirmation({
-          providerId,
+          providerId: 'polymarket',
         });
 
-        // Verify new transaction is set
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+        // Verify old transaction was replaced with new one
+        expect(controller.state.depositTransaction?.batchId).toBe(newBatchId);
+        expect(controller.state.depositTransaction?.status).toBe(
+          PredictDepositStatus.PENDING,
         );
       });
     });

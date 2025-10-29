@@ -1,14 +1,19 @@
 import {
   selectPredictControllerState,
+  selectPredictDepositTransaction,
+  selectPredictClaimTransaction,
   selectPredictClaimablePositions,
-  selectPredictPendingDeposits,
   selectPredictWonPositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
   selectPredictBalances,
   selectPredictBalanceByAddress,
 } from './index';
-import { PredictPositionStatus } from '../../types';
+import {
+  PredictDepositStatus,
+  PredictClaimStatus,
+  PredictPositionStatus,
+} from '../../types';
 
 describe('Predict Controller Selectors', () => {
   describe('selectPredictControllerState', () => {
@@ -37,48 +42,49 @@ describe('Predict Controller Selectors', () => {
     });
   });
 
-  describe('selectPredictPendingDeposits', () => {
+  describe('selectPredictDepositTransaction', () => {
     it('returns deposit transaction when it exists', () => {
-      const pendingDeposits = {
-        polymarket: {
-          '0x123': true,
-        },
+      const depositTransaction = {
+        batchId: 'batch-123',
+        chainId: 137,
+        status: PredictDepositStatus.PENDING,
+        providerId: 'polymarket',
       };
 
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              pendingDeposits,
+              depositTransaction,
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictPendingDeposits(mockState as any);
+      const result = selectPredictDepositTransaction(mockState as any);
 
-      expect(result).toEqual(pendingDeposits);
+      expect(result).toEqual(depositTransaction);
     });
 
-    it('returns empty object when pending deposits do not exist', () => {
+    it('returns null when deposit transaction does not exist', () => {
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              pendingDeposits: {},
+              depositTransaction: null,
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictPendingDeposits(mockState as any);
+      const result = selectPredictDepositTransaction(mockState as any);
 
-      expect(result).toEqual({});
+      expect(result).toBeNull();
     });
 
-    it('returns empty object when PredictController state is undefined', () => {
+    it('returns null when PredictController state is undefined', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -88,9 +94,71 @@ describe('Predict Controller Selectors', () => {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictPendingDeposits(mockState as any);
+      const result = selectPredictDepositTransaction(mockState as any);
 
-      expect(result).toEqual({});
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectPredictClaimTransaction', () => {
+    it('returns claim transaction when it exists', () => {
+      const claimTransaction = {
+        transactionId: 'tx-123',
+        chainId: 137,
+        status: PredictClaimStatus.PENDING,
+        txParams: {
+          to: '0x123' as `0x${string}`,
+          data: '0xabc' as `0x${string}`,
+          value: '0x0' as `0x${string}`,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              claimTransaction,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictClaimTransaction(mockState as any);
+
+      expect(result).toEqual(claimTransaction);
+    });
+
+    it('returns null when claim transaction does not exist', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              claimTransaction: null,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictClaimTransaction(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictClaimTransaction(mockState as any);
+
+      expect(result).toBeNull();
     });
   });
 
