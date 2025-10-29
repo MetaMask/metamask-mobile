@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../index';
 
 export interface AdditionalNetworksBlacklistFeatureFlag {
-  additionalNetworkBlacklist: string[];
+  additionalNetworksBlacklist: string[];
 }
 
 /**
@@ -19,7 +19,7 @@ export interface AdditionalNetworksBlacklistFeatureFlag {
 export const selectAdditionalNetworksBlacklistFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteValue = remoteFeatureFlags.additionalNetworkBlacklist as
+    const remoteValue = remoteFeatureFlags.additionalNetworksBlacklist as
       | string[]
       | undefined;
 

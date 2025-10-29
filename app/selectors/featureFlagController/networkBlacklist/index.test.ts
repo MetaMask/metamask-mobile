@@ -38,7 +38,7 @@ describe('selectAdditionalNetworksBlacklistFeatureFlag', () => {
 
   it('returns chain IDs array from remote feature flag', () => {
     const state = createTestState({
-      additionalNetworkBlacklist: ['0x8f', '0x531', '0x1329'],
+      additionalNetworksBlacklist: ['0x8f', '0x531', '0x1329'],
     });
 
     const result = selectAdditionalNetworksBlacklistFeatureFlag(state);
@@ -50,7 +50,7 @@ describe('selectAdditionalNetworksBlacklistFeatureFlag', () => {
     process.env.MM_ADDITIONAL_NETWORK_BLACKLIST = '';
 
     const state = createTestState({
-      additionalNetworkBlacklist: ['0x8f', '0x531'],
+      additionalNetworksBlacklist: ['0x8f', '0x531'],
     });
 
     const result = selectAdditionalNetworksBlacklistFeatureFlag(state);
@@ -62,7 +62,7 @@ describe('selectAdditionalNetworksBlacklistFeatureFlag', () => {
 
   it('handles invalid remote value gracefully', () => {
     const state = createTestState({
-      additionalNetworkBlacklist: 'not-an-array',
+      additionalNetworksBlacklist: 'not-an-array',
     });
 
     const result = selectAdditionalNetworksBlacklistFeatureFlag(state);
@@ -71,7 +71,7 @@ describe('selectAdditionalNetworksBlacklistFeatureFlag', () => {
 
   it('handles null remote value', () => {
     const state = createTestState({
-      additionalNetworkBlacklist: null,
+      additionalNetworksBlacklist: null,
     });
 
     const result = selectAdditionalNetworksBlacklistFeatureFlag(state);
@@ -89,7 +89,7 @@ describe('selectAdditionalNetworksBlacklistFeatureFlag', () => {
 
   it('validates array structure', () => {
     const state = createTestState({
-      additionalNetworkBlacklist: ['0x8f', 123, null, '0x531'],
+      additionalNetworksBlacklist: ['0x8f', 123, null, '0x531'],
     });
 
     const result = selectAdditionalNetworksBlacklistFeatureFlag(state);
