@@ -16,3 +16,4 @@ wdio
 junitProperties.js
 /e2e/scripts/ai-e2e-tags-selector.ts
 scripts/aggregate-performance-reports.mjs
+rock.config.mjs

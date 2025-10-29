@@ -34612,6 +34612,7 @@ __metadata:
     "@reown/walletkit": "npm:^1.2.3"
     "@rock-js/platform-ios": "npm:^0.11.7"
     "@rock-js/plugin-metro": "npm:^0.11.7"
+    "@rock-js/provider-github": "npm:^0.11.7"
     "@rpii/wdio-html-reporter": "npm:^7.7.1"
     "@segment/analytics-react-native": "npm:^2.20.3"
     "@segment/sovran-react-native": "npm:^1.0.4"
