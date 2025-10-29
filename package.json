@@ -190,7 +190,7 @@
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "2.1.5",
-    "@consensys/on-ramp-sdk": "2.1.11",
+    "@consensys/on-ramp-sdk": "patch:@consensys/on-ramp-sdk@npm%3A2.1.11#~/.yarn/patches/@consensys-on-ramp-sdk-npm-2.1.11-639b673953.patch",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@ethersproject/abi": "^5.7.0",
     "@expo/fingerprint": "^0.15.0",

@@ -1,0 +1,570 @@
+diff --git a/dist/API/api.d.ts b/dist/API/api.d.ts
+index f63f671de46c4423518fe2b828a54573c62cc629..e0c8da3fba49e58f6207ba0b2b8a47478d94aa95 100644
+--- a/dist/API/api.d.ts
++++ b/dist/API/api.d.ts
+@@ -904,16 +904,16 @@ export declare const AnalyticsApiFactory: (configuration?: Configuration, basePa
+     analyticsControllerGetSupportedRegionsByProvider(options?: any): AxiosPromise<object>;
+ };
+ export declare class AnalyticsApi extends BaseAPI {
+-    analyticsControllerGetCountryReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    analyticsControllerGetCryptoReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    analyticsControllerGetFiatReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    analyticsControllerGetNetworkReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    analyticsControllerGetPartnerPurchases(start: string, end: string, providerCode: string, skip?: number, limit?: number, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PurchasesResponse, any>>;
+-    analyticsControllerGetPaymentReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    analyticsControllerGetProviderReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    analyticsControllerGetSupportedCountriesByProvider(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    analyticsControllerGetSupportedCryptoCurrencies(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CryptoCurrency[], any>>;
+-    analyticsControllerGetSupportedRegionsByProvider(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
++    analyticsControllerGetCountryReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    analyticsControllerGetCryptoReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    analyticsControllerGetFiatReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    analyticsControllerGetNetworkReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    analyticsControllerGetPartnerPurchases(start: string, end: string, providerCode: string, skip?: number, limit?: number, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PurchasesResponse, any, {}>>;
++    analyticsControllerGetPaymentReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    analyticsControllerGetProviderReport(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    analyticsControllerGetSupportedCountriesByProvider(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    analyticsControllerGetSupportedCryptoCurrencies(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CryptoCurrency[], any, {}>>;
++    analyticsControllerGetSupportedRegionsByProvider(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
+ }
+ export declare const CurrenciesApiAxiosParamCreator: (configuration?: Configuration) => {
+     currenciesControllerGetCryptoRate: (chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -925,7 +925,7 @@ export declare const CurrenciesApiFactory: (configuration?: Configuration, baseP
+     currenciesControllerGetCryptoRate(chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: any): AxiosPromise<FiatAmount>;
+ };
+ export declare class CurrenciesApi extends BaseAPI {
+-    currenciesControllerGetCryptoRate(chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FiatAmount, any>>;
++    currenciesControllerGetCryptoRate(chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FiatAmount, any, {}>>;
+ }
+ export declare const DefaultApiAxiosParamCreator: (configuration?: Configuration) => {
+     dependencyControllerGetAllDependencies: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -952,12 +952,12 @@ export declare const DefaultApiFactory: (configuration?: Configuration, basePath
+     monitoringControllerGetPrometheusMetrics(options?: any): AxiosPromise<void>;
+ };
+ export declare class DefaultApi extends BaseAPI {
+-    dependencyControllerGetAllDependencies(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    eligibilityControllerGetCardEligibility(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    eligibilityControllerGetCardEligibilitySimple(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
+-    eligibilityControllerSubmitUniqueLink(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+-    eligibilityControllerValidateUniqueLink(id: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+-    monitoringControllerGetPrometheusMetrics(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
++    dependencyControllerGetAllDependencies(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    eligibilityControllerGetCardEligibility(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    eligibilityControllerGetCardEligibilitySimple(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any, {}>>;
++    eligibilityControllerSubmitUniqueLink(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any, {}>>;
++    eligibilityControllerValidateUniqueLink(id: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any, {}>>;
++    monitoringControllerGetPrometheusMetrics(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any, {}>>;
+ }
+ export declare const HealthApiAxiosParamCreator: (configuration?: Configuration) => {
+     healthControllerCheck: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -972,8 +972,8 @@ export declare const HealthApiFactory: (configuration?: Configuration, basePath?
+     metadataControllerGetMetadata(options?: any): AxiosPromise<Metadata>;
+ };
+ export declare class HealthApi extends BaseAPI {
+-    healthControllerCheck(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<InlineResponse200, any>>;
+-    metadataControllerGetMetadata(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Metadata, any>>;
++    healthControllerCheck(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<InlineResponse200, any, {}>>;
++    metadataControllerGetMetadata(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Metadata, any, {}>>;
+ }
+ export declare const OrderManagementApiAxiosParamCreator: (configuration?: Configuration) => {
+     ordersControllerGetAllProviders: (environment?: string, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -1027,21 +1027,21 @@ export declare const OrderManagementApiFactory: (configuration?: Configuration,
+     ordersControllerSubmitApplePayOrder(providerCode: string, options?: any): AxiosPromise<PurchaseOrder>;
+ };
+ export declare class OrderManagementApi extends BaseAPI {
+-    ordersControllerGetAllProviders(environment?: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+-    ordersControllerGetAllQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BatchQuoteOrQuery, any>>;
+-    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BatchQuoteOrQuery, any>>;
+-    ordersControllerGetBuyUrl(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, orderId: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BuyWidgetInformation, any>>;
+-    ordersControllerGetOrder(providerCode: string, orderCode: string, wallet: string, fromRedirection?: boolean, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Order, any>>;
+-    ordersControllerGetOrderIdFromCallback(providerCode: string, url: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<OrderId, any>>;
+-    ordersControllerGetQuote(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<QuoteOrQuery, any>>;
+-    ordersControllerGetRankings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<RankingInformation, any>>;
+-    ordersControllerGetRecurringOrders(providerCode: string, orderCode: string, wallet: string, start: string, end: string, skip: number, limit: number, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<RecurringOrders, any>>;
+-    ordersControllerGetSellOrder(providerCode: string, orderCode: string, wallet: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SellOrder, any>>;
+-    ordersControllerGetSellOrderIdFromCallback(providerCode: string, url: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<OrderId, any>>;
+-    ordersControllerGetSellQuote(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<QuoteOrQuery, any>>;
+-    ordersControllerGetSellUrl(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, orderId: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BuyWidgetInformation, any>>;
+-    ordersControllerRedirect(providerCode: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<string, any>>;
+-    ordersControllerSubmitApplePayOrder(providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PurchaseOrder, any>>;
++    ordersControllerGetAllProviders(environment?: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any, {}>>;
++    ordersControllerGetAllQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BatchQuoteOrQuery, any, {}>>;
++    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BatchQuoteOrQuery, any, {}>>;
++    ordersControllerGetBuyUrl(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, orderId: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BuyWidgetInformation, any, {}>>;
++    ordersControllerGetOrder(providerCode: string, orderCode: string, wallet: string, fromRedirection?: boolean, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Order, any, {}>>;
++    ordersControllerGetOrderIdFromCallback(providerCode: string, url: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<OrderId, any, {}>>;
++    ordersControllerGetQuote(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<QuoteOrQuery, any, {}>>;
++    ordersControllerGetRankings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<RankingInformation, any, {}>>;
++    ordersControllerGetRecurringOrders(providerCode: string, orderCode: string, wallet: string, start: string, end: string, skip: number, limit: number, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<RecurringOrders, any, {}>>;
++    ordersControllerGetSellOrder(providerCode: string, orderCode: string, wallet: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SellOrder, any, {}>>;
++    ordersControllerGetSellOrderIdFromCallback(providerCode: string, url: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<OrderId, any, {}>>;
++    ordersControllerGetSellQuote(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<QuoteOrQuery, any, {}>>;
++    ordersControllerGetSellUrl(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, orderId: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BuyWidgetInformation, any, {}>>;
++    ordersControllerRedirect(providerCode: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<string, any, {}>>;
++    ordersControllerSubmitApplePayOrder(providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PurchaseOrder, any, {}>>;
+ }
+ export declare const RegionsApiAxiosParamCreator: (configuration?: Configuration) => {
+     regionsControllerFakeCallback: (fakeRedirectCallback?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -1068,12 +1068,12 @@ export declare const RegionsApiFactory: (configuration?: Configuration, basePath
+     regionsControllerGetRegionLight(action: string, regionCode: string, payment: Array<string>, fiat: string, crypto: string, context?: string, options?: any): AxiosPromise<Cache>;
+ };
+ export declare class RegionsApi extends BaseAPI {
+-    regionsControllerFakeCallback(fakeRedirectCallback?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<string, any>>;
+-    regionsControllerGetCountries(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Country[], any>>;
+-    regionsControllerGetNetworkDetails(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<NetworkDetails, any>>;
+-    regionsControllerGetNetworks(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SupportedNetworks, any>>;
+-    regionsControllerGetRegion(regionCode: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<RegionCache, any>>;
+-    regionsControllerGetRegionLight(action: string, regionCode: string, payment: Array<string>, fiat: string, crypto: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Cache, any>>;
++    regionsControllerFakeCallback(fakeRedirectCallback?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<string, any, {}>>;
++    regionsControllerGetCountries(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Country[], any, {}>>;
++    regionsControllerGetNetworkDetails(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<NetworkDetails, any, {}>>;
++    regionsControllerGetNetworks(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SupportedNetworks, any, {}>>;
++    regionsControllerGetRegion(regionCode: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<RegionCache, any, {}>>;
++    regionsControllerGetRegionLight(action: string, regionCode: string, payment: Array<string>, fiat: string, crypto: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Cache, any, {}>>;
+ }
+ export declare const ReportsApiAxiosParamCreator: (configuration?: Configuration) => {
+     reportsControllerGetCountries: (providers: Array<string>, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -1118,16 +1118,16 @@ export declare const ReportsApiFactory: (configuration?: Configuration, basePath
+     reportsControllerGetSystem(options?: any): AxiosPromise<SystemReport>;
+ };
+ export declare class ReportsApi extends BaseAPI {
+-    reportsControllerGetCountries(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CountryReportList, any>>;
+-    reportsControllerGetCountry(regionCode: string, providers: Array<string>, countryCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CountryReportDetails, any>>;
+-    reportsControllerGetCryptoCurrencies(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CryptoCurrencyReportList, any>>;
+-    reportsControllerGetCryptoCurrency(cryptoNetwork: string, cryptoAddress: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CryptoCurrencyReportDetails, any>>;
+-    reportsControllerGetFiatCurrencies(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FiatCurrencyReportList, any>>;
+-    reportsControllerGetFiatCurrency(fiatCode: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FiatCurrencyReportDetails, any>>;
+-    reportsControllerGetPayment(paymentCode: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PaymentReportDetails, any>>;
+-    reportsControllerGetPayments(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PaymentReportList, any>>;
+-    reportsControllerGetProvider(providerCode: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ProviderReportDetails, any>>;
+-    reportsControllerGetProviders(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ProviderReportList, any>>;
+-    reportsControllerGetRegions(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CountryReportList, any>>;
+-    reportsControllerGetSystem(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SystemReport, any>>;
++    reportsControllerGetCountries(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CountryReportList, any, {}>>;
++    reportsControllerGetCountry(regionCode: string, providers: Array<string>, countryCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CountryReportDetails, any, {}>>;
++    reportsControllerGetCryptoCurrencies(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CryptoCurrencyReportList, any, {}>>;
++    reportsControllerGetCryptoCurrency(cryptoNetwork: string, cryptoAddress: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CryptoCurrencyReportDetails, any, {}>>;
++    reportsControllerGetFiatCurrencies(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FiatCurrencyReportList, any, {}>>;
++    reportsControllerGetFiatCurrency(fiatCode: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FiatCurrencyReportDetails, any, {}>>;
++    reportsControllerGetPayment(paymentCode: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PaymentReportDetails, any, {}>>;
++    reportsControllerGetPayments(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<PaymentReportList, any, {}>>;
++    reportsControllerGetProvider(providerCode: string, providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ProviderReportDetails, any, {}>>;
++    reportsControllerGetProviders(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ProviderReportList, any, {}>>;
++    reportsControllerGetRegions(providers: Array<string>, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CountryReportList, any, {}>>;
++    reportsControllerGetSystem(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SystemReport, any, {}>>;
+ }
+diff --git a/dist/API/common.d.ts b/dist/API/common.d.ts
+index 7ec2100161fa52fe4553b00055b0df117910a384..5d0a7811e33f057a8360c7dc1864585351ba1c71 100644
+--- a/dist/API/common.d.ts
++++ b/dist/API/common.d.ts
+@@ -10,4 +10,4 @@ export declare const setOAuthToObject: (object: any, name: string, scopes: strin
+ export declare const setSearchParams: (url: URL, ...objects: any[]) => void;
+ export declare const serializeDataIfNeeded: (value: any, requestOptions: any, configuration?: Configuration) => any;
+ export declare const toPathString: (url: URL) => string;
+-export declare const createRequestFunction: (axiosArgs: RequestArgs, globalAxios: AxiosInstance, BASE_PATH: string, configuration?: Configuration) => <T = unknown, R = AxiosResponse<T, any>>(axios?: AxiosInstance, basePath?: string) => Promise<R>;
++export declare const createRequestFunction: (axiosArgs: RequestArgs, globalAxios: AxiosInstance, BASE_PATH: string, configuration?: Configuration) => <T = unknown, R = AxiosResponse<T, any, {}>>(axios?: AxiosInstance, basePath?: string) => Promise<R>;
+diff --git a/dist/OnRampSdk.d.ts b/dist/OnRampSdk.d.ts
+index 388461f3fb781ca00ccabadb820f1b0a4b4c68bc..eb228dee49a9440744da81e7acf025592afd3682 100644
+--- a/dist/OnRampSdk.d.ts
++++ b/dist/OnRampSdk.d.ts
+@@ -29,7 +29,7 @@ export declare class OnRampSdk {
+     orders(): Promise<OrdersService>;
+     reports(apiKey: string): Promise<ReportsService>;
+     private getRegionAxios;
+-    getQuote(config: any): Promise<import("axios").AxiosResponse<any, any>>;
++    getQuote(config: any): Promise<import("axios").AxiosResponse<any, any, {}>>;
+     getNetworks(): Promise<AggregatorNetwork[]>;
+     getNetworkDetails(): Promise<NetworkDetails[]>;
+     getVersion(): Promise<{
+diff --git a/dist/SdkIntrospection.test.js b/dist/SdkIntrospection.test.js
+index 704d4496d25748cfe76440c9283c5ae88426a47f..506f2be829f8262ed0835e7e4275da970ff3909a 100644
+--- a/dist/SdkIntrospection.test.js
++++ b/dist/SdkIntrospection.test.js
+@@ -170,9 +170,8 @@ describe('RegionsService', () => {
+     });
+     it('getDefaultFiatCurrency', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getDefaultFiatCurrency);
+-        expect(signature.parameters.length).toBe(2);
++        expect(signature.parameters.length).toBe(1);
+         expect(signature.parameters[0].required).toBe(true);
+-        expect(signature.parameters[1].required).toBe(true);
+     });
+     it('getDefaultFiatCurrencySync', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getDefaultFiatCurrencySync);
+@@ -184,11 +183,10 @@ describe('RegionsService', () => {
+     });
+     it('getSellCryptoCurrencies', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getSellCryptoCurrencies);
+-        expect(signature.parameters.length).toBe(4);
++        expect(signature.parameters.length).toBe(3);
+         expect(signature.parameters[0].required).toBe(true);
+         expect(signature.parameters[1].required).toBe(true);
+-        expect(signature.parameters[2].required).toBe(true);
+-        expect(signature.parameters[3].required).toBe(false);
++        expect(signature.parameters[2].required).toBe(false);
+     });
+     it('getCryptoCurrency', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getCryptoCurrency);
+@@ -198,17 +196,15 @@ describe('RegionsService', () => {
+     });
+     it('getFiatCurrencies', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getFiatCurrencies);
+-        expect(signature.parameters.length).toBe(3);
++        expect(signature.parameters.length).toBe(2);
+         expect(signature.parameters[0].required).toBe(true);
+-        expect(signature.parameters[1].required).toBe(true);
+-        expect(signature.parameters[2].required).toBe(false);
++        expect(signature.parameters[1].required).toBe(false);
+     });
+     it('getSellFiatCurrencies', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getSellFiatCurrencies);
+-        expect(signature.parameters.length).toBe(3);
++        expect(signature.parameters.length).toBe(2);
+         expect(signature.parameters[0].required).toBe(true);
+-        expect(signature.parameters[1].required).toBe(true);
+-        expect(signature.parameters[2].required).toBe(false);
++        expect(signature.parameters[1].required).toBe(false);
+     });
+     it('getFiatCurrency', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getFiatCurrency);
+diff --git a/dist/ServicesSignatures.js b/dist/ServicesSignatures.js
+index 41bcc34ac70dd3a3f643f03a964b7853b22e5015..7be659a8a53061698a9c75cd9f3d9bc86e227a2b 100644
+--- a/dist/ServicesSignatures.js
++++ b/dist/ServicesSignatures.js
+@@ -179,7 +179,7 @@ exports.default = {
+                     "required": true
+                 },
+                 {
+-                    "required": false
++                    "required": true
+                 },
+                 {
+                     "required": true
+@@ -195,7 +195,7 @@ exports.default = {
+                     "required": true
+                 },
+                 {
+-                    "required": false
++                    "required": true
+                 },
+                 {
+                     "required": true
+@@ -230,9 +230,6 @@ exports.default = {
+         },
+         "getDefaultFiatCurrency": {
+             "parameters": [
+-                {
+-                    "required": true
+-                },
+                 {
+                     "required": true
+                 }
+@@ -256,9 +253,6 @@ exports.default = {
+         },
+         "getDefaultSellFiatCurrency": {
+             "parameters": [
+-                {
+-                    "required": true
+-                },
+                 {
+                     "required": true
+                 }
+@@ -288,9 +282,6 @@ exports.default = {
+                 {
+                     "required": true
+                 },
+-                {
+-                    "required": true
+-                },
+                 {
+                     "required": false
+                 }
+@@ -307,9 +298,6 @@ exports.default = {
+                 {
+                     "required": true
+                 },
+-                {
+-                    "required": true
+-                },
+                 {
+                     "required": false
+                 }
+@@ -333,9 +321,6 @@ exports.default = {
+         },
+         "getFiatCurrencies": {
+             "parameters": [
+-                {
+-                    "required": true
+-                },
+                 {
+                     "required": true
+                 },
+@@ -346,9 +331,6 @@ exports.default = {
+         },
+         "getSellFiatCurrencies": {
+             "parameters": [
+-                {
+-                    "required": true
+-                },
+                 {
+                     "required": true
+                 },
+diff --git a/dist/regions/RegionsService.d.ts b/dist/regions/RegionsService.d.ts
+index bf691047999ae2d058eeea00e90aa5eadcc4231c..9de55f4b1ee90a6ba05f3b68ea1663bd3f46aa7d 100644
+--- a/dist/regions/RegionsService.d.ts
++++ b/dist/regions/RegionsService.d.ts
+@@ -34,18 +34,18 @@ export default class RegionsService {
+     getSellPaymentMethodsForCrypto(regionId: string, crypto: string, fiat: string, abortController?: AbortController): Promise<Payment[]>;
+     getSellPaymentMethods(regionId: string, abortController?: AbortController): Promise<Payment[]>;
+     getPaymentMethod(regionId: string, id: string, action: ProviderAction): Promise<Payment>;
+-    getDefaultFiatCurrency(regionId: string, paymentMethods: string[]): Promise<FiatCurrency>;
++    getDefaultFiatCurrency(regionId: string): Promise<FiatCurrency>;
+     getDefaultFiatCurrencySync(countries: Country[], fiats: FiatCurrency[], regionId: string, paymentMethods: string[]): FiatCurrency;
+-    getDefaultSellFiatCurrency(regionId: string, paymentMethods: string[]): Promise<FiatCurrency>;
++    getDefaultSellFiatCurrency(regionId: string): Promise<FiatCurrency>;
+     getDefaultSellFiatCurrencySync(countries: Country[], fiats: FiatCurrency[], regionId: string, paymentMethods: string[]): FiatCurrency;
+-    getCryptoCurrencies(regionId: string, paymentMethodIds: string[], fiatCurrencyId?: string, abortController?: AbortController): Promise<CryptoCurrency[]>;
++    getCryptoCurrencies(regionId: string, fiatCurrencyId: string, abortController?: AbortController): Promise<CryptoCurrency[]>;
+     getNetworkDetails(): Promise<NetworkDetails[]>;
+-    getSellCryptoCurrencies(regionId: string, paymentMethodIds: string[], fiatCurrencyId?: string, abortController?: AbortController): Promise<CryptoCurrency[]>;
++    getSellCryptoCurrencies(regionId: string, fiatCurrencyId: string, abortController?: AbortController): Promise<CryptoCurrency[]>;
+     private getCryptoCurrenciesSync;
+     private getSellCryptoCurrenciesSync;
+     getCryptoCurrency(regionId: string, cryptoId: string): Promise<CryptoCurrency>;
+-    getFiatCurrencies(regionId: string, paymentMethodIds: string[], abortController?: AbortController): Promise<FiatCurrency[]>;
+-    getSellFiatCurrencies(regionId: string, paymentMethodIds: string[], abortController?: AbortController): Promise<FiatCurrency[]>;
++    getFiatCurrencies(regionId: string, abortController?: AbortController): Promise<FiatCurrency[]>;
++    getSellFiatCurrencies(regionId: string, abortController?: AbortController): Promise<FiatCurrency[]>;
+     getFiatCurrency(regionId: string, fiatId: string): Promise<FiatCurrency>;
+     private getProvidersWithoutAmountSync;
+     getLimits(regionId: string, paymentMethods: string[], crypto: string, fiat: string, abortController?: AbortController): Promise<Limits>;
+diff --git a/dist/regions/RegionsService.js b/dist/regions/RegionsService.js
+index cb25e07c4fd6ed25fd87e2aac91a49c6079e0a43..76452f41791e0d4d84cae30494eaf8507f1ebeb4 100644
+--- a/dist/regions/RegionsService.js
++++ b/dist/regions/RegionsService.js
+@@ -140,12 +140,12 @@ class RegionsService {
+         return payments;
+     }
+     async getPaymentMethodsForCrypto(regionId, crypto, fiat, abortController) {
+-        Utils_1.default.checkParameters({ regionId, fiat });
++        Utils_1.default.checkParameters({ regionId, crypto, fiat });
+         const cache = await this.getCountryCache(ProviderAction.buy, regionId, null, fiat, crypto, abortController);
+         return cache.cachedPayments;
+     }
+     async getSellPaymentMethodsForCrypto(regionId, crypto, fiat, abortController) {
+-        Utils_1.default.checkParameters({ regionId, fiat });
++        Utils_1.default.checkParameters({ regionId, crypto, fiat });
+         const cache = await this.getCountryCache(ProviderAction.sell, regionId, null, fiat, crypto, abortController);
+         return cache.cachedPayments;
+     }
+@@ -158,13 +158,13 @@ class RegionsService {
+         const normalizedId = id.startsWith('/payments/') ? id : `/payments/${id}`;
+         return (await this.getCountryCache(action, regionId, [normalizedId], null, null, null)).cachedPayments.find((p) => p.id === normalizedId);
+     }
+-    async getDefaultFiatCurrency(regionId, paymentMethods) {
++    async getDefaultFiatCurrency(regionId) {
+         Utils_1.default.checkParameters({ regionId });
+         const countries = [...this.cachedCountries.values()];
+         const fiats = [
+-            ...(await this.getCountryCache(ProviderAction.buy, regionId, paymentMethods, null, null, null)).cachedFiatCurrencies.values(),
++            ...(await this.getCountryCache(ProviderAction.buy, regionId, [], null, null, null)).cachedFiatCurrencies.values(),
+         ];
+-        return this.getDefaultFiatCurrencySync(countries, fiats, regionId, paymentMethods);
++        return this.getDefaultFiatCurrencySync(countries, fiats, regionId, []);
+     }
+     getDefaultFiatCurrencySync(countries, fiats, regionId, paymentMethods) {
+         const country = countries.find((c) => c.id === regionId ||
+@@ -179,13 +179,13 @@ class RegionsService {
+             return fallbackFiat;
+         return (fiats === null || fiats === void 0 ? void 0 : fiats.length) ? fiats[0] : null;
+     }
+-    async getDefaultSellFiatCurrency(regionId, paymentMethods) {
++    async getDefaultSellFiatCurrency(regionId) {
+         Utils_1.default.checkParameters({ regionId });
+         const countries = [...this.cachedCountries.values()];
+         const fiats = [
+-            ...(await this.getCountryCache(ProviderAction.sell, regionId, paymentMethods, null, null, null)).cachedFiatCurrencies.values(),
++            ...(await this.getCountryCache(ProviderAction.sell, regionId, [], null, null, null)).cachedFiatCurrencies.values(),
+         ];
+-        return this.getDefaultSellFiatCurrencySync(countries, fiats, regionId, paymentMethods);
++        return this.getDefaultSellFiatCurrencySync(countries, fiats, regionId, []);
+     }
+     getDefaultSellFiatCurrencySync(countries, fiats, regionId, paymentMethods) {
+         const country = countries.find((c) => c.id === regionId ||
+@@ -200,19 +200,19 @@ class RegionsService {
+             return fallbackFiat;
+         return (fiats === null || fiats === void 0 ? void 0 : fiats.length) ? fiats[0] : null;
+     }
+-    async getCryptoCurrencies(regionId, paymentMethodIds, fiatCurrencyId, abortController) {
+-        Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        const countryCache = await this.getCountryCache(ProviderAction.buy, regionId, paymentMethodIds, fiatCurrencyId, null, abortController);
+-        return this.getCryptoCurrenciesSync(countryCache, paymentMethodIds, fiatCurrencyId);
++    async getCryptoCurrencies(regionId, fiatCurrencyId, abortController) {
++        Utils_1.default.checkParameters({ regionId, fiatCurrencyId });
++        const countryCache = await this.getCountryCache(ProviderAction.buy, regionId, [], fiatCurrencyId, null, abortController);
++        return this.getCryptoCurrenciesSync(countryCache, [], fiatCurrencyId);
+     }
+     async getNetworkDetails() {
+         const response = (await this.axios.get('/regions/network-details'));
+         return response === null || response === void 0 ? void 0 : response.data;
+     }
+-    async getSellCryptoCurrencies(regionId, paymentMethodIds, fiatCurrencyId, abortController) {
+-        Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        const countryCache = await this.getCountryCache(ProviderAction.sell, regionId, paymentMethodIds, fiatCurrencyId, null, abortController);
+-        return this.getSellCryptoCurrenciesSync(countryCache, paymentMethodIds, fiatCurrencyId);
++    async getSellCryptoCurrencies(regionId, fiatCurrencyId, abortController) {
++        Utils_1.default.checkParameters({ regionId, fiatCurrencyId });
++        const countryCache = await this.getCountryCache(ProviderAction.sell, regionId, [], fiatCurrencyId, null, abortController);
++        return this.getSellCryptoCurrenciesSync(countryCache, [], fiatCurrencyId);
+     }
+     getCryptoCurrenciesSync(countryCache, paymentMethodIds, fiatCurrencyId) {
+         if (paymentMethodIds.length > 0 &&
+@@ -240,13 +240,13 @@ class RegionsService {
+         Utils_1.default.checkParameters({ regionId, cryptoId: cryptoId });
+         return (await this.getCountryCache(null, regionId, [], null, cryptoId, null)).cachedCryptoCurrencies.get(cryptoId);
+     }
+-    async getFiatCurrencies(regionId, paymentMethodIds, abortController) {
+-        Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        return Array.from((await this.getCountryCache(ProviderAction.buy, regionId, paymentMethodIds, null, null, abortController)).cachedFiatCurrencies.values());
++    async getFiatCurrencies(regionId, abortController) {
++        Utils_1.default.checkParameters({ regionId });
++        return Array.from((await this.getCountryCache(ProviderAction.buy, regionId, [], null, null, abortController)).cachedFiatCurrencies.values());
+     }
+-    async getSellFiatCurrencies(regionId, paymentMethodIds, abortController) {
+-        Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        return Array.from((await this.getCountryCache(ProviderAction.sell, regionId, paymentMethodIds, null, null, abortController)).cachedFiatCurrencies.values());
++    async getSellFiatCurrencies(regionId, abortController) {
++        Utils_1.default.checkParameters({ regionId });
++        return Array.from((await this.getCountryCache(ProviderAction.sell, regionId, [], null, null, abortController)).cachedFiatCurrencies.values());
+     }
+     async getFiatCurrency(regionId, fiatId) {
+         Utils_1.default.checkParameters({ regionId, cryptoId: fiatId });
+@@ -850,7 +850,7 @@ __decorate([
+ ], RegionsService.prototype, "getPaymentMethods", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: false })),
++    __param(1, (0, SdkParam_1.default)({ required: true })),
+     __param(2, (0, SdkParam_1.default)({ required: true })),
+     __param(3, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+@@ -859,7 +859,7 @@ __decorate([
+ ], RegionsService.prototype, "getPaymentMethodsForCrypto", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: false })),
++    __param(1, (0, SdkParam_1.default)({ required: true })),
+     __param(2, (0, SdkParam_1.default)({ required: true })),
+     __param(3, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+@@ -883,9 +883,8 @@ __decorate([
+ ], RegionsService.prototype, "getPaymentMethod", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array]),
++    __metadata("design:paramtypes", [String]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getDefaultFiatCurrency", null);
+ __decorate([
+@@ -899,9 +898,8 @@ __decorate([
+ ], RegionsService.prototype, "getDefaultFiatCurrencySync", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array]),
++    __metadata("design:paramtypes", [String]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getDefaultSellFiatCurrency", null);
+ __decorate([
+@@ -916,19 +914,17 @@ __decorate([
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: false })),
++    __param(2, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, AbortController]),
++    __metadata("design:paramtypes", [String, String, AbortController]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getCryptoCurrencies", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: false })),
++    __param(2, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, AbortController]),
++    __metadata("design:paramtypes", [String, String, AbortController]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getSellCryptoCurrencies", null);
+ __decorate([
+@@ -940,18 +936,16 @@ __decorate([
+ ], RegionsService.prototype, "getCryptoCurrency", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: false })),
++    __param(1, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, AbortController]),
++    __metadata("design:paramtypes", [String, AbortController]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getFiatCurrencies", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: false })),
++    __param(1, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, AbortController]),
++    __metadata("design:paramtypes", [String, AbortController]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getSellFiatCurrencies", null);
+ __decorate([
+diff --git a/dist/regions/RegionsService.test.js b/dist/regions/RegionsService.test.js
+index 4f1a21d6fa37ffd84b22691358ee0b37aaeb4684..f9c74d1e295547075f76248bd27ae56d90325ae6 100644
+--- a/dist/regions/RegionsService.test.js
++++ b/dist/regions/RegionsService.test.js
+@@ -255,7 +255,7 @@ describe('RegionsService', () => {
+                     ]),
+                 };
+                 jest.spyOn(CountryCache_1.CountryCache, 'Create').mockResolvedValue(mockCache);
+-                const fiats = await service.getFiatCurrencies('region1', ['payment1']);
++                const fiats = await service.getFiatCurrencies('region1');
+                 expect(fiats).toHaveLength(1);
+                 expect(fiats[0].id).toBe('fiat1');
+             });
+@@ -278,7 +278,7 @@ describe('RegionsService', () => {
+                     ]),
+                 };
+                 jest.spyOn(CountryCache_1.CountryCache, 'Create').mockResolvedValue(mockCache);
+-                const cryptos = await service.getCryptoCurrencies('region1', ['payment1'], 'fiat1');
++                const cryptos = await service.getCryptoCurrencies('region1', 'fiat1');
+                 expect(cryptos).toHaveLength(1);
+                 expect(cryptos[0].id).toBe('crypto1');
+             });
+@@ -413,9 +413,7 @@ describe('RegionsService', () => {
+                     ]),
+                 };
+                 jest.spyOn(CountryCache_1.CountryCache, 'Create').mockResolvedValue(mockCache);
+-                const fiats = await service.getSellFiatCurrencies('region1', [
+-                    'payment1',
+-                ]);
++                const fiats = await service.getSellFiatCurrencies('region1');
+                 expect(fiats).toHaveLength(1);
+                 expect(fiats[0].id).toBe('fiat1');
+             });
+@@ -448,7 +446,7 @@ describe('RegionsService', () => {
+                     ]),
+                 };
+                 jest.spyOn(CountryCache_1.CountryCache, 'Create').mockResolvedValue(mockCache);
+-                const cryptos = await service.getSellCryptoCurrencies('region1', ['payment1'], 'fiat1');
++                const cryptos = await service.getSellCryptoCurrencies('region1', 'fiat1');
+                 expect(cryptos).toHaveLength(1);
+                 expect(cryptos[0].id).toBe('crypto1');
+             });
