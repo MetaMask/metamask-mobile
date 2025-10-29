@@ -88,6 +88,33 @@ jest.mock('@metamask/utils', () => ({
     .mockReturnValue('eip155:1:0x1234567890123456789012345678901234567890'),
 }));
 
+// Mock react-native-device-info
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('8.0.0'),
+}));
+
+import { getVersion } from 'react-native-device-info';
+const mockGetVersion = getVersion as jest.MockedFunction<typeof getVersion>;
+
+// Helper to create mock messenger
+const createMockMessenger = (mockCall: jest.Mock, mockSubscribe?: jest.Mock) =>
+  ({
+    call: mockCall,
+    publish: jest.fn(),
+    subscribe: mockSubscribe || jest.fn(),
+    registerActionHandler: jest.fn(),
+    registerEventHandler: jest.fn(),
+    registerInitialEventPayload: jest.fn(),
+    getRestricted: jest.fn().mockReturnValue({
+      call: mockCall,
+      publish: jest.fn(),
+      subscribe: mockSubscribe || jest.fn(),
+      registerActionHandler: jest.fn(),
+      registerEventHandler: jest.fn(),
+      registerInitialEventPayload: jest.fn(),
+    }),
+  }) as any;
+
 describe('PerpsController', () => {
   let controller: PerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
@@ -206,6 +233,7 @@ describe('PerpsController', () => {
         state: getDefaultPerpsControllerState(),
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-REGION'],
+          clientVersion: '8.0.0',
         },
       });
 
@@ -242,6 +270,7 @@ describe('PerpsController', () => {
         state: getDefaultPerpsControllerState(),
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
+          clientVersion: '8.0.0',
         },
       });
 
@@ -281,6 +310,7 @@ describe('PerpsController', () => {
         state: getDefaultPerpsControllerState(),
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-US'],
+          clientVersion: '8.0.0',
         },
       });
 
@@ -326,6 +356,7 @@ describe('PerpsController', () => {
         state: getDefaultPerpsControllerState(),
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
+          clientVersion: '8.0.0',
         },
       });
 
@@ -353,6 +384,609 @@ describe('PerpsController', () => {
       );
 
       mockLoggerError.mockRestore();
+    });
+  });
+
+  describe('hip3EnabledFlag feature flag handling', () => {
+    beforeEach(() => {
+      mockGetVersion.mockReturnValue('8.0.0');
+    });
+
+    describe('fallback case - no remote flag', () => {
+      it('uses fallback when remote flag is undefined', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {},
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: true,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('fallback');
+      });
+
+      it('uses fallback disabled when no clientConfig provided', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {},
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
+        expect((testController as any).hip3EnabledFlag.source).toBe('fallback');
+      });
+    });
+
+    describe('remote flag undefined case', () => {
+      it('keeps fallback when remoteFeatureFlags object exists but perpsEquityEnabled is missing', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                someOtherFlag: true,
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: true,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('fallback');
+      });
+    });
+
+    describe('remote flag defined but disabled', () => {
+      it('disables HIP-3 when remote flag enabled is false', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsEquityEnabled: {
+                  enabled: false,
+                  minimumVersion: '7.0.0',
+                },
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: true,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+      });
+    });
+
+    describe('remote flag enabled but minimum version check fails', () => {
+      it('disables HIP-3 when client version below minimum requirement', () => {
+        mockGetVersion.mockReturnValue('6.0.0');
+
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsEquityEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.0.0',
+                },
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: false,
+            clientVersion: '6.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+      });
+
+      it('enables HIP-3 when client version equals minimum requirement', () => {
+        mockGetVersion.mockReturnValue('7.0.0');
+
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsEquityEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.0.0',
+                },
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: false,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+      });
+
+      it('enables HIP-3 when client version exceeds minimum requirement', () => {
+        mockGetVersion.mockReturnValue('8.0.0');
+
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsEquityEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.0.0',
+                },
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: false,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+      });
+    });
+  });
+
+  describe('enabledHIP3Dexs feature flag handling', () => {
+    describe('fallback case - no remote flag', () => {
+      it('uses fallback DEX list when remote flag is undefined', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {},
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEnabledDexs: ['dex1', 'dex2'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'dex1',
+          'dex2',
+        ]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('fallback');
+      });
+
+      it('uses empty array when no clientConfig provided', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {},
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('fallback');
+      });
+    });
+
+    describe('remote flag undefined case', () => {
+      it('keeps fallback when perpsEnabledDexs is missing', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                someOtherFlag: true,
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEnabledDexs: ['fallback-dex'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'fallback-dex',
+        ]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('fallback');
+      });
+
+      it('keeps fallback when perpsEnabledDexs is not an array', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsEnabledDexs: 'not-an-array',
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEnabledDexs: ['fallback-dex'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'fallback-dex',
+        ]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('fallback');
+      });
+    });
+
+    describe('remote flag defined', () => {
+      it('uses remote DEX list when provided', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsEnabledDexs: ['remote-dex1', 'remote-dex2'],
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEnabledDexs: ['fallback-dex'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'remote-dex1',
+          'remote-dex2',
+        ]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('remote');
+      });
+
+      it('uses empty remote array when provided', () => {
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsEnabledDexs: [],
+              },
+            };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEnabledDexs: ['fallback-dex'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('remote');
+      });
+    });
+  });
+
+  describe('messagingSystem subscription updates', () => {
+    beforeEach(() => {
+      mockGetVersion.mockReturnValue('8.0.0');
+    });
+
+    describe('hip3EnabledFlag updates via subscription', () => {
+      it('updates to enabled when subscription fires with valid remote flag', () => {
+        const mockSubscribe = jest.fn();
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall, mockSubscribe),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: false,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
+        expect((testController as any).hip3EnabledFlag.source).toBe('fallback');
+
+        const subscribeCallback = mockSubscribe.mock.calls.find(
+          (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+        )?.[1];
+
+        expect(subscribeCallback).toBeDefined();
+
+        subscribeCallback({
+          remoteFeatureFlags: {
+            perpsEquityEnabled: {
+              enabled: true,
+              minimumVersion: '7.0.0',
+            },
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+      });
+
+      it('updates to disabled when subscription fires with disabled remote flag', () => {
+        const mockSubscribe = jest.fn();
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall, mockSubscribe),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: true,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+
+        const subscribeCallback = mockSubscribe.mock.calls.find(
+          (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+        )?.[1];
+
+        subscribeCallback({
+          remoteFeatureFlags: {
+            perpsEquityEnabled: {
+              enabled: false,
+              minimumVersion: '7.0.0',
+            },
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+      });
+
+      it('disables when subscription fires with version requirement not met', () => {
+        mockGetVersion.mockReturnValue('6.0.0');
+
+        const mockSubscribe = jest.fn();
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall, mockSubscribe),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: false,
+            clientVersion: '6.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
+        expect((testController as any).hip3EnabledFlag.source).toBe('fallback');
+
+        const subscribeCallback = mockSubscribe.mock.calls.find(
+          (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+        )?.[1];
+
+        subscribeCallback({
+          remoteFeatureFlags: {
+            perpsEquityEnabled: {
+              enabled: true,
+              minimumVersion: '7.0.0',
+            },
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+      });
+    });
+
+    describe('enabledHIP3Dexs updates via subscription', () => {
+      it('updates DEX list when subscription fires with new array', () => {
+        const mockSubscribe = jest.fn();
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall, mockSubscribe),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEnabledDexs: ['fallback-dex'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'fallback-dex',
+        ]);
+
+        const subscribeCallback = mockSubscribe.mock.calls.find(
+          (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+        )?.[1];
+
+        subscribeCallback({
+          remoteFeatureFlags: {
+            perpsEnabledDexs: ['remote-dex1', 'remote-dex2'],
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'remote-dex1',
+          'remote-dex2',
+        ]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('remote');
+      });
+
+      it('does not update when subscription fires with invalid DEX list', () => {
+        const mockSubscribe = jest.fn();
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall, mockSubscribe),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEnabledDexs: ['fallback-dex'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        const subscribeCallback = mockSubscribe.mock.calls.find(
+          (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+        )?.[1];
+
+        subscribeCallback({
+          remoteFeatureFlags: {
+            perpsEnabledDexs: 'not-an-array',
+          },
+        });
+
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'fallback-dex',
+        ]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('fallback');
+      });
+    });
+
+    describe('combined flag updates', () => {
+      it('updates both hip3EnabledFlag and enabledHIP3Dexs when subscription fires', () => {
+        const mockSubscribe = jest.fn();
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall, mockSubscribe),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: false,
+            fallbackEnabledDexs: ['fallback-dex'],
+            clientVersion: '8.0.0',
+          },
+        });
+
+        const subscribeCallback = mockSubscribe.mock.calls.find(
+          (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+        )?.[1];
+
+        subscribeCallback({
+          remoteFeatureFlags: {
+            perpsEquityEnabled: {
+              enabled: true,
+              minimumVersion: '7.0.0',
+            },
+            perpsEnabledDexs: ['remote-dex1', 'remote-dex2'],
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('remote');
+        expect((testController as any).enabledHIP3Dexs.dexs).toEqual([
+          'remote-dex1',
+          'remote-dex2',
+        ]);
+        expect((testController as any).enabledHIP3Dexs.source).toBe('remote');
+      });
     });
   });
 
