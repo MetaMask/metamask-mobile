@@ -1,0 +1,177 @@
+name: Build iOS E2E Apps (Rock CLI)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      artifact-id:
+        description: "Rock CLI artifact ID for the built app"
+        value: ${{ jobs.build-ios-app.outputs.artifact-id }}
+      app-uploaded:
+        description: "Whether app was successfully uploaded"
+        value: ${{ jobs.build-ios-app.outputs.app-uploaded }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-ios-app:
+    name: Build iOS E2E App with Rock CLI
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    timeout-minutes: 45
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    outputs:
+      artifact-id: ${{ steps.rock-build-ios.outputs.artifact-id }}
+      app-uploaded: ${{ steps.rock-build-ios.outcome == 'success' }}
+    env:
+      # Core build environment
+      NODE_OPTIONS: '--max-old-space-size=8192'
+      RCT_NO_LAUNCH_PACKAGER: 1
+      XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
+      
+      # Platform and environment
+      PLATFORM: ios
+      METAMASK_ENVIRONMENT: qa
+      METAMASK_BUILD_TYPE: main
+      IS_TEST: true
+      E2E: 'true'
+      GITHUB_CI: 'true'
+      CI: 'true'
+      
+      # Feature flags
+      IGNORE_BOXLOGS_DEVELOPMENT: true
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+      MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
+      
+      # Secrets
+      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+      FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+      SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+      SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+      SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+      SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+      MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+      MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+      GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+      GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set Xcode version
+        run: sudo xcode-select --switch /Applications/Xcode.app
+
+      # Use existing MetaMask setup action for Node, Ruby, CocoaPods, etc.
+      - name: Setup iOS environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        with:
+          platform: ios
+          setup-simulator: false
+
+      - name: Print iOS tool versions
+        run: |
+          echo "🔧 Node.js Version:"
+          node -v || echo "Node not found"
+          echo "🧶 Yarn Version:"
+          yarn -v || echo "Yarn not found"
+          echo "📦 CocoaPods Version:"
+          pod --version || echo "CocoaPods not found"
+          echo "🛠️ Xcode Path:"
+          xcode-select -p || echo "Xcode not found"
+
+      # Clean iOS plist files to prevent extended attribute issues
+      - name: Clean iOS plist files
+        run: find ios -name "*.plist" -exec xattr -c {} \;
+
+      # Get Yarn cache for faster dependency installation
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache Yarn dependencies
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            .yarn/cache
+            .yarn/install-state.gz
+            !.eslintcache
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      # Install dependencies and run MetaMask-specific setup
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --build-ios --no-build-android
+
+      # MetaMask-specific prebuild steps (required before Rock CLI)
+      - name: MetaMask prebuild configuration
+        run: |
+          echo "🔧 Running MetaMask prebuild steps..."
+          
+          # Create required xcconfig files
+          touch ios/debug.xcconfig ios/release.xcconfig
+          
+          # Update git submodules (MetaMask dependencies)
+          git submodule update --init --recursive
+          
+          # Decode and place Google Services configuration
+          echo -n "$GOOGLE_SERVICES_B64_IOS" | base64 -d > ios/GoogleServices/GoogleService-Info.plist
+          
+          echo "✅ Prebuild steps completed"
+
+      # Install Foundry (for smart contract testing if needed)
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@50d5a8956f2e319df19e6b57539d7e2acb9f8c1e
+        with:
+          version: stable
+
+      - name: Rock Build - iOS E2E App (Simulator)
+        id: rock-build-ios
+        uses: callstackincubator/ios@7c072d8d6acaa7cc3b038f9f6c5a81bb54da10c7
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+        with:
+          scheme: MetaMask
+          destination: simulator
+          configuration: Release
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-bot: false
+          re-sign: true
+
+      - name: Build summary
+        if: always()
+        run: |
+          echo "📦 Build Status: ${{ steps.rock-build-ios.outcome }}"
+          if [ "${{ steps.rock-build-ios.outcome }}" == "success" ]; then
+            echo "✅ Rock CLI build completed successfully"
+            echo "📦 Artifact ID: ${{ steps.rock-build-ios.outputs.artifact-id }}"
+          else
+            echo "❌ Rock CLI build failed"
+          fi
+
