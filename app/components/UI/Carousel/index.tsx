@@ -92,7 +92,7 @@ export function useFetchCarouselSlides() {
   // Dummy slides for testing
   const dummySlides: CarouselSlide[] = [
     {
-      id: 'sew2ewe-slide-1',
+      id: 'fdsafsafasf-slide-1',
       title: 'Test Slide 1',
       description: 'This is a test slide to verify carousel functionality',
       navigation: {
@@ -103,7 +103,7 @@ export function useFetchCarouselSlides() {
       cardPlacement: 1,
     },
     {
-      id: 'sew2ewe-slide-2',
+      id: 'fdsafsafasf-slide-2',
       title: 'Test Slide 2',
       description: 'Another test slide with different content',
       navigation: {
@@ -114,7 +114,7 @@ export function useFetchCarouselSlides() {
       cardPlacement: 2,
     },
     {
-      id: 'sew2ewe-slide-3',
+      id: 'fdsafsafasf-slide-3',
       title: 'Test Slide 3',
       description: 'Third test slide for comprehensive testing',
       navigation: {

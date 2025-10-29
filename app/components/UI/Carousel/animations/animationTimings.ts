@@ -6,7 +6,7 @@ export const ANIMATION_TIMINGS = {
   CARD_ENTER_DURATION: 250, // Next card enter animation
 
   // Empty state animations
-  EMPTY_STATE_IDLE_TIME: 500, // How long "You're all caught up" stays visible (reduced to account for transition time)
+  EMPTY_STATE_IDLE_TIME: 1800, // How long "You're all caught up" stays visible (reduced to account for transition time)
   EMPTY_STATE_FADE_DURATION: 200, // Content fade out
   EMPTY_STATE_FOLD_DELAY: 50, // Delay before visual fold starts
   EMPTY_STATE_FOLD_DURATION: 200, // Visual fold animation
