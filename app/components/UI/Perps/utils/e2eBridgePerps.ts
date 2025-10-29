@@ -6,13 +6,10 @@
  * configures itself when the isE2E flag is detected.
  */
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { isE2E } from '../../../../util/test/utils';
+import { isE2E , getCommandQueueServerPortInApp } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
 import axios, { AxiosResponse } from 'axios';
-import {
-  getCommandQueueServerPort,
-  getLocalHost,
-} from '../../../../../e2e/framework/fixtures/FixtureUtils';
+import { PerpsModifiersCommandTypes } from '../../../../../e2e/framework/types';
 
 // Global bridge for E2E mock injection
 export interface E2EBridgePerpsStreaming {
@@ -144,13 +141,20 @@ function startE2EPerpsCommandPolling(): void {
   if (!isE2E || hasStartedPolling) {
     return;
   }
+  DevLogger.log(
+    '[E2E Perps Bridge - HTTP Polling] startE2EPerpsCommandPolling',
+  );
 
   hasStartedPolling = true;
 
-  const pollIntervalMs = Number(process.env.E2E_POLL_INTERVAL_MS || 2000);
-  const host = getLocalHost();
-  const port = getCommandQueueServerPort();
-  // Change isDebug while developing E2E for Perps to avoid emptying out the queue
+  // Derive and clamp poll interval to avoid tight loops (e.g., env set to 0)
+  let pollIntervalMs = Number(process.env.E2E_POLL_INTERVAL_MS);
+  if (!Number.isFinite(pollIntervalMs) || pollIntervalMs <= 0) {
+    pollIntervalMs = 2000;
+  }
+  pollIntervalMs = Math.max(pollIntervalMs, 200);
+  const host = 'localhost';
+  const port = getCommandQueueServerPortInApp();
   const isDebug = false;
   const baseUrl = isDebug
     ? `http://${host}:${port}/debug.json`
@@ -163,7 +167,12 @@ function startE2EPerpsCommandPolling(): void {
     pollTimeout = setTimeout(pollOnce, delay);
   }
 
+  let isPollingInFlight = false;
   async function pollOnce(): Promise<void> {
+    if (isPollingInFlight) {
+      return;
+    }
+    isPollingInFlight = true;
     try {
       // Lazy require to keep bridge tree-shakeable in prod and avoid ESM import in Jest
       /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
@@ -211,20 +220,26 @@ function startE2EPerpsCommandPolling(): void {
         return;
       }
 
-      const data = ((await response) as AxiosResponse).data?.queue as
+      const data = (response as AxiosResponse).data?.queue as
         | (
             | {
-                type: 'push-price';
-                symbol: string;
-                price: string | number;
+                type: PerpsModifiersCommandTypes.pushPrice;
+                args: {
+                  symbol: string;
+                  price: string | number;
+                };
               }
             | {
-                type: 'force-liquidation';
-                symbol: string;
+                type: PerpsModifiersCommandTypes.forceLiquidation;
+                args: {
+                  symbol: string;
+                };
               }
             | {
-                type: 'mock-deposit';
-                amount: string;
+                type: PerpsModifiersCommandTypes.mockDeposit;
+                args: {
+                  amount: string;
+                };
               }
           )[]
         | null
@@ -241,9 +256,11 @@ function startE2EPerpsCommandPolling(): void {
 
       for (const item of data) {
         if (!item || typeof item !== 'object') continue;
-        if (item.type === 'push-price') {
-          const sym = (item as { symbol: string }).symbol;
-          const price = String((item as { price: string | number }).price);
+        if (item.type === PerpsModifiersCommandTypes.pushPrice) {
+          const sym = (item as { args: { symbol: string } }).args.symbol;
+          const price = String(
+            (item as { args: { price: string | number } }).args.price,
+          );
           try {
             if (typeof service.mockPushPrice === 'function') {
               service.mockPushPrice(sym, price);
@@ -251,8 +268,8 @@ function startE2EPerpsCommandPolling(): void {
           } catch (e) {
             // no-op
           }
-        } else if (item.type === 'force-liquidation') {
-          const sym = (item as { symbol: string }).symbol;
+        } else if (item.type === PerpsModifiersCommandTypes.forceLiquidation) {
+          const sym = (item as { args: { symbol: string } }).args.symbol;
           try {
             if (typeof service.mockForceLiquidation === 'function') {
               service.mockForceLiquidation(sym);
@@ -260,8 +277,8 @@ function startE2EPerpsCommandPolling(): void {
           } catch (e) {
             // no-op
           }
-        } else if (item.type === 'mock-deposit') {
-          const amount = (item as { amount: string }).amount;
+        } else if (item.type === PerpsModifiersCommandTypes.mockDeposit) {
+          const amount = (item as { args: { amount: string } }).args.amount;
           try {
             if (typeof service.mockDepositUSD === 'function') {
               service.mockDepositUSD(amount);
@@ -274,7 +291,8 @@ function startE2EPerpsCommandPolling(): void {
         // no cursor handling
       }
 
-      scheduleNext(0);
+      // Respect the polling interval after processing items
+      scheduleNext(pollIntervalMs);
     } catch (err) {
       DevLogger.log('[E2E Perps Bridge - HTTP Polling] Poll error', err);
       consecutivePollFailures += 1;
@@ -286,6 +304,8 @@ function startE2EPerpsCommandPolling(): void {
         return;
       }
       scheduleNext(pollIntervalMs);
+    } finally {
+      isPollingInFlight = false;
     }
   }
 
