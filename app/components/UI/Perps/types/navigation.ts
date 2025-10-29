@@ -152,6 +152,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
   // PnL Hero Card screen
   PerpsPnlHeroCard: {
     position: Position;
+    marketPrice?: string;
   };
 
   // Root perps view

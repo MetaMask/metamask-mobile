@@ -98,6 +98,7 @@ jest.mock('../../hooks', () => ({
       {
         name: 'ETH',
         symbol: 'ETH',
+        price: '$2,000.00',
         priceDecimals: 2,
         sizeDecimals: 4,
         maxLeverage: 50,
@@ -217,6 +218,25 @@ describe('PerpsPositionCard', () => {
       '../../utils/pnlCalculations',
     );
     calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
+
+    // Reset the usePerpsMarkets mock to include price
+    const { usePerpsMarkets } = jest.requireMock('../../hooks');
+    usePerpsMarkets.mockReturnValue({
+      markets: [
+        {
+          name: 'ETH',
+          symbol: 'ETH',
+          price: '$2,000.00',
+          priceDecimals: 2,
+          sizeDecimals: 4,
+          maxLeverage: 50,
+          minSize: 0.01,
+          sizeIncrement: 0.01,
+        },
+      ],
+      error: null,
+      isLoading: false,
+    });
 
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
@@ -1138,11 +1158,12 @@ describe('PerpsPositionCard', () => {
         Routes.PERPS.PNL_HERO_CARD,
         expect.objectContaining({
           position: mockPosition,
+          marketPrice: '$2,000.00',
         }),
       );
     });
 
-    it('passes position prop to route params', () => {
+    it('passes position and marketPrice to route params', () => {
       const mockNavigate = jest.fn();
       (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
 
@@ -1157,69 +1178,7 @@ describe('PerpsPositionCard', () => {
         expect.anything(),
         expect.objectContaining({
           position: mockPosition,
-        }),
-      );
-    });
-
-    it('passes marketData.price as marketPrice param', () => {
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-
-      const { usePerpsMarkets } = jest.requireMock('../../hooks');
-      usePerpsMarkets.mockReturnValue({
-        markets: [
-          {
-            symbol: 'ETH',
-            price: '$2500.50',
-          },
-        ],
-        error: null,
-        isLoading: false,
-      });
-
-      render(<PerpsPositionCard position={mockPosition} expanded />);
-
-      const shareButton = screen.getByTestId(
-        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
-      );
-      fireEvent.press(shareButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.PNL_HERO_CARD,
-        expect.objectContaining({
-          marketPrice: '$2500.50',
-        }),
-      );
-    });
-
-    it('works when marketData.price is undefined', () => {
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-
-      const { usePerpsMarkets } = jest.requireMock('../../hooks');
-      usePerpsMarkets.mockReturnValue({
-        markets: [
-          {
-            symbol: 'ETH',
-            price: undefined,
-          },
-        ],
-        error: null,
-        isLoading: false,
-      });
-
-      render(<PerpsPositionCard position={mockPosition} expanded />);
-
-      const shareButton = screen.getByTestId(
-        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
-      );
-      fireEvent.press(shareButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.PNL_HERO_CARD,
-        expect.objectContaining({
-          position: mockPosition,
-          marketPrice: undefined,
+          marketPrice: '$2,000.00',
         }),
       );
     });

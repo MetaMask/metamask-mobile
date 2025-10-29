@@ -29,6 +29,7 @@ import { Position } from '../controllers/types';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: NotificationFeedbackType;
+  // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
   labelOptions?: {
     label: string | React.ReactNode;
     isBold?: boolean;

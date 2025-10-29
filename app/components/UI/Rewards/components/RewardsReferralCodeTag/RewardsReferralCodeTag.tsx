@@ -49,7 +49,6 @@ const RewardsReferralCodeTag: React.FC<RewardsReferralCodeTagProps> = ({
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleCopyToClipboard}>
-      {/* We can add support for configurable icons later */}
       <FoxRewardIcon name="fox-reward-icon" width={12} height={12} />
       <Text style={styles.referralCode} variant={TextVariant.BodySMMedium}>
         {referralCode}

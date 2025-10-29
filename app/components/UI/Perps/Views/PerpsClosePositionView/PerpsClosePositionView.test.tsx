@@ -1950,20 +1950,26 @@ describe('PerpsClosePositionView', () => {
       expect(track).toHaveBeenCalled();
 
       // Assert - Should call with expected parameters structure for full close
+      // Calculation: effectivePnL = (3000 - 2900) * 1.5 = 150
+      // effectiveMargin = 1450 + 150 = 1600
+      // receivedAmount = 1600 - 45 = 1555
       expect(handleClosePosition).toHaveBeenCalledWith(
         defaultPerpsPositionMock,
-        expect.any(String),
+        '',
         'market',
         undefined,
-        expect.objectContaining({
-          totalFee: expect.any(Number),
-          marketPrice: expect.any(Number),
-          receivedAmount: expect.any(Number),
-          realizedPnl: expect.any(Number),
-          metamaskFeeRate: expect.any(Number),
-          metamaskFee: expect.any(Number),
-        }),
-        expect.any(String),
+        {
+          totalFee: 45,
+          marketPrice: 3000,
+          receivedAmount: 1555,
+          realizedPnl: 150,
+          metamaskFeeRate: 0,
+          metamaskFee: 0,
+          feeDiscountPercentage: undefined,
+          estimatedPoints: undefined,
+          inputMethod: 'default',
+        },
+        '3000.00',
       );
     });
 
@@ -2043,6 +2049,7 @@ describe('PerpsClosePositionView', () => {
                     feeDiscountPercentage: undefined,
                     metamaskFee: 0,
                     estimatedPoints: undefined,
+                    inputMethod: 'default',
                   },
                 );
               }}
@@ -2058,21 +2065,24 @@ describe('PerpsClosePositionView', () => {
       // Act - Press confirm for limit order
       fireEvent.press(getByTestId('test-confirm'));
 
-      // Assert - Should call with limit price
+      // Assert - Should call with limit price and specific calculated values
       await waitFor(() => {
         expect(handleClosePosition).toHaveBeenCalledWith(
           defaultPerpsPositionMock,
           '',
           'limit',
           '50000',
-          expect.objectContaining({
-            totalFee: expect.any(Number),
-            marketPrice: expect.any(Number),
-            receivedAmount: expect.any(Number),
-            realizedPnl: expect.any(Number),
-            metamaskFeeRate: expect.any(Number),
-            metamaskFee: expect.any(Number),
-          }),
+          {
+            totalFee: 45,
+            marketPrice: 3000,
+            receivedAmount: 1405,
+            realizedPnl: 150,
+            metamaskFeeRate: 0,
+            metamaskFee: 0,
+            feeDiscountPercentage: undefined,
+            estimatedPoints: undefined,
+            inputMethod: 'default',
+          },
         );
       });
     });
