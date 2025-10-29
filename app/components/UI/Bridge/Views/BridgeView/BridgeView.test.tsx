@@ -255,6 +255,10 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
+jest.mock('../../hooks/useIsBridgeQuoteForCurrentPair', () => ({
+  useIsBridgeQuoteForCurrentPair: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),

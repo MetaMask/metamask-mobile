@@ -17,8 +17,17 @@ export const useIsBridgeQuoteForCurrentPair = ({
   activeQuote,
   sourceToken,
   destToken,
-}: Props) => useMemo(() => {
+}: Props) =>
+  useMemo(() => {
     if (!activeQuote || !sourceToken || !destToken) {
+      return false;
+    }
+
+    // Check if quote has required asset information
+    if (
+      !activeQuote.quote?.srcAsset?.assetId ||
+      !activeQuote.quote?.destAsset?.assetId
+    ) {
       return false;
     }
 
