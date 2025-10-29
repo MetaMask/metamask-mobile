@@ -143,9 +143,6 @@ const OnboardingAnimation = ({
             autoplay={false}
             stateMachineName="WordmarkBuildUp"
             testID="metamask-wordmark-animation"
-            onError={(error) => {
-              alert('Error loading Rive animation: ' + JSON.stringify(error) );
-            }}
           />
         </Animated.View>
       </View>
