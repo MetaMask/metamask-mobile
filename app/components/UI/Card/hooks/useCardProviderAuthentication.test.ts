@@ -86,6 +86,8 @@ describe('useCardProviderAuthentication', () => {
       sdk: mockSdk as unknown as CardSDK,
       isLoading: false,
       logoutFromProvider: jest.fn(),
+      user: null,
+      setUser: jest.fn(),
     });
     mockStrings.mockImplementation((key: string) => `mocked_${key}`);
     mockUseDispatch.mockReturnValue(mockDispatch);
@@ -393,6 +395,8 @@ describe('useCardProviderAuthentication', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
+        user: null,
+        setUser: jest.fn(),
       });
 
       const loginParams = {
@@ -701,6 +705,8 @@ describe('useCardProviderAuthentication', () => {
         sdk: null,
         isLoading: false,
         logoutFromProvider: jest.fn(),
+        user: null,
+        setUser: jest.fn(),
       });
 
       const otpParams = {

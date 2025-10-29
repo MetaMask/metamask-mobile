@@ -127,9 +127,7 @@ const mockUseTokensWithBalance = useTokensWithBalance as jest.MockedFunction<
 describe('useAssetBalance', () => {
   const mockToken: CardTokenAllowance = {
     address: '0x1234567890123456789012345678901234567890',
-    chainId: '0x1',
     caipChainId: 'eip155:1' as CaipChainId,
-    isStaked: false,
     decimals: 18,
     symbol: 'TEST',
     name: 'Test Token',
@@ -200,17 +198,16 @@ describe('useAssetBalance', () => {
         if (useSelectorCallCount % 2 === 1) {
           // Odd call: inline selector that calls selectAsset
           // Return the value that was set via mockSelectAsset.mockReturnValue()
-          return mockSelectAsset();
+          return mockSelectAsset({} as any, {} as any);
         }
-          // Even call: assetBalanceSelector - return mocked balance info
-          return {
-            primaryCurrency: defaults.primaryCurrency,
-            showFiatOnTestnets: defaults.showFiatOnTestnets,
-            conversionRate: overrides.conversionRate ?? 0,
-            exchangeRates: overrides.exchangeRates ?? defaults.exchangeRates,
-            currentCurrency: defaults.currentCurrency,
-          };
-
+        // Even call: assetBalanceSelector - return mocked balance info
+        return {
+          primaryCurrency: defaults.primaryCurrency,
+          showFiatOnTestnets: defaults.showFiatOnTestnets,
+          conversionRate: overrides.conversionRate ?? 0,
+          exchangeRates: overrides.exchangeRates ?? defaults.exchangeRates,
+          currentCurrency: defaults.currentCurrency,
+        };
       }
 
       if (selector.toString().includes('selectSelectedInternalAccountAddress'))
@@ -412,8 +409,8 @@ describe('useAssetBalance', () => {
 
       // When: useTokensWithBalance returns a filtered token
       const filteredToken = {
-        address: mockToken.address.toLowerCase(),
-        chainId: mockToken.chainId as string,
+        address: mockToken.address?.toLowerCase() || '',
+        chainId: '0x1',
         balance: '0',
         balanceFiat: '0',
         symbol: mockToken.symbol || 'TEST',
@@ -440,8 +437,8 @@ describe('useAssetBalance', () => {
 
       // When: useTokensWithBalance returns a filtered token
       const filteredToken = {
-        address: mockToken.address.toLowerCase(),
-        chainId: mockToken.chainId as string,
+        address: mockToken.address?.toLowerCase() || '',
+        chainId: '0x1',
         balance: '0',
         balanceFiat: '0',
         symbol: mockToken.symbol || 'TEST',
@@ -564,7 +561,7 @@ describe('useAssetBalance', () => {
 
       expect(result.current.asset).toBeDefined();
       expect(result.current.asset?.address).toBe(mockToken.address);
-      expect(result.current.asset?.chainId).toBe(mockToken.chainId);
+      expect(result.current.asset?.chainId).toBe('0x1');
     });
 
     it('should cover nonEvmAsset selector with valid token and account', () => {
@@ -717,8 +714,8 @@ describe('useAssetBalance', () => {
 
       // When: useTokensWithBalance returns a filtered token for the asset
       const filteredToken = {
-        address: mockToken.address.toLowerCase(),
-        chainId: mockToken.chainId as string,
+        address: mockToken.address?.toLowerCase() || '',
+        chainId: '0x1',
         balance: '0',
         balanceFiat: '0',
         symbol: mockToken.symbol || 'TEST',
@@ -747,11 +744,11 @@ describe('useAssetBalance', () => {
     });
 
     it('returns calculated balance for EVM token with availableBalance', () => {
-      const tokenWithAvailableBalance: CardTokenAllowance = {
+      const tokenWithAvailableBalance = {
         ...mockToken,
         availableBalance: '500.50',
         chainId: '0x1',
-      };
+      } as CardTokenAllowance & { chainId: string };
 
       mockSelectAsset.mockReturnValue(mockEvmAsset);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
@@ -778,12 +775,12 @@ describe('useAssetBalance', () => {
       );
       isSolanaChainId.mockReturnValue(true);
 
-      const solanaToken: CardTokenAllowance = {
+      const solanaToken = {
         ...mockToken,
         availableBalance: '100.5',
         chainId: 'solana:mainnet',
         address: '0xSolanaToken',
-      };
+      } as CardTokenAllowance & { chainId: string };
 
       const mockEngine = jest.requireMock('../../../../core/Engine');
       mockEngine.context.MultichainAssetsRatesController.state.conversionRates =
@@ -819,13 +816,13 @@ describe('useAssetBalance', () => {
       );
       isSolanaChainId.mockReturnValue(true);
 
-      const solanaToken: CardTokenAllowance = {
+      const solanaToken = {
         ...mockToken,
         availableBalance: '100.5',
         chainId: 'solana:mainnet',
         address: '0xSolanaTokenNoRate',
         symbol: 'SOLTKN',
-      };
+      } as CardTokenAllowance & { chainId: string };
 
       const mockEngine = jest.requireMock('../../../../core/Engine');
       mockEngine.context.MultichainAssetsRatesController.state.conversionRates =
@@ -846,11 +843,11 @@ describe('useAssetBalance', () => {
     });
 
     it('parses rawTokenBalance correctly when balance has currency symbols', () => {
-      const tokenWithAvailableBalance: CardTokenAllowance = {
+      const tokenWithAvailableBalance = {
         ...mockToken,
         availableBalance: '1,234.56',
         chainId: '0x1',
-      };
+      } as CardTokenAllowance & { chainId: string };
 
       mockSelectAsset.mockReturnValue(mockEvmAsset);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
@@ -870,11 +867,11 @@ describe('useAssetBalance', () => {
     });
 
     it('handles non-numeric balance in derived balance calculation', () => {
-      const tokenWithAvailableBalance: CardTokenAllowance = {
+      const tokenWithAvailableBalance = {
         ...mockToken,
         availableBalance: '100',
         chainId: '0x1',
-      };
+      } as CardTokenAllowance & { chainId: string };
 
       mockSelectAsset.mockReturnValue(mockEvmAsset);
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
@@ -894,11 +891,11 @@ describe('useAssetBalance', () => {
     });
 
     it('resets balanceFiat and recalculates when availableBalance is set', () => {
-      const tokenWithAvailableBalance: CardTokenAllowance = {
+      const tokenWithAvailableBalance = {
         ...mockToken,
         availableBalance: '250.75',
         chainId: '0x1',
-      };
+      } as CardTokenAllowance & { chainId: string };
 
       const assetWithOldBalance = {
         ...mockEvmAsset,
@@ -930,11 +927,11 @@ describe('useAssetBalance', () => {
     });
 
     it('handles zero availableBalance correctly', () => {
-      const tokenWithZeroBalance: CardTokenAllowance = {
+      const tokenWithZeroBalance = {
         ...mockToken,
         availableBalance: '0',
         chainId: '0x1',
-      };
+      } as CardTokenAllowance & { chainId: string };
 
       mockSelectAsset.mockReturnValue(mockEvmAsset);
       mockDeriveBalanceFromAssetMarketDetails.mockClear();

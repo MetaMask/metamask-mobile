@@ -96,11 +96,9 @@ describe('AddFundsBottomSheet', () => {
     symbol: 'USDC',
     decimals: 6,
     name: 'USD Coin',
-    chainId: '0xe708',
     caipChainId: 'eip155:59144',
     allowanceState: AllowanceState.Enabled,
     allowance: '1000000',
-    isStaked: false,
   };
 
   const defaultProps = {
