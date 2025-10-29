@@ -737,7 +737,6 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1439,7 +1438,6 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -2227,7 +2225,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
-                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",

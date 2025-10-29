@@ -1,5 +1,4 @@
 import { useCallback, useContext, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -134,7 +133,12 @@ export function usePredictPlaceOrder(
         const orderResult = await controllerPlaceOrder(orderParams);
 
         if (!orderResult.success) {
-          // Error will be caught and toast shown in catch block
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Loading,
+            labelOptions: [{ label: strings('predict.order.order_failed') }],
+            hasNoTimeout: false,
+          });
           throw new Error(orderResult.error);
         }
 
@@ -164,37 +168,8 @@ export function usePredictPlaceOrder(
           orderParams,
         });
 
-        // Capture exception with order context (no sensitive data like amounts)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
-          tags: {
-            component: 'usePredictPlaceOrder',
-            action: 'order_placement',
-            operation: 'order_management',
-          },
-          extra: {
-            orderContext: {
-              providerId: orderParams.providerId,
-              side: orderParams.preview?.side,
-              marketId: orderParams.analyticsProperties?.marketId,
-              transactionType: orderParams.analyticsProperties?.transactionType,
-            },
-          },
-        });
-
         setError(errorMessage);
         onError?.(errorMessage);
-
-        // Show error toast to user
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          labelOptions: [
-            { label: strings('predict.order.order_failed'), isBold: true },
-            { label: '\n', isBold: false },
-            { label: errorMessage, isBold: false },
-          ],
-          hasNoTimeout: false,
-        });
       } finally {
         setIsLoading(false);
       }

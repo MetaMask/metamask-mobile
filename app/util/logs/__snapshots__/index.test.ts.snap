@@ -506,9 +506,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "subscriptions": {},
         "unlockedRewards": {},
       },
-      "SamplePetnamesController": {
-        "namesByChainIdAndAddress": {},
-      },
       "SeedlessOnboardingController": {
         "accessToken": true,
         "encryptedKeyringEncryptionKey": true,
@@ -1190,9 +1187,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
-      },
-      "SamplePetnamesController": {
-        "namesByChainIdAndAddress": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": false,

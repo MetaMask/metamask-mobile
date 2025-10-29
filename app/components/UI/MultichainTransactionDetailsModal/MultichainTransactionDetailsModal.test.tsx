@@ -1,27 +1,9 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { ParamListBase, NavigationProp } from '@react-navigation/native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionDetailsModal from './MultichainTransactionDetailsModal';
 import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
-
-// Mock react-native-modal to capture onModalHide callback
-let mockOnModalHide: (() => void) | undefined;
-jest.mock('react-native-modal', () => {
-  const MockModal = ({
-    children,
-    onModalHide,
-    ...props
-  }: {
-    children: React.ReactNode;
-    onModalHide?: () => void;
-    isVisible: boolean;
-  }) => {
-    mockOnModalHide = onModalHide;
-    return props.isVisible ? children : null;
-  };
-  return MockModal;
-});
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -88,7 +70,6 @@ describe('MultichainTransactionDetailsModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnModalHide = undefined;
   });
 
   it('renders correctly a transaction', () => {
@@ -144,7 +125,7 @@ describe('MultichainTransactionDetailsModal', () => {
     expect(getByText('0.000001 SOL')).toBeTruthy();
   });
 
-  it('navigates to block explorer when view details is pressed', async () => {
+  it('navigates to block explorer when view details is pressed', () => {
     const { getByText } = render(
       <MultichainTransactionDetailsModal
         isVisible
@@ -156,28 +137,16 @@ describe('MultichainTransactionDetailsModal', () => {
     );
 
     const viewDetailsButton = getByText('networks.view_details');
-
-    await act(async () => {
-      fireEvent.press(viewDetailsButton);
-    });
+    fireEvent.press(viewDetailsButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
-
-    // Navigation should not happen immediately
-    expect(mockNavigation.navigate).not.toHaveBeenCalled();
-
-    // Simulate modal hide event
-    await act(async () => {
-      mockOnModalHide?.();
-    });
-
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: { url: 'https://solscan.io/tx/123' },
     });
   });
 
-  it('navigates to address explorer when address link is pressed', async () => {
+  it('navigates to address explorer when address link is pressed', () => {
     const { getAllByText } = render(
       <MultichainTransactionDetailsModal
         isVisible
@@ -189,43 +158,12 @@ describe('MultichainTransactionDetailsModal', () => {
     );
 
     const fromAddressLinks = getAllByText('7RoSF9...zZNV');
-
-    await act(async () => {
-      fireEvent.press(fromAddressLinks[0]);
-    });
+    fireEvent.press(fromAddressLinks[0]);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
-
-    // Navigation should not happen immediately
-    expect(mockNavigation.navigate).not.toHaveBeenCalled();
-
-    // Simulate modal hide event
-    await act(async () => {
-      mockOnModalHide?.();
-    });
-
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: { url: 'https://solscan.io/account/123' },
     });
-  });
-
-  it('does not navigate when modal closes without pressing any link', async () => {
-    render(
-      <MultichainTransactionDetailsModal
-        isVisible
-        onClose={mockOnClose}
-        transaction={mockTransaction}
-        displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
-      />,
-    );
-
-    // Simulate modal hide event without pressing any buttons
-    await act(async () => {
-      mockOnModalHide?.();
-    });
-
-    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 });

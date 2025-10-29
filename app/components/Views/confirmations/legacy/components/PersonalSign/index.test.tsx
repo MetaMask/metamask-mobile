@@ -13,7 +13,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
-import { Reason, ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
 jest.mock('../../../../../../components/hooks/useMetrics');
 jest.mock('../../../../../../core/Engine', () => ({
@@ -118,8 +117,8 @@ describe('PersonalSign', () => {
             description: '',
             features: [],
             providerRequestsCount: { eth_chainId: 1 },
-            reason: Reason.notApplicable,
-            result_type: ResultType.Benign,
+            reason: '',
+            result_type: 'Benign',
           },
         },
       }),
@@ -269,7 +268,7 @@ describe('PersonalSign', () => {
         chain_id: '1',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
-        security_alert_reason: Reason.notApplicable,
+        security_alert_reason: '',
         security_alert_source: undefined,
         ppom_eth_chainId_count: 1,
       });
@@ -296,7 +295,7 @@ describe('PersonalSign', () => {
         chain_id: '1',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
-        security_alert_reason: Reason.notApplicable,
+        security_alert_reason: '',
         security_alert_source: undefined,
         ppom_eth_chainId_count: 1,
       });

@@ -5,7 +5,6 @@ import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
-import { selectBasicFunctionalityEnabled } from '../../settings';
 
 const DEFAULT_REWARDS_ENABLED = false;
 const DEFAULT_CARD_SPEND_ENABLED = false;
@@ -15,13 +14,7 @@ export const CARD_SPEND_FLAG_NAME = 'rewardsEnableCardSpend';
 
 export const selectRewardsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  selectBasicFunctionalityEnabled,
-  (remoteFeatureFlags, isBasicFunctionalityEnabled) => {
-    // If basic functionality is disabled, rewards should be disabled
-    if (!isBasicFunctionalityEnabled) {
-      return false;
-    }
-
+  (remoteFeatureFlags) => {
     if (!hasProperty(remoteFeatureFlags, FEATURE_FLAG_NAME)) {
       return DEFAULT_REWARDS_ENABLED;
     }

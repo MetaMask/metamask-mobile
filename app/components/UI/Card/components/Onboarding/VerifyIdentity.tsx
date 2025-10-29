@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -10,12 +10,12 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { useCardSDK } from '../../sdk';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { user } = useCardSDK();
+
   const {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
@@ -25,31 +25,21 @@ const VerifyIdentity = () => {
 
   const { sessionUrl } = verificationResponse || {};
 
-  const handleContinue = useCallback(() => {
-    if (sessionUrl) {
-      navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
-        url: sessionUrl,
-      });
+  const handleContinue = () => {
+    if (!sessionUrl) {
+      return;
     }
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
-        .addProperties({
-          action: OnboardingActions.VERIFY_IDENTITY_BUTTON_CLICKED,
-        })
-        .build(),
-    );
-  }, [navigation, sessionUrl, trackEvent, createEventBuilder]);
+    navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
+      sessionUrl,
+    });
+  };
 
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
-        .addProperties({
-          page: OnboardingScreens.VERIFY_IDENTITY,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
+    if (user?.verificationState === 'PENDING') {
+      navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
+    }
+  }, [navigation, user?.verificationState]);
 
   const renderFormFields = () => (
     <>

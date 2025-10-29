@@ -1,7 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { usePredictTrading } from './usePredictTrading';
@@ -101,20 +100,6 @@ export function usePredictBalance(
           err instanceof Error ? err.message : 'Failed to load balance';
         setError(errorMessage);
         DevLogger.log('usePredictBalance: Error loading balance', err);
-
-        // Capture exception with balance loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
-          tags: {
-            component: 'usePredictBalance',
-            action: 'balance_load',
-            operation: 'data_fetching',
-          },
-          extra: {
-            balanceContext: {
-              providerId,
-            },
-          },
-        });
       } finally {
         isLoadingRef.current = false;
         setIsLoading(false);

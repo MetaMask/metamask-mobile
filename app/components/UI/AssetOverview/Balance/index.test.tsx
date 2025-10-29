@@ -20,11 +20,6 @@ import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearn
 import { TokenI } from '../../Tokens/types';
 import { NetworkBadgeSource } from './Balance';
 
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) =>
-    key === 'asset_overview.your_balance' ? 'Your balance' : key,
-}));
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -482,46 +477,6 @@ describe('Balance', () => {
 
       expect(getByText('Dai Stablecoin')).toBeTruthy();
       expect(getByText('5 DAI')).toBeTruthy();
-    });
-  });
-
-  describe('Visibility controls', () => {
-    it('hides heading when hideTitleHeading is true', () => {
-      const { queryByText } = render(
-        <Provider store={store}>
-          <Balance
-            asset={mockDAI}
-            mainBalance="300"
-            secondaryBalance="300"
-            hideTitleHeading
-          />
-        </Provider>,
-      );
-
-      expect(queryByText('Your balance')).toBeNull();
-      expect(queryByText('asset_overview.your_balance')).toBeNull();
-    });
-
-    it('renders custom secondary balance and hides percentage when hidePercentageChange is true', () => {
-      mockSelectPricePercentChange1d.mockReturnValue(5.67);
-
-      const { getByTestId, queryByText, queryByTestId } = render(
-        <Provider store={store}>
-          <Balance
-            asset={mockDAI}
-            mainBalance="$100"
-            secondaryBalance="100 DAI"
-            hidePercentageChange
-          />
-        </Provider>,
-      );
-
-      const tokenAmount = getByTestId('token-amount-balance-test-id');
-      expect(tokenAmount.props.children).toBe('100 DAI');
-
-      expect(queryByTestId('secondary-balance-test-id')).toBeNull();
-      expect(queryByText(/\+.*%/)).toBeNull();
-      expect(queryByText(/-.*%/)).toBeNull();
     });
   });
 

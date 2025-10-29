@@ -165,10 +165,6 @@ describe('usePredictClaimToasts', () => {
     };
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('initialization', () => {
     it('subscribes to transaction status updates on mount', () => {
       // Arrange & Act

@@ -1,5 +1,5 @@
 import React, { useCallback, ReactNode, useMemo, useEffect } from 'react';
-import { View, ViewStyle } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { SolScope } from '@metamask/keyring-api';
@@ -77,10 +77,6 @@ export interface BaseControlBarProps {
    * Custom wrapper component for the control buttons
    */
   customWrapper?: 'outer' | 'none';
-  /**
-   * Custom style to apply to the action bar wrapper
-   */
-  style?: ViewStyle;
 }
 
 const BaseControlBar: React.FC<BaseControlBarProps> = ({
@@ -92,7 +88,6 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   additionalButtons,
   useEvmSelectionLogic = false,
   customWrapper = 'outer',
-  style,
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
   const navigation = useNavigation();
@@ -261,7 +256,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   if (customWrapper === 'none') {
     return (
-      <View style={[styles.actionBarWrapper, style]}>
+      <View style={styles.actionBarWrapper}>
         {networkButton}
         {sortButton}
         {additionalButtons}
@@ -270,7 +265,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   }
 
   return (
-    <View style={[styles.actionBarWrapper, style]}>
+    <View style={styles.actionBarWrapper}>
       <View style={styles.controlButtonOuterWrapper}>
         {networkButton}
         <View style={styles.controlButtonInnerWrapper}>

@@ -341,60 +341,6 @@ describe('PredictMarketSingle', () => {
     });
   });
 
-  it('checks eligibility before balance for Yes button', () => {
-    // Mock user is not eligible AND has no balance
-    mockUsePredictEligibility.mockReturnValue({
-      isEligible: false,
-      refreshEligibility: jest.fn(),
-    });
-    mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <PredictMarketSingle market={mockMarket} />,
-      { state: initialState },
-    );
-
-    const yesButton = getByText('Yes');
-    fireEvent.press(yesButton);
-
-    // Should navigate to unavailable (not add funds sheet)
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-    });
-    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
-  });
-
-  it('checks eligibility before balance for No button', () => {
-    // Mock user is not eligible AND has no balance
-    mockUsePredictEligibility.mockReturnValue({
-      isEligible: false,
-      refreshEligibility: jest.fn(),
-    });
-    mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <PredictMarketSingle market={mockMarket} />,
-      { state: initialState },
-    );
-
-    const noButton = getByText('No');
-    fireEvent.press(noButton);
-
-    // Should navigate to unavailable (not add funds sheet)
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-    });
-    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
-  });
-
   it('displays 0% when tokens have price 0', () => {
     const marketWithZeroPriceTokens: PredictMarketType = {
       ...mockMarket,

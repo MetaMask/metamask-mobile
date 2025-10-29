@@ -72,13 +72,11 @@ import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBott
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -93,7 +91,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market, initialTab, monitoringIntent, source } = route.params || {};
   const { track } = usePerpsEventTracking();
-  const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -109,10 +106,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [navigation, market]);
 
-  // Get persisted candle period preference from Redux store
-  const selectedCandlePeriod = useSelector(
-    selectPerpsChartPreferredCandlePeriod,
-  );
+  const [selectedCandlePeriod, setSelectedCandlePeriod] =
+    useState<CandlePeriod>(CandlePeriod.THREE_MINUTES);
   const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
@@ -299,8 +294,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
-      // Persist the preference to Redux store
-      dispatch(setPerpsChartPreferredCandlePeriod(newPeriod));
+      setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -313,7 +307,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Zoom to latest candle when period changes
       chartRef.current?.zoomToLatestCandle(visibleCandleCount);
     },
-    [market, track, visibleCandleCount, dispatch],
+    [market, track, visibleCandleCount],
   );
 
   const handleMorePress = useCallback(() => {
@@ -329,6 +323,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       // Reset chart to default state (like initial navigation)
+      setSelectedCandlePeriod(CandlePeriod.THREE_MINUTES);
       setVisibleCandleCount(45);
 
       // Reset chart view to default position
@@ -563,9 +558,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </View>
 
           {/* Market Tabs Section */}
-          <View style={styles.tabsSection}>
+          <View style={styles.section}>
             <PerpsMarketTabs
               symbol={market?.symbol || ''}
+              marketStats={marketStats}
+              position={existingPosition}
+              isLoadingPosition={isLoadingPosition}
+              unfilledOrders={openOrders}
               initialTab={initialTab}
               activeTabId={programmaticActiveTab || undefined}
               nextFundingTime={market?.nextFundingTime}

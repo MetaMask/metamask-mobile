@@ -214,8 +214,6 @@ const Routes = {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
-    NFTS_FULL_VIEW: 'NftFullView',
-    TOKENS_FULL_VIEW: 'TokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -253,7 +251,6 @@ const Routes = {
     MARKET_DETAILS: 'PerpsMarketDetails',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
-    HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
     MODALS: {
       ROOT: 'PerpsModals',
@@ -347,9 +344,6 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SAMPLE_FEATURE: 'SampleFeature',
-  ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
@@ -368,7 +362,6 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
-      WEBVIEW: 'CardOnboardingWebview',
     },
   },
   SEND: {

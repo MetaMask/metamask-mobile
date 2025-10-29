@@ -1,11 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountStatus Snapshots android renders correctly with accountName in route params 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
         "paddingTop": 24,
       }
@@ -100,7 +114,6 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -136,7 +149,6 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -170,15 +182,29 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="found and statusbar current height to zero" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
         "paddingTop": 24,
       }
@@ -273,7 +299,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -309,7 +334,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -343,15 +367,29 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="not_exist" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
         "paddingTop": 24,
       }
@@ -446,7 +484,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -482,7 +519,6 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -516,15 +552,29 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with accountName in route params 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
         "paddingTop": 24,
       }
@@ -619,7 +669,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -655,7 +704,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -689,15 +737,29 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
         "paddingTop": 24,
       }
@@ -792,7 +854,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -828,7 +889,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -862,15 +922,29 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
         "paddingTop": 24,
       }
@@ -965,7 +1039,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1001,7 +1074,6 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
-        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1035,5 +1107,5 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

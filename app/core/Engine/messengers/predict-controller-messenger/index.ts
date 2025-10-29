@@ -21,7 +21,6 @@ export function getPredictControllerMessenger(
     allowedActions: [
       'AccountsController:getSelectedAccount',
       'NetworkController:getState',
-      'TransactionController:estimateGas',
     ],
   });
 }

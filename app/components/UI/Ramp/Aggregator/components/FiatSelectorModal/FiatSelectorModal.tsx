@@ -83,6 +83,7 @@ function FiatSelectorModal() {
   const renderItem = useCallback(
     ({ item }: { item: FiatCurrency }) => (
       <ListItemSelect
+        shouldEnableAndroidPressIn
         onPress={() => handleSelectCurrency(item)}
         isSelected={selectedFiatCurrencyId === item.id}
         accessibilityRole="button"

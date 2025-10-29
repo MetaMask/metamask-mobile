@@ -1,6 +1,6 @@
 import { SecurityAlertResponse } from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 
-export interface SignatureRequestState {
+interface StateType {
   securityAlertResponse?: SecurityAlertResponse;
 }
 
@@ -9,12 +9,12 @@ interface ActionType {
   securityAlertResponse?: SecurityAlertResponse;
 }
 
-const initialState: SignatureRequestState = {
+const initialState: StateType = {
   securityAlertResponse: undefined,
 };
 
 const signatureRequestReducer = (
-  state: SignatureRequestState = initialState,
+  state: StateType = initialState,
   action: ActionType = { type: 'NONE' },
 ) => {
   switch (action.type) {

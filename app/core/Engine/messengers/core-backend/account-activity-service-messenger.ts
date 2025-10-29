@@ -16,7 +16,7 @@ export function getAccountActivityServiceMessenger(
     allowedActions: [
       'AccountsController:getSelectedAccount',
       'BackendWebSocketService:connect',
-      'BackendWebSocketService:forceReconnection',
+      'BackendWebSocketService:disconnect',
       'BackendWebSocketService:subscribe',
       'BackendWebSocketService:getConnectionInfo',
       'BackendWebSocketService:channelHasSubscription',

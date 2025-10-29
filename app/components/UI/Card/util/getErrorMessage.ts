@@ -14,7 +14,7 @@ export const getErrorMessage = (error: unknown): string => {
         if (error.message.includes('Invalid email format')) {
           return strings('card.card_onboarding.errors.invalid_email_format');
         }
-        if (error.message.includes('no valid verification code')) {
+        if (error.message.includes('Invalid verification code')) {
           return strings(
             'card.card_onboarding.errors.invalid_verification_code',
           );

@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -21,6 +20,7 @@ import { areAddressesEqual } from '../../../../../util/address';
 import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../AccountGroupDetails.styles';
+import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 
 export interface SecretRecoveryPhraseProps {
   account: InternalAccount;
@@ -66,10 +66,11 @@ export const SecretRecoveryPhrase = ({
   }, [navigation]);
 
   return (
-    <TouchableOpacity
+    <TempTouchableOpacity
       style={styles.secretRecoveryPhrase}
       testID={AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK}
       onPress={onExportMnemonic}
+      shouldEnableAndroidPressIn
     >
       <Text variant={TextVariant.BodyMDMedium}>
         {strings('multichain_accounts.account_details.secret_recovery_phrase')}
@@ -80,14 +81,17 @@ export const SecretRecoveryPhrase = ({
         gap={8}
       >
         {showSeedphraseBackReminder && (
-          <TouchableOpacity onPress={handleBackupPressed}>
+          <TempTouchableOpacity
+            onPress={handleBackupPressed}
+            shouldEnableAndroidPressIn
+          >
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}
             >
               {strings('multichain_accounts.export_credentials.backup')}
             </Text>
-          </TouchableOpacity>
+          </TempTouchableOpacity>
         )}
         <Icon
           name={IconName.ArrowRight}
@@ -95,6 +99,6 @@ export const SecretRecoveryPhrase = ({
           color={colors.text.alternative}
         />
       </Box>
-    </TouchableOpacity>
+    </TempTouchableOpacity>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Complete from './Complete';
@@ -13,29 +13,8 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-jest.mock('../../../../../util/Logger', () => ({
-  log: jest.fn(),
-}));
-
-jest.mock('../../../../../core/redux/slices/card', () => ({
-  resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
-}));
-
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_ONBOARDING_PAGE_VIEWED: 'CARD_ONBOARDING_PAGE_VIEWED',
-    CARD_ONBOARDING_BUTTON_CLICKED: 'CARD_ONBOARDING_BUTTON_CLICKED',
-  },
-}));
-
-jest.mock('../../util/cardTokenVault', () => ({
-  getCardBaanxToken: jest.fn(),
-}));
-
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
@@ -70,7 +49,6 @@ jest.mock('./OnboardingStep', () => {
 
 // Mock Button component
 jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -149,33 +127,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('Complete Component', () => {
   const mockNavigate = jest.fn();
   const mockDispatch = jest.fn();
-  const mockTrackEvent = jest.fn();
-  const mockCreateEventBuilder = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
-
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-
-    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
-    mockCreateEventBuilder.mockReturnValue({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    });
-    useMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
-
-    const { getCardBaanxToken } = jest.requireMock('../../util/cardTokenVault');
-    getCardBaanxToken.mockResolvedValue({
-      success: true,
-      tokenData: { accessToken: 'mock-token' },
-    });
   });
 
   describe('Component Rendering', () => {
@@ -228,33 +186,22 @@ describe('Complete Component', () => {
       expect(button.props.disabled).toBeFalsy();
     });
 
-    it('navigates to card home when pressed', async () => {
+    it('navigates to card home when pressed', () => {
       const { getByTestId } = render(<Complete />);
-
       const button = getByTestId('complete-confirm-button');
       fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('CardHome');
     });
 
-    it('calls navigate only once per button press', async () => {
+    it('calls navigate only once per button press', () => {
       const { getByTestId } = render(<Complete />);
-
       const button = getByTestId('complete-confirm-button');
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-      });
 
       fireEvent.press(button);
+      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(2);
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
-      });
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenCalledWith('CardHome');
     });
   });
 
@@ -265,15 +212,13 @@ describe('Complete Component', () => {
       expect(useNavigation).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to correct route on continue', async () => {
+    it('navigates to correct route on continue', () => {
       const { getByTestId } = render(<Complete />);
-
       const button = getByTestId('complete-confirm-button');
+
       fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('CardHome');
     });
   });
 
@@ -391,7 +336,7 @@ describe('Complete Component', () => {
   });
 
   describe('Critical Path Testing', () => {
-    it('completes the onboarding flow successfully', async () => {
+    it('completes the onboarding flow successfully', () => {
       const { getByTestId } = render(<Complete />);
 
       // Verify component renders
@@ -402,12 +347,10 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       // Verify navigation to final destination
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('CardHome');
     });
 
-    it('handles user flow continuity', async () => {
+    it('handles user flow continuity', () => {
       const { getByTestId } = render(<Complete />);
 
       // Verify the component is ready for user interaction
@@ -416,10 +359,7 @@ describe('Complete Component', () => {
 
       // Verify successful completion leads to proper navigation
       fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('CardHome');
     });
   });
 });

@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
-import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderResult, Position, TrackingData } from '../controllers/types';
+import type { Position, OrderResult, TrackingData } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
+import { strings } from '../../../../../locales/i18n';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
 import usePerpsToasts from './usePerpsToasts';
-import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -37,7 +37,7 @@ export const usePerpsClosePosition = (
           orderType,
           limitPrice,
         });
-        const isLong = Number.parseFloat(position.size) >= 0;
+        const isLong = parseFloat(position.size) >= 0;
         const direction = isLong
           ? strings('perps.market.long')
           : strings('perps.market.short');

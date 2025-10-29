@@ -170,7 +170,7 @@ export default {
   },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',
-    UAT: 'https://dev.api.baanx.com',
+    UAT: 'https://foxuat2-ag.foxcard.io',
     PRD: 'https://api.baanx.com',
   },
   ERRORS: {

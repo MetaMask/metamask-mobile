@@ -128,8 +128,8 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     if (!isInputFocused) return null;
 
     return (
-      <View style={tw.style('py-4')}>
-        <View style={tw.style('px-4 mb-4')}>
+      <View style={tw.style('pt-4 bg-background-section pb-8 rounded-t-3xl')}>
+        <View style={tw.style('px-4 mb-3')}>
           {hasInsufficientFunds && onAddFunds ? (
             <Button
               variant={ButtonVariants.Primary}
