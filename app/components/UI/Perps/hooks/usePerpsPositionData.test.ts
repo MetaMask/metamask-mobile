@@ -851,7 +851,7 @@ describe('usePerpsPositionData', () => {
       expect(result.current.candleData?.candles[2]).toEqual(
         expect.objectContaining({
           time: Math.floor(newCandleTime / (60 * 60 * 1000)) * (60 * 60 * 1000),
-          open: '3100',
+          open: '3000', // Open price is the close of the previous candle
           close: '3100',
         }),
       );
