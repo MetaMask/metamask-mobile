@@ -30,7 +30,9 @@ describe('usePerpsNavigation', () => {
       navigate: mockNavigate,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
-    } as Partial<ReturnType<typeof useNavigation>> as ReturnType<typeof useNavigation>);
+    } as Partial<ReturnType<typeof useNavigation>> as ReturnType<
+      typeof useNavigation
+    >);
     mockUseSelector.mockReturnValue(false); // isRewardsEnabled = false
   });
 
