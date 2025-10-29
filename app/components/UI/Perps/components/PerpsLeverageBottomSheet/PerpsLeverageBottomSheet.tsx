@@ -98,7 +98,7 @@ interface PerpsLeverageBottomSheetProps {
 const LeverageSlider: React.FC<{
   value: number;
   onValueChange: (value: number) => void;
-  onDragStart?: () => void;
+  onDragStart: () => void;
   onDragEnd: (value: number) => void;
   minValue: number;
   maxValue: number;
@@ -215,9 +215,7 @@ const LeverageSlider: React.FC<{
     .onBegin(() => {
       isPressed.value = true;
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
-      if (onDragStart) {
-        runOnJS(onDragStart)();
-      }
+      runOnJS(onDragStart)();
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
