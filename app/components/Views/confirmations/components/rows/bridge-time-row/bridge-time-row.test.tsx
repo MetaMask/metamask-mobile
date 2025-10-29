@@ -65,7 +65,7 @@ describe('BridgeTimeRow', () => {
                 srcChainId: 1,
                 destChainId: 2,
               },
-            } as QuoteResponse),
+            }) as QuoteResponse,
         ),
       });
 

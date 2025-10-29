@@ -155,19 +155,18 @@ jest.mock(
   '../../hooks/useMetrics/withMetricsAwareness',
   () =>
     <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
-    (props: P) =>
-      (
-        <Component
-          {...props}
-          metrics={{
-            isEnabled: mockMetricsIsEnabled,
-            trackEvent: mockTrackEvent,
-            enable: mockEnable,
-            enableSocialLogin: mockEnableSocialLogin,
-            createEventBuilder: mockCreateEventBuilder,
-          }}
-        />
-      ),
+    (props: P) => (
+      <Component
+        {...props}
+        metrics={{
+          isEnabled: mockMetricsIsEnabled,
+          trackEvent: mockTrackEvent,
+          enable: mockEnable,
+          enableSocialLogin: mockEnableSocialLogin,
+          createEventBuilder: mockCreateEventBuilder,
+        }}
+      />
+    ),
 );
 
 const mockSeedlessOnboardingEnabled = jest.fn();

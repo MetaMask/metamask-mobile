@@ -42,9 +42,8 @@ describe.skip(RegressionConfirmations('Failing contracts'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const failingAddress = await contractRegistry?.getContractAddress(
-          FAILING_CONTRACT,
-        );
+        const failingAddress =
+          await contractRegistry?.getContractAddress(FAILING_CONTRACT);
         await loginToApp();
 
         // Navigate to the browser screen
