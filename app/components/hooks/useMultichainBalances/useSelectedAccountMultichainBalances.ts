@@ -111,7 +111,7 @@ const useSelectedAccountMultichainBalances =
           shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
             chainId as SupportedCaipChainId,
           ),
-          isPortfolioVieEnabled: true,
+          isPortfolioViewEnabled: true,
           aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
           isLoadingAccount:
             accountBalanceData.totalNativeTokenBalance === undefined,
