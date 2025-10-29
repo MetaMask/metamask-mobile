@@ -1865,7 +1865,6 @@
     "token_is_needed_to_continue": "Kinakailangan ng {{tokenSymbol}} para makapagpatuloy",
     "fund_your_wallet": "Fund your wallet",
     "get_ready_for_web3": "Get your wallet ready to use web3",
-    "fund_your_wallet_to_get_started": "Pondohan ang wallet mo para makapagsimula sa web3",
     "add_funds": "Magdagdag ng pondo",
     "next": "Susunod",
     "buy_asset": "Bumili ng {{asset}}",
