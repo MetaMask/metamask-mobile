@@ -3,11 +3,16 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictToasts } from './usePredictToasts';
+import { usePredictBalance } from './usePredictBalance';
 
 export const usePredictDepositToasts = () => {
+  const { loadBalance } = usePredictBalance();
   const { deposit } = usePredictDeposit();
 
   usePredictToasts({
+    onConfirmed: () => {
+      loadBalance({ isRefresh: true });
+    },
     transactionType: TransactionType.predictDeposit,
     pendingToastConfig: {
       title: strings('predict.deposit.adding_funds'),

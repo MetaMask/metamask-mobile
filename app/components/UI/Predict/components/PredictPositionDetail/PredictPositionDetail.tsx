@@ -23,6 +23,7 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -132,6 +133,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       {marketStatus === PredictMarketStatus.OPEN && (
         <Box>
           <Button
+            testID={
+              PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON
+            }
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
