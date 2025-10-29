@@ -60,11 +60,11 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
+          FINGERPRINT="60951c57f7d44284529cf40308b84becbf3c9877"
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
