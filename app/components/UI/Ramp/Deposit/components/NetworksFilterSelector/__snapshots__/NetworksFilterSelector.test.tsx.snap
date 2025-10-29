@@ -8,6 +8,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -81,6 +82,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -248,6 +250,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -415,6 +418,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -574,6 +578,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -615,6 +620,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -688,6 +694,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -839,6 +846,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -990,6 +998,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -1149,6 +1158,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1190,6 +1200,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1263,6 +1274,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -1430,6 +1442,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -1597,6 +1610,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
         <TouchableOpacity
           disabled={false}
           onPress={[Function]}
+          shouldEnableAndroidPressIn={true}
           style={
             {
               "backgroundColor": "#ffffff",
@@ -1772,6 +1786,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
