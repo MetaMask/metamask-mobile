@@ -173,6 +173,11 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
           },
         },
       },
+      MultichainAssetsController: {
+        accountsAssets: {},
+        assetsMetadata: {},
+        allIgnoredAssets: {},
+      },
       TokensController: {
         allTokens: {
           '0x1': {
@@ -228,6 +233,11 @@ describe('assets balance and balance change selectors (mobile)', () => {
             TokenRatesController: { marketData: {} },
             MultichainAssetsRatesController: { conversionRates: {} },
             MultichainBalancesController: { balances: {} },
+            MultichainAssetsController: {
+              accountsAssets: {},
+              assetsMetadata: {},
+              allIgnoredAssets: {},
+            },
             TokensController: {
               allTokens: {},
               allIgnoredTokens: {},
