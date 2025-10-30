@@ -473,12 +473,10 @@ const MultichainPermissionsSummary = ({
                   </View>
                   <View style={styles.avatarGroup}>
                     <AvatarGroup
-                      avatarPropsList={networkAvatars
-                        .filter((avatar) => avatar.imageSource)
-                        .map((avatar) => ({
-                          ...avatar,
-                          variant: AvatarVariant.Network,
-                        }))}
+                      avatarPropsList={networkAvatars.map((avatar) => ({
+                        ...avatar,
+                        variant: AvatarVariant.Network,
+                      }))}
                     />
                   </View>
                 </>

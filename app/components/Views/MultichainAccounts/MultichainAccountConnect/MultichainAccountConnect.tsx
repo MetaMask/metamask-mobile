@@ -330,7 +330,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           imageSource: getNetworkImageSource({ chainId: selectedChainId }),
           variant: AvatarVariant.Network,
           caipChainId: selectedChainId,
-        })),
+        }))
+        .filter((avatar) => avatar.imageSource),
     [networkConfigurations, selectedChainIds],
   );
 

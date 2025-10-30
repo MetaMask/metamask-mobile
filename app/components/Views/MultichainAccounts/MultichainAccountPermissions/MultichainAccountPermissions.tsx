@@ -128,13 +128,15 @@ export const MultichainAccountPermissions = (
 
   const networkAvatars: NetworkAvatarProps[] = useMemo(
     () =>
-      selectedChainIds.map((selectedChainId) => ({
-        size: AvatarSize.Xs,
-        name: networkConfigurations[selectedChainId]?.name || '',
-        imageSource: getNetworkImageSource({ chainId: selectedChainId }),
-        variant: AvatarVariant.Network,
-        caipChainId: selectedChainId,
-      })),
+      selectedChainIds
+        .map((selectedChainId) => ({
+          size: AvatarSize.Xs,
+          name: networkConfigurations[selectedChainId]?.name || '',
+          imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+          variant: AvatarVariant.Network,
+          caipChainId: selectedChainId,
+        }))
+        .filter((avatar) => avatar.imageSource),
     [networkConfigurations, selectedChainIds],
   );
 
