@@ -193,6 +193,16 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockBalanceResult,
 }));
 
+// Mock usePredictActionGuard hook
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+    isEligible: true,
+    hasNoBalance: false,
+  }),
+}));
+
 // Mock usePredictClaimablePositions hook
 const mockLoadClaimablePositions = jest.fn();
 const mockClaimablePositionsResult: {
@@ -316,20 +326,20 @@ function setupMarketsWonCardTest(
     claimablePositionsOverrides.positions !== undefined
       ? (claimablePositionsOverrides.positions as unknown as PredictPosition[])
       : props.totalClaimableAmount
-      ? ([
-          {
-            id: 'position-1',
-            status: PredictPositionStatus.WON,
-            cashPnl: props.totalClaimableAmount,
-            marketId: 'market-1',
-            tokenId: 'token-1',
-            outcome: 'Yes',
-            shares: '100',
-            avgPrice: 0.5,
-            currentValue: props.totalClaimableAmount,
-          },
-        ] as unknown as PredictPosition[])
-      : [];
+        ? ([
+            {
+              id: 'position-1',
+              status: PredictPositionStatus.WON,
+              cashPnl: props.totalClaimableAmount,
+              marketId: 'market-1',
+              tokenId: 'token-1',
+              outcome: 'Yes',
+              shares: '100',
+              avgPrice: 0.5,
+              currentValue: props.totalClaimableAmount,
+            },
+          ] as unknown as PredictPosition[])
+        : [];
 
   // Create Redux state
   const state = {
@@ -363,6 +373,10 @@ describe('MarketsWonCard', () => {
     mockClaimResult.loading = false;
     mockClaimResult.completed = false;
     mockClaimResult.error = false;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Component Rendering', () => {

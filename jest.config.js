@@ -52,6 +52,12 @@ const config = {
     '<rootDir>/app/lib/ppom/ppom.html.js',
     '<rootDir>/app/lib/ppom/blockaid-version.js',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
+    '<rootDir>/app/features/SampleFeature/e2e/',
+  ],
+  testPathIgnorePatterns: [
+    '.*/e2e/specs/.*\\.spec\\.(ts|js)$',
+    '.*/e2e/pages/',
+    '.*/e2e/selectors/',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',

@@ -1,8 +1,16 @@
 import { renderHook } from '@testing-library/react-native';
+import React from 'react';
+import { captureException } from '@sentry/react-native';
 import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import { PredictDepositStatus } from '../types';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -28,10 +36,26 @@ jest.mock('./usePredictEligibility', () => ({
   usePredictEligibility: () => mockEligibilityResult,
 }));
 
+// Mock theme
+jest.mock('../../../../util/theme', () => ({
+  useAppThemeFromContext: jest.fn(() => ({
+    colors: {
+      error: {
+        default: '#ca3542',
+      },
+      accent04: {
+        normal: '#89b0ff',
+      },
+    },
+  })),
+}));
+
 // Mock useNavigation
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockNavigationResult = {
   navigate: mockNavigate,
+  goBack: mockGoBack,
 };
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -39,8 +63,17 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock react-redux
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockState: any = {
+interface MockReduxState {
+  engine: {
+    backgroundState: {
+      PredictController: {
+        depositTransaction: unknown;
+      };
+    };
+  };
+}
+
+let mockState: MockReduxState = {
   engine: {
     backgroundState: {
       PredictController: {
@@ -54,12 +87,30 @@ jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
     ...actual,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useSelector: jest.fn((selector: any) => selector(mockState)),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    connect: () => (component: any) => component,
+    useSelector: jest.fn((selector: (state: MockReduxState) => unknown) =>
+      selector(mockState),
+    ),
+    connect: () => (component: React.ComponentType) => component,
   };
 });
+
+// Mock toast
+const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
+const mockToastRef: React.RefObject<{
+  showToast: jest.Mock;
+  closeToast: jest.Mock;
+}> = {
+  current: {
+    showToast: mockShowToast,
+    closeToast: mockCloseToast,
+  },
+};
+
+// Typed mock for captureException
+const mockCaptureException = captureException as jest.MockedFunction<
+  typeof captureException
+>;
 
 // Helper to create mock deposit transaction
 function createMockDepositTransaction(overrides = {}) {
@@ -73,7 +124,14 @@ function createMockDepositTransaction(overrides = {}) {
 }
 
 // Helper to setup test
-function setupUsePredictDepositTest(stateOverrides = {}, hookOptions = {}) {
+function setupUsePredictDepositTest(
+  stateOverrides = {},
+  hookOptions = {},
+  customToastRef?:
+    | React.RefObject<{ showToast: jest.Mock; closeToast: jest.Mock }>
+    | null
+    | undefined,
+) {
   jest.clearAllMocks();
   mockState = {
     engine: {
@@ -85,7 +143,25 @@ function setupUsePredictDepositTest(stateOverrides = {}, hookOptions = {}) {
       },
     },
   };
-  return renderHook(() => usePredictDeposit(hookOptions));
+
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(
+      ToastContext.Provider,
+      {
+        value: {
+          toastRef:
+            customToastRef !== undefined
+              ? (customToastRef as React.RefObject<{
+                  showToast: jest.Mock;
+                  closeToast: jest.Mock;
+                }>)
+              : mockToastRef,
+        },
+      },
+      children,
+    );
+
+  return renderHook(() => usePredictDeposit(hookOptions), { wrapper });
 }
 
 describe('usePredictDeposit', () => {
@@ -93,22 +169,33 @@ describe('usePredictDeposit', () => {
     jest.clearAllMocks();
     mockNavigateToConfirmation.mockClear();
     mockNavigate.mockClear();
+    mockGoBack.mockClear();
+    mockShowToast.mockClear();
+    mockCaptureException.mockClear();
     mockEligibilityResult.isEligible = true;
     (
       Engine.context.PredictController.depositWithConfirmation as jest.Mock
     ).mockClear();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('initial state', () => {
-    it('returns correct initial state when no deposit transaction exists', () => {
+    it('returns undefined status when no deposit transaction exists', () => {
       const { result } = setupUsePredictDepositTest();
+
+      // No action needed - testing initial state
 
       expect(result.current.status).toBeUndefined();
       expect(typeof result.current.deposit).toBe('function');
     });
 
-    it('returns deposit function that is callable', () => {
+    it('returns callable deposit function', () => {
       const { result } = setupUsePredictDepositTest();
+
+      // No action needed - testing initial state
 
       expect(result.current.deposit).toBeDefined();
       expect(typeof result.current.deposit).toBe('function');
@@ -146,7 +233,7 @@ describe('usePredictDeposit', () => {
       expect(result.current.status).toBe(PredictDepositStatus.ERROR);
     });
 
-    it('handles null transaction correctly', () => {
+    it('returns undefined status when transaction is null', () => {
       const { result } = setupUsePredictDepositTest({
         depositTransaction: null,
       });
@@ -166,36 +253,20 @@ describe('usePredictDeposit', () => {
   });
 
   describe('deposit function', () => {
-    it('navigates to unavailable modal when user is not eligible', async () => {
-      mockEligibilityResult.isEligible = false;
-
-      const { result } = setupUsePredictDepositTest();
-
-      await result.current.deposit();
-
-      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-        screen: 'PredictUnavailable',
-      });
-      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
-      expect(
-        Engine.context.PredictController.depositWithConfirmation,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('calls navigateToConfirmation with correct params when eligible', async () => {
+    it('calls navigateToConfirmation with loader and stack parameters', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
         success: true,
         response: { batchId: 'batch-123' },
       });
-
       const { result } = setupUsePredictDepositTest();
 
       await result.current.deposit();
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
+        stack: 'Predict',
       });
     });
 
@@ -246,19 +317,17 @@ describe('usePredictDeposit', () => {
       });
     });
 
-    it('handles depositWithConfirmation error gracefully', async () => {
+    it('navigates back and logs error when depositWithConfirmation fails', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockRejectedValue(new Error('Deposit failed'));
-
       const { result } = setupUsePredictDepositTest();
 
       await result.current.deposit();
-
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to initialize deposit:',
         expect.any(Error),
@@ -267,16 +336,16 @@ describe('usePredictDeposit', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('handles navigation error gracefully', async () => {
+    it('navigates back and logs error when navigation fails', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockNavigateToConfirmation.mockImplementationOnce(() => {
         throw new Error('Navigation failed');
       });
-
       const { result } = setupUsePredictDepositTest();
 
       await result.current.deposit();
 
+      expect(mockGoBack).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to proceed with deposit:',
         expect.any(Error),
@@ -432,6 +501,311 @@ describe('usePredictDeposit', () => {
       ).toHaveBeenCalledWith({
         providerId: 'test-provider',
       });
+    });
+  });
+
+  describe('error handling with Sentry', () => {
+    it('captures exception to Sentry when depositWithConfirmation fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const mockError = new Error('Deposit failed');
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          component: 'usePredictDeposit',
+          action: 'deposit_initialization',
+          operation: 'financial_operations',
+        },
+        extra: {
+          depositContext: {
+            providerId: 'polymarket',
+          },
+        },
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('converts non-Error exceptions to Error for Sentry in depositWithConfirmation', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockRejectedValue('String error');
+
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        new Error('String error'),
+        {
+          tags: {
+            component: 'usePredictDeposit',
+            action: 'deposit_initialization',
+            operation: 'financial_operations',
+          },
+          extra: {
+            depositContext: {
+              providerId: 'polymarket',
+            },
+          },
+        },
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('captures exception to Sentry when navigation fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const mockError = new Error('Navigation failed');
+      mockNavigateToConfirmation.mockImplementationOnce(() => {
+        throw mockError;
+      });
+
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          component: 'usePredictDeposit',
+          action: 'deposit_navigation',
+          operation: 'financial_operations',
+        },
+        extra: {
+          depositContext: {
+            providerId: 'polymarket',
+          },
+        },
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('converts non-Error exceptions to Error for Sentry in navigation error', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockNavigateToConfirmation.mockImplementationOnce(() => {
+        throw { code: 'NAV_ERROR' };
+      });
+
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        new Error('[object Object]'),
+        {
+          tags: {
+            component: 'usePredictDeposit',
+            action: 'deposit_navigation',
+            operation: 'financial_operations',
+          },
+          extra: {
+            depositContext: {
+              providerId: 'polymarket',
+            },
+          },
+        },
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('toast notifications', () => {
+    it('shows error toast when depositWithConfirmation fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockRejectedValue(new Error('Deposit failed'));
+
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Error',
+          iconColor: '#ca3542',
+          backgroundColor: '#89b0ff',
+          hasNoTimeout: false,
+          linkButtonOptions: expect.objectContaining({
+            onPress: expect.any(Function),
+          }),
+        }),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('shows error toast when navigation fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockNavigateToConfirmation.mockImplementationOnce(() => {
+        throw new Error('Navigation failed');
+      });
+
+      const { result } = setupUsePredictDepositTest();
+
+      await result.current.deposit();
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Error',
+          iconColor: '#ca3542',
+          backgroundColor: '#89b0ff',
+          hasNoTimeout: false,
+          linkButtonOptions: expect.objectContaining({
+            onPress: expect.any(Function),
+          }),
+        }),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('does not show toast when toastRef is null and depositWithConfirmation fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockRejectedValue(new Error('Deposit failed'));
+      const { result } = setupUsePredictDepositTest({}, {}, null);
+
+      await result.current.deposit();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('does not show toast when toastRef is null and navigation fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockNavigateToConfirmation.mockImplementationOnce(() => {
+        throw new Error('Navigation failed');
+      });
+      const { result } = setupUsePredictDepositTest({}, {}, null);
+
+      await result.current.deposit();
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('retry button calls deposit again after depositWithConfirmation error', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      (Engine.context.PredictController.depositWithConfirmation as jest.Mock)
+        .mockRejectedValueOnce(new Error('First error'))
+        .mockResolvedValueOnce({ success: true });
+
+      const { result } = setupUsePredictDepositTest();
+
+      // First deposit attempt fails
+      await result.current.deposit();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Get retry function from toast call
+      const toastCall = mockShowToast.mock.calls[0][0];
+      const retryFunction = toastCall.linkButtonOptions.onPress;
+
+      // Clear mocks
+      mockShowToast.mockClear();
+      mockNavigateToConfirmation.mockClear();
+
+      // Call retry
+      await retryFunction();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Second attempt should succeed
+      expect(mockNavigateToConfirmation).toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('retry button calls deposit again after navigation error', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockNavigateToConfirmation
+        .mockImplementationOnce(() => {
+          throw new Error('First error');
+        })
+        .mockImplementationOnce(() => undefined);
+
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({ success: true });
+
+      const { result } = setupUsePredictDepositTest();
+
+      // First deposit attempt fails
+      await result.current.deposit();
+
+      // Get retry function from toast call
+      const toastCall = mockShowToast.mock.calls[0][0];
+      const retryFunction = toastCall.linkButtonOptions.onPress;
+
+      // Clear mocks
+      mockShowToast.mockClear();
+      mockNavigateToConfirmation.mockClear();
+
+      // Call retry
+      await retryFunction();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Second attempt should succeed
+      expect(mockNavigateToConfirmation).toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('selector', () => {
+    it('selects depositTransaction from Redux state', () => {
+      const mockDepositTransaction = createMockDepositTransaction({
+        status: PredictDepositStatus.CONFIRMED,
+        batchId: 'custom-batch',
+      });
+      const { result } = setupUsePredictDepositTest({
+        depositTransaction: mockDepositTransaction,
+      });
+
+      expect(result.current.status).toBe(PredictDepositStatus.CONFIRMED);
+    });
+
+    it('returns undefined status when depositTransaction has no status', () => {
+      const { result } = setupUsePredictDepositTest({
+        depositTransaction: { batchId: 'test' },
+      });
+
+      expect(result.current.status).toBeUndefined();
     });
   });
 });

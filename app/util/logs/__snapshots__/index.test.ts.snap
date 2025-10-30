@@ -447,6 +447,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "0x61": true,
           "0x64": true,
           "0x89": true,
+          "0x8f": true,
           "0xa": true,
           "0xa869": true,
           "0xa86a": true,
@@ -505,6 +506,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+      },
+      "SamplePetnamesController": {
+        "namesByChainIdAndAddress": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": true,
@@ -1129,6 +1133,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "0x61": true,
           "0x64": true,
           "0x89": true,
+          "0x8f": true,
           "0xa": true,
           "0xa869": true,
           "0xa86a": true,
@@ -1187,6 +1192,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+      },
+      "SamplePetnamesController": {
+        "namesByChainIdAndAddress": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": false,

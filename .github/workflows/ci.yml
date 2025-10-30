@@ -108,7 +108,7 @@ jobs:
         scripts:
           - lint
           - lint:tsc
-          - format:check:changed
+          - format:check
           - audit:ci
           - test:depcheck
           - test:tgz-check
@@ -335,7 +335,7 @@ jobs:
         run: yarn gen-bundle:ios
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 45
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 50
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4

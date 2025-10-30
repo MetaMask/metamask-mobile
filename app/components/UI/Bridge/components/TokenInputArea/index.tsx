@@ -145,13 +145,19 @@ const formatWithLocaleSeparators = (value: string): string => {
 export const getDisplayAmount = (
   amount?: string,
   tokenType?: TokenInputAreaType,
+  isMaxAmount?: boolean,
 ) => {
   if (amount === undefined) return amount;
 
-  const displayAmount =
-    tokenType === TokenInputAreaType.Source
-      ? amount
-      : parseAmount(amount, MAX_DECIMALS);
+  // Only truncate for display when:
+  // 1. Amount came from Max button (isMaxAmount = true), OR
+  // 2. Destination token (always truncate)
+  const shouldTruncate =
+    tokenType === TokenInputAreaType.Destination || isMaxAmount;
+
+  const displayAmount = shouldTruncate
+    ? parseAmount(amount, MAX_DECIMALS)
+    : amount;
 
   // Format with locale-appropriate separators
   if (displayAmount && displayAmount !== '0') {
@@ -167,6 +173,7 @@ export interface TokenInputAreaRef {
 
 interface TokenInputAreaProps {
   amount?: string;
+  isMaxAmount?: boolean;
   token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
@@ -191,6 +198,7 @@ export const TokenInputArea = forwardRef<
   (
     {
       amount,
+      isMaxAmount = false,
       token,
       tokenBalance,
       networkImageSource,
@@ -306,7 +314,7 @@ export const TokenInputArea = forwardRef<
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = getDisplayAmount(amount, tokenType);
+    const displayedAmount = getDisplayAmount(amount, tokenType, isMaxAmount);
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 

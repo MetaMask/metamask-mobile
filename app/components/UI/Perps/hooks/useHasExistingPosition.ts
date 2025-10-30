@@ -1,6 +1,6 @@
-import { useMemo, useCallback } from 'react';
-import { usePerpsLivePositions } from './stream';
+import { useCallback, useMemo } from 'react';
 import type { Position } from '../controllers/types';
+import { usePerpsLivePositions } from './stream';
 
 interface UseHasExistingPositionParams {
   /** Asset symbol to check for existing position */
@@ -50,12 +50,9 @@ export function useHasExistingPosition(
 
   // No-op refresh function for compatibility
   // Positions update automatically via WebSocket
-  const refreshPosition = useCallback(
-    async () =>
-      // WebSocket positions update automatically, no manual refresh needed
-      Promise.resolve(),
-    [],
-  );
+  // WebSocket positions update automatically, no manual refresh needed
+  const refreshPosition = useCallback(async () => undefined, []);
+  // WebSocket positions update automatically, no manual refresh needed
 
   return {
     hasPosition,

@@ -1,25 +1,30 @@
-import { renderHook } from '@testing-library/react-hooks';
 import { NavigationProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { renderHook } from '@testing-library/react-hooks';
 import React from 'react';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import Routes from '../../../../constants/navigation/Routes';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { usePredictClaim } from './usePredictClaim';
-import { usePredictEligibility } from './usePredictEligibility';
-import { usePredictTrading } from './usePredictTrading';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { useSelector } from 'react-redux';
+import { captureException } from '@sentry/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
+import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
+import Routes from '../../../../constants/navigation/Routes';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { usePredictClaim } from './usePredictClaim';
+import { usePredictTrading } from './usePredictTrading';
 
 // Create mock functions
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockClaimWinnings = jest.fn();
 const mockShowToast = jest.fn();
 
 // Mock dependencies
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -52,65 +57,74 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUsePredictEligibility = usePredictEligibility as jest.MockedFunction<
-  typeof usePredictEligibility
->;
 const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
   typeof usePredictTrading
 >;
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
 >;
+const mockCaptureException = captureException as jest.MockedFunction<
+  typeof captureException
+>;
 
 const mockNavigation = {
   navigate: mockNavigate,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as unknown as NavigationProp<any>;
+  goBack: mockGoBack,
+} as unknown as NavigationProp<Record<string, object | undefined>>;
 
+const mockCloseToast = jest.fn();
 const mockToastRef = {
   current: {
     showToast: mockShowToast,
+    closeToast: mockCloseToast,
   },
 };
 
 describe('usePredictClaim', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGoBack.mockClear();
 
     // Default mock implementations
     jest.requireMock('@react-navigation/native').useNavigation = jest
       .fn()
       .mockReturnValue(mockNavigation);
 
-    mockUsePredictEligibility.mockReturnValue({
-      isEligible: true,
-      refreshEligibility: jest.fn(),
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUsePredictTrading.mockReturnValue({
       claim: mockClaimWinnings,
       getPositions: jest.fn(),
       placeOrder: jest.fn(),
       calculateBetAmounts: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+      getBalance: jest.fn(),
+      previewOrder: jest.fn(),
+      deposit: jest.fn(),
+      prepareWithdraw: jest.fn(),
+    } as ReturnType<typeof usePredictTrading>);
 
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as ReturnType<typeof useConfirmNavigation>);
 
     mockUseSelector.mockReturnValue({
       status: 'pending',
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   const wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       ToastContext.Provider,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { value: { toastRef: mockToastRef as any } },
+      {
+        value: {
+          toastRef: mockToastRef as React.RefObject<{
+            showToast: jest.Mock;
+            closeToast: jest.Mock;
+          }>,
+        },
+      },
       children,
     );
 
@@ -123,60 +137,11 @@ describe('usePredictClaim', () => {
       expect(result.current.claim).toBeInstanceOf(Function);
       expect(result.current.status).toBe('pending');
     });
-
-    it('uses default providerId when not specified', () => {
-      // Arrange & Act
-      renderHook(() => usePredictClaim(), { wrapper });
-
-      // Assert
-      expect(mockUsePredictEligibility).toHaveBeenCalledWith({
-        providerId: POLYMARKET_PROVIDER_ID,
-      });
-    });
-
-    it('uses custom providerId when specified', () => {
-      // Arrange
-      const customProviderId = 'custom-provider';
-
-      // Act
-      renderHook(() => usePredictClaim({ providerId: customProviderId }), {
-        wrapper,
-      });
-
-      // Assert
-      expect(mockUsePredictEligibility).toHaveBeenCalledWith({
-        providerId: customProviderId,
-      });
-    });
   });
 
   describe('claim function', () => {
-    it('navigates to unavailable modal when user is not eligible', async () => {
+    it('navigates to confirmation and claims winnings', async () => {
       // Arrange
-      mockUsePredictEligibility.mockReturnValue({
-        isEligible: false,
-        refreshEligibility: jest.fn(),
-      });
-
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Act
-      await result.current.claim();
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
-      expect(mockClaimWinnings).not.toHaveBeenCalled();
-    });
-
-    it('navigates to confirmation and claims winnings when user is eligible', async () => {
-      // Arrange
-      mockUsePredictEligibility.mockReturnValue({
-        isEligible: true,
-        refreshEligibility: jest.fn(),
-      });
       mockClaimWinnings.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
@@ -198,10 +163,6 @@ describe('usePredictClaim', () => {
     it('uses custom providerId when claiming', async () => {
       // Arrange
       const customProviderId = 'custom-provider';
-      mockUsePredictEligibility.mockReturnValue({
-        isEligible: true,
-        refreshEligibility: jest.fn(),
-      });
       mockClaimWinnings.mockResolvedValue(undefined);
 
       const { result } = renderHook(
@@ -223,14 +184,7 @@ describe('usePredictClaim', () => {
     it('displays error toast when claim fails', async () => {
       // Arrange
       const mockError = new Error('Claim failed');
-      mockUsePredictEligibility.mockReturnValue({
-        isEligible: true,
-        refreshEligibility: jest.fn(),
-      });
       mockClaimWinnings.mockRejectedValue(mockError);
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => undefined);
 
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
@@ -238,10 +192,19 @@ describe('usePredictClaim', () => {
       await result.current.claim();
 
       // Assert
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to proceed with claim:',
-        mockError,
-      );
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          component: 'usePredictClaim',
+          action: 'claim_winnings',
+          operation: 'position_management',
+        },
+        extra: {
+          claimContext: {
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+      });
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -261,28 +224,34 @@ describe('usePredictClaim', () => {
           onPress: expect.any(Function),
         },
       });
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('retries claim when try again button is pressed on error toast', async () => {
       // Arrange
       const mockError = new Error('Claim failed');
-      mockUsePredictEligibility.mockReturnValue({
-        isEligible: true,
-        refreshEligibility: jest.fn(),
-      });
       mockClaimWinnings
         .mockRejectedValueOnce(mockError)
         .mockResolvedValueOnce(undefined);
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => undefined);
 
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act - first claim attempt fails
       await result.current.claim();
+
+      // Assert - first attempt should call goBack and captureException
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          component: 'usePredictClaim',
+          action: 'claim_winnings',
+          operation: 'position_management',
+        },
+        extra: {
+          claimContext: {
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+      });
 
       // Get the onPress function from the toast call
       const toastCall = mockShowToast.mock.calls[0][0];
@@ -292,6 +261,8 @@ describe('usePredictClaim', () => {
       mockShowToast.mockClear();
       mockClaimWinnings.mockClear();
       mockNavigateToConfirmation.mockClear();
+      mockGoBack.mockClear();
+      mockCaptureException.mockClear();
 
       // Act - retry claim
       await retryFunction();
@@ -305,21 +276,14 @@ describe('usePredictClaim', () => {
         providerId: POLYMARKET_PROVIDER_ID,
       });
       expect(mockShowToast).not.toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockCaptureException).not.toHaveBeenCalled();
     });
 
-    it('logs error to console when claim fails', async () => {
+    it('captures exception to Sentry when claim fails', async () => {
       // Arrange
       const mockError = new Error('Network error');
-      mockUsePredictEligibility.mockReturnValue({
-        isEligible: true,
-        refreshEligibility: jest.fn(),
-      });
       mockClaimWinnings.mockRejectedValue(mockError);
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => undefined);
 
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
@@ -327,12 +291,78 @@ describe('usePredictClaim', () => {
       await result.current.claim();
 
       // Assert
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to proceed with claim:',
-        mockError,
-      );
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          component: 'usePredictClaim',
+          action: 'claim_winnings',
+          operation: 'position_management',
+        },
+        extra: {
+          claimContext: {
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+      });
+    });
 
-      consoleErrorSpy.mockRestore();
+    it('converts non-Error exceptions to Error when capturing to Sentry', async () => {
+      // Arrange
+      const mockErrorString = 'String error message';
+      mockClaimWinnings.mockRejectedValue(mockErrorString);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await result.current.claim();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        new Error('String error message'),
+        {
+          tags: {
+            component: 'usePredictClaim',
+            action: 'claim_winnings',
+            operation: 'position_management',
+          },
+          extra: {
+            claimContext: {
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        },
+      );
+      expect(mockShowToast).toHaveBeenCalled();
+    });
+
+    it('handles object errors by converting to Error for Sentry', async () => {
+      // Arrange
+      const mockErrorObject = { code: 'NETWORK_ERROR', message: 'Failed' };
+      mockClaimWinnings.mockRejectedValue(mockErrorObject);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await result.current.claim();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        new Error('[object Object]'),
+        {
+          tags: {
+            component: 'usePredictClaim',
+            action: 'claim_winnings',
+            operation: 'position_management',
+          },
+          extra: {
+            claimContext: {
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        },
+      );
     });
   });
 
@@ -360,26 +390,62 @@ describe('usePredictClaim', () => {
       // Assert
       expect(result.current.status).toBeUndefined();
     });
+
+    it('returns different status values from claimTransaction', () => {
+      // Arrange
+      mockUseSelector.mockReturnValue({
+        status: 'processing',
+      });
+
+      // Act
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Assert
+      expect(result.current.status).toBe('processing');
+    });
+
+    it('selects claimTransaction from Redux state', () => {
+      // Arrange
+      const mockClaimTransaction = {
+        status: 'failed',
+        error: 'Transaction failed',
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          engine: {
+            backgroundState: {
+              PredictController: {
+                claimTransaction: mockClaimTransaction,
+              },
+            },
+          },
+        };
+        return selector(mockState);
+      });
+
+      // Act
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Assert
+      expect(result.current.status).toBe('failed');
+    });
   });
 
   describe('toast context handling', () => {
-    it('handles missing toastRef gracefully on error', async () => {
+    it('does not show toast when toastRef is null and claim fails', async () => {
       // Arrange
       const mockError = new Error('Claim failed');
-      mockUsePredictEligibility.mockReturnValue({
-        isEligible: true,
-        refreshEligibility: jest.fn(),
-      });
       mockClaimWinnings.mockRejectedValue(mockError);
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => undefined);
 
       const noToastWrapper = ({ children }: { children: React.ReactNode }) =>
         React.createElement(
           ToastContext.Provider,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          { value: { toastRef: null as any } },
+          {
+            value: {
+              toastRef: undefined,
+            },
+          },
           children,
         );
 
@@ -390,14 +456,21 @@ describe('usePredictClaim', () => {
       // Act
       await result.current.claim();
 
-      // Assert - should not throw error even without toastRef
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to proceed with claim:',
-        mockError,
-      );
+      // Assert - captures exception and goes back even without toastRef
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          component: 'usePredictClaim',
+          action: 'claim_winnings',
+          operation: 'position_management',
+        },
+        extra: {
+          claimContext: {
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+      });
       expect(mockShowToast).not.toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
     });
   });
 });

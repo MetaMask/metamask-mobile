@@ -1,94 +1,162 @@
 import { selectTrxStakingEnabled } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
+import { getVersion } from 'react-native-device-info';
+// eslint-disable-next-line import/no-namespace
+import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
+
 const originalEnv = process.env;
-beforeEach(() => {
-  jest.resetModules();
-  process.env = { ...originalEnv };
-});
 
-afterEach(() => {
-  process.env = originalEnv;
-  jest.clearAllMocks();
-});
+describe('TRX Staking Feature Flag Selector (version-gated)', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
-const mockedStateWithTrxStakingEnabled = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          trxStakingEnabled: true,
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+    (getVersion as jest.MockedFunction<typeof getVersion>).mockReturnValue(
+      '1.0.0',
+    );
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when trxStakingEnabled is enabled and minimum version requirement passes', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              trxStakingEnabled: { enabled: true, minimumVersion: '1.0.0' },
+            },
+            cacheTimestamp: 0,
+          },
         },
-        cacheTimestamp: 0,
       },
-    },
-  },
-};
+    };
 
-const mockedStateWithTrxStakingDisabled = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          trxStakingEnabled: false,
-        },
-        cacheTimestamp: 0,
-      },
-    },
-  },
-};
-
-const mockedStateWithoutTrxStakingFlag = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          someOtherFlag: true,
-        },
-        cacheTimestamp: 0,
-      },
-    },
-  },
-};
-
-describe('TRX Staking Feature Flag Selector', () => {
-  it('returns true when bitcoinTestnetsEnabled feature flag is enabled', () => {
-    const result = selectTrxStakingEnabled(mockedStateWithTrxStakingEnabled);
+    const result = selectTrxStakingEnabled(state);
 
     expect(result).toBe(true);
   });
 
-  it('returns false when trxStakingEnabled feature flag is explicitly disabled', () => {
-    const result = selectTrxStakingEnabled(mockedStateWithTrxStakingDisabled);
+  it('returns false when trxStakingEnabled is enabled but minimum version requirement fails', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              trxStakingEnabled: { enabled: true, minimumVersion: '99.0.0' },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    const result = selectTrxStakingEnabled(state);
 
     expect(result).toBe(false);
   });
 
-  it('returns undefined when trxStakingEnabled feature flag property is missing', () => {
-    const result = selectTrxStakingEnabled(mockedStateWithoutTrxStakingFlag);
+  it('returns false when trxStakingEnabled is disabled regardless of version', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              trxStakingEnabled: { enabled: false, minimumVersion: '0.0.0' },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
 
-    expect(result).toBeUndefined();
+    const result = selectTrxStakingEnabled(state);
+
+    expect(result).toBe(false);
+    expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
   });
 
-  it('returns undefined when feature flag state is empty', () => {
+  it('returns false when trxStakingEnabled flag is missing', () => {
+    const result = selectTrxStakingEnabled({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              someOtherFlag: true,
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when feature flag state is empty', () => {
     const result = selectTrxStakingEnabled(mockedEmptyFlagsState);
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(false);
   });
 
-  it('returns undefined when RemoteFeatureFlagController state is undefined', () => {
+  it('returns false when RemoteFeatureFlagController state is undefined', () => {
     const result = selectTrxStakingEnabled(mockedUndefinedFlagsState);
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(false);
   });
 
-  it('handles null values correctly', () => {
-    const stateWithNullFlag = {
+  it('returns false when trxStakingEnabled has wrong property types', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              trxStakingEnabled: {
+                enabled: 'true',
+                minimumVersion: 100,
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    const result = selectTrxStakingEnabled(state);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when trxStakingEnabled is null', () => {
+    const state = {
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
@@ -101,8 +169,8 @@ describe('TRX Staking Feature Flag Selector', () => {
       },
     };
 
-    const result = selectTrxStakingEnabled(stateWithNullFlag);
+    const result = selectTrxStakingEnabled(state);
 
-    expect(result).toBeNull();
+    expect(result).toBe(false);
   });
 });

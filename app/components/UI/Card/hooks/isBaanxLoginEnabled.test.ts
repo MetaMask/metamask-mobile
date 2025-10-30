@@ -1,33 +1,23 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useCardSDK } from '../sdk';
-import { CardSDK } from '../sdk/CardSDK';
+import { useSelector } from 'react-redux';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 
-jest.mock('../sdk', () => ({
-  useCardSDK: jest.fn(),
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
-const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-const createMockSDK = (isBaanxLoginEnabled: boolean): Partial<CardSDK> => ({
-  get isBaanxLoginEnabled() {
-    return isBaanxLoginEnabled;
-  },
-  get isCardEnabled() {
-    return true;
-  },
-  isCardHolder: jest.fn(),
-  getGeoLocation: jest.fn(),
-  getSupportedTokensAllowances: jest.fn(),
-  getPriorityToken: jest.fn(),
-});
-
-const mockCardSDKResponse = (sdk: Partial<CardSDK> | null) => {
-  mockUseCardSDK.mockReturnValue({
-    sdk: sdk as CardSDK | null,
-    isLoading: false,
-    logoutFromProvider: jest.fn(),
-  });
+const mockSelectors = ({
+  displayCardButtonFeatureFlag,
+  alwaysShowCardButton,
+}: {
+  displayCardButtonFeatureFlag: boolean | null | undefined;
+  alwaysShowCardButton: boolean | null | undefined;
+}) => {
+  mockUseSelector
+    .mockReturnValueOnce(displayCardButtonFeatureFlag)
+    .mockReturnValueOnce(alwaysShowCardButton);
 };
 
 describe('useIsBaanxLoginEnabled', () => {
@@ -35,52 +25,98 @@ describe('useIsBaanxLoginEnabled', () => {
     jest.clearAllMocks();
   });
 
-  it('returns false when SDK is null', () => {
-    // Given: SDK is not available
-    mockCardSDKResponse(null);
+  it('returns false when both flags are null', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: null,
+      alwaysShowCardButton: null,
+    });
 
-    // When: hook is rendered
     const { result } = renderHook(() => useIsBaanxLoginEnabled());
 
-    // Then: should return false
     expect(result.current).toBe(false);
   });
 
-  it('returns true when Baanx login is enabled', () => {
-    // Given: SDK with Baanx login enabled
-    mockCardSDKResponse(createMockSDK(true));
+  it('returns false when both flags are undefined', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: undefined,
+      alwaysShowCardButton: undefined,
+    });
 
-    // When: hook is rendered
     const { result } = renderHook(() => useIsBaanxLoginEnabled());
 
-    // Then: should return true
+    expect(result.current).toBe(false);
+  });
+
+  it('returns false when both flags are disabled', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: false,
+      alwaysShowCardButton: false,
+    });
+
+    const { result } = renderHook(() => useIsBaanxLoginEnabled());
+
+    expect(result.current).toBe(false);
+  });
+
+  it('returns true when feature flag is enabled and experimental switch is disabled', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: true,
+      alwaysShowCardButton: false,
+    });
+
+    const { result } = renderHook(() => useIsBaanxLoginEnabled());
+
     expect(result.current).toBe(true);
   });
 
-  it('returns false when Baanx login is disabled', () => {
-    // Given: SDK with Baanx login disabled
-    mockCardSDKResponse(createMockSDK(false));
+  it('returns true when experimental switch is enabled and feature flag is disabled', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: false,
+      alwaysShowCardButton: true,
+    });
 
-    // When: hook is rendered
     const { result } = renderHook(() => useIsBaanxLoginEnabled());
 
-    // Then: should return false
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
   });
 
-  it('updates when SDK value changes', () => {
-    // Given: SDK with Baanx login disabled
-    mockCardSDKResponse(createMockSDK(false));
+  it('returns true when both flags are enabled', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: true,
+      alwaysShowCardButton: true,
+    });
+
+    const { result } = renderHook(() => useIsBaanxLoginEnabled());
+
+    expect(result.current).toBe(true);
+  });
+
+  it('returns true when experimental switch is enabled regardless of feature flag state', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: false,
+      alwaysShowCardButton: true,
+    });
+
+    const { result } = renderHook(() => useIsBaanxLoginEnabled());
+
+    expect(result.current).toBe(true);
+  });
+
+  it('updates when flag values change', () => {
+    mockSelectors({
+      displayCardButtonFeatureFlag: false,
+      alwaysShowCardButton: false,
+    });
     const { result, rerender } = renderHook(() => useIsBaanxLoginEnabled());
 
-    // Then: should return false initially
     expect(result.current).toBe(false);
 
-    // When: SDK changes to enable Baanx login
-    mockCardSDKResponse(createMockSDK(true));
+    mockSelectors({
+      displayCardButtonFeatureFlag: false,
+      alwaysShowCardButton: true,
+    });
     rerender();
 
-    // Then: should return true
     expect(result.current).toBe(true);
   });
 });

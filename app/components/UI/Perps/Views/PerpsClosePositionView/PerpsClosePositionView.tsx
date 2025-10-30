@@ -599,8 +599,8 @@ const PerpsClosePositionView: React.FC = () => {
                 rewardsState.isLoading
                   ? RewardAnimationState.Loading
                   : rewardsState.hasError
-                  ? RewardAnimationState.ErrorState
-                  : RewardAnimationState.Idle
+                    ? RewardAnimationState.ErrorState
+                    : RewardAnimationState.Idle
               }
             />
           </View>
@@ -800,7 +800,6 @@ const PerpsClosePositionView: React.FC = () => {
               (orderType === 'limit' &&
                 (!limitPrice || parseFloat(limitPrice) <= 0)) ||
               (orderType === 'market' && closePercentage === 0) ||
-              receiveAmount <= 0 ||
               !validationResult.isValid
             }
             loading={isClosing}
