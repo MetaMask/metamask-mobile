@@ -93,7 +93,7 @@ const PredictSellPreview = () => {
       analyticsProperties,
       providerId: position.providerId,
       sharePrice: position?.price,
-      usdAmount: position?.amount,
+      amountUsd: position?.amount,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
