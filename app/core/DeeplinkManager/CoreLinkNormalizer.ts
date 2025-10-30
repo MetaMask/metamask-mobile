@@ -229,13 +229,12 @@ export class CoreLinkNormalizer {
   ): Partial<CoreLinkParams> {
     const params: Partial<CoreLinkParams> = {};
     searchParams.forEach((value, key) => {
+      // URLSearchParams values are always strings, so only check string falsy values
       switch (value) {
-        case null:
-        case undefined:
         case '':
         case 'null':
         case 'undefined':
-          searchParams.delete(key);
+          // Don't add to params object (effectively filtering it out)
           break;
         default:
           params[key] = value;
@@ -286,6 +285,8 @@ export class CoreLinkNormalizer {
   ): Partial<CoreLinkParams> {
     const params: Partial<CoreLinkParams> = {};
 
+    // note that ramp and perps actions are special cases because they have
+    // multiple actions associated with them
     if (isRampAction(action)) {
       params.rampPath = actionPath;
     } else if (isPerpsAction(action)) {
@@ -327,10 +328,6 @@ export class CoreLinkNormalizer {
   }
 
   private static isSupportedAction(action: string): boolean {
-    // Check against all action constants
-    // Import is done dynamically to avoid circular dependencies
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-    const { ACTIONS } = require('../../constants/deeplinks');
     const allActions = Object.values(ACTIONS) as string[];
     return allActions.includes(action);
   }
