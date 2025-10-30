@@ -189,6 +189,11 @@ export function selectMultichainAssetsMetadata(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
 }
 
+export function selectMultichainAllIgnoredAssets(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsController
+    .allIgnoredAssets;
+}
+
 function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .conversionRates;
