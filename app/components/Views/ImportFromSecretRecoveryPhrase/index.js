@@ -71,6 +71,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { checkForWordErrors } from '../../../util/srp/srpInputUtils';
 import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -153,7 +154,6 @@ const ImportFromSecretRecoveryPhrase = ({
   }, []);
 
   useEffect(() => {
-    const { checkForWordErrors } = require('../../../util/srp/srpInputUtils');
     const wordErrorMap = checkForWordErrors(seedPhrase);
     const hasWordErrors = Object.values(wordErrorMap).some(Boolean);
     if (hasWordErrors) {
@@ -178,6 +178,12 @@ const ImportFromSecretRecoveryPhrase = ({
         if (seed) {
           handleClear();
           setSeedPhrase(seed.trim().split(/\s+/));
+          setTimeout(() => {
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            seedPhraseInputRefs.current?.get(0)?.blur();
+            Keyboard.dismiss();
+          }, 100);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -190,7 +196,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  }, [hideSeedPhraseInput, navigation, handleClear]);
+  }, [hideSeedPhraseInput, navigation, handleClear, seedPhraseInputRefs]);
 
   const onBackPress = () => {
     if (currentStep === 0) {
@@ -314,8 +320,14 @@ const ImportFromSecretRecoveryPhrase = ({
     const text = await Clipboard.getString();
     if (text.trim() !== '') {
       setSeedPhrase(text.trim().split(/\s+/));
+      setTimeout(() => {
+        setSeedPhraseInputFocusedIndex(null);
+        setNextSeedPhraseInputFocusedIndex(null);
+        seedPhraseInputRefs.current?.get(0)?.blur();
+        Keyboard.dismiss();
+      }, 100);
     }
-  }, []);
+  }, [seedPhraseInputRefs]);
 
   const validateSeedPhrase = () => {
     // Trim each word before joining to ensure proper validation
