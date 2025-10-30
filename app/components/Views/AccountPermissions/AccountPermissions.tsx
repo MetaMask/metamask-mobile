@@ -94,6 +94,8 @@ import { trace, endTrace, TraceName } from '../../../util/trace';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
+  /* eslint-disable no-console */
+  console.log('temp log to kick off E2E tests for PR');
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
