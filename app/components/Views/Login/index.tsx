@@ -250,8 +250,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+        PASSCODE_DISABLED,
+      );
 
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
@@ -364,6 +365,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleUseOtherMethod = () => {
+    if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
+        account_type: 'social',
+      });
+    }
     navigation.goBack();
     OAuthService.resetOauthState();
   };
