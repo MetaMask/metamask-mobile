@@ -200,9 +200,10 @@ export function usePerpsCloseAllCalculations({
                   },
                 };
 
-                points = await Engine.context.RewardsController.estimatePoints(
-                  estimateBody,
-                );
+                points =
+                  await Engine.context.RewardsController.estimatePoints(
+                    estimateBody,
+                  );
               } catch (pointsError) {
                 // Log but don't fail the entire calculation if rewards estimation fails
                 console.warn(
