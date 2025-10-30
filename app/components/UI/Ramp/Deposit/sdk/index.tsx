@@ -39,6 +39,12 @@ import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import useAnalytics from '../../hooks/useAnalytics';
+import { AxiosError } from 'axios';
+
+export interface FetchUserDetailsParams {
+  screenLocation?: string;
+  shouldTrackFetch?: boolean;
+}
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -61,7 +67,9 @@ export interface DepositSDK {
   userDetails: NativeTransakUserDetails | null;
   userDetailsError: string | null;
   isFetchingUserDetails: boolean;
-  fetchUserDetails: () => Promise<NativeTransakUserDetails | undefined>;
+  fetchUserDetails: (
+    params: FetchUserDetailsParams,
+  ) => Promise<NativeTransakUserDetails | undefined>;
 }
 
 const environment = getSdkEnvironment();
@@ -92,9 +100,11 @@ export const DepositSDKProvider = ({
   const [sdkError, setSdkError] = useState<Error>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
-  const [userDetails, setUserDetails] = useState<NativeTransakUserDetails | null>(null);
+  const [userDetails, setUserDetails] =
+    useState<NativeTransakUserDetails | null>(null);
   const [userDetailsError, setUserDetailsError] = useState<string | null>(null);
-  const [isFetchingUserDetails, setIsFetchingUserDetails] = useState<boolean>(false);
+  const [isFetchingUserDetails, setIsFetchingUserDetails] =
+    useState<boolean>(false);
 
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedDeposit);
   const INITIAL_SELECTED_REGION: DepositRegion | null = useSelector(
@@ -236,59 +246,81 @@ export const DepositSDKProvider = ({
       await resetProviderToken();
       setAuthToken(undefined);
       setIsAuthenticated(false);
-      // Clear user details on logout
       setUserDetails(null);
       setUserDetailsError(null);
     },
     [sdk],
   );
 
-  const fetchUserDetails = useCallback(async () => {
-    if (!sdk || !isAuthenticated) {
-      return;
-    }
-
-    if (isFetchingUserDetails) {
-      return;
-    }
-
-    try {
-      setIsFetchingUserDetails(true);
-      setUserDetailsError(null);
-      
-      const result = await sdk.getUserDetails();
-      setUserDetails(result);
-      
-      // Track analytics once at SDK level
-      trackEventCallback('RAMPS_USER_DETAILS_FETCHED', {
-        logged_in: isAuthenticated,
-        region: result?.address?.countryCode || selectedRegion?.isoCode || '',
-        location: 'SDK Provider',
-      });
-      
-      return result;
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      setUserDetailsError(errorMessage);
-      
-      // Handle 401 by logging out
-      if ((error as any).status === 401) {
-        Logger.log('DepositSDK: 401 error, clearing authentication');
-        await logoutFromProvider(false);
+  const fetchUserDetails = useCallback(
+    async ({ screenLocation, shouldTrackFetch }: FetchUserDetailsParams) => {
+      if (!sdk || !isAuthenticated) {
+        return;
       }
-      
-      throw error;
-    } finally {
-      setIsFetchingUserDetails(false);
-    }
-  }, [sdk, isAuthenticated, isFetchingUserDetails, logoutFromProvider, trackEventCallback, selectedRegion?.isoCode]);
 
-  // Auto-fetch user details when authenticated
+      if (isFetchingUserDetails) {
+        return;
+      }
+
+      try {
+        setIsFetchingUserDetails(true);
+        setUserDetailsError(null);
+
+        const result = await sdk.getUserDetails();
+        setUserDetails(result);
+
+        if (shouldTrackFetch) {
+          trackEventCallback('RAMPS_USER_DETAILS_FETCHED', {
+            logged_in: isAuthenticated,
+            region:
+              result?.address?.countryCode || selectedRegion?.isoCode || '',
+            location: screenLocation || '',
+          });
+        }
+
+        return result;
+      } catch (error) {
+        const errorMessage = (error as AxiosError).message;
+        setUserDetailsError(errorMessage);
+
+        if ((error as AxiosError).status === 401) {
+          Logger.log('DepositSDK: 401 error, clearing authentication');
+          await logoutFromProvider(false);
+        }
+
+        throw error;
+      } finally {
+        setIsFetchingUserDetails(false);
+      }
+    },
+    [
+      sdk,
+      isAuthenticated,
+      isFetchingUserDetails,
+      logoutFromProvider,
+      trackEventCallback,
+      selectedRegion?.isoCode,
+    ],
+  );
+
   useEffect(() => {
-    if (isAuthenticated && sdk && !userDetails && !isFetchingUserDetails && !userDetailsError) {
-      fetchUserDetails();
+    if (
+      isAuthenticated &&
+      sdk &&
+      !userDetails &&
+      !isFetchingUserDetails &&
+      !userDetailsError
+    ) {
+      fetchUserDetails({ screenLocation: 'SDK Provider Auto-fetch' });
     }
-  }, [isAuthenticated, sdk, userDetails, isFetchingUserDetails, userDetailsError, fetchUserDetails]);
+  }, [
+    isAuthenticated,
+    sdk,
+    userDetails,
+    isFetchingUserDetails,
+    userDetailsError,
+    fetchUserDetails,
+  ]);
 
   const contextValue = useMemo(
     (): DepositSDK => ({
@@ -354,9 +386,8 @@ export const useDepositSDK = () => {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const withDepositSDK = (Component: React.FC) => (props: any) =>
-  (
-    <DepositSDKProvider>
-      <Component {...props} />
-    </DepositSDKProvider>
-  );
+export const withDepositSDK = (Component: React.FC) => (props: any) => (
+  <DepositSDKProvider>
+    <Component {...props} />
+  </DepositSDKProvider>
+);

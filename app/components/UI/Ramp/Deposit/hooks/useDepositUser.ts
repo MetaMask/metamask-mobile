@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useDepositSDK } from '../sdk';
+import { FetchUserDetailsParams, useDepositSDK } from '../sdk';
 
 export interface UseDepositUserConfig {
   screenLocation?: string;
@@ -7,8 +7,6 @@ export interface UseDepositUserConfig {
 }
 
 export function useDepositUser(_config?: UseDepositUserConfig) {
-  // Config is kept for backward compatibility but not used anymore
-  // Analytics tracking now happens in SDK context
   const {
     isAuthenticated,
     userDetails,
@@ -17,9 +15,10 @@ export function useDepositUser(_config?: UseDepositUserConfig) {
     fetchUserDetails: sdkFetchUserDetails,
   } = useDepositSDK();
 
-  const fetchUserDetailsCallback = useCallback(async () => {
-    return sdkFetchUserDetails();
-  }, [sdkFetchUserDetails]);
+  const fetchUserDetailsCallback = useCallback(
+    async (params: FetchUserDetailsParams) => sdkFetchUserDetails(params),
+    [sdkFetchUserDetails],
+  );
 
   return {
     userDetails: isAuthenticated ? userDetails : null,

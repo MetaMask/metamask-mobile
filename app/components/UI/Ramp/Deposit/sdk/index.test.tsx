@@ -27,6 +27,9 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
+const mockTrackEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 jest.mock('../utils/ProviderTokenVault', () => ({
   getProviderToken: jest
     .fn()
@@ -471,10 +474,14 @@ describe('Deposit SDK Context', () => {
       jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
         resetProviderTokenMock;
 
-      const logoutMock = jest.fn();
+      const logoutMock = jest.fn().mockResolvedValue(undefined);
       (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
         setAccessToken: jest.fn(),
         logout: logoutMock,
+        getUserDetails: jest.fn().mockResolvedValue({
+          id: 'user-id',
+          firstName: 'Test',
+        }),
       }));
 
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
@@ -577,6 +584,10 @@ describe('Deposit SDK Context', () => {
       (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
         setAccessToken: jest.fn(),
         logout: logoutMock,
+        getUserDetails: jest.fn().mockResolvedValue({
+          id: 'user-id',
+          firstName: 'Test',
+        }),
       }));
 
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
@@ -629,6 +640,10 @@ describe('Deposit SDK Context', () => {
       (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
         setAccessToken: jest.fn(),
         logout: logoutMock,
+        getUserDetails: jest.fn().mockResolvedValue({
+          id: 'user-id',
+          firstName: 'Test',
+        }),
       }));
 
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
@@ -699,6 +714,234 @@ describe('Deposit SDK Context', () => {
       await expect(async () => {
         await contextValue?.logoutFromProvider();
       }).rejects.toThrow();
+    });
+  });
+
+  describe('fetchUserDetails', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('fetches user details when authenticated', async () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
+        .value;
+
+      const result = await act(async () => await contextValue?.fetchUserDetails({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: true,
+        }));
+
+      expect(mockSdkInstance.getUserDetails).toHaveBeenCalled();
+      expect(result).toBeDefined();
+      expect(contextValue?.userDetails).toBeDefined();
+    });
+
+    it('does not fetch when not authenticated', async () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
+        .value;
+      mockSdkInstance.getUserDetails.mockClear();
+
+      await act(async () => {
+        await contextValue?.fetchUserDetails({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: true,
+        });
+      });
+
+      expect(mockSdkInstance.getUserDetails).not.toHaveBeenCalled();
+    });
+
+    it('prevents concurrent fetches', async () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      let resolveGetUserDetails: ((value: unknown) => void) | undefined;
+
+      const getUserDetailsPromise = new Promise((resolve) => {
+        resolveGetUserDetails = resolve;
+      });
+
+      const getUserDetailsMock = jest
+        .fn()
+        .mockImplementation(() => getUserDetailsPromise);
+
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        logout: jest.fn().mockResolvedValue(undefined),
+        getUserDetails: getUserDetailsMock,
+      }));
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      const promise1 = contextValue?.fetchUserDetails({
+        screenLocation: 'Screen1',
+        shouldTrackFetch: false,
+      });
+      const promise2 = contextValue?.fetchUserDetails({
+        screenLocation: 'Screen2',
+        shouldTrackFetch: false,
+      });
+
+      await act(async () => {
+        if (resolveGetUserDetails) {
+          resolveGetUserDetails({
+            id: 'user-id',
+            firstName: 'Test',
+            lastName: 'User',
+          });
+        }
+
+        await Promise.all([promise1, promise2]);
+      });
+
+      expect(getUserDetailsMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('auto-fetches user details when authenticated', async () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
+        .value;
+      mockSdkInstance.getUserDetails.mockClear();
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockSdkInstance.getUserDetails).toHaveBeenCalled();
+      expect(contextValue?.userDetails).toBeDefined();
+    });
+
+    it('clears user details on logout', async () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      const logoutMock = jest.fn().mockResolvedValue(undefined);
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        logout: logoutMock,
+        getUserDetails: jest.fn().mockResolvedValue({
+          id: 'user-id',
+          firstName: 'Test',
+        }),
+      }));
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      await act(async () => {
+        await contextValue?.fetchUserDetails({
+          screenLocation: 'BuildQuote Screen',
+          shouldTrackFetch: false,
+        });
+      });
+
+      expect(contextValue?.userDetails).toBeDefined();
+
+      await act(async () => {
+        await contextValue?.logoutFromProvider(false);
+      });
+
+      expect(contextValue?.userDetails).toBeNull();
+      expect(contextValue?.userDetailsError).toBeNull();
     });
   });
 });

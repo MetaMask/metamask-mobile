@@ -31,7 +31,9 @@ import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useDepositUser } from './useDepositUser';
 
-export const useDepositRouting = (screenLocation?: string) => {
+export const useDepositRouting = (
+  { screenLocation } = { screenLocation: '' },
+) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const {
@@ -385,7 +387,10 @@ export const useDepositRouting = (screenLocation?: string) => {
   const routeAfterAuthentication = useCallback(
     async (quote: BuyQuote, depth = 0) => {
       try {
-        const userDetails = await fetchUserDetails();
+        const userDetails = await fetchUserDetails({
+          screenLocation,
+          shouldTrackFetch: true,
+        });
         const previousFormData = {
           firstName: userDetails?.firstName || '',
           lastName: userDetails?.lastName || '',
@@ -539,6 +544,7 @@ export const useDepositRouting = (screenLocation?: string) => {
       }
     },
     [
+      screenLocation,
       popToBuildQuote,
       navigation,
       getKycRequirement,
