@@ -27,10 +27,6 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get networksButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
-  }
-
   get notificationsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
@@ -126,12 +122,6 @@ class SettingsView {
     });
   }
 
-  async tapNetworks(): Promise<void> {
-    await Gestures.waitAndTap(this.networksButton, {
-      elemDescription: 'Settings - Networks Button',
-    });
-  }
-
   async tapNotifications(): Promise<void> {
     await Gestures.waitAndTap(this.notificationsButton, {
       elemDescription: 'Settings - Notifications Button',
@@ -173,6 +163,21 @@ class SettingsView {
     await Gestures.tap(this.backupAndSyncSectionButton, {
       elemDescription: 'Settings - Backup and Sync Section Button',
     });
+  }
+
+  get developerOptionsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.DEVELOPER_OPTIONS);
+  }
+
+  async scrollToDeveloperOptions() {
+    await Gestures.scrollToElement(
+      this.developerOptionsButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapDeveloperOptions() {
+    await Gestures.waitAndTap(this.developerOptionsButton);
   }
 
   async tapSnaps(): Promise<void> {

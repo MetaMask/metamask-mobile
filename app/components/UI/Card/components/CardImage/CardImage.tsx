@@ -12,7 +12,7 @@ import Svg, {
   Stop,
   Text,
 } from 'react-native-svg';
-import { CardType } from '../../types';
+import { CardStatus, CardType } from '../../types';
 import { truncateAddress } from '../../util/truncateAddress';
 
 const cardImageOriginalWidth = 851;
@@ -21,16 +21,20 @@ const cardImageAspectRatio = cardImageOriginalWidth / cardImageOriginalHeight;
 
 type CardImageProps = {
   type: CardType;
+  status: CardStatus;
   address?: string;
 } & SvgProps;
 
-const VirtualCardImage = (props: SvgProps & { address?: string }) => (
+const VirtualCardImage = (
+  props: SvgProps & { address?: string; hasLowerOpacity: boolean },
+) => (
   <View style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
       width="100%"
       height="100%"
       viewBox={`0 0 ${cardImageOriginalWidth} ${cardImageOriginalHeight}`}
+      opacity={props.hasLowerOpacity ? 0.5 : 1}
       {...props}
     >
       <G clipPath="url(#clip0_4219_2177)">
@@ -122,13 +126,16 @@ const VirtualCardImage = (props: SvgProps & { address?: string }) => (
   </View>
 );
 
-const MetalCardImage = (props: SvgProps & { address?: string }) => (
+const MetalCardImage = (
+  props: SvgProps & { address?: string; hasLowerOpacity: boolean },
+) => (
   <View style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
       width="100%"
       height="100%"
       viewBox={`0 0 ${cardImageOriginalWidth} ${cardImageOriginalHeight}`}
+      opacity={props.hasLowerOpacity ? 0.5 : 1}
       {...props}
     >
       <G clipPath="url(#clip0_4219_2151)">
@@ -483,15 +490,29 @@ const MetalCardImage = (props: SvgProps & { address?: string }) => (
 );
 
 const CardImage = (props: CardImageProps) => {
-  const { type, address: rawAddress } = props;
-  const address = rawAddress ? truncateAddress(rawAddress) : undefined;
+  const { type, address: rawAddress, status } = props;
+  const address = truncateAddress(rawAddress);
+  const hasLowerOpacity =
+    status === CardStatus.FROZEN || status === CardStatus.BLOCKED;
 
   switch (type) {
     case CardType.VIRTUAL:
-      return <VirtualCardImage {...props} address={address} />;
+      return (
+        <VirtualCardImage
+          {...props}
+          address={address}
+          hasLowerOpacity={hasLowerOpacity}
+        />
+      );
     case CardType.PHYSICAL:
     case CardType.METAL:
-      return <MetalCardImage {...props} address={address} />;
+      return (
+        <MetalCardImage
+          {...props}
+          address={address}
+          hasLowerOpacity={hasLowerOpacity}
+        />
+      );
   }
 };
 

@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
 import { Box } from '../../../../UI/Box/Box';
@@ -15,7 +16,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../AccountGroupDetails.styles';
-import TempTouchableOpacity from '../../../../../component-library/components-temp/TempTouchableOpacity';
 
 export interface WalletProps {
   wallet: AccountWalletObject | null;
@@ -33,11 +33,10 @@ export const Wallet = ({ wallet }: WalletProps) => {
   }, [navigation, wallet?.id]);
 
   return (
-    <TempTouchableOpacity
+    <TouchableOpacity
       style={styles.wallet}
       testID={AccountDetailsIds.WALLET_NAME_LINK}
       onPress={handleWalletClick}
-      shouldEnableAndroidPressIn
     >
       <Text variant={TextVariant.BodyMDMedium}>
         {strings('multichain_accounts.account_details.wallet')}
@@ -56,6 +55,6 @@ export const Wallet = ({ wallet }: WalletProps) => {
           color={colors.text.alternative}
         />
       </Box>
-    </TempTouchableOpacity>
+    </TouchableOpacity>
   );
 };

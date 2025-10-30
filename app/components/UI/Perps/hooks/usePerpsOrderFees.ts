@@ -1,24 +1,24 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { usePerpsTrading } from './usePerpsTrading';
 import Engine from '../../../../core/Engine';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectChainId } from '../../../../selectors/networkController';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectChainId } from '../../../../selectors/networkController';
+import { usePerpsTrading } from './usePerpsTrading';
 
+import { setMeasurement } from '@sentry/react-native';
+import performance from 'react-native-performance';
 import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DEVELOPMENT_CONFIG,
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -244,9 +244,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const feeDiscountStartTime = performance.now();
-        const discountBips = await RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        );
+        const discountBips =
+          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance
@@ -300,7 +299,7 @@ export function usePerpsOrderFees({
       }
 
       try {
-        const amountNum = parseFloat(tradeAmount || '0');
+        const amountNum = Number.parseFloat(tradeAmount || '0');
         if (amountNum <= 0) {
           return null;
         }
@@ -337,9 +336,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const pointsEstimationStartTime = performance.now();
-        const result = await RewardsController.estimatePoints(
-          estimatePointsDto,
-        );
+        const result =
+          await RewardsController.estimatePoints(estimatePointsDto);
         const pointsEstimationDuration =
           performance.now() - pointsEstimationStartTime;
 
@@ -401,7 +399,7 @@ export function usePerpsOrderFees({
         // Development-only simulation for testing fee discount UI
         const shouldSimulateFeeDiscount =
           __DEV__ &&
-          parseFloat(amount) ===
+          Number.parseFloat(amount) ===
             DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
 
         let discountData: { discountBips?: number };
@@ -449,7 +447,7 @@ export function usePerpsOrderFees({
       userAddress: string,
       actualFeeUSD: number,
     ): Promise<{ points?: number; bonusBips?: number }> => {
-      if (!rewardsEnabled || parseFloat(amount) <= 0) {
+      if (!rewardsEnabled || Number.parseFloat(amount) <= 0) {
         return {};
       }
 
@@ -460,7 +458,7 @@ export function usePerpsOrderFees({
           pointsCalculationCache.address === userAddress &&
           now - pointsCalculationCache.timestamp < pointsCalculationCache.ttl &&
           pointsCalculationCache.basePointsPerDollar > 0 &&
-          isFinite(pointsCalculationCache.basePointsPerDollar);
+          Number.isFinite(pointsCalculationCache.basePointsPerDollar);
 
         if (cacheValid && pointsCalculationCache) {
           // Calculate points locally using cached data
@@ -502,7 +500,7 @@ export function usePerpsOrderFees({
           const basePointsPerDollar =
             denominator > 0 ? pointsData.pointsEstimate / denominator : 0;
 
-          if (isFinite(basePointsPerDollar)) {
+          if (Number.isFinite(basePointsPerDollar)) {
             pointsCalculationCache = {
               address: userAddress,
               bonusBips: pointsData.bonusBips,
@@ -609,13 +607,13 @@ export function usePerpsOrderFees({
 
         // Step 3: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
-        if (selectedAddress && parseFloat(amount) > 0) {
-          const actualFeeUSD = parseFloat(amount) * adjustedRate;
+        if (selectedAddress && Number.parseFloat(amount) > 0) {
+          const actualFeeUSD = Number.parseFloat(amount) * adjustedRate;
           DevLogger.log('Rewards: Calculating points with discounted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
             discountPercentage,
             adjustedRate,
-            amount: parseFloat(amount),
+            amount: Number.parseFloat(amount),
             actualFeeUSD,
           });
 
@@ -670,7 +668,7 @@ export function usePerpsOrderFees({
   ]);
 
   return useMemo(() => {
-    const amountNum = parseFloat(amount || '0');
+    const amountNum = Number.parseFloat(amount || '0');
 
     // Calculate fee amounts based on rates
     const protocolFee = amountNum * protocolFeeRate;

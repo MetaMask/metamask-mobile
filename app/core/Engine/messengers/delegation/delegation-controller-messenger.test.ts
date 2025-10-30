@@ -1,12 +1,42 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  MockAnyNamespace,
+} from '@metamask/messenger';
+import { DelegationControllerMessenger } from '@metamask/delegation-controller';
 import { getDelegationControllerMessenger } from './delegation-controller-messenger';
 
-describe('getDelegationControllerMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
-    const delegationControllerMessenger =
-      getDelegationControllerMessenger(messenger);
+type AllDelegationControllerMessengerActions =
+  MessengerActions<DelegationControllerMessenger>;
 
-    expect(delegationControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+type AllDelegationControllerMessengerEvents =
+  MessengerEvents<DelegationControllerMessenger>;
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  AllDelegationControllerMessengerActions,
+  AllDelegationControllerMessengerEvents
+>;
+
+/**
+ * Creates and returns a root messenger for testing
+ *
+ * @returns A messenger instance
+ */
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+}
+
+describe('getDelegationControllerMessenger', () => {
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const delegationControllerMessenger =
+      getDelegationControllerMessenger(rootMessenger);
+
+    expect(delegationControllerMessenger).toBeInstanceOf(Messenger);
   });
 });

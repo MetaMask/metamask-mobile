@@ -1,5 +1,8 @@
-export const truncateAddress = (address: string | undefined) => {
-  if (!address) return '0x';
-
-  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+export const truncateAddress = (
+  address: string | undefined,
+  chars: number = 4,
+) => {
+  if (address) {
+    return `${address.slice(0, chars)}...${address.slice(-chars)}`;
+  }
 };
