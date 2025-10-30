@@ -13,13 +13,15 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
-      paddingVertical: 12,
       backgroundColor: theme.colors.background.default,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
     },
     backButton: {
       padding: 4,
+    },
+    headerContainerWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingTop: 16,
     },
     headerTitleContainer: {
       flex: 1,

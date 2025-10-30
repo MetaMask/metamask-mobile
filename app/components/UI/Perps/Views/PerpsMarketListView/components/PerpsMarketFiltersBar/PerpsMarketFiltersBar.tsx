@@ -1,13 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
 import PerpsStocksCommoditiesDropdown from '../../../../components/PerpsStocksCommoditiesDropdown';
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
@@ -29,16 +22,12 @@ import styleSheet from './PerpsMarketFiltersBar.styles';
  * <PerpsMarketFiltersBar
  *   selectedOptionId="openInterest"
  *   onSortPress={() => setSheetVisible(true)}
- *   showWatchlistOnly={false}
- *   onWatchlistToggle={() => setShowWatchlist(!showWatchlist)}
  * />
  * ```
  */
 const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   selectedOptionId,
   onSortPress,
-  showWatchlistOnly,
-  onWatchlistToggle,
   showStocksCommoditiesDropdown = false,
   stocksCommoditiesFilter = 'all',
   onStocksCommoditiesPress,
@@ -67,17 +56,6 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
           />
         )}
       </ScrollView>
-      <TouchableOpacity
-        style={styles.watchlistButton}
-        onPress={onWatchlistToggle}
-        testID={testID ? `${testID}-watchlist-toggle` : undefined}
-      >
-        <Icon
-          name={showWatchlistOnly ? IconName.StarFilled : IconName.Star}
-          size={IconSize.Sm}
-        />
-        <Text variant={TextVariant.BodyMD}>Watchlist</Text>
-      </TouchableOpacity>
     </View>
   );
 };

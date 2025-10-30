@@ -90,7 +90,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
       testID={testID}
     >
       {isSearchVisible ? (
-        <>
+        <View style={styles.headerContainerWrapper}>
           {/* Search Bar - Replaces back button and title */}
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -136,22 +136,22 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
               {strings('perps.cancel')}
             </Text>
           </TouchableOpacity>
-        </>
+        </View>
       ) : (
-        <>
+        <View style={styles.headerContainerWrapper}>
           {/* Back Button */}
           <TouchableOpacity
             style={styles.backButton}
             onPress={handleBack}
             testID={testID ? `${testID}-back-button` : undefined}
           >
-            <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
+            <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
           </TouchableOpacity>
 
           {/* Title */}
           <View style={styles.headerTitleContainer}>
             <Text
-              variant={TextVariant.HeadingMD}
+              variant={TextVariant.HeadingLG}
               color={TextColor.Default}
               style={styles.headerTitle}
             >
@@ -169,7 +169,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
               <Icon name={IconName.Search} size={IconSize.Lg} />
             </TouchableOpacity>
           </View>
-        </>
+        </View>
       )}
     </Pressable>
   );

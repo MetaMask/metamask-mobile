@@ -15,16 +15,6 @@ export interface PerpsMarketFiltersBarProps {
   onSortPress: () => void;
 
   /**
-   * Whether watchlist-only filter is active
-   */
-  showWatchlistOnly: boolean;
-
-  /**
-   * Callback when watchlist filter is toggled
-   */
-  onWatchlistToggle: () => void;
-
-  /**
    * Whether to show stocks/commodities dropdown (only for Stocks tab)
    */
   showStocksCommoditiesDropdown?: boolean;

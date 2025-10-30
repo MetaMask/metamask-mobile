@@ -115,7 +115,7 @@ const PerpsMarketListView = ({
   const { selectedOptionId, sortBy, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
-  const { showFavoritesOnly, setShowFavoritesOnly } = favoritesState;
+  const { showFavoritesOnly } = favoritesState;
 
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
@@ -351,10 +351,6 @@ const PerpsMarketListView = ({
     }
   };
 
-  const handleFavoritesToggle = () => {
-    setShowFavoritesOnly(!showFavoritesOnly);
-  };
-
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketListView,
@@ -525,8 +521,6 @@ const PerpsMarketListView = ({
               <PerpsMarketFiltersBar
                 selectedOptionId={selectedOptionId}
                 onSortPress={() => setIsSortFieldSheetVisible(true)}
-                showWatchlistOnly={showFavoritesOnly}
-                onWatchlistToggle={handleFavoritesToggle}
                 showStocksCommoditiesDropdown={
                   marketTypeFilter === 'stocks_and_commodities'
                 }

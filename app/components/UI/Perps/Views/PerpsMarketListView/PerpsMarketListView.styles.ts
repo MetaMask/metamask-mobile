@@ -55,7 +55,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     tabsContainer: {
       flex: 1,
-      paddingTop: 16,
+      paddingTop: 12,
     },
     tabScrollView: {
       flex: 1,
