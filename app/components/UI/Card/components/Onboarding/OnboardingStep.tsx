@@ -22,7 +22,7 @@ const OnboardingStep = ({
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={tw.style('p-4')}
+      contentContainerStyle={tw.style('flex-grow p-4')}
       showsVerticalScrollIndicator={false}
       alwaysBounceVertical={false}
     >
