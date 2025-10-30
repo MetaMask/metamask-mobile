@@ -160,7 +160,12 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 }
               />
             ) : (
-              <Text>{getYesPercentage()}</Text>
+              <Text
+                style={tw.style('text-[20px] font-medium')}
+                color={TextColor.Default}
+              >
+                {getYesPercentage()}
+              </Text>
             )}
           </Text>
         </Box>
@@ -173,7 +178,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {strings('predict.buy_yes')} •{' '}
+                {outcome.tokens[0].title} •{' '}
                 {(outcome.tokens[0].price * 100).toFixed(2)}¢
               </Text>
             }
@@ -186,7 +191,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {strings('predict.buy_no')} •{' '}
+                {outcome.tokens[1].title} •{' '}
                 {(outcome.tokens[1].price * 100).toFixed(2)}¢
               </Text>
             }

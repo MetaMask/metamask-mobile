@@ -67,7 +67,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   const renderValueText = () => {
     if (marketStatus === PredictMarketStatus.OPEN) {
       return (
-        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {formatPrice(currentValue, { maximumDecimals: 2 })}
         </Text>
       );
@@ -91,17 +91,18 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   return (
-    <Box twClassName="w-full pt-2 pb-4 px-4 mb-4 gap-3 bg-background-muted rounded-md">
+    <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl">
       <Box twClassName="flex-row items-start gap-4">
         {Boolean(icon) && (
           <Image
             source={{ uri: icon }}
+            resizeMode="cover"
             style={tw.style('w-12 h-12 rounded-md self-center')}
           />
         )}
-        <Box twClassName="gap-1">
+        <Box>
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -111,18 +112,21 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
               outcome,
             })}
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
             {strings('predict.market_details.outcome_at_price', {
               outcome,
               price: (avgPrice * 100).toFixed(0),
             })}
           </Text>
         </Box>
-        <Box twClassName="items-end justify-end gap-1 ml-auto">
+        <Box twClassName="items-end justify-end ml-auto">
           {renderValueText()}
           {marketStatus === PredictMarketStatus.OPEN && (
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodySMMedium}
               color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
             >
               {formatPercentage(percentPnl)}
