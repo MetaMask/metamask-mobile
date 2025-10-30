@@ -214,11 +214,6 @@ const WalletTabStackFlow = () => (
       options={ConfirmAddAsset.navigationOptions}
     />
     <Stack.Screen
-      name={Routes.WALLET.TOKENS_FULL_VIEW}
-      component={TokensFullView}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
     />
@@ -945,6 +940,11 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen
+        name={Routes.WALLET.TOKENS_FULL_VIEW}
+        component={TokensFullView}
+        options={{ headerShown: false }}
+      />
       {isRewardsEnabled && (
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
