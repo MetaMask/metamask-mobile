@@ -19,7 +19,7 @@ export const PredictEventProperties = {
   FAILURE_REASON: 'failure_reason',
 
   // Sensitive properties
-  AMOUNT: 'amount',
+  USD_AMOUNT: 'usc_amount',
   SHARE_PRICE: 'share_price',
   ORDER_ID: 'order_id',
   USER_ADDRESS: 'user_address',

@@ -726,7 +726,7 @@ export class PredictController extends BaseController<
    */
   public async trackPredictOrderEvent({
     eventType,
-    amount,
+    usdAmount,
     analyticsProperties,
     providerId,
     completionDuration,
@@ -735,7 +735,7 @@ export class PredictController extends BaseController<
     sharePrice,
   }: {
     eventType: PredictEventTypeValue;
-    amount?: number;
+    usdAmount?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
     providerId: string;
     completionDuration?: number;
@@ -782,8 +782,8 @@ export class PredictController extends BaseController<
 
     // Build sensitive properties
     const sensitiveProperties = {
-      ...(amount !== undefined && {
-        [PredictEventProperties.AMOUNT]: amount,
+      ...(usdAmount !== undefined && {
+        [PredictEventProperties.USD_AMOUNT]: usdAmount,
       }),
       // Add user address only if we have it
       ...(safeAddress && {
@@ -958,7 +958,10 @@ export class PredictController extends BaseController<
     const { analyticsProperties, preview, providerId } = params;
 
     const sharePrice = preview?.sharePrice;
-    const amount = preview?.maxAmountSpent;
+    const usdAmount =
+      preview.side === Side.BUY
+        ? preview?.maxAmountSpent
+        : preview?.minAmountReceived;
 
     try {
       const provider = this.providers.get(providerId);
@@ -981,7 +984,7 @@ export class PredictController extends BaseController<
       // Track Predict Action Submitted (fire and forget)
       this.trackPredictOrderEvent({
         eventType: PredictEventType.SUBMITTED,
-        amount,
+        usdAmount,
         analyticsProperties,
         providerId,
         sharePrice,
@@ -995,12 +998,15 @@ export class PredictController extends BaseController<
       if (result.success) {
         const { id: orderId, spentAmount, receivedAmount } = result.response;
 
+        let realUsdAmount = usdAmount;
         let realSharePrice = sharePrice;
         try {
           if (preview.side === Side.BUY) {
+            realUsdAmount = parseFloat(spentAmount);
             realSharePrice =
               parseFloat(spentAmount) / parseFloat(receivedAmount);
           } else {
+            realUsdAmount = parseFloat(receivedAmount);
             realSharePrice =
               parseFloat(receivedAmount) / parseFloat(spentAmount);
           }
@@ -1011,7 +1017,7 @@ export class PredictController extends BaseController<
         // Track Predict Action Completed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.COMPLETED,
-          amount: spentAmount ? parseFloat(spentAmount) : amount,
+          usdAmount: realUsdAmount,
           analyticsProperties,
           providerId,
           completionDuration,
@@ -1022,7 +1028,7 @@ export class PredictController extends BaseController<
         // Track Predict Action Failed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.FAILED,
-          amount,
+          usdAmount,
           analyticsProperties,
           providerId,
           sharePrice,
@@ -1042,7 +1048,7 @@ export class PredictController extends BaseController<
 
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
-        amount,
+        usdAmount,
         analyticsProperties,
         providerId,
         sharePrice,
