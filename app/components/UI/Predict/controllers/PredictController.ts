@@ -1395,9 +1395,17 @@ export class PredictController extends BaseController<
         },
       };
     } catch (error) {
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        // ignore error, as the user cancelled the tx
+        return {
+          success: true,
+          response: { batchId: 'NA' },
+        };
+      }
       // Log to Sentry with deposit context (no sensitive amounts)
       Logger.error(
-        ensureError(error),
+        e,
         this.getErrorContext('depositWithConfirmation', {
           providerId: params.providerId,
         }),
