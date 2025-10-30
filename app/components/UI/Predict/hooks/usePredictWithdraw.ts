@@ -55,11 +55,6 @@ export const usePredictWithdraw = ({
 
       const response = await prepareWithdraw({ providerId });
 
-      if (!response.success) {
-        // Error will be caught and toast shown in catch block
-        throw new Error(response.error);
-      }
-
       return response;
     } catch (err) {
       navigation.goBack();
