@@ -156,7 +156,9 @@ describe('AccountGroupBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeDefined();
-    expect(queryByTestId('account-group-balance-empty-state')).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeNull();
   });
 
   it('renders balance empty state when WALLET balance is zero and feature flag is enabled', () => {
@@ -193,7 +195,9 @@ describe('AccountGroupBalance', () => {
     );
 
     // Should render BalanceEmptyState instead of balance text
-    expect(getByTestId('account-group-balance-empty-state')).toBeDefined();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeDefined();
     expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
   });
 
@@ -234,7 +238,9 @@ describe('AccountGroupBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeDefined();
-    expect(queryByTestId('account-group-balance-empty-state')).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeNull();
   });
 
   // NEW TEST CASES: Testing the specific scenarios mentioned in requirements
@@ -275,7 +281,9 @@ describe('AccountGroupBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeDefined();
-    expect(queryByTestId('account-group-balance-empty-state')).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeNull();
   });
 
   it('renders empty state when user has $0 across ALL enabled networks', () => {
@@ -312,7 +320,9 @@ describe('AccountGroupBalance', () => {
     );
 
     // Should render empty state
-    expect(getByTestId('account-group-balance-empty-state')).toBeDefined();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeDefined();
     expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
   });
 
@@ -353,7 +363,9 @@ describe('AccountGroupBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeDefined();
-    expect(queryByTestId('account-group-balance-empty-state')).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeNull();
   });
 
   // NEW TESTNET BEHAVIOR TESTS
@@ -400,7 +412,9 @@ describe('AccountGroupBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeDefined();
-    expect(queryByTestId('account-group-balance-empty-state')).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeNull();
   });
 
   it('renders balance text on testnets with funds', () => {
@@ -446,7 +460,9 @@ describe('AccountGroupBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeDefined();
-    expect(queryByTestId('account-group-balance-empty-state')).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeNull();
   });
 
   it('still renders empty state on mainnet with zero balance (existing behavior unchanged)', () => {
@@ -489,7 +505,9 @@ describe('AccountGroupBalance', () => {
     );
 
     // Should render empty state on mainnet with zero balance
-    expect(getByTestId('account-group-balance-empty-state')).toBeDefined();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeDefined();
     expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
   });
 });

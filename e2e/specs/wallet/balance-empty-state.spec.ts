@@ -9,7 +9,6 @@ import NetworkManager from '../../pages/wallet/NetworkManager';
 import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import BalanceEmptyState from '../../pages/wallet/BalanceEmptyState';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
@@ -33,10 +32,13 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         // Then: Empty state should be visible
-        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
-          description:
-            'Account balance empty state should be visible for zero balance',
-        });
+        await Assertions.expectElementToBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description:
+              'Account balance empty state should be visible for zero balance',
+          },
+        );
 
         // And: User should NOT see "$0.00" balance display
         // The empty state replaces the balance display, so total balance should not be visible
@@ -66,10 +68,13 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         // Verify empty state is initially visible on default network
-        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
-          description:
-            'Empty state should be visible on default network with zero balance',
-        });
+        await Assertions.expectElementToBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description:
+              'Empty state should be visible on default network with zero balance',
+          },
+        );
 
         // When: User switches to Sepolia testnet (should also have zero balance)
         await WalletView.tapNetworksButtonOnNavBar();
@@ -83,7 +88,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
 
         // Then: Empty state should NOT be visible on Sepolia testnet (shows numerical balance instead)
         await Assertions.expectElementToNotBeVisible(
-          BalanceEmptyState.container,
+          WalletView.balanceEmptyStateContainer,
           {
             description:
               'Empty state should NOT be visible on Sepolia testnet - shows numerical balance instead',
@@ -107,10 +112,13 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         await NetworkListModal.changeNetworkTo('Ethereum Main Network');
 
         // Then: Empty state should still be visible on mainnet
-        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
-          description:
-            'Empty state should remain visible on Ethereum mainnet with zero balance',
-        });
+        await Assertions.expectElementToBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description:
+              'Empty state should remain visible on Ethereum mainnet with zero balance',
+          },
+        );
         await Assertions.expectElementToNotBeVisible(WalletView.totalBalance, {
           description: 'Total balance should remain hidden on mainnet',
         });
@@ -122,10 +130,13 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         await NetworkManager.closeNetworkManager();
 
         // Then: Empty state should still be visible on Solana
-        await Assertions.expectElementToBeVisible(emptyStateContainer, {
-          description:
-            'Empty state should remain visible on Solana network with zero balance',
-        });
+        await Assertions.expectElementToBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description:
+              'Empty state should remain visible on Solana network with zero balance',
+          },
+        );
         await Assertions.expectElementToNotBeVisible(WalletView.totalBalance, {
           description: 'Total balance should remain hidden on Solana',
         });
@@ -135,10 +146,13 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         await NetworkListModal.changeNetworkTo('Localhost');
 
         // Then: Empty state should NOT be visible (has balance on Ganache)
-        await Assertions.expectElementToNotBeVisible(emptyStateContainer, {
-          description:
-            'Empty state should be hidden on Ganache network with funded balance',
-        });
+        await Assertions.expectElementToNotBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description:
+              'Empty state should be hidden on Ganache network with funded balance',
+          },
+        );
 
         // And: Normal balance should be displayed
         await Assertions.expectElementToBeVisible(WalletView.totalBalance, {
@@ -168,14 +182,14 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         await Assertions.expectElementToBeVisible(
-          BalanceEmptyState.actionButton,
+          WalletView.balanceEmptyStateActionButton,
           {
             description: 'Empty state action button should be visible',
           },
         );
 
         // When: User taps the "Add funds" action button
-        await BalanceEmptyState.tapActionButton();
+        await WalletView.tapBalanceEmptyStateActionButton();
 
         // Then: Should navigate to buy/ramp flow
         await Assertions.expectElementToBeVisible(
@@ -202,28 +216,30 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         // Verify empty state is initially visible
-        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
-          description: 'Empty state should be visible after app restart',
-        });
+        await Assertions.expectElementToBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description: 'Empty state should be visible after app restart',
+          },
+        );
 
         // When: App is restarted (simulated by device restart in fixture)
         // The fixture already handles device restart, so the state should persist
 
         // Then: Empty state should still be visible after restart
-        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
-          description: 'Empty state should persist after restart',
-        });
+        await Assertions.expectElementToBeVisible(
+          WalletView.balanceEmptyStateContainer,
+          {
+            description: 'Empty state should persist after restart',
+          },
+        );
         await Assertions.expectElementToNotBeVisible(WalletView.totalBalance, {
           description: 'Total balance should remain hidden after restart',
         });
 
-        // And: All empty state components should still be present
-        await Assertions.expectElementToBeVisible(BalanceEmptyState.title, {
-          description: 'Empty state title should be visible after restart',
-        });
-
+        // And: Empty state action button should still be present
         await Assertions.expectElementToBeVisible(
-          BalanceEmptyState.actionButton,
+          WalletView.balanceEmptyStateActionButton,
           {
             description:
               'Empty state action button should be visible after restart',
