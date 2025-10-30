@@ -46,7 +46,7 @@ describe('AccountNetworkInfoExpanded', () => {
         nativeTokenUnit: 'ETH',
         tokenFiatBalancesCrossChains: [],
         shouldShowAggregatedPercentage: false,
-        isPortfolioVieEnabled: true,
+        isPortfolioViewEnabled: true,
         aggregatedBalance: {
           ethFiat: 0,
           tokenFiat: 0,

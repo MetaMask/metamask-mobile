@@ -204,9 +204,8 @@ describe('SnapUIAssetSelector', () => {
     const usdcNameOnButton = await within(selectorButton).findByText('USDC');
     expect(usdcNameOnButton).toBeTruthy();
 
-    const solanaNetworkOnButton = await within(selectorButton).findByText(
-      'Solana',
-    );
+    const solanaNetworkOnButton =
+      await within(selectorButton).findByText('Solana');
     expect(solanaNetworkOnButton).toBeTruthy();
 
     const solSymbolOnButton = queryByText('SOL');

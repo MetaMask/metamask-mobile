@@ -1,53 +1,43 @@
-import { Messenger } from '@metamask/base-controller';
 import {
-  GetSubjects,
-  HasPermissions,
-  PermissionControllerStateChange,
-} from '@metamask/permission-controller';
-import {
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerGetSelectedNetworkClientAction,
-  NetworkControllerGetStateAction,
-  NetworkControllerStateChangeEvent,
-} from '@metamask/network-controller';
-
-type AllowedActions =
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerGetSelectedNetworkClientAction
-  | NetworkControllerGetStateAction
-  | HasPermissions
-  | GetSubjects;
-
-type AllowedEvents =
-  | NetworkControllerStateChangeEvent
-  | PermissionControllerStateChange;
-
-export type SelectedNetworkControllerMessenger = ReturnType<
-  typeof getSelectedNetworkControllerMessenger
->;
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { RootMessenger } from '../types';
+import { SelectedNetworkControllerMessenger } from '@metamask/selected-network-controller';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * selected network controller is allowed to handle.
+ * Get the messenger for the selected network controller. This is scoped to the
+ * actions and events that the selected network controller is allowed to handle
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The SelectedNetworkControllerMessenger.
  */
 export function getSelectedNetworkControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'SelectedNetworkController',
-    allowedActions: [
+  rootMessenger: RootMessenger,
+): SelectedNetworkControllerMessenger {
+  const messenger = new Messenger<
+    'SelectedNetworkController',
+    MessengerActions<SelectedNetworkControllerMessenger>,
+    MessengerEvents<SelectedNetworkControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'SelectedNetworkController',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'NetworkController:getSelectedNetworkClient',
       'PermissionController:hasPermissions',
       'PermissionController:getSubjectNames',
     ],
-    allowedEvents: [
+    events: [
       'NetworkController:stateChange',
       'PermissionController:stateChange',
     ],
+    messenger,
   });
+  return messenger;
 }

@@ -4,6 +4,7 @@ import type {
   OrderResult,
   OrderType,
   PerpsMarketData,
+  TPSLTrackingData,
 } from '../controllers/types';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
@@ -68,6 +69,18 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsMarketListView: {
     source?: string;
+    variant?: 'full' | 'minimal';
+    title?: string;
+    showBalanceActions?: boolean;
+    showBottomNav?: boolean;
+    defaultSearchVisible?: boolean;
+    showWatchlistOnly?: boolean;
+    defaultMarketTypeFilter?:
+      | 'crypto'
+      | 'equity'
+      | 'commodity'
+      | 'forex'
+      | 'all';
   };
 
   PerpsMarketDetails: {
@@ -132,6 +145,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     onConfirm: (
       takeProfitPrice?: string,
       stopLossPrice?: string,
+      trackingData?: TPSLTrackingData,
     ) => Promise<void>;
   };
 
