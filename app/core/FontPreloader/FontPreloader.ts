@@ -172,7 +172,10 @@ class FontPreloader {
     // We create a small delay to ensure font cache is warmed up
 
     // Log the font families passed as a parameter (not derived from fontVariants.map())
-    Logger.log('FontPreloader: Preloading font families (parameter):', fontFamilies);
+    Logger.log(
+      'FontPreloader: Preloading font families (parameter):',
+      fontFamilies,
+    );
 
     // Small delay to ensure fonts are cached by the system
     setTimeout(

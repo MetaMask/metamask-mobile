@@ -249,6 +249,36 @@ describe('OnboardingSuccessComponent', () => {
     expect(footerText.props.color).toBe(TextColor.Info);
     expect(footerText.props.variant).toBe(TextVariant.BodyMDMedium);
   });
+
+  it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
+    const { queryByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+      />,
+    );
+
+    const footerButton = queryByTestId(
+      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+    );
+
+    expect(footerButton).toBeNull();
+  });
+
+  it('shows manage default settings button for non-SETTINGS_BACKUP flows', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+      />,
+    );
+
+    const footerButton = getByTestId(
+      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+    );
+
+    expect(footerButton).toBeOnTheScreen();
+  });
 });
 
 describe('OnboardingSuccess', () => {

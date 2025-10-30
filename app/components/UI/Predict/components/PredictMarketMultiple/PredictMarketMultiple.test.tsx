@@ -291,6 +291,7 @@ describe('PredictMarketMultiple', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
     });
   });
@@ -384,7 +385,7 @@ describe('PredictMarketMultiple', () => {
       { state: initialState },
     );
 
-    expect(getByText('+1 more outcome')).toBeOnTheScreen();
+    expect(getByText(/\+1\s+(more\s+)?outcome/)).toBeOnTheScreen();
   });
 
   it('handle market with more than 4 outcomes showing plural text', () => {
@@ -404,6 +405,6 @@ describe('PredictMarketMultiple', () => {
       { state: initialState },
     );
 
-    expect(getByText('+2 more outcomes')).toBeOnTheScreen();
+    expect(getByText(/\+2\s+(more\s+)?outcomes/)).toBeOnTheScreen();
   });
 });

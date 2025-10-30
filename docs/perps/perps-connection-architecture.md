@@ -90,7 +90,7 @@ graph TD
 - Grace period timer (`CONNECTION_GRACE_PERIOD_MS` = 20s delay before disconnect)
 - Connection timeout management (30s limit for connection attempts)
 - Reference counting (tracks active provider instances)
-- Stream manager caches
+- Stream manager caches (via PerpsStreamManager singleton - separate channels for prices, orders, positions, account state; provides instant cached data to subscribers; supports pause/resume for race condition prevention)
 - Redux store subscription for account/network change monitoring
 
 **Responsibilities**:
