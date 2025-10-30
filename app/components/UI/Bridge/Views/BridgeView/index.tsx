@@ -434,7 +434,6 @@ const BridgeView = () => {
 
           {!shouldDisplayKeypad && (
             <Button
-              loading={isLoading}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               label={getButtonLabel()}
