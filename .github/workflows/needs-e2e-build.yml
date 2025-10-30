@@ -9,6 +9,7 @@
 # - android_changed: Whether Android-impacting files changed
 # - ios_changed: Whether iOS-impacting files changed
 # - any_changed: Whether either platform requires a build
+# - Test commit
 
 name: Detect Mobile Build Changes
 
