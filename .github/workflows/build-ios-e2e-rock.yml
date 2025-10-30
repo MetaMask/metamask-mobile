@@ -5,7 +5,19 @@ on:
     branches:
       - '**'
   workflow_dispatch:
+    inputs:
+      skip-cache:
+        description: 'Skip Rock CLI cache (force clean build)'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
+    inputs:
+      skip-cache:
+        description: 'Skip Rock CLI cache (force clean build)'
+        required: false
+        type: boolean
+        default: false
     outputs:
       artifact-id:
         description: "Rock CLI artifact ID for the built app"
@@ -156,6 +168,18 @@ jobs:
           echo -n "$GOOGLE_SERVICES_B64_IOS" | base64 -d > ios/GoogleServices/GoogleService-Info.plist
           
           echo "✅ Prebuild steps completed"
+
+      - name: Clear Rock CLI cache (if requested)
+        if: ${{ inputs.skip-cache == true }}
+        run: |
+          echo "🗑️ Clearing Rock CLI remote cache..."
+          FINGERPRINT_OUTPUT=$(npx rock fingerprint -p ios --raw)
+          ARTIFACT_NAME="rock-ios-simulator-Release-${FINGERPRINT_OUTPUT}"
+          
+          # Delete all artifacts matching this fingerprint
+          npx rock remote-cache delete --name "$ARTIFACT_NAME" --all || echo "No cache found to delete"
+          
+          echo "✅ Cache cleared - will perform full build"
 
       - name: Rock Build - iOS E2E App (Simulator)
         id: rock-build-ios
