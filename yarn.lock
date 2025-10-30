@@ -2061,9 +2061,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@consensys/on-ramp-sdk@npm:2.1.11":
-  version: 2.1.11
-  resolution: "@consensys/on-ramp-sdk@npm:2.1.11"
+"@consensys/on-ramp-sdk@npm:2.1.12":
+  version: 2.1.12
+  resolution: "@consensys/on-ramp-sdk@npm:2.1.12"
   dependencies:
     async: "npm:^3.2.3"
     axios: "npm:^1.8.3"
@@ -2071,7 +2071,7 @@ __metadata:
     crypto-js: "npm:^4.2.0"
     reflect-metadata: "npm:^0.1.13"
     uuid: "npm:^9.0.0"
-  checksum: 10/f14dd36b82c7f804a8d5fcb0f91bdb4cf234aecb5c8c5008d25ad5deece52029feeff1605977042c279ea684c7aebb1db735b52b6e060a60c013db3f34c160af
+  checksum: 10/59c70f0cbec62a55e3de01422026600913b07c075f592f212cbd8e5fc11b9555d1da385a7f12704403e5d1bc21d0f3b0730b6ca37f0440a51c05d18ac5b1e7a9
   languageName: node
   linkType: hard
 
@@ -34204,7 +34204,7 @@ __metadata:
     "@babel/runtime": "npm:^7.25.0"
     "@config-plugins/detox": "npm:^9.0.0"
     "@consensys/native-ramps-sdk": "npm:2.1.5"
-    "@consensys/on-ramp-sdk": "npm:2.1.11"
+    "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.0"
     "@cucumber/message-streams": "npm:^4.0.1"
     "@cucumber/messages": "npm:^22.0.0"
