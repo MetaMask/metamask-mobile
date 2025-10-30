@@ -66,3 +66,44 @@ export const createMockOrderParams = () => ({
   amount: '0.1',
   price: '50000',
 });
+
+export const createMockOrder = (overrides = {}) => ({
+  orderId: 'order-1',
+  symbol: 'BTC',
+  side: 'buy' as const,
+  orderType: 'limit' as const,
+  size: '0.1',
+  originalSize: '0.1',
+  price: '50000',
+  filledSize: '0',
+  remainingSize: '0.1',
+  status: 'open' as const,
+  timestamp: Date.now(),
+  ...overrides,
+});
+
+export const createMockPosition = (overrides = {}) => ({
+  coin: 'BTC',
+  size: '0.5',
+  entryPrice: '50000',
+  positionValue: '25000',
+  unrealizedPnl: '100',
+  marginUsed: '1000',
+  leverage: { type: 'cross' as const, value: 25 },
+  liquidationPrice: '48000',
+  maxLeverage: 50,
+  returnOnEquity: '10',
+  cumulativeFunding: {
+    allTime: '0',
+    sinceOpen: '0',
+    sinceChange: '0',
+  },
+  roi: '10',
+  takeProfitPrice: undefined,
+  stopLossPrice: undefined,
+  takeProfitCount: 0,
+  stopLossCount: 0,
+  marketPrice: '50200',
+  timestamp: Date.now(),
+  ...overrides,
+});
