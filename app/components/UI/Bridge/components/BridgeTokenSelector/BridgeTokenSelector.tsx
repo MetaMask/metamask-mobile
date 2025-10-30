@@ -126,14 +126,20 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [selectedChainId, bridgeFeatureFlags]);
 
   const tokensWithBalance = useTokensWithBalance({ chainIds: displayChainIds });
+  // List of assetIds for assets with balance to be excluded from the popular tokens query
+  // Stringified to avoid triggering the useEffect when only balances change
+  const assetsWithBalanceAssetIds = useMemo(() => {
+    const assetIds = tokensWithBalance.map((token) =>
+      formatAddressToAssetId(token.address, token.chainId),
+    );
+    return JSON.stringify(assetIds);
+  }, [tokensWithBalance]);
 
   useEffect(() => {
     const fetchPopularTokens = async () => {
       setIsLoading(true);
 
-      // List of assetIds for assets with balance so we can exclude them from the popular tokens query
-      const assetsWithBalanceAssetIds = tokensWithBalance.map((token) => formatAddressToAssetId(token.address, token.chainId));
-
+      const excludeAssetIds = JSON.parse(assetsWithBalanceAssetIds);
       const response = await fetch(
         'https://bridge.dev-api.cx.metamask.io/getTokens/popular',
         {
@@ -143,23 +149,23 @@ export const BridgeTokenSelector: React.FC = () => {
           },
           body: JSON.stringify({
             chainIds: displayChainIds,
-            excludeAssetIds: assetsWithBalanceAssetIds,
+            excludeAssetIds,
           }),
         },
       );
       const popularAssets: PopularToken[] = await response.json();
       // Convert PopularToken to BridgeToken format for display
       const popularBridgeTokens: BridgeToken[] = popularAssets.map((asset) => ({
-          ...asset,
-          address: parseCaipAssetType(asset.assetId).assetReference,
-        }));
+        ...asset,
+        address: parseCaipAssetType(asset.assetId).assetReference,
+      }));
 
       setPopularTokens(popularBridgeTokens);
       setIsLoading(false);
     };
 
     fetchPopularTokens();
-  }, [selectedChainId, displayChainIds, tokensWithBalance]);
+  }, [selectedChainId, displayChainIds, assetsWithBalanceAssetIds]);
 
   const displayData = useMemo(() => {
     if (isLoading) {
