@@ -11,7 +11,7 @@ import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 
-const MULTI_CHAIN_TEST_DAPP_URL = 'https://test.cursedlab.xyz/';
+const MULTI_CHAIN_TEST_DAPP_URL = 'http://10.0.2.2:3000//test-dapp-multichain';
 const MULTI_CHAIN_TEST_DAPP_NAME = 'Multichain Test Dapp';
 
 test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
@@ -31,14 +31,9 @@ test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
     MULTI_CHAIN_TEST_DAPP_NAME,
   );
 
-  // TODO: add assertion to see the connection modal being displayed before tapping the connect button
-  await AppwrightGestures.scrollIntoView(
-    device,
-    DappConnectionModal.connectButton,
-  );
-
   // Connect to the dapp
-  await MultiChainTestDapp.tapConnectButton();
+  await MultiChainTestDapp.tapClearButton();
+  await MultiChainTestDapp.tapConnectMMCButton();
   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
   // Accept in MetaMask app
@@ -51,5 +46,9 @@ test('@metamask/sdk-connect - Connect to the dapp', async ({ device }) => {
 
   await launchMobileBrowser(device);
 
+  await AppwrightGestures.scrollIntoView(
+    device,
+    MultiChainTestDapp.connectedChainsHeader,
+  );
   await MultiChainTestDapp.isDappConnected();
 });
