@@ -60,7 +60,7 @@ const styleSheet = (params: {
     backgroundImage: {
       position: 'absolute',
       left: 90,
-      top: 40,
+      top: 30,
       width: '100%',
       height: '100%',
     },
