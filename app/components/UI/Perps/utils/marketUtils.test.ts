@@ -352,7 +352,7 @@ describe('marketUtils', () => {
       const result = getAssetIconUrl(symbol);
 
       expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:XYZ_TSLA.svg',
+        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
       );
     });
 
@@ -362,7 +362,7 @@ describe('marketUtils', () => {
       const result = getAssetIconUrl(symbol);
 
       expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:ABC_XYZ100.svg',
+        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Aabc_XYZ100.svg',
       );
     });
 
@@ -406,7 +406,7 @@ describe('marketUtils', () => {
       const result = getAssetIconUrl(symbol);
 
       expect(result).toBe(
-        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:XYZ_TSLA.svg',
+        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
       );
     });
   });

@@ -202,7 +202,7 @@ export const getMarketBadgeType = (
  * getAssetIconUrl('BTC') // → 'https://app.hyperliquid.xyz/coins/BTC.svg'
  *
  * @example HIP-3 asset
- * getAssetIconUrl('xyz:TSLA') // → 'https://raw.githubusercontent.com/.../hip3:xyz_TSLA.svg'
+ * getAssetIconUrl('xyz:TSLA') // → 'https://raw.githubusercontent.com/.../hip3%3Axyz_TSLA.svg'
  *
  * @example With k-prefix handling
  * getAssetIconUrl('kBONK', new Set(['KBONK'])) // → 'https://app.hyperliquid.xyz/coins/BONK.svg'
@@ -213,14 +213,16 @@ export const getAssetIconUrl = (
 ): string => {
   if (!symbol) return '';
 
-  let processedSymbol = symbol.toUpperCase();
-
-  // Check for HIP-3 asset (contains colon)
-  if (processedSymbol.includes(':')) {
-    // Replace colon with underscore: xyz:TSLA -> xyz_TSLA
-    const hip3Symbol = processedSymbol.replace(':', '_');
-    return `${HIP3_ASSET_ICONS_BASE_URL}hip3:${hip3Symbol}.svg`;
+  // Check for HIP-3 asset (contains colon) BEFORE uppercasing
+  if (symbol.includes(':')) {
+    const [dex, assetSymbol] = symbol.split(':');
+    // Keep DEX lowercase, uppercase asset: xyz:XYZ100 -> xyz_XYZ100
+    const hip3Symbol = `${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
+    return `${HIP3_ASSET_ICONS_BASE_URL}hip3%3A${hip3Symbol}.svg`;
   }
+
+  // For regular assets, uppercase the entire symbol
+  let processedSymbol = symbol.toUpperCase();
 
   // Remove 'k' prefix only for specific assets if provided
   if (kPrefixAssets?.has(processedSymbol)) {

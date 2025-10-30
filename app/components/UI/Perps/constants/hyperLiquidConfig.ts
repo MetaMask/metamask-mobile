@@ -60,7 +60,7 @@ export const HYPERLIQUID_ASSET_ICONS_BASE_URL =
 
 // HIP-3 asset icons base URL (for assets with dex:symbol format)
 export const HIP3_ASSET_ICONS_BASE_URL =
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/';
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/';
 
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
