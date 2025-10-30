@@ -8,6 +8,7 @@ import React, {
 import { StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { debounce } from 'lodash';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -62,6 +63,11 @@ interface PopularToken {
   symbol: string;
 }
 
+interface SearchTokensResponse {
+  data: PopularToken[];
+  cursor?: string;
+}
+
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
@@ -90,8 +96,10 @@ export const BridgeTokenSelector: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
   const [popularTokens, setPopularTokens] = useState<BridgeToken[]>([]);
+  const [searchResults, setSearchResults] = useState<BridgeToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchString, setSearchString] = useState<string>('');
+  const hasSearchedOnce = useRef(false);
 
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
@@ -135,6 +143,21 @@ export const BridgeTokenSelector: React.FC = () => {
     return JSON.stringify(assetIds);
   }, [tokensWithBalance]);
 
+  // Filter local tokens with balance based on search query
+  const filteredTokensWithBalance = useMemo(() => {
+    if (!searchString.trim()) {
+      return tokensWithBalance;
+    }
+
+    const searchLower = searchString.toLowerCase();
+    return tokensWithBalance.filter(
+      (token) =>
+        token.name?.toLowerCase().includes(searchLower) ||
+        token.symbol.toLowerCase().includes(searchLower) ||
+        token.address.toLowerCase().includes(searchLower),
+    );
+  }, [tokensWithBalance, searchString]);
+
   useEffect(() => {
     const fetchPopularTokens = async () => {
       setIsLoading(true);
@@ -167,13 +190,110 @@ export const BridgeTokenSelector: React.FC = () => {
     fetchPopularTokens();
   }, [selectedChainId, displayChainIds, assetsWithBalanceAssetIds]);
 
+  // Function to search tokens via API
+  const searchTokens = useCallback(
+    async (query: string, cursor?: string) => {
+      if (!query.trim()) {
+        // If query is empty, reset search state
+        setSearchResults([]);
+        hasSearchedOnce.current = false;
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const excludeAssetIds = JSON.parse(assetsWithBalanceAssetIds);
+
+        const requestBody: {
+          chainIds: CaipChainId[];
+          query: string;
+          after?: string;
+          excludeAssetIds?: string[];
+        } = {
+          chainIds: displayChainIds,
+          query: query.trim(),
+        };
+
+        if (cursor) {
+          requestBody.after = cursor;
+        }
+
+        if (excludeAssetIds) {
+          requestBody.excludeAssetIds = excludeAssetIds;
+        }
+
+        const response = await fetch(
+          'https://bridge.dev-api.cx.metamask.io/getTokens/search',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          },
+        );
+        const searchData: SearchTokensResponse = await response.json();
+
+        // Convert PopularToken to BridgeToken format for display
+        const searchBridgeTokens: BridgeToken[] = searchData.data.map(
+          (asset) => ({
+            ...asset,
+            address: parseCaipAssetType(asset.assetId).assetReference,
+          }),
+        );
+
+        setSearchResults(searchBridgeTokens);
+        hasSearchedOnce.current = true;
+      } catch (error) {
+        console.error('Error searching tokens:', error);
+        // Reset search state on error
+        setSearchResults([]);
+        hasSearchedOnce.current = true;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [displayChainIds, assetsWithBalanceAssetIds],
+  );
+
+  // Create debounced search function
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        searchTokens(query);
+      }, 300),
+    [searchTokens],
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(() => () => {
+      debouncedSearch.cancel();
+    }, [debouncedSearch]);
+
   const displayData = useMemo(() => {
     if (isLoading) {
       // Show 8 skeleton items while loading
       return Array(8).fill(null);
     }
+
+    // If we have a search query, show search results
+    if (searchString.trim()) {
+      return hasSearchedOnce.current
+        ? [...filteredTokensWithBalance, ...searchResults]
+        : filteredTokensWithBalance;
+    }
+
+    // Default: show tokens with balance and popular tokens
     return [...tokensWithBalance, ...popularTokens];
-  }, [isLoading, tokensWithBalance, popularTokens]);
+  }, [
+    isLoading,
+    searchString,
+    filteredTokensWithBalance,
+    searchResults,
+    tokensWithBalance,
+    popularTokens,
+  ]);
 
   const handleClose = () => {
     navigation.goBack();
@@ -181,11 +301,15 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleChainSelect = (chainId?: CaipChainId) => {
     setSelectedChainId(chainId);
+    // Reset search when changing network
+    setSearchString('');
+    setSearchResults([]);
+    hasSearchedOnce.current = false;
   };
 
   const handleSearchTextChange = (text: string) => {
     setSearchString(text);
-    // TODO: Implement token search functionality
+    debouncedSearch(text);
   };
 
   const handleTokenPress = useCallback(() => {
