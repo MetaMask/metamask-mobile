@@ -1,6 +1,9 @@
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
-import { buildPermissions , AnvilPort } from '../../../framework/fixtures/FixtureUtils.ts';
+import {
+  buildPermissions,
+  AnvilPort,
+} from '../../../framework/fixtures/FixtureUtils.ts';
 import Browser from '../../../pages/Browser/BrowserView.ts';
 import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions.ts';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes.ts';
@@ -20,6 +23,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
 import { Mockttp } from 'mockttp';
 import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -69,18 +73,19 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
             },
           ],
           fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-            const node = localNodes?.[0] as unknown as {
-              getPort?: () => number;
-            };
-            const anvilPort = node?.getPort ? node.getPort() : undefined;
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
 
             return new FixtureBuilder()
               .withNetworkController({
                 providerConfig: {
-                  chainId: '0x539',
-                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  chainId: LOCAL_CHAIN_ID,
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                   type: 'custom',
-                  nickname: 'Local RPC',
+                  nickname: LOCAL_CHAIN_NAME,
                   ticker: 'ETH',
                 },
               })
@@ -164,18 +169,19 @@ describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
             },
           ],
           fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-            const node = localNodes?.[0] as unknown as {
-              getPort?: () => number;
-            };
-            const anvilPort = node?.getPort ? node.getPort() : undefined;
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
 
             return new FixtureBuilder()
               .withNetworkController({
                 providerConfig: {
-                  chainId: '0x539',
-                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  chainId: LOCAL_CHAIN_ID,
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                   type: 'custom',
-                  nickname: 'Local RPC',
+                  nickname: LOCAL_CHAIN_NAME,
                   ticker: 'ETH',
                 },
               })

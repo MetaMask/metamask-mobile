@@ -10,6 +10,7 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode } from '../../framework/types';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
@@ -23,14 +24,17 @@ describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
           },
         ],
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',

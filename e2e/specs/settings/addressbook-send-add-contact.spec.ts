@@ -24,6 +24,7 @@ import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
@@ -82,14 +83,17 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',
@@ -134,14 +138,17 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',
@@ -175,16 +182,17 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
       await withFixtures(
         {
           fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-            const node = localNodes?.[0] as unknown as {
-              getPort?: () => number;
-            };
-            const anvilPort = node?.getPort ? node.getPort() : undefined;
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
 
             return new FixtureBuilder()
               .withNetworkController({
                 providerConfig: {
                   chainId: '0x539',
-                  rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                   type: 'custom',
                   nickname: 'Local RPC',
                   ticker: 'ETH',

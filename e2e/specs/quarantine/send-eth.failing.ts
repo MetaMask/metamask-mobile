@@ -14,6 +14,7 @@ import Assertions from '../../framework/Assertions';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(RegressionConfirmations('Send ETH'), () => {
@@ -30,14 +31,17 @@ describe(RegressionConfirmations('Send ETH'), () => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',
@@ -72,14 +76,17 @@ describe(RegressionConfirmations('Send ETH'), () => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',
@@ -117,14 +124,17 @@ describe(RegressionConfirmations('Send ETH'), () => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',

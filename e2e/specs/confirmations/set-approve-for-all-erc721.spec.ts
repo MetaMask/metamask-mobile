@@ -9,7 +9,10 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../framework/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import { buildPermissions , AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import {
+  buildPermissions,
+  AnvilPort,
+} from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -17,6 +20,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-respo
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
 import { LocalNode } from '../../framework/types';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -37,14 +41,17 @@ describe(RegressionConfirmations('ERC721 token'), () => {
           },
         ],
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',

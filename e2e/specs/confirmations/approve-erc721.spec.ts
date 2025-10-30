@@ -8,11 +8,15 @@ import { DappVariants } from '../../framework/Constants';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../framework/Assertions';
-import { buildPermissions , AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import {
+  buildPermissions,
+  AnvilPort,
+} from '../../framework/fixtures/FixtureUtils';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../framework/types';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -33,14 +37,17 @@ describe(RegressionConfirmations('ERC721 tokens'), () => {
           },
         ],
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as { getPort?: () => number };
-          const anvilPort = node?.getPort ? node.getPort() : undefined;
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
 
           return new FixtureBuilder()
             .withNetworkController({
               providerConfig: {
                 chainId: '0x539',
-                rpcUrl: `http://localhost:${anvilPort ?? AnvilPort()}`,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
                 type: 'custom',
                 nickname: 'Local RPC',
                 ticker: 'ETH',
