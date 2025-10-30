@@ -822,13 +822,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     }
 
     // Get current provider config to detect changes
+    // Use lastUpdateTimestamp as a proxy for provider re-initialization
     const controller = Engine.context.PerpsController;
     const providerState = controller.state;
     const currentConfig = JSON.stringify({
       isTestnet: providerState.isTestnet,
       activeProvider: providerState.activeProvider,
-      // Note: We can't access hip3EnabledFlag or enabledHIP3Dexs directly from state
-      // But activeProvider changing or isTestnet changing will force refetch
+      lastUpdateTimestamp: providerState.lastUpdateTimestamp,
     });
 
     // Fetch if cache is stale, empty, OR provider config changed
@@ -836,15 +836,18 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     const cached = this.cache.get('markets');
     const cacheAge = now - this.lastFetchTime;
     const configChanged = this.lastProviderConfig !== currentConfig;
-    
+
     if (!cached || cacheAge > this.CACHE_DURATION || configChanged) {
-      DevLogger.log('PerpsStreamManager: Cache miss, stale, or provider changed', {
-        hasCached: !!cached,
-        cacheAgeMs: cached ? cacheAge : null,
-        cacheExpired: cacheAge > this.CACHE_DURATION,
-        configChanged,
-        cacheDurationMs: this.CACHE_DURATION,
-      });
+      DevLogger.log(
+        'PerpsStreamManager: Cache miss, stale, or provider changed',
+        {
+          hasCached: !!cached,
+          cacheAgeMs: cached ? cacheAge : null,
+          cacheExpired: cacheAge > this.CACHE_DURATION,
+          configChanged,
+          cacheDurationMs: this.CACHE_DURATION,
+        },
+      );
       // Don't await - just trigger the fetch and handle errors
       this.fetchMarketData(currentConfig).catch((error) => {
         Logger.error(
@@ -932,7 +935,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   public async refresh(): Promise<void> {
     this.lastFetchTime = 0; // Force cache to be considered stale
     this.lastProviderConfig = null; // Force config refresh
-    
+
     // Get current config
     const controller = Engine.context.PerpsController;
     const providerState = controller.state;
@@ -940,7 +943,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       isTestnet: providerState.isTestnet,
       activeProvider: providerState.activeProvider,
     });
-    
+
     await this.fetchMarketData(currentConfig);
   }
 
@@ -964,7 +967,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       isTestnet: providerState.isTestnet,
       activeProvider: providerState.activeProvider,
     });
-    
+
     this.fetchMarketData(currentConfig).catch((error) => {
       Logger.error(error instanceof Error ? error : new Error(String(error)), {
         context: 'MarketDataChannel.prewarm',
@@ -998,6 +1001,12 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       // Send empty array to indicate "no market data" rather than "loading"
       subscriber.callback([]);
     });
+
+    // Trigger reconnect if we have active subscribers
+    // This ensures market data refetches after provider re-initialization
+    if (this.subscribers.size > 0) {
+      this.connect();
+    }
   }
 }
 

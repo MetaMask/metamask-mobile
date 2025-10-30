@@ -223,14 +223,20 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               Client Version: {getVersion() ?? 'N/A'}
             </Text>
             <Text variant={TextVariant.BodyMDMedium}>
-              Perps Controller Version:{' '}
-              {Engine.context.PerpsController.state.isTestnet}
+              Testnet: {String(Engine.context.PerpsController.state.isTestnet)}
             </Text>
             <Text variant={TextVariant.BodyMDMedium}>
-              Remote Feature Flags State:{' '}
+              HIP3 Enabled (Controller):{' '}
               {JSON.stringify(
-                Engine.context.RemoteFeatureFlagController.state
-                  .remoteFeatureFlags?.perpsEquityEnabled,
+                Engine.context.RemoteFeatureFlagController?.state
+                  ?.remoteFeatureFlags?.perpsEquityEnabled,
+              )}
+            </Text>
+            <Text variant={TextVariant.BodyMDMedium}>
+              HIP3 DEXs (Controller):{' '}
+              {JSON.stringify(
+                Engine.context.RemoteFeatureFlagController?.state
+                  ?.remoteFeatureFlags?.perpsEnabledDexs,
               )}
             </Text>
             {!isInitialLoading && hasNoPositionsOrOrders ? (

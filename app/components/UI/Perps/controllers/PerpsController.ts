@@ -54,6 +54,7 @@ import {
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import type {
   AccountState,
   AssetRoute,
@@ -1084,6 +1085,23 @@ export class PerpsController extends BaseController<
       } while (this.pendingReinitialization);
 
       this.isInitialized = true;
+
+      // Clear StreamManager market cache to force refetch with new provider configuration
+      // This ensures HIP-3 markets appear after remote feature flags enable them
+      try {
+        const streamManager = getStreamManagerInstance();
+        streamManager.marketData.clearCache();
+        DevLogger.log(
+          'PerpsController: Cleared StreamManager market cache after provider initialization',
+        );
+      } catch (error) {
+        // StreamManager might not be available in tests
+        DevLogger.log(
+          'PerpsController: Could not clear StreamManager cache',
+          error,
+        );
+      }
+
       DevLogger.log('PerpsController: Providers initialization complete', {
         providerCount: this.providers.size,
         activeProvider: this.state.activeProvider,
