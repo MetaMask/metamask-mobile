@@ -262,15 +262,6 @@ describe('Engine', () => {
           mainnet: [],
           testnet: [],
         },
-        marketFilterPreferences: 'volume',
-        tradeConfigurations: {
-          mainnet: {},
-          testnet: {},
-        },
-        watchlistMarkets: {
-          mainnet: [],
-          testnet: [],
-        },
       },
     };
 
