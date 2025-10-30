@@ -1334,14 +1334,9 @@ const Wallet = ({
     [styles.wrapper, isHomepageRedesignV1Enabled],
   );
 
-  const renderContent = useCallback(
-    () => (
-      <ScrollView
-        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-        contentContainerStyle={scrollViewContentStyle}
-        scrollEnabled={isHomepageRedesignV1Enabled}
-        showsVerticalScrollIndicator={false}
-      >
+  const renderContent = useCallback(() => {
+    const content = (
+      <>
         <AssetPollingProvider />
         <View style={styles.banner}>
           {!basicFunctionalityEnabled ? (
@@ -1389,29 +1384,46 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
+      </>
+    );
+
+    return isHomepageRedesignV1Enabled ? (
+      <ScrollView
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+        contentContainerStyle={scrollViewContentStyle}
+        showsVerticalScrollIndicator={false}
+      >
+        {content}
       </ScrollView>
-    ),
-    [
-      styles.banner,
-      styles.carousel,
-      scrollViewContentStyle,
-      basicFunctionalityEnabled,
-      defiEnabled,
-      isMultichainAccountsState2Enabled,
-      isHomepageRedesignV1Enabled,
-      turnOnBasicFunctionality,
-      onChangeTab,
-      navigation,
-      goToSwaps,
-      displayBuyButton,
-      displaySwapsButton,
-      onReceive,
-      onSend,
-      route.params,
-      isCarouselBannersEnabled,
-      collectiblesEnabled,
-    ],
-  );
+    ) : (
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+      >
+        {content}
+      </View>
+    );
+  }, [
+    styles.banner,
+    styles.carousel,
+    styles.wrapper,
+    scrollViewContentStyle,
+    basicFunctionalityEnabled,
+    defiEnabled,
+    isMultichainAccountsState2Enabled,
+    isHomepageRedesignV1Enabled,
+    turnOnBasicFunctionality,
+    onChangeTab,
+    navigation,
+    goToSwaps,
+    displayBuyButton,
+    displaySwapsButton,
+    onReceive,
+    onSend,
+    route.params,
+    isCarouselBannersEnabled,
+    collectiblesEnabled,
+  ]);
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>

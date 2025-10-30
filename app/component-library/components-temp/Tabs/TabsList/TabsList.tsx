@@ -416,7 +416,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
         setActiveIndex(tabIndex);
 
-        if (process.env.JEST_WORKER_ID && !loadedTabs.has(tabIndex)) {
+        if (
+          (process.env.JEST_WORKER_ID || process.env.E2E) &&
+          !loadedTabs.has(tabIndex)
+        ) {
           setLoadedTabs((prev) => new Set(prev).add(tabIndex));
         } else if (!loadedTabs.has(tabIndex)) {
           pendingTabToLoad.current = tabIndex;
@@ -579,7 +582,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
           setActiveIndex(tabIndex);
 
-          if (process.env.JEST_WORKER_ID && !loadedTabs.has(tabIndex)) {
+          if (
+            (process.env.JEST_WORKER_ID || process.env.E2E) &&
+            !loadedTabs.has(tabIndex)
+          ) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           } else if (!loadedTabs.has(tabIndex)) {
             pendingTabToLoad.current = tabIndex;
