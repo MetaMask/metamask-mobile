@@ -37,6 +37,8 @@ import {
   CONDITIONAL_TOKENS_CONTRACT_ADDRESS,
   POST_CASH_OUT_USDC_BALANCE_WEI,
   POST_CLAIM_USDC_BALANCE_WEI,
+  POLYGON_EIP7702_CONTRACT_ADDRESS,
+  EIP7702_CODE_FORMAT,
 } from './polymarket-constants';
 
 /**
@@ -703,15 +705,22 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         try {
           const bodyText = await request.body.getText();
           const body = bodyText ? JSON.parse(bodyText) : undefined;
-          const isUSDCBalanceCall =
-            body?.method === 'eth_call' &&
-            body?.params?.[0]?.to?.toLowerCase() ===
-              USDC_CONTRACT_ADDRESS.toLowerCase();
+          const isEthCall = body?.method === 'eth_call';
 
-          if (isUSDCBalanceCall) {
-            // USDC balance call intercepted
+          if (isEthCall) {
+            const toAddress = body?.params?.[0]?.to?.toLowerCase();
+            const isUSDCBalanceCall =
+              toAddress === USDC_CONTRACT_ADDRESS.toLowerCase();
+            const isProxyWalletCall =
+              toAddress === PROXY_WALLET_ADDRESS.toLowerCase() ||
+              toAddress === '0x254955be605cf7c4e683e92b157187550bd5e639';
+
+            // Match USDC balance calls, proxy wallet calls, and other contract calls
+            return isUSDCBalanceCall || isProxyWalletCall || Boolean(toAddress);
           }
-          return isUSDCBalanceCall;
+
+          // Also match other RPC methods like eth_getCode, eth_getBalance, etc.
+          return Boolean(body?.method);
         } catch (error) {
           return false;
         }
@@ -729,6 +738,7 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
 
       if (body?.method === 'eth_call') {
         const toAddress = body?.params?.[0]?.to;
+        const callData = body?.params?.[0]?.data;
 
         if (toAddress?.toLowerCase() === SAFE_FACTORY_ADDRESS.toLowerCase()) {
           // Safe Factory call - return proxy wallet address
@@ -748,6 +758,20 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
           CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()
         ) {
           result = MOCK_RPC_RESPONSES.APPROVAL_RESULT;
+        } else if (
+          toAddress?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() ||
+          toAddress?.toLowerCase() ===
+            '0x254955be605cf7c4e683e92b157187550bd5e639'
+        ) {
+          // Proxy wallet contract calls (handle both proxy wallet addresses)
+          if (callData?.toLowerCase()?.startsWith('0xaffed0e0')) {
+            // Function selector 0xaffed0e0 - likely checking batch support or version
+            // Return 0x6 (6 in decimal) as seen in HAR file
+            result =
+              '0x0000000000000000000000000000000000000000000000000000000000000006';
+          } else {
+            result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
+          }
         } else {
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
         }
@@ -761,6 +785,12 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         if (address?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase()) {
           // Return mock contract code for the proxy wallet (indicating it's deployed)
           result = MOCK_RPC_RESPONSES.CONTRACT_CODE_RESULT;
+        } else if (
+          address?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase()
+        ) {
+          // Return EIP-7702 format for user's EOA (indicating EIP-7702 upgrade)
+          // Format: 0xef01 (magic byte) + 00 (padding) + contract address
+          result = EIP7702_CODE_FORMAT(POLYGON_EIP7702_CONTRACT_ADDRESS);
         } else {
           // Return empty code for other addresses (indicating they're not contracts)
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
@@ -864,6 +894,137 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polygon Transaction Sentinel API
+ * Mocks the transaction simulation endpoint for Polygon mainnet
+ * This is used by the app to simulate transactions before sending them
+ */
+export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forPost('https://tx-sentinel-polygon-mainnet.api.cx.metamask.io/')
+    .asPriority(999)
+    .thenCallback(async (request) => {
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const transactions = body?.params?.[0]?.transactions || [];
+        const firstTx = transactions[0] || {};
+        const fromAddress =
+          firstTx.from?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
+
+        // Return a mock simulation response similar to the HAR file
+        // The response includes gas estimates and state diffs
+        return {
+          statusCode: 200,
+          json: {
+            jsonrpc: '2.0',
+            result: {
+              transactions: [
+                {
+                  return: '0x',
+                  status: '0x1',
+                  gasUsed: '0x94670',
+                  gasLimit: '0xa49f3',
+                  stateDiff: {
+                    post: {
+                      [PROXY_WALLET_ADDRESS.toLowerCase()]: {
+                        storage: {
+                          '0x0000000000000000000000000000000000000000000000000000000000000005':
+                            '0x0000000000000000000000000000000000000000000000000000000000000005',
+                        },
+                      },
+                      [USDC_CONTRACT_ADDRESS.toLowerCase()]: {
+                        storage: {
+                          '0x6c9d8da808c4176bc7760cdb6a5717fcd40ed188da2cbfe50d45ec0f9980e51f':
+                            '0x0000000000000000000000000000000000000000000000000000000928914141a40b6',
+                          '0xc20a2bd7b83aedfbab0323940b3903b738f93ec72467f2a031096f5984f2eef2':
+                            '0x000000000000000000000000000000000000000000000000000000009f65193',
+                        },
+                      },
+                      [CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()]: {
+                        storage: {},
+                      },
+                      [fromAddress]: {
+                        nonce: '0x8',
+                      },
+                    },
+                    pre: {
+                      [PROXY_WALLET_ADDRESS.toLowerCase()]: {
+                        balance: '0x0',
+                        nonce: '0x1',
+                        storage: {
+                          '0x0000000000000000000000000000000000000000000000000000000000000005':
+                            '0x0000000000000000000000000000000000000000000000000000000000000004',
+                        },
+                      },
+                      [USDC_CONTRACT_ADDRESS.toLowerCase()]: {
+                        balance: '0x732bcde9f95acaf',
+                        nonce: '0x1',
+                        storage: {
+                          '0x6c9d8da808c4176bc7760cdb6a5717fcd40ed188da2cbfe50d45ec0f9980e51f':
+                            '0x000000000000000000000000000000000000000000000000000000092891ae5c136',
+                          '0xc20a2bd7b83aedfbab0323940b3903b738f93ec72467f2a031096f5984f2eef2':
+                            '0x000000000000000000000000000000000000000000000000000000032ad113',
+                        },
+                      },
+                      [CONDITIONAL_TOKENS_CONTRACT_ADDRESS.toLowerCase()]: {
+                        balance: '0x0',
+                        nonce: '0x1',
+                        storage: {},
+                      },
+                      [fromAddress]: {
+                        balance: '0xbef99c35dbe4d92',
+                        nonce: '0x7',
+                      },
+                    },
+                  },
+                  callTrace: {
+                    from: fromAddress,
+                    to: fromAddress,
+                    type: 'CALL',
+                    gas: '0xa49f3',
+                    gasUsed: '0x94670',
+                    value: '0x0',
+                    input: firstTx.data || '0x',
+                    output: '0x',
+                    error: '',
+                    calls: null,
+                  },
+                },
+              ],
+              blockNumber: '0x4a9637e',
+              id: 'd1574ab9-ecba-4e33-bf48-b04388a25589',
+            },
+            id: body.id || '7',
+          },
+        };
+      } catch (error) {
+        // Return a basic success response if parsing fails
+        return {
+          statusCode: 200,
+          json: {
+            jsonrpc: '2.0',
+            result: {
+              transactions: [
+                {
+                  return: '0x',
+                  status: '0x1',
+                  gasUsed: '0x94670',
+                  gasLimit: '0xa49f3',
+                  stateDiff: {},
+                },
+              ],
+              blockNumber: '0x4a9637e',
+            },
+            id: '7',
+          },
+        };
+      }
+    });
+};
+
+/**
  * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, and value)
  * Returns data for proxy wallet: 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
@@ -875,6 +1036,13 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
+  await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
+  // Only user-specific data (positions, activity, UpNL) should be mocked
+};
+
+export const MOCK_BATCH_TRANSACTIONS = async (mockServer: Mockttp) => {
+  await POLYMARKET_USDC_BALANCE_MOCKS(mockServer, POST_CLAIM_USDC_BALANCE_WEI);
+  await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
   // Only user-specific data (positions, activity, UpNL) should be mocked
 };
 
@@ -1009,6 +1177,12 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
         if (address?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase()) {
           // Return mock contract code for the proxy wallet (indicating it's deployed)
           result = MOCK_RPC_RESPONSES.CONTRACT_CODE_RESULT;
+        } else if (
+          address?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase()
+        ) {
+          // Return EIP-7702 format for user's EOA (indicating EIP-7702 upgrade)
+          // Format: 0xef01 (magic byte) + 00 (padding) + contract address
+          result = EIP7702_CODE_FORMAT(POLYGON_EIP7702_CONTRACT_ADDRESS);
         } else {
           // Return empty code for other addresses (indicating they're not contracts)
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
@@ -1117,6 +1291,12 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (
         if (address?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase()) {
           // Return mock contract code for the proxy wallet (indicating it's deployed)
           result = MOCK_RPC_RESPONSES.CONTRACT_CODE_RESULT;
+        } else if (
+          address?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase()
+        ) {
+          // Return EIP-7702 format for user's EOA (indicating EIP-7702 upgrade)
+          // Format: 0xef01 (magic byte) + 00 (padding) + contract address
+          result = EIP7702_CODE_FORMAT(POLYGON_EIP7702_CONTRACT_ADDRESS);
         } else {
           // Return empty code for other addresses (indicating they're not contracts)
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
