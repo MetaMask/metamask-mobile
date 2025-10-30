@@ -18,7 +18,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -34,12 +33,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonSize as ButtonSizeHero,
+} from '@metamask/design-system-react-native';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { colors } = useTheme();
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -144,22 +146,20 @@ const PredictSellPreview = () => {
     }
 
     return (
-      <Button
+      <ButtonHero
         testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
-        label={
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
-            {strings('predict.cash_out')}
-          </Text>
-        }
-        variant={ButtonVariants.Secondary}
         disabled={!preview || isCalculating || isLoading}
         onPress={onCashOut}
         style={{
           ...styles.cashOutButton,
-          backgroundColor: colors.primary.default,
         }}
-        loading={isLoading}
-      />
+        isLoading={isLoading}
+        size={ButtonSizeHero.Lg}
+      >
+        <Text variant={TextVariant.BodyMDMedium}>
+          {strings('predict.cash_out')}
+        </Text>
+      </ButtonHero>
     );
   };
 

@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize as ButtonSizeHero,
   Icon,
   IconName,
   IconSize,
@@ -51,6 +52,7 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -346,29 +348,17 @@ const PredictBuyPreview = () => {
     }
 
     return (
-      <Button
-        label={
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
-            {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
-          </Text>
-        }
-        variant={ButtonVariants.Secondary}
+      <ButtonHero
         onPress={onPlaceBet}
-        style={tw.style(
-          outcomeToken?.title === 'Yes'
-            ? 'bg-success-default/15'
-            : 'bg-error-default/15',
-          outcomeToken?.title === 'Yes'
-            ? 'text-success-default'
-            : 'text-error-default',
-          !canPlaceBet && 'opacity-40',
-        )}
         disabled={!canPlaceBet}
-        loading={isLoading}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        labelTextVariant={TextVariant.BodyMD}
-      />
+        isLoading={isLoading}
+        size={ButtonSizeHero.Lg}
+        style={tw.style('w-full')}
+      >
+        <Text variant={TextVariant.BodyMDMedium}>
+          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+        </Text>
+      </ButtonHero>
     );
   };
 
