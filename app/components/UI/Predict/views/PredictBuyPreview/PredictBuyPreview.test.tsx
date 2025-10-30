@@ -444,12 +444,22 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
+      // Enter valid amount (minimum $1)
+      act(() => {
+        capturedOnChange?.({
+          value: '50',
+          valueAsNumber: 50,
+        });
+      });
+
       // Press done to show place bet button
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
       const placeBetButton = getByText('Yes · 50¢');
-      fireEvent.press(placeBetButton);
+      await act(async () => {
+        fireEvent.press(placeBetButton);
+      });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         providerId: 'polymarket',
@@ -912,6 +922,14 @@ describe('PredictBuyPreview', () => {
           state: initialState,
         },
       );
+
+      // Enter valid amount (minimum $1)
+      act(() => {
+        capturedOnChange?.({
+          value: '50',
+          valueAsNumber: 50,
+        });
+      });
 
       // Press done to show place bet button
       const doneButton = getByText('Done');

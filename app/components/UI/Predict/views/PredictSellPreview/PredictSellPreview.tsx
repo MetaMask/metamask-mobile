@@ -156,7 +156,7 @@ const PredictSellPreview = () => {
         isLoading={isLoading}
         size={ButtonSizeHero.Lg}
       >
-        <Text variant={TextVariant.BodyMDMedium}>
+        <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
           {strings('predict.cash_out')}
         </Text>
       </ButtonHero>
