@@ -8,13 +8,13 @@ import {
   TextColor,
   TextVariant,
   BoxAlignItems,
+  BoxBackgroundColor,
 } from '@metamask/design-system-react-native';
 import { StyleSheet } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import { getMarketHoursStatus } from '../../../utils/marketHours';
-import type { Theme } from '../../../../../../util/theme/models';
 
 interface MarketHoursContentProps extends TooltipContentProps {
   data?: {
@@ -22,10 +22,10 @@ interface MarketHoursContentProps extends TooltipContentProps {
   };
 }
 
-const styleSheet = (params: { theme: Theme }) =>
+const styleSheet = () =>
   StyleSheet.create({
     iconContainer: {
-      marginTop: 8,
+      marginTop: 16,
       marginBottom: 16,
     },
     titleContainer: {
@@ -35,7 +35,6 @@ const styleSheet = (params: { theme: Theme }) =>
       marginBottom: 16,
     },
     countdownPill: {
-      backgroundColor: params.theme.colors.background.alternative,
       borderRadius: 52,
       paddingHorizontal: 16,
       paddingVertical: 8,
@@ -82,7 +81,7 @@ const MarketHoursContent = ({ testID, data }: MarketHoursContentProps) => {
     <Box testID={testID}>
       {/* Clock Icon */}
       <Box alignItems={BoxAlignItems.Center} style={styles.iconContainer}>
-        <Icon name={IconName.Clock} size={IconSize.Lg} />
+        <Icon name={IconName.Clock} size={IconSize.Xl} />
       </Box>
 
       {/* Title */}
@@ -92,7 +91,10 @@ const MarketHoursContent = ({ testID, data }: MarketHoursContentProps) => {
 
       {/* Countdown Pill */}
       <Box alignItems={BoxAlignItems.Center} style={styles.countdownContainer}>
-        <Box style={styles.countdownPill}>
+        <Box
+          style={styles.countdownPill}
+          backgroundColor={BoxBackgroundColor.BackgroundMuted}
+        >
           <Text variant={TextVariant.BodyMd}>
             <Text color={TextColor.TextAlternative}>{countdownLabel} </Text>
             <Text color={TextColor.TextDefault}>
@@ -103,7 +105,7 @@ const MarketHoursContent = ({ testID, data }: MarketHoursContentProps) => {
       </Box>
 
       {/* Body Text */}
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
         {strings(contentKey)}
       </Text>
     </Box>

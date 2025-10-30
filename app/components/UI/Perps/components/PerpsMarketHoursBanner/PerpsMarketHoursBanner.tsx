@@ -11,23 +11,24 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  BoxBackgroundColor,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { Pressable, StyleSheet } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import type { PerpsMarketHoursBannerProps } from './PerpsMarketHoursBanner.types';
-import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) =>
+const styleSheet = () =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 16,
       marginBottom: 16,
     },
     banner: {
-      backgroundColor: params.theme.colors.background.alternative,
+      // backgroundColor: params.theme.colors.background.alternative,
       borderRadius: 12,
-      paddingHorizontal: 16,
+      paddingHorizontal: 12,
       paddingVertical: 12,
     },
     contentRow: {
@@ -36,14 +37,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     textContainer: {
       flex: 1,
-    },
-    subtitle: {
-      marginTop: 4,
-    },
-    infoButton: {
-      marginLeft: 8,
-      padding: 8,
-      borderRadius: 20,
     },
   });
 
@@ -76,7 +69,10 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
 
   return (
     <Box style={styles.container} testID={testID}>
-      <Box style={styles.banner}>
+      <Box
+        style={styles.banner}
+        backgroundColor={BoxBackgroundColor.BackgroundMuted}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -87,13 +83,12 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
             alignItems={BoxAlignItems.Center}
             style={styles.contentRow}
           >
-            <Icon name={IconName.Clock} size={IconSize.Md} />
+            <Icon name={IconName.Clock} size={IconSize.Lg} />
             <Box style={styles.textContainer}>
               <Text variant={TextVariant.BodyMd}>{titleText}</Text>
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                style={styles.subtitle}
               >
                 {subtitleText}
               </Text>
@@ -101,11 +96,14 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
           </Box>
           <Pressable
             onPress={onInfoPress}
-            style={styles.infoButton}
             testID={`${testID}-info-button`}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon name={IconName.Info} size={IconSize.Md} />
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Md}
+              color={IconColor.IconAlternative}
+            />
           </Pressable>
         </Box>
       </Box>
