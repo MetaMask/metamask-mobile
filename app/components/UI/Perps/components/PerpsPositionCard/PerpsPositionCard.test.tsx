@@ -84,7 +84,6 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
   usePerpsLivePositions: jest.fn(() => ({})),
 }));
 
@@ -117,6 +116,7 @@ jest.mock('../../hooks', () => ({
     handleClosePosition: jest.fn().mockResolvedValue(undefined),
     isClosing: false,
   }),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock PerpsTPSLView to avoid PerpsConnectionProvider requirement
@@ -236,6 +236,17 @@ describe('PerpsPositionCard', () => {
       ],
       error: null,
       isLoading: false,
+    });
+
+    // Mock usePerpsLivePrices to return live price data for ETH
+    const { usePerpsLivePrices } = jest.requireMock('../../hooks');
+    usePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '2100.50',
+        timestamp: Date.now(),
+        percentChange24h: '2.5',
+      },
     });
 
     // Default eligibility mock
@@ -1158,7 +1169,7 @@ describe('PerpsPositionCard', () => {
         Routes.PERPS.PNL_HERO_CARD,
         expect.objectContaining({
           position: mockPosition,
-          marketPrice: '$2,000.00',
+          marketPrice: '2100.50',
         }),
       );
     });
@@ -1178,7 +1189,7 @@ describe('PerpsPositionCard', () => {
         expect.anything(),
         expect.objectContaining({
           position: mockPosition,
-          marketPrice: '$2,000.00',
+          marketPrice: '2100.50', // Live price from usePerpsLivePrices, not market data
         }),
       );
     });

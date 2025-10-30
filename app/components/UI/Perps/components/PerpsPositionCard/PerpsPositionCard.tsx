@@ -33,7 +33,11 @@ import type {
   Position,
   TPSLTrackingData,
 } from '../../controllers/types';
-import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
+import {
+  usePerpsLivePrices,
+  usePerpsMarkets,
+  usePerpsTPSLUpdate,
+} from '../../hooks';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   formatPerpsFiat,
@@ -94,6 +98,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const absoluteSize = Math.abs(parseFloat(position.size));
 
   const { markets, error, isLoading } = usePerpsMarkets();
+
+  const livePrices = usePerpsLivePrices({ symbols: [position.coin] });
 
   const marketData = useMemo(
     () => markets.find((market) => market.symbol === position.coin),
@@ -183,7 +189,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const handleSharePress = () => {
     navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
       position,
-      marketPrice: marketData?.price,
+      marketPrice: livePrices[position.coin]?.price,
     });
   };
 
