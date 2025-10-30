@@ -40,7 +40,7 @@ async function changeNetworkFromNetworkListModalGNSDisabled(
   await NetworkListModal.changeNetworkTo(networkName);
 }
 
-describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
+describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
@@ -58,7 +58,7 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   });
 
   itif(isRemoveGlobalNetworkSelectorEnabled)(
-    'submits a transaction to a dApp selected network',
+    'submits a transaction to a dapp-specific selected network',
     async () => {
       await withFixtures(
         {
@@ -120,7 +120,7 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   );
 });
 
-describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
+describe(RegressionConfirmations('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
@@ -138,7 +138,7 @@ describe(RegressionConfirmations('Per Dapp Selected Network'), () => {
   });
 
   itif(isRemoveGlobalNetworkSelectorEnabled)(
-    'submits a transaction to a dApp selected network',
+    'submits a transaction to a dapp-specific selected network',
     async () => {
       await withFixtures(
         {
