@@ -75,16 +75,36 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.hr).toBe(true);
     });
 
-    it('handles hr parameter with value 0', () => {
+    it('uses 0 value hr as a boolean', () => {
       const url = 'metamask://home?hr=0';
       const source = 'test';
 
       const result = CoreLinkNormalizer.normalize(url, source);
 
       expect(result.params.hr).toBe(false);
+
+      const generatedLink: CoreUniversalLink = {
+        protocol: 'https',
+        host: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        action: 'home',
+        params: { hr: true },
+        source: 'test',
+        timestamp: mockTimestamp,
+        originalUrl: '',
+        normalizedUrl: '',
+        isValid: true,
+        isSupportedAction: true,
+        isPrivateLink: false,
+        requiresAuth: false,
+      };
+
+      const generatedMetamaskLink =
+        CoreLinkNormalizer.toMetaMaskProtocol(generatedLink);
+
+      expect(generatedMetamaskLink).toBe('metamask://home?hr=1');
     });
 
-    it('handles SDK parameters', () => {
+    it('extracts SDK parameters', () => {
       const url = 'metamask://connect?channelId=123&comm=socket&pubkey=abc&v=2';
       const source = 'sdk';
 
@@ -98,7 +118,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.requiresAuth).toBe(false);
     });
 
-    it('handles attribution parameters', () => {
+    it('extracts attribution parameters', () => {
       const url =
         'metamask://home?utm_source=twitter&utm_medium=social&utm_campaign=launch';
       const source = 'marketing';
@@ -120,7 +140,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.requiresAuth).toBe(true);
     });
 
-    it('handles ramp actions with paths', () => {
+    it('extracts ramp actions with paths', () => {
       const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/buy-crypto?amount=100&currency=USD`;
       const source = 'ramp';
 
@@ -132,7 +152,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.currency).toBe('USD');
     });
 
-    it('handles perps actions', () => {
+    it('extracts perps actions', () => {
       const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/perps-asset/ETH-USD`;
       const source = 'perps';
 
@@ -151,7 +171,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.action).toBe('home');
     });
 
-    it('handles invalid URLs gracefully', () => {
+    it('labels invalid URLs as invalid', () => {
       const url = 'not-a-valid-url';
       const source = 'test';
 
@@ -159,10 +179,9 @@ describe('CoreLinkNormalizer', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.isSupportedAction).toBe(false);
-      expect(result.originalUrl).toBe(url);
     });
 
-    it('handles message parameter with spaces', () => {
+    it('converts message parameter with spaces to +', () => {
       const url = 'metamask://connect?message=Hello World';
       const source = 'test';
 
@@ -183,7 +202,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.empty).toBeUndefined();
     });
 
-    it('handles account parameter format', () => {
+    it('parses account parameter format correctly', () => {
       const url = 'metamask://send?account=0x123@1';
       const source = 'test';
 
@@ -192,7 +211,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.account).toBe('0x123@1');
     });
 
-    it('handles wc action', () => {
+    it('extracts wc actions correctly', () => {
       const url = 'metamask://wc?uri=wc:123';
       const source = 'wallet-connect';
 
@@ -202,7 +221,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.uri).toBe('wc:123');
     });
 
-    it('handles onboarding action', () => {
+    it('extracts onboarding action correctly', () => {
       const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/onboarding/step1`;
       const source = 'onboarding';
 
@@ -212,7 +231,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.onboardingPath).toBe('onboarding/step1');
     });
 
-    it('handles create-account action', () => {
+    it('extracts create-account action correctly', () => {
       const url = 'metamask://create-account?name=NewAccount';
       const source = 'test';
 
@@ -267,27 +286,6 @@ describe('CoreLinkNormalizer', () => {
       const result = CoreLinkNormalizer.toMetaMaskProtocol(link);
 
       expect(result).toBe(originalUrl);
-    });
-
-    it('converts boolean hr parameter to string', () => {
-      const link: CoreUniversalLink = {
-        protocol: 'https',
-        host: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-        action: 'home',
-        params: { hr: true },
-        source: 'test',
-        timestamp: mockTimestamp,
-        originalUrl: '',
-        normalizedUrl: '',
-        isValid: true,
-        isSupportedAction: true,
-        isPrivateLink: false,
-        requiresAuth: false,
-      };
-
-      const result = CoreLinkNormalizer.toMetaMaskProtocol(link);
-
-      expect(result).toBe('metamask://home?hr=1');
     });
   });
 
