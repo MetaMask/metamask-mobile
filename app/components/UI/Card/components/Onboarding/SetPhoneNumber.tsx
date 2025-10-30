@@ -45,7 +45,7 @@ const SetPhoneNumber = () => {
       .map((country) => ({
         key: country.iso3166alpha2,
         value: country.callingCode,
-        label: `+${country.callingCode} (${country.name})`,
+        label: `+${country.callingCode} ${country.name}`,
       }));
   }, [registrationSettings]);
 
