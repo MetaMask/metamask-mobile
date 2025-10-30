@@ -35,6 +35,7 @@ jobs:
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
+      CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
@@ -122,9 +123,9 @@ jobs:
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
-            android-apk-${{ inputs.build_type }}-
+            android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-
             android-apk-
 
       - name: Build Android E2E APKs
@@ -237,7 +238,7 @@ jobs:
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk
