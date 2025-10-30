@@ -51,5 +51,16 @@ export const DEFAULT_GAS_API_MOCKS: MockEventsObject = {
         FastGasPrice: '0',
       },
     },
+    {
+      urlEndpoint:
+        /^https:\/\/gas\.api\.cx\.metamask\.io\/\d+\/supportedNetworks$/,
+      responseCode: 200,
+      response: {
+        fullSupport: [1],
+        partialSupport: {
+          optimism: [10],
+        },
+      },
+    },
   ],
 };
