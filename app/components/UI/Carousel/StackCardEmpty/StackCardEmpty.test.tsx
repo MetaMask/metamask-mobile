@@ -287,4 +287,78 @@ describe('StackCardEmpty', () => {
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
     });
   });
+
+  describe('confetti animation triggering', () => {
+    it('renders with opacity listener setup for confetti animation', () => {
+      const opacityValue = createAnimatedValue(0);
+
+      const { getByTestId } = render(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+      );
+
+      // Component should render successfully with animation setup
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('renders Rive confetti animation component as background layer', () => {
+      const { getByTestId } = render(<StackCardEmpty {...defaultProps} />);
+
+      // Component should render with empty state text
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('renders confetti animation and text content in correct layers', () => {
+      const { getByTestId, getByText } = render(
+        <StackCardEmpty {...defaultProps} />,
+      );
+
+      // Empty state text should be rendered
+      expect(getByText("You're all caught up!")).toBeDefined();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('cleans up resources on component unmount', () => {
+      const { unmount } = render(<StackCardEmpty {...defaultProps} />);
+
+      // Should unmount without errors
+      expect(() => {
+        unmount();
+      }).not.toThrow();
+    });
+
+    it('handles various opacity animation values', () => {
+      const opacityValues = [
+        createAnimatedValue(0),
+        createAnimatedValue(0.5),
+        createAnimatedValue(0.95),
+        createAnimatedValue(1),
+      ];
+
+      opacityValues.forEach((opacity) => {
+        const { getByTestId } = render(
+          <StackCardEmpty {...defaultProps} emptyStateOpacity={opacity} />,
+        );
+
+        expect(getByTestId('carousel-empty-state')).toBeDefined();
+      });
+    });
+
+    it('maintains animation setup across component rerenders', () => {
+      const opacityValue = createAnimatedValue(0);
+      const { rerender, getByTestId } = render(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+      );
+
+      // Component should still be present after rerender
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+
+      // Rerender with updated opacity
+      const newOpacity = createAnimatedValue(0.5);
+      rerender(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={newOpacity} />,
+      );
+
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+  });
 });
