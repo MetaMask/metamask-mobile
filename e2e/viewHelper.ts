@@ -5,7 +5,6 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
-import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/Onboarding/SkipAccountSecurityModal';
@@ -14,7 +13,6 @@ import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
-import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './framework/fixtures/FixtureUtils';
 import Assertions from './framework/Assertions';
@@ -241,13 +239,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   });
   await ManualBackupStep1View.tapOnRemindMeLaterButton();
 
-  // This should be removed once we implement mockAll
-  await device.disableSynchronization();
-  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-  await SkipAccountSecurityModal.tapSkipButton();
-  // This should be removed once we implement mockAll
-  await device.enableSynchronization();
-
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
@@ -276,8 +267,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
  * @returns {Promise<void>} Resolves when the Localhost network is added to the user's network list.
  */
 export const addLocalhostNetwork = async () => {
-  await TabBarComponent.tapSettings();
-  await SettingsView.tapNetworks();
+  // Access network list from wallet view (network switcher)
+  await WalletView.tapNetworksButtonOnNavBar();
+
   await Assertions.expectElementToBeVisible(NetworkView.networkContainer, {
     description: 'Network Container should be visible',
   });

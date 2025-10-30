@@ -245,7 +245,7 @@ export const selectWalletByAccount = createSelector(
       if (!wallets) return null;
 
       const walletId = accountToWalletMap[accountId];
-      return walletId ? wallets[walletId] ?? null : null;
+      return walletId ? (wallets[walletId] ?? null) : null;
     },
 );
 
