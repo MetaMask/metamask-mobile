@@ -14,12 +14,5 @@ export default {
     }),
   },
   remoteCacheProvider: 'github-actions',
-  fingerprint: {
-    env: [
-      'METAMASK_ENVIRONMENT',
-      'METAMASK_BUILD_TYPE',
-      'E2E',
-    ],
-  },
 };
 
