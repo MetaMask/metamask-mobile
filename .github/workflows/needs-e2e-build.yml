@@ -102,12 +102,11 @@ jobs:
               - 'wdio.conf.js'                     # WebDriver config
               - 'appwright/**'                     # Appwright test files
               - 'scripts/build.sh'                 # Build script triggers rebuilds
+              - '.github/**'                       # GitHub workflow changes
 
             ignore:
               - '**/*.md'                          # Documentation files
               - 'docs/**'                          # Documentation directory
-              - '**/*.yml'                         # Workflow files
-              - '.github/**'                       # GitHub workflow changes
               - 'LICENSE'                          # License file
               - 'README.md'                        # Main README
               - 'RELEASE.MD'                       # Release notes
