@@ -162,7 +162,7 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.perpsPath).toBe('perps-asset/ETH-USD');
     });
 
-    it('defaults to home action when no action specified', () => {
+    it('defaults to home action', () => {
       const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`;
       const source = 'test';
 

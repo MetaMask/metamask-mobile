@@ -197,7 +197,7 @@ export class CoreLinkNormalizer {
 
     // Clean up message parameter
     if (params.message) {
-      params.message = params.message.replace(/ /g, '+');
+      params.message = encodeURIComponent(params.message);
     }
 
     return params;
