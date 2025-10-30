@@ -53,7 +53,7 @@ export const DEFAULT_GAS_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/gas\.api\.cx\.metamask\.io\/\d+\/supportedNetworks$/,
+        /^https:\/\/gas\.api\.cx\.metamask\.io\/v1\/supportedNetworks$/,
       responseCode: 200,
       response: {
         fullSupport: [1],
