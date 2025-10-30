@@ -2316,7 +2316,7 @@ workflows:
     steps:
       - file-downloader@1:
           inputs:
-            - source: $KEYSTORE_FILE_PATH
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - restore-gradle-cache@2: {}
