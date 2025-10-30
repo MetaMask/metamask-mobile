@@ -249,9 +249,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   const isPerpsEnabled = useMemo(
     () =>
       isPerpsFlagEnabled &&
@@ -494,15 +491,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   return (
     <View style={styles.tabContainer}>
-      <TabsList
-        key={tabsKey}
-        ref={tabsListRef}
-        onChangeTab={handleTabChange}
-        autoHeight={isHomepageRedesignV1Enabled}
-        tabsListContentTwClassName={
-          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
-        }
-      >
+      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
         {tabsToRender}
       </TabsList>
     </View>
