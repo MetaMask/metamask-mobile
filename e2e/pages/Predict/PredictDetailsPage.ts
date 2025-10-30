@@ -1,4 +1,5 @@
 import { Matchers, Gestures } from '../../framework';
+import enContent from '../../../locales/languages/en.json';
 import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
@@ -32,6 +33,14 @@ class PredictDetailsPage {
       PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
     );
   }
+  get balanceCard(): DetoxElement {
+    return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
+  }
+
+  get withdrawButton(): DetoxElement {
+    return Matchers.getElementByText(enContent.predict.deposit.withdraw);
+  }
+
   async tapBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button',
@@ -56,6 +65,12 @@ class PredictDetailsPage {
   async tapCashOutButton(): Promise<void> {
     await Gestures.waitAndTap(this.cashOutButton, {
       elemDescription: 'Cash out button',
+    });
+  }
+
+  async tapWithdrawButton(): Promise<void> {
+    await Gestures.waitAndTap(this.withdrawButton, {
+      elemDescription: 'Withdraw button',
     });
   }
 }
