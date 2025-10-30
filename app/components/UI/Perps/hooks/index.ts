@@ -8,6 +8,9 @@ export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 export { usePerpsWithdrawStatus } from './usePerpsWithdrawStatus';
 export { usePerpsWithdrawProgress } from './usePerpsWithdrawProgress';
 
+// View-level composite hooks (combining multiple hooks for specific views)
+export { usePerpsNavigation } from './usePerpsNavigation';
+
 // Connection management hooks
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 export { usePerpsConnection } from './usePerpsConnection';
