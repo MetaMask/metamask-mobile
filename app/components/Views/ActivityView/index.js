@@ -291,8 +291,8 @@ const ActivityView = () => {
                       >
                         {enabledNetworks.length > 1
                           ? strings('wallet.popular_networks')
-                          : currentNetworkName ??
-                            strings('wallet.current_network')}
+                          : (currentNetworkName ??
+                            strings('wallet.current_network'))}
                       </TextComponent>
                     </View>
                   ) : (
@@ -303,7 +303,7 @@ const ActivityView = () => {
                     >
                       {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
                         ? strings('wallet.popular_networks')
-                        : networkName ?? strings('wallet.current_network')}
+                        : (networkName ?? strings('wallet.current_network'))}
                     </TextComponent>
                   )}
                 </>
@@ -362,6 +362,7 @@ const ActivityView = () => {
           {isPredictEnabled && (
             <PredictTransactionsView
               tabLabel={strings('predict.transactions.title')}
+              isVisible={isPredictTabActive}
             />
           )}
         </ScrollableTabView>

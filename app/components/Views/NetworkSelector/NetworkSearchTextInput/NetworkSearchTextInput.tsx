@@ -46,15 +46,15 @@ function NetworkSearchTextInput({
   const inputStylesWhichAreFeatureFlagged = !isNetworkUiRedesignEnabled()
     ? styles.input
     : isSearchFieldFocused
-    ? styles.input
-    : styles.unfocusedInput;
+      ? styles.input
+      : styles.unfocusedInput;
 
   const containerInputStylesWhichAreFeatureFlagged =
     !isNetworkUiRedesignEnabled()
       ? styles.inputWrapper
       : isSearchFieldFocused
-      ? styles.focusedInputWrapper
-      : styles.inputWrapper;
+        ? styles.focusedInputWrapper
+        : styles.inputWrapper;
 
   return (
     <View style={containerInputStylesWhichAreFeatureFlagged}>
