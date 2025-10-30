@@ -485,8 +485,6 @@ enum EVENT_NAME {
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 
-  // NFT auto detection events
-  NFT_AUTO_DETECTION_ENABLED = 'Nft Autodetection Enabled',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
   // Backup and sync
@@ -1140,10 +1138,6 @@ const events = {
   // Nft auto detection modal
   MULTI_RPC_MIGRATION_MODAL_ACCEPTED: generateOpt(
     EVENT_NAME.MULTI_RPC_MIGRATION_MODAL_ACCEPTED,
-  ),
-  // Nft detection event
-  NFT_AUTO_DETECTION_ENABLED: generateOpt(
-    EVENT_NAME.NFT_AUTO_DETECTION_ENABLED,
   ),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
   // Backup and sync
