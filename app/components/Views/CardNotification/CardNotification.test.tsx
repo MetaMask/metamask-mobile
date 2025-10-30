@@ -53,7 +53,7 @@ describe('CardNotification', () => {
     await waitFor(() => {
       expect(toastRef.current.showToast).toHaveBeenCalledWith({
         variant: ToastVariants.Icon,
-        labelOptions: [{ label: 'card.card_home.card_button_enabled_toast' }],
+        labelOptions: [{ label: 'card.card_button_enabled_toast' }],
         hasNoTimeout: false,
         iconName: IconName.Info,
       });
@@ -104,7 +104,7 @@ describe('CardNotification', () => {
 
     await waitFor(() => {
       expect(mockStrings).toHaveBeenCalledWith(
-        'card.card_home.card_button_enabled_toast',
+        'card.card_button_enabled_toast',
       );
       expect(toastRef.current.showToast).toHaveBeenCalled();
     });
