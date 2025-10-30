@@ -358,7 +358,10 @@ const UnifiedTransactionsView = ({
     currentEvmChainId,
   ]);
 
-  const firstBlockExplorer = useBlockExplorer(enabledEVMChainIds[0]);
+  const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
+  const firstBlockExplorer = useBlockExplorer(
+    hasEvmChainsEnabled ? enabledEVMChainIds[0] : undefined,
+  );
 
   const configBlockExplorerUrl = useMemo(() => {
     // When using the per-dapp/multiselect network selector, only return a block
@@ -381,20 +384,24 @@ const UnifiedTransactionsView = ({
   }, [enabledEVMChainIds, evmNetworkConfigurationsByChainId]);
 
   const blockExplorerUrl = useMemo(() => {
+    // TODO: We should make sure configBlockExplorerUrl contains all blockexplorer needed
+    // This workaround was added to fix the issue, but it's not a good solution to have to different
+    // sources of truth for block explorer urls.
     if (configBlockExplorerUrl) {
       return configBlockExplorerUrl;
     }
-    return (
-      firstBlockExplorer.getBlockExplorerUrl(selectedAccountGroupEvmAddress) ||
-      undefined
-    );
+    return hasEvmChainsEnabled
+      ? firstBlockExplorer.getBlockExplorerUrl(
+          selectedAccountGroupEvmAddress,
+        ) || undefined
+      : undefined;
   }, [
     configBlockExplorerUrl,
     firstBlockExplorer,
     selectedAccountGroupEvmAddress,
+    hasEvmChainsEnabled,
   ]);
 
-  const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
   const hasNonEvmChainsEnabled = enabledNonEVMChainIds.length > 0;
 
   const showEvmFooter = hasEvmChainsEnabled && !hasNonEvmChainsEnabled;
@@ -421,7 +428,9 @@ const UnifiedTransactionsView = ({
       }
     } else {
       url = blockExplorerUrl;
-      title = firstBlockExplorer.getBlockExplorerName(enabledEVMChainIds[0]);
+      title = hasEvmChainsEnabled
+        ? firstBlockExplorer.getBlockExplorerName(enabledEVMChainIds[0])
+        : undefined;
     }
 
     navigation.navigate('Webview', {
@@ -439,6 +448,7 @@ const UnifiedTransactionsView = ({
     firstBlockExplorer,
     enabledEVMChainIds,
     configBlockExplorerUrl,
+    hasEvmChainsEnabled,
   ]);
 
   const allNonEvmChainsAreSolana = useMemo(
