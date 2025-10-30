@@ -1,5 +1,10 @@
 # This workflow is used to detect changes in the Android and iOS projects.
 # It can be used to determine if the build should be triggered for the Android and iOS projects.
+#
+# Control Mechanisms:
+# - [skip-e2e] commit tag or 'skip-e2e' PR label: Skip E2E builds entirely
+# - [force-e2e] commit tag or 'force-e2e' PR label: Force E2E builds for both platforms (for testing)
+#
 # Outputs:
 # - android_changed: Whether Android-impacting files changed
 # - ios_changed: Whether iOS-impacting files changed
@@ -62,6 +67,29 @@ jobs:
           if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -qx "skip-e2e"; then
             echo "SKIP=true" >> "$GITHUB_OUTPUT"
             echo "-> SKIP=true due to 'skip-e2e' label on PR"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Check force commit tag
+        id: force-tag
+        run: |
+          echo "FORCE=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            if git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[force-e2e]'; then
+              echo "FORCE=true" >> "$GITHUB_OUTPUT"
+              echo "-> FORCE=true due to [force-e2e] tag in last commit message"
+            fi
+          fi
+
+      - name: Check force label
+        id: force-label
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "FORCE=false" >> "$GITHUB_OUTPUT"
+          if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -qx "force-e2e"; then
+            echo "FORCE=true" >> "$GITHUB_OUTPUT"
+            echo "-> FORCE=true due to 'force-e2e' label on PR"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
@@ -134,6 +162,7 @@ jobs:
           # Compute outputs using Node script
           GITHUB_EVENT_NAME="${{ github.event_name }}"
           SHOULD_SKIP_E2E="${{ steps.skip-tag.outputs.SKIP == 'true' || steps.skip-label.outputs.SKIP == 'true' }}"
+          SHOULD_FORCE_E2E="${{ steps.force-tag.outputs.FORCE == 'true' || steps.force-label.outputs.FORCE == 'true' }}"
 
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             ANDROID=""
@@ -151,6 +180,7 @@ jobs:
 
           GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" \
           SHOULD_SKIP_E2E="$SHOULD_SKIP_E2E" \
+          SHOULD_FORCE_E2E="$SHOULD_FORCE_E2E" \
           ANDROID="$ANDROID" \
           IOS="$IOS" \
           SHARED="$SHARED" \
