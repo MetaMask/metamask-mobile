@@ -22,11 +22,28 @@ import { Box } from '@metamask/design-system-react-native';
 import TabsBar from '../TabsBar';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
+// Timing constants for tab transitions and height measurements
+// These values are tuned to balance animation smoothness with responsiveness
+
+// Time to wait after scroll ends before measuring height (allows scroll animation to complete)
 const SCROLL_SETTLE_DELAY = 200;
+
+// Debounce delay for height measurements of already-loaded tabs (prevents excessive measurements)
 const HEIGHT_MEASURE_DELAY = 100;
+
+// Delay for measuring newly-loaded tab content (allows content to render before measuring)
 const NEW_TAB_MEASURE_DELAY = 250;
+
+// Delay before preloading adjacent tabs (improves perceived performance without blocking current tab)
 const ADJACENT_PRELOAD_DELAY = 500;
+
+// Threshold (in pixels) for considering a tab's height as "changed".
+// Value chosen based on UI responsiveness requirements: small height changes (<5px) are
+// ignored to prevent unnecessary re-renders.
 const HEIGHT_CHANGE_THRESHOLD = 5;
+
+// Initial delay before measuring tab height on first render (allows initial layout to complete)
+const INITIAL_MEASURE_DELAY = 50;
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
@@ -247,7 +264,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               });
               rafCleanup = () => cancelAnimationFrame(rafId);
             }
-          }, 50);
+          }, INITIAL_MEASURE_DELAY);
 
           return () => {
             isMeasurementRelevant = false;

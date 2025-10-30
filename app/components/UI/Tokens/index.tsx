@@ -264,6 +264,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
+  // Estimated height of a single token item in the TokenList.
+  // This value (64) matches the height defined in the TokenList item component's style.
+  // If the token item design changes, update this value accordingly.
   const estimatedTokenItemHeight = 64;
 
   const calculatedListHeight = useMemo(() => {

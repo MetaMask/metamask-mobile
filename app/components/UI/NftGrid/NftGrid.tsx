@@ -155,14 +155,21 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
   const shouldShowViewAllButton =
     maxItems && allFilteredCollectibles.length > maxItems;
 
-  const screenWidth = Dimensions.get('window').width;
-  const horizontalPadding = 32;
-  const gapBetweenItems = 24;
-  const availableWidth = screenWidth - horizontalPadding;
-  const itemWidth = (availableWidth - gapBetweenItems) / 3;
-  const textHeight = 44;
-  const rowMarginBottom = 12;
-  const estimatedRowHeight = itemWidth + textHeight + rowMarginBottom;
+  // Memoize grid layout calculations to avoid recalculating on every render
+  const gridDimensions = useMemo(() => {
+    const screenWidth = Dimensions.get('window').width;
+    const horizontalPadding = 32;
+    const gapBetweenItems = 24;
+    const availableWidth = screenWidth - horizontalPadding;
+    const itemWidth = (availableWidth - gapBetweenItems) / 3;
+    const textHeight = 44;
+    const rowMarginBottom = 12;
+    const estimatedRowHeight = itemWidth + textHeight + rowMarginBottom;
+
+    return { estimatedRowHeight };
+  }, []);
+
+  const { estimatedRowHeight } = gridDimensions;
 
   const shouldUseAutoHeight = !isFullView && isHomepageRedesignV1Enabled;
 
