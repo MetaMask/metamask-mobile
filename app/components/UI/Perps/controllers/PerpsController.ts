@@ -176,7 +176,7 @@ export type PerpsControllerState = {
   withdrawalProgress: {
     progress: number; // 0-100
     lastUpdated: number; // timestamp
-    activeWithdrawalId?: string; // ID of the withdrawal being tracked
+    activeWithdrawalId: string | null; // ID of the withdrawal being tracked
   };
 
   // Deposit request tracking (persistent, for transaction history)
@@ -235,7 +235,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   withdrawalProgress: {
     progress: 0,
     lastUpdated: 0,
-    activeWithdrawalId: undefined,
+    activeWithdrawalId: null,
   },
   depositRequests: [],
   lastError: null,
@@ -2056,7 +2056,7 @@ export class PerpsController extends BaseController<
           state.withdrawalProgress = {
             progress: 0,
             lastUpdated: Date.now(),
-            activeWithdrawalId: undefined,
+            activeWithdrawalId: null,
           };
         }
 
@@ -2074,7 +2074,7 @@ export class PerpsController extends BaseController<
    */
   updateWithdrawalProgress(
     progress: number,
-    activeWithdrawalId?: string,
+    activeWithdrawalId: string | null = null,
   ): void {
     this.update((state) => {
       state.withdrawalProgress = {
@@ -2091,7 +2091,7 @@ export class PerpsController extends BaseController<
   getWithdrawalProgress(): {
     progress: number;
     lastUpdated: number;
-    activeWithdrawalId?: string;
+    activeWithdrawalId: string | null;
   } {
     return this.state.withdrawalProgress;
   }

@@ -251,7 +251,7 @@ describe('Engine', () => {
         withdrawalProgress: {
           progress: 0,
           lastUpdated: 0,
-          activeWithdrawalId: undefined,
+          activeWithdrawalId: null,
         },
       },
     };
