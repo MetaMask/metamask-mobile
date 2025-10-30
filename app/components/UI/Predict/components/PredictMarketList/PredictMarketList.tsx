@@ -80,7 +80,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
             renderTabBar={() => (
               <TabBar
                 activeTextColor={colors.text.default}
-                underlineColor={colors.text.default}
+                underlineStyle={tw.style('h-[2px] bg-text-default')}
                 underlineHeight={2}
               />
             )}
