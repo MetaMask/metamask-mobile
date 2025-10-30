@@ -63,8 +63,11 @@ jobs:
 
       - name: Check Gradle cache directories
         run: |
+          echo "check 1"
           ls -Al /home/admin/_work/.gradle/caches
+          echo "check 2"
           ls -Al /home/runner/_work/.gradle/caches
+          echo "check 2"
           ls -Al /home/admin/.gradle/caches
 
       - name: Cache Gradle dependencies
@@ -90,8 +93,11 @@ jobs:
 
       - name: Check Gradle cache directories again after setup
         run: |
+          echo "check 1"
           ls -Al /home/admin/_work/.gradle/caches
+          echo "check 2"
           ls -Al /home/runner/_work/.gradle/caches
+          echo "check 2"
           ls -Al /home/admin/.gradle/caches
 
       # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
