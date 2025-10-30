@@ -67,8 +67,8 @@ jobs:
           GRADLE_CACHE_VERSION: 1
         with:
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
             android/.gradle
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
