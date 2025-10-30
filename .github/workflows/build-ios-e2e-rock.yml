@@ -86,17 +86,6 @@ jobs:
           platform: ios
           setup-simulator: false
 
-      - name: Print iOS tool versions
-        run: |
-          echo "🔧 Node.js Version:"
-          node -v || echo "Node not found"
-          echo "🧶 Yarn Version:"
-          yarn -v || echo "Yarn not found"
-          echo "📦 CocoaPods Version:"
-          pod --version || echo "CocoaPods not found"
-          echo "🛠️ Xcode Path:"
-          xcode-select -p || echo "Xcode not found"
-
       # Clean iOS plist files to prevent extended attribute issues
       - name: Clean iOS plist files
         run: find ios -name "*.plist" -exec xattr -c {} \;
@@ -169,16 +158,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-bot: false
           re-sign: true
-          rock-build-extra-params: '-j 4'
-
-      - name: Build summary
-        if: always()
-        run: |
-          echo "📦 Build Status: ${{ steps.rock-build-ios.outcome }}"
-          if [ "${{ steps.rock-build-ios.outcome }}" == "success" ]; then
-            echo "✅ Rock CLI build completed successfully"
-            echo "📦 Artifact ID: ${{ steps.rock-build-ios.outputs.artifact-id }}"
-          else
-            echo "❌ Rock CLI build failed"
-          fi
-
