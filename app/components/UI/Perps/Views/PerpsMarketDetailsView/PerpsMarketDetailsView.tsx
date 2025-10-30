@@ -1,3 +1,4 @@
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import {
   useNavigation,
   useRoute,
@@ -6,79 +7,78 @@ import {
 } from '@react-navigation/native';
 import React, {
   useCallback,
-  useMemo,
-  useState,
   useEffect,
+  useMemo,
   useRef,
+  useState,
 } from 'react';
-import { ScrollView, View, RefreshControl, Linking } from 'react-native';
+import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
+import ButtonSemantic, {
+  ButtonSemanticSeverity,
+} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import Button, {
+  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-  ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  PerpsMarketDetailsViewSelectorsIDs,
-  PerpsOrderViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
-import type {
-  PerpsMarketData,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
-import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
-import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
-import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
-import { createStyles } from './PerpsMarketDetailsView.styles';
-import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { TraceName } from '../../../../../util/trace';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
+import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
+import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
+import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
+import TradingViewChart, {
+  type TradingViewChartRef,
+} from '../../components/TradingViewChart';
+import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
+import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
+import type {
+  PerpsMarketData,
+  PerpsNavigationParamList,
+} from '../../controllers/types';
 import {
   usePerpsConnection,
-  usePerpsTrading,
   usePerpsNetworkManagement,
+  usePerpsTrading,
 } from '../../hooks';
+import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
+import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import {
   usePerpsDataMonitor,
   type DataMonitorParams,
 } from '../../hooks/usePerpsDataMonitor';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
-import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
-import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
-import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
-import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import TradingViewChart, {
-  type TradingViewChartRef,
-} from '../../components/TradingViewChart';
-import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
-import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useSelector, useDispatch } from 'react-redux';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
+import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { createStyles } from './PerpsMarketDetailsView.styles';
+import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -518,7 +518,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               refreshing={refreshing}
               onRefresh={handleRefresh}
               tintColor={theme.colors.icon.default}
-              colors={[theme.colors.icon.default]} // Android
             />
           }
         >
