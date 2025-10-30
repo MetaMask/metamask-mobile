@@ -123,7 +123,7 @@ describe('useAutomaticTransactionPayToken', () => {
       {
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: REQUIRED_BALANCE_MOCK - 1,
+        tokenFiatAmount: 0,
       },
       {
         address: TOKEN_ADDRESS_2_MOCK,
@@ -160,12 +160,12 @@ describe('useAutomaticTransactionPayToken', () => {
       {
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: REQUIRED_BALANCE_MOCK - 1,
+        tokenFiatAmount: 0,
       },
       {
         address: TOKEN_ADDRESS_2_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: REQUIRED_BALANCE_MOCK - 2,
+        tokenFiatAmount: 0,
       },
       {
         address: TOKEN_ADDRESS_1_MOCK,
@@ -180,7 +180,7 @@ describe('useAutomaticTransactionPayToken', () => {
       {
         address: NATIVE_TOKEN_ADDRESS,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: 1,
+        tokenFiatAmount: 0,
       },
       {
         address: NATIVE_TOKEN_ADDRESS,
@@ -336,7 +336,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('returns number of tokens with sufficient balance', () => {
+  it('returns number of tokens with balance', () => {
     useTokensWithBalanceMock.mockReturnValue([
       {
         address: TOKEN_ADDRESS_1_MOCK,
@@ -372,7 +372,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     const { result } = runHook();
 
-    expect(result.current.count).toBe(2);
+    expect(result.current.count).toBe(6);
   });
 
   it('selected nothing if disabled', () => {
