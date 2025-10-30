@@ -183,6 +183,7 @@ export function usePerpsCloseAllCalculations({
                 orderType: 'market',
                 isMaker: false, // Market close orders are always taker
                 amount: positionValue.toString(),
+                coin: pos.coin,
               });
 
               // Calculate rewards points per position with coin-specific parameters
@@ -200,9 +201,10 @@ export function usePerpsCloseAllCalculations({
                   },
                 };
 
-                points = await Engine.context.RewardsController.estimatePoints(
-                  estimateBody,
-                );
+                points =
+                  await Engine.context.RewardsController.estimatePoints(
+                    estimateBody,
+                  );
               } catch (pointsError) {
                 // Log but don't fail the entire calculation if rewards estimation fails
                 console.warn(
