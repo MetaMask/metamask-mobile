@@ -26,9 +26,18 @@ jest.mock('@metamask/design-system-react-native', () => ({
   },
 }));
 
+// Mock Animated.View to verify listener props are set correctly
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Animated: {
+    ...jest.requireActual('react-native').Animated,
+    View: 'View',
+  },
+}));
+
 jest.mock('../animations/animationTimings', () => ({
   ANIMATION_TIMINGS: {
-    EMPTY_STATE_IDLE_TIME: 1800,
+    EMPTY_STATE_IDLE_TIME: 2000,
   },
 }));
 
@@ -78,15 +87,15 @@ describe('StackCardEmpty', () => {
         <StackCardEmpty {...defaultProps} />,
       );
 
-      expect(getByText("You're all caught up!")).toBeTruthy();
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByText("You're all caught up!")).toBeDefined();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
 
     it('applies correct styling classes', () => {
       const { getByTestId } = render(<StackCardEmpty {...defaultProps} />);
 
       const emptyCard = getByTestId('carousel-empty-state');
-      expect(emptyCard).toBeTruthy();
+      expect(emptyCard).toBeDefined();
     });
   });
 
@@ -129,30 +138,40 @@ describe('StackCardEmpty', () => {
   });
 
   describe('animation value listeners', () => {
-    it('listens to emptyStateOpacity changes', () => {
-      const opacityValue = createAnimatedValue(0.5);
+    it('sets up listener on emptyStateOpacity', () => {
+      const removeListenerMock = jest.fn();
+      const opacityValue = {
+        addListener: jest.fn(),
+        removeListener: removeListenerMock,
+      } as Partial<Animated.Value>;
+
       render(
-        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+        <StackCardEmpty
+          {...defaultProps}
+          emptyStateOpacity={opacityValue as Animated.Value}
+        />,
       );
 
-      expect(opacityValue).toBeTruthy();
+      expect(opacityValue.addListener).toHaveBeenCalled();
     });
 
     it('removes listener on unmount', () => {
-      const opacityValue = createAnimatedValue(0.5);
-      const removeListenerSpy = jest.spyOn(
-        opacityValue,
-        'removeListener' as never,
-      );
+      const removeListenerMock = jest.fn();
+      const opacityValue = {
+        addListener: jest.fn().mockReturnValue(123),
+        removeListener: removeListenerMock,
+      } as Partial<Animated.Value>;
 
       const { unmount } = render(
-        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+        <StackCardEmpty
+          {...defaultProps}
+          emptyStateOpacity={opacityValue as Animated.Value}
+        />,
       );
 
       unmount();
 
-      expect(removeListenerSpy).toHaveBeenCalled();
-      removeListenerSpy.mockRestore();
+      expect(removeListenerMock).toHaveBeenCalledWith(123);
     });
 
     it('clears pending animation timeout on unmount', () => {
@@ -185,7 +204,7 @@ describe('StackCardEmpty', () => {
         />,
       );
 
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
 
     it('handles zero animation values', () => {
@@ -198,7 +217,7 @@ describe('StackCardEmpty', () => {
         />,
       );
 
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
 
     it('handles maximum animation values', () => {
@@ -211,7 +230,7 @@ describe('StackCardEmpty', () => {
         />,
       );
 
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
   });
 
@@ -222,7 +241,7 @@ describe('StackCardEmpty', () => {
         <StackCardEmpty {...defaultProps} nextCardBgOpacity={bgOpacity} />,
       );
 
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
 
     it('handles zero background opacity', () => {
@@ -233,7 +252,7 @@ describe('StackCardEmpty', () => {
         />,
       );
 
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
 
     it('handles full background opacity', () => {
@@ -244,7 +263,7 @@ describe('StackCardEmpty', () => {
         />,
       );
 
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
   });
 

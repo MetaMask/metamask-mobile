@@ -12,13 +12,21 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ANIMATION_TIMINGS } from '../animations/animationTimings';
 import { StackCardEmptyProps } from './StackCardEmpty.types';
 import { strings } from '../../../../../locales/i18n';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const CarouselConfetti = require('../../../../animations/Carousel_Confetti.riv');
+// eslint-disable-next-line import/no-unresolved, @typescript-eslint/no-explicit-any
+import CarouselConfetti from '../../../../animations/Carousel_Confetti.riv';
 
 const BANNER_HEIGHT = 100;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
+
+// Opacity threshold at which to trigger the confetti animation
+// Set to 0.95 instead of 1.0 to account for animation rounding and ensure
+// the animation fires reliably as the card reaches full visibility
+const OPACITY_TRIGGER_THRESHOLD = 0.95;
+
+// Delay before triggering the confetti animation after opacity reaches threshold
+// This delay ensures the Rive component has fully loaded and is ready to fire animations
+const CONFETTI_TRIGGER_DELAY = 50;
 
 export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
   emptyStateOpacity,
@@ -37,7 +45,10 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
     // Use animated value listener to detect when opacity reaches ~1 (fully visible)
     const listenerId = emptyStateOpacity.addListener(({ value }) => {
       // Trigger animation when opacity is close to 1 (card is fully visible/current)
-      if (value >= 0.95 && !hasTriggeredAnimation.current) {
+      if (
+        value >= OPACITY_TRIGGER_THRESHOLD &&
+        !hasTriggeredAnimation.current
+      ) {
         // Clear any existing timeout before creating a new one
         if (timeoutIdRef.current) {
           clearTimeout(timeoutIdRef.current);
@@ -54,7 +65,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
             }
           }
           timeoutIdRef.current = null;
-        }, 50);
+        }, CONFETTI_TRIGGER_DELAY);
       }
     });
 
@@ -68,7 +79,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
     };
   }, [emptyStateOpacity]);
 
-  // Auto-dismiss empty card after 1800ms when rendered
+  // Auto-dismiss empty card after 2000ms when rendered
   useEffect(() => {
     if (onTransitionToEmpty) {
       const timer = setTimeout(() => {

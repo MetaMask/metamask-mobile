@@ -292,7 +292,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     // keep the empty card in visibleSlides so the animation completes
     if (dismissingLastCardRef.current && filtered.length === 0) {
       // Re-add the empty card so the animation completes
-      return slidesConfig.filter((s) => s.variableName === 'empty');
+      const emptyCards = slidesConfig.filter((s) => s.variableName === 'empty');
+      return emptyCards.length > 0 ? emptyCards : [];
     }
 
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
@@ -501,7 +502,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     try {
       // Trigger empty state component (fold-up and remove carousel)
       await transitionToEmpty.executeTransition(() => {
-        dismissingLastCardRef.current = false; // Reset the flag
+        // Reset the flag here to indicate that the last card has finished dismissing.
+        // This must happen inside the transition callback to ensure the animation and
+        // state are synchronized. If this flag were not reset at this point, future
+        // transitions to the empty state would be blocked, causing the carousel to get
+        // stuck and preventing further dismissals or animations.
+        dismissingLastCardRef.current = false;
         onEmptyState?.();
         setIsCarouselVisible(false);
       });
