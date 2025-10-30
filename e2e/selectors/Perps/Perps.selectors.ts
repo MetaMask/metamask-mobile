@@ -476,6 +476,9 @@ export const PerpsMarketTabsSelectorsIDs = {
   // Statistics-only view
   STATISTICS_ONLY_TITLE: 'perps-market-tabs-statistics-only-title',
 
+  // Activity link
+  ACTIVITY_LINK: 'perps-market-tabs-activity-link',
+
   // Loading states
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
   SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
