@@ -29,7 +29,8 @@ export const perpsControllerInit: ControllerInitFunction<
       fallbackBlockedRegions: process.env.MM_PERPS_BLOCKED_REGIONS?.split(','),
       fallbackEquityEnabled: process.env.MM_PERPS_HIP3_ENABLED === 'true',
       fallbackEnabledDexs: process.env.MM_PERPS_HIP3_ENABLED_DEXS?.split(','),
-      clientVersion: getVersion(),
+      // clientVersion: getVersion(),
+      clientVersion: '7.60.0',
     },
   });
 

@@ -706,17 +706,23 @@ export class PerpsController extends BaseController<
       | VersionGatedFeatureFlag
       | undefined;
 
-    const remoteFlagValidationResult = this.validatedVersionGatedFeatureFlag(
-      perpsEquityEnabledFeatureFlag,
-    );
+    console.log('perpsEquityEnabled: ', perpsEquityEnabledFeatureFlag);
 
-    // Invalid/missing remote flag -> keep fallback, don't update.
-    if (remoteFlagValidationResult === undefined) {
-      return;
-    }
+    // TEMP: Skipping guard to debug beta build
+    // const remoteFlagValidationResult = this.validatedVersionGatedFeatureFlag(
+    //   perpsEquityEnabledFeatureFlag,
+    // );
+
+    // // Invalid/missing remote flag -> keep fallback, don't update.
+    // if (remoteFlagValidationResult === undefined) {
+    //   return;
+    // }
 
     // true or false = valid remote flag -> always update (remote trumps fallback)
-    this.setHIP3EnabledFlag(remoteFlagValidationResult, 'remote');
+    this.setHIP3EnabledFlag(
+      perpsEquityEnabledFeatureFlag?.enabled ?? false,
+      'remote',
+    );
   }
 
   private refreshEnabledHIP3DexsOnFeatureFlagChange(

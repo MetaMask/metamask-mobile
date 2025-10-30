@@ -40,6 +40,7 @@ import styleSheet from './PerpsTabView.styles';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
 import Engine from '../../../../../core/Engine';
+import { getVersion } from 'react-native-device-info';
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -218,6 +219,20 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         />
         <ScrollView style={styles.content}>
           <View style={styles.contentContainer}>
+            <Text variant={TextVariant.BodyMDMedium}>
+              Client Version: {getVersion() ?? 'N/A'}
+            </Text>
+            <Text variant={TextVariant.BodyMDMedium}>
+              Perps Controller Version:{' '}
+              {Engine.context.PerpsController.state.isTestnet}
+            </Text>
+            <Text variant={TextVariant.BodyMDMedium}>
+              Remote Feature Flags State:{' '}
+              {JSON.stringify(
+                Engine.context.RemoteFeatureFlagController.state
+                  .remoteFeatureFlags?.perpsEquityEnabled,
+              )}
+            </Text>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
                 onAction={handleNewTrade}
