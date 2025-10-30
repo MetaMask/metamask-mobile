@@ -59,7 +59,7 @@ const selectAccountTreeStateForBalances = createSelector(
             accountWalletsMetadata?: AccountTreeControllerState['accountWalletsMetadata'];
           }
         ).accountWalletsMetadata ?? {},
-    } as AccountTreeControllerState),
+    }) as AccountTreeControllerState,
 );
 
 const selectAccountsStateForBalances = createSelector(
@@ -70,31 +70,31 @@ const selectAccountsStateForBalances = createSelector(
         accounts: accountsById,
         selectedAccount: selectedAccountId ?? '',
       },
-    } as AccountsControllerState),
+    }) as AccountsControllerState,
 );
 
 const selectTokenBalancesStateForBalances = createSelector(
   [selectAllTokenBalances],
   (tokenBalances): TokenBalancesControllerState =>
-    ({ tokenBalances } as TokenBalancesControllerState),
+    ({ tokenBalances }) as TokenBalancesControllerState,
 );
 
 const selectTokenRatesStateForBalances = createSelector(
   [selectTokenMarketData],
   (marketData): TokenRatesControllerState =>
-    ({ marketData } as TokenRatesControllerState),
+    ({ marketData }) as TokenRatesControllerState,
 );
 
 const selectMultichainBalancesStateForBalances = createSelector(
   [selectMultichainBalances],
   (balances): MultichainBalancesControllerState =>
-    ({ balances } as MultichainBalancesControllerState),
+    ({ balances }) as MultichainBalancesControllerState,
 );
 
 const selectMultichainAssetsRatesStateForBalances = createSelector(
   [selectMultichainAssetsRates],
   (conversionRates): MultichainAssetsRatesControllerState =>
-    ({ conversionRates } as MultichainAssetsRatesControllerState),
+    ({ conversionRates }) as MultichainAssetsRatesControllerState,
 );
 
 const selectMultichainAssetsStateForBalances = createSelector(
@@ -110,7 +110,7 @@ const selectTokensStateForBalances = createSelector(
       allTokens: allTokens ?? {},
       allIgnoredTokens: {},
       allDetectedTokens: {},
-    } as TokensControllerState),
+    }) as TokensControllerState,
 );
 
 const selectCurrencyRateStateForBalances = createSelector(
@@ -119,7 +119,7 @@ const selectCurrencyRateStateForBalances = createSelector(
     ({
       currentCurrency: currentCurrency ?? 'usd',
       currencyRates: currencyRates ?? {},
-    } as CurrencyRateState),
+    }) as CurrencyRateState,
 );
 
 export const selectBalanceForAllWallets = createSelector(

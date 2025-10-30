@@ -159,7 +159,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: 'vault',
@@ -177,7 +178,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: undefined,
@@ -225,9 +227,8 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         balances: {},
-        claimTransaction: null,
         claimablePositions: [],
-        depositTransaction: null,
+        pendingDeposits: {},
         withdrawTransaction: null,
         isOnboarded: {},
       },

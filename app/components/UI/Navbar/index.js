@@ -2021,16 +2021,16 @@ export function getDepositNavbarOptions(
           />
         )
       : showConfiguration
-      ? () => (
-          <ButtonIcon
-            onPress={onConfigurationPress}
-            iconName={IconName.MoreHorizontal}
-            size={ButtonIconSize.Lg}
-            testID="deposit-configuration-menu-button"
-            style={styles.headerLeftButton}
-          />
-        )
-      : null,
+        ? () => (
+            <ButtonIcon
+              onPress={onConfigurationPress}
+              iconName={IconName.MoreHorizontal}
+              size={ButtonIconSize.Lg}
+              testID="deposit-configuration-menu-button"
+              style={styles.headerLeftButton}
+            />
+          )
+        : null,
     headerRight: showClose
       ? () => (
           <ButtonIcon
