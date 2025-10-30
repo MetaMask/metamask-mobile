@@ -127,11 +127,27 @@ const getNextMarketOpen = (date: Date): Date => {
 
   // If weekend, move to next Monday
   if (estDay === 0) {
-    // Sunday -> Monday
-    return createDateInEST(estTime.year, estTime.month, estTime.day + 1, 9, 30);
+    // Sunday -> Monday (add 1 day)
+    const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+    const nextEstTime = getESTTime(nextDate);
+    return createDateInEST(
+      nextEstTime.year,
+      nextEstTime.month,
+      nextEstTime.day,
+      9,
+      30,
+    );
   } else if (estDay === 6) {
-    // Saturday -> Monday
-    return createDateInEST(estTime.year, estTime.month, estTime.day + 2, 9, 30);
+    // Saturday -> Monday (add 2 days)
+    const nextDate = new Date(date.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const nextEstTime = getESTTime(nextDate);
+    return createDateInEST(
+      nextEstTime.year,
+      nextEstTime.month,
+      nextEstTime.day,
+      9,
+      30,
+    );
   }
 
   // Weekday - check if before 9:30 AM EST
@@ -141,32 +157,42 @@ const getNextMarketOpen = (date: Date): Date => {
   }
 
   // After market hours - move to next day
-  let nextDay = estTime.day + 1;
-  let nextMonth = estTime.month;
-  let nextYear = estTime.year;
-
-  // Create the next date to check if it's a weekend
   const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);
   const nextEstDay = getESTDay(nextDate);
   const nextEstTime = getESTTime(nextDate);
 
-  // If next day is Saturday, move to Monday
+  // If next day is Saturday, move to Monday (add 2 more days)
   if (nextEstDay === 6) {
-    nextDay = nextEstTime.day + 2;
-    nextMonth = nextEstTime.month;
-    nextYear = nextEstTime.year;
+    const mondayDate = new Date(nextDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const mondayEstTime = getESTTime(mondayDate);
+    return createDateInEST(
+      mondayEstTime.year,
+      mondayEstTime.month,
+      mondayEstTime.day,
+      9,
+      30,
+    );
   } else if (nextEstDay === 0) {
-    // If next day is Sunday, move to Monday
-    nextDay = nextEstTime.day + 1;
-    nextMonth = nextEstTime.month;
-    nextYear = nextEstTime.year;
-  } else {
-    nextDay = nextEstTime.day;
-    nextMonth = nextEstTime.month;
-    nextYear = nextEstTime.year;
+    // If next day is Sunday, move to Monday (add 1 more day)
+    const mondayDate = new Date(nextDate.getTime() + 24 * 60 * 60 * 1000);
+    const mondayEstTime = getESTTime(mondayDate);
+    return createDateInEST(
+      mondayEstTime.year,
+      mondayEstTime.month,
+      mondayEstTime.day,
+      9,
+      30,
+    );
   }
 
-  return createDateInEST(nextYear, nextMonth, nextDay, 9, 30);
+  // Next day is a weekday
+  return createDateInEST(
+    nextEstTime.year,
+    nextEstTime.month,
+    nextEstTime.day,
+    9,
+    30,
+  );
 };
 
 /**
