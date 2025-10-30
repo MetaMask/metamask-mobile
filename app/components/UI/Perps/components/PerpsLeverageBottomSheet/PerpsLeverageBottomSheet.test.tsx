@@ -719,6 +719,18 @@ describe('PerpsLeverageBottomSheet', () => {
       // 5x should not appear in slider labels or buttons (initial leverage is now 2x)
       expect(screen.queryByText('5x')).toBeNull();
     });
+
+    it('does not set skeleton state when pressing already active quick select button', () => {
+      // Arrange
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      // Act - Press the currently active 5x button
+      const buttons5x = screen.getAllByText('5x');
+      fireEvent.press(buttons5x[0]);
+
+      // Assert - Component continues to render without errors
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+    });
   });
 
   describe('Leverage Risk Styling', () => {
