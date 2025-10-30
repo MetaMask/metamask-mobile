@@ -17,6 +17,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  actions: write  
 
 jobs:
   build-ios-app:
@@ -34,6 +35,8 @@ jobs:
       NODE_OPTIONS: '--max-old-space-size=8192'
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
+      
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       # Platform and environment
       PLATFORM: ios
