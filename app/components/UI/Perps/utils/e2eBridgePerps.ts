@@ -35,6 +35,31 @@ let consecutivePollFailures = 0;
 let pollingDisabled = false;
 const MAX_CONSECUTIVE_POLL_FAILURES = 2;
 
+// Remove all leading E2E perps scheme prefixes to avoid partial matches when duplicated
+function stripE2EPerpsScheme(url: string): string {
+  const prefixes = ['metamask://e2e/perps/', 'e2e://perps/'];
+  let current = url;
+  // Repeatedly remove any matching prefix at the start
+  // Handles cases like "metamask://e2e/perps/metamask://e2e/perps/push-price"
+  // and mixed forms with both prefixes.
+  // Breaks when no prefix matches the current string start.
+  // This is intentionally strict and only strips at the beginning.
+  // Do not use replace() here to avoid removing mid-string occurrences.
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    let matched = false;
+    for (const prefix of prefixes) {
+      if (current.startsWith(prefix)) {
+        current = current.slice(prefix.length);
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) break;
+  }
+  return current;
+}
+
 /**
  * Register a lightweight deep link handler for E2E-only schema (e2e://perps/*)
  * This avoids touching production deeplink parsing while enabling deterministic
@@ -72,9 +97,7 @@ function registerE2EPerpsDeepLinkHandler(): void {
           const service = mod?.PerpsE2EMockService?.getInstance?.();
 
           // Parse path and query
-          const withoutScheme = isExpoMappedScheme
-            ? url.replace('metamask://e2e/perps/', '')
-            : url.replace('e2e://perps/', '');
+          const withoutScheme = stripE2EPerpsScheme(url);
           const [path, queryString] = withoutScheme.split('?');
           const params = new URLSearchParams(queryString || '');
           const symbol = params.get('symbol') || '';

@@ -180,9 +180,7 @@ class PerpsMarketDetailsView {
   }
 
   get notificationTooltipTurnOnButton() {
-    return Matchers.getElementByID(
-      PerpsPositionCardSelectorsIDs.NOTIFICATION_TOOLTIP_TURN_ON_BUTTON,
-    );
+    return Matchers.getElementByTextContains('Turn on');
   }
 
   // Actions

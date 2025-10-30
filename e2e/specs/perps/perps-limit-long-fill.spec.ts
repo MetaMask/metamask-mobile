@@ -80,7 +80,6 @@ describe(SmokeTrade('Perps - ETH limit long fill'), () => {
         await WalletActionsBottomSheet.tapPerpsButton();
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.expectNoOpenOrderVisible();
-        await new Promise((resolve) => setTimeout(resolve, 5000));
       },
     );
   });

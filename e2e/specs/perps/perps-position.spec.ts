@@ -50,7 +50,9 @@ describe(SmokeTrade('Perps Position'), () => {
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
-        // await PerpsMarketDetailsView.tapNotificationTooltipTurnOnButton();
+        if (device.getPlatform() === 'ios') {
+          await PerpsMarketDetailsView.tapNotificationTooltipTurnOnButton();
+        }
         await PerpsMarketDetailsView.tapPositionTab();
 
         // Wait for screen ready and assert Close Position availability

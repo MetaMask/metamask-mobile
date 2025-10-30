@@ -121,7 +121,6 @@ describe(SmokeTrade('Perps - Add funds (has funds, not first time)'), () => {
           },
           { interval: 500, timeout: 30000 },
         );
-        await new Promise((resolve) => setTimeout(resolve, 15000));
       },
     );
   });
