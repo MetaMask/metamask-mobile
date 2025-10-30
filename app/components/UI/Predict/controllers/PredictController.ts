@@ -65,35 +65,7 @@ import {
   UnrealizedPnL,
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
-
-/**
- * Error codes for PredictController
- * These codes are returned to the UI layer for translation
- */
-export const PREDICT_ERROR_CODES = {
-  CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
-  MARKETS_FAILED: 'MARKETS_FAILED',
-  MARKET_DETAILS_FAILED: 'MARKET_DETAILS_FAILED',
-  PRICE_HISTORY_FAILED: 'PRICE_HISTORY_FAILED',
-  POSITIONS_FAILED: 'POSITIONS_FAILED',
-  PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
-  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-  PLACE_BUY_ORDER_FAILED: 'PLACE_BUY_ORDER_FAILED',
-  PLACE_SELL_ORDER_FAILED: 'PLACE_SELL_ORDER_FAILED',
-  SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED: 'SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED',
-  NO_ONCHAIN_TRADE_PARAMS: 'NO_ONCHAIN_TRADE_PARAMS',
-  ONCHAIN_TRANSACTION_NOT_FOUND: 'ONCHAIN_TRANSACTION_NOT_FOUND',
-  SUBMIT_OFFCHAIN_TRADE_FAILED: 'SUBMIT_OFFCHAIN_TRADE_FAILED',
-  CLAIM_FAILED: 'CLAIM_FAILED',
-  PLACE_ORDER_FAILED: 'PLACE_ORDER_FAILED',
-  ENABLE_WALLET_FAILED: 'ENABLE_WALLET_FAILED',
-  ACTIVITY_NOT_AVAILABLE: 'ACTIVITY_NOT_AVAILABLE',
-  DEPOSIT_FAILED: 'DEPOSIT_FAILED',
-  WITHDRAW_FAILED: 'WITHDRAW_FAILED',
-} as const;
-
-export type PredictErrorCode =
-  (typeof PREDICT_ERROR_CODES)[keyof typeof PREDICT_ERROR_CODES];
+import { PREDICT_ERROR_CODES } from '../constants/errors';
 
 /**
  * State shape for PredictController
@@ -389,7 +361,7 @@ export class PredictController extends BaseController<
         : Array.from(this.providers.keys());
 
       if (providerIds.some((id) => !this.providers.has(id))) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const allMarkets = await Promise.all(
@@ -463,7 +435,7 @@ export class PredictController extends BaseController<
       const provider = this.providers.get(targetProviderId);
 
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const market = await provider.getMarketDetails({
@@ -516,7 +488,7 @@ export class PredictController extends BaseController<
         : Array.from(this.providers.keys());
 
       if (providerIds.some((id) => !this.providers.has(id))) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const histories = await Promise.all(
@@ -578,7 +550,7 @@ export class PredictController extends BaseController<
         : Array.from(this.providers.keys());
 
       if (providerIds.some((id) => !this.providers.has(id))) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const allPositions = await Promise.all(
@@ -653,7 +625,7 @@ export class PredictController extends BaseController<
         : Array.from(this.providers.keys());
 
       if (providerIds.some((id) => !this.providers.has(id))) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const allActivity = await Promise.all(
@@ -710,7 +682,7 @@ export class PredictController extends BaseController<
 
       const provider = this.providers.get(providerId);
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const unrealizedPnL = await provider.getUnrealizedPnL({
@@ -949,7 +921,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const { AccountsController, KeyringController } = Engine.context;
@@ -991,7 +963,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.providers.get(providerId);
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const { AccountsController, KeyringController } = Engine.context;
@@ -1057,9 +1029,10 @@ export class PredictController extends BaseController<
           completionDuration,
           failureReason: result.error || 'Unknown error',
         });
+        throw new Error(result.error);
       }
 
-      return result as Result;
+      return result as unknown as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
       const errorMessage =
@@ -1105,10 +1078,7 @@ export class PredictController extends BaseController<
         }),
       );
 
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      throw new Error(errorMessage);
     }
   }
 
@@ -1118,7 +1088,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.providers.get(providerId);
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const { AccountsController, KeyringController, NetworkController } =
@@ -1305,7 +1275,7 @@ export class PredictController extends BaseController<
   ): Promise<Result<{ batchId: string }>> {
     const provider = this.providers.get(params.providerId);
     if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      throw new Error('Provider not available');
     }
 
     const { AccountsController, KeyringController, NetworkController } =
@@ -1435,7 +1405,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
       const { AccountsController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
@@ -1461,7 +1431,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
       const { AccountsController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
@@ -1496,7 +1466,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.providers.get(params.providerId);
       if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        throw new Error('Provider not available');
       }
 
       const { AccountsController, KeyringController, NetworkController } =
@@ -1586,10 +1556,7 @@ export class PredictController extends BaseController<
         }),
       );
 
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      throw new Error(errorMessage);
     }
   }
 
@@ -1618,7 +1585,7 @@ export class PredictController extends BaseController<
       this.state.withdrawTransaction.providerId,
     );
     if (!provider) {
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      throw new Error('Provider not available');
     }
 
     if (!provider.signWithdraw) {
