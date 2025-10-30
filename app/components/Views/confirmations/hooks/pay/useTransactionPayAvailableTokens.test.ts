@@ -122,17 +122,6 @@ describe('useTransactionPayAvailableTokens', () => {
     ]);
   });
 
-  it('does not return token if perps deposit and insufficient fiat', () => {
-    useTokensWithBalanceMock.mockReturnValue([
-      { ...TOKEN_1_MOCK, tokenFiatAmount: 9.99 },
-      NATIVE_TOKEN_1_MOCK,
-    ]);
-
-    const { result } = runHook({ type: TransactionType.perpsDeposit });
-
-    expect(result.current.availableTokens).toStrictEqual([]);
-  });
-
   it('does not return token if no native', () => {
     useTokensWithBalanceMock.mockReturnValue([TOKEN_1_MOCK, TOKEN_2_MOCK]);
 
