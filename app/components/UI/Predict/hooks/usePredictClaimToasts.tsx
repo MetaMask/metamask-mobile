@@ -8,6 +8,7 @@ import { formatPrice } from '../utils/format';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictPositions } from './usePredictPositions';
 import { usePredictToasts } from './usePredictToasts';
+import Engine from '../../../../core/Engine';
 
 export const usePredictClaimToasts = () => {
   const { claim } = usePredictClaim();
@@ -63,6 +64,9 @@ export const usePredictClaimToasts = () => {
       onRetry: claim,
     },
     onConfirmed: () => {
+      Engine.context.PredictController.confirmClaim({
+        providerId: 'polymarket',
+      });
       loadPositions({ isRefresh: true }).catch(() => {
         // Ignore errors when refreshing positions
       });

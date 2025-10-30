@@ -32,6 +32,7 @@ export function usePredictOrderPreview(
     side,
     size,
     autoRefreshTimeout,
+    positionId,
   } = params;
 
   const calculatePreview = useCallback(async () => {
@@ -57,6 +58,7 @@ export function usePredictOrderPreview(
         outcomeTokenId,
         side,
         size,
+        positionId,
       });
       if (operationId === currentOperationRef.current && isMountedRef.current) {
         setPreview(p);

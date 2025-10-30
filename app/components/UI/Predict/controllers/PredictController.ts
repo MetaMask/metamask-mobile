@@ -48,6 +48,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  Signer,
 } from '../providers/types';
 import {
   ClaimParams,
@@ -181,13 +182,13 @@ export type PredictControllerEvents = ControllerStateChangeEvent<
 export type PredictControllerActions =
   | ControllerGetStateAction<'PredictController', PredictControllerState>
   | {
-      type: 'PredictController:refreshEligibility';
-      handler: PredictController['refreshEligibility'];
-    }
+    type: 'PredictController:refreshEligibility';
+    handler: PredictController['refreshEligibility'];
+  }
   | {
-      type: 'PredictController:placeOrder';
-      handler: PredictController['placeOrder'];
-    };
+    type: 'PredictController:placeOrder';
+    handler: PredictController['placeOrder'];
+  };
 
 /**
  * External actions the PredictController can call
@@ -348,6 +349,27 @@ export class PredictController extends BaseController<
       feature: 'Predict',
       context: `PredictController.${method}`,
       ...extra,
+    };
+  }
+
+  /**
+   * Get signer for the currently selected account
+   * @param address - Optionally specify the address to use
+   * @returns Signer object
+   * @private
+   */
+  private getSigner(address?: string): Signer {
+    const { AccountsController, KeyringController } = Engine.context;
+    const selectedAddress =
+      address ?? AccountsController.getSelectedAccount().address;
+    return {
+      address: selectedAddress,
+      signTypedMessage: (
+        _params: TypedMessageParams,
+        _version: SignTypedDataVersion,
+      ) => KeyringController.signTypedMessage(_params, _version),
+      signPersonalMessage: (_params: PersonalMessageParams) =>
+        KeyringController.signPersonalMessage(_params),
     };
   }
 
@@ -928,17 +950,7 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { AccountsController, KeyringController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
-      const signer = {
-        address: selectedAddress,
-        signTypedMessage: (
-          _params: TypedMessageParams,
-          _version: SignTypedDataVersion,
-        ) => KeyringController.signTypedMessage(_params, _version),
-        signPersonalMessage: (_params: PersonalMessageParams) =>
-          KeyringController.signPersonalMessage(_params),
-      };
+      const signer = this.getSigner();
 
       return provider.previewOrder({ ...params, signer });
     } catch (error) {
@@ -973,17 +985,7 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { AccountsController, KeyringController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
-      const signer = {
-        address: selectedAddress,
-        signTypedMessage: (
-          _params: TypedMessageParams,
-          _version: SignTypedDataVersion,
-        ) => KeyringController.signTypedMessage(_params, _version),
-        signPersonalMessage: (_params: PersonalMessageParams) =>
-          KeyringController.signPersonalMessage(_params),
-      };
+      const signer = this.getSigner();
 
       // Track Predict Action Submitted (fire and forget)
       this.trackPredictOrderEvent({
@@ -1101,30 +1103,10 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { AccountsController, KeyringController, NetworkController } =
-        Engine.context;
+      const signer = this.getSigner();
 
-      // Get selected account - can fail if no account is selected
-      const selectedAccount = AccountsController.getSelectedAccount();
-      if (!selectedAccount?.address) {
-        throw new Error('No account selected');
-      }
-      const selectedAddress = selectedAccount.address;
-
-      const signer = {
-        address: selectedAddress,
-        signTypedMessage: (
-          params: TypedMessageParams,
-          version: SignTypedDataVersion,
-        ) => KeyringController.signTypedMessage(params, version),
-        signPersonalMessage: (params: PersonalMessageParams) =>
-          KeyringController.signPersonalMessage(params),
-      };
-
-      // Get claimable positions - can fail if network request fails
-      const claimablePositions = await this.getPositions({
-        claimable: true,
-      });
+      // Get claimable positions from state
+      const claimablePositions = this.state.claimablePositions;
 
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
@@ -1151,6 +1133,7 @@ export class PredictController extends BaseController<
       }
 
       // Find network client - can fail if chain is not supported
+      const { NetworkController } = Engine.context;
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         numberToHex(chainId),
       );
@@ -1232,6 +1215,30 @@ export class PredictController extends BaseController<
     }
   }
 
+  public confirmClaim({
+    providerId = 'polymarket',
+  }: {
+    providerId: string;
+  }): void {
+    DevLogger.log('📊 [Analytics] PREDICT_CLAIM_CONFIRMED', {
+      providerId,
+    });
+    console.warn('confirmClaim, providerId:', providerId);
+    const claimedPositions = this.state.claimablePositions;
+    if (!claimedPositions || claimedPositions.length === 0) {
+      return;
+    }
+
+    this.providers.get(providerId)?.confirmClaim?.({
+      positions: claimedPositions,
+      signer: this.getSigner(),
+    });
+
+    this.update((state) => {
+      state.claimablePositions = [];
+    });
+  }
+
   /**
    * Refresh eligibility status
    */
@@ -1288,32 +1295,15 @@ export class PredictController extends BaseController<
       throw new Error('Provider not available');
     }
 
-    const { AccountsController, KeyringController, NetworkController } =
-      Engine.context;
-
     try {
-      const selectedAccount = AccountsController.getSelectedAccount();
-      if (!selectedAccount?.address) {
-        throw new Error('No account selected for deposit');
-      }
+      const signer = this.getSigner();
 
       // Clear any previous deposit transaction
       this.update((state) => {
         state.pendingDeposits[params.providerId] = {
-          [selectedAccount.address]: false,
+          [signer.address]: false,
         };
       });
-
-      const selectedAddress = selectedAccount.address;
-      const signer = {
-        address: selectedAddress,
-        signTypedMessage: (
-          _params: TypedMessageParams,
-          _version: SignTypedDataVersion,
-        ) => KeyringController.signTypedMessage(_params, _version),
-        signPersonalMessage: (_params: PersonalMessageParams) =>
-          KeyringController.signPersonalMessage(_params),
-      };
 
       const depositPreparation = await provider.prepareDeposit({
         ...params,
@@ -1334,6 +1324,7 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by deposit preparation');
       }
 
+      const { NetworkController } = Engine.context;
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(chainId);
 
@@ -1479,18 +1470,8 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const { AccountsController, KeyringController, NetworkController } =
-        Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
-      const signer = {
-        address: selectedAddress,
-        signTypedMessage: (
-          typedMessageParams: TypedMessageParams,
-          version: SignTypedDataVersion,
-        ) => KeyringController.signTypedMessage(typedMessageParams, version),
-        signPersonalMessage: (personalMessageParams: PersonalMessageParams) =>
-          KeyringController.signPersonalMessage(personalMessageParams),
-      };
+      const signer = this.getSigner();
+
       const { chainId, transaction, predictAddress } =
         await provider.prepareWithdraw({
           ...params,
@@ -1508,8 +1489,10 @@ export class PredictController extends BaseController<
         };
       });
 
+      const { NetworkController } = Engine.context;
+
       const { batchId } = await addTransactionBatch({
-        from: selectedAddress as Hex,
+        from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId:
           NetworkController.findNetworkClientIdByChainId(chainId),
@@ -1574,8 +1557,8 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
   }): Promise<
     | {
-        updateTransaction?: (transaction: TransactionMeta) => void;
-      }
+      updateTransaction?: (transaction: TransactionMeta) => void;
+    }
     | undefined
   > {
     if (!this.state.withdrawTransaction) {
@@ -1602,20 +1585,11 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const { KeyringController, NetworkController } = Engine.context;
-
-    const signer = {
-      address: request.transactionMeta.txParams.from,
-      signTypedMessage: (
-        params: TypedMessageParams,
-        version: SignTypedDataVersion,
-      ) => KeyringController.signTypedMessage(params, version),
-      signPersonalMessage: (params: PersonalMessageParams) =>
-        KeyringController.signPersonalMessage(params),
-    };
+    const signer = this.getSigner(request.transactionMeta.txParams.from);
 
     const chainId = this.state.withdrawTransaction.chainId;
 
+    const { NetworkController } = Engine.context;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
       numberToHex(chainId),
     );
