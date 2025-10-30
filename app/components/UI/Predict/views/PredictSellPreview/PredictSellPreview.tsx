@@ -55,7 +55,8 @@ const PredictSellPreview = () => {
     () => ({
       marketId: market?.id,
       marketTitle: market?.title,
-      marketCategory: market?.categories?.[0],
+      marketCategory: market?.category,
+      marketTags: market?.tags,
       entryPoint:
         entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
@@ -92,7 +93,7 @@ const PredictSellPreview = () => {
       analyticsProperties,
       providerId: position.providerId,
       sharePrice: position?.price,
-      amount: position?.amount,
+      amountUsd: position?.amount,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

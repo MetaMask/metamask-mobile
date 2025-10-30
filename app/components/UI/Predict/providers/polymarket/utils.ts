@@ -391,7 +391,8 @@ export const parsePolymarketEvents = (
         : PredictMarketStatus.OPEN,
       recurrence: getRecurrence(event.series),
       endDate: event.endDate,
-      categories: [category],
+      category,
+      tags: event.tags.map((t) => t.label),
       outcomes: event.markets
         .filter((market: PolymarketApiMarket) => market.active !== false)
         .sort((a: PolymarketApiMarket, b: PolymarketApiMarket) => {

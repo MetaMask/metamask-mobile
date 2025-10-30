@@ -39,26 +39,14 @@ const SetPhoneNumber = () => {
     if (!registrationSettings?.countries) {
       return [];
     }
-
-    const uniqueCallingCodes = new Map();
-
-    registrationSettings.countries
+    return [...registrationSettings.countries]
+      .sort((a, b) => a.name.localeCompare(b.name))
       .filter((country) => country.canSignUp)
-      .forEach((country) => {
-        const callingCode = country.callingCode;
-        if (!uniqueCallingCodes.has(callingCode)) {
-          uniqueCallingCodes.set(callingCode, {
-            key: country.iso3166alpha2,
-            value: callingCode,
-            label: `+${callingCode}`,
-          });
-        }
-      });
-
-    // Convert Map values to array and sort
-    return Array.from(uniqueCallingCodes.values()).sort((a, b) =>
-      a.value.localeCompare(b.value),
-    );
+      .map((country) => ({
+        key: country.iso3166alpha2,
+        value: country.callingCode,
+        label: `+${country.callingCode} ${country.name}`,
+      }));
   }, [registrationSettings]);
 
   const initialSelectedCountryAreaCode = useMemo(() => {
