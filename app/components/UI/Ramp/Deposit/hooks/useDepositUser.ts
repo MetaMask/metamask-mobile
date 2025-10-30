@@ -16,8 +16,9 @@ export function useDepositUser(_config?: UseDepositUserConfig) {
   } = useDepositSDK();
 
   const fetchUserDetailsCallback = useCallback(
-    async (params: FetchUserDetailsParams) => sdkFetchUserDetails(params),
-    [sdkFetchUserDetails],
+    async (params: FetchUserDetailsParams) =>
+      sdkFetchUserDetails({ ..._config, ...params }),
+    [sdkFetchUserDetails, _config],
   );
 
   return {

@@ -2,7 +2,7 @@ import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { KycStatus, REDIRECTION_URL } from '../constants';
+import { REDIRECTION_URL } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { endTrace } from '../../../../../util/trace';
@@ -21,9 +21,6 @@ let mockGetKycRequirement = jest.fn().mockResolvedValue({ status: 'APPROVED' });
 let mockGetAdditionalRequirements = jest
   .fn()
   .mockResolvedValue({ formsRequired: [] });
-let mockFetchUserDetails = jest
-  .fn()
-  .mockResolvedValue({ kyc: { l1: { status: KycStatus.APPROVED } } });
 let mockCreateOrder = jest
   .fn()
   .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
@@ -104,13 +101,6 @@ jest.mock('./useDepositSdkMethod', () => ({
           mockGetAdditionalRequirements(...wrapParams(customParams, params)),
       ];
     }
-    if (config?.method === 'getUserDetails') {
-      return [
-        mockUseDepositSdkMethodInitialState,
-        (...customParams: unknown[]) =>
-          mockFetchUserDetails(...wrapParams(customParams, params)),
-      ];
-    }
     if (config?.method === 'createOrder') {
       return [
         mockUseDepositSdkMethodInitialState,
@@ -176,7 +166,7 @@ const mockDepositUserFetchUserDetails = jest
   .fn()
   .mockResolvedValue({ kyc: { l1: { status: 'APPROVED' } } });
 jest.mock('./useDepositUser', () => ({
-  useDepositUser: (config?: { screenLocation?: string; shouldTrackFetch?: boolean }) => ({
+  useDepositUser: () => ({
     userDetails: null,
     error: null,
     isFetching: false,
@@ -239,9 +229,6 @@ describe('useDepositRouting', () => {
     mockGetAdditionalRequirements = jest
       .fn()
       .mockResolvedValue({ formsRequired: [] });
-    mockFetchUserDetails = jest
-      .fn()
-      .mockResolvedValue({ kyc: { l1: { status: KycStatus.APPROVED } } });
     mockCreateOrder = jest
       .fn()
       .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
@@ -286,7 +273,7 @@ describe('useDepositRouting', () => {
     });
   });
 
-  it('creates the hook with correct parameters', () => {
+  it('should create the hook with correct parameters', () => {
     const { result } = renderHook(() => useDepositRouting());
 
     expect(result.current.routeAfterAuthentication).toBeDefined();
@@ -644,6 +631,25 @@ describe('useDepositRouting', () => {
       ).resolves.not.toThrow();
 
       expect(mockSubmitPurposeOfUsage).toHaveBeenCalledTimes(5);
+    });
+
+    it('should navigate to KycProcessing when KYC is submitted', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'SUBMITTED',
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
+        quote: mockQuote,
+      });
     });
   });
 
@@ -1314,7 +1320,7 @@ describe('useDepositRouting', () => {
   describe('screenLocation parameter', () => {
     it('accepts screenLocation parameter without errors', () => {
       const { result } = renderHook(() =>
-        useDepositRouting('BuildQuote Screen'),
+        useDepositRouting({ screenLocation: 'BuildQuote Screen' }),
       );
 
       expect(result.current.routeAfterAuthentication).toBeDefined();
