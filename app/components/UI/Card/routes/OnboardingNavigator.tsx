@@ -122,15 +122,6 @@ const OnboardingNavigator: React.FC = () => {
     );
   }
 
-  // Show loading indicator while SDK is initializing or user data is being fetched
-  if (isLoading) {
-    return (
-      <Box twClassName="flex-1 items-center justify-center">
-        <ActivityIndicator testID="activity-indicator" />
-      </Box>
-    );
-  }
-
   return (
     <Stack.Navigator initialRouteName={getInitialRouteName()}>
       <Stack.Screen
