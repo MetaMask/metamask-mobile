@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -10,7 +10,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
-import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
@@ -27,9 +26,11 @@ const VerifyIdentity = () => {
 
   const { sessionUrl } = verificationResponse || {};
 
-  const handleContinue = () => {
-    if (!sessionUrl) {
-      return;
+  const handleContinue = useCallback(() => {
+    if (sessionUrl) {
+      navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
+        url: sessionUrl,
+      });
     }
 
     trackEvent(
@@ -39,17 +40,7 @@ const VerifyIdentity = () => {
         })
         .build(),
     );
-
-    navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
-      sessionUrl,
-    });
-  };
-
-  useEffect(() => {
-    if (user?.verificationState === 'PENDING') {
-      navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
-    }
-  }, [navigation, user?.verificationState]);
+  }, [navigation, sessionUrl, trackEvent, createEventBuilder]);
 
   useEffect(() => {
     trackEvent(

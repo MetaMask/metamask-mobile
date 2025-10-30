@@ -13,9 +13,11 @@ import {
   CardAuthorizeResponse,
   CardExchangeTokenResponse,
   CardLocation,
+  CreateOnboardingConsentRequest,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
+import AppConstants from '../../../../core/AppConstants';
 
 // Type definition for accessing private methods in tests
 interface CardSDKPrivateAccess {
@@ -728,9 +730,8 @@ describe('CardSDK', () => {
         cardFeatureFlag: emptyTokensCardFeatureFlag,
       });
 
-      const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
-        testAddress,
-      );
+      const result =
+        await emptyTokensCardSDK.getSupportedTokensAllowances(testAddress);
       expect(result).toEqual([]);
     });
 
@@ -960,9 +961,8 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await cardSDK.initiateCardProviderAuthentication(
-        mockQueryParams,
-      );
+      const result =
+        await cardSDK.initiateCardProviderAuthentication(mockQueryParams);
 
       expect(result).toEqual(mockResponse);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -2547,14 +2547,14 @@ describe('CardSDK', () => {
 
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
-      const mockRequest = {
+      const mockRequest: CreateOnboardingConsentRequest = {
+        policyType: 'US',
         onboardingId: 'onboarding123',
-        policy: 'terms_and_conditions',
-        consents: {
-          termsAndPrivacy: 'granted',
-          marketingNotifications: 'granted',
-          smsNotifications: 'granted',
-          emailNotifications: 'granted',
+        consents: [],
+        tenantId: 'tenant_baanx_global',
+        metadata: {
+          userAgent: AppConstants.USER_AGENT,
+          timestamp: new Date().toISOString(),
         },
       };
 
@@ -2582,14 +2582,14 @@ describe('CardSDK', () => {
     });
 
     it('handles create onboarding consent error', async () => {
-      const mockRequest = {
+      const mockRequest: CreateOnboardingConsentRequest = {
+        policyType: 'US',
         onboardingId: 'onboarding123',
-        policy: 'terms_and_conditions',
-        consents: {
-          termsAndPrivacy: 'granted',
-          marketingNotifications: 'granted',
-          smsNotifications: 'granted',
-          emailNotifications: 'granted',
+        consents: [],
+        tenantId: 'tenant_baanx_global',
+        metadata: {
+          userAgent: AppConstants.USER_AGENT,
+          timestamp: new Date().toISOString(),
         },
       };
 

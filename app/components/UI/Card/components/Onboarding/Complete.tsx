@@ -44,12 +44,11 @@ const Complete = () => {
     try {
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
-        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.HOME);
       } else {
-        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.AUTHENTICATION);
       }
+      dispatch(resetOnboardingState());
     } catch (error) {
       Logger.log('Complete::handleContinue error', error);
     } finally {
