@@ -19,8 +19,9 @@ jest.mock('../../hooks/useFavicon/withFaviconAwareness', () => ({
   __esModule: true,
   default:
     (Component: React.ComponentType<WebsiteIconProps>) =>
-    (props: WebsiteIconProps) =>
-      <Component {...props} faviconSource="mockedFaviconSource.png" />,
+    (props: WebsiteIconProps) => (
+      <Component {...props} faviconSource="mockedFaviconSource.png" />
+    ),
 }));
 
 describe('WebsiteIcon', () => {

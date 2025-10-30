@@ -48,7 +48,7 @@ interface UsePredictToastsParams {
   pendingToastConfig?: PendingToastConfig;
   confirmedToastConfig: ConfirmedToastConfig;
   errorToastConfig: ErrorToastConfig;
-  clearTransaction: () => void;
+  clearTransaction?: () => void;
   onConfirmed?: () => void;
 }
 
@@ -174,7 +174,7 @@ export const usePredictToasts = ({
       }
 
       if (transactionMeta.status === TransactionStatus.rejected) {
-        clearTransaction();
+        clearTransaction?.();
       } else if (
         transactionMeta.status === TransactionStatus.approved &&
         pendingToastConfig
@@ -182,12 +182,12 @@ export const usePredictToasts = ({
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
         showPendingToast({ amount, config: pendingToastConfig });
       } else if (transactionMeta.status === TransactionStatus.confirmed) {
-        clearTransaction();
+        clearTransaction?.();
         const amount = confirmedToastConfig.getAmount(transactionMeta);
         showConfirmedToast(amount);
         onConfirmed?.();
       } else if (transactionMeta.status === TransactionStatus.failed) {
-        clearTransaction();
+        clearTransaction?.();
         showErrorToast();
       }
     };
