@@ -2255,6 +2255,68 @@ describe('PredictController', () => {
       });
     });
 
+    it('returns success when user denies transaction signature', async () => {
+      // Given prepareDeposit succeeds but user denies the transaction
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error('User denied transaction signature'),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        const result = await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Then it should return success with NA batchId instead of throwing
+        expect(result.success).toBe(true);
+        expect(result.response?.batchId).toBe('NA');
+      });
+    });
+
+    it('returns success when user denies transaction signature with additional context', async () => {
+      // Given prepareDeposit succeeds but user denies with additional error context
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error(
+          'Transaction failed: User denied transaction signature - cancelled in wallet',
+        ),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        const result = await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Then it should return success with NA batchId
+        expect(result.success).toBe(true);
+        expect(result.response?.batchId).toBe('NA');
+      });
+    });
+
     it('throw error when prepareDeposit returns empty transactions', async () => {
       // Given prepareDeposit returns empty transactions
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
