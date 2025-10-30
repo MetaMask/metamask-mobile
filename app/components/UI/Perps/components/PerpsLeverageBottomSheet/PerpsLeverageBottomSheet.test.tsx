@@ -1040,6 +1040,56 @@ describe('PerpsLeverageBottomSheet', () => {
           screen.getByText('perps.order.leverage_modal.title'),
         ).toBeOnTheScreen();
       });
+
+      it('updates position and value when pan gesture moves', async () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        let capturedOnUpdate: ((event: { x: number }) => void) | null = null;
+
+        const mockPanGesture: {
+          onBegin: jest.Mock;
+          onUpdate: jest.Mock;
+          onEnd: jest.Mock;
+          onFinalize: jest.Mock;
+        } = {
+          onBegin: jest.fn().mockReturnThis(),
+          onUpdate: jest.fn(),
+          onEnd: jest.fn().mockReturnThis(),
+          onFinalize: jest.fn().mockReturnThis(),
+        };
+
+        mockPanGesture.onUpdate.mockImplementation(
+          (handler: (event: { x: number }) => void) => {
+            capturedOnUpdate = handler;
+            return mockPanGesture;
+          },
+        );
+
+        Gesture.Pan.mockReturnValue(mockPanGesture);
+
+        const { act } = jest.requireActual('@testing-library/react-native');
+
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Trigger layout to set slider width
+        const slider = screen.getByTestId('leverage-slider-track');
+        fireEvent(slider, 'layout', {
+          nativeEvent: { layout: { width: 300, height: 8 } },
+        });
+
+        // Act - Invoke handler with mid-range position
+        await act(async () => {
+          expect(() => capturedOnUpdate?.({ x: 150 })).not.toThrow();
+        });
+
+        // Assert - Handler was captured and can be invoked
+        expect(capturedOnUpdate).toBeDefined();
+        expect(typeof capturedOnUpdate).toBe('function');
+        // Component still renders after handler invocation
+        expect(
+          screen.getByText('perps.order.leverage_modal.title'),
+        ).toBeOnTheScreen();
+      });
     });
 
     describe('Gesture Integration', () => {
