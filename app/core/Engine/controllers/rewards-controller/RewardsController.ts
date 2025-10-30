@@ -60,7 +60,7 @@ import { sortAccounts } from './utils/sortAccounts';
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
 
-export const DEFAULT_BLOCKED_REGIONS = ['UK'];
+export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
