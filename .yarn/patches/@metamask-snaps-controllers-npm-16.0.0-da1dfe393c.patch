@@ -1,0 +1,41 @@
+diff --git a/dist/snaps/SnapController.cjs b/dist/snaps/SnapController.cjs
+index 9811a8583786cebcacc674f90f6687c2a06a1fdd..d2f795abb1f37c64f53c81b5a21e54ec58141d0a 100644
+--- a/dist/snaps/SnapController.cjs
++++ b/dist/snaps/SnapController.cjs
+@@ -550,6 +550,14 @@ class SnapController extends base_controller_1.BaseController {
+             state.snaps[snapId].status = interpreter.state.value;
+         });
+     }
++
++    #getPreinstalledSnapSourceCode(snapId) {
++        const { manifest, files} = this.#preinstalledSnaps.find((snap) => snap.snapId === snapId);
++        const virtualFiles = files.map(({ path, value }) => new snaps_utils_1.VirtualFile({ value, path }));
++        const { filePath, iconPath } = manifest.source.location.npm;
++        const sourceCode = virtualFiles.find((file) => file.path === filePath);
++        return sourceCode.toString();
++  };
+     /**
+      * Starts the given snap. Throws an error if no such snap exists
+      * or if it is already running.
+@@ -562,9 +570,12 @@ class SnapController extends base_controller_1.BaseController {
+         if (!snap.enabled) {
+             throw new Error(`Snap "${snapId}" is disabled.`);
+         }
++
++    const sourceCode = this.#getPreinstalledSnapSourceCode(snapId);
++
+         await this.#startSnap({
+             snapId,
+-            sourceCode: snap.sourceCode,
++            sourceCode,
+         });
+     }
+     /**
+@@ -1704,7 +1715,6 @@ class SnapController extends base_controller_1.BaseController {
+             initialPermissions: manifest.result.initialPermissions,
+             manifest: manifest.result,
+             status: this.#statusMachine.config.initial,
+-            sourceCode,
+             version,
+             versionHistory,
+             auxiliaryFiles,
