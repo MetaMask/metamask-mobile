@@ -37,12 +37,21 @@ enum SUPPORTED_ACTIONS {
   REWARDS = ACTIONS.REWARDS,
   WC = ACTIONS.WC,
   ONBOARDING = ACTIONS.ONBOARDING,
+  ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
+  // MetaMask SDK specific actions
+  ANDROID_SDK = ACTIONS.ANDROID_SDK,
+  CONNECT = ACTIONS.CONNECT,
+  MMSDK = ACTIONS.MMSDK,
 }
 
 /**
  * Actions that should not show the deep link modal
  */
-const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
+const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.WC,
+  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
+];
+
 const interstitialWhitelist = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
@@ -230,6 +239,8 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
     const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleFastOnboarding(onboardingPath);
+  } else if (action === SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON) {
+    instance._handleEnableCardButton();
   }
 }
 

@@ -48,6 +48,7 @@ describe('handleUniversalLinks', () => {
   const mockHandlePerps = jest.fn();
   const mockHandleRewards = jest.fn();
   const mockHandleFastOnboarding = jest.fn();
+  const mockHandleEnableCardButton = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -71,6 +72,7 @@ describe('handleUniversalLinks', () => {
     _handlePerps: mockHandlePerps,
     _handleRewards: mockHandleRewards,
     _handleFastOnboarding: mockHandleFastOnboarding,
+    _handleEnableCardButton: mockHandleEnableCardButton,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -651,6 +653,51 @@ describe('handleUniversalLinks', () => {
         expect(mockHandleFastOnboarding).toHaveBeenCalledWith(
           expectedTransformedPath,
         );
+      },
+    );
+  });
+
+  describe('ACTIONS.ENABLE_CARD_BUTTON', () => {
+    const testCases = [
+      {
+        domain: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        description: 'old deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        description: 'new deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+        description: 'test deeplink domain',
+      },
+    ] as const;
+
+    it.each(testCases)(
+      'calls _handleEnableCardButton without showing modal for $description',
+      async ({ domain }) => {
+        const enableCardButtonUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.ENABLE_CARD_BUTTON}`;
+        const origin = `${PROTOCOLS.HTTPS}://${domain}`;
+        const enableCardButtonUrlObj = {
+          ...urlObj,
+          hostname: domain,
+          href: enableCardButtonUrl,
+          pathname: `/${ACTIONS.ENABLE_CARD_BUTTON}`,
+          origin,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: enableCardButtonUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: enableCardButtonUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleEnableCardButton).toHaveBeenCalled();
       },
     );
   });
