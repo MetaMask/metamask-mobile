@@ -1,6 +1,10 @@
 import type { CandleData, CandleStick } from '../types/perps-types';
 import type { PerpsMarketData } from '../controllers/types';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
+import {
+  HYPERLIQUID_ASSET_ICONS_BASE_URL,
+  HIP3_ASSET_ICONS_BASE_URL,
+} from '../constants/hyperLiquidConfig';
 
 /**
  * Extract the display symbol from a full symbol string
@@ -185,3 +189,44 @@ export const getMarketBadgeType = (
   // Fall back to 'experimental' for unmapped HIP-3 DEXs
   // Main DEX markets without marketType show no badge
   market.marketType || (market.marketSource ? 'experimental' : undefined);
+
+/**
+ * Generate the appropriate icon URL for an asset symbol
+ * Handles both regular assets and HIP-3 assets (dex:symbol format)
+ *
+ * @param symbol - Asset symbol (e.g., "BTC" or "xyz:TSLA")
+ * @param kPrefixAssets - Optional set of assets that have a 'k' prefix to remove
+ * @returns Icon URL for the asset
+ *
+ * @example Regular asset
+ * getAssetIconUrl('BTC') // → 'https://app.hyperliquid.xyz/coins/BTC.svg'
+ *
+ * @example HIP-3 asset
+ * getAssetIconUrl('xyz:TSLA') // → 'https://raw.githubusercontent.com/.../hip3:xyz_TSLA.svg'
+ *
+ * @example With k-prefix handling
+ * getAssetIconUrl('kBONK', new Set(['KBONK'])) // → 'https://app.hyperliquid.xyz/coins/BONK.svg'
+ */
+export const getAssetIconUrl = (
+  symbol: string,
+  kPrefixAssets?: Set<string>,
+): string => {
+  if (!symbol) return '';
+
+  let processedSymbol = symbol.toUpperCase();
+
+  // Check for HIP-3 asset (contains colon)
+  if (processedSymbol.includes(':')) {
+    // Replace colon with underscore: xyz:TSLA -> xyz_TSLA
+    const hip3Symbol = processedSymbol.replace(':', '_');
+    return `${HIP3_ASSET_ICONS_BASE_URL}hip3:${hip3Symbol}.svg`;
+  }
+
+  // Remove 'k' prefix only for specific assets if provided
+  if (kPrefixAssets?.has(processedSymbol)) {
+    processedSymbol = processedSymbol.substring(1);
+  }
+
+  // Regular asset
+  return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${processedSymbol}.svg`;
+};
