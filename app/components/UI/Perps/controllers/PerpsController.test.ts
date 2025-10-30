@@ -950,9 +950,8 @@ describe('PerpsController', () => {
         mockLiquidationPrice,
       );
 
-      const result = await controller.calculateLiquidationPrice(
-        liquidationParams,
-      );
+      const result =
+        await controller.calculateLiquidationPrice(liquidationParams);
 
       expect(result).toBe(mockLiquidationPrice);
       expect(mockProvider.calculateLiquidationPrice).toHaveBeenCalledWith(

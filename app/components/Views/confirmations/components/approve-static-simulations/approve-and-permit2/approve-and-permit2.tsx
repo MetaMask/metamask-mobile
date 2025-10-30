@@ -134,7 +134,7 @@ function PillAndAddress({
     <>
       <Pill
         testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
-        text={isERC20 ? amount ?? '' : `#${tokenId}`}
+        text={isERC20 ? (amount ?? '') : `#${tokenId}`}
       />
       <Address
         address={transactionMetadata?.txParams?.to as string}
