@@ -63,7 +63,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
   isSearchVisible = false,
   searchQuery = '',
   onSearchQueryChange,
-  onSearchClear,
+  onSearchClear: _onSearchClear, // Not used - clear icon removed
   onBack,
   onSearchToggle,
   testID,
@@ -113,18 +113,6 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
               style={tw.style('flex-1 text-base text-default')}
               testID={testID ? `${testID}-search-bar` : undefined}
             />
-            {searchQuery.length > 0 && onSearchClear && (
-              <Pressable
-                onPress={onSearchClear}
-                testID={testID ? `${testID}-search-clear` : undefined}
-              >
-                <Icon
-                  name={IconName.CircleX}
-                  size={IconSize.Md}
-                  color={IconColor.Alternative}
-                />
-              </Pressable>
-            )}
           </Box>
           {/* Cancel Button */}
           <TouchableOpacity
