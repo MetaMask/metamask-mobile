@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -24,7 +24,6 @@ export const usePerpsPositionData = ({
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const prevMergedDataRef = useRef<CandleData | null>(null);
 
   // Helper function to get the current candle's start time based on interval
   const getCurrentCandleStartTime = useCallback(
@@ -104,6 +103,7 @@ export const usePerpsPositionData = ({
     setIsLoadingHistory(true);
     const loadHistoricalData = async () => {
       try {
+        setCandleData(null);
         const historicalData = await fetchHistoricalCandles();
         setCandleData((prev) => {
           // Prevent re-render if data is identical
@@ -193,17 +193,12 @@ export const usePerpsPositionData = ({
     };
   }, [candleData, isLoadingHistory, selectedInterval, fetchHistoricalCandles]);
 
-  useEffect(() => {
-    prevMergedDataRef.current = null;
-  }, [selectedInterval]);
-
   const liveCandle = useMemo(() => {
     if (!priceData?.price || isLoadingHistory) return null;
 
     const currentPrice = Number.parseFloat(priceData.price.toString());
     const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
-    const existingCandles =
-      prevMergedDataRef.current?.candles ?? candleData?.candles ?? [];
+    const existingCandles = candleData?.candles ?? [];
     const existingCandleIndex =
       existingCandles.findIndex(
         (candle) => candle.time === currentCandleTime,
@@ -263,43 +258,44 @@ export const usePerpsPositionData = ({
   ]);
 
   // Merge historical candles with live candle for chart display
-  const candleDataWithLive = useMemo(() => {
-    if (!candleData || !liveCandle) return candleData;
+  useEffect(() => {
+    const candles = candleData?.candles ?? [];
+    if (!liveCandle || candles.length === 0) return;
 
-    // Check if live candle already exists in historical data
-    const existingCandles =
-      prevMergedDataRef.current?.candles ?? candleData.candles;
-    const existingCandleIndex = existingCandles.findIndex(
+    const liveCandleIndex = candles.findIndex(
       (candle) => candle.time === liveCandle.time,
     );
 
-    const updatedCandles = [...existingCandles];
-
-    if (existingCandleIndex >= 0) {
-      // Replace existing candle with live version
-      updatedCandles[existingCandleIndex] = liveCandle;
-    } else {
-      // Add live candle to the end
-      updatedCandles.push(liveCandle);
+    if (liveCandleIndex === -1) {
+      setCandleData((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          candles: [...prev.candles, liveCandle],
+        };
+      });
+      return;
     }
 
-    const mergedData = {
-      ...candleData,
-      candles: updatedCandles,
-    };
-
-    // Use deep equality check to prevent unnecessary re-renders when candle values haven't changed
-    if (isEqual(prevMergedDataRef.current, mergedData)) {
-      return prevMergedDataRef.current as CandleData;
+    if (isEqual(candles[liveCandleIndex], liveCandle)) {
+      return;
     }
 
-    prevMergedDataRef.current = mergedData;
-    return mergedData;
+    setCandleData((prev) => {
+      if (!prev) return null;
+      const candlesCopy = [...prev.candles];
+      candlesCopy[liveCandleIndex] = liveCandle;
+      return {
+        ...prev,
+        candles: candlesCopy,
+      };
+    });
   }, [candleData, liveCandle]);
 
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
+      setCandleData(null);
       const historicalData = await fetchHistoricalCandles();
       setCandleData((prev) => {
         // Prevent re-render if data is identical
@@ -316,7 +312,7 @@ export const usePerpsPositionData = ({
   }, [fetchHistoricalCandles]);
 
   return {
-    candleData: candleDataWithLive,
+    candleData,
     priceData,
     isLoadingHistory,
     refreshCandleData,
