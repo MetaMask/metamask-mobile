@@ -23,7 +23,8 @@ Scenario 6: User withdraws balance from Predictions account
   - Navigate to Wallet > Predictions and open balance card
   - Start withdraw, choose Max amount
   - Confirm withdrawal
-  - Verify completion toast appears
+  - Verify completion toast appears and balance is updated
+
 */
 
 const PredictionFeature = async (mockServer: Mockttp) => {
