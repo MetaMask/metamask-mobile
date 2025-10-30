@@ -10,7 +10,6 @@ import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocki
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { goToImportSrp, inputSrp } from '../multisrp/utils';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
-import TestHelpers from '../../helpers';
 
 // We now have account indexes "per wallets", thus the new account for that new SRP (wallet), will
 // be: "Account 1".
@@ -35,17 +34,14 @@ describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
       },
       async () => {
         await loginToApp();
-        await device.disableSynchronization();
         await goToImportSrp();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
         await ImportSrpView.tapImportButton();
-        // KDF Delay
-        await TestHelpers.delay(5000);
-        await device.enableSynchronization();
 
+        // Wait for import to complete and navigation to occur
         await Assertions.expectElementToBeVisible(WalletView.container, {
           description: 'Wallet View should be visible after import',
-          timeout: 30000,
+          timeout: 60000,
         });
         await Assertions.expectElementToHaveText(
           WalletView.accountName,
