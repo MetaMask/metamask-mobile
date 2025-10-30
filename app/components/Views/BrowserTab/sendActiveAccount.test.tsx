@@ -83,7 +83,7 @@ describe('sendActiveAccount function', () => {
       (url: string) =>
         ({
           hostname: new URL(url).hostname,
-        } as URLParse<Record<string, string>>),
+        }) as URLParse<Record<string, string>>,
     );
   });
 
@@ -162,7 +162,7 @@ describe('sendActiveAccount function', () => {
           () =>
             ({
               hostname: expectedHostname,
-            } as MockURLParse),
+            }) as MockURLParse,
         );
         mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
@@ -187,7 +187,7 @@ describe('sendActiveAccount function', () => {
         () =>
           ({
             hostname: expectedHostname,
-          } as MockURLParse),
+          }) as MockURLParse,
       );
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
@@ -291,7 +291,7 @@ describe('sendActiveAccount function', () => {
         (url) =>
           ({
             hostname: new URL(url).hostname,
-          } as MockURLParse),
+          }) as MockURLParse,
       );
 
       mockGetPermittedEvmAddressesByHostname.mockImplementation(
@@ -328,8 +328,9 @@ describe('sendActiveAccount function', () => {
 
       resolvedUrlRef.current = authorizedUrl; // Previous site
 
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) =>
-        hostname === 'authorized.com' ? authorizedAccounts : [],
+      mockGetPermittedEvmAddressesByHostname.mockImplementation(
+        (_, hostname) =>
+          hostname === 'authorized.com' ? authorizedAccounts : [],
       );
 
       await sendActiveAccount(unauthorizedUrl);
@@ -351,8 +352,8 @@ describe('sendActiveAccount function', () => {
       // resolvedUrlRef still points to previous site (before onLoadEnd updates it)
       resolvedUrlRef.current = previousSiteUrl;
 
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) =>
-        hostname === 'victim-dapp.com' ? victimAccounts : [],
+      mockGetPermittedEvmAddressesByHostname.mockImplementation(
+        (_, hostname) => (hostname === 'victim-dapp.com' ? victimAccounts : []),
       );
 
       await sendActiveAccount(newSiteUrl);
