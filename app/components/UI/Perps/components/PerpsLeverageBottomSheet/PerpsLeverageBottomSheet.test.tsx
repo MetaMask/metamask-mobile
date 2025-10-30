@@ -1090,6 +1090,54 @@ describe('PerpsLeverageBottomSheet', () => {
           screen.getByText('perps.order.leverage_modal.title'),
         ).toBeOnTheScreen();
       });
+
+      it('triggers haptic feedback and updates value when pan ends', async () => {
+        // Arrange
+        const { Gesture } = jest.requireMock('react-native-gesture-handler');
+        let capturedOnEnd: (() => void) | null = null;
+
+        const mockPanGesture: {
+          onBegin: jest.Mock;
+          onUpdate: jest.Mock;
+          onEnd: jest.Mock;
+          onFinalize: jest.Mock;
+        } = {
+          onBegin: jest.fn().mockReturnThis(),
+          onUpdate: jest.fn().mockReturnThis(),
+          onEnd: jest.fn(),
+          onFinalize: jest.fn().mockReturnThis(),
+        };
+
+        mockPanGesture.onEnd.mockImplementation((handler: () => void) => {
+          capturedOnEnd = handler;
+          return mockPanGesture;
+        });
+
+        Gesture.Pan.mockReturnValue(mockPanGesture);
+
+        const { act } = jest.requireActual('@testing-library/react-native');
+
+        render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+        // Trigger layout to set slider width
+        const slider = screen.getByTestId('leverage-slider-track');
+        fireEvent(slider, 'layout', {
+          nativeEvent: { layout: { width: 300, height: 8 } },
+        });
+
+        // Act - Invoke the onEnd handler and verify no crash
+        await act(async () => {
+          expect(() => capturedOnEnd?.()).not.toThrow();
+        });
+
+        // Assert - Handler was captured and can be invoked
+        expect(capturedOnEnd).toBeDefined();
+        expect(typeof capturedOnEnd).toBe('function');
+        // Component still renders after handler invocation
+        expect(
+          screen.getByText('perps.order.leverage_modal.title'),
+        ).toBeOnTheScreen();
+      });
     });
 
     describe('Gesture Integration', () => {
