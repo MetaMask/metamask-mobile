@@ -1,28 +1,35 @@
+import { ControllerStateChangeEvent } from '@metamask/base-controller';
 import {
-  ControllerStateChangeEvent,
   Messenger,
-} from '@metamask/base-controller';
-import { CurrencyRateController } from '@metamask/assets-controllers';
-
-export type RatesControllerMessenger = ReturnType<
-  typeof getRatesControllerMessenger
->;
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
+import {
+  CurrencyRateController,
+  RatesControllerMessenger,
+} from '@metamask/assets-controllers';
+import { RootMessenger } from '../types';
 
 /**
- * Get a messenger restricted to the actions and events that the
+ * Get the RatesControllerMessenger for the RatesController.
  * rates controller is allowed to handle.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The CurrencyRateMessenger.
  */
 export function getRatesControllerMessenger(
-  messenger: Messenger<never, never>,
-) {
-  return messenger.getRestricted({
-    name: 'RatesController',
-    allowedActions: [],
-    allowedEvents: [],
+  rootMessenger: RootMessenger,
+): RatesControllerMessenger {
+  const messenger = new Messenger<
+    'RatesController',
+    MessengerActions<RatesControllerMessenger>,
+    MessengerEvents<RatesControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'RatesController',
+    parent: rootMessenger,
   });
+  return messenger;
 }
 
 type AllowedInitializationEvents = ControllerStateChangeEvent<
@@ -35,18 +42,27 @@ export type RatesControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get a messenger restricted to the actions and events that the
- * rates controller initialization is allowed to handle.
+ * Get the messenger for the rates controller initialization. This is scoped to the
+ * actions and events that the rates controller is allowed to handle during
+ * initialization.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The RatesControllerInitMessenger.
  */
-export function getRatesControllerInitMessenger(
-  messenger: Messenger<never, AllowedInitializationEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'RatesControllerInitialization',
-    allowedActions: [],
-    allowedEvents: ['CurrencyRateController:stateChange'],
+export function getRatesControllerInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'RatesControllerInitialization',
+    never,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
+    namespace: 'RatesControllerInitialization',
+    parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: [],
+    events: ['CurrencyRateController:stateChange'],
+    messenger,
+  });
+  return messenger;
 }

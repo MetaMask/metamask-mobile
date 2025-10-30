@@ -10,6 +10,7 @@ import {
   FEE_RATES,
   getBridgeInfo,
   getChainId,
+  HIP3_ASSET_MARKET_TYPES,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   REFERRAL_CONFIG,
@@ -59,9 +60,13 @@ import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
   AssetRoute,
+  BatchCancelOrdersParams,
   CancelOrderParams,
   CancelOrderResult,
+  CancelOrdersResult,
   ClosePositionParams,
+  ClosePositionsParams,
+  ClosePositionsResult,
   DepositParams,
   DisconnectResult,
   EditOrderParams,
@@ -199,6 +204,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Initialize clients
     this.initializeClients();
+
+    // Debug: Confirm batch methods exist
+    DevLogger.log('[HyperLiquidProvider] Constructor complete', {
+      hasBatchCancel: typeof this.cancelOrders === 'function',
+      hasBatchClose: typeof this.closePositions === 'function',
+      protocolId: this.protocolId,
+    });
   }
 
   /**
@@ -1819,6 +1831,291 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Cancel multiple orders in a single batch API call
+   * Optimized implementation that uses HyperLiquid's batch cancel endpoint
+   */
+  async cancelOrders(
+    params: BatchCancelOrdersParams,
+  ): Promise<CancelOrdersResult> {
+    try {
+      DevLogger.log('Batch canceling orders:', {
+        count: params.length,
+      });
+
+      if (params.length === 0) {
+        return {
+          success: false,
+          successCount: 0,
+          failureCount: 0,
+          results: [],
+        };
+      }
+
+      await this.ensureReady();
+
+      const exchangeClient = this.clientService.getExchangeClient();
+
+      // Map orders to SDK format and validate coins
+      const cancelRequests = params.map((order) => {
+        const asset = this.coinToAssetId.get(order.coin);
+        if (asset === undefined) {
+          throw new Error(`Asset not found for coin: ${order.coin}`);
+        }
+        return {
+          a: asset,
+          o: parseInt(order.orderId, 10),
+        };
+      });
+
+      // Single batch API call
+      const result = await exchangeClient.cancel({
+        cancels: cancelRequests,
+      });
+
+      // Parse response statuses (one per order)
+      const statuses = result.response.data.statuses;
+      const successCount = statuses.filter((s) => s === 'success').length;
+      const failureCount = statuses.length - successCount;
+
+      return {
+        success: successCount > 0,
+        successCount,
+        failureCount,
+        results: statuses.map((status, index) => ({
+          orderId: params[index].orderId,
+          coin: params[index].coin,
+          success: status === 'success',
+          error:
+            status !== 'success'
+              ? (status as { error: string }).error
+              : undefined,
+        })),
+      };
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('cancelOrders', {
+          orderCount: params.length,
+        }),
+      );
+      // Return all orders as failed
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: params.length,
+        results: params.map((order) => ({
+          orderId: order.orderId,
+          coin: order.coin,
+          success: false,
+          error: error instanceof Error ? error.message : 'Batch cancel failed',
+        })),
+      };
+    }
+  }
+
+  async closePositions(
+    params: ClosePositionsParams,
+  ): Promise<ClosePositionsResult> {
+    // Declare outside try block so it's accessible in catch block
+    let positionsToClose: Position[] = [];
+
+    try {
+      await this.ensureReady();
+
+      // Get all current positions
+      const positions = await this.getPositions();
+
+      // Filter positions based on params
+      positionsToClose =
+        params.closeAll || !params.coins || params.coins.length === 0
+          ? positions
+          : positions.filter((p) => params.coins?.includes(p.coin));
+
+      DevLogger.log('Batch closing positions:', {
+        count: positionsToClose.length,
+        closeAll: params.closeAll,
+        coins: params.coins,
+      });
+
+      if (positionsToClose.length === 0) {
+        return {
+          success: false,
+          successCount: 0,
+          failureCount: 0,
+          results: [],
+        };
+      }
+
+      // Get exchange client and meta for price/size formatting
+      const exchangeClient = this.clientService.getExchangeClient();
+      const infoClient = this.clientService.getInfoClient();
+
+      // Track HIP-3 positions and freed margins for post-close transfers
+      const hip3Transfers: {
+        sourceDex: string;
+        freedMargin: number;
+      }[] = [];
+
+      // Build orders array
+      const orders: SDKOrderParams[] = [];
+
+      for (const position of positionsToClose) {
+        // Extract DEX name for HIP-3 positions
+        const { dex: dexName } = parseAssetName(position.coin);
+        const isHip3Position = position.coin.includes(':');
+
+        // Get asset info for formatting
+        const meta = await infoClient.meta({ dex: dexName ?? '' });
+        if (!meta.universe || !Array.isArray(meta.universe)) {
+          throw new Error(`Invalid universe data for ${position.coin}`);
+        }
+
+        const assetInfo = meta.universe.find(
+          (asset) => asset.name === position.coin,
+        );
+        if (!assetInfo) {
+          throw new Error(
+            `Asset ${position.coin} not found in ${
+              dexName || 'main'
+            } DEX universe`,
+          );
+        }
+
+        // Get asset ID
+        const assetId = this.coinToAssetId.get(position.coin);
+        if (assetId === undefined) {
+          throw new Error(`Asset ID not found for ${position.coin}`);
+        }
+
+        // Calculate position details (always full close)
+        const positionSize = parseFloat(position.size);
+        const isBuy = positionSize < 0; // Close opposite side
+        const closeSize = Math.abs(positionSize);
+        const totalMarginUsed = parseFloat(position.marginUsed);
+
+        // Track HIP-3 transfers (full position close means all margin is freed)
+        if (isHip3Position && dexName && !this.useDexAbstraction) {
+          hip3Transfers.push({
+            sourceDex: dexName,
+            freedMargin: totalMarginUsed,
+          });
+        }
+
+        // Get current price for market order slippage
+        const mids = await infoClient.allMids({ dex: dexName ?? '' });
+        const currentPrice = parseFloat(mids[position.coin] || '0');
+        if (currentPrice === 0) {
+          throw new Error(`No price available for ${position.coin}`);
+        }
+
+        // Calculate order price with slippage
+        const slippage = TRADING_DEFAULTS.slippage;
+        const orderPrice = isBuy
+          ? currentPrice * (1 + slippage)
+          : currentPrice * (1 - slippage);
+
+        // Format size and price
+        const formattedSize = formatHyperLiquidSize({
+          size: closeSize,
+          szDecimals: assetInfo.szDecimals,
+        });
+
+        const formattedPrice = formatHyperLiquidPrice({
+          price: orderPrice,
+          szDecimals: assetInfo.szDecimals,
+        });
+
+        // Build reduce-only order
+        orders.push({
+          a: assetId,
+          b: isBuy,
+          p: formattedPrice,
+          s: formattedSize,
+          r: true, // reduceOnly
+          t: { limit: { tif: 'Ioc' } }, // Immediate or cancel for market-like execution
+        });
+      }
+
+      // Calculate discounted builder fee if reward discount is active
+      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      if (this.userFeeDiscountBips !== undefined) {
+        builderFee = Math.floor(
+          builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
+        );
+      }
+
+      // Single batch API call
+      const result = await exchangeClient.order({
+        orders,
+        grouping: 'na',
+        builder: {
+          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+          f: builderFee,
+        },
+      });
+
+      // Parse response statuses (one per order)
+      const statuses = result.response.data.statuses;
+      const successCount = statuses.filter(
+        (s) => 'filled' in s || 'resting' in s,
+      ).length;
+      const failureCount = statuses.length - successCount;
+
+      // Handle HIP-3 margin transfers for successful closes
+      if (!this.useDexAbstraction) {
+        for (let i = 0; i < statuses.length; i++) {
+          const status = statuses[i];
+          const isSuccess = 'filled' in status || 'resting' in status;
+
+          if (isSuccess && hip3Transfers[i]) {
+            const { sourceDex, freedMargin } = hip3Transfers[i];
+            DevLogger.log(
+              'Position closed successfully, initiating manual auto-transfer back',
+              { coin: positionsToClose[i].coin, freedMargin },
+            );
+
+            // Non-blocking: Transfer freed margin back to main DEX
+            await this.autoTransferBackAfterClose({
+              sourceDex,
+              freedMargin,
+            });
+          }
+        }
+      }
+
+      return {
+        success: successCount > 0,
+        successCount,
+        failureCount,
+        results: statuses.map((status, index) => ({
+          coin: positionsToClose[index].coin,
+          success: 'filled' in status || 'resting' in status,
+          error:
+            'error' in status ? (status as { error: string }).error : undefined,
+        })),
+      };
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('closePositions', {
+          positionCount: positionsToClose.length,
+        }),
+      );
+      // Return all positions as failed
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: positionsToClose.length,
+        results: positionsToClose.map((position) => ({
+          coin: position.coin,
+          success: false,
+          error: error instanceof Error ? error.message : 'Batch close failed',
+        })),
+      };
+    }
+  }
+
+  /**
    * Update TP/SL for an existing position
    *
    * This creates new TP/SL orders for the position using 'positionTpsl' grouping.
@@ -2184,7 +2481,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
-      DevLogger.log('Getting positions via HyperLiquid SDK');
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isPositionsCacheInitialized()
+      ) {
+        const cachedPositions =
+          this.subscriptionService.getCachedPositions() || [];
+        DevLogger.log('Using cached positions from WebSocket', {
+          count: cachedPositions.length,
+        });
+        return cachedPositions;
+      }
+
+      // Fallback to API call
+      DevLogger.log(
+        'Fetching positions via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
+      );
 
       await this.ensureReady();
 
@@ -2490,9 +2804,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isOrdersCacheInitialized()
+      ) {
+        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
+        DevLogger.log('Using cached open orders from WebSocket', {
+          count: cachedOrders.length,
+        });
+        return cachedOrders;
+      }
+
+      // Fallback to API call
       DevLogger.log(
-        'Getting currently open orders via HyperLiquid SDK',
-        params || '(no params)',
+        'Fetching open orders via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
       );
       await this.ensureReady();
 
@@ -3154,11 +3481,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     // Transform to UI-friendly format using standalone utility
-    return transformMarketData({
-      universe: combinedUniverse,
-      assetCtxs: combinedAssetCtxs,
-      allMids: combinedAllMids,
-    });
+    return transformMarketData(
+      {
+        universe: combinedUniverse,
+        assetCtxs: combinedAssetCtxs,
+        allMids: combinedAllMids,
+      },
+      HIP3_ASSET_MARKET_TYPES,
+    );
   }
 
   /**
@@ -3248,6 +3578,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
             };
           }
         }
+      }
+
+      // Check if order leverage meets existing position requirement (HyperLiquid protocol constraint)
+      if (
+        params.leverage &&
+        params.existingPositionLeverage &&
+        params.leverage < params.existingPositionLeverage
+      ) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.leverage_below_position', {
+            required: params.existingPositionLeverage.toString(),
+            provided: params.leverage.toString(),
+          }),
+        };
       }
 
       // Validate order value against max limits

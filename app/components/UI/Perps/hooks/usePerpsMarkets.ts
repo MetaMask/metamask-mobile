@@ -76,7 +76,10 @@ export const parseVolume = (volumeStr: string | undefined): number => {
 
   // Handle special cases
   if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
-  if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
+  // Special case: '$<1' represents volumes less than $1 (e.g., $0.50, $0.75)
+  // This is a display format from the provider, not a validation constant
+  // We treat it as 0.5 for sorting purposes (small but not zero)
+  if (volumeStr === '$<1') return 0.5;
 
   // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
   const suffixMatch = VOLUME_SUFFIX_REGEX.exec(volumeStr);

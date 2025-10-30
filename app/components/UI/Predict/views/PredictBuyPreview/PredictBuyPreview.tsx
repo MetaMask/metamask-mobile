@@ -98,7 +98,11 @@ const PredictBuyPreview = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
 
-  const { preview, isCalculating } = usePredictOrderPreview({
+  const {
+    preview,
+    isCalculating,
+    error: previewError,
+  } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
@@ -107,6 +111,8 @@ const PredictBuyPreview = () => {
     size: currentValue,
     autoRefreshTimeout: 5000,
   });
+
+  const errorMessage = previewError ?? placeOrderError;
 
   // Track Predict Action Initiated when screen mounts
   useEffect(() => {
@@ -143,8 +149,10 @@ const PredictBuyPreview = () => {
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
-    ? `${outcome.groupItemTitle} · `
+    ? outcome.groupItemTitle
     : '';
+
+  const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
@@ -178,10 +186,7 @@ const PredictBuyPreview = () => {
         source={{ uri: outcome?.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="flex-1 min-w-0 gap-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Text
@@ -195,16 +200,24 @@ const PredictBuyPreview = () => {
         </Box>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
-            <Box flexDirection={BoxFlexDirection.Row}>
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
               {!!outcomeGroupTitle && (
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {outcomeGroupTitle}
-                </Text>
+                <>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {outcomeGroupTitle}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {separator}
+                  </Text>
+                </>
               )}
               <Text
                 variant={TextVariant.BodySMMedium}
@@ -383,13 +396,13 @@ const PredictBuyPreview = () => {
         twClassName="border-t border-muted p-4 pb-0 gap-4"
       >
         <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-          {placeOrderError && (
+          {errorMessage && (
             <Text
               variant={TextVariant.BodySM}
               color={TextColor.Error}
               style={tw.style('text-center pb-2')}
             >
-              {strings('predict.order.order_failed_generic')}
+              {errorMessage}
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>

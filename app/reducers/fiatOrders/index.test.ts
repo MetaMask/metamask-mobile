@@ -56,6 +56,8 @@ import fiatOrderReducer, {
   setFiatSellTxHash,
   removeFiatSellTxHash,
   getOrdersProviders,
+  getDetectedGeolocation,
+  setDetectedGeolocation,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -839,6 +841,28 @@ describe('fiatOrderReducer', () => {
     );
 
     expect(stateWithoutChanges).toEqual(stateWithOrder1);
+  });
+
+  it('sets the detected geolocation', () => {
+    const stateWithGeolocation = fiatOrderReducer(
+      initialState,
+      setDetectedGeolocation('US'),
+    );
+    expect(stateWithGeolocation.detectedGeolocation).toBe('US');
+
+    const otherStateWithGeolocation = fiatOrderReducer(
+      stateWithGeolocation,
+      setDetectedGeolocation('CL'),
+    );
+    expect(otherStateWithGeolocation.detectedGeolocation).toBe('CL');
+  });
+
+  it('sets the detected geolocation to undefined', () => {
+    const stateWithGeolocation = fiatOrderReducer(
+      initialState,
+      setDetectedGeolocation(undefined),
+    );
+    expect(stateWithGeolocation.detectedGeolocation).toBeUndefined();
   });
 });
 
@@ -2527,6 +2551,24 @@ describe('selectors', () => {
           {} as FiatOrder['data'],
         ),
       ).toEqual('...');
+    });
+  });
+
+  describe('getDetectedGeolocation', () => {
+    it('should return the detected geolocation', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          detectedGeolocation: 'US',
+        },
+      });
+      expect(getDetectedGeolocation(state)).toBe('US');
+    });
+
+    it('should return undefined if detected geolocation is not set', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {},
+      });
+      expect(getDetectedGeolocation(state)).toBeUndefined();
     });
   });
 });

@@ -53,12 +53,15 @@ function assertExpectedHook(
 export function makeMethodMiddlewareMaker<U>(
   handlers: PermittedHandlerExport<U, JsonRpcParams, Json>[],
 ) {
-  const handlerMap = handlers.reduce((map, handler) => {
-    for (const methodName of handler.methodNames) {
-      map[methodName] = handler;
-    }
-    return map;
-  }, {} as Record<string, PermittedHandlerExport<U, JsonRpcParams, Json>>);
+  const handlerMap = handlers.reduce(
+    (map, handler) => {
+      for (const methodName of handler.methodNames) {
+        map[methodName] = handler;
+      }
+      return map;
+    },
+    {} as Record<string, PermittedHandlerExport<U, JsonRpcParams, Json>>,
+  );
 
   const expectedHookNames = new Set(
     handlers.flatMap(({ hookNames }) => Object.getOwnPropertyNames(hookNames)),
