@@ -197,13 +197,35 @@ export const usePerpsPositionData = ({
     prevMergedDataRef.current = null;
   }, [selectedInterval]);
 
+  // existing candles = candleData without live candles + live candles
+  const existingCandles = useMemo(() => {
+    const refCandles = prevMergedDataRef.current?.candles ?? [];
+    const dataCandles = candleData?.candles ?? [];
+    const dataCandlesLength = dataCandles.length;
+
+    if (dataCandlesLength === 0) return [];
+
+    const liveCandles = refCandles.filter(
+      (c) => c.time >= dataCandles[dataCandlesLength - 1].time,
+    );
+
+    const isLiveCandle = (time: number) =>
+      liveCandles.some((c) => c.time === time);
+
+    const liveCandlesLength = liveCandles.length;
+    if (liveCandlesLength === 0) return dataCandles;
+
+    const dataCandlesWithoutLive = dataCandles.filter(
+      (c) => !isLiveCandle(c.time),
+    );
+    return [...dataCandlesWithoutLive, ...liveCandles];
+  }, [candleData]);
+
   const liveCandle = useMemo(() => {
     if (!priceData?.price || isLoadingHistory) return null;
 
     const currentPrice = Number.parseFloat(priceData.price.toString());
     const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
-    const existingCandles =
-      prevMergedDataRef.current?.candles ?? candleData?.candles ?? [];
     const existingCandleIndex =
       existingCandles.findIndex(
         (candle) => candle.time === currentCandleTime,
@@ -259,7 +281,7 @@ export const usePerpsPositionData = ({
     selectedInterval,
     getCurrentCandleStartTime,
     isLoadingHistory,
-    candleData,
+    existingCandles,
   ]);
 
   // Merge historical candles with live candle for chart display
@@ -267,8 +289,7 @@ export const usePerpsPositionData = ({
     if (!candleData || !liveCandle) return candleData;
 
     // Check if live candle already exists in historical data
-    const existingCandles =
-      prevMergedDataRef.current?.candles ?? candleData.candles;
+
     const existingCandleIndex = existingCandles.findIndex(
       (candle) => candle.time === liveCandle.time,
     );
@@ -295,7 +316,7 @@ export const usePerpsPositionData = ({
 
     prevMergedDataRef.current = mergedData;
     return mergedData;
-  }, [candleData, liveCandle]);
+  }, [candleData, liveCandle, existingCandles]);
 
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
