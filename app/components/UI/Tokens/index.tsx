@@ -221,23 +221,14 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   ]);
 
   const goToAddToken = useCallback(() => {
-    // add token currently only support on evm
-    if (isEvmSelected) {
-      goToAddEvmToken({
-        navigation,
-        trackEvent,
-        createEventBuilder,
-        getDecimalChainId,
-        currentChainId,
-      });
-    }
-  }, [
-    isEvmSelected,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    currentChainId,
-  ]);
+    goToAddEvmToken({
+      navigation,
+      trackEvent,
+      createEventBuilder,
+      getDecimalChainId,
+      currentChainId,
+    });
+  }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
   const onActionSheetPress = useCallback(
     (index: number) => {
