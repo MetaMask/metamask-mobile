@@ -10,6 +10,10 @@ jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
 }));
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
 jest.mock('../../../selectors/defiPositionsController', () => ({
   ...jest.requireActual('../../../selectors/defiPositionsController'),
   selectDeFiPositionsByAddress: jest.fn(),
@@ -538,6 +542,137 @@ describe('DeFiPositionsList', () => {
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
       expect(flatList.props.data.length).toEqual(1);
+    });
+  });
+
+  describe('Homepage Redesign V1 Feature', () => {
+    it('applies fixed height when isHomepageRedesignV1Enabled is true with positions', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const container = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+      );
+      expect(container).toBeOnTheScreen();
+
+      const flatList = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(flatList.props.scrollEnabled).toBe(false);
+    });
+
+    it('calculates correct list height for empty state when isHomepageRedesignV1Enabled is true', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        {},
+      );
+
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const container = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+      );
+      expect(container).toBeOnTheScreen();
+    });
+
+    it('calculates list height based on item count when isHomepageRedesignV1Enabled is true', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                PreferencesController: {
+                  ...mockInitialState.engine.backgroundState
+                    .PreferencesController,
+                  tokenNetworkFilter: {
+                    [MOCK_CHAIN_ID_1]: true,
+                    [MOCK_CHAIN_ID_2]: true,
+                  },
+                },
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const flatList = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(flatList.props.data.length).toEqual(2);
+      expect(flatList.props.scrollEnabled).toBe(false);
+    });
+
+    it('does not apply fixed height when isHomepageRedesignV1Enabled is false', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const flatList = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(flatList.props.scrollEnabled).toBe(true);
     });
   });
 });
