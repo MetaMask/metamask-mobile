@@ -310,6 +310,10 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-geo-block-bottom-sheet-tooltip',
+  MARKET_HOURS_BANNER: 'perps-market-hours-banner',
+  MARKET_HOURS_INFO_BUTTON: 'perps-market-hours-banner-info-button',
+  MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
+    'perps-market-details-market-hours-bottom-sheet-tooltip',
 };
 
 // ========================================
