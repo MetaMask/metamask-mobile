@@ -16,6 +16,7 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import NetworkNonPemittedBottomSheet from '../../../pages/Network/NetworkNonPemittedBottomSheet';
 
 describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -57,6 +58,7 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
 
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
+
         await TestDApp.tapDeployContractButton();
 
         // Check all expected elements are visible
@@ -74,6 +76,9 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
+
+        // accept the network change
+        await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
         // Check activity tab
         await TabBarComponent.tapActivity();

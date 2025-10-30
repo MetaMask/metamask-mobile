@@ -48,7 +48,7 @@ export async function withSolanaAccountEnabled(
       await loginToApp();
 
       // Create Solana accounts through the wallet view
-      for (let i = 0; i < numberOfAccounts; i++) {
+      for (let i = 1; i < numberOfAccounts; i++) {
         await WalletView.tapCurrentMainWalletAccountActions();
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapAddSolanaAccount();

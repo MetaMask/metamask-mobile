@@ -848,20 +848,47 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           Logger.error(e as Error, 'Error getting permitted chains caveat');
         }
 
-        if (currentlyPermittedChains.includes(currentEvmCaipChainId)) {
-          return;
+        const isNetworkAlreadyPermitted = currentlyPermittedChains.includes(
+          currentEvmCaipChainId,
+        );
+
+        // If network is not already permitted, add it to permissions
+        if (!isNetworkAlreadyPermitted) {
+          const availableCaipChainIds = Object.keys(networkConfigurations);
+          const permittedAvailableChainIds = currentlyPermittedChains.filter(
+            (caipChainId) => availableCaipChainIds.includes(caipChainId),
+          );
+
+          updatePermittedChains(
+            hostname,
+            [currentEvmCaipChainId, ...permittedAvailableChainIds],
+            true,
+          );
         }
 
-        const availableCaipChainIds = Object.keys(networkConfigurations);
-        const permittedAvailableChainIds = currentlyPermittedChains.filter(
-          (caipChainId) => availableCaipChainIds.includes(caipChainId),
+        // Ensure the network is selected for this dApp (per-dapp network selection)
+        // Find the network configuration for the current chain
+        const networkToSelect = Object.entries(networkConfigurations).find(
+          ([, { caipChainId }]) => caipChainId === currentEvmCaipChainId,
         );
 
-        updatePermittedChains(
-          hostname,
-          [currentEvmCaipChainId, ...permittedAvailableChainIds],
-          true,
-        );
+        if (networkToSelect) {
+          const [, config] = networkToSelect;
+          if (
+            hasProperty(config, 'rpcEndpoints') &&
+            hasProperty(config, 'defaultRpcEndpointIndex')
+          ) {
+            const { rpcEndpoints, defaultRpcEndpointIndex } =
+              config as NetworkConfiguration;
+            const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+            // Set the network for this domain (per-dapp network selection)
+            Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+              hostname,
+              networkClientId,
+            );
+          }
+        }
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,

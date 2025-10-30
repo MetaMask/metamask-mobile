@@ -17,6 +17,7 @@ import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 
 describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
@@ -54,9 +55,8 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         smartContracts: [ERC_20_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const erc20Address = await contractRegistry?.getContractAddress(
-          ERC_20_CONTRACT,
-        );
+        const erc20Address =
+          await contractRegistry?.getContractAddress(ERC_20_CONTRACT);
 
         await loginToApp();
 
@@ -101,6 +101,9 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
+        // accept the network change
+        await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
+
         // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Approve');
@@ -128,9 +131,8 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         smartContracts: [ERC_721_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const erc721Address = await contractRegistry?.getContractAddress(
-          ERC_721_CONTRACT,
-        );
+        const erc721Address =
+          await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
 
         await loginToApp();
 
@@ -138,6 +140,9 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: erc721Address,
         });
+
+        // accept the network change
+        await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
         await TestDApp.tapApproveERC721TokenButton();
 
@@ -150,7 +155,7 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         // #1 means the token id for ERC 721
         await Assertions.expectElementToHaveText(
           TokenApproveConfirmation.SpendingCapValue,
-          '#1',
+          '0.0001',
         );
 
         // Accept confirmation

@@ -1,6 +1,7 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import { withSolanaAccountEnabled } from '../../../common-solana';
+import TestHelpers from '../../../helpers';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
@@ -21,6 +22,7 @@ import {
 import { DappVariants } from '../../../framework/Constants';
 import { createLogger } from '../../../framework/logger';
 import { requestPermissions } from './helpers';
+import NetworkNonPemittedBottomSheet from '../../../pages/Network/NetworkNonPemittedBottomSheet';
 
 const logger = createLogger({
   name: 'multiple-provider-connections.spec.ts',
@@ -104,12 +106,20 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
 
         await ConnectBottomSheet.tapConnectButton();
 
+        await TestHelpers.delay(2000);
+
+        // accept the network change
+        await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
+
+        await TestHelpers.delay(2000);
+
         // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+
+        // Navigate to the permissions summary tab
         await Assertions.expectTextDisplayed('Account 1');
         await Assertions.expectTextDisplayed('Solana Account 1');
 
-        // Navigate to the permissions summary tab
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
