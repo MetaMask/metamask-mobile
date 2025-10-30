@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     maxLeverage: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.muted,
       paddingHorizontal: 6,
       borderRadius: 6,
     },
