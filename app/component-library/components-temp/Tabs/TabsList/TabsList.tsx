@@ -227,12 +227,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     return (
-      <Box testID={testID} {...boxProps}>
+      <Box twClassName="flex-1" testID={testID} {...boxProps}>
         <TabsBar {...tabBarPropsComputed} />
 
         <GestureDetector gesture={swipeGesture}>
           <Box
-            twClassName={`mt-2 px-4 ${tabsListContentTwClassName || ''}`}
+            twClassName={`flex-1 mt-2 px-4 ${tabsListContentTwClassName || ''}`}
             testID={testID ? `${testID}-content` : undefined}
           >
             {tabs.map((tab, index) => {
