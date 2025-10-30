@@ -26,12 +26,6 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 const mockUsePredictDeposit = jest.fn();
 jest.mock('../../hooks/usePredictDeposit', () => ({
   usePredictDeposit: () => mockUsePredictDeposit(),
-  PredictDepositStatus: {
-    IDLE: 'idle',
-    PENDING: 'pending',
-    CONFIRMED: 'confirmed',
-    FAILED: 'failed',
-  },
 }));
 
 // Mock usePredictActionGuard hook
@@ -77,7 +71,7 @@ describe('PredictBalance', () => {
 
     mockUsePredictDeposit.mockReturnValue({
       deposit: jest.fn(),
-      status: 'idle',
+      isDepositPending: false,
     });
 
     mockUsePredictWithdraw.mockReturnValue({
@@ -313,7 +307,7 @@ describe('PredictBalance', () => {
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: mockDeposit,
-        status: 'idle',
+        isDepositPending: false,
       });
 
       // Act
@@ -340,7 +334,7 @@ describe('PredictBalance', () => {
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: mockDeposit,
-        status: 'idle',
+        isDepositPending: false,
       });
 
       // Act
@@ -383,10 +377,10 @@ describe('PredictBalance', () => {
 
   describe('balance refresh', () => {
     it('component renders with adding funds state when deposit is pending', () => {
-      // Arrange - set up CONFIRMED status to test the adding funds UI
+      // Arrange - set up pending deposit to test the adding funds UI
       mockUsePredictDeposit.mockReturnValue({
         deposit: jest.fn(),
-        status: 'pending',
+        isDepositPending: true,
       });
 
       // Act
@@ -400,11 +394,11 @@ describe('PredictBalance', () => {
       ).toBeOnTheScreen();
     });
 
-    it('component renders normally when deposit status is idle', () => {
-      // Arrange - set up IDLE status
+    it('component renders normally when deposit is not pending', () => {
+      // Arrange - set up no pending deposit
       mockUsePredictDeposit.mockReturnValue({
         deposit: jest.fn(),
-        status: 'idle',
+        isDepositPending: false,
       });
 
       // Act
@@ -525,7 +519,7 @@ describe('PredictBalance', () => {
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: jest.fn(),
-        status: 'pending',
+        isDepositPending: true,
       });
 
       // Act

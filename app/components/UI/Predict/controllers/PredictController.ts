@@ -55,8 +55,6 @@ import {
   PredictActivity,
   PredictClaim,
   PredictClaimStatus,
-  PredictDeposit,
-  PredictDepositStatus,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
@@ -87,11 +85,9 @@ export type PredictControllerState = {
   // Claim management
   // TODO: change to be per-account basis
   claimablePositions: PredictPosition[];
-  claimTransaction: PredictClaim | null;
 
   // Deposit management
-  // TODO: change to be per-account basis
-  depositTransaction: PredictDeposit | null;
+  pendingDeposits: { [providerId: string]: { [address: string]: boolean } };
 
   // Withdraw management
   // TODO: change to be per-account basis
@@ -112,8 +108,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   lastUpdateTimestamp: 0,
   balances: {},
   claimablePositions: [],
-  claimTransaction: null,
-  depositTransaction: null,
+  pendingDeposits: {},
   withdrawTransaction: null,
   isOnboarded: {},
 });
@@ -152,13 +147,7 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
-  claimTransaction: {
-    persist: false,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
-    usedInUi: false,
-  },
-  depositTransaction: {
+  pendingDeposits: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -1187,7 +1176,6 @@ export class PredictController extends BaseController<
       };
 
       this.update((state) => {
-        state.claimTransaction = predictClaim;
         state.lastError = null; // Clear any previous errors
         state.lastUpdateTimestamp = Date.now();
       });
@@ -1219,7 +1207,6 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-        state.claimTransaction = null; // Clear any partial claim transaction
       });
 
       // Log error for debugging and future Sentry integration
@@ -1283,12 +1270,6 @@ export class PredictController extends BaseController<
     this.update(updater);
   }
 
-  public clearClaimTransaction(): void {
-    this.update((state) => {
-      state.claimTransaction = null;
-    });
-  }
-
   public async depositWithConfirmation(
     params: PrepareDepositParams,
   ): Promise<Result<{ batchId: string }>> {
@@ -1301,15 +1282,17 @@ export class PredictController extends BaseController<
       Engine.context;
 
     try {
-      // Clear any previous deposit transaction
-      this.update((state) => {
-        state.depositTransaction = null;
-      });
-
       const selectedAccount = AccountsController.getSelectedAccount();
       if (!selectedAccount?.address) {
         throw new Error('No account selected for deposit');
       }
+
+      // Clear any previous deposit transaction
+      this.update((state) => {
+        state.pendingDeposits[params.providerId] = {
+          [selectedAccount.address]: false,
+        };
+      });
 
       const selectedAddress = selectedAccount.address;
       const signer = {
@@ -1369,16 +1352,10 @@ export class PredictController extends BaseController<
         throw new Error(`Invalid chain ID format: ${chainId}`);
       }
 
-      // Store deposit transaction for tracking (mirrors claim pattern)
-      const predictDeposit: PredictDeposit = {
-        batchId,
-        chainId: parsedChainId,
-        status: PredictDepositStatus.PENDING,
-        providerId: params.providerId,
-      };
-
       this.update((state) => {
-        state.depositTransaction = predictDeposit;
+        state.pendingDeposits[params.providerId] = {
+          [selectedAccount.address]: true,
+        };
       });
 
       return {
@@ -1404,9 +1381,13 @@ export class PredictController extends BaseController<
     }
   }
 
-  public clearDepositTransaction(): void {
+  public clearPendingDeposit({ providerId }: { providerId: string }): void {
+    const { AccountsController } = Engine.context;
+    const selectedAddress = AccountsController.getSelectedAccount().address;
     this.update((state) => {
-      state.depositTransaction = null;
+      state.pendingDeposits[providerId] = {
+        [selectedAddress]: false,
+      };
     });
   }
 
