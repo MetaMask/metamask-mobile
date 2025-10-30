@@ -3,7 +3,6 @@
 // @ts-nocheck - Rock CLI packages only available in CI environment
 import { platformIOS } from '@rock-js/platform-ios';
 import { pluginMetro } from '@rock-js/plugin-metro';
-import { providerGitHub } from '@rock-js/provider-github';
 
 /** @type {import('rock').Config} */
 export default {
@@ -14,10 +13,7 @@ export default {
       configuration: 'Release',
     }),
   },
-  remoteCacheProvider: providerGitHub({
-    owner: 'MetaMask',
-    repo: 'metamask-mobile',
-  }),
+  remoteCacheProvider: 'github-actions',
   fingerprint: {
     extraSources: [
       'METAMASK_ENVIRONMENT',
