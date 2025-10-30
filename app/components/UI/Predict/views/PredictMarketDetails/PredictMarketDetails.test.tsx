@@ -12,6 +12,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackMarketDetailsOpened: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
@@ -117,6 +125,11 @@ jest.mock('../../utils/format', () => ({
       `$${value.toFixed(options?.maximumDecimals || 2)}`,
   ),
   formatVolume: jest.fn((value: number) => value.toLocaleString()),
+  formatPercentage: jest.fn((value: number) =>
+    value === 0
+      ? '0%'
+      : `${value > 0 ? '+' : ''}${Math.abs(value).toFixed(2)}%`,
+  ),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
@@ -158,6 +171,13 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 jest.mock('../../hooks/usePredictClaim', () => ({
   usePredictClaim: jest.fn(() => ({
     claim: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: jest.fn(() => ({
+    isEligible: true,
+    refreshEligibility: jest.fn(),
   })),
 }));
 
@@ -361,6 +381,7 @@ function setupPredictMarketDetailsTest(
     market?: object;
     priceHistory?: object;
     positions?: object;
+    eligibility?: object;
   } = {},
 ) {
   jest.clearAllMocks();
@@ -407,6 +428,15 @@ function setupPredictMarketDetailsTest(
   const { usePredictPositions } = jest.requireMock(
     '../../hooks/usePredictPositions',
   );
+  const { usePredictEligibility } = jest.requireMock(
+    '../../hooks/usePredictEligibility',
+  );
+
+  usePredictEligibility.mockReturnValue({
+    isEligible: true,
+    refreshEligibility: jest.fn(),
+    ...hookOverrides.eligibility,
+  });
 
   usePredictMarket.mockReturnValue({
     market: mockMarket,
@@ -493,6 +523,11 @@ describe('PredictMarketDetails', () => {
     it('displays market volume correctly', () => {
       setupPredictMarketDetailsTest();
 
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
       expect(
         screen.getByText('predict.market_details.volume'),
       ).toBeOnTheScreen();
@@ -500,6 +535,11 @@ describe('PredictMarketDetails', () => {
 
     it('displays market end date correctly', () => {
       setupPredictMarketDetailsTest();
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
 
       expect(
         screen.getByText('predict.market_details.end_date'),
@@ -510,6 +550,11 @@ describe('PredictMarketDetails', () => {
     it('displays provider information', () => {
       setupPredictMarketDetailsTest();
 
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
       expect(
         screen.getByText('predict.market_details.powered_by'),
       ).toBeOnTheScreen();
@@ -518,6 +563,11 @@ describe('PredictMarketDetails', () => {
 
     it('displays resolver information', () => {
       setupPredictMarketDetailsTest();
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
 
       expect(
         screen.getByText('predict.market_details.resolver'),
@@ -595,6 +645,11 @@ describe('PredictMarketDetails', () => {
     it('displays About tab content', () => {
       setupPredictMarketDetailsTest();
 
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
       expect(
         screen.getByText('predict.market_details.volume'),
       ).toBeOnTheScreen();
@@ -606,24 +661,19 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays Positions tab content', () => {
+    it('hides Positions tab when user has no positions', () => {
       setupPredictMarketDetailsTest();
 
-      // Switch to Positions tab
-      const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(positionsTab);
-
       expect(
-        screen.getByText('predict.market_details.no_positions_found'),
-      ).toBeOnTheScreen();
+        screen.queryByText('predict.tabs.positions'),
+      ).not.toBeOnTheScreen();
     });
   });
 
   describe('Action Buttons', () => {
     it('renders Yes and No action buttons for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -646,6 +696,7 @@ describe('PredictMarketDetails', () => {
 
     it('calculates percentage correctly from market price', () => {
       const marketWithDifferentPrice = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -692,6 +743,7 @@ describe('PredictMarketDetails', () => {
   describe('Current Prediction Display', () => {
     it('displays current prediction percentage for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -712,6 +764,7 @@ describe('PredictMarketDetails', () => {
 
     it('handles missing price data gracefully', () => {
       const marketWithoutPrice = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -744,6 +797,11 @@ describe('PredictMarketDetails', () => {
       const marketWithoutEndDate = createMockMarket({ endDate: null });
 
       setupPredictMarketDetailsTest(marketWithoutEndDate);
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
 
       expect(screen.getByText('N/A')).toBeOnTheScreen();
     });
@@ -804,18 +862,18 @@ describe('PredictMarketDetails', () => {
       };
 
       const { mockNavigate } = setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the cash out button
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
-      const cashOutButton = screen.getByText('Cash out');
+      const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
@@ -823,12 +881,15 @@ describe('PredictMarketDetails', () => {
         params: {
           position: mockPosition,
           outcome: expect.any(Object),
+          market: expect.any(Object),
+          entryPoint: 'predict_market_details',
         },
       });
     });
 
     it('handles Yes button press for betting', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -860,6 +921,7 @@ describe('PredictMarketDetails', () => {
 
     it('handles No button press for betting', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -908,22 +970,25 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('Cash out')).toBeOnTheScreen();
+      expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes/),
+        screen.getByText('predict.market_details.amount_on_outcome'),
       ).toBeOnTheScreen();
-      expect(screen.getByText(/\+7\.7%/)).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.outcome_at_price'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('+7.70%')).toBeOnTheScreen();
     });
 
     it('renders position with negative PnL correctly', () => {
@@ -940,18 +1005,18 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('-7.7%')).toBeOnTheScreen();
+      expect(screen.getByText('7.70%')).toBeOnTheScreen();
     });
 
     it('renders outcomes tab for multi-outcome markets', () => {
@@ -980,13 +1045,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(multiOutcomeMarket);
 
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
-
-      // Should render outcomes for multi-outcome markets
+      // Outcomes is the default tab when there are no positions
       expect(screen.getAllByTestId('predict-market-outcome')).toHaveLength(3);
     });
 
@@ -1010,6 +1069,7 @@ describe('PredictMarketDetails', () => {
 
     it('renders current prediction section only for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1030,6 +1090,7 @@ describe('PredictMarketDetails', () => {
 
     it('renders action buttons only for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1082,14 +1143,17 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
       expect(
-        screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes Option/),
+        screen.getByText('predict.market_details.amount_on_outcome'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.outcome_at_price'),
       ).toBeOnTheScreen();
     });
 
@@ -1111,14 +1175,17 @@ describe('PredictMarketDetails', () => {
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
       expect(
-        screen.getByText(/\$65\.00\s+predict\.market_details\.on\s+Yes/),
+        screen.getByText('predict.market_details.amount_on_outcome'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('predict.market_details.outcome_at_price'),
       ).toBeOnTheScreen();
     });
 
@@ -1135,18 +1202,18 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('+0.0%')).toBeOnTheScreen();
+      expect(screen.getByText('0%')).toBeOnTheScreen();
     });
   });
 
@@ -1191,6 +1258,7 @@ describe('PredictMarketDetails', () => {
 
     it('handles market with undefined price correctly', () => {
       const marketWithUndefinedPrice = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1256,7 +1324,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       expect(
         screen.getByText('confirm.predict_claim.button_label'),
@@ -1284,7 +1371,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       const claimButton = screen.getByText(
         'confirm.predict_claim.button_label',
@@ -1309,13 +1415,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(closedMarket);
 
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
-
-      // Should render outcomes tab for closed markets
+      // Outcomes is the default tab when there are no positions
       expect(
         screen.getAllByTestId('predict-market-outcome').length,
       ).toBeGreaterThan(0);
@@ -1491,7 +1591,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       expect(
         screen.getByText('confirm.predict_claim.button_label'),
@@ -1519,7 +1638,26 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarket);
+      setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 10,
+                initialValue: 10,
+                currentValue: 12,
+                avgPrice: 0.5,
+                percentPnl: 20,
+              },
+            ],
+          },
+        },
+      );
 
       const claimButton = screen.getByText(
         'confirm.predict_claim.button_label',
@@ -1544,13 +1682,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(closedMarket);
 
-      // Switch to Outcomes tab to see the outcomes content
-      const outcomesTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
-      );
-      fireEvent.press(outcomesTab);
-
-      // Should render outcomes tab for closed markets
+      // Outcomes is the default tab when there are no positions
       expect(screen.getByTestId('predict-market-outcome')).toBeOnTheScreen();
     });
 
@@ -1691,19 +1823,19 @@ describe('PredictMarketDetails', () => {
       };
 
       setupPredictMarketDetailsTest(
-        {},
+        { status: 'open' },
         {},
         { positions: { positions: [mockPosition] } },
       );
 
-      // Switch to Positions tab to see the positions content
+      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        'predict-market-details-tab-bar-tab-0',
       );
       fireEvent.press(positionsTab);
 
       // Verify the position section renders with icon
-      expect(screen.getByText('Cash out')).toBeOnTheScreen();
+      expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
     });
 
     it('handles chart color selection for single outcome', () => {
@@ -1803,6 +1935,7 @@ describe('PredictMarketDetails', () => {
       });
 
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1835,6 +1968,7 @@ describe('PredictMarketDetails', () => {
       });
 
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
@@ -1859,6 +1993,154 @@ describe('PredictMarketDetails', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       });
+    });
+
+    it('navigates to unavailable modal when user is not eligible - Yes button', () => {
+      const singleOutcomeMarket = createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      const { mockNavigate } = setupPredictMarketDetailsTest(
+        singleOutcomeMarket,
+        {},
+        { eligibility: { isEligible: false } },
+      );
+
+      const yesButton = screen.getByText(
+        /predict\.market_details\.yes\s*•\s*65¢/,
+      );
+      fireEvent.press(yesButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+    });
+
+    it('navigates to unavailable modal when user is not eligible - No button', () => {
+      const singleOutcomeMarket = createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', price: 0.65 },
+              { id: 'token-2', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      const { mockNavigate } = setupPredictMarketDetailsTest(
+        singleOutcomeMarket,
+        {},
+        { eligibility: { isEligible: false } },
+      );
+
+      const noButton = screen.getByText(
+        /predict\.market_details\.no\s*•\s*35¢/,
+      );
+      fireEvent.press(noButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+    });
+
+    it('checks eligibility before balance for Yes button', () => {
+      const { usePredictBalance } = jest.requireMock(
+        '../../hooks/usePredictBalance',
+      );
+      usePredictBalance.mockReturnValue({
+        hasNoBalance: true,
+      });
+
+      const singleOutcomeMarket = createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      const { mockNavigate } = setupPredictMarketDetailsTest(
+        singleOutcomeMarket,
+        {},
+        { eligibility: { isEligible: false } },
+      );
+
+      const yesButton = screen.getByText(
+        /predict\.market_details\.yes\s*•\s*65¢/,
+      );
+      fireEvent.press(yesButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.ROOT,
+        {
+          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        },
+      );
+    });
+
+    it('checks eligibility before balance for No button', () => {
+      const { usePredictBalance } = jest.requireMock(
+        '../../hooks/usePredictBalance',
+      );
+      usePredictBalance.mockReturnValue({
+        hasNoBalance: true,
+      });
+
+      const singleOutcomeMarket = createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', price: 0.65 },
+              { id: 'token-2', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      const { mockNavigate } = setupPredictMarketDetailsTest(
+        singleOutcomeMarket,
+        {},
+        { eligibility: { isEligible: false } },
+      );
+
+      const noButton = screen.getByText(
+        /predict\.market_details\.no\s*•\s*35¢/,
+      );
+      fireEvent.press(noButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.ROOT,
+        {
+          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        },
+      );
     });
   });
 });

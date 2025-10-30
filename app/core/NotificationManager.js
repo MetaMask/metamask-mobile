@@ -24,6 +24,8 @@ import { hasTransactionType } from '../components/Views/confirmations/utils/tran
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
+  TransactionType.predictClaim,
+  TransactionType.predictWithdraw,
 ];
 
 export const IN_PROGRESS_SKIP_STATUS = [

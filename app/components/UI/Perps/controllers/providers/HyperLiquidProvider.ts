@@ -2,7 +2,7 @@ import { CaipAccountId, type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import { ensureError } from '../../utils/perpsErrorHandler';
 import {
   BASIS_POINTS_DIVISOR,
@@ -621,21 +621,36 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get error context for logging with consistent metadata
+   * Get error context for logging with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature, provider, and network.
+   *
    * @param method - The method name where the error occurred
-   * @param extra - Additional context to include
-   * @returns Object with standardized error context
+   * @param extra - Optional additional context fields (becomes searchable context data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @private
+   *
+   * @example
+   * Logger.error(error, this.getErrorContext('placeOrder', { coin: 'BTC', orderType: 'limit' }));
+   * // Creates searchable tags: feature:perps, provider:hyperliquid, network:mainnet
+   * // Creates searchable context: perps_provider.method:placeOrder, perps_provider.coin:BTC, perps_provider.orderType:limit
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      context: `HyperLiquidProvider.${method}`,
-      provider: this.protocolId,
-      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
-      ...extra,
+      tags: {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        provider: this.protocolId,
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      },
+      context: {
+        name: 'HyperLiquidProvider',
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 
@@ -2456,6 +2471,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           timestamp: statusTimestamp,
           lastUpdated: statusTimestamp,
           detailedOrderType: order.orderType, // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+          isTrigger: order.isTrigger,
+          reduceOnly: order.reduceOnly,
         };
       });
 
@@ -3231,14 +3248,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
             };
           }
         }
-      }
-
-      // Validate limit orders have a price
-      if (params.orderType === 'limit' && !params.price) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.limit_price_required'),
-        };
       }
 
       // Validate order value against max limits

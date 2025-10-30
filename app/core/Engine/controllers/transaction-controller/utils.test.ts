@@ -218,7 +218,7 @@ describe('generateDefaultTransactionMetrics', () => {
         confirmationMetrics: {
           metricsById: mockMetricsById,
         },
-      } as unknown as RootState),
+      }) as unknown as RootState,
   );
 
   const mockEventHandlerRequest: Partial<TransactionEventHandlerRequest> = {
@@ -519,7 +519,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -555,7 +555,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -593,7 +593,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -626,7 +626,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [batchApprovalConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({

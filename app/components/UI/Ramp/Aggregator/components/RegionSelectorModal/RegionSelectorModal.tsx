@@ -164,7 +164,6 @@ function RegionSelectorModal() {
 
       return (
         <ListItemSelect
-          shouldEnableAndroidPressIn
           isSelected={
             selectedRegion?.id === region.id ||
             (selectedRegion?.id.includes('-') &&

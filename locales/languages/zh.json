@@ -1,4 +1,25 @@
 {
+  "sample_feature": {
+    "title": "Sample Feature",
+    "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
+    "counter": {
+      "title": "Counter",
+      "value": "Value: {{value}}",
+      "increment": "Increment Redux Counter"
+    },
+    "pet_name": {
+      "list_count_text": "Pet Names on this network",
+      "add_pet_name_button": "Add Pet Name",
+      "address": "Address",
+      "address_placeholder": "0x...",
+      "name": "Name",
+      "name_placeholder": "Name",
+      "duplicate_title": "Address already exists",
+      "duplicate_message": "This address already has a pet name. Do you want to update it?",
+      "cancel": "Cancel",
+      "update": "Update"
+    }
+  },
   "alert_system": {
     "alert_modal": {
       "title": "提醒",
@@ -219,13 +240,14 @@
     "remind_later": "我们稍后会提醒您",
     "remind_later_description": "如果不备份您的私钥助记词，当应用程序被锁定或更换新设备时，您将无法动用您的资金。",
     "remind_later_description2": "您可以备份钱包或者在下方查看您的私钥助记词：",
-    "setting_security_privacy": "“设置”>“安全和隐私”"
+    "setting_security_privacy": "“设置”>“安全和隐私”",
+    "wallet_ready": "Your wallet is ready!"
   },
   "social_login_ios_user": {
-    "new_user_title": "You've signed up!",
-    "new_user_button": "Secure your wallet",
-    "existing_user_title": "You’re logged in!",
-    "existing_user_button": "Unlock wallet"
+    "new_user_title": "您已注册！",
+    "new_user_button": "保护您的钱包安全",
+    "existing_user_title": "您已登录！",
+    "existing_user_button": "解锁钱包"
   },
   "onboarding_carousel": {
     "title1": "欢迎使用 MetaMask",
@@ -395,7 +417,7 @@
     "description": "仅在当前设备上解锁 MetaMask。",
     "description_social_login": "使用此助记词即可在所有设备上恢复钱包。",
     "description_social_login_update": "若丢失此密码，将无法访问所有设备上的钱包。请将其妥善保存在安全的地方，",
-    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
+    "description_social_login_update_ios": "在所有设备上使用此功能进行钱包恢复。MetaMask 无法重设它。",
     "description_social_login_update_bold": "MetaMask 无法重设该密码。",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
     "password": "创建密码",
@@ -896,6 +918,8 @@
     "refresh_balance": "刷新余额",
     "add_funds": "充值",
     "deposit_in_progress": "存款进行中",
+    "withdraw_in_progress": "Withdraw in progress",
+    "multiple_transactions_in_progress": "Transactions in progress",
     "your_positions": "您的仓位",
     "loading_positions": "正在加载头寸……",
     "refreshing_positions": "正在刷新仓位...",
@@ -1082,7 +1106,7 @@
       "margin": "保证金",
       "take_profit": "止盈",
       "stop_loss": "止损",
-      "tp_sl": "止盈/止损",
+      "tp_sl": "Auto close",
       "tp": "止盈",
       "sl": "止损",
       "button": {
@@ -1201,7 +1225,7 @@
       "you_need_set_price_limit_order": "限价订单需设置价格。"
     },
     "tpsl": {
-      "title": "止盈与止损",
+      "title": "Auto close",
       "description": "选择盈利或亏损百分比，或输入自定义触发价，以自动平仓。",
       "off": "关闭",
       "current_price": "当前价格",
@@ -1218,14 +1242,19 @@
       "loss_percent_placeholder": "亏损",
       "profit_roe_placeholder": "盈利百分比",
       "loss_roe_placeholder": "亏损百分比",
-      "usd_label": "（美元）",
+      "usd_label": "$",
       "take_profit_invalid_price": "须以 {{direction}}{{priceType}} 价格止盈",
       "stop_loss_invalid_price": "须以 {{direction}}{{priceType}} 价格止损",
       "stop_loss_beyond_liquidation_error": "须以 {{direction}} 清算价格止损",
       "stop_loss_order_view_warning": "以 {{direction}} 清算价格止损",
       "above": "高于",
       "below": "低于",
-      "done": "Done"
+      "done": "已完成",
+      "cancel": "Cancel",
+      "set": "设置",
+      "clear": "Clear",
+      "expected_profit": "Expected profit: {{amount}}",
+      "expected_loss": "Expected loss: {{amount}}"
     },
     "token_selector": {
       "no_tokens": "无可用代币"
@@ -1280,7 +1309,7 @@
       "assetMappingFailed": "构建资产映射失败",
       "depositFailed": "存款失败",
       "orderLeverageReductionFailed": "无法降低杠杆",
-      "connectionTimeout": "Connection timed out. Please check your network and try again.",
+      "connectionTimeout": "连接超时。请检查网络连接后重试。",
       "connectionFailed": {
         "title": "永续合约暂时离线",
         "description": "我们正在努力让它尽快重新上线。",
@@ -1365,7 +1394,14 @@
       "add_funds": "充值",
       "add_funds_to_start_trading_perps": "充值以开始交易永续合约",
       "position": "仓位",
-      "orders": "订单"
+      "orders": "订单",
+      "badge": {
+        "experimental": "EXPERIMENTAL",
+        "equity": "STOCK",
+        "commodity": "COMMODITY",
+        "crypto": "CRYPTO",
+        "forex": "FOREX"
+      }
     },
     "buttons": {
       "get_account_balance": "获取账户余额",
@@ -1494,6 +1530,9 @@
         "trades": "交易",
         "orders": "订单",
         "funding": "资金",
+        "withdraw": "Withdraw",
+        "deposit": "Deposit",
+        "deposits": "Deposits",
         "funding_description": "资金历史记录是根据您持仓的资金费率计算得出的已支付或已收取费用的汇总。"
       },
       "not_found": "交易未找到",
@@ -1516,7 +1555,8 @@
         "total_fee": "总费用",
         "liquidated": "已清算",
         "take_profit": "止盈",
-        "stop_loss": "止损"
+        "stop_loss": "止损",
+        "auto_deleveraging": "Auto-Deleveraging"
       },
       "funding": {
         "date": "日期",
@@ -1529,7 +1569,7 @@
         "history_will_appear": "您的交易历史将在此处显示"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "永续合约交易存在风险，您可能会在毫无预警的情况下瞬间损失全部投资。交易风险完全由您自行承担。市场数据由 Hyperliquid 提供。价格图表技术支持来自",
     "tutorial": {
       "continue": "继续",
       "skip": "跳过",
@@ -1559,7 +1599,7 @@
       "ready_to_trade": {
         "title": "准备好交易了吗？",
         "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
+        "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperCore，无需任何额外费用。"
       },
       "got_it": "知道了",
       "card": {
@@ -1568,7 +1608,6 @@
     },
     "points": "积分",
     "estimated_points": "预估积分",
-    "unable_to_load": "无法加载",
     "points_error": "当前无法加载积分",
     "points_error_content": "请放心，您的积分仍在累计。稍后将在账户中显示或可在奖励标签页查看。",
     "tp_on_chart": "图表显示止盈",
@@ -1578,12 +1617,32 @@
     "title": "MetaMask 预测",
     "prediction_markets": "预测市场",
     "market_list": "市场列表",
-    "market_details": "市场详情",
+    "loading": "Loading...",
+    "market_details": {
+      "title": "Market Details",
+      "market_ended_on": "Market ended on {{outcome}}",
+      "market_resulted_to": "Market resulted to {{outcome}}",
+      "waiting_for_final_resolution": "Waiting for final resolution",
+      "no_positions_found": "No positions found",
+      "volume": "Volume",
+      "end_date": "End date",
+      "resolver": "Resolver",
+      "powered_by": "Powered by",
+      "yes": "Yes",
+      "no": "No",
+      "on": "on",
+      "market_unavailable": "Market unavailable"
+    },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
       "explore": "Browse markets",
       "new_prediction": "新预测",
       "resolved_markets": "Resolved markets"
+    },
+    "tabs": {
+      "about": "About",
+      "positions": "Positions",
+      "outcomes": "Outcomes"
     },
     "sell_position": "卖出仓位",
     "cash_out": "提现",
@@ -1682,13 +1741,18 @@
       }
     },
     "order": {
+      "available": "Available",
       "cashed_out": "Cashed out",
       "cashed_out_subtitle": "{{amount}} added to your balance",
       "cashing_out": "Cashing out {{amount}}",
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed"
+      "order_failed": "Order failed",
+      "payments_made_in_usdc": "All payments are made in USDC",
+      "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
+      "prediction_minimum_bet": "Minimum bet is {{amount}}",
+      "to_win": "To win"
     }
   },
   "receive": {
@@ -1801,7 +1865,6 @@
     "token_is_needed_to_continue": "需要 {{tokenSymbol}} 以继续",
     "fund_your_wallet": "Fund your wallet",
     "get_ready_for_web3": "Get your wallet ready to use web3",
-    "fund_your_wallet_to_get_started": "为钱包充值，开启您的 Web3 之旅",
     "add_funds": "充值",
     "next": "下一步",
     "buy_asset": "买入 {{asset}}",
@@ -2586,7 +2649,9 @@
     "developer_options": {
       "title": "开发者选项",
       "generate_trace_test": "生成跟踪测试",
-      "generate_trace_test_desc": "生成开发者测试哨兵跟踪。"
+      "generate_trace_test_desc": "生成开发者测试哨兵跟踪。",
+      "navigate_to_sample_feature": "Navigate to Sample Feature",
+      "sample_feature_desc": "A sample feature as a template for developers."
     }
   },
   "aes_crypto_test_form": {
@@ -2745,6 +2810,14 @@
     "swap": "兑换",
     "bridge": "桥接",
     "earn": "赚取",
+    "tron": {
+      "daily_resource": "Daily resource",
+      "bandwidth": "Bandwidth",
+      "energy": "Energy",
+      "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
+      "sufficient_to_cover_trx": "Sufficient to cover ~{{amount}} TRX transfers",
+      "sufficient_to_cover_usdt": "Sufficient to cover ~{{amount}} USDT"
+    },
     "disabled_button": {
       "buy": "此账户不支持买入",
       "sell": "此账户不支持卖出",
@@ -3163,7 +3236,7 @@
     "tx_review_staking_unstake": "解除质押",
     "tx_review_lending_deposit": "出借存款",
     "tx_review_lending_withdraw": "出借提款",
-    "tx_review_perps_deposit": "Funded Perps",
+    "tx_review_perps_deposit": "已注资的永续合约",
     "tx_review_predict_deposit": "Funded Predictions",
     "tx_review_predict_claim": "Claimed Wins",
     "tx_review_predict_withdraw": "Predictions Withdraw",
@@ -4015,8 +4088,8 @@
     "network_not_supported": "不支持当前网络",
     "select_provider": "选择您的首选提供商",
     "switch_network": "请切换为 mainnet 或 sepolia",
-    "card_title": "Always show MetaMask Card button",
-    "card_desc": "MetaMask Card is only available to residents of select countries"
+    "card_title": "始终显示 MetaMask 卡按钮",
+    "card_desc": "MetaMask 卡仅对特定国家/地区的居民开放"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "您没有活动会话",
@@ -5393,7 +5466,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "我们将在永续合约所用的 HyperCore 网络上将您的代币兑换为 USDC。兑换提供商可能收取费用，但 MetaMask 不另收费。"
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
@@ -5552,7 +5625,7 @@
     "network_fee_info_content": "网络费用取决于网络的繁忙程度及交易的复杂程度。",
     "points": "预计积分",
     "points_tooltip": "积分",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_1": "积分是您通过完成交易（如兑换、桥接或永续合约交易）获得 MetaMask Rewards 的方式。",
     "points_tooltip_content_2": "请知悉，这一数值为估算值，将在交易完成后最终确定。积分最多可能需要 1 小时才能确认并存入您的奖励余额。",
     "unable_to_load": "无法加载",
     "points_error": "当前无法加载积分",
@@ -5573,9 +5646,9 @@
     "title": "桥接",
     "submitting_transaction": "正在提交",
     "fetching_quote": "正在获取报价",
-    "fee_disclaimer": "包含 {{feePercentage}}% MM 费用",
+    "fee_disclaimer": "Includes {{feePercentage}}% MM fee.",
     "no_mm_fee": "无 MM 费用",
-    "no_mm_fee_disclaimer": "兑换成 {{destTokenSymbol}} 时无 MM 费用",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "目前暂不支持硬件钱包。请改用热钱包继续操作。",
     "hardware_wallet_not_supported_solana": "Solana 目前暂不支持硬件钱包。请改用热钱包继续操作。",
     "price_impact_info_title": "价格影响",
@@ -5585,7 +5658,7 @@
     "slippage_info_description": "在交易取消前，您愿意接受的价格波动百分比。",
     "blockaid_error_title": "此交易将被撤销",
     "max": "最大值",
-    "approval_needed": "此操作将批准 {{amount}} {{symbol}} 用于兑换。",
+    "approval_needed": "Approves token for swap.",
     "approval_tooltip_title": "授予精确访问权限",
     "approval_tooltip_content": "您正在授权动用指定金额（{{amount}} {{symbol}}）。该合约将无法动用超出此额度的任何资金。",
     "minimum_received": "最低收款",
@@ -5886,94 +5959,94 @@
       "description": "要使用卡片功能，您需要通过我们的合作伙伴完成账户验证。",
       "verify_account_button": "验证账户",
       "sign_up": {
-        "title": "Sign-up",
-        "description": "Register your details with Crypto Life, the provider of MetaMask Card. You'll use this account to access and manage your card.",
-        "email_label": "Email",
-        "password_label": "Password",
-        "confirm_password_label": "Confirm password",
-        "country_label": "Country of Residence",
-        "email_placeholder": "Enter your email address",
-        "password_placeholder": "Enter your password",
-        "country_placeholder": "Select your country",
-        "password_mismatch": "Passwords do not match",
-        "invalid_email": "Invalid email address"
+        "title": "注册",
+        "description": "向 MetaMask 卡提供商 Crypto Life 提交个人信息进行注册。此账户将用于登录并管理您的卡。",
+        "email_label": "电子邮件",
+        "password_label": "密码",
+        "confirm_password_label": "确认密码",
+        "country_label": "居住国家/地区",
+        "email_placeholder": "输入您的电子邮件地址",
+        "password_placeholder": "输入您的密码",
+        "country_placeholder": "选择您的国家/地区",
+        "password_mismatch": "密码不匹配",
+        "invalid_email": "电子邮件地址无效"
       },
       "confirm_email": {
-        "title": "Confirm your email",
-        "description": "We've sent a confirmation code to: {{email}}",
-        "confirm_code_label": "Confirmation code",
-        "confirm_code_placeholder": "Enter the confirmation code"
+        "title": "确认您的电子邮件",
+        "description": "我们已发送确认码至：{{email}}",
+        "confirm_code_label": "确认码",
+        "confirm_code_placeholder": "输入确认码"
       },
       "set_phone_number": {
-        "title": "Phone number",
-        "description": "Enter your phone number",
-        "phone_number_label": "Phone number",
-        "phone_number_placeholder": "Enter your phone number",
-        "country_area_code_label": "Country area code",
-        "invalid_phone_number": "Invalid phone number",
-        "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
+        "title": "电话号码",
+        "description": "输入您的电话号码",
+        "phone_number_label": "电话号码",
+        "phone_number_placeholder": "输入您的电话号码",
+        "country_area_code_label": "国家/地区代码",
+        "invalid_phone_number": "电话号码无效",
+        "legal_terms": "继续操作即表示您同意接收短信以验证手机号码。"
       },
       "confirm_phone_number": {
-        "title": "Confirm your phone number",
-        "description": "We've sent a confirmation code to: {{phoneNumber}}",
-        "confirm_code_label": "Confirmation code"
+        "title": "确认您的电话号码",
+        "description": "我们已发送确认码至：{{phoneNumber}}",
+        "confirm_code_label": "确认码"
       },
       "verify_identity": {
-        "title": "Verifying your identity to get your card",
-        "description": "To keep your account secure and comply with regulations, we need to verify your identity.\n\nYou'll need a government-issued ID and a proof of address (like a utility bill or bank statement).\n\nVerification usually takes 5-30 minutes, and we'll notify you as soon as it's complete.",
-        "verify_button": "Verify now with Veriff"
+        "title": "验证身份以获取您的卡",
+        "description": "为保障账户安全并符合监管要求，我们需要对您的身份进行验证。\n\n您需要准备政府签发的身份证件和地址证明（如水电费账单或银行对账单）。\n\n验证通常需要 5 到 30 分钟，完成后我们将第一时间通知您。",
+        "verify_button": "立即通过 Veriff 验证"
       },
       "validating_kyc": {
-        "title": "Validating your KYC..."
+        "title": "正在验证您的 KYC（实名认证）......"
       },
       "kyc_failed": {
-        "title": "Rejected",
-        "description": "Your KYC was rejected. Please try again."
+        "title": "已拒绝",
+        "description": "您的 KYC（实名认证）已被拒绝。请重试。"
       },
       "personal_details": {
-        "title": "Personal details",
-        "description": "Enter your personal details",
-        "first_name_label": "First name",
-        "last_name_label": "Last name",
-        "date_of_birth_label": "Date of birth",
-        "nationality_label": "Country of Nationality",
-        "ssn_label": "Social Security Number",
-        "first_name_placeholder": "Enter your first name",
-        "last_name_placeholder": "Enter your last name",
-        "date_of_birth_placeholder": "Enter your date of birth",
-        "nationality_placeholder": "Select your nationality",
-        "ssn_placeholder": "Enter your SSN",
-        "invalid_ssn": "Invalid SSN",
-        "invalid_date_of_birth": "Invalid date of birth",
-        "invalid_date_of_birth_underage": "You must be at least 18 years old"
+        "title": "个人信息",
+        "description": "输入您的个人信息",
+        "first_name_label": "名字",
+        "last_name_label": "姓氏",
+        "date_of_birth_label": "出生日期",
+        "nationality_label": "国籍",
+        "ssn_label": "社会安全号码",
+        "first_name_placeholder": "输入您的名字",
+        "last_name_placeholder": "输入您的姓氏",
+        "date_of_birth_placeholder": "输入您的出生日期",
+        "nationality_placeholder": "选择您的国籍",
+        "ssn_placeholder": "输入您的社会安全号码",
+        "invalid_ssn": "社会安全号码无效",
+        "invalid_date_of_birth": "出生日期无效",
+        "invalid_date_of_birth_underage": "您必须年满 18 周岁"
       },
       "physical_address": {
-        "title": "Physical address",
-        "description": "Please provide your physical address",
-        "address_line_1_label": "Address line 1",
-        "address_line_2_label": "Address line 2",
-        "city_label": "City",
-        "state_label": "State",
-        "zip_code_label": "ZIP code",
-        "address_line_1_placeholder": "Enter your address line 1",
-        "address_line_2_placeholder": "Enter your address line 2",
-        "city_placeholder": "Enter your city",
-        "state_placeholder": "Enter your state",
-        "zip_code_placeholder": "Enter your ZIP code",
-        "same_mailing_address_label": "Physical address is the same as mailing address",
-        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communictions electronically."
+        "title": "实际地址",
+        "description": "请提供您的实际地址",
+        "address_line_1_label": "地址行 1",
+        "address_line_2_label": "地址行 2",
+        "city_label": "城市",
+        "state_label": "州/省",
+        "zip_code_label": "邮政编码",
+        "address_line_1_placeholder": "输入您的地址行 1",
+        "address_line_2_placeholder": "输入您的地址行 2",
+        "city_placeholder": "输入您所在城市",
+        "state_placeholder": "输入您所在州/省",
+        "zip_code_placeholder": "输入您的邮政编码",
+        "same_mailing_address_label": "实际地址与邮寄地址一致",
+        "electronic_consent": "本人同意《电子签名法》相关同意书与披露文件，并同意以电子方式接收所有通信。"
       },
       "mailing_address": {
-        "title": "Mailing address",
-        "description": "Please provide your mailing address"
+        "title": "邮寄地址",
+        "description": "请提供您的邮寄地址"
       },
       "complete": {
-        "title": "Approved!",
-        "description": "Your KYC was approved. You can now use your Card."
+        "title": "已批准！",
+        "description": "您的 KYC（实名认证）已获批准。您现在可以使用您的卡。"
       },
-      "continue_button": "Next",
-      "confirm_button": "Confirm",
-      "retry_button": "Try again"
+      "continue_button": "下一步",
+      "confirm_button": "确认",
+      "retry_button": "请重试"
     },
     "card_home": {
       "error_title": "无法获取数据",
@@ -5981,49 +6054,73 @@
       "try_again": "请重试",
       "limited_spending_warning": "您的实际消费额度可能受限。请前往 {{manageCard}} 调整限额",
       "add_funds": "充值",
-      "change_asset": "Change asset",
+      "change_asset": "更改资产",
+      "enable_card_button_label": "Enable Card",
+      "enable_assets_button_label": "Enable Assets",
       "warnings": {
         "close_spending_limit": {
-          "title": "You're close to your spending limit",
-          "description": "Update to avoid declines",
-          "confirm_button_label": "Set new limit"
+          "title": "您即将达到消费限额",
+          "description": "更新以避免被拒",
+          "confirm_button_label": "设置新限额"
         },
         "need_delegation": {
-          "title": "You need to delegate assets",
-          "description": "Delegate assets to your Card to start spending",
-          "confirm_button_label": "Delegate assets"
+          "title": "您需要委托资产",
+          "description": "将资产委托至您的卡，即可开始消费",
+          "confirm_button_label": "委托资产"
+        },
+        "no_card": {
+          "title": "You don't have a Card",
+          "description": "Please enable your Card to start spending"
+        },
+        "frozen": {
+          "title": "Your Card is frozen",
+          "description": "Please contact support to unfreeze your Card"
+        },
+        "blocked": {
+          "title": "Your Card is blocked",
+          "description": "Please contact support to unblock your Card"
         }
       },
       "manage_card_options": {
-        "manage_spending_limit": "Manage spending limit",
-        "manage_spending_limit_description_restricted": "Restricted spending limit is on",
-        "manage_spending_limit_description_full": "Full spending access is on",
+        "manage_spending_limit": "管理消费限额",
+        "manage_spending_limit_description_restricted": "受限消费限额已开启",
+        "manage_spending_limit_description_full": "完整消费权限已开启",
         "manage_card": "管理卡片",
-        "advanced_card_management_description": "Detailed transactions, freeze card, and more"
+        "advanced_card_management_description": "详细交易记录、冻结卡片及更多功能"
       }
     },
     "card_authentication": {
-      "title": "Log in to your Card account",
-      "location_button_text": "International",
-      "location_button_text_us": "US account",
-      "email_label": "Email",
-      "password_label": "Password",
-      "email_placeholder": "Enter your email address",
-      "password_placeholder": "Enter your password",
-      "login_button": "Log in",
+      "title": "登录您的卡账户",
+      "location_button_text": "国际",
+      "location_button_text_us": "美国账户",
+      "email_label": "电子邮件",
+      "password_label": "密码",
+      "email_placeholder": "输入您的电子邮件地址",
+      "password_placeholder": "输入您的密码",
+      "login_button": "登录",
       "errors": {
-        "invalid_credentials": "Invalid login details",
-        "unknown_error": "Unknown error, please try again later",
-        "email_required": "Email is required",
-        "password_required": "Password is required",
-        "email_invalid": "Invalid email address",
-        "password_invalid": "Invalid password",
-        "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
-        "network_error": "Network error. Please check your connection and try again.",
-        "timeout_error": "Request timed out. Please check your connection and try again.",
-        "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later."
+        "invalid_credentials": "登录信息无效",
+        "unknown_error": "未知错误，请稍后再试",
+        "email_required": "电子邮件为必填项",
+        "password_required": "密码为必填项",
+        "email_invalid": "电子邮件地址无效",
+        "password_invalid": "密码无效",
+        "invalid_email_or_password": "电子邮件或密码无效，请检查您的凭证后重试。",
+        "network_error": "网络错误。请检查您的网络连接并重试。",
+        "timeout_error": "请求超时。请检查您的网络连接并重试。",
+        "server_error": "服务器错误。请稍后再试。",
+        "configuration_error": "服务暂时不可用。请稍后再试。"
       }
+    },
+    "card_otp_authentication": {
+      "title": "Confirm your phone number",
+      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
+      "confirm_code_label": "Confirmation code",
+      "confirm_button": "Confirm",
+      "back_to_login_button": "Back to Login",
+      "resend_timer": "Resend code in {{seconds}}s",
+      "resend_code": "Resend code"
     }
   },
   "onboarding_error_fallback": {
@@ -6130,7 +6227,7 @@
       "type": {
         "swap": "交换",
         "perps": "永续合约",
-        "card_spend": "Card spend",
+        "card_spend": "卡消费",
         "referral": "推荐",
         "referral_action": "推荐行动",
         "sign_up_bonus": "注册奖励",
@@ -6183,9 +6280,9 @@
       "step3_title": "专属赛季奖励",
       "step3_description": "每季都有全新福利。立即参与，展开竞争，在活动结束前将属于您的奖励收入囊中。",
       "step4_title": "注册即可赚取 250 积分！",
-      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with this code!",
+      "step4_title_referral_bonus": "使用此代码注册即可赚取 500 积分！",
       "step4_title_referral_validating": "正在验证推荐码……",
-      "step4_referral_bonus_description": "Use a referral code to earn 250 more",
+      "step4_referral_bonus_description": "使用推荐码可再赚取 250 积分",
       "step4_referral_input_placeholder": "推荐码（可选）",
       "step4_referral_input_error": "推荐码无效",
       "step4_confirm": "领取积分",
@@ -6272,9 +6369,9 @@
         "title": "推荐好友",
         "description": "好友每获得 50 积分，您可获 10 积分",
         "sheet": {
-          "title": "Refer a friend",
-          "points": "20 points per 100",
-          "cta_label": "Refer a friend"
+          "title": "推荐好友",
+          "points": "每 100 美元 20 积分",
+          "cta_label": "推荐好友"
         }
       },
       "loyalty": {
@@ -6288,13 +6385,13 @@
         }
       },
       "card": {
-        "title": "MetaMask Card",
-        "description": "1 point per $1 spent",
+        "title": "MetaMask 卡",
+        "description": "每消费 1 美元可获得 1 积分",
         "sheet": {
-          "title": "MetaMask Card",
-          "points": "1 point per $1 spent",
-          "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
-          "cta_label": "Manage Card"
+          "title": "MetaMask 卡",
+          "points": "每消费 1 美元可获得 1 积分",
+          "description": "每次使用 MetaMask 卡消费均可赚取积分，并享受 1% 现金返还（金属卡用户可享 3% 返现）。",
+          "cta_label": "管理卡片"
         }
       }
     },
@@ -6311,11 +6408,11 @@
       }
     },
     "link_account_group": {
-      "link_account": "Add account",
-      "tracked": "Tracked",
-      "untracked": "Untracked",
-      "link_account_success": "{{accountName}} added successfully",
-      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
+      "link_account": "添加账户",
+      "tracked": "已追踪",
+      "untracked": "未追踪",
+      "link_account_success": "{{accountName}} 已成功添加",
+      "link_account_error": "为 {{accountName}} 添加一个或多个地址失败"
     },
     "active_boosts_title": "活跃加成",
     "season_1": "第 1 季",
@@ -6369,7 +6466,7 @@
       "swap": "兑换代币",
       "swap_approval": "批准代币"
     },
-    "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
+    "perps_deposit_solution": "您目前在 Arbitrum 网络上持有价值 {{fiat}} 的 USDC。请重新尝试存款。"
   },
   "sdk_connect_v2": {
     "show_loading": {

@@ -143,8 +143,8 @@ const Price = ({
                     diff > 0
                       ? 'trending-up'
                       : diff < 0
-                      ? 'trending-down'
-                      : 'minus'
+                        ? 'trending-down'
+                        : 'minus'
                   }
                   size={16}
                   style={styles.priceDiffIcon}

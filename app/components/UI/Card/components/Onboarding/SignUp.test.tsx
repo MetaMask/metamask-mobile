@@ -1,449 +1,632 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { useNavigation } from '@react-navigation/native';
-import SignUp, { MOCK_COUNTRIES } from './SignUp';
-import { validateEmail } from '../../../Ramp/Deposit/utils';
+import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { validateEmail } from '../../../Ramp/Deposit/utils';
+import { validatePassword } from '../../util/validatePassword';
+import SignUp from './SignUp';
 
-// Mock dependencies
+// Mock navigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../Ramp/Deposit/utils', () => ({
-  validateEmail: jest.fn(),
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+
+// Mock i18n
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
 }));
 
-jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: jest.fn(),
-}));
-
-// Mock OnboardingStep component
-jest.mock('./OnboardingStep', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return ({
-    title,
-    description,
-    formFields,
-    actions,
-  }: {
-    title: string;
-    description: string;
-    formFields: React.ReactNode;
-    actions: React.ReactNode;
-  }) =>
-    React.createElement(
-      View,
-      { testID: 'onboarding-step' },
-      React.createElement(Text, { testID: 'onboarding-step-title' }, title),
-      React.createElement(
-        Text,
-        { testID: 'onboarding-step-description' },
-        description,
-      ),
-      React.createElement(
-        View,
-        { testID: 'onboarding-step-form-fields' },
-        formFields,
-      ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
-    );
-});
-
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-      [key: string]: unknown;
-    }) =>
-      React.createElement(
-        View,
-        { testID: testID || 'box', ...props },
-        children,
-      ),
-    Text: ({
-      children,
-      testID,
-      variant,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-      variant?: string;
-      [key: string]: unknown;
-    }) =>
-      React.createElement(
-        Text,
-        { testID: testID || 'text', 'data-variant': variant, ...props },
-        children,
-      ),
-    TextVariant: {
-      BodySm: 'BodySm',
+// Mock hooks
+jest.mock('../../hooks/useEmailVerificationSend');
+jest.mock('../../hooks/useRegistrationSettings', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    data: {
+      countries: [
+        { iso3166alpha2: 'US', name: 'United States', canSignUp: true },
+        { iso3166alpha2: 'CA', name: 'Canada', canSignUp: true },
+        { iso3166alpha2: 'GB', name: 'United Kingdom', canSignUp: false },
+        { iso3166alpha2: 'DE', name: 'Germany', canSignUp: true },
+      ],
     },
-  };
-});
+  })),
+}));
+jest.mock('../../../../hooks/useDebouncedValue');
 
-// Mock Button component
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const React = jest.requireActual('react');
+// Mock utility functions
+jest.mock('../../../Ramp/Deposit/utils');
+jest.mock('../../util/validatePassword');
+
+// Mock SelectComponent with proper interaction simulation
+jest.mock('../../../SelectComponent', () => {
+  const ReactActual = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
-  const MockButton = ({
-    label,
-    onPress,
-    isDisabled,
-    testID,
-    size,
-    variant,
-    width,
-    ...props
-  }: {
-    label: string;
-    onPress?: () => void;
-    isDisabled?: boolean;
+  return (props: {
     testID?: string;
-    size?: string;
-    variant?: string;
-    width?: string;
-    [key: string]: unknown;
-  }) =>
-    React.createElement(
-      TouchableOpacity,
-      { testID: testID || 'button', onPress, disabled: isDisabled, ...props },
-      React.createElement(Text, { testID: 'button-label' }, label),
-    );
-
-  return {
-    __esModule: true,
-    default: MockButton,
-    ButtonSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-    ButtonVariants: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-    },
-    ButtonWidthTypes: {
-      Full: 'Full',
-      Auto: 'Auto',
-    },
-  };
-});
-
-// Mock TextField component and TextFieldSize
-jest.mock('../../../../../component-library/components/Form/TextField', () => {
-  const React = jest.requireActual('react');
-  const { TextInput } = jest.requireActual('react-native');
-
-  const MockTextField = ({
-    onChangeText,
-    placeholder,
-    value,
-    accessibilityLabel,
-    isError,
-    testID,
-    returnKeyType,
-    keyboardType,
-    size,
-    numberOfLines,
-    maxLength,
-    autoCapitalize,
-    ...props
-  }: {
-    onChangeText?: (text: string) => void;
-    placeholder?: string;
-    value?: string;
-    accessibilityLabel?: string;
-    isError?: boolean;
-    testID?: string;
-    returnKeyType?: string;
-    keyboardType?: string;
-    size?: string;
-    numberOfLines?: number;
-    maxLength?: number;
-    autoCapitalize?: string;
-    [key: string]: unknown;
-  }) =>
-    React.createElement(TextInput, {
-      testID: testID || 'text-field',
-      onChangeText,
-      placeholder,
-      value,
-      accessibilityLabel,
-      returnKeyType,
-      keyboardType,
-      numberOfLines,
-      maxLength,
-      autoCapitalize,
-      style: isError ? { borderColor: 'red' } : {},
-      ...props,
-    });
-
-  return {
-    __esModule: true,
-    default: MockTextField,
-    TextFieldSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-  };
-});
-
-// Mock Label component
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => React.createElement(Text, { testID: testID || 'label' }, children);
-});
-
-// Mock SelectComponent
-jest.mock('../../../SelectComponent', () => {
-  const React = jest.requireActual('react');
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-
-  return ({
-    options,
-    selectedValue,
-    onValueChange,
-    label,
-    defaultValue,
-    testID,
-  }: {
-    options?: { value: string; label: string }[];
-    selectedValue?: string;
     onValueChange?: (value: string) => void;
-    label?: string;
+    selectedValue?: string;
     defaultValue?: string;
-    testID?: string;
+    options?: { key: string; value: string; label: string }[];
+    [key: string]: unknown;
+  }) => {
+    const handlePress = () => {
+      // Simulate selecting the first available option
+      if (props.options && props.options.length > 0 && props.onValueChange) {
+        props.onValueChange(props.options[0].value);
+      }
+    };
+
+    return ReactActual.createElement(
+      TouchableOpacity,
+      {
+        testID: props.testID,
+        onPress: handlePress,
+        ...props,
+      },
+      ReactActual.createElement(
+        Text,
+        {},
+        props.selectedValue || props.defaultValue || 'Select...',
+      ),
+    );
+  };
+});
+
+// Mock OnboardingStep
+jest.mock('./OnboardingStep', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return (props: {
+    title?: unknown;
+    description?: unknown;
+    formFields?: unknown;
+    actions?: unknown;
   }) =>
-    React.createElement(
+    ReactActual.createElement(
       View,
-      { testID: testID || 'select-component' },
-      React.createElement(Text, { testID: 'select-label' }, label),
-      React.createElement(
-        TouchableOpacity,
-        {
-          testID: 'select-trigger',
-          onPress: () => onValueChange?.('us'),
-        },
-        React.createElement(
-          Text,
-          { testID: 'select-value' },
-          options?.find((opt) => opt.value === selectedValue)?.label ||
-            defaultValue,
-        ),
+      { testID: 'onboarding-step' },
+      ReactActual.createElement(
+        View,
+        { testID: 'onboarding-step-title' },
+        props.title,
+      ),
+      ReactActual.createElement(
+        View,
+        { testID: 'onboarding-step-description' },
+        props.description,
+      ),
+      ReactActual.createElement(
+        View,
+        { testID: 'onboarding-step-form-fields' },
+        props.formFields,
+      ),
+      ReactActual.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        props.actions,
       ),
     );
 });
 
-// Mock strings
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: { [key: string]: string } = {
-      'card.card_onboarding.sign_up.title': 'Sign Up',
-      'card.card_onboarding.sign_up.description':
-        'Create your account to get started',
-      'card.card_onboarding.sign_up.email_label': 'Email',
-      'card.card_onboarding.sign_up.email_placeholder': 'Enter your email',
-      'card.card_onboarding.sign_up.password_label': 'Password',
-      'card.card_onboarding.sign_up.password_placeholder':
-        'Enter your password',
-      'card.card_onboarding.sign_up.confirm_password_label': 'Confirm Password',
-      'card.card_onboarding.sign_up.country_label': 'Country',
-      'card.card_onboarding.sign_up.country_placeholder': 'Select your country',
-      'card.card_onboarding.continue_button': 'Continue',
-      'card.card_onboarding.sign_up.invalid_email':
-        'Please enter a valid email address',
-      'card.card_onboarding.sign_up.password_mismatch':
-        'Passwords do not match',
-    };
-    return mockStrings[key] || key;
-  }),
-}));
+// Create test store
+const createTestStore = (initialState = {}) =>
+  configureStore({
+    reducer: {
+      card: (
+        state = {
+          onboarding: {
+            selectedCountry: null,
+            onboardingId: null,
+            contactVerificationId: null,
+            user: null,
+          },
+          userCardLocation: 'international',
+          ...initialState,
+        },
+        action = { type: '', payload: null },
+      ) => {
+        switch (action.type) {
+          case 'card/setSelectedCountry':
+            return {
+              ...state,
+              onboarding: {
+                ...state.onboarding,
+                selectedCountry: action.payload,
+              },
+            };
+          case 'card/setUserCardLocation':
+            return {
+              ...state,
+              userCardLocation: action.payload,
+            };
+          default:
+            return state;
+        }
+      },
+    },
+  });
 
 describe('SignUp Component', () => {
-  const mockNavigate = jest.fn();
-  const mockValidateEmail = validateEmail as jest.MockedFunction<
-    typeof validateEmail
-  >;
-  const mockUseDebouncedValue = useDebouncedValue as jest.MockedFunction<
-    typeof useDebouncedValue
-  >;
+  let store: ReturnType<typeof createTestStore>;
+  let mockSendEmailVerification: jest.Mock;
+  let mockNavigate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useNavigation as jest.Mock).mockReturnValue({
+    mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+    } as unknown as ReturnType<typeof useNavigation>);
+    mockSendEmailVerification = jest
+      .fn()
+      .mockResolvedValue({ contactVerificationId: '123' });
+    (useEmailVerificationSend as jest.Mock).mockReturnValue({
+      sendEmailVerification: mockSendEmailVerification,
+      isLoading: false,
+      isError: false,
+      error: null,
+      reset: jest.fn(),
     });
-    mockUseDebouncedValue.mockImplementation((value) => value);
-    mockValidateEmail.mockReturnValue(true);
+    (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
+    (validateEmail as jest.Mock).mockReturnValue(true);
+    (validatePassword as jest.Mock).mockReturnValue(true);
+    store = createTestStore();
   });
 
-  describe('Component Rendering', () => {
-    it('should render the SignUp component correctly', () => {
-      const { getByTestId } = render(<SignUp />);
-
-      expect(getByTestId('onboarding-step')).toBeTruthy();
-      expect(getByTestId('onboarding-step-title')).toBeTruthy();
-      expect(getByTestId('onboarding-step-description')).toBeTruthy();
-      expect(getByTestId('onboarding-step-form-fields')).toBeTruthy();
-      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
-    });
-
-    it('should display correct title and description', () => {
-      const { getByTestId } = render(<SignUp />);
-
-      expect(getByTestId('onboarding-step-title')).toHaveTextContent('Sign Up');
-      expect(getByTestId('onboarding-step-description')).toHaveTextContent(
-        'Create your account to get started',
+  describe('Initial Render', () => {
+    it('renders all form fields with correct testIDs', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
       );
-    });
-  });
 
-  describe('Form Fields', () => {
-    it('should render all form fields', () => {
-      const { getAllByTestId } = render(<SignUp />);
-
-      const labels = getAllByTestId('label');
-      const textFields = getAllByTestId('text-field');
-      const selectComponent = getAllByTestId('select-component');
-
-      expect(labels).toHaveLength(4); // Email, Password, Confirm Password, Country
-      expect(textFields).toHaveLength(3); // Email, Password, Confirm Password
-      expect(selectComponent).toHaveLength(1); // Country selector
+      expect(getByTestId('signup-email-input')).toBeTruthy();
+      expect(getByTestId('signup-password-input')).toBeTruthy();
+      expect(getByTestId('signup-confirm-password-input')).toBeTruthy();
+      expect(getByTestId('signup-country-select')).toBeTruthy();
+      expect(getByTestId('signup-continue-button')).toBeTruthy();
     });
 
-    it('should render email field with correct properties', () => {
-      const { getAllByTestId } = render(<SignUp />);
-
-      const textFields = getAllByTestId('text-field');
-      const emailField = textFields[0];
-
-      expect(emailField.props.placeholder).toBe('Enter your email');
-      expect(emailField.props.accessibilityLabel).toBe('Email');
-      expect(emailField.props.keyboardType).toBe('email-address');
-    });
-
-    it('should render password fields with correct properties', () => {
-      const { getAllByTestId } = render(<SignUp />);
-
-      const textFields = getAllByTestId('text-field');
-      const passwordField = textFields[1];
-      const confirmPasswordField = textFields[2];
-
-      expect(passwordField.props.placeholder).toBe('Enter your password');
-      expect(passwordField.props.accessibilityLabel).toBe('Password');
-      expect(confirmPasswordField.props.placeholder).toBe(
-        'Enter your password',
+    it('has continue button disabled initially', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
       );
-      expect(confirmPasswordField.props.accessibilityLabel).toBe(
-        'Confirm Password',
-      );
+
+      const continueButton = getByTestId('signup-continue-button');
+      expect(continueButton.props.disabled).toBe(true);
     });
 
-    it('should render country selector with correct properties', () => {
-      const { getByTestId } = render(<SignUp />);
+    it('does not show error messages initially', () => {
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
 
-      const selectComponent = getByTestId('select-component');
-      const selectLabel = getByTestId('select-label');
-
-      expect(selectLabel).toHaveTextContent('Country');
-      expect(selectComponent).toBeTruthy();
+      expect(queryByTestId('signup-email-error-text')).toBeNull();
+      expect(queryByTestId('signup-confirm-password-error-text')).toBeNull();
     });
   });
 
-  describe('Continue Button', () => {
-    it('should render continue button', () => {
-      const { getByTestId } = render(<SignUp />);
+  describe('Email Input', () => {
+    it('allows text input', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
 
-      const button = getByTestId('button');
-      const buttonLabel = getByTestId('button-label');
+      const emailInput = getByTestId('signup-email-input');
+      fireEvent.changeText(emailInput, 'test@example.com');
 
-      expect(button).toBeTruthy();
-      expect(buttonLabel).toHaveTextContent('Continue');
+      expect(emailInput.props.value).toBe('test@example.com');
     });
 
-    it('should be disabled when form is incomplete', () => {
-      const { getByTestId } = render(<SignUp />);
+    it('shows error message when email is invalid', async () => {
+      (validateEmail as jest.Mock).mockReturnValue(false);
+      const { getByTestId, findByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
 
-      const button = getByTestId('button');
+      const emailInput = getByTestId('signup-email-input');
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'invalid-email');
+      });
 
-      expect(button.props.disabled).toBe(true);
+      const errorText = await findByTestId('signup-email-error-text');
+      expect(errorText).toBeTruthy();
+    });
+
+    it('does not show error message when email is valid', async () => {
+      (validateEmail as jest.Mock).mockReturnValue(true);
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'valid@example.com');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('signup-email-error-text')).toBeNull();
+      });
     });
   });
 
-  describe('MOCK_COUNTRIES Data', () => {
-    it('should export MOCK_COUNTRIES with correct structure', () => {
-      expect(MOCK_COUNTRIES).toBeDefined();
-      expect(Array.isArray(MOCK_COUNTRIES.countries)).toBe(true);
-      expect(MOCK_COUNTRIES.countries.length).toBeGreaterThan(0);
-
-      const firstCountry = MOCK_COUNTRIES.countries[0];
-      expect(firstCountry).toHaveProperty('id');
-      expect(firstCountry).toHaveProperty('name');
-      expect(firstCountry).toHaveProperty('callingCode');
-    });
-
-    it('should include expected countries', () => {
-      const countryKeys = MOCK_COUNTRIES.countries.map(
-        (country) => country.iso3166alpha2,
+  describe('Password Input', () => {
+    it('allows text input', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
       );
 
-      expect(countryKeys).toContain('US');
-      expect(countryKeys).toContain('FR');
-      expect(countryKeys).toContain('GB');
-      expect(countryKeys).toContain('DE');
+      const passwordInput = getByTestId('signup-password-input');
+      fireEvent.changeText(passwordInput, 'password123');
+
+      expect(passwordInput.props.value).toBe('password123');
+    });
+
+    it('has secure text entry enabled', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const passwordInput = getByTestId('signup-password-input');
+      expect(passwordInput.props.secureTextEntry).toBe(true);
     });
   });
 
-  describe('Component Integration', () => {
-    it('should integrate properly with OnboardingStep component', () => {
-      const { getByTestId } = render(<SignUp />);
+  describe('Confirm Password Input', () => {
+    it('allows text input', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
 
-      const onboardingStep = getByTestId('onboarding-step');
-      const formFields = getByTestId('onboarding-step-form-fields');
-      const actions = getByTestId('onboarding-step-actions');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+      fireEvent.changeText(confirmPasswordInput, 'password123');
 
-      expect(onboardingStep).toBeTruthy();
-      expect(formFields).toBeTruthy();
-      expect(actions).toBeTruthy();
+      expect(confirmPasswordInput.props.value).toBe('password123');
     });
 
-    it('should handle debounced values correctly', () => {
-      mockUseDebouncedValue.mockImplementation((value) => value);
-
-      const { getAllByTestId } = render(<SignUp />);
-
-      const textFields = getAllByTestId('text-field');
-      const emailField = textFields[0];
-
-      fireEvent.changeText(emailField, 'test@example.com');
-
-      expect(mockUseDebouncedValue).toHaveBeenCalledWith(
-        'test@example.com',
-        1000,
+    it('shows error message when passwords do not match', async () => {
+      const { getByTestId, findByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
       );
+
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Password123!');
+        fireEvent.changeText(confirmPasswordInput, 'Password321!');
+      });
+
+      const errorText = await findByTestId(
+        'signup-confirm-password-error-text',
+      );
+      expect(errorText).toBeTruthy();
+    });
+
+    it('does not show error message when passwords match', async () => {
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Password123!');
+        fireEvent.changeText(confirmPasswordInput, 'Password123!');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('signup-confirm-password-error-text')).toBeNull();
+      });
+    });
+  });
+
+  describe('Country Selection', () => {
+    it('allows country selection', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId('signup-country-select');
+      fireEvent.press(countrySelect);
+
+      expect(countrySelect).toBeTruthy();
+    });
+  });
+
+  describe('Form Validation', () => {
+    it('enables continue button when all fields are valid', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+      const countrySelect = getByTestId('signup-country-select');
+      const continueButton = getByTestId('signup-continue-button');
+
+      // Fill in all form fields
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'Password123!');
+      fireEvent.changeText(confirmPasswordInput, 'Password123!');
+
+      // Select a country - this should trigger the Redux action
+      fireEvent.press(countrySelect);
+
+      // Wait for all state updates to complete
+      await waitFor(() => {
+        const state = store.getState();
+        expect(state.card.onboarding.selectedCountry).toBe('CA'); // Canada comes first alphabetically
+      });
+
+      // Now check if the continue button is enabled
+      await waitFor(
+        () => {
+          expect(continueButton.props.disabled).toBe(false);
+        },
+        { timeout: 3000 },
+      );
+    });
+
+    it('keeps continue button disabled when email is invalid', async () => {
+      (validateEmail as jest.Mock).mockReturnValue(false);
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+      const countrySelect = getByTestId('signup-country-select');
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'invalid-email');
+        fireEvent.changeText(passwordInput, 'Password123!');
+        fireEvent.changeText(confirmPasswordInput, 'Password123!');
+        fireEvent.press(countrySelect);
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(true);
+      });
+    });
+
+    it('keeps continue button disabled when passwords do not match', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+      const countrySelect = getByTestId('signup-country-select');
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'Password123!');
+        fireEvent.changeText(confirmPasswordInput, 'Password321!');
+        fireEvent.press(countrySelect);
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(true);
+      });
+    });
+
+    it('keeps continue button disabled when password is invalid', async () => {
+      // Create a new store for this test with the invalid password mock
+      const testStore = createTestStore();
+      (validatePassword as jest.Mock).mockReturnValue(false); // Return false directly, not an object
+
+      const { getByTestId } = render(
+        <Provider store={testStore}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+      const countrySelect = getByTestId('signup-country-select');
+      const continueButton = getByTestId('signup-continue-button');
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'weak');
+      fireEvent.changeText(confirmPasswordInput, 'weak');
+      fireEvent.press(countrySelect);
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(true);
+      });
+    });
+
+    it('keeps continue button disabled when no country is selected', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'Password123!');
+        fireEvent.changeText(confirmPasswordInput, 'Password123!');
+        // Don't select country
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(true);
+      });
+    });
+  });
+
+  describe('Form Submission', () => {
+    it('calls sendEmailVerification when continue button is pressed', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const confirmPasswordInput = getByTestId('signup-confirm-password-input');
+      const countrySelect = getByTestId('signup-country-select');
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'Password123!');
+        fireEvent.changeText(confirmPasswordInput, 'Password123!');
+        fireEvent.press(countrySelect);
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSendEmailVerification).toHaveBeenCalled();
+    });
+
+    it('does not call sendEmailVerification when continue button is disabled', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSendEmailVerification).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('shows email verification error when present', async () => {
+      (useEmailVerificationSend as jest.Mock).mockReturnValue({
+        sendEmailVerification: jest.fn(),
+        isLoading: false,
+        isError: true,
+        error: 'Email verification failed',
+        reset: jest.fn(),
+      });
+
+      const { getByTestId, findByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+      });
+
+      const errorText = await findByTestId('signup-email-error-text');
+      expect(errorText).toBeTruthy();
+    });
+  });
+
+  describe('Country Selection', () => {
+    it('filters selectOptions by country.canSignUp property', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId('signup-country-select');
+
+      // The SelectComponent mock should receive only countries where canSignUp is true
+      // Based on the mock data, we should have US, Canada, and Germany (3 countries)
+      expect(countrySelect.props.options).toHaveLength(3);
+
+      // Verify that only countries with canSignUp: true are included
+      const optionValues = countrySelect.props.options.map(
+        (option: { value: string }) => option.value,
+      );
+      expect(optionValues).toContain('US');
+      expect(optionValues).toContain('CA');
+      expect(optionValues).toContain('DE');
+      expect(optionValues).not.toContain('GB');
+
+      // Verify the options are sorted alphabetically by name
+      const optionLabels = countrySelect.props.options.map(
+        (option: { label: string }) => option.label,
+      );
+      expect(optionLabels).toEqual(['Canada', 'Germany', 'United States']);
+    });
+  });
+
+  describe('Navigation', () => {
+    it('navigates to authentication screen when "I already have an account" is pressed', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const alreadyHaveAccountButton = getByTestId(
+        'signup-i-already-have-an-account-text',
+      );
+      fireEvent.press(alreadyHaveAccountButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
     });
   });
 });

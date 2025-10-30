@@ -11,7 +11,7 @@ import {
   type FrontendOpenOrdersResponse,
 } from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import type {
   PriceUpdate,
   Position,
@@ -155,18 +155,31 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Generate standardized error context for Sentry logging
+   * Get error context for logging with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature, provider, and network.
+   *
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields (merged into searchable context.data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @private
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      context: `HyperLiquidSubscriptionService.${method}`,
-      provider: 'hyperliquid',
-      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
-      ...extra,
+      tags: {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        provider: 'hyperliquid',
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      },
+      context: {
+        name: 'HyperLiquidSubscriptionService',
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 
@@ -276,8 +289,8 @@ export class HyperLiquidSubscriptionService {
    * Fast hash function for change detection
    * Uses string concatenation of key fields instead of JSON.stringify()
    * Performance: ~100x faster than JSON.stringify() for typical objects
-   * Only tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
-   * Value-based changes like unrealizedPnl should not trigger notifications
+   * Tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
+   * and value changes (unrealizedPnl, returnOnEquity) for live P&L updates
    */
   private hashPositions(positions: Position[]): string {
     if (!positions || positions.length === 0) return '0';
@@ -286,7 +299,9 @@ export class HyperLiquidSubscriptionService {
         (p) =>
           `${p.coin}:${p.size}:${p.entryPrice}:${p.leverage.value}:${
             p.takeProfitPrice || ''
-          }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}`,
+          }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
+            p.unrealizedPnl
+          }:${p.returnOnEquity}`,
       )
       .join('|');
   }
@@ -656,9 +671,8 @@ export class HyperLiquidSubscriptionService {
     accountId?: CaipAccountId,
   ): Promise<void> {
     const enabledDexs = this.getEnabledDexs();
-    const userAddress = await this.walletService.getUserAddressWithDefault(
-      accountId,
-    );
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
 
     // Establish webData2 subscription for main DEX (if not exists)
     if (!this.webData2Subscriptions.has('')) {
@@ -717,9 +731,8 @@ export class HyperLiquidSubscriptionService {
       throw new Error('Subscription client not initialized');
     }
 
-    const userAddress = await this.walletService.getUserAddressWithDefault(
-      accountId,
-    );
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
 
     // Only subscribe to main DEX (webData2 doesn't support dex parameter)
     const dexName = ''; // Main DEX
