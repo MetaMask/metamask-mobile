@@ -1,6 +1,11 @@
 import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
@@ -62,7 +67,7 @@ const PerpsStocksCommoditiesDropdown: React.FC<
         onPress={onPress}
         testID={`${testID}-button`}
       >
-        <Text variant={TextVariant.BodySm} style={styles.dropdownText}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
           {filterLabel}
         </Text>
         <Icon

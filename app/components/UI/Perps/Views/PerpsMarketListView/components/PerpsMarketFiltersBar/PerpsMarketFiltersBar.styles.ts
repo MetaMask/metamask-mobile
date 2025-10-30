@@ -21,14 +21,6 @@ const styleSheet = (params: { theme: Theme }) => {
     sortContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      paddingVertical: 6,
-    },
-    watchlistButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: 16,
       paddingVertical: 6,
     },
   });

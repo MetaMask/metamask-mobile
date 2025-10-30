@@ -23,10 +23,5 @@ export const styleSheet = (params: { theme: Theme }) => {
     dropdownButtonPressed: {
       opacity: 0.7,
     },
-    dropdownText: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: theme.colors.text.alternative,
-    },
   });
 };
