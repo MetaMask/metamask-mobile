@@ -23,7 +23,6 @@ import { CardError } from '../../types';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
@@ -168,11 +167,6 @@ const MailingAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
-        } else {
-          Logger.log(
-            'MailingAddress: Failed to store access token',
-            storeResult.error,
-          );
         }
 
         // Registration complete

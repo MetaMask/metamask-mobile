@@ -28,6 +28,7 @@ jest.mock('../../sdk', () => ({
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
@@ -62,6 +63,7 @@ jest.mock('./OnboardingStep', () => {
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
 
@@ -95,6 +97,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock TextField
 jest.mock('../../../../../component-library/components/Form/TextField', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
@@ -140,6 +143,7 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
 
 // Mock Label
 jest.mock('../../../../../component-library/components/Form/Label', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
 
@@ -152,6 +156,7 @@ jest.mock('../../../../../component-library/components/Form/Label', () => {
 
 // Mock Checkbox
 jest.mock('../../../../../component-library/components/Checkbox', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -191,6 +196,7 @@ jest.mock('../../../../../component-library/components/Checkbox', () => {
 
 // Mock Button
 jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -246,6 +252,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
 
 // Mock SelectComponent
 jest.mock('../../../SelectComponent', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -872,34 +879,14 @@ describe('PhysicalAddress Component', () => {
       // Wait for all state updates
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      // Check if button is disabled and log the reason
+      // Press the continue button
       const button = getByTestId('physical-address-continue-button');
-      if (button.props.disabled) {
-        // Button is disabled, so handleContinue won't be called
-        // Let's check what the early return condition is by calling it directly
-        // This is a workaround since the button is disabled
-        await mockRegisterUserConsent('test-id', 'user-id');
-        await mockRegisterAddress({
-          onboardingId: 'test-id',
-          addressLine1: '123 Main St',
-          addressLine2: '',
-          city: 'San Francisco',
-          usState: 'CA',
-          zip: '12345',
-          isSameMailingAddress: false,
-        });
-        mockNavigate(Routes.CARD.ONBOARDING.MAILING_ADDRESS);
-      } else {
-        // Press the continue button normally
-        fireEvent.press(button);
-        // Wait for async operations to complete
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
+      fireEvent.press(button);
 
-      expect(mockRegisterUserConsent).toHaveBeenCalledWith(
-        'test-id',
-        'user-id',
-      );
+      // Wait for async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Should call register functions first
       expect(mockRegisterAddress).toHaveBeenCalledWith({
         onboardingId: 'test-id',
         addressLine1: '123 Main St',
@@ -909,6 +896,12 @@ describe('PhysicalAddress Component', () => {
         zip: '12345',
         isSameMailingAddress: false,
       });
+      expect(mockRegisterUserConsent).toHaveBeenCalledWith(
+        'test-id',
+        'user-id',
+      );
+
+      // Then navigate to mailing address (no accessToken returned)
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.MAILING_ADDRESS,
       );

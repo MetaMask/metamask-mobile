@@ -31,7 +31,6 @@ import SelectComponent from '../../../SelectComponent';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
-import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { Linking, TouchableOpacity } from 'react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -443,6 +442,7 @@ const PhysicalAddress = () => {
     ) {
       return;
     }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
@@ -451,8 +451,6 @@ const PhysicalAddress = () => {
           })
           .build(),
       );
-      await registerUserConsent(onboardingId, user.id);
-
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -462,6 +460,7 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
+      await registerUserConsent(onboardingId, user.id);
 
       if (updatedUser) {
         setUser(updatedUser);
@@ -482,11 +481,6 @@ const PhysicalAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
-        } else {
-          Logger.log(
-            'PhysicalAddress: Failed to store access token',
-            storeResult.error,
-          );
         }
 
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
