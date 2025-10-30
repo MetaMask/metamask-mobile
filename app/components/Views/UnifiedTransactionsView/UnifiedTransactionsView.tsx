@@ -61,6 +61,7 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx';
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
+import useBlockExplorer from '../../hooks/useBlockExplorer';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -357,7 +358,9 @@ const UnifiedTransactionsView = ({
     currentEvmChainId,
   ]);
 
-  const blockExplorerUrl = useMemo(() => {
+  const firstBlockExplorer = useBlockExplorer(enabledEVMChainIds[0]);
+
+  const configBlockExplorerUrl = useMemo(() => {
     // When using the per-dapp/multiselect network selector, only return a block
     // explorer if exactly one EVM chain is selected. Otherwise, undefined.
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -377,6 +380,20 @@ const UnifiedTransactionsView = ({
     return config.blockExplorerUrls?.[index];
   }, [enabledEVMChainIds, evmNetworkConfigurationsByChainId]);
 
+  const blockExplorerUrl = useMemo(() => {
+    if (configBlockExplorerUrl) {
+      return configBlockExplorerUrl;
+    }
+    return (
+      firstBlockExplorer.getBlockExplorerUrl(selectedAccountGroupEvmAddress) ||
+      undefined
+    );
+  }, [
+    configBlockExplorerUrl,
+    firstBlockExplorer,
+    selectedAccountGroupEvmAddress,
+  ]);
+
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
   const hasNonEvmChainsEnabled = enabledNonEVMChainIds.length > 0;
 
@@ -388,14 +405,23 @@ const UnifiedTransactionsView = ({
       return;
     }
 
-    const { url, title } = getBlockExplorerAddressUrl(
-      providerType,
-      selectedAccountGroupEvmAddress,
-      blockExplorerUrl,
-    );
+    let url;
+    let title;
+    if (configBlockExplorerUrl) {
+      const result = getBlockExplorerAddressUrl(
+        providerType,
+        selectedAccountGroupEvmAddress,
+        blockExplorerUrl,
+      );
+      url = result.url;
+      title = result.title;
 
-    if (!url) {
-      return;
+      if (!url) {
+        return;
+      }
+    } else {
+      url = blockExplorerUrl;
+      title = firstBlockExplorer.getBlockExplorerName(enabledEVMChainIds[0]);
     }
 
     navigation.navigate('Webview', {
@@ -410,6 +436,9 @@ const UnifiedTransactionsView = ({
     providerType,
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
+    firstBlockExplorer,
+    enabledEVMChainIds,
+    configBlockExplorerUrl,
   ]);
 
   const allNonEvmChainsAreSolana = useMemo(
@@ -461,7 +490,7 @@ const UnifiedTransactionsView = ({
       return (
         <TransactionsFooter
           chainId={enabledEVMChainIds[0]}
-          providerType={providerType}
+          providerType={configBlockExplorerUrl ? providerType : undefined}
           rpcBlockExplorer={blockExplorerUrl}
           onViewBlockExplorer={onViewBlockExplorer}
         />
@@ -494,6 +523,7 @@ const UnifiedTransactionsView = ({
     showEvmFooter,
     showNonEvmExplorerLink,
     showNonEvmFooter,
+    configBlockExplorerUrl,
   ]);
 
   const [refreshing, setRefreshing] = useState(false);
