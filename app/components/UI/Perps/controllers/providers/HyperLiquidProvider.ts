@@ -451,14 +451,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
       timestamp: new Date().toISOString(),
     });
 
-    // Notify subscription service of discovered HIP-3 DEXs for position subscriptions
+    // Notify subscription service of validated HIP-3 DEXs for position subscriptions
+    // IMPORTANT: Always update, even if empty, to clear stale DEX list from construction
     const hip3Dexs = dexsToMap.filter((d): d is string => d !== null);
-    if (hip3Dexs.length > 0) {
-      await this.subscriptionService.updateFeatureFlags(
-        this.equityEnabled,
-        hip3Dexs,
-      );
-    }
+    await this.subscriptionService.updateFeatureFlags(
+      this.equityEnabled,
+      hip3Dexs,
+    );
 
     // Fetch metadata for each DEX in parallel
     const allMetas = await Promise.allSettled(

@@ -704,15 +704,14 @@ export class PerpsController extends BaseController<
       | VersionGatedFeatureFlag
       | undefined;
 
-    // TEMP: Skipping guard to debug beta build
-    // const remoteFlagValidationResult = this.validatedVersionGatedFeatureFlag(
-    //   perpsEquityEnabledFeatureFlag,
-    // );
+    const remoteFlagValidationResult = this.validatedVersionGatedFeatureFlag(
+      perpsEquityEnabledFeatureFlag,
+    );
 
-    // // Invalid/missing remote flag -> keep fallback, don't update.
-    // if (remoteFlagValidationResult === undefined) {
-    //   return;
-    // }
+    // Invalid/missing remote flag -> keep fallback, don't update.
+    if (remoteFlagValidationResult === undefined) {
+      return;
+    }
 
     // true or false = valid remote flag -> always update (remote trumps fallback)
     this.setHIP3EnabledFlag(
