@@ -143,8 +143,10 @@ const PredictBuyPreview = () => {
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
-    ? `${outcome.groupItemTitle} · `
+    ? outcome.groupItemTitle
     : '';
+
+  const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
@@ -178,10 +180,7 @@ const PredictBuyPreview = () => {
         source={{ uri: outcome?.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="flex-1 min-w-0 gap-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Text
@@ -195,16 +194,24 @@ const PredictBuyPreview = () => {
         </Box>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
-            <Box flexDirection={BoxFlexDirection.Row}>
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
               {!!outcomeGroupTitle && (
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {outcomeGroupTitle}
-                </Text>
+                <>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {outcomeGroupTitle}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {separator}
+                  </Text>
+                </>
               )}
               <Text
                 variant={TextVariant.BodySMMedium}
