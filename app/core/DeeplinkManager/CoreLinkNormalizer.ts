@@ -3,9 +3,8 @@
  *
  * Converts various deep link formats into a standardized CoreUniversalLink format
  */
-
 import qs from 'qs';
-import { PROTOCOLS } from '../../constants/deeplinks';
+import { PROTOCOLS, ACTIONS } from '../../constants/deeplinks';
 import AppConstants from '../AppConstants';
 import {
   CoreUniversalLink,
@@ -18,6 +17,27 @@ import {
 } from './types/CoreUniversalLink';
 
 export class CoreLinkNormalizer {
+  private static readonly ACTION_PATH_MAP: Record<
+    string,
+    keyof CoreLinkParams
+  > = {
+    [ACTIONS.SWAP]: 'swapPath',
+    [ACTIONS.DAPP]: 'dappPath',
+    [ACTIONS.SEND]: 'sendPath',
+    [ACTIONS.REWARDS]: 'rewardsPath',
+    [ACTIONS.HOME]: 'homePath',
+    [ACTIONS.ONBOARDING]: 'onboardingPath',
+    [ACTIONS.CREATE_ACCOUNT]: 'createAccountPath',
+    [ACTIONS.DEPOSIT]: 'depositCashPath',
+    [ACTIONS.PERPS]: 'perpsPath',
+    [ACTIONS.PERPS_MARKETS]: 'perpsMarketsPath',
+    [ACTIONS.PERPS_ASSET]: 'perpsAssetPath',
+    [ACTIONS.BUY]: 'buyPath',
+    [ACTIONS.SELL]: 'sellPath',
+    [ACTIONS.BUY_CRYPTO]: 'buyCryptoPath',
+    [ACTIONS.SELL_CRYPTO]: 'sellCryptoPath',
+  };
+
   /**
    * Normalize a deep link URL into a CoreUniversalLink
    * @param url - The URL to normalize
@@ -270,33 +290,9 @@ export class CoreLinkNormalizer {
     } else if (isPerpsAction(action)) {
       params.perpsPath = actionPath;
     } else {
-      switch (action) {
-        case 'swap':
-          params.swapPath = actionPath;
-          break;
-        case 'dapp':
-          params.dappPath = actionPath;
-          break;
-        case 'send':
-          params.sendPath = actionPath;
-          break;
-        case 'rewards':
-          params.rewardsPath = actionPath;
-          break;
-        case 'home':
-          params.homePath = actionPath;
-          break;
-        case 'onboarding':
-          params.onboardingPath = actionPath;
-          break;
-        case 'create-account':
-          params.createAccountPath = actionPath;
-          break;
-        case 'deposit':
-          params.depositCashPath = actionPath;
-          break;
-        default:
-          break;
+      const pathKey = this.ACTION_PATH_MAP[action];
+      if (pathKey) {
+        params[pathKey] = actionPath;
       }
     }
 
@@ -306,19 +302,8 @@ export class CoreLinkNormalizer {
   private static buildQueryString(params: Partial<CoreLinkParams>): string {
     const filteredParams: Record<string, string> = {};
 
+    const pathKeys = [...Object.values(this.ACTION_PATH_MAP)];
     // Filter out action-specific paths and empty values
-    const pathKeys = [
-      'rampPath',
-      'swapPath',
-      'dappPath',
-      'sendPath',
-      'perpsPath',
-      'rewardsPath',
-      'homePath',
-      'onboardingPath',
-      'createAccountPath',
-      'depositCashPath',
-    ];
 
     Object.entries(params).forEach(([key, value]) => {
       if (

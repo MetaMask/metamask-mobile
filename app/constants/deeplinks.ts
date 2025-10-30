@@ -13,6 +13,7 @@ export enum PROTOCOLS {
 }
 
 export enum ACTIONS {
+  RAMP = 'ramp',
   DAPP = 'dapp',
   SEND = 'send',
   APPROVE = 'approve',
