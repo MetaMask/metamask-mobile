@@ -518,7 +518,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               refreshing={refreshing}
               onRefresh={handleRefresh}
               tintColor={theme.colors.icon.default}
-              colors={[theme.colors.icon.default]} // Android
             />
           }
         >
