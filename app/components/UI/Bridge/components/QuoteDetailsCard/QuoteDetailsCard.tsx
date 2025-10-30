@@ -146,7 +146,7 @@ const QuoteDetailsCard: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={8}
+              gap={2}
             >
               <Text
                 variant={TextVariant.BodyMD}
