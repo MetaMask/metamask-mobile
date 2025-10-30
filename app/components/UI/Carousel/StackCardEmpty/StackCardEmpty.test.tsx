@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Animated } from 'react-native';
+import { ANIMATION_TIMINGS } from '../animations/animationTimings';
 import { StackCardEmpty } from './StackCardEmpty';
 
 // Mock dependencies
@@ -26,21 +27,6 @@ jest.mock('@metamask/design-system-react-native', () => ({
   },
 }));
 
-// Mock Animated.View to verify listener props are set correctly
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Animated: {
-    ...jest.requireActual('react-native').Animated,
-    View: 'View',
-  },
-}));
-
-jest.mock('../animations/animationTimings', () => ({
-  ANIMATION_TIMINGS: {
-    EMPTY_STATE_IDLE_TIME: 2000,
-  },
-}));
-
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -51,7 +37,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock Rive component
+// Mock Animated.View to verify listener props are set correctly
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Animated: {
+    ...jest.requireActual('react-native').Animated,
+    View: 'View',
+  },
+}));
+
 jest.mock('rive-react-native', () => ({
   __esModule: true,
   default: 'Rive',
@@ -97,7 +91,7 @@ describe('StackCardEmpty', () => {
     it('calls onTransitionToEmpty after idle timeout', () => {
       render(<StackCardEmpty {...defaultProps} />);
 
-      jest.advanceTimersByTime(1800);
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME);
 
       expect(defaultProps.onTransitionToEmpty).toHaveBeenCalledTimes(1);
     });
@@ -105,7 +99,7 @@ describe('StackCardEmpty', () => {
     it('does not call onTransitionToEmpty before timeout', () => {
       render(<StackCardEmpty {...defaultProps} />);
 
-      jest.advanceTimersByTime(250);
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME - 100);
 
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
     });
@@ -115,7 +109,7 @@ describe('StackCardEmpty', () => {
         <StackCardEmpty {...defaultProps} onTransitionToEmpty={undefined} />,
       );
 
-      jest.advanceTimersByTime(1900);
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME + 100);
 
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
     });
@@ -125,7 +119,7 @@ describe('StackCardEmpty', () => {
 
       jest.advanceTimersByTime(250);
       unmount();
-      jest.advanceTimersByTime(1600);
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME);
 
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
     });

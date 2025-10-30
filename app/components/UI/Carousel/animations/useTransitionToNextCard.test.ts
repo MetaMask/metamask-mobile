@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Animated } from 'react-native';
 import { useTransitionToNextCard } from './useTransitionToNextCard';
+import { ANIMATION_TIMINGS } from './animationTimings';
 
 // Use fake timers to prevent environment teardown issues
 jest.useFakeTimers();
@@ -65,14 +66,6 @@ jest.mock('react-native', () => {
     Easing: MockEasing,
   };
 });
-
-jest.mock('./animationTimings', () => ({
-  ANIMATION_TIMINGS: {
-    CARD_EXIT_DURATION: 300,
-    CARD_ENTER_DELAY: 100,
-    CARD_ENTER_DURATION: 250,
-  },
-}));
 
 describe('useTransitionToNextCard', () => {
   beforeEach(() => {

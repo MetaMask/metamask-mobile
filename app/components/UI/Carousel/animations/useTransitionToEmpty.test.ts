@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Animated } from 'react-native';
 import { useTransitionToEmpty } from './useTransitionToEmpty';
+import { ANIMATION_TIMINGS } from './animationTimings';
 
 // Use fake timers to prevent environment teardown issues
 jest.useFakeTimers();
@@ -65,16 +66,6 @@ jest.mock('react-native', () => {
     Easing: MockEasing,
   };
 });
-
-jest.mock('./animationTimings', () => ({
-  ANIMATION_TIMINGS: {
-    EMPTY_STATE_IDLE_TIME: 500,
-    EMPTY_STATE_FADE_DURATION: 200,
-    EMPTY_STATE_FOLD_DELAY: 50,
-    EMPTY_STATE_FOLD_DURATION: 200,
-    EMPTY_STATE_HEIGHT_DURATION: 300,
-  },
-}));
 
 describe('useTransitionToEmpty', () => {
   beforeEach(() => {
