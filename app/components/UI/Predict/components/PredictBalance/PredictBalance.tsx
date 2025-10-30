@@ -131,7 +131,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
       )}
       <Box
         style={tw.style(
-          'bg-muted p-4 gap-3 rounded-xl',
+          'bg-muted p-4 mx-4 gap-3 rounded-xl',
           isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
         )}
         testID="predict-balance-card"
