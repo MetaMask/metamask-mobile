@@ -24,7 +24,6 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
-import { ScrollView } from 'react-native-gesture-handler';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -32,13 +31,20 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import Logger from '../../../util/Logger';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { BridgeToken } from '../Bridge/types';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
+      flex: 1,
+    },
+    content: {
       flex: 1,
     },
     base: {
@@ -63,7 +69,7 @@ const createStyles = (colors: any) =>
       paddingVertical: 16,
     },
     searchInput: {
-      paddingBottom: 16,
+      paddingTop: 16,
     },
   });
 
@@ -79,16 +85,23 @@ interface Props {
   /**
    * The selected network chain ID
    */
-  selectedChainId: Hex | null;
+  selectedChainId: SupportedCaipChainId | Hex | null;
+
+  allTokens: BridgeToken[];
 }
 
 /**
  * Component that provides ability to add searched assets with metadata.
  */
-const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
+const SearchTokenAutocomplete = ({
+  navigation,
+  selectedChainId,
+  allTokens,
+}: Props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<BridgeToken[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedAssets, setSelectedAssets] = useState<any[]>([]);
@@ -99,6 +112,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const ticker = useSelector(selectEvmTicker);
+
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {
@@ -131,13 +148,15 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   );
 
   const handleSearch = useCallback(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (opts: any) => {
-      setSearchResults(opts.results);
+    (opts: { results: BridgeToken[]; searchQuery: string }) => {
+      if (opts.searchQuery.length === 0) {
+        setSearchResults(allTokens);
+      } else {
+        setSearchResults(opts.results);
+      }
       setSearchQuery(opts.searchQuery);
     },
-    [setSearchResults, setSearchQuery],
+    [setSearchResults, setSearchQuery, allTokens],
   );
 
   const handleSelectAsset = useCallback(
@@ -170,47 +189,57 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       address,
       symbol,
       decimals,
-      iconUrl,
       name,
-      chainId: networkId,
-    }: {
-      address: Hex;
-      symbol: string;
-      decimals: number;
-      iconUrl: string;
-      name: string;
-      chainId: Hex;
-    }) => {
-      const networkConfig =
-        Engine.context.NetworkController.state
-          ?.networkConfigurationsByChainId?.[networkId];
+      chainId,
+      image,
+    }: BridgeToken) => {
+      if (isNonEvmChainId(chainId)) {
+        const selectedNonEvmAccount = selectInternalAccountByScope(
+          chainId as SupportedCaipChainId,
+        );
 
-      if (!networkConfig) {
-        return;
+        if (!selectedNonEvmAccount) {
+          Logger.log('SearchTokenAutoComplete: No account ID found');
+          return;
+        }
+
+        const { MultichainAssetsController } = Engine.context;
+        await MultichainAssetsController.addAsset(
+          address as CaipAssetType,
+          selectedNonEvmAccount.id,
+        );
+      } else {
+        const networkConfig =
+          Engine.context.NetworkController.state
+            ?.networkConfigurationsByChainId?.[chainId as Hex];
+
+        if (!networkConfig) {
+          return;
+        }
+
+        const networkClient =
+          networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
+            ?.networkClientId;
+
+        if (!networkClient) {
+          return;
+        }
+
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { TokensController } = Engine.context as any;
+        await TokensController.addToken({
+          address,
+          symbol,
+          decimals,
+          image,
+          name,
+          networkClientId: networkClient,
+        });
       }
-
-      const networkClient =
-        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
-          ?.networkClientId;
-
-      if (!networkClient) {
-        return;
-      }
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { TokensController } = Engine.context as any;
-      await TokensController.addToken({
-        address,
-        symbol,
-        decimals,
-        image: iconUrl,
-        name,
-        networkClientId: networkClient,
-      });
 
       const analyticsParams = getTokenAddedAnalyticsParams({
-        address,
+        address: address as Hex,
         symbol,
       });
 
@@ -222,7 +251,12 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         );
       }
     },
-    [getTokenAddedAnalyticsParams, trackEvent, createEventBuilder],
+    [
+      getTokenAddedAnalyticsParams,
+      trackEvent,
+      createEventBuilder,
+      selectInternalAccountByScope,
+    ],
   );
 
   /**
@@ -243,7 +277,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     }
 
     setSearchResults([]);
-    setSearchQuery('');
     setSelectedAssets([]);
 
     InteractionManager.runAfterInteractions(() => {
@@ -338,29 +371,30 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <View>
-          {renderTokenDetectionBanner()}
-          <View style={styles.searchInput}>
-            <AssetSearch
-              onSearch={handleSearch}
-              onFocus={() => {
-                setFocusState(true);
-              }}
-              onBlur={() => setFocusState(false)}
-              selectedChainId={selectedChainId}
-            />
-          </View>
-          <MultiAssetListItems
-            searchResults={searchResults}
-            handleSelectAsset={handleSelectAsset}
-            selectedAsset={selectedAssets}
-            searchQuery={searchQuery}
-            chainId={selectedChainId ?? ''}
-            networkName={networkName}
+      {renderTokenDetectionBanner()}
+
+      <View style={styles.content}>
+        <View style={styles.searchInput}>
+          <AssetSearch
+            onSearch={handleSearch}
+            onFocus={() => {
+              setFocusState(true);
+            }}
+            onBlur={() => setFocusState(false)}
+            allTokens={allTokens}
           />
         </View>
-      </ScrollView>
+
+        <MultiAssetListItems
+          searchResults={searchResults}
+          searchQuery={searchQuery}
+          handleSelectAsset={handleSelectAsset}
+          selectedAsset={selectedAssets}
+          chainId={selectedChainId ?? ''}
+          networkName={networkName}
+        />
+      </View>
+
       <View style={styles.button}>
         <Button
           variant={ButtonVariants.Primary}

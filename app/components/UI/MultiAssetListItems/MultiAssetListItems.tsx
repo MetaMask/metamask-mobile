@@ -16,26 +16,22 @@ import AssetIcon from '../AssetIcon';
 import { strings } from '../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import { BridgeToken } from '../Bridge/types';
+import { FlashList } from '@shopify/flash-list';
 
 interface Props {
   /**
    * Array of assets objects returned from the search
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  searchResults: any[];
+  searchResults: BridgeToken[];
   /**
    * Callback triggered when a token is selected
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handleSelectAsset: (asset: any) => void;
+  handleSelectAsset: (asset: BridgeToken) => void;
   /**
    * Object of the currently-selected token
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  selectedAsset: any[];
+  selectedAsset: BridgeToken[];
   /**
    * Search query that generated "searchResults"
    */
@@ -64,25 +60,20 @@ const MultiAssetListItems = ({
   const { styles } = useStyles(stylesheet, {});
 
   return (
-    <View style={styles.rowWrapper}>
-      {searchResults.length === 0 && searchQuery?.length ? (
-        <Text style={styles.normalText}>
-          {strings('token.no_tokens_found')}
-        </Text>
-      ) : null}
-      {searchResults.slice(0, 6)?.map((_, i) => {
-        const { symbol, name, address, iconUrl } = searchResults[i] || {};
+    <FlashList
+      data={searchResults}
+      renderItem={({ item, index }) => {
+        const { symbol, name, address, image } = item || {};
         const isOnSelected = selectedAsset.some(
           (token) => token.address === address,
         );
         const isSelected = selectedAsset && isOnSelected;
-
         return (
           <ListItemMultiSelect
             isSelected={isSelected}
             style={styles.base}
-            key={i}
-            onPress={() => handleSelectAsset(searchResults[i])}
+            key={`search-result-${index}`}
+            onPress={() => handleSelectAsset(item)}
             testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
           >
             <View style={styles.Icon}>
@@ -91,16 +82,20 @@ const MultiAssetListItems = ({
                 badgeElement={
                   <Badge
                     variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource(searchResults[i]?.chainId)}
+                    imageSource={NetworkBadgeSource(
+                      item?.chainId as `0x${string}`,
+                    )}
                     name={networkName}
                   />
                 }
               >
-                <AssetIcon
-                  address={address}
-                  logo={iconUrl}
-                  customStyle={styles.assetIcon}
-                />
+                {image && (
+                  <AssetIcon
+                    address={address}
+                    logo={image}
+                    customStyle={styles.assetIcon}
+                  />
+                )}
               </BadgeWrapper>
             </View>
             <View style={styles.tokens}>
@@ -109,8 +104,17 @@ const MultiAssetListItems = ({
             </View>
           </ListItemMultiSelect>
         );
-      })}
-    </View>
+      }}
+      keyExtractor={(_, index) => `token-search-row-${index}`}
+      decelerationRate="fast"
+      ListEmptyComponent={
+        searchQuery?.length > 0 ? (
+          <Text style={styles.normalText}>
+            {strings('token.no_tokens_found')}
+          </Text>
+        ) : null
+      }
+    />
   );
 };
 

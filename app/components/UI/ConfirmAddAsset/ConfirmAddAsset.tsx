@@ -35,21 +35,20 @@ import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import { BridgeToken } from '../Bridge/types';
+import { toHex } from '../../../core/Delegation/utils';
+import { isNonEvmAddress } from '../../../core/Multichain/utils';
 
-const RenderBalance = (asset: {
-  symbol: string;
-  address: string;
-  iconUrl: string;
-  name: string;
-  decimals: number;
-}) => {
+const RenderBalance = (asset: BridgeToken) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const { balanceFiat } = useBalance(
     asset
       ? {
-          address: asset.address,
+          address: isNonEvmAddress(asset.address)
+            ? toHex(asset.address)
+            : asset.address,
           decimals: asset.decimals,
         }
       : undefined,
@@ -68,10 +67,11 @@ const RenderBalance = (asset: {
 };
 
 const ConfirmAddAsset = () => {
-  const { selectedAsset, networkName, addTokenList } =
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useParams<any>();
+  const { selectedAsset, networkName, addTokenList } = useParams<{
+    selectedAsset: BridgeToken[];
+    networkName: string;
+    addTokenList: () => void;
+  }>();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -165,48 +165,38 @@ const ConfirmAddAsset = () => {
         {strings('wallet.import_token')}
       </Text>
       <ScrollView style={styles.root}>
-        {selectedAsset?.map(
-          (
-            asset: {
-              symbol: string;
-              address: string;
-              iconUrl: string;
-              name: string;
-              decimals: number;
-              chainId: string;
-            },
-            i: number,
-          ) => (
-            <View style={styles.assetElement} key={i}>
-              <View>
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <Badge
-                      variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource(asset.chainId as Hex)}
-                      name={networkName}
-                    />
-                  }
-                >
+        {selectedAsset?.map((asset, i) => (
+          <View style={styles.assetElement} key={i}>
+            <View>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={NetworkBadgeSource(asset.chainId as Hex)}
+                    name={networkName}
+                  />
+                }
+              >
+                {asset.image && (
                   <AssetIcon
                     address={asset.address}
-                    logo={asset.iconUrl}
+                    logo={asset.image}
                     customStyle={styles.assetIcon}
                   />
-                </BadgeWrapper>
-              </View>
-
-              <View>
-                <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
-                <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
-                  {asset.symbol}
-                </Text>
-              </View>
-              <RenderBalance {...asset} />
+                )}
+              </BadgeWrapper>
             </View>
-          ),
-        )}
+
+            <View>
+              <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
+              <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
+                {asset.symbol}
+              </Text>
+            </View>
+            <RenderBalance {...asset} />
+          </View>
+        ))}
       </ScrollView>
 
       <View style={styles.bottomContainer}>

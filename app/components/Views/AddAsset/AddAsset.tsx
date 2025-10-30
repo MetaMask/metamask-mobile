@@ -1,9 +1,9 @@
 import React, {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
-  useMemo,
 } from 'react';
 import { ActivityIndicator, SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -16,15 +16,13 @@ import ScrollableTabView, {
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
+  selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { selectEvmNetworkName } from '../../../selectors/networkInfos';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
-import { selectERC20TokensByChain } from '../../../selectors/tokenListController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
   BannerAlertSeverity,
@@ -57,6 +55,9 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
 
 export enum FilterOption {
   AllNetworks,
@@ -73,15 +74,18 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectEvmChainId);
+  const chainId = useSelector(selectChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  const tokenListForAllChains = useSelector(selectERC20TokensByChain);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [openNetworkSelector, setOpenNetworkSelector] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState<Hex | null>(chainId);
+  const [selectedNetwork, setSelectedNetwork] = useState<
+    SupportedCaipChainId | Hex | null
+  >(chainId);
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  const { topTokens, remainingTokens, pending } = useTopTokens({
+    chainId: selectedNetwork ?? undefined,
+  });
 
   // Update selectedNetwork when chainId changes (MultichainNetworkController active network)
   useEffect(() => {
@@ -90,19 +94,7 @@ const AddAsset = () => {
     }
   }, [chainId, selectedNetwork]);
 
-  const isTokenDetectionSupported = isTokenDetectionSupportedForNetwork(
-    selectedNetwork || chainId,
-  );
-
   const networkName = useSelector(selectEvmNetworkName);
-
-  // Check if there are tokens available for the selected network
-  const hasTokensForSelectedNetwork = useMemo(() => {
-    if (!selectedNetwork) return false;
-    const tokensData = tokenListForAllChains?.[selectedNetwork]?.data;
-    if (!tokensData) return null;
-    return tokensData && Object.keys(tokensData).length > 0;
-  }, [selectedNetwork, tokenListForAllChains]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -122,14 +114,22 @@ const AddAsset = () => {
         selectedNetwork={selectedNetwork}
         setSelectedNetwork={async (network) => {
           setSelectedNetwork(network);
-          Engine.context.TokenListController.fetchTokenList(network);
+          if (!isNonEvmChainId(network)) {
+            Engine.context.TokenListController.fetchTokenList(network as Hex);
+          }
         }}
         setOpenNetworkSelector={setOpenNetworkSelector}
         sheetRef={sheetRef}
+        displayEvmNetworksOnly={false}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [openNetworkSelector, networkConfigurations, selectedNetwork],
+  );
+
+  const allTokens = useMemo(
+    () => [...(topTokens || []), ...(remainingTokens || [])],
+    [topTokens, remainingTokens],
   );
 
   return (
@@ -218,68 +218,85 @@ const AddAsset = () => {
               </View>
             </TouchableOpacity>
           </View>
-          {hasTokensForSelectedNetwork === null ? (
+          {pending ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.primary.default} />
             </View>
           ) : (
             <View style={styles.tabContainer}>
               <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
-                {isTokenDetectionSupported && hasTokensForSelectedNetwork && (
+                {allTokens && allTokens.length > 0 && (
                   <SearchTokenAutocomplete
                     navigation={navigation}
                     tabLabel={strings('add_asset.search_token')}
+                    allTokens={allTokens}
                     selectedChainId={selectedNetwork}
                   />
                 )}
-                <AddCustomToken
-                  chainId={selectedNetwork}
-                  networkName={networkName}
-                  ticker={providerConfig.ticker}
-                  type={providerConfig.type}
-                  navigation={navigation}
-                  tabLabel={strings('add_asset.custom_token')}
-                  isTokenDetectionSupported={
-                    isTokenDetectionSupported && hasTokensForSelectedNetwork
-                  }
-                  selectedNetwork={
-                    selectedNetwork
-                      ? networkConfigurations?.[selectedNetwork as Hex]?.name
-                      : null
-                  }
-                  networkClientId={
-                    selectedNetwork
-                      ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
-                          networkConfigurations?.[selectedNetwork]
-                            ?.defaultRpcEndpointIndex
-                        ]?.networkClientId
-                      : null
-                  }
-                />
+
+                {/* Custom tokens are not supported on non-evm chains */}
+                {selectedNetwork && !isNonEvmChainId(selectedNetwork) && (
+                  <AddCustomToken
+                    chainId={selectedNetwork}
+                    networkName={networkName}
+                    ticker={providerConfig.ticker}
+                    type={providerConfig.type}
+                    navigation={navigation}
+                    tabLabel={strings('add_asset.custom_token')}
+                    isTokenDetectionSupported={
+                      allTokens && allTokens.length > 0
+                    }
+                    selectedNetwork={
+                      selectedNetwork
+                        ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                        : null
+                    }
+                    networkClientId={
+                      selectedNetwork
+                        ? (Engine.context.NetworkController.state
+                            ?.networkConfigurationsByChainId?.[
+                            selectedNetwork as Hex
+                          ]?.rpcEndpoints?.[
+                            Engine.context.NetworkController.state
+                              ?.networkConfigurationsByChainId?.[
+                              selectedNetwork as Hex
+                            ]?.defaultRpcEndpointIndex ?? 0
+                          ]?.networkClientId ?? null)
+                        : null
+                    }
+                  />
+                )}
               </ScrollableTabView>
             </View>
           )}
         </>
       ) : (
-        <AddCustomCollectible
-          navigation={navigation}
-          collectibleContract={collectibleContract}
-          setOpenNetworkSelector={setOpenNetworkSelector}
-          networkId={networkConfigurations?.[selectedNetwork as Hex]?.chainId}
-          selectedNetwork={
-            selectedNetwork
-              ? networkConfigurations?.[selectedNetwork as Hex]?.name
-              : null
-          }
-          networkClientId={
-            selectedNetwork
-              ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
-                  networkConfigurations?.[selectedNetwork]
-                    ?.defaultRpcEndpointIndex
-                ]?.networkClientId
-              : null
-          }
-        />
+        // Collectibles are not supported on non-evm chains
+        selectedNetwork &&
+        !isNonEvmChainId(selectedNetwork) && (
+          <AddCustomCollectible
+            navigation={navigation}
+            collectibleContract={collectibleContract}
+            setOpenNetworkSelector={setOpenNetworkSelector}
+            networkId={networkConfigurations?.[selectedNetwork as Hex]?.chainId}
+            selectedNetwork={
+              selectedNetwork
+                ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                : null
+            }
+            networkClientId={
+              selectedNetwork
+                ? (Engine.context.NetworkController.state
+                    ?.networkConfigurationsByChainId?.[selectedNetwork as Hex]
+                    ?.rpcEndpoints?.[
+                    Engine.context.NetworkController.state
+                      ?.networkConfigurationsByChainId?.[selectedNetwork as Hex]
+                      ?.defaultRpcEndpointIndex ?? 0
+                  ]?.networkClientId ?? null)
+                : null
+            }
+          />
+        )
       )}
       {openNetworkSelector ? renderNetworkSelector() : null}
     </SafeAreaView>
