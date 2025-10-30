@@ -25,7 +25,7 @@ import {
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
-  selectMultichainAllIgnoredAssets,
+  selectMultichainAssetsAllIgnoredAssets,
   selectMultichainAssets,
   selectMultichainAssetsMetadata,
 } from '../multichain/multichain';
@@ -97,7 +97,7 @@ const selectMultichainAssetsControllerStateForBalances = createSelector(
   [
     selectMultichainAssets,
     selectMultichainAssetsMetadata,
-    selectMultichainAllIgnoredAssets,
+    selectMultichainAssetsAllIgnoredAssets,
   ],
   (
     accountsAssets,
