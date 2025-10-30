@@ -48,15 +48,6 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-// Mock format utilities
-jest.mock('../../utils/formatUtils', () => ({
-  ...jest.requireActual('../../utils/formatUtils'),
-  formatPrice: jest.fn((value) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
-  }),
-}));
-
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -601,7 +592,7 @@ describe('PerpsLeverageBottomSheet', () => {
       );
     });
 
-    it('truncates liquidation price to 2 decimals when price is above 1', () => {
+    it('formats liquidation price with PRICE_RANGES_UNIVERSAL', () => {
       // Arrange - Mock hook to return liquidation price with many decimal places
       const mockUsePerpsLiquidationPrice = jest.requireMock(
         '../../hooks/usePerpsLiquidationPrice',
@@ -623,8 +614,8 @@ describe('PerpsLeverageBottomSheet', () => {
       // Act
       render(<PerpsLeverageBottomSheet {...props} />);
 
-      // Assert - Should display truncated price with 2 decimal places
-      expect(screen.getByText('$1,234.36')).toBeOnTheScreen();
+      // Assert - Should display formatted price with 5 sig figs, max 1 decimal for $1k-$10k range
+      expect(screen.getByText('$1,234.4')).toBeOnTheScreen();
     });
   });
 
@@ -658,6 +649,22 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(screen.getByText('2x')).toBeOnTheScreen();
       expect(screen.queryByText('20x')).toBeNull(); // Should not show 20x in quick select
       expect(screen.queryByText('40x')).toBeNull(); // Should not show 40x
+    });
+
+    it('shows both 2x and 3x buttons when maxLeverage is 3', () => {
+      // Arrange - maxLeverage: 3, should show [2, 3] to give users more choice
+      const props = { ...defaultProps, maxLeverage: 3, leverage: 2 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Both buttons should be present (text appears in slider labels too)
+      const twoXElements = screen.getAllByText('2x');
+      const threeXElements = screen.getAllByText('3x');
+      expect(twoXElements.length).toBeGreaterThan(0);
+      expect(threeXElements.length).toBeGreaterThan(0);
+      // 5x should not appear in slider labels or buttons (initial leverage is now 2x)
+      expect(screen.queryByText('5x')).toBeNull();
     });
   });
 
@@ -850,24 +857,6 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(() =>
         render(<PerpsLeverageBottomSheet {...singleLeverageProps} />),
       ).not.toThrow();
-    });
-
-    it('logs leverage options generation', () => {
-      // Arrange
-      const { DevLogger } = jest.requireMock(
-        '../../../../../core/SDKConnect/utils/DevLogger',
-      );
-
-      // Act
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-      // Assert
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Generating leverage options for maxLeverage: 20',
-      );
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Available leverage options: 2, 5, 10, 20',
-      );
     });
   });
 

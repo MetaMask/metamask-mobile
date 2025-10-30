@@ -29,6 +29,7 @@ describe('usePredictMarket', () => {
     outcomes: [
       {
         id: 'outcome-1',
+        providerId: 'polymarket',
         marketId: 'market-1',
         title: 'Yes',
         description: 'Bitcoin will reach $200k',
@@ -46,6 +47,7 @@ describe('usePredictMarket', () => {
       },
       {
         id: 'outcome-2',
+        providerId: 'polymarket',
         marketId: 'market-1',
         title: 'No',
         description: 'Bitcoin will not reach $200k',
@@ -62,11 +64,17 @@ describe('usePredictMarket', () => {
         groupItemTitle: 'Yes/No',
       },
     ],
+    liquidity: 1000000,
+    volume: 1000000,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     (Engine.context.PredictController.getMarket as jest.Mock) = mockGetMarket;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('initial state', () => {

@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -17,7 +17,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-respo
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
 
-describe(SmokeConfirmations('ERC721 token'), () => {
+describe(RegressionConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   it('approve all ERC721 tokens', async () => {
@@ -46,9 +46,8 @@ describe(SmokeConfirmations('ERC721 token'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry?.getContractAddress(
-          NFT_CONTRACT,
-        );
+        const nftsAddress =
+          await contractRegistry?.getContractAddress(NFT_CONTRACT);
         await loginToApp();
 
         // Navigate to the browser screen

@@ -23,6 +23,10 @@ import {
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { selectAccountsByChainId } from '../accountTrackerController';
+import {
+  TRON_RESOURCE_SYMBOLS_SET,
+  TronResourceSymbol,
+} from '../../core/Multichain/constants';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -135,8 +139,12 @@ const selectStakedAssets = createDeepEqualSelector(
                 internalAccount.address === address.toLowerCase(),
             );
 
+            if (!account) {
+              return undefined;
+            }
+
             const stakedAsset = {
-              type: account?.type,
+              accountType: account.type,
               assetId: nativeToken.address,
               isNative: true,
               isStaked: true,
@@ -144,7 +152,7 @@ const selectStakedAssets = createDeepEqualSelector(
               image: '',
               name: 'Staked Ethereum',
               symbol: nativeToken.symbol,
-              accountId: account?.id,
+              accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
               balance: fromWei(stakedBalance),
@@ -160,10 +168,11 @@ const selectStakedAssets = createDeepEqualSelector(
 
             return {
               chainId,
-              accountId: account?.id as string,
+              accountId: account.id,
               stakedAsset,
             };
-          }),
+          })
+          .filter((item): item is NonNullable<typeof item> => Boolean(item)),
       );
 
     return stakedAssets;
@@ -192,10 +201,12 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets)
       .filter((asset) => {
-        // We need to filter out Tron energy and bandwidth from this list
+        // We need to filter out Tron resources from this list
         if (
           asset.chainId?.includes('tron:') &&
-          (asset.name === 'Energy' || asset.name === 'Bandwidth')
+          TRON_RESOURCE_SYMBOLS_SET.has(
+            asset.symbol?.toLowerCase() as TronResourceSymbol,
+          )
         ) {
           return false;
         }
@@ -323,16 +334,37 @@ function assetToToken(
         })
       : undefined,
     logo:
-      asset.type.startsWith('eip155') && asset.isNative
+      asset.accountType.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
         : asset.image,
     isETH:
-      asset.type.startsWith('eip155') &&
+      asset.accountType.startsWith('eip155') &&
       asset.isNative &&
       asset.symbol === 'ETH',
     isStaked: asset.isStaked || false,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
+    accountType: asset.accountType,
   };
 }
+
+// This is used to select Tron resources (Energy & Bandwidth)
+export const selectTronResourcesBySelectedAccountGroup =
+  createDeepEqualSelector(
+    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
+    (bip44Assets, enabledNetworks) => {
+      const assets = Object.entries(bip44Assets)
+        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
+        .flatMap(([_, chainAssets]) => chainAssets)
+        .filter(
+          (asset) =>
+            asset.chainId?.includes('tron:') &&
+            TRON_RESOURCE_SYMBOLS_SET.has(
+              asset.symbol?.toLowerCase() as TronResourceSymbol,
+            ),
+        );
+
+      return assets;
+    },
+  );

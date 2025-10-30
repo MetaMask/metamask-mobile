@@ -71,10 +71,10 @@ jobs:
 
   build-android-dual:
     name: Build Android Dual Versions
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     needs: [check-builds-needed]
     env:
-      GRADLE_USER_HOME: /home/runner/_work/.gradle
+      GRADLE_USER_HOME: /home/admin/_work/.gradle
     # No outputs - these will be provided by the collect-results job
 
     strategy:
@@ -87,9 +87,16 @@ jobs:
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         uses: actions/checkout@v4
 
+      - name: Install Android System Images
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
+        run: |
+          echo "📱 Installing Android system images for AVD..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
+
       - name: Setup Android Build Environment
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
         with:
           platform: android
           setup-simulator: false
@@ -98,11 +105,13 @@ jobs:
 
       - name: Cache Gradle dependencies
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@v4
         with:
           path: |
             /home/runner/_work/.gradle/caches
             /home/runner/_work/.gradle/wrapper
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
             android/.gradle
           key: gradle-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
@@ -131,8 +140,6 @@ jobs:
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
-          MM_UNIFIED_SWAPS_ENABLED: 'true'
-          MM_BRIDGE_ENABLED: 'true'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
@@ -141,7 +148,7 @@ jobs:
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           # Conditionally set SRP and password based on build type
-          ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.TEST_SRP_1 || '' }}
+          ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.IN_BUILD_SRP || '' }}
           PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}

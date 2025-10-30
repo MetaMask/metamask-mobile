@@ -1,13 +1,11 @@
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import {
   isFromOrToSelectedAddress,
   isFromCurrentChain,
   sortTransactions,
   filterByAddress,
   filterByAddressAndNetwork,
+  PAY_TYPES,
 } from '.';
 import { Token } from '../../components/UI/Swaps/utils/token-list-utils';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
@@ -421,7 +419,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     expect(result).toEqual(false);
   });
 
-  it('returns false if in batch with perps deposit', () => {
+  it.each(PAY_TYPES)('returns false if in batch with %s', (type) => {
     const transaction = {
       id: '123',
       batchId: '0x456',
@@ -440,7 +438,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
         id: '789',
         batchId: '0x456',
         chainId: '0x1',
-        type: TransactionType.perpsDeposit,
+        type,
       },
     ] as Partial<TransactionMeta>[] as TransactionMeta[];
 
@@ -457,7 +455,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     expect(result).toEqual(false);
   });
 
-  it('returns true if no batch id and perps deposit', () => {
+  it.each(PAY_TYPES)('returns true if no batch id and %s', (type) => {
     const transaction = {
       id: '123',
       chainId: '0x1',
@@ -474,7 +472,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       {
         id: '789',
         chainId: '0x1',
-        type: TransactionType.perpsDeposit,
+        type,
       },
     ] as Partial<TransactionMeta>[] as TransactionMeta[];
 
@@ -639,7 +637,7 @@ describe('Activity utils :: filterByAddress', () => {
     expect(result).toEqual(false);
   });
 
-  it('returns false if in batch with perps deposit', () => {
+  it.each(PAY_TYPES)('returns false if in batch with %s', (type) => {
     const transaction = {
       id: '123',
       batchId: '0x456',
@@ -656,7 +654,7 @@ describe('Activity utils :: filterByAddress', () => {
       {
         id: '789',
         batchId: '0x456',
-        type: TransactionType.perpsDeposit,
+        type,
       },
     ] as Partial<TransactionMeta>[] as TransactionMeta[];
 
@@ -670,7 +668,7 @@ describe('Activity utils :: filterByAddress', () => {
     expect(result).toEqual(false);
   });
 
-  it('returns true if no batch id and perps deposit', () => {
+  it.each(PAY_TYPES)('returns true if no batch id and %s', (type) => {
     const transaction = {
       id: '123',
       chainId: '0x1',
@@ -687,7 +685,7 @@ describe('Activity utils :: filterByAddress', () => {
       {
         id: '789',
         chainId: '0x1',
-        type: TransactionType.perpsDeposit,
+        type,
       },
     ] as Partial<TransactionMeta>[] as TransactionMeta[];
 

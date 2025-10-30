@@ -1,3 +1,7 @@
+/**
+ * @deprecated Please update your code to use `AvatarToken` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import { isNumber } from 'lodash';
 import React, { useState } from 'react';

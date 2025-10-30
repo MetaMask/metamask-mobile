@@ -72,8 +72,8 @@ const PriceChart = ({
     priceDiff > 0
       ? theme.colors.primary.default
       : priceDiff < 0
-      ? theme.colors.primary.default
-      : theme.colors.text.alternative;
+        ? theme.colors.primary.default
+        : theme.colors.text.alternative;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
@@ -255,36 +255,45 @@ const PriceChart = ({
     );
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.chartLoading}>
-        <SkeletonPlaceholder
-          backgroundColor={theme.colors.background.section}
-          highlightColor={theme.colors.background.subsection}
-        >
-          <SkeletonPlaceholder.Item
-            width={Dimensions.get('screen').width - 32}
-            height={CHART_HEIGHT}
-            borderRadius={6}
-          ></SkeletonPlaceholder.Item>
-        </SkeletonPlaceholder>
-      </View>
-    );
-  }
+  /**
+   * Loading overlay component.
+   * Note: We render this conditionally in the return statement rather than early-returning
+   * to work around an Android bug where charts wouldn't render until screen interaction.
+   * @see https://github.com/MetaMask/metamask-mobile/issues/20854
+   */
+  const LoadingOverlay = () => (
+    <View style={styles.noDataOverlay}>
+      <SkeletonPlaceholder
+        backgroundColor={theme.colors.background.section}
+        highlightColor={theme.colors.background.subsection}
+      >
+        <SkeletonPlaceholder.Item
+          width={Dimensions.get('screen').width - 32}
+          height={CHART_HEIGHT}
+          borderRadius={6}
+        ></SkeletonPlaceholder.Item>
+      </SkeletonPlaceholder>
+    </View>
+  );
 
   const chartHasData = priceList.length > 0;
 
   return (
     <View style={styles.chart}>
       <View style={styles.chartArea} {...panResponder.current.panHandlers}>
-        {!chartHasData && <NoDataOverlay />}
+        {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
+        {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
           contentInset={{ top: apx(40), bottom: apx(40) }}
-          svg={chartHasData ? { fill: `url(#dataGradient)` } : undefined}
+          svg={
+            chartHasData && !isLoading
+              ? { fill: `url(#dataGradient)` }
+              : undefined
+          }
         >
-          <Line chartHasData={chartHasData} />
+          {!isLoading && <Line chartHasData={chartHasData} />}
           {chartHasData ? <Tooltip /> : <NoDataGradient />}
           {chartHasData && <DataGradient />}
         </AreaChart>

@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -18,7 +18,7 @@ import WalletView from '../../pages/wallet/WalletView';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
+describe(RegressionConfirmations('ERC20 - Increase Allowance'), () => {
   it('from a dApp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
@@ -45,9 +45,8 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
-          HST_CONTRACT,
-        );
+        const hstAddress =
+          await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();

@@ -4,9 +4,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
 import { isENS, isValidHexAddress } from '../../../../../util/address';
+import { isBtcMainnetAddress } from '../../../../../core/Multichain/utils';
 import {
   validateHexAddress,
   validateSolanaAddress,
+  validateBitcoinAddress,
 } from '../../utils/send-address-validations';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -21,7 +23,7 @@ interface ValidationResult {
 
 export const useToAddressValidation = () => {
   const { asset, chainId, to } = useSendContext();
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType, isSolanaSendType, isBitcoinSendType } = useSendType();
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
@@ -56,6 +58,10 @@ export const useToAddressValidation = () => {
         return validateSolanaAddress(toAddress);
       }
 
+      if (isBitcoinSendType && isBtcMainnetAddress(toAddress)) {
+        return validateBitcoinAddress(toAddress);
+      }
+
       if (isENS(toAddress)) {
         return await validateName(chainId, toAddress);
       }
@@ -64,7 +70,14 @@ export const useToAddressValidation = () => {
         error: strings('send.invalid_address'),
       };
     },
-    [asset, chainId, isEvmSendType, isSolanaSendType, validateName],
+    [
+      asset,
+      chainId,
+      isEvmSendType,
+      isSolanaSendType,
+      isBitcoinSendType,
+      validateName,
+    ],
   );
 
   useEffect(() => {

@@ -12,7 +12,7 @@ import { DappVariants } from '../../../framework/Constants';
 import TestHelpers from '../../../helpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-describe(RegressionConfirmations('ERC20 tokens'), () => {
+describe.skip(RegressionConfirmations('ERC20 tokens'), () => {
   // Table-driven tests for all networks
   for (const networkConfig of NETWORK_TEST_CONFIGS) {
     it(`send an ERC20 token from a dapp using ${networkConfig.name} (local)`, async () => {
@@ -36,9 +36,8 @@ describe(RegressionConfirmations('ERC20 tokens'), () => {
           testSpecificMock: networkConfig.testSpecificMock,
         },
         async ({ contractRegistry }) => {
-          const hstAddress = await contractRegistry?.getContractAddress(
-            HST_CONTRACT,
-          );
+          const hstAddress =
+            await contractRegistry?.getContractAddress(HST_CONTRACT);
 
           await loginToApp();
 

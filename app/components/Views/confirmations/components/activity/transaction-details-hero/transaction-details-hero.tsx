@@ -1,29 +1,41 @@
 import React, { useMemo } from 'react';
 import { Box } from '../../../../../UI/Box/Box';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { TransactionType } from '@metamask/transaction-controller';
-import { parseStandardTokenTransactionData } from '../../../utils/transaction';
-import { Hex } from '@metamask/utils';
+import {
+  hasTransactionType,
+  parseStandardTokenTransactionData,
+} from '../../../utils/transaction';
 import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { Result } from '@ethersproject/abi';
 import { calcTokenAmount } from '../../../../../../util/transactions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './transaction-details-hero.styles';
+import { getTokenTransferData } from '../../../utils/transaction-pay';
+
+const SUPPORTED_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 export function TransactionDetailsHero() {
   const { styles } = useStyles(styleSheet, {});
   const { transactionMeta } = useTransactionDetails();
-  const { chainId, txParams, type } = transactionMeta;
-  const { data, to } = txParams;
+  const { chainId } = transactionMeta;
   const chainIds = useMemo(() => (chainId ? [chainId] : []), [chainId]);
   const tokens = useTokensWithBalance({ chainIds });
 
-  if (type !== TransactionType.perpsDeposit || !to || !data) {
+  if (!hasTransactionType(transactionMeta, SUPPORTED_TYPES)) {
+    return null;
+  }
+
+  const { data, to } = getTokenTransferData(transactionMeta) ?? {};
+
+  if (!to || !data) {
     return null;
   }
 
@@ -49,15 +61,7 @@ export function TransactionDetailsHero() {
       gap={12}
       style={styles.container}
     >
-      <Box>
-        <TokenIcon
-          chainId={chainId}
-          address={to as Hex}
-          variant={TokenIconVariant.Hero}
-          showNetwork={false}
-        />
-      </Box>
-      <Text variant={TextVariant.HeadingLG}>${amountHuman}</Text>
+      <Text variant={TextVariant.DisplayLG}>${amountHuman}</Text>
     </Box>
   );
 }

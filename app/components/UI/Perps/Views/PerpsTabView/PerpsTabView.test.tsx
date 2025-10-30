@@ -78,7 +78,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
-  usePerpsLiveAccount: jest.fn(),
+  usePerpsAccount: jest.fn(),
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
@@ -94,11 +94,10 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
       availableBalance: '1000.00',
-      totalBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',
-      totalValue: '1000.00',
+      totalBalance: '1000.00',
     },
     isInitialLoading: false,
   })),
@@ -204,8 +203,7 @@ describe('PerpsTabView', () => {
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
-  const mockUsePerpsAccount =
-    jest.requireMock('../../hooks').usePerpsLiveAccount;
+  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',

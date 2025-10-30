@@ -56,6 +56,12 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../util/analytics/actionButtonTracking';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import {
@@ -104,7 +110,6 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import CollectibleContracts from '../../UI/CollectibleContracts';
 import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -144,9 +149,7 @@ import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -155,7 +158,6 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -182,7 +184,9 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NftGrid from '../../UI/NftGrid';
+import NftGrid from '../../UI/NftGrid/NftGrid';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -192,9 +196,9 @@ const createStyles = ({ colors }: Theme) =>
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
+      gap: 16,
+      flexDirection: 'column',
     },
-    walletAccount: { marginTop: 28 },
-
     tabContainer: {
       flex: 1,
     },
@@ -205,14 +209,11 @@ const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      marginTop: 20,
+      flexDirection: 'column',
+      gap: 16,
       paddingHorizontal: 16,
     },
-    assetsActionsContainer: {
-      marginBottom: 16,
-    },
     carousel: {
-      marginBottom: 16,
       overflow: 'hidden', // Allow for smooth height animations
     },
   });
@@ -342,6 +343,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
+  // Calculate Predict tab visibility
+  const predictTabIndex =
+    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
+  const isPredictTabVisible = currentTabIndex === predictTabIndex;
+
   // Store the visibility update callback from PerpsTabView
   const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
     null,
@@ -408,7 +414,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
     if (isPredictEnabled) {
       tabs.push(
-        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
+        <PredictTabView
+          {...predictTabProps}
+          key={predictTabProps.key}
+          isVisible={isPredictTabVisible}
+        />,
       );
     }
 
@@ -425,12 +435,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
+    if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
       tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
-    } else if (collectiblesEnabled) {
-      tabs.push(
-        <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
-      );
     }
 
     return tabs;
@@ -441,6 +447,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsTabVisible,
     isPredictEnabled,
     predictTabProps,
+    isPredictTabVisible,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
@@ -562,10 +569,8 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
-
   // Setup for AssetDetailsActions
-  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+  const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
@@ -582,12 +587,15 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
-  const displayBridgeButton =
-    !isUnifiedSwapsEnabled &&
-    AppConstants.BRIDGE.ACTIVE &&
-    isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: strings('asset_overview.receive_button'),
+      location: ActionLocation.HOME,
+    });
+
     if (isMultichainAccountsState2Enabled) {
       if (selectedAccountGroupId) {
         navigate(
@@ -631,6 +639,8 @@ const Wallet = ({
       );
     }
   }, [
+    trackEvent,
+    createEventBuilder,
     isMultichainAccountsState2Enabled,
     navigate,
     selectedAccountGroupId,
@@ -641,6 +651,13 @@ const Wallet = ({
 
   const onSend = useCallback(async () => {
     try {
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.SEND,
+        action_position: ActionPosition.THIRD_POSITION,
+        button_label: strings('asset_overview.send_button'),
+        location: ActionLocation.HOME,
+      });
+
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
       const wasHandledAsNonEvm = await sendNonEvmAsset(
@@ -675,6 +692,8 @@ const Wallet = ({
       navigateToSendPage(InitSendLocation.HomePage);
     }
   }, [
+    trackEvent,
+    createEventBuilder,
     nativeCurrency,
     navigateToSendPage,
     dispatch,
@@ -1046,7 +1065,7 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   useEffect(() => {
@@ -1065,7 +1084,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        isCardholder,
+        shouldDisplayCardButton,
         isRewardsEnabled,
       ),
     );
@@ -1081,7 +1100,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    isCardholder,
+    shouldDisplayCardButton,
     isRewardsEnabled,
   ]);
 
@@ -1285,8 +1304,9 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
-        {!basicFunctionalityEnabled ? (
-          <View style={styles.banner}>
+        <AssetPollingProvider />
+        <View style={styles.banner}>
+          {!basicFunctionalityEnabled ? (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               title={strings('wallet.banner.title')}
@@ -1299,33 +1319,27 @@ const Wallet = ({
                 </CustomText>
               }
             />
-          </View>
-        ) : null}
-        <NetworkConnectionBanner />
+          ) : null}
+          <NetworkConnectionBanner />
+        </View>
         <>
           {isMultichainAccountsState2Enabled ? (
             <AccountGroupBalance />
           ) : (
             <PortfolioBalance />
           )}
-          <View style={styles.assetsActionsContainer}>
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton}
-              displaySwapsButton={displaySwapsButton}
-              displayBridgeButton={displayBridgeButton}
-              goToBridge={goToBridge}
-              goToSwaps={goToSwaps}
-              onReceive={onReceive}
-              onSend={onSend}
-              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
-              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-              receiveButtonActionID={
-                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-              }
-            />
-          </View>
+
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToSwaps={goToSwaps}
+            onReceive={onReceive}
+            onSend={onSend}
+            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+          />
 
           {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
@@ -1341,7 +1355,6 @@ const Wallet = ({
     ),
     [
       styles.banner,
-      styles.assetsActionsContainer,
       styles.carousel,
       styles.wrapper,
       basicFunctionalityEnabled,
@@ -1350,11 +1363,9 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
-      goToBridge,
       goToSwaps,
       displayBuyButton,
       displaySwapsButton,
-      displayBridgeButton,
       onReceive,
       onSend,
       route.params,

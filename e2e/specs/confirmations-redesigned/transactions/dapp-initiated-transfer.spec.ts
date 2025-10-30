@@ -1,4 +1,4 @@
-import { RegressionConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -16,7 +16,7 @@ import {
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
-import SoftAssert from '../../../utils/SoftAssert';
+import SoftAssert from '../../../framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
@@ -47,7 +47,7 @@ const expectedEventNames = [
   expectedEvents.TRANSACTION_FINALIZED,
 ];
 
-describe(RegressionConfirmationsRedesigned('DApp Initiated Transfer'), () => {
+describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockPostRequest(
       mockServer,

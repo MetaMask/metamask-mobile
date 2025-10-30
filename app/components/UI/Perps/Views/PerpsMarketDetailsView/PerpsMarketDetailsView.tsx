@@ -39,6 +39,7 @@ import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -53,6 +54,10 @@ import {
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
+import {
+  usePerpsDataMonitor,
+  type DataMonitorParams,
+} from '../../hooks/usePerpsDataMonitor';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
@@ -67,14 +72,17 @@ import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBott
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
+import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
+  monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
 }
@@ -83,9 +91,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, initialTab, isNavigationFromOrderSuccess, source } =
-    route.params || {};
+  const { market, initialTab, monitoringIntent, source } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -101,8 +109,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [navigation, market]);
 
-  const [selectedCandlePeriod, setSelectedCandlePeriod] =
-    useState<CandlePeriod>(CandlePeriod.THREE_MINUTES);
+  // Get persisted candle period preference from Redux store
+  const selectedCandlePeriod = useSelector(
+    selectPerpsChartPreferredCandlePeriod,
+  );
   const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
@@ -119,6 +129,44 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
+  // Programmatic tab control state for data-driven navigation
+  const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
+    string | null
+  >(null);
+
+  // Callback to handle data detection from monitoring hook
+  const handleDataDetected = useCallback(
+    ({
+      detectedData,
+    }: {
+      detectedData: 'positions' | 'orders';
+      asset: string;
+      reason: string;
+    }) => {
+      const targetTab = detectedData === 'positions' ? 'position' : 'orders';
+      setProgrammaticActiveTab(targetTab);
+
+      // Reset programmatic tab control after a brief delay to prevent render loops
+      setTimeout(() => {
+        setProgrammaticActiveTab(null);
+      }, PERFORMANCE_CONFIG.TAB_CONTROL_RESET_DELAY_MS);
+
+      // Clear monitoringIntent to allow fresh monitoring next time
+      navigation.setParams({ monitoringIntent: undefined });
+    },
+    [navigation],
+  );
+
+  // Handle data-driven monitoring when coming from order success (declarative API)
+  usePerpsDataMonitor({
+    asset: monitoringIntent?.asset,
+    monitorOrders: monitoringIntent?.monitorOrders,
+    monitorPositions: monitoringIntent?.monitorPositions,
+    timeoutMs: monitoringIntent?.timeoutMs,
+    onDataDetected: handleDataDetected,
+    enabled: !!(monitoringIntent && market && monitoringIntent.asset),
+  });
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({});
   // Filter orders for the current market
@@ -251,7 +299,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
-      setSelectedCandlePeriod(newPeriod);
+      // Persist the preference to Redux store
+      dispatch(setPerpsChartPreferredCandlePeriod(newPeriod));
 
       // Track chart interaction
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -264,7 +313,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Zoom to latest candle when period changes
       chartRef.current?.zoomToLatestCandle(visibleCandleCount);
     },
-    [market, track, visibleCandleCount],
+    [market, track, visibleCandleCount, dispatch],
   );
 
   const handleMorePress = useCallback(() => {
@@ -280,7 +329,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       // Reset chart to default state (like initial navigation)
-      setSelectedCandlePeriod(CandlePeriod.THREE_MINUTES);
       setVisibleCandleCount(45);
 
       // Reset chart view to default position
@@ -495,12 +543,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                         existingPosition.liquidationPrice || undefined,
                     }
                   : selectedOrderTPSL.takeProfitPrice ||
-                    selectedOrderTPSL.stopLossPrice
-                  ? {
-                      takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
-                      stopLossPrice: selectedOrderTPSL.stopLossPrice,
-                    }
-                  : undefined
+                      selectedOrderTPSL.stopLossPrice
+                    ? {
+                        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+                        stopLossPrice: selectedOrderTPSL.stopLossPrice,
+                      }
+                    : undefined
               }
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
             />
@@ -515,14 +563,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </View>
 
           {/* Market Tabs Section */}
-          <View style={styles.section}>
+          <View style={styles.tabsSection}>
             <PerpsMarketTabs
               symbol={market?.symbol || ''}
-              marketStats={marketStats}
-              position={existingPosition}
-              isLoadingPosition={isLoadingPosition}
-              unfilledOrders={openOrders}
               initialTab={initialTab}
+              activeTabId={programmaticActiveTab || undefined}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               onOrderSelect={handleOrderSelect}
@@ -625,9 +670,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}
-      {isNotificationsEnabled && isNavigationFromOrderSuccess && (
+      {isNotificationsEnabled && !!monitoringIntent && (
         <PerpsNotificationTooltip
-          orderSuccess={isNavigationFromOrderSuccess}
+          orderSuccess={!!monitoringIntent}
           testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
         />
       )}

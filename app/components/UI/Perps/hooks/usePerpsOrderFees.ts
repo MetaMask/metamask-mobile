@@ -1,23 +1,24 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { usePerpsTrading } from './usePerpsTrading';
 import Engine from '../../../../core/Engine';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectChainId } from '../../../../selectors/networkController';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectChainId } from '../../../../selectors/networkController';
+import { usePerpsTrading } from './usePerpsTrading';
+
+import { setMeasurement } from '@sentry/react-native';
+import performance from 'react-native-performance';
 import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DEVELOPMENT_CONFIG,
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -69,12 +70,72 @@ interface UsePerpsOrderFeesParams {
   orderType: 'market' | 'limit';
   /** Order amount in USD */
   amount: string;
-  /** Whether this is a maker order (for protocols that differentiate) */
-  isMaker?: boolean;
   /** Coin symbol for the trade (e.g., 'BTC', 'ETH') */
   coin?: string;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
+  /** User's limit price */
+  limitPrice?: string;
+  /** Order direction */
+  direction?: 'long' | 'short';
+  /** Real ask price from L2 order book */
+  currentAskPrice?: number;
+  /** Real bid price from L2 order book */
+  currentBidPrice?: number;
+}
+
+/**
+ * Determines if a limit order will likely be a maker or taker
+ *
+ * Logic:
+ * 1. Validates price data freshness and market state
+ * 2. Market orders are always taker
+ * 3. Limit orders that would execute immediately are taker
+ * 4. Limit orders that go into order book are maker
+ *
+ * @param params Order parameters
+ * @returns boolean - true if maker, false if taker
+ */
+function determineMakerStatus(params: {
+  orderType: 'market' | 'limit';
+  limitPrice?: string;
+  direction: 'long' | 'short';
+  bestAsk?: number;
+  bestBid?: number;
+  coin?: string;
+}): boolean {
+  const { orderType, limitPrice, direction, bestAsk, bestBid, coin } = params;
+  // Market orders are always taker
+  if (orderType === 'market') {
+    return false;
+  }
+
+  // Default to taker when limit price is not specified
+  if (!limitPrice || limitPrice === '') {
+    return false;
+  }
+
+  const limitPriceNum = Number.parseFloat(limitPrice);
+
+  if (Number.isNaN(limitPriceNum) || limitPriceNum <= 0) {
+    return false;
+  }
+
+  if (bestBid !== undefined && bestAsk !== undefined) {
+    if (direction === 'long') {
+      return limitPriceNum < bestAsk;
+    }
+
+    // Short direction
+    return limitPriceNum > bestBid;
+  }
+
+  // Default to taker when no bid/ask data is available
+  DevLogger.log(
+    'Fee Calculation: No bid/ask data available, using conservative taker fee',
+    { coin },
+  );
+  return false;
 }
 
 /**
@@ -97,9 +158,12 @@ export function clearRewardsCaches(): void {
 export function usePerpsOrderFees({
   orderType,
   amount,
-  isMaker = false,
   coin = 'ETH',
   isClosing = false,
+  limitPrice,
+  direction,
+  currentAskPrice,
+  currentBidPrice,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
   const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
@@ -107,6 +171,28 @@ export function usePerpsOrderFees({
     selectSelectedInternalAccountFormattedAddress,
   );
   const currentChainId = useSelector(selectChainId);
+
+  const isMaker = useMemo(() => {
+    if (!direction) {
+      return false;
+    }
+
+    return determineMakerStatus({
+      orderType,
+      limitPrice,
+      direction,
+      bestAsk: currentAskPrice,
+      bestBid: currentBidPrice,
+      coin,
+    });
+  }, [
+    orderType,
+    limitPrice,
+    direction,
+    currentAskPrice,
+    currentBidPrice,
+    coin,
+  ]);
 
   // Clear stale cache on component mount to force fresh API call
   useEffect(() => {
@@ -158,9 +244,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const feeDiscountStartTime = performance.now();
-        const discountBips = await RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        );
+        const discountBips =
+          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance
@@ -214,7 +299,7 @@ export function usePerpsOrderFees({
       }
 
       try {
-        const amountNum = parseFloat(tradeAmount || '0');
+        const amountNum = Number.parseFloat(tradeAmount || '0');
         if (amountNum <= 0) {
           return null;
         }
@@ -251,9 +336,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const pointsEstimationStartTime = performance.now();
-        const result = await RewardsController.estimatePoints(
-          estimatePointsDto,
-        );
+        const result =
+          await RewardsController.estimatePoints(estimatePointsDto);
         const pointsEstimationDuration =
           performance.now() - pointsEstimationStartTime;
 
@@ -315,7 +399,7 @@ export function usePerpsOrderFees({
         // Development-only simulation for testing fee discount UI
         const shouldSimulateFeeDiscount =
           __DEV__ &&
-          parseFloat(amount) ===
+          Number.parseFloat(amount) ===
             DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
 
         let discountData: { discountBips?: number };
@@ -363,7 +447,7 @@ export function usePerpsOrderFees({
       userAddress: string,
       actualFeeUSD: number,
     ): Promise<{ points?: number; bonusBips?: number }> => {
-      if (!rewardsEnabled || parseFloat(amount) <= 0) {
+      if (!rewardsEnabled || Number.parseFloat(amount) <= 0) {
         return {};
       }
 
@@ -374,7 +458,7 @@ export function usePerpsOrderFees({
           pointsCalculationCache.address === userAddress &&
           now - pointsCalculationCache.timestamp < pointsCalculationCache.ttl &&
           pointsCalculationCache.basePointsPerDollar > 0 &&
-          isFinite(pointsCalculationCache.basePointsPerDollar);
+          Number.isFinite(pointsCalculationCache.basePointsPerDollar);
 
         if (cacheValid && pointsCalculationCache) {
           // Calculate points locally using cached data
@@ -416,7 +500,7 @@ export function usePerpsOrderFees({
           const basePointsPerDollar =
             denominator > 0 ? pointsData.pointsEstimate / denominator : 0;
 
-          if (isFinite(basePointsPerDollar)) {
+          if (Number.isFinite(basePointsPerDollar)) {
             pointsCalculationCache = {
               address: userAddress,
               bonusBips: pointsData.bonusBips,
@@ -523,13 +607,13 @@ export function usePerpsOrderFees({
 
         // Step 3: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
-        if (selectedAddress && parseFloat(amount) > 0) {
-          const actualFeeUSD = parseFloat(amount) * adjustedRate;
+        if (selectedAddress && Number.parseFloat(amount) > 0) {
+          const actualFeeUSD = Number.parseFloat(amount) * adjustedRate;
           DevLogger.log('Rewards: Calculating points with discounted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
             discountPercentage,
             adjustedRate,
-            amount: parseFloat(amount),
+            amount: Number.parseFloat(amount),
             actualFeeUSD,
           });
 
@@ -584,7 +668,7 @@ export function usePerpsOrderFees({
   ]);
 
   return useMemo(() => {
-    const amountNum = parseFloat(amount || '0');
+    const amountNum = Number.parseFloat(amount || '0');
 
     // Calculate fee amounts based on rates
     const protocolFee = amountNum * protocolFeeRate;
@@ -625,7 +709,7 @@ export function usePerpsOrderFees({
  * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
  */
 export function formatFeeRate(rate: number | undefined | null): string {
-  if (rate === undefined || rate === null || isNaN(rate)) {
+  if (rate === undefined || rate === null || Number.isNaN(rate)) {
     return 'N/A';
   }
   return `${(rate * 100).toFixed(3)}%`;

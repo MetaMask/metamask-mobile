@@ -5,19 +5,12 @@
 import {
   formatRewardsDate,
   formatTimeRemaining,
-  getEventDetails,
-  PerpsEventType,
   formatNumber,
   getIconName,
   formatUrl,
 } from './formatUtils';
-import {
-  PointsEventDto,
-  PointsEventEarnType,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
-import TEST_ADDRESS from '../../../../constants/address';
 
 const mockGetTimeDifferenceFromNow =
   getTimeDifferenceFromNow as jest.MockedFunction<
@@ -94,504 +87,8 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('getEventDetails', () => {
-    const createMockEvent = (
-      type: PointsEventDto['type'],
-      payload: PointsEventDto['payload'] = null,
-    ): PointsEventDto => {
-      const baseEvent = {
-        id: 'test-id',
-        timestamp: new Date('2024-01-15T14:30:00Z'),
-        value: 100,
-        bonus: null,
-        accountAddress: TEST_ADDRESS,
-        updatedAt: new Date('2024-01-15T14:30:00Z'),
-      };
-
-      switch (type) {
-        case 'SWAP':
-          return {
-            ...baseEvent,
-            type: 'SWAP' as const,
-            payload: payload as (PointsEventDto & { type: 'SWAP' })['payload'],
-          };
-        case 'PERPS':
-          return {
-            ...baseEvent,
-            type: 'PERPS' as const,
-            payload: payload as (PointsEventDto & { type: 'PERPS' })['payload'],
-          };
-        default:
-          return {
-            ...baseEvent,
-            type: type as PointsEventEarnType,
-            payload: null,
-          };
-      }
-    };
-
-    describe('SWAP events', () => {
-      it('returns correct details for SWAP event', () => {
-        // Given a SWAP event
-        const event = createMockEvent('SWAP', {
-          srcAsset: {
-            symbol: 'ETH',
-            amount: '420000000000',
-            decimals: 9,
-            type: 'eip155:1/slip44:60',
-          },
-          destAsset: {
-            symbol: 'USDC',
-            amount: '1000000',
-            decimals: 6,
-            type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return swap details
-        expect(result).toEqual({
-          title: 'Swap',
-          details: '420 ETH to USDC',
-          icon: IconName.SwapVertical,
-        });
-      });
-    });
-
-    describe('PERPS events', () => {
-      it('returns correct details for perps OPEN_POSITION long event', () => {
-        // Given a PERPS OPEN_POSITION event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000', // 1 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 1 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for perps OPEN_POSITION short event', () => {
-        // Given a PERPS OPEN_POSITION SHORT event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'SHORT',
-          asset: {
-            symbol: 'BTC',
-            amount: '500000000000000000', // 0.5 BTC with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:0',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Short 0.5 BTC',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for perps CLOSE_POSITION event with zero amount', () => {
-        // Given a PERPS CLOSE_POSITION event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.CLOSE_POSITION,
-          asset: {
-            symbol: 'ETH',
-            amount: '0',
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          pnl: '0',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Closed position',
-          details: '0 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for PERPS TAKE_PROFIT event', () => {
-        // Given a PERPS TAKE_PROFIT event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.TAKE_PROFIT,
-          asset: {
-            symbol: 'BTC',
-            amount: '250000000000000000', // 0.25 BTC with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:0',
-          },
-          pnl: '100',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Take profit',
-          details: '0.25 BTC',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for PERPS STOP_LOSS event', () => {
-        // Given a PERPS STOP_LOSS event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.STOP_LOSS,
-          asset: {
-            symbol: 'ETH',
-            amount: '500000000000000000', // 0.5 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          pnl: '100',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Stop loss',
-          details: '0.5 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for PERPS STOP_LOSS event with low amount', () => {
-        // Given a PERPS STOP_LOSS event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.STOP_LOSS,
-          asset: {
-            symbol: 'ETH',
-            amount: '4006000000000000', // 0.5 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          pnl: '100',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Stop loss',
-          details: '0.00401 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns undefined details for PERPS event with invalid payload', () => {
-        // Given a PERPS event with invalid payload
-        const event = createMockEvent('PERPS', {
-          type: 'INVALID_TYPE' as PerpsEventType,
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000',
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return undefined details
-        expect(result).toEqual({
-          title: 'Uncategorized event',
-          details: undefined,
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns undefined details for PERPS event with undefined asset decimals', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000',
-            decimals: undefined as unknown as number,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: undefined,
-          icon: IconName.Candlestick,
-        });
-      });
-    });
-
-    describe('REFERRAL events', () => {
-      it('returns correct details for REFERRAL event', () => {
-        const event = createMockEvent('REFERRAL');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Referral action',
-          details: undefined,
-          icon: IconName.UserCircleAdd,
-        });
-      });
-    });
-
-    describe('SIGN_UP_BONUS events', () => {
-      it('returns correct details for SIGN_UP_BONUS event', () => {
-        const event = createMockEvent('SIGN_UP_BONUS');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Sign up bonus',
-          details: TEST_ADDRESS,
-          icon: IconName.Edit,
-        });
-      });
-
-      it('returns empty details when account name is not provided', () => {
-        const event = createMockEvent('SIGN_UP_BONUS');
-
-        const result = getEventDetails(event, undefined);
-
-        expect(result).toEqual({
-          title: 'Sign up bonus',
-          details: undefined,
-          icon: IconName.Edit,
-        });
-      });
-    });
-
-    describe('LOYALTY_BONUS events', () => {
-      it('returns correct details for LOYALTY_BONUS event', () => {
-        const event = createMockEvent('LOYALTY_BONUS');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Loyalty bonus',
-          details: TEST_ADDRESS,
-          icon: IconName.ThumbUp,
-        });
-      });
-    });
-
-    describe('ONE_TIME_BONUS events', () => {
-      it('returns correct details for ONE_TIME_BONUS event', () => {
-        const event = createMockEvent('ONE_TIME_BONUS');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'One-time bonus',
-          details: undefined,
-          icon: IconName.Gift,
-        });
-      });
-    });
-
-    describe('unknown event types', () => {
-      it('returns uncategorized event details for unknown type', () => {
-        const event = createMockEvent('UNKNOWN_TYPE' as PointsEventDto['type']);
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Uncategorized event',
-          details: undefined,
-          icon: IconName.Star,
-        });
-      });
-    });
-
-    describe('edge cases', () => {
-      it('handles PERPS event with zero amount', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '0',
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 0 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('handles PERPS event with very large amount', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000000000', // 1,000,000 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 1000000 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('handles PERPS event with decimal result (1.5 should display as 1.5, not 1.50)', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1500000000000000000', // 1.5 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 1.5 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('formats PERPS event amounts to at most 5 decimal places (0.012345 should display as 0.01235)', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '0012345600000000000', // 1.23456 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 0.01235 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('formats whole numbers without decimal places (50 should display as 50, not 50.00)', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '50000000000000000000', // 50 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 50 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('formats SWAP event amounts to at most 3 decimal places', () => {
-        const event = createMockEvent('SWAP', {
-          srcAsset: {
-            symbol: 'ETH',
-            amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          destAsset: {
-            symbol: 'USDC',
-            amount: '2000000000', // 2000 USDC with 6 decimals
-            decimals: 6,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Swap',
-          details: '1.235 ETH to USDC',
-          icon: IconName.SwapVertical,
-        });
-      });
-
-      it('formats SWAP event with whole numbers without decimal places (50 should display as 50, not 50.00)', () => {
-        const event = createMockEvent('SWAP', {
-          srcAsset: {
-            symbol: 'ETH',
-            amount: '50000000000000000000', // 50 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          destAsset: {
-            symbol: 'USDC',
-            amount: '100000000', // 100 USDC with 6 decimals
-            decimals: 6,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Swap',
-          details: '50 ETH to USDC',
-          icon: IconName.SwapVertical,
-        });
-      });
-    });
-  });
-
   describe('formatTimeRemaining', () => {
-    it('should return formatted time with days and hours when hours > 0', () => {
+    it('returns formatted time with days, hours, and minutes when all are positive', () => {
       // Given: 2 days, 5 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 2,
@@ -604,14 +101,14 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('2d 5h');
+      // Then: should return days, hours, and minutes format
+      expect(result).toBe('2d 5h 30m');
       expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledWith(
         endDate.getTime(),
       );
     });
 
-    it('should return formatted time with only minutes when hours = 0 and minutes > 0', () => {
+    it('returns formatted time with only minutes when hours and days are zero', () => {
       // Given: 0 hours, 45 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -628,7 +125,7 @@ describe('formatUtils', () => {
       expect(result).toBe('45m');
     });
 
-    it('should return null when both hours and minutes are 0', () => {
+    it('returns null when days, hours, and minutes are all zero', () => {
       // Given: 0 hours, 0 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -645,7 +142,7 @@ describe('formatUtils', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null when minutes are negative (past date)', () => {
+    it('returns null when time values are negative for past date', () => {
       // Given: negative minutes (past date)
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -662,7 +159,7 @@ describe('formatUtils', () => {
       expect(result).toBeNull();
     });
 
-    it('should handle edge case with 0 days, 1 hour, 0 minutes', () => {
+    it('returns only hours when days and minutes are zero', () => {
       // Given: exactly 1 hour remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -675,11 +172,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('0d 1h');
+      // Then: should return hours format only
+      expect(result).toBe('1h');
     });
 
-    it('should handle large time differences correctly', () => {
+    it('returns days, hours, and minutes for large time differences', () => {
       // Given: 365 days, 23 hours, 59 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 365,
@@ -692,11 +189,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('365d 23h');
+      // Then: should return days, hours, and minutes format
+      expect(result).toBe('365d 23h 59m');
     });
 
-    it('should handle single digit values correctly', () => {
+    it('returns single digit values without padding', () => {
       // Given: 1 day, 1 hour, 1 minute remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 1,
@@ -709,11 +206,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format without padding
-      expect(result).toBe('1d 1h');
+      // Then: should return days, hours, and minutes format without padding
+      expect(result).toBe('1d 1h 1m');
     });
 
-    it('should prioritize hours over minutes when hours > 0', () => {
+    it('returns hours and minutes when days are zero', () => {
       // Given: 0 days, 2 hours, 59 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -726,11 +223,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format (ignoring minutes)
-      expect(result).toBe('0d 2h');
+      // Then: should return hours and minutes format
+      expect(result).toBe('2h 59m');
     });
 
-    it('should handle exactly 1 minute remaining', () => {
+    it('returns exactly 1 minute when only minutes remain', () => {
       // Given: exactly 1 minute remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -747,7 +244,7 @@ describe('formatUtils', () => {
       expect(result).toBe('1m');
     });
 
-    it('should handle zero days with hours correctly', () => {
+    it('returns hours and minutes when days are zero', () => {
       // Given: 0 days, 12 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -760,11 +257,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format with 0 days
-      expect(result).toBe('0d 12h');
+      // Then: should return hours and minutes format
+      expect(result).toBe('12h 30m');
     });
 
-    it('should call getTimeDifferenceFromNow with correct timestamp', () => {
+    it('calls getTimeDifferenceFromNow with correct timestamp', () => {
       // Given: a specific end date
       const endDate = new Date('2024-06-15T10:30:00Z');
       const expectedTimestamp = endDate.getTime();
@@ -783,6 +280,57 @@ describe('formatUtils', () => {
         expectedTimestamp,
       );
       expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns days and minutes when hours are zero', () => {
+      // Given: 3 days, 0 hours, 15 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 3,
+        hours: 0,
+        minutes: 15,
+      });
+
+      const endDate = new Date('2024-01-04T12:15:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and minutes format
+      expect(result).toBe('3d 15m');
+    });
+
+    it('returns only days when hours and minutes are zero', () => {
+      // Given: 5 days, 0 hours, 0 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 5,
+        hours: 0,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-01-06T12:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days format only
+      expect(result).toBe('5d');
+    });
+
+    it('trims trailing space when minutes are zero', () => {
+      // Given: 2 days, 3 hours, 0 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 2,
+        hours: 3,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-12-31T15:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format without trailing space
+      expect(result).toBe('2d 3h');
     });
   });
 

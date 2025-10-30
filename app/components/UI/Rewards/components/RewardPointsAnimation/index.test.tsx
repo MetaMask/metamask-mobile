@@ -69,6 +69,15 @@ describe('RewardPointsAnimation', () => {
   });
 
   describe('basic rendering', () => {
+    it('renders null when shouldShow is false', () => {
+      const { toJSON } = render(
+        <RewardPointsAnimation {...defaultProps} shouldShow={false} />,
+      );
+
+      // Component should return null and render nothing
+      expect(toJSON()).toBeNull();
+    });
+
     it('renders with default props', () => {
       const { getByText } = render(<RewardPointsAnimation {...defaultProps} />);
 

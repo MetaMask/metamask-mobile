@@ -58,6 +58,7 @@ import Logger from '../../util/Logger';
 import { handleMethodData } from '../../util/transaction-controller';
 import EthQuery from '@metamask/eth-query';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
+import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -194,6 +195,15 @@ const actionKeys = {
   ),
   [TransactionType.perpsDeposit]: strings(
     'transactions.tx_review_perps_deposit',
+  ),
+  [TransactionType.predictDeposit]: strings(
+    'transactions.tx_review_predict_deposit',
+  ),
+  [TransactionType.predictClaim]: strings(
+    'transactions.tx_review_predict_claim',
+  ),
+  [TransactionType.predictWithdraw]: strings(
+    'transactions.tx_review_predict_withdraw',
   ),
 };
 
@@ -529,6 +539,18 @@ export async function getTransactionActionKey(transaction, chainId) {
     return type;
   }
 
+  if (hasTransactionType(transaction, [TransactionType.predictDeposit])) {
+    return TransactionType.predictDeposit;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.predictClaim])) {
+    return TransactionType.predictClaim;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+    return TransactionType.predictWithdraw;
+  }
+
   if (!to) {
     return CONTRACT_METHOD_DEPLOY;
   }
@@ -608,11 +630,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+          ? strings('transactions.received_unit', { unit: currencySymbol })
+          : strings('transactions.received_ether')
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+        ? strings('transactions.sent_unit', { unit: currencySymbol })
+        : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 

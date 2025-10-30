@@ -200,7 +200,15 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -247,11 +255,12 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
+                                  "marginTop": 8,
                                 }
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help us improve MetaMask
+                              Help improve MetaMask
                             </Text>
                             <View
                               style={
@@ -564,7 +573,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                   <View
                     collapsable={false}
@@ -883,7 +892,15 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -930,11 +947,12 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
+                                  "marginTop": 8,
                                 }
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help us improve MetaMask
+                              Help improve MetaMask
                             </Text>
                             <View
                               style={
@@ -1247,7 +1265,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                   <View
                     collapsable={false}
@@ -1678,7 +1696,15 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -1725,11 +1751,12 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 40,
+                                  "marginTop": 8,
                                 }
                               }
                               testID="optin-metrics-title-id"
                             >
-                              Help us improve MetaMask
+                              Help improve MetaMask
                             </Text>
                             <View
                               style={
@@ -2042,7 +2069,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

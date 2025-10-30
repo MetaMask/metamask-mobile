@@ -15,6 +15,9 @@ const TEST_CONFIG_DEFAULTS = {
 
 const logger = createLogger({ name: 'Utilities' });
 
+export const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
  */

@@ -19,7 +19,7 @@ import Keypad from '../../../../Base/Keypad';
 import {
   formatPerpsFiat,
   formatWithSignificantDigits,
-  PRICE_RANGES_POSITION_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -301,9 +301,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
           {asset}-USD{' '}
-          {currentPrice
+          {currentPrice !== undefined && currentPrice !== null
             ? formatPerpsFiat(currentPrice, {
-                ranges: PRICE_RANGES_POSITION_VIEW,
+                ranges: PRICE_RANGES_UNIVERSAL,
               })
             : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
         </Text>
@@ -375,15 +375,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 };
 
 PerpsLimitPriceBottomSheet.displayName = 'PerpsLimitPriceBottomSheet';
-
-// Enable WDYR tracking in development
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsLimitPriceBottomSheet as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsLimitPriceBottomSheet',
-  };
-}
 
 export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   // If bottom sheet is not visible in both states, skip re-render

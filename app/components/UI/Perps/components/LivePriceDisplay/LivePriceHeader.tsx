@@ -7,7 +7,7 @@ import Text, {
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   formatPerpsFiat,
-  PRICE_RANGES_DETAILED_VIEW,
+  PRICE_RANGES_UNIVERSAL,
   formatPercentage,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -71,7 +71,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
 
     try {
       return formatPerpsFiat(displayPrice, {
-        ranges: PRICE_RANGES_DETAILED_VIEW,
+        ranges: PRICE_RANGES_UNIVERSAL,
       });
     } catch {
       // Fallback if formatPrice throws

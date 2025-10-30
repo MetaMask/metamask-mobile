@@ -5,7 +5,7 @@ import {
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../../core/Engine';
-import { ExtendedControllerMessenger } from '../../../../core/ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../../core/ExtendedMessenger';
 import {
   BridgeQuoteRequest,
   TransactionBridgeQuote,
@@ -16,6 +16,7 @@ import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { cloneDeep } from 'lodash';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
@@ -28,6 +29,7 @@ const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
   bufferInitial: 1,
   bufferStep: 1,
   bufferSubsequent: 2,
+  featureId: FeatureId.PERPS,
   from: '0x123',
   slippage: 0.005,
   sourceBalanceRaw: '10000000000000000000',
@@ -41,6 +43,7 @@ const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
 
 const QUOTE_REQUEST_2_MOCK: BridgeQuoteRequest = {
   ...QUOTE_REQUEST_1_MOCK,
+  featureId: undefined,
   targetTokenAddress: '0x456',
 };
 
@@ -68,14 +71,20 @@ describe('Confirmations Bridge Utils', () => {
     selectShouldUseSmartTransaction,
   );
   const engineMock = jest.mocked(Engine);
-  let messengerMock: ExtendedControllerMessenger<never, BridgeControllerEvents>;
+  let messengerMock: ExtendedMessenger<
+    MockAnyNamespace,
+    never,
+    BridgeControllerEvents
+  >;
   let bridgeControllerMock: jest.Mocked<BridgeController>;
   let gasFeeControllerMock: jest.Mocked<GasFeeController>;
 
   beforeEach(() => {
     jest.resetAllMocks();
 
-    messengerMock = new ExtendedControllerMessenger();
+    messengerMock = new ExtendedMessenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
 
     bridgeControllerMock = {
       fetchQuotes: jest.fn(),
@@ -93,7 +102,7 @@ describe('Confirmations Bridge Utils', () => {
       (state) =>
         ({
           sortedQuotes: state.engine.backgroundState.BridgeController.quotes,
-        } as never),
+        }) as never,
     );
 
     bridgeControllerMock.fetchQuotes
@@ -183,7 +192,7 @@ describe('Confirmations Bridge Utils', () => {
           insufficientBal: false,
         }),
         undefined,
-        FeatureId.PERPS,
+        undefined,
       );
     });
 
@@ -581,7 +590,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: '1000000000000000000',
         }),
         undefined,
-        expect.any(String),
+        undefined,
       );
     });
 
@@ -656,7 +665,7 @@ describe('Confirmations Bridge Utils', () => {
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
         }),
         undefined,
-        expect.any(String),
+        undefined,
       );
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
