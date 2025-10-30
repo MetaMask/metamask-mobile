@@ -61,16 +61,46 @@ import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
 
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-  const { getPairedEarnTokens } = useEarnTokens();
+  const { getPairedEarnTokens, getEarnToken } = useEarnTokens();
   const { outputToken: receiptToken } = getPairedEarnTokens(token);
+// TODO: Comeback and check this
+  const earnTokenFromMap = getEarnToken(token);
+  const isTronAsset = token.chainId?.startsWith('tron:');
 
+  const earnToken = React.useMemo(() => {
+    if (earnTokenFromMap) return earnTokenFromMap;
+    if (isTrxStakingEnabled && isTronAsset) {
+      return {
+        ...token,
+        isETH: false,
+        balanceMinimalUnit: '0',
+        balanceFormatted: token.balance ?? '0',
+        balanceFiat: token.balanceFiat ?? '0',
+        tokenUsdExchangeRate: 0,
+        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+        get experience() {
+          return this.experiences[0];
+        },
+      } as EarnTokenDetails;
+    }
+    return undefined;
+  }, [earnTokenFromMap, isTrxStakingEnabled, isTronAsset, token]);
+
+  const receiptTokenToUse: EarnTokenDetails | undefined = receiptToken
+    ? (receiptToken as EarnTokenDetails)
+    : (earnToken as EarnTokenDetails);
+  // end TODO
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -120,21 +150,20 @@ const EarnWithdrawInputView = () => {
     handleKeypadChange,
     earnBalanceValue,
   } = useEarnWithdrawInput({
-    earnToken: receiptToken as EarnTokenDetails,
+    earnToken: receiptTokenToUse,
     conversionRate,
     exchangeRate,
   });
-
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
         .addProperties({
           action_type: 'withdrawal',
-          token: receiptToken?.symbol,
-          token_name: receiptToken?.name,
+          token: receiptTokenToUse?.symbol,
+          token_name: receiptTokenToUse?.name,
           network: network?.name,
-          user_token_balance: receiptToken?.balanceFormatted,
-          experience: receiptToken?.experience?.type,
+          user_token_balance: receiptTokenToUse?.balanceFormatted,
+          experience: receiptTokenToUse?.experience?.type,
         })
         .build(),
     );
@@ -153,10 +182,11 @@ const EarnWithdrawInputView = () => {
   // For lending withdrawals, fetch AAVE pool metadata once on render.
   useEffect(() => {
     if (
-      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      receiptTokenToUse?.experience?.type !==
+        EARN_EXPERIENCES.STABLECOIN_LENDING ||
       !selectedAccount?.address ||
-      !receiptToken?.address ||
-      !receiptToken?.chainId
+      !receiptTokenToUse?.address ||
+      !receiptTokenToUse?.chainId
     )
       return;
     setMaxRiskAwareWithdrawalAmount(undefined);
@@ -356,15 +386,17 @@ const EarnWithdrawInputView = () => {
 
     try {
       const lendingPoolContractAddress =
-        CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[receiptToken.chainId] ?? '';
+        CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[
+          receiptTokenToUse.chainId as Hex
+        ] ?? '';
 
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
         params: {
-          token: receiptToken,
+          token: receiptTokenToUse,
           amountTokenMinimalUnit: amountToWithdraw,
           amountFiat: amountFiatNumber,
-          lendingProtocol: receiptToken.experience?.market?.protocol,
+          lendingProtocol: receiptTokenToUse.experience?.market?.protocol,
           lendingContractAddress: lendingPoolContractAddress,
           healthFactorSimulation: simulatedHealthFactorAfterWithdrawal,
         },
@@ -471,12 +503,15 @@ const EarnWithdrawInputView = () => {
   // should we be able to, consider the implications of not being able to
   const handleWithdrawPress = useCallback(async () => {
     if (
-      receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+      receiptTokenToUse?.experience?.type ===
+      EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return handleLendingWithdrawalFlow();
     }
 
-    if (receiptToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING
+    ) {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
@@ -540,7 +575,7 @@ const EarnWithdrawInputView = () => {
     }
     if (isOverMaximum.isOverMaximumToken) {
       return strings('stake.not_enough_token', {
-        ticker: receiptToken?.ticker ?? receiptToken?.symbol ?? '',
+        ticker: receiptTokenToUse?.ticker ?? receiptTokenToUse?.symbol ?? '',
       });
     }
     if (isOverMaximum.isOverMaximumEth) {
@@ -690,7 +725,7 @@ const EarnWithdrawInputView = () => {
           <View style={styles.earnTokenSelectorContainer}>
             <View style={styles.spacer} />
             <EarnTokenSelector
-              token={receiptToken as TokenI}
+              token={receiptTokenToUse as TokenI}
               action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
             />
           </View>
@@ -706,7 +741,7 @@ const EarnWithdrawInputView = () => {
         style={styles.keypad}
         // TODO: this should be the underlying token symbol/ticker if not ETH
         // once this data is available in the state we can use that
-        currency={token.isETH ? 'ETH' : token.ticker ?? token.symbol}
+        currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
         decimals={isFiat ? 2 : 5}
       />
       <View style={styles.reviewButtonContainer}>

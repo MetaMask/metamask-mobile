@@ -80,6 +80,8 @@ import {
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
+import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
+
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
@@ -380,27 +382,26 @@ export const TokenListItem = React.memo(
       if (!asset) {
         return null;
       }
-      const isCurrentAssetEth = evmAsset?.isETH && !evmAsset?.isStaked;
-      const shouldShowPooledStakingCta =
-        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
+// TODO: Comeback and check this
+      const isStakeable = useSelector((state: RootState) =>
+        selectIsStakeableToken(state, asset as TokenI),
+      );
+
+      const shouldShowStakeCta = isStakeable && !asset?.isStaked;
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
+      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
     }, [
       asset,
       earnToken,
-      evmAsset?.isETH,
-      evmAsset?.isStaked,
-      isPooledStakingEnabled,
       isStablecoinLendingEnabled,
-      isStakingSupportedChain,
     ]);
-
+// end TODO
     if (!asset || !chainId) {
       return null;
     }

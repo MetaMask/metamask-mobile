@@ -55,12 +55,20 @@ const useEarnInputHandlers = ({
     exchangeRate,
   });
 
+  // TODO: Comeback and check this
   const {
     estimatedEarnGasFeeWei: estimatedGasFeeWei,
     isLoadingEarnGasFee,
     getEstimatedEarnGasFee,
     isEarnGasFeeError,
-  } = useEarnDepositGasFee(amountTokenMinimalUnit, earnToken.experience);
+  } = earnToken.isETH
+    ? useEarnDepositGasFee(amountTokenMinimalUnit, earnToken.experience)
+    : {
+        estimatedEarnGasFeeWei: new BN4(0),
+        isLoadingEarnGasFee: false,
+        getEstimatedEarnGasFee: async () => new BN4(0),
+        isEarnGasFeeError: false,
+      };
 
   // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(

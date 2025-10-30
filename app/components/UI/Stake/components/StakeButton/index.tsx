@@ -35,6 +35,8 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
 
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+
 interface StakeButtonProps {
   asset: TokenI;
 }
@@ -54,7 +56,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+// TODO: Comeback and check this
 
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+  const isTronNative =
+    asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -66,6 +72,31 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const handleStakeRedirect = async () => {
+    if (isTronNative && isTrxStakingEnabled) {
+      trace({ name: TraceName.EarnDepositScreen });
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: asset,
+        },
+      });
+      
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
+          .addProperties({
+            chain_id: getDecimalChainId(asset.chainId as Hex),
+            location: EVENT_LOCATIONS.HOME_SCREEN,
+            action_type: 'deposit',
+            text: 'Earn',
+            token: asset.symbol,
+            network: network?.name,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+          })
+          .build(),
+      );
+      return;
+    }
+// end TODO
     if (!isStakingSupportedChain) {
       await Engine.context.MultichainNetworkController.setActiveNetwork(
         'mainnet',
@@ -163,8 +194,15 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
-  };
+  // TODO: Comeback and check this
 
+    // Fallback for TRX (stake flag on) when no earnToken metadata is present yet
+    if (isTronNative && isTrxStakingEnabled) {
+      return handleStakeRedirect();
+    }
+  // end TODO
+  };
+  
   if (
     areEarnExperiencesDisabled ||
     (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0') ||
@@ -182,8 +220,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         {' • '}
       </Text>
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
-        {`${strings('stake.earn')}`}{' '}
-        {parseFloat(earnToken?.experience?.apr || '').toFixed(1)}%
+        {(() => {
+          const aprNumber = Number(earnToken?.experience?.apr);
+          const aprText =
+            Number.isFinite(aprNumber) && aprNumber > 0
+              ? ` ${aprNumber.toFixed(1)}%`
+              : '';
+          return `${strings('stake.earn')}${aprText}`;
+        })()}
       </Text>
     </Pressable>
   );

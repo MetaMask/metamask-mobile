@@ -126,7 +126,36 @@ const EarnInputView = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
-  const earnToken = getEarnToken(token);
+
+
+  // TODO: Comeback and check this to add code fences
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const [resourceType, setResourceType] = useState<ResourceType>('energy');
+  const isTronNative =
+    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
+  
+  const earnTokenFromMap = getEarnToken(token);
+
+  const earnToken = React.useMemo(() => {
+    if (earnTokenFromMap) return earnTokenFromMap;
+    // Fallback for TRX when not yet present in the earn map
+    if (isTrxStakingEnabled && isTronNative) {
+      return {
+        ...token,
+        balanceMinimalUnit: '0',
+        balanceFormatted: token.balance ?? '0',
+        balanceFiat: token.balanceFiat ?? '0',
+        tokenUsdExchangeRate: 0,
+        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+        get experience() {
+          return this.experiences[0];
+        },
+      } as EarnTokenDetails;
+    }
+    return undefined;
+  }, [earnTokenFromMap, isTrxStakingEnabled, isTronNative, token]);
+  // end TODO
   const networkClientId = useSelector(selectNetworkClientId);
   const {
     isFiat,
@@ -158,12 +187,6 @@ const EarnInputView = () => {
     conversionRate,
     exchangeRate,
   });
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const [resourceType, setResourceType] = useState<ResourceType>('energy');
-  const isTronNative =
-    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
-  ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
