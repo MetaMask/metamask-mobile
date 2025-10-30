@@ -1825,6 +1825,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -3696,6 +3699,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -5567,6 +5573,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -7377,6 +7386,9 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -9189,6 +9201,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -10998,6 +11011,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -12902,6 +12918,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -14712,6 +14731,9 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -16522,6 +16544,9 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -18332,6 +18357,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -20236,6 +20264,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -22044,6 +22075,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -23946,6 +23980,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -25756,6 +25793,9 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

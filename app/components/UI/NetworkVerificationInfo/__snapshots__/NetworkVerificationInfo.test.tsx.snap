@@ -426,6 +426,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -465,6 +466,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -894,6 +896,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -933,6 +936,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",

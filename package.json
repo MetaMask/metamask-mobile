@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.57.0",
+  "version": "7.57.1",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -186,8 +186,9 @@
     "@metamask/bridge-status-controller@^47.2.0": "patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch",
     "@scure/bip32": "1.7.0",
     "@metamask/assets-controllers@^78.0.1": "patch:@metamask/assets-controllers@npm%3A78.0.1#./.yarn/patches/@metamask-assets-controllers-npm-78.0.1-056db65261.patch",
+    "@metamask/bridge-status-controller@^48.0.0": "patch:@metamask/bridge-status-controller@npm%3A48.0.0#./.yarn/patches/@metamask-bridge-status-controller-npm-48.0.0-f39cb20abf.patch",
     "@metamask/snaps-sdk": "^10.0.0",
-    "@metamask/bridge-status-controller@^48.0.0": "patch:@metamask/bridge-status-controller@npm%3A48.0.0#./.yarn/patches/@metamask-bridge-status-controller-npm-48.0.0-f39cb20abf.patch"
+    "react-native@0.76.9": "patch:react-native@npm%3A0.76.9#./.yarn/patches/react-native-npm-0.76.9-1c25352097.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",

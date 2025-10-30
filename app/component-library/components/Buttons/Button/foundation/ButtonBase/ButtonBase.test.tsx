@@ -11,8 +11,6 @@ import { TextVariant } from '../../../../Texts/Text';
 import ButtonBase from './ButtonBase';
 import { ButtonSize } from '../../Button.types';
 
-// Test the real TempTouchableOpacity component - no mocking needed
-
 describe('ButtonBase', () => {
   it('renders with basic props', () => {
     const wrapper = shallow(
@@ -152,22 +150,6 @@ describe('ButtonBase', () => {
       />,
     );
     expect(wrapper).toMatchSnapshot();
-  });
-
-  it('passes through additional props to TempTouchableOpacity', () => {
-    const wrapper = shallow(
-      <ButtonBase
-        label="Click me!"
-        onPress={() => null}
-        testID="test-button"
-        accessibilityLabel="Test Button"
-        size={ButtonSize.Md}
-      />,
-    );
-
-    const touchableOpacity = wrapper.find('TempTouchableOpacity');
-    expect(touchableOpacity.prop('testID')).toBe('test-button');
-    expect(touchableOpacity.prop('accessibilityLabel')).toBe('Test Button');
   });
 
   it('handles different sizes', () => {

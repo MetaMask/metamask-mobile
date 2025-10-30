@@ -531,6 +531,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -1213,6 +1214,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -2007,6 +2009,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",

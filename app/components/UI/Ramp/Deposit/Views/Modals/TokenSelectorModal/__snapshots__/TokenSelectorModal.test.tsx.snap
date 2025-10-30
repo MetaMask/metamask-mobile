@@ -545,6 +545,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                 activeOpacity={1}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1483,6 +1484,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2065,6 +2067,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -2655,6 +2658,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 activeOpacity={1}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
