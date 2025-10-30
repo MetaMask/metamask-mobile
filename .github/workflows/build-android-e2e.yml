@@ -63,12 +63,42 @@ jobs:
 
       - name: Check Gradle cache directories
         run: |
-          echo "check 1"
-          ls -Al /home/admin/_work/.gradle/caches
-          echo "check 2"
-          ls -Al /home/runner/_work/.gradle/caches
-          echo "check 2"
-          ls -Al /home/admin/.gradle/caches
+          if [ -d '/home/admin' ]; then
+            if [ -d '/home/admin/_work/.gradle' ]; then
+              echo "check 1"
+              ls -Al /home/admin/_work/.gradle
+            fi
+
+            if [ -d '/home/admin/.gradle' ]; then
+              echo "check 2"
+              ls -Al /home/admin/.gradle
+            fi
+          fi
+          if [ -d '/home/runner' ]; then
+            if [ -d '/home/runner/_work/.gradle' ]; then
+              echo "check 3"
+              ls -Al /home/runner/_work/.gradle
+            fi
+
+            if [ -d '/home/runner/.gradle' ]; then
+              echo "check 4"
+              ls -Al /home/runner/.gradle
+            fi
+          fi
+
+          echo "HOME: ${HOME}"
+
+          if [ -d "${HOME}" ]; then
+            if [ -d "${HOME}/_work/.gradle" ]; then
+              echo "check 5"
+              ls -Al "${HOME}/_work/.gradle"
+            fi
+
+            if [ -d "${HOME}/.gradle" ]; then
+              echo "check 6"
+              ls -Al "${HOME}/.gradle"
+            fi
+          fi
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
@@ -93,12 +123,43 @@ jobs:
 
       - name: Check Gradle cache directories again after setup
         run: |
-          echo "check 1"
-          ls -Al /home/admin/_work/.gradle/caches
-          echo "check 2"
-          ls -Al /home/runner/_work/.gradle/caches
-          echo "check 2"
-          ls -Al /home/admin/.gradle/caches
+
+          if [ -d '/home/admin' ]; then
+            if [ -d '/home/admin/_work/.gradle' ]; then
+              echo "check 1"
+              ls -Al /home/admin/_work/.gradle
+            fi
+
+            if [ -d '/home/admin/.gradle' ]; then
+              echo "check 2"
+              ls -Al /home/admin/.gradle
+            fi
+          fi
+          if [ -d '/home/runner' ]; then
+            if [ -d '/home/runner/_work/.gradle' ]; then
+              echo "check 3"
+              ls -Al /home/runner/_work/.gradle
+            fi
+
+            if [ -d '/home/runner/.gradle' ]; then
+              echo "check 4"
+              ls -Al /home/runner/.gradle
+            fi
+          fi
+
+          echo "HOME: ${HOME}"
+
+          if [ -d "${HOME}" ]; then
+            if [ -d "${HOME}/_work/.gradle" ]; then
+              echo "check 5"
+              ls -Al "${HOME}/_work/.gradle"
+            fi
+
+            if [ -d "${HOME}/.gradle" ]; then
+              echo "check 6"
+              ls -Al "${HOME}/.gradle"
+            fi
+          fi
 
       # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
       - name: Generate current fingerprint
