@@ -58,7 +58,6 @@ import { selectConversionRateByChainId } from '../../../selectors/currencyRateCo
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 
 const createStyles = (colors, typography) =>
@@ -215,10 +214,6 @@ class TransactionElement extends PureComponent {
       navigate: PropTypes.func.isRequired,
     }).isRequired,
     /**
-     * Whether multichain accounts state 2 is enabled
-     */
-    isMultichainAccountsState2Enabled: PropTypes.bool,
-    /**
      * Whether to render a bottom border for row separation (used in unified list)
      */
     showBottomBorder: PropTypes.bool,
@@ -314,10 +309,7 @@ class TransactionElement extends PureComponent {
     let incoming = false;
     let selfSent = false;
 
-    if (
-      this.props.isMultichainAccountsState2Enabled &&
-      process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true'
-    ) {
+    if (process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true') {
       const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
         (account) => account.address,
       );
@@ -769,8 +761,6 @@ const mapStateToProps = (state, ownProps) => ({
     ownProps.txChainId,
   ),
   tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
-  isMultichainAccountsState2Enabled:
-    selectMultichainAccountsState2Enabled(state),
 });
 
 TransactionElement.contextType = ThemeContext;

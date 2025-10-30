@@ -5,7 +5,6 @@ import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   selectSelectedAccountGroup,
   selectAccountGroupsByWallet,
@@ -60,9 +59,6 @@ export const useOptin = (): UseOptinResult => {
         (accGroup) => accGroup.wallet.id === currentAccountWalletId,
       )?.data?.[0]?.id,
     [accountGroupsByWallet, currentAccountWalletId],
-  );
-  const multichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
   );
 
   const handleOptin = useCallback(
@@ -122,11 +118,7 @@ export const useOptin = (): UseOptinResult => {
         setOptinError(errorMessage);
       }
 
-      if (
-        multichainAccountsState2Enabled &&
-        sideEffectAccountGroupIdToLink &&
-        subscriptionId
-      ) {
+      if (sideEffectAccountGroupIdToLink && subscriptionId) {
         if (
           sideEffectAccountGroupIdToLink &&
           sideEffectAccountGroupIdToLink !== accountGroup?.id
@@ -150,7 +142,6 @@ export const useOptin = (): UseOptinResult => {
       trackEvent,
       createEventBuilder,
       sideEffectAccountGroupIdToLink,
-      multichainAccountsState2Enabled,
       dispatch,
       addTraitsToUser,
       linkAccountGroup,
