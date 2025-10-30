@@ -21,21 +21,20 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
 import usePhoneVerificationVerify from '../../hooks/usePhoneVerificationVerify';
 import {
-  resetOnboardingState,
   selectContactVerificationId,
   selectOnboardingId,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
 
 // Styles for the OTP CodeField
-export const createOTPStyles = (params: { theme: Theme }) => {
+const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
@@ -64,13 +63,11 @@ export const createOTPStyles = (params: { theme: Theme }) => {
 
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const { setUser } = useCardSDK();
-  const { styles } = useStyles(createOTPStyles, {});
+  const { styles } = useStyles(createStyles, {});
   const inputRef = useRef<TextInput>(null);
-  const [resendCooldown, setResendCooldown] = useState(60);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [confirmCode, setConfirmCode] = useState('');
-  const resendInProgressRef = useRef(false);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
@@ -111,9 +108,9 @@ const ConfirmPhoneNumber = () => {
     }
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
+            action: OnboardingActions.CONFIRM_PHONE_NUMBER_BUTTON_CLICKED,
           })
           .build(),
       );
@@ -141,7 +138,6 @@ const ConfirmPhoneNumber = () => {
           error.message.includes('Onboarding ID not found'))
       ) {
         // navigate back and restart the flow
-        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
     }
@@ -151,12 +147,11 @@ const ConfirmPhoneNumber = () => {
     phoneNumber,
     phoneCountryCode,
     contactVerificationId,
-    trackEvent,
-    createEventBuilder,
     verifyPhoneVerification,
     setUser,
     navigation,
-    dispatch,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const handleValueChange = useCallback(
@@ -173,23 +168,16 @@ const ConfirmPhoneNumber = () => {
       resendCooldown > 0 ||
       !phoneNumber ||
       !phoneCountryCode ||
-      !contactVerificationId ||
-      phoneVerificationIsLoading
+      !contactVerificationId
     ) {
       return;
     }
-    if (resendInProgressRef.current) {
-      return;
-    }
     try {
-      resendInProgressRef.current = true;
-      // Set cooldown immediately to guard against rapid multi-presses
-      setResendCooldown(60);
-
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON,
+            action:
+              OnboardingActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON_CLICKED,
           })
           .build(),
       );
@@ -198,17 +186,15 @@ const ConfirmPhoneNumber = () => {
         phoneNumber,
         contactVerificationId,
       });
+      setResendCooldown(30);
     } catch {
       // Allow error message to display
-    } finally {
-      resendInProgressRef.current = false;
     }
   }, [
     resendCooldown,
     phoneNumber,
     phoneCountryCode,
     contactVerificationId,
-    phoneVerificationIsLoading,
     sendPhoneVerification,
     trackEvent,
     createEventBuilder,
@@ -216,9 +202,9 @@ const ConfirmPhoneNumber = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
         .addProperties({
-          screen: CardScreens.CONFIRM_PHONE_NUMBER,
+          page: OnboardingScreens.CONFIRM_PHONE_NUMBER,
         })
         .build(),
     );
@@ -226,13 +212,15 @@ const ConfirmPhoneNumber = () => {
 
   // Cooldown timer effect
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => {
-        setResendCooldown((prev) => prev - 1);
+      timer = setTimeout(() => {
+        setResendCooldown(resendCooldown - 1);
       }, 1000);
-
-      return () => clearTimeout(timer);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [resendCooldown]);
 
   // Auto-submit when all digits are entered
@@ -311,12 +299,12 @@ const ConfirmPhoneNumber = () => {
       </Box>
 
       {/* Resend verification */}
-      <Box twClassName="mt-4 items-center">
+      <Box>
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodySm}
           twClassName={`${
             resendCooldown > 0
-              ? 'text-text-alternative'
+              ? 'text-text-muted'
               : 'text-primary-default cursor-pointer'
           }`}
           onPress={resendCooldown > 0 ? undefined : handleResendVerification}
@@ -370,7 +358,7 @@ const ConfirmPhoneNumber = () => {
       title={strings('card.card_onboarding.confirm_phone_number.title')}
       description={strings(
         'card.card_onboarding.confirm_phone_number.description',
-        { phoneNumber: `+${phoneCountryCode} ${phoneNumber}` },
+        { phoneNumber: `${phoneCountryCode} ${phoneNumber}` },
       )}
       formFields={renderFormFields()}
       actions={renderActions()}

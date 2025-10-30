@@ -10,10 +10,6 @@ import type {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerGetStateAction,
 } from '@metamask/network-controller';
-import {
-  TransactionControllerTransactionConfirmedEvent,
-  TransactionControllerUnapprovedTransactionAddedEvent,
-} from '@metamask/transaction-controller';
 
 type AllowedActions =
   | AccountsControllerListAccountsAction
@@ -24,9 +20,7 @@ type AllowedActions =
 
 type AllowedEvents =
   | AccountsControllerSelectedEvmAccountChangeEvent
-  | AccountsControllerSelectedAccountChangeEvent
-  | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerUnapprovedTransactionAddedEvent;
+  | AccountsControllerSelectedAccountChangeEvent;
 
 export type AccountTrackerControllerMessenger = ReturnType<
   typeof getAccountTrackerControllerMessenger
@@ -54,8 +48,6 @@ export function getAccountTrackerControllerMessenger(
     allowedEvents: [
       'AccountsController:selectedEvmAccountChange',
       'AccountsController:selectedAccountChange',
-      'TransactionController:transactionConfirmed',
-      'TransactionController:unapprovedTransactionAdded',
     ],
   });
 }

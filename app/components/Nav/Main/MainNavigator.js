@@ -13,6 +13,7 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
+import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -25,8 +26,6 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import NftFullView from '../../Views/NftFullView';
-import TokensFullView from '../../Views/TokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -111,9 +110,6 @@ import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsV
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
-///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -196,6 +192,16 @@ const WalletTabStackFlow = () => (
       name="WalletView"
       component={WalletModalFlow}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.PREDICT.ROOT}
+      component={PredictScreenStack}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="AddAsset"
+      component={AddAsset}
+      options={AddAsset.navigationOptions}
     />
     <Stack.Screen
       name="Collectible"
@@ -392,6 +398,11 @@ const SettingsFlow = () => (
       name="ExperimentalSettings"
       component={ExperimentalSettings}
       options={ExperimentalSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name="NetworksSettings"
+      component={NetworksSettings}
+      options={NetworksSettings.navigationOptions}
     />
     <Stack.Screen
       name="CompanySettings"
@@ -872,14 +883,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-const SampleFeatureFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeature} />
-  </Stack.Navigator>
-);
-///: END:ONLY_INCLUDE_IF
-
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
@@ -934,16 +937,6 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
-      <Stack.Screen
-        name={Routes.WALLET.TOKENS_FULL_VIEW}
-        component={TokensFullView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AddAsset"
-        component={AddAsset}
-        options={{ headerShown: false }}
-      />
       {isRewardsEnabled && (
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
@@ -992,11 +985,6 @@ const MainNavigator = () => {
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
-      />
-      <Stack.Screen
-        name={Routes.WALLET.NFTS_FULL_VIEW}
-        component={NftFullView}
-        options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen name={Routes.RAMP.BUY}>
@@ -1082,25 +1070,17 @@ const MainNavigator = () => {
             name={Routes.PREDICT.ROOT}
             component={PredictScreenStack}
             options={{
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
+              animationEnabled: false,
             }}
           />
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+              animationEnabled: true,
+            }}
           />
         </>
       )}
@@ -1143,16 +1123,6 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <Stack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeatureFlow}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );

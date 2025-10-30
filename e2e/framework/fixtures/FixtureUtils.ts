@@ -11,7 +11,6 @@ import {
   DEFAULT_FIXTURE_SERVER_PORT,
   DEFAULT_MOCKSERVER_PORT,
   DEFAULT_DAPP_SERVER_PORT,
-  DEFAULT_COMMAND_QUEUE_SERVER_PORT,
 } from '../Constants';
 import { createLogger } from '../logger';
 
@@ -107,9 +106,6 @@ export function AnvilPort(): number {
 }
 export function getFixturesServerPort(): number {
   return getServerPort(DEFAULT_FIXTURE_SERVER_PORT);
-}
-export function getCommandQueueServerPort(): number {
-  return getServerPort(DEFAULT_COMMAND_QUEUE_SERVER_PORT);
 }
 
 export function getLocalTestDappPort(): number {

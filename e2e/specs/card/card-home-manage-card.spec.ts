@@ -63,7 +63,7 @@ describe.skip(SmokeCard('CardHome - Manage Card'), () => {
 
   it('should validate segment/metametric event when opening Card Home', async () => {
     const expectedEvents = {
-      CARD_BUTTON_VIEWED: 'Card Button Viewed',
+      CARD_VIEWED: 'Card Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',
       CARD_ADVANCED_MANAGEMENT_CLICKED: 'Card Advanced Management Clicked',
     };
@@ -71,8 +71,8 @@ describe.skip(SmokeCard('CardHome - Manage Card'), () => {
     const softAssert = new SoftAssert();
 
     // Find all events
-    const cardButtonViewed = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_BUTTON_VIEWED,
+    const cardViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.CARD_VIEWED,
     );
     const cardHomeClicked = eventsToCheck.filter(
       (event) => event.event === expectedEvents.CARD_HOME_CLICKED,
@@ -82,8 +82,8 @@ describe.skip(SmokeCard('CardHome - Manage Card'), () => {
         event.event === expectedEvents.CARD_ADVANCED_MANAGEMENT_CLICKED,
     );
 
-    const checkCardButtonViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardButtonViewed);
+    const checkCardViewed = softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsDefined(cardViewed);
     }, 'Check Card Viewed event');
 
     const checkCardHomeClicked = softAssert.checkAndCollect(async () => {
@@ -98,7 +98,7 @@ describe.skip(SmokeCard('CardHome - Manage Card'), () => {
     );
 
     await Promise.all([
-      checkCardButtonViewed,
+      checkCardViewed,
       checkCardHomeClicked,
       checkCardAdvancedManagementClicked,
     ]);

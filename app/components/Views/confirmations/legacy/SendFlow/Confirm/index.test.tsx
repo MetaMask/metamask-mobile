@@ -13,7 +13,6 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { TESTID_ACCORDION_CONTENT } from '../../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
-import { Reason } from '../../components/BlockaidBanner/BlockaidBanner.types';
 import { RootState } from '../../../../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { ConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
@@ -90,7 +89,7 @@ const mockInitialState: DeepPartial<RootState> = {
     securityAlertResponses: {
       1: {
         result_type: 'Malicious',
-        reason: Reason.blurFarming,
+        reason: 'blur_farming',
         providerRequestsCount: {},
         chainId: '0x1',
       },
@@ -331,7 +330,7 @@ describe('Confirm', () => {
         securityAlertResponses: {
           1: {
             result_type: 'Malicious',
-            reason: Reason.blurFarming,
+            reason: 'blur_farming',
             providerRequestsCount: {},
             chainId: '0x1',
           },

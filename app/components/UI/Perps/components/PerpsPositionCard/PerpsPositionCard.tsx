@@ -39,7 +39,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -202,20 +201,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
 
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
-  let fundingColorFromValue = TextColor.Default;
-  if (fundingSinceOpen > 0) {
-    fundingColorFromValue = TextColor.Error;
-  } else if (fundingSinceOpen < 0) {
-    fundingColorFromValue = TextColor.Success;
-  }
-  const fundingColor = isNearZeroFunding
-    ? TextColor.Default
-    : fundingColorFromValue;
+  const fundingColorForZero = TextColor.Default;
+  const fundingColorForPositive = TextColor.Error;
+  const fundingColorForNegative = TextColor.Success;
 
-  const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
+  let fundingColor = fundingColorForNegative; // default for negative values
+  if (isNearZeroFunding || fundingSinceOpen === 0) {
+    fundingColor = fundingColorForZero;
+  } else if (fundingSinceOpen > 0) {
+    fundingColor = fundingColorForPositive;
+  }
+
+  const fundingSign = fundingSinceOpen >= 0 ? '-' : '+';
   const fundingDisplay = isNearZeroFunding
     ? '$0.00'
-    : `${fundingSignPrefix}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
+    : `${fundingSign}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
         ranges: PRICE_RANGES_MINIMAL_VIEW,
       })}`;
 
@@ -342,8 +342,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {getPerpsDisplaySymbol(position.coin)} {position.leverage.value}
-                x{' '}
+                {position.coin} {position.leverage.value}x{' '}
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {direction === 'long'
                     ? strings('perps.market.long_lowercase')
@@ -353,8 +352,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </View>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {formatPositionSize(absoluteSize.toString())}{' '}
-                {getPerpsDisplaySymbol(position.coin)}
+                {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>
           </View>

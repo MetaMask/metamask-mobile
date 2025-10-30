@@ -119,36 +119,6 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
-  prediction-market-android-smoke:
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: prediction_market_android_smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokePredictions'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
-  rewards-android-smoke:
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: rewards-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeRewards'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
@@ -161,8 +131,7 @@ jobs:
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
       - confirmations-redesigned-android-smoke
-      - prediction-market-android-smoke
-      - rewards-android-smoke
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -177,7 +146,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-*-android-*'
+          pattern: '*-android-*-test-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
@@ -210,7 +179,7 @@ jobs:
           # Run the mobile test report generator
           cd ${{ github.workspace }}
           TEST_RESULTS_PATH=all-test-artifacts \
-          TEST_RUNS_PATH=test/test-results/test-runs-android.json \
+          TEST_RUNS_PATH=test/test-results/json-test-report \
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
@@ -223,5 +192,5 @@ jobs:
         if: steps.create-json-report.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: test-e2e-android-json-report
-          path: test/test-results/test-runs-android.json
+          name: e2e-android-json-report
+          path: test/test-results/json-test-report

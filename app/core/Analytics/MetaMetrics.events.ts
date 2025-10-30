@@ -33,11 +33,6 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  // Sample feature
-  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
-  ///: END:ONLY_INCLUDE_IF
-
   // Approval
   APPROVAL_STARTED = 'Approval Started',
   APPROVAL_COMPLETED = 'Approval Completed',
@@ -550,15 +545,16 @@ enum EVENT_NAME {
   PERPS_ERROR = 'Perp Error',
 
   // Card
-  CARD_BUTTON_VIEWED = 'Card Button Viewed',
+  CARD_VIEWED = 'Card Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
   CARD_HOME_VIEWED = 'Card Home Viewed',
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
-  CARD_VIEWED = 'Card Viewed',
-  CARD_BUTTON_CLICKED = 'Card Button Clicked',
+  CARD_ONBOARDING_PAGE_VIEWED = 'Card Onboarding Page Viewed',
+  CARD_ONBOARDING_BUTTON_CLICKED = 'Card Onboarding Button Clicked',
+
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -628,13 +624,6 @@ enum ACTIONS {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
-
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  // Sample feature
-  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
-  ///: END:ONLY_INCLUDE_IF
-
-  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -1411,7 +1400,7 @@ const events = {
     EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
   ),
   // Card
-  CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
+  CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
   CARD_HOME_VIEWED: generateOpt(EVENT_NAME.CARD_HOME_VIEWED),
   CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
@@ -1424,8 +1413,12 @@ const events = {
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
   ),
-  CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
-  CARD_BUTTON_CLICKED: generateOpt(EVENT_NAME.CARD_BUTTON_CLICKED),
+  CARD_ONBOARDING_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.CARD_ONBOARDING_PAGE_VIEWED,
+  ),
+  CARD_ONBOARDING_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ONBOARDING_BUTTON_CLICKED,
+  ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,

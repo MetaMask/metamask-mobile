@@ -10,7 +10,6 @@ import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { AddressFields } from './PhysicalAddress';
 import {
-  resetOnboardingState,
   selectOnboardingId,
   selectSelectedCountry,
   setIsAuthenticatedCard,
@@ -25,7 +24,7 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
@@ -43,9 +42,9 @@ const MailingAddress = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
         .addProperties({
-          screen: CardScreens.MAILING_ADDRESS,
+          page: OnboardingScreens.MAILING_ADDRESS,
         })
         .build(),
     );
@@ -133,9 +132,9 @@ const MailingAddress = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.MAILING_ADDRESS_BUTTON,
+            action: OnboardingActions.MAILING_ADDRESS_BUTTON_CLICKED,
           })
           .build(),
       );
@@ -180,7 +179,6 @@ const MailingAddress = () => {
         error.message.includes('Onboarding ID not found')
       ) {
         // Onboarding ID not found, navigate back and restart the flow
-        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }

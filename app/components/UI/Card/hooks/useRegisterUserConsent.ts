@@ -63,7 +63,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         throw new Error('Card SDK not initialized');
       }
 
-      const policy = selectedCountry === 'US' ? 'US' : 'global';
+      const policy = selectedCountry === 'US' ? 'us' : 'global';
 
       try {
         // Reset state and start loading
@@ -84,7 +84,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
           },
         };
         const consents: Consent[] = [
-          ...(policy === 'US' ? [eSignActConsent] : []),
+          ...(policy === 'us' ? [eSignActConsent] : []),
           {
             consentType: 'termsAndPrivacy',
             consentStatus: 'granted',

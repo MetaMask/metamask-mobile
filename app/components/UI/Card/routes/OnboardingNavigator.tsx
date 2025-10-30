@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -92,7 +92,7 @@ const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading } = useCardSDK();
 
-  const getInitialRouteName = useCallback(() => {
+  const getInitialRouteName = () => {
     if (!onboardingId || !user?.id) {
       return Routes.CARD.ONBOARDING.SIGN_UP;
     }
@@ -111,7 +111,7 @@ const OnboardingNavigator: React.FC = () => {
       return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
     }
     return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
-  }, [onboardingId, user]);
+  };
 
   // Show loading indicator while SDK is initializing or user data is being fetched
   if (isLoading) {

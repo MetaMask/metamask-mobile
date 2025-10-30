@@ -20,11 +20,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import ResourceToggle, {
-  type ResourceType,
-} from '../../components/Tron/ResourceToggle';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
@@ -76,7 +71,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
-import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -112,8 +106,6 @@ const EarnInputView = () => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-
-  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
   // if token is ETH, use 1 as the exchange rate
   // otherwise, use the contract exchange rate or 0 if undefined
@@ -158,12 +150,6 @@ const EarnInputView = () => {
     conversionRate,
     exchangeRate,
   });
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const [resourceType, setResourceType] = useState<ResourceType>('energy');
-  const isTronNative =
-    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
-  ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
@@ -810,13 +796,6 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTrxStakingEnabled && isTronNative && (
-          <ResourceToggle value={resourceType} onChange={setResourceType} />
-        )
-        ///: END:ONLY_INCLUDE_IF
-      }
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -834,7 +813,7 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          {isStablecoinLendingEnabled && !isTrxStakingEnabled ? (
+          {isStablecoinLendingEnabled ? (
             <>
               <View style={styles.spacer} />
               <EarnTokenSelector

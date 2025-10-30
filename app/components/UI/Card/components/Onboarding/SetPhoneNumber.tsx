@@ -18,18 +18,17 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
-  resetOnboardingState,
   selectContactVerificationId,
   selectSelectedCountry,
 } from '../../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+
   const contactVerificationId = useSelector(selectContactVerificationId);
   const selectedCountry = useSelector(selectSelectedCountry);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -42,18 +41,16 @@ const SetPhoneNumber = () => {
 
     const uniqueCallingCodes = new Map();
 
-    registrationSettings.countries
-      .filter((country) => country.canSignUp)
-      .forEach((country) => {
-        const callingCode = country.callingCode;
-        if (!uniqueCallingCodes.has(callingCode)) {
-          uniqueCallingCodes.set(callingCode, {
-            key: country.iso3166alpha2,
-            value: callingCode,
-            label: `+${callingCode}`,
-          });
-        }
-      });
+    registrationSettings.countries.forEach((country) => {
+      const callingCode = `+${country.callingCode}`;
+      if (!uniqueCallingCodes.has(callingCode)) {
+        uniqueCallingCodes.set(callingCode, {
+          key: country.iso3166alpha2,
+          value: callingCode,
+          label: callingCode,
+        });
+      }
+    });
 
     // Convert Map values to array and sort
     return Array.from(uniqueCallingCodes.values()).sort((a, b) =>
@@ -63,12 +60,14 @@ const SetPhoneNumber = () => {
 
   const initialSelectedCountryAreaCode = useMemo(() => {
     if (!registrationSettings?.countries) {
-      return '1';
+      return '+1';
     }
     const selectedCountryWithCallingCode = registrationSettings.countries.find(
       (country) => country.iso3166alpha2 === selectedCountry,
     );
-    return selectedCountryWithCallingCode?.callingCode || '1';
+    return selectedCountryWithCallingCode?.callingCode
+      ? `+${selectedCountryWithCallingCode.callingCode}`
+      : '+1';
   }, [selectedCountry, registrationSettings]);
 
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -87,9 +86,9 @@ const SetPhoneNumber = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
         .addProperties({
-          screen: CardScreens.SET_PHONE_NUMBER,
+          page: OnboardingScreens.SET_PHONE_NUMBER,
         })
         .build(),
     );
@@ -106,10 +105,9 @@ const SetPhoneNumber = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.SET_PHONE_NUMBER_BUTTON,
-            phone_number_country_code: selectedCountryAreaCode,
+            action: OnboardingActions.SET_PHONE_NUMBER_BUTTON_CLICKED,
           })
           .build(),
       );
@@ -130,7 +128,6 @@ const SetPhoneNumber = () => {
         error.message.includes('Invalid or expired contact verification ID')
       ) {
         // navigate back and restart the flow
-        dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
       return;

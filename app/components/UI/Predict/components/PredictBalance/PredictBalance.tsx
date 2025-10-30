@@ -32,32 +32,16 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { PredictDepositStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../types/navigation';
-import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
-interface PredictBalanceProps {
-  onLayout?: (height: number) => void;
-}
-
-const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
+const PredictBalance: React.FC = () => {
   const tw = useTailwind();
-
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const { balance, isLoading, loadBalance } = usePredictBalance({
     loadOnMount: true,
     refreshOnFocus: true,
   });
   const { deposit, status } = usePredictDeposit();
-  const { withdraw } = usePredictWithdraw();
-  const { executeGuardedAction } = usePredictActionGuard({
-    providerId: 'polymarket',
-    navigation,
-  });
 
   const isAddingFunds = status === PredictDepositStatus.PENDING;
   const hasBalance = balance > 0;
@@ -68,20 +52,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
     }
   }, [status, loadBalance]);
 
-  const handleAddFunds = useCallback(() => {
-    executeGuardedAction(() => {
-      deposit();
-    });
-  }, [deposit, executeGuardedAction]);
-
   const handleWithdraw = useCallback(() => {
-    executeGuardedAction(
-      () => {
-        withdraw();
-      },
-      { checkBalance: true },
-    );
-  }, [withdraw, executeGuardedAction]);
+    // TODO: implement withdraw
+  }, []);
 
   if (isLoading) {
     return (
@@ -136,10 +109,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
         )}
         testID="predict-balance-card"
-        onLayout={(event) => {
-          const { height } = event.nativeEvent.layout;
-          onLayout?.(height);
-        }}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -183,7 +152,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
             }
             style={tw.style('flex-1')}
             label={strings('predict.deposit.add_funds')}
-            onPress={handleAddFunds}
+            onPress={deposit}
           />
           {hasBalance && (
             <Button

@@ -1865,6 +1865,7 @@
     "token_is_needed_to_continue": "Se necesita {{tokenSymbol}} para continuar",
     "fund_your_wallet": "Fund your wallet",
     "get_ready_for_web3": "Get your wallet ready to use web3",
+    "fund_your_wallet_to_get_started": "Financia tu billetera para comenzar en Web3",
     "add_funds": "Agregar fondos",
     "next": "Siguiente",
     "buy_asset": "Comprar {{asset}}",

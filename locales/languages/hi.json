@@ -1865,6 +1865,7 @@
     "token_is_needed_to_continue": "जारी रखने के लिए {{tokenSymbol}} की आवश्यकता है",
     "fund_your_wallet": "Fund your wallet",
     "get_ready_for_web3": "Get your wallet ready to use web3",
+    "fund_your_wallet_to_get_started": "Web3 में शुरू करने के लिए अपने वॉलेट को फंड करें",
     "add_funds": "फंड जोड़ें",
     "next": "आगे",
     "buy_asset": "{{asset}} खरीदें",

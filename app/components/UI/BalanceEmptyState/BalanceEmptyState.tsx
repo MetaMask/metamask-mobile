@@ -4,8 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  Button,
-  ButtonSize,
   Text,
   TextVariant,
   TextColor,
@@ -16,12 +14,13 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ButtonHero from '../../../component-library/components-temp/Buttons/ButtonHero';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 
@@ -39,10 +38,12 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleAction = () => {
-    navigation.navigate(...createBuyNavigationDetails());
+    navigation.navigate(...createDepositNavigationDetails());
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED).build(),
+      createEventBuilder(
+        MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+      ).build(),
     );
 
     trackEvent(
@@ -51,13 +52,13 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: 'BUY',
+          ramp_type: 'DEPOSIT',
         })
         .build(),
     );
 
     trace({
-      name: TraceName.LoadRampExperience,
+      name: TraceName.LoadDepositExperience,
     });
   };
 
@@ -103,14 +104,13 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           {strings('wallet.get_ready_for_web3')}
         </Text>
       </Box>
-      <Button
-        size={ButtonSize.Lg}
+      <ButtonHero
         onPress={handleAction}
         isFullWidth
         testID={`${testID}-action-button`}
       >
         {strings('wallet.add_funds')}
-      </Button>
+      </ButtonHero>
     </Box>
   );
 };

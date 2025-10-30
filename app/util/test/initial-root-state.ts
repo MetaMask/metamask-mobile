@@ -13,7 +13,6 @@ import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
 import { initialOnboardingState } from '../../reducers/onboarding';
 import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
-import { initialState as initialSampleCounterState } from '../../features/SampleFeature/reducers/sample-counter';
 import { isTest } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
 import { initialState as initialNetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
@@ -23,10 +22,7 @@ export const backgroundState: EngineState =
   initialBackgroundState as unknown as EngineState;
 
 const initialRootState: RootState = {
-  legalNotices: {
-    newPrivacyPolicyToastClickedOrClosed: false,
-    newPrivacyPolicyToastShownDate: null,
-  },
+  legalNotices: undefined,
   collectibles: undefined,
   engine: { backgroundState },
   cronjobController: {
@@ -48,9 +44,7 @@ const initialRootState: RootState = {
   navigation: initialNavigationState,
   networkOnboarded: undefined,
   security: initialSecurityState,
-  signatureRequest: {
-    securityAlertResponse: undefined,
-  },
+  signatureRequest: undefined,
   qrKeyringScanner: initialQrKeyringScannerState,
   sdk: {
     connections: {},
@@ -60,9 +54,7 @@ const initialRootState: RootState = {
   },
   experimentalSettings: undefined,
   rpcEvents: undefined,
-  accounts: {
-    reloadAccounts: false,
-  },
+  accounts: undefined,
   inpageProvider: initialInpageProvider,
   confirmationMetrics,
   originThrottling,
@@ -71,7 +63,6 @@ const initialRootState: RootState = {
   banners: {
     dismissedBanners: [],
   },
-  sampleCounter: initialSampleCounterState,
   card: initialCardState,
   rewards: initialRewardsState,
   networkConnectionBanner: initialNetworkConnectionBannerState,

@@ -1865,6 +1865,7 @@
     "token_is_needed_to_continue": "需要 {{tokenSymbol}} 以继续",
     "fund_your_wallet": "Fund your wallet",
     "get_ready_for_web3": "Get your wallet ready to use web3",
+    "fund_your_wallet_to_get_started": "为钱包充值，开启您的 Web3 之旅",
     "add_funds": "充值",
     "next": "下一步",
     "buy_asset": "买入 {{asset}}",

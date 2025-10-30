@@ -11,7 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 
@@ -23,9 +23,9 @@ const Complete = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
         .addProperties({
-          screen: CardScreens.COMPLETE,
+          page: OnboardingScreens.COMPLETE,
         })
         .build(),
     );
@@ -34,21 +34,21 @@ const Complete = () => {
   const handleContinue = async () => {
     setIsLoading(true);
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
         .addProperties({
-          action: CardActions.COMPLETE_BUTTON,
+          action: OnboardingActions.COMPLETE_BUTTON_CLICKED,
         })
         .build(),
     );
 
     try {
+      dispatch(resetOnboardingState());
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
         navigation.navigate(Routes.CARD.HOME);
       } else {
         navigation.navigate(Routes.CARD.AUTHENTICATION);
       }
-      dispatch(resetOnboardingState());
     } catch (error) {
       Logger.log('Complete::handleContinue error', error);
     } finally {

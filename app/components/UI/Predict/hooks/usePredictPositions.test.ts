@@ -8,11 +8,6 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 
 // Mock dependencies
 jest.mock('./usePredictTrading');
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: jest.fn(() => ({
-    ensurePolygonNetworkExists: jest.fn().mockResolvedValue(undefined),
-  })),
-}));
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));

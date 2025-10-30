@@ -60,7 +60,6 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   selectUserCardLocation: jest.fn(),
   setUserCardLocation: jest.fn(),
   selectOnboardingId: jest.fn(),
-  resetOnboardingState: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({

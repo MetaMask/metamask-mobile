@@ -53,8 +53,6 @@ interface BalanceProps {
   asset: TokenI;
   mainBalance: string;
   secondaryBalance?: string;
-  hideTitleHeading?: boolean;
-  hidePercentageChange?: boolean;
 }
 
 export const NetworkBadgeSource = (chainId: Hex) => {
@@ -93,13 +91,7 @@ export const NetworkBadgeSource = (chainId: Hex) => {
   }
 };
 
-const Balance = ({
-  asset,
-  mainBalance,
-  secondaryBalance,
-  hideTitleHeading,
-  hidePercentageChange,
-}: BalanceProps) => {
+const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
@@ -197,19 +189,15 @@ const Balance = ({
 
   return (
     <View style={styles.wrapper}>
-      {!hideTitleHeading && (
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('asset_overview.your_balance')}
-        </Text>
-      )}
+      <Text variant={TextVariant.HeadingMD}>
+        {strings('asset_overview.your_balance')}
+      </Text>
       <AssetElement
         disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
-        secondaryBalance={hidePercentageChange ? undefined : percentageText}
-        secondaryBalanceColor={
-          hidePercentageChange ? undefined : percentageColor
-        }
+        secondaryBalance={percentageText}
+        secondaryBalanceColor={percentageColor}
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
         onPress={handlePress}

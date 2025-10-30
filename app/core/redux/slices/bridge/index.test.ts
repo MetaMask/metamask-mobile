@@ -56,7 +56,6 @@ describe('bridge slice', () => {
         slippage: '0.5',
         isSubmittingTx: false,
         isSelectingRecipient: false,
-        isMaxSourceAmount: false,
       });
     });
   });

@@ -41,23 +41,6 @@ const selectPredictWinPnl = createSelector(
     winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
 );
 
-const selectPredictBalances = createSelector(
-  selectPredictControllerState,
-  (predictControllerState) => predictControllerState?.balances || {},
-);
-
-const selectPredictBalanceByAddress = ({
-  providerId,
-  address,
-}: {
-  providerId: string;
-  address: string;
-}) =>
-  createSelector(
-    selectPredictBalances,
-    (balances) => balances[providerId]?.[address] || 0,
-  );
-
 export {
   selectPredictControllerState,
   selectPredictDepositTransaction,
@@ -66,6 +49,4 @@ export {
   selectPredictWonPositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
-  selectPredictBalances,
-  selectPredictBalanceByAddress,
 };

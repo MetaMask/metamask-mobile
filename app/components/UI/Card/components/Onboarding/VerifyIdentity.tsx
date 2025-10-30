@@ -11,7 +11,7 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
@@ -33,9 +33,9 @@ const VerifyIdentity = () => {
     }
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
         .addProperties({
-          action: CardActions.VERIFY_IDENTITY_BUTTON,
+          action: OnboardingActions.VERIFY_IDENTITY_BUTTON_CLICKED,
         })
         .build(),
     );
@@ -43,9 +43,9 @@ const VerifyIdentity = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
         .addProperties({
-          screen: CardScreens.VERIFY_IDENTITY,
+          page: OnboardingScreens.VERIFY_IDENTITY,
         })
         .build(),
     );
