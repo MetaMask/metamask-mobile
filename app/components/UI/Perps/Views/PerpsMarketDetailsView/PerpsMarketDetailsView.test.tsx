@@ -39,6 +39,11 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
+// Mock Redux selectors for chart preferences
+jest.mock('../../selectors/chartPreferences', () => ({
+  selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
+}));
+
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
@@ -365,11 +370,10 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsAccount.mockReturnValue({
       account: {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
         returnOnEquity: '0.00',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       },
       isInitialLoading: false,
     });
@@ -377,11 +381,10 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         availableBalance: '1000',
-        totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalValue: '1000',
+        totalBalance: '1000',
       },
       isInitialLoading: false,
     });
@@ -570,11 +573,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
-          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalValue: '0.00',
+          totalBalance: '0.00',
         },
         isInitialLoading: false,
       });
@@ -582,11 +584,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
-          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
+          totalBalance: '0',
         },
         isInitialLoading: false,
       });
@@ -622,11 +623,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '1000.00',
-          totalBalance: '1500.00',
           marginUsed: '500.00',
           unrealizedPnl: '50.00',
           returnOnEquity: '3.33',
-          totalValue: '1550.00',
+          totalBalance: '1550.00',
         },
         isInitialLoading: false,
       });
@@ -718,7 +718,9 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       // Trigger the refresh
-      await refreshControl.props.onRefresh();
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Should refresh candle data by default
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -749,7 +751,10 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Assert - Only candle data refreshes since positions update via WebSocket
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -784,7 +789,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: mockRefreshPosition,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -794,14 +799,17 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Act - Switch to statistics tab
-      const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
+      const statisticsTab = getByText('Overview');
       fireEvent.press(statisticsTab);
 
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Assert - Only candle data refreshes (all other data updates via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -836,7 +844,10 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-      await refreshControl.props.onRefresh();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Assert - Only candle data refreshes (positions update via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -863,10 +874,9 @@ describe('PerpsMarketDetailsView', () => {
       expect(refreshControl.props.refreshing).toBe(false);
 
       // Trigger the refresh
-      const refreshPromise = refreshControl.props.onRefresh();
-
-      // Wait for refresh to complete
-      await refreshPromise;
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Verify refresh functions were called
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
@@ -906,7 +916,9 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       // Trigger the refresh
-      await refreshControl.props.onRefresh();
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
 
       // Should log error
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -994,11 +1006,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
-          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalValue: '0.00',
+          totalBalance: '0.00',
         },
         isInitialLoading: false,
       });
@@ -1006,11 +1017,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
-          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
+          totalBalance: '0',
         },
         isInitialLoading: false,
       });
@@ -1117,11 +1127,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
-          totalBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
-          totalValue: '0.00',
+          totalBalance: '0.00',
         },
         isInitialLoading: false,
       });
@@ -1129,11 +1138,10 @@ describe('PerpsMarketDetailsView', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
-          totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalValue: '0',
+          totalBalance: '0',
         },
         isInitialLoading: false,
       });
