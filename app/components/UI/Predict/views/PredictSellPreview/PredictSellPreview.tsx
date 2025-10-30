@@ -55,7 +55,8 @@ const PredictSellPreview = () => {
     () => ({
       marketId: market?.id,
       marketTitle: market?.title,
-      marketCategory: market?.categories?.[0],
+      marketCategory: market?.category,
+      marketTags: market?.tags,
       entryPoint:
         entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,

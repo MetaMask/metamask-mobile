@@ -764,6 +764,7 @@ export class PredictController extends BaseController<
       [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]:
         analyticsProperties.marketCategory,
+      [PredictEventProperties.MARKET_TAGS]: analyticsProperties.marketTags,
       [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
@@ -839,12 +840,14 @@ export class PredictController extends BaseController<
     marketId,
     marketTitle,
     marketCategory,
+    marketTags,
     entryPoint,
     marketDetailsViewed,
   }: {
     marketId: string;
     marketTitle: string;
     marketCategory?: string;
+    marketTags?: string[];
     entryPoint: string;
     marketDetailsViewed: string;
   }): void {
@@ -852,6 +855,7 @@ export class PredictController extends BaseController<
       [PredictEventProperties.MARKET_ID]: marketId,
       [PredictEventProperties.MARKET_TITLE]: marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]: marketCategory,
+      [PredictEventProperties.MARKET_TAGS]: marketTags,
       [PredictEventProperties.ENTRY_POINT]: entryPoint,
       [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
     };

@@ -12,6 +12,7 @@ export const PredictEventProperties = {
   MARKET_ID: 'market_id',
   MARKET_TITLE: 'market_title',
   MARKET_CATEGORY: 'market_category',
+  MARKET_TAGS: 'market_tags',
   ENTRY_POINT: 'entry_point',
   TRANSACTION_TYPE: 'transaction_type',
   LIQUIDITY: 'liquidity',
