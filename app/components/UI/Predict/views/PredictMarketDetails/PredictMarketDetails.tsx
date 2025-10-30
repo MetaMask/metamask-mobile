@@ -368,7 +368,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderCustomTabBar = () => (
     <Box
-      twClassName="bg-default border-b border-muted"
+      twClassName="bg-default border-b border-muted pt-4"
       testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
     >
       <Box
@@ -382,16 +382,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onPress={() => handleTabPress(index)}
             style={tw.style(
               'w-1/3 py-3',
-              activeTab === index ? 'border-b-2 border-primary-default' : '',
+              activeTab === index ? 'border-b-2 border-default' : '',
             )}
             testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
           >
             <Text
               variant={TextVariant.BodyMDMedium}
               color={
-                activeTab === index ? TextColor.Primary : TextColor.Alternative
+                activeTab === index ? TextColor.Default : TextColor.Alternative
               }
-              style={tw.style('text-center font-bold')}
+              style={tw.style('text-center')}
             >
               {tab.label}
             </Text>
@@ -403,7 +403,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderHeader = () => (
     <Box
-      twClassName="flex-row items-center gap-3"
+      twClassName="flex-row items-start gap-3"
       style={{ paddingTop: insets.top + 12 }}
     >
       <Pressable
@@ -543,7 +543,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 my-2"
+        twClassName="gap-3 mb-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
