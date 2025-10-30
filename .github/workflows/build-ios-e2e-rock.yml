@@ -5,19 +5,13 @@ on:
     branches:
       - '**'
   workflow_dispatch:
-    inputs:
-      skip-cache:
-        description: 'Skip Rock CLI cache (force clean build)'
-        required: false
-        type: boolean
-        default: false
   workflow_call:
     inputs:
       skip-cache:
         description: 'Skip Rock CLI cache (force clean build)'
         required: false
         type: boolean
-        default: false
+        default: true
     outputs:
       artifact-id:
         description: "Rock CLI artifact ID for the built app"
