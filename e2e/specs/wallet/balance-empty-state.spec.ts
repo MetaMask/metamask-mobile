@@ -7,10 +7,9 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkManager from '../../pages/wallet/NetworkManager';
 import Assertions from '../../framework/Assertions';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
+import BalanceEmptyState from '../../pages/wallet/BalanceEmptyState';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
@@ -34,10 +33,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         // Then: Empty state should be visible
-        const emptyStateContainer = Matchers.getElementByID(
-          'account-group-balance-empty-state',
-        );
-        await Assertions.expectElementToBeVisible(emptyStateContainer, {
+        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
           description:
             'Account balance empty state should be visible for zero balance',
         });
@@ -70,10 +66,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         // Verify empty state is initially visible on default network
-        const emptyStateContainer = Matchers.getElementByID(
-          'account-group-balance-empty-state',
-        );
-        await Assertions.expectElementToBeVisible(emptyStateContainer, {
+        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
           description:
             'Empty state should be visible on default network with zero balance',
         });
@@ -89,10 +82,13 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         await NetworkEducationModal.tapGotItButton();
 
         // Then: Empty state should NOT be visible on Sepolia testnet (shows numerical balance instead)
-        await Assertions.expectElementToNotBeVisible(emptyStateContainer, {
-          description:
-            'Empty state should NOT be visible on Sepolia testnet - shows numerical balance instead',
-        });
+        await Assertions.expectElementToNotBeVisible(
+          BalanceEmptyState.container,
+          {
+            description:
+              'Empty state should NOT be visible on Sepolia testnet - shows numerical balance instead',
+          },
+        );
         await Assertions.expectElementToBeVisible(WalletView.totalBalance, {
           description:
             'Total balance ($0.00) should be visible on Sepolia testnet',
@@ -111,7 +107,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         await NetworkListModal.changeNetworkTo('Ethereum Main Network');
 
         // Then: Empty state should still be visible on mainnet
-        await Assertions.expectElementToBeVisible(emptyStateContainer, {
+        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
           description:
             'Empty state should remain visible on Ethereum mainnet with zero balance',
         });
@@ -171,17 +167,15 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
           description: 'Wallet view should be visible after login',
         });
 
-        const emptyStateActionButton = Matchers.getElementByID(
-          'account-group-balance-empty-state-action-button',
+        await Assertions.expectElementToBeVisible(
+          BalanceEmptyState.actionButton,
+          {
+            description: 'Empty state action button should be visible',
+          },
         );
-        await Assertions.expectElementToBeVisible(emptyStateActionButton, {
-          description: 'Empty state action button should be visible',
-        });
 
         // When: User taps the "Add funds" action button
-        await Gestures.waitAndTap(emptyStateActionButton, {
-          elemDescription: 'Empty state add funds button',
-        });
+        await BalanceEmptyState.tapActionButton();
 
         // Then: Should navigate to buy/ramp flow
         await Assertions.expectElementToBeVisible(
@@ -208,10 +202,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         // Verify empty state is initially visible
-        const emptyStateContainer = Matchers.getElementByID(
-          'account-group-balance-empty-state',
-        );
-        await Assertions.expectElementToBeVisible(emptyStateContainer, {
+        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
           description: 'Empty state should be visible after app restart',
         });
 
@@ -219,7 +210,7 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         // The fixture already handles device restart, so the state should persist
 
         // Then: Empty state should still be visible after restart
-        await Assertions.expectElementToBeVisible(emptyStateContainer, {
+        await Assertions.expectElementToBeVisible(BalanceEmptyState.container, {
           description: 'Empty state should persist after restart',
         });
         await Assertions.expectElementToNotBeVisible(WalletView.totalBalance, {
@@ -227,20 +218,17 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
         });
 
         // And: All empty state components should still be present
-        const emptyStateTitle = Matchers.getElementByID(
-          'account-group-balance-empty-state-title',
-        );
-        await Assertions.expectElementToBeVisible(emptyStateTitle, {
+        await Assertions.expectElementToBeVisible(BalanceEmptyState.title, {
           description: 'Empty state title should be visible after restart',
         });
 
-        const emptyStateActionButton = Matchers.getElementByID(
-          'account-group-balance-empty-state-action-button',
+        await Assertions.expectElementToBeVisible(
+          BalanceEmptyState.actionButton,
+          {
+            description:
+              'Empty state action button should be visible after restart',
+          },
         );
-        await Assertions.expectElementToBeVisible(emptyStateActionButton, {
-          description:
-            'Empty state action button should be visible after restart',
-        });
       },
     );
   });
