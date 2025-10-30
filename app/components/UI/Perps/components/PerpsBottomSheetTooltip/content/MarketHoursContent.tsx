@@ -9,9 +9,12 @@ import {
   TextVariant,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import { getMarketHoursStatus } from '../../../utils/marketHours';
+import type { Theme } from '../../../../../../util/theme/models';
 
 interface MarketHoursContentProps extends TooltipContentProps {
   data?: {
@@ -19,7 +22,29 @@ interface MarketHoursContentProps extends TooltipContentProps {
   };
 }
 
+const styleSheet = (params: { theme: Theme }) =>
+  StyleSheet.create({
+    iconContainer: {
+      marginTop: 8,
+      marginBottom: 16,
+    },
+    titleContainer: {
+      marginBottom: 16,
+    },
+    countdownContainer: {
+      marginBottom: 16,
+    },
+    countdownPill: {
+      backgroundColor: params.theme.colors.background.alternative,
+      borderRadius: 52,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+  });
+
 const MarketHoursContent = ({ testID, data }: MarketHoursContentProps) => {
+  const { styles } = useStyles(styleSheet, {});
+
   // Get initial market hours status
   const [marketStatus, setMarketStatus] = useState(() =>
     getMarketHoursStatus(),
@@ -56,18 +81,18 @@ const MarketHoursContent = ({ testID, data }: MarketHoursContentProps) => {
   return (
     <Box testID={testID}>
       {/* Clock Icon */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="mt-2 mb-4">
+      <Box alignItems={BoxAlignItems.Center} style={styles.iconContainer}>
         <Icon name={IconName.Clock} size={IconSize.Lg} />
       </Box>
 
       {/* Title */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
+      <Box alignItems={BoxAlignItems.Center} style={styles.titleContainer}>
         <Text variant={TextVariant.HeadingMd}>{strings(titleKey)}</Text>
       </Box>
 
       {/* Countdown Pill */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="mb-4">
-        <Box twClassName="bg-alternative rounded-[52px] px-4 py-2">
+      <Box alignItems={BoxAlignItems.Center} style={styles.countdownContainer}>
+        <Box style={styles.countdownPill}>
           <Text variant={TextVariant.BodyMd}>
             <Text color={TextColor.TextAlternative}>{countdownLabel} </Text>
             <Text color={TextColor.TextDefault}>

@@ -12,17 +12,47 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Pressable } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import type { PerpsMarketHoursBannerProps } from './PerpsMarketHoursBanner.types';
+import type { Theme } from '../../../../../util/theme/models';
+
+const styleSheet = (params: { theme: Theme }) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    banner: {
+      backgroundColor: params.theme.colors.background.alternative,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    contentRow: {
+      flex: 1,
+      gap: 8,
+    },
+    textContainer: {
+      flex: 1,
+    },
+    subtitle: {
+      marginTop: 4,
+    },
+    infoButton: {
+      marginLeft: 8,
+      padding: 8,
+      borderRadius: 20,
+    },
+  });
 
 const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
   marketType,
   onInfoPress,
   testID = 'perps-market-hours-banner',
 }) => {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
 
   // Check if this is an equity asset
   const shouldDisplay = useMemo(() => isEquityAsset(marketType), [marketType]);
@@ -45,8 +75,8 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
     : strings('perps.market.pay_attention_to_volatility');
 
   return (
-    <Box twClassName="px-4 mb-4" testID={testID}>
-      <Box twClassName="bg-alternative rounded-xl px-4 py-3">
+    <Box style={styles.container} testID={testID}>
+      <Box style={styles.banner}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -55,15 +85,15 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="flex-1 gap-2"
+            style={styles.contentRow}
           >
             <Icon name={IconName.Clock} size={IconSize.Md} />
-            <Box twClassName="flex-1">
+            <Box style={styles.textContainer}>
               <Text variant={TextVariant.BodyMd}>{titleText}</Text>
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                twClassName="mt-1"
+                style={styles.subtitle}
               >
                 {subtitleText}
               </Text>
@@ -71,9 +101,7 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
           </Box>
           <Pressable
             onPress={onInfoPress}
-            style={({ pressed }) =>
-              tw.style('ml-2 p-2 rounded-full', pressed && 'bg-pressed')
-            }
+            style={styles.infoButton}
             testID={`${testID}-info-button`}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
