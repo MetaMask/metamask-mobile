@@ -64,7 +64,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 4,
+    marginTop: 12,
   },
   content: {
     // Content styling handled by children

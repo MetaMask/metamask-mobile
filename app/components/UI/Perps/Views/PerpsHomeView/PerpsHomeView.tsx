@@ -1,5 +1,11 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity } from 'react-native';
+import React, {
+  useCallback,
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+} from 'react';
+import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -7,14 +13,6 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -45,9 +43,12 @@ import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import PerpsNavigationCard, {
+  NavigationItem,
+} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 
 const PerpsHomeView = () => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
@@ -111,13 +112,13 @@ const PerpsHomeView = () => {
     }
   }, [isSearchVisible]);
 
-  const handleLearnMorePress = useCallback(() => {
+  const navigtateToTutorial = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
     });
   }, [navigation]);
 
-  const handleContactSupportPress = useCallback(() => {
+  const navigateToContactSupport = useCallback(() => {
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
@@ -128,7 +129,24 @@ const PerpsHomeView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [createEventBuilder, navigation, trackEvent]);
+
+  // Define navigation items for the card
+  const navigationItems: NavigationItem[] = useMemo(
+    () => [
+      {
+        label: strings(SUPPORT_CONFIG.TITLE_KEY),
+        onPress: () => navigateToContactSupport(),
+        testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
+      },
+      {
+        label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
+        onPress: () => navigtateToTutorial(),
+        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
+      },
+    ],
+    [navigateToContactSupport, navigtateToTutorial],
+  );
 
   // Bottom sheet handlers - open sheets directly
   const handleCloseAllPress = useCallback(() => {
@@ -266,65 +284,8 @@ const PerpsHomeView = () => {
           isLoading={isLoading.activity}
         />
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtonsContainer}>
-          {/* Learn about perps */}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleLearnMorePress}
-            activeOpacity={0.7}
-          >
-            <View style={styles.actionButtonContent}>
-              <View style={styles.actionButtonTextContainer}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {strings(LEARN_MORE_CONFIG.TITLE_KEY)}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings(LEARN_MORE_CONFIG.DESCRIPTION_KEY)}
-                </Text>
-              </View>
-              <Icon
-                name={IconName.Arrow2Right}
-                size={IconSize.Md}
-                color={theme.colors.icon.default}
-              />
-            </View>
-          </TouchableOpacity>
-
-          {/* Contact support */}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleContactSupportPress}
-            activeOpacity={0.7}
-          >
-            <View style={styles.actionButtonContent}>
-              <View style={styles.actionButtonTextContainer}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {strings(SUPPORT_CONFIG.TITLE_KEY)}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings(SUPPORT_CONFIG.DESCRIPTION_KEY)}
-                </Text>
-              </View>
-              <Icon
-                name={IconName.Arrow2Right}
-                size={IconSize.Md}
-                color={theme.colors.icon.default}
-              />
-            </View>
-          </TouchableOpacity>
+        <View style={styles.sectionContent}>
+          <PerpsNavigationCard items={navigationItems} />
         </View>
 
         {/* Bottom spacing for tab bar */}

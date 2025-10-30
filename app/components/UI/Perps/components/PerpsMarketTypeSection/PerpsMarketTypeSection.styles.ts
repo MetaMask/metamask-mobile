@@ -5,14 +5,14 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
     section: {
-      marginBottom: 24,
+      marginBottom: 30,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
-      marginBottom: 12,
+      marginBottom: 16,
     },
     contentContainer: {
       marginHorizontal: 16,

@@ -14,6 +14,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingTop: 12,
+      paddingBottom: 8,
       backgroundColor: theme.colors.background.default,
     },
     headerContainerWrapper: {

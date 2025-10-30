@@ -183,6 +183,8 @@ export const PerpsTabViewSelectorsIDs = {
 };
 
 export const PerpsHomeViewSelectorsIDs = {
+  SUPPORT_BUTTON: 'perps-home-support-button',
+  LEARN_MORE_BUTTON: 'perps-home-learn-more-button',
   BACK_BUTTON: 'back-button',
   SEARCH_TOGGLE: 'perps-home-search-toggle',
   SEARCH_INPUT: 'perps-home-search',

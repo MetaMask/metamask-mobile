@@ -5,7 +5,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
     section: {
-      marginBottom: 24,
+      marginBottom: 30,
     },
     header: {
       flexDirection: 'row',
