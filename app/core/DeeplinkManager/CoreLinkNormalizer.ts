@@ -21,6 +21,7 @@ export class CoreLinkNormalizer {
     string,
     keyof CoreLinkParams
   > = {
+    [ACTIONS.RAMP]: 'rampPath',
     [ACTIONS.SWAP]: 'swapPath',
     [ACTIONS.DAPP]: 'dappPath',
     [ACTIONS.SEND]: 'sendPath',
