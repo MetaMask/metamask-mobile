@@ -82,7 +82,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   return (
     <View style={styles.header} testID={testID}>
       {isSearchVisible ? (
-        <>
+        <View style={styles.headerContainerWrapper}>
           {/* Search Bar - Replaces back button and title */}
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -128,21 +128,21 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
               {strings('perps.cancel')}
             </Text>
           </TouchableOpacity>
-        </>
+        </View>
       ) : (
-        <>
+        <View style={styles.headerContainerWrapper}>
           {/* Back Button */}
           <ButtonIcon
             iconName={IconName.ArrowLeft}
             onPress={handleBack}
-            size={ButtonIconSizes.Sm}
+            size={ButtonIconSizes.Md}
             iconColor={IconColor.Default}
             testID={testID ? `${testID}-back-button` : undefined}
           />
 
           {/* Title */}
           <Text
-            variant={TextVariant.HeadingMD}
+            variant={TextVariant.HeadingLG}
             color={TextColor.Default}
             style={styles.headerTitle}
           >
@@ -161,7 +161,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
               color={IconColor.Default}
             />
           </TouchableOpacity>
-        </>
+        </View>
       )}
     </View>
   );

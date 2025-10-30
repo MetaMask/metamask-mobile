@@ -13,6 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
+      paddingTop: 12,
       backgroundColor: theme.colors.background.default,
     },
     backButton: {
