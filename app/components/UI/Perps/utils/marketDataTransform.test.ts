@@ -13,6 +13,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
+import { HIP3_ASSET_MARKET_TYPES } from '../constants/hyperLiquidConfig';
 import type {
   AllMidsResponse,
   PerpsAssetCtx,
@@ -77,6 +78,7 @@ describe('marketDataTransform', () => {
         fundingRate: 0.01,
         marketSource: undefined, // Main DEX has no source
         marketType: undefined, // Main DEX has no type
+        openInterest: '$1.00M',
       });
     });
 
@@ -304,7 +306,7 @@ describe('marketDataTransform', () => {
       expect(result[0].fundingIntervalHours).toBeUndefined();
     });
 
-    it('extracts marketSource and marketType for HIP-3 DEX assets', () => {
+    it('extracts marketSource and marketType for HIP-3 equity assets', () => {
       const xyzAsset = {
         name: 'xyz:XYZ100',
         maxLeverage: 20,
@@ -318,12 +320,40 @@ describe('marketDataTransform', () => {
         allMids: { 'xyz:XYZ100': '105' },
       };
 
-      const result = transformMarketData(hyperLiquidData);
+      const result = transformMarketData(
+        hyperLiquidData,
+        HIP3_ASSET_MARKET_TYPES,
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('xyz:XYZ100');
       expect(result[0].marketSource).toBe('xyz');
       expect(result[0].marketType).toBe('equity');
+    });
+
+    it('extracts marketSource and marketType for HIP-3 commodity assets', () => {
+      const goldAsset = {
+        name: 'xyz:GOLD',
+        maxLeverage: 20,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const goldAssetCtx = createMockAssetCtx({ prevDayPx: '2000' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [goldAsset],
+        assetCtxs: [goldAssetCtx],
+        allMids: { 'xyz:GOLD': '2050' },
+      };
+
+      const result = transformMarketData(
+        hyperLiquidData,
+        HIP3_ASSET_MARKET_TYPES,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('xyz:GOLD');
+      expect(result[0].marketSource).toBe('xyz');
+      expect(result[0].marketType).toBe('commodity');
     });
 
     it('handles unmapped HIP-3 DEX with marketSource but no marketType', () => {
