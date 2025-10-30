@@ -6,7 +6,10 @@ import { pluginMetro } from '@rock-js/plugin-metro';
 
 /** @type {import('rock').Config} */
 export default {
-  bundler: pluginMetro(),
+  bundler: pluginMetro({
+    resetCache: false, // Don't reset Metro cache on every build
+    minify: true, // Pre-minify for production builds
+  }),
   platforms: {
     ios: platformIOS({
       scheme: 'MetaMask',

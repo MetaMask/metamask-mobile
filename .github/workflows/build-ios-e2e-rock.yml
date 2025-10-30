@@ -101,6 +101,18 @@ jobs:
       - name: Clean iOS plist files
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
+      # Cache Xcode derived data for faster native compilation
+      - name: Cache Xcode derived data
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
+          key: ${{ runner.os }}-xcode-rock-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-rock-
+            ${{ runner.os }}-xcode-
+
       # Get Yarn cache for faster dependency installation
       - name: Get Yarn cache directory path
         id: yarn-cache-dir-path
@@ -157,6 +169,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-bot: false
           re-sign: true
+          rock-build-extra-params: '-j 4'
 
       - name: Build summary
         if: always()
