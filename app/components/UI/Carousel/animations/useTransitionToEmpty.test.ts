@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Animated } from 'react-native';
 import { useTransitionToEmpty } from './useTransitionToEmpty';
-import { ANIMATION_TIMINGS } from './animationTimings';
 
 // Use fake timers to prevent environment teardown issues
 jest.useFakeTimers();
@@ -116,8 +115,8 @@ describe('useTransitionToEmpty', () => {
 
     const transitionPromise = result.current.executeTransition(mockCallback);
 
-    // Fast-forward timers
-    jest.advanceTimersByTime(500);
+    // Fast-forward timers to complete the idle timeout
+    jest.runAllTimers();
 
     await expect(transitionPromise).resolves.toBeUndefined();
     expect(mockCallback).toHaveBeenCalled();

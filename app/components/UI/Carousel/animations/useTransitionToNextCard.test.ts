@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Animated } from 'react-native';
 import { useTransitionToNextCard } from './useTransitionToNextCard';
-import { ANIMATION_TIMINGS } from './animationTimings';
 
 // Use fake timers to prevent environment teardown issues
 jest.useFakeTimers();
