@@ -13,7 +13,7 @@ export function useInsufficientPayTokenBalanceAlert({
   amountFiatOverride?: string;
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
-  const { balanceUsd, symbol } = payToken ?? {};
+  const { balanceUsd } = payToken ?? {};
   const requiredTokens = useTransactionPayRequiredTokens();
 
   const totalAmountUsd = (requiredTokens ?? []).reduce<BigNumber>(
@@ -36,18 +36,10 @@ export function useInsufficientPayTokenBalanceAlert({
       {
         key: AlertKeys.InsufficientPayTokenBalance,
         field: RowAlertKey.Amount,
-        message: isInsufficientForAmount
-          ? strings('alert_system.insufficient_pay_token_balance.message')
-          : strings(
-              'alert_system.insufficient_pay_token_balance_fees.message',
-              { symbol },
-            ),
-        title: isInsufficientForAmount
-          ? undefined
-          : strings('alert_system.insufficient_pay_token_balance_fees.title'),
+        message: strings('alert_system.insufficient_pay_token_balance.message'),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isInsufficientForAmount, symbol]);
+  }, [isInsufficientForAmount]);
 }
