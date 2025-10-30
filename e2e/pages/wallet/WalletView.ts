@@ -2,6 +2,7 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
+import enContent from '../../../locales/languages/en.json';
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
@@ -448,6 +449,10 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.PREDICTIONS_TAB);
   }
 
+  get availableBalanceLabel(): DetoxElement {
+    return Matchers.getElementByText(enContent.predict.available_balance);
+  }
+
   get PredictionsTabContainer(): DetoxElement {
     return Matchers.getElementByID(PredictTabViewSelectorsIDs.SCROLL_VIEW);
   }
@@ -474,6 +479,12 @@ class WalletView {
   async tapOnPredictionsTab(): Promise<void> {
     await Gestures.waitAndTap(this.predictionsTab, {
       elemDescription: 'Predictions Tab',
+    });
+  }
+
+  async tapOnAvailableBalance(): Promise<void> {
+    await Gestures.waitAndTap(this.availableBalanceLabel, {
+      elemDescription: 'tap available balance to expand balance card',
     });
   }
 
