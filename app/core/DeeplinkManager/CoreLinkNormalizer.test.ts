@@ -82,8 +82,10 @@ describe('CoreLinkNormalizer', () => {
       const result = CoreLinkNormalizer.normalize(url, source);
 
       expect(result.params.hr).toBe(false);
+    });
 
-      const generatedLink: CoreUniversalLink = {
+    it('converts boolean hr parameter to string', () => {
+      const link: CoreUniversalLink = {
         protocol: 'https',
         host: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
         action: 'home',
@@ -98,10 +100,9 @@ describe('CoreLinkNormalizer', () => {
         requiresAuth: false,
       };
 
-      const generatedMetamaskLink =
-        CoreLinkNormalizer.toMetaMaskProtocol(generatedLink);
+      const result = CoreLinkNormalizer.toMetaMaskProtocol(link);
 
-      expect(generatedMetamaskLink).toBe('metamask://home?hr=1');
+      expect(result).toBe('metamask://home?hr=1');
     });
 
     it('extracts SDK parameters', () => {

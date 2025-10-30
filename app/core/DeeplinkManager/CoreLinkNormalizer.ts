@@ -173,7 +173,7 @@ export class CoreLinkNormalizer {
 
   private static extractParams(urlObj: URL, action: string): CoreLinkParams {
     // Parse query parameters
-    const queryParams = this.parseQueryString(urlObj.search);
+    const queryParams = this.parseQueryString(urlObj);
 
     // Extract action-specific path
     const actionPath = this.extractActionPath(urlObj, action);
@@ -203,28 +203,37 @@ export class CoreLinkNormalizer {
     return params;
   }
 
-  private static parseQueryString(search: string): Partial<CoreLinkParams> {
-    if (!search || search === '?') {
+  private static removeFalsyParams(
+    searchParams: URLSearchParams,
+  ): Partial<CoreLinkParams> {
+    const params: Partial<CoreLinkParams> = {};
+    searchParams.forEach((value, key) => {
+      switch (value) {
+        case null:
+        case undefined:
+        case '':
+        case 'null':
+        case 'undefined':
+          searchParams.delete(key);
+          break;
+        default:
+          params[key] = value;
+          break;
+      }
+    });
+    return params;
+  }
+
+  private static parseQueryString(urlObj: URL): Partial<CoreLinkParams> {
+    const { searchParams } = urlObj;
+    const searhParamKeys = [...searchParams.keys()];
+    if (searhParamKeys.length === 0) {
       return {};
     }
 
     try {
-      const parsed = qs.parse(search.substring(1), { arrayLimit: 99 });
-
       // Filter out null/undefined values and convert to proper types
-      const cleaned: Partial<CoreLinkParams> = {};
-
-      Object.entries(parsed).forEach(([key, value]) => {
-        if (
-          value !== null &&
-          value !== undefined &&
-          value !== '' &&
-          value !== 'null' &&
-          value !== 'undefined'
-        ) {
-          cleaned[key] = value as string | boolean;
-        }
-      });
+      const cleaned = this.removeFalsyParams(searchParams);
 
       return cleaned;
     } catch {
@@ -258,24 +267,37 @@ export class CoreLinkNormalizer {
 
     if (isRampAction(action)) {
       params.rampPath = actionPath;
-    } else if (action === 'swap') {
-      params.swapPath = actionPath;
-    } else if (action === 'dapp') {
-      params.dappPath = actionPath;
-    } else if (action === 'send') {
-      params.sendPath = actionPath;
     } else if (isPerpsAction(action)) {
       params.perpsPath = actionPath;
-    } else if (action === 'rewards') {
-      params.rewardsPath = actionPath;
-    } else if (action === 'home') {
-      params.homePath = actionPath;
-    } else if (action === 'onboarding') {
-      params.onboardingPath = actionPath;
-    } else if (action === 'create-account') {
-      params.createAccountPath = actionPath;
-    } else if (action === 'deposit') {
-      params.depositCashPath = actionPath;
+    } else {
+      switch (action) {
+        case 'swap':
+          params.swapPath = actionPath;
+          break;
+        case 'dapp':
+          params.dappPath = actionPath;
+          break;
+        case 'send':
+          params.sendPath = actionPath;
+          break;
+        case 'rewards':
+          params.rewardsPath = actionPath;
+          break;
+        case 'home':
+          params.homePath = actionPath;
+          break;
+        case 'onboarding':
+          params.onboardingPath = actionPath;
+          break;
+        case 'create-account':
+          params.createAccountPath = actionPath;
+          break;
+        case 'deposit':
+          params.depositCashPath = actionPath;
+          break;
+        default:
+          break;
+      }
     }
 
     return params;
