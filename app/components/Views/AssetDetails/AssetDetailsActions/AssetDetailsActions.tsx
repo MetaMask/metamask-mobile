@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import styleSheet from './AssetDetailsActions.styles';
@@ -59,7 +59,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
+  const { navigate } = navigation;
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
@@ -71,6 +72,14 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       navigationLockRef.current = false;
     }, []),
   );
+
+  // Listen to navigation state changes to unlock when navigation completes or fails
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('state', () => {
+      navigationLockRef.current = false;
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   // Check if FundActionMenu would be empty
   const { isDepositEnabled } = useDepositEnabled();
