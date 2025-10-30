@@ -23,6 +23,10 @@ jobs:
       contents: read
       id-token: write
     uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
     secrets: inherit
 
   regression-confirmations-android:
