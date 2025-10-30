@@ -16,7 +16,6 @@ import { CardActions, CardScreens } from '../../util/metrics';
 const VerifyIdentity = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { user } = useCardSDK();
   const {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
