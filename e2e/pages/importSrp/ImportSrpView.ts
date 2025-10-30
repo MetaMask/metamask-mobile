@@ -39,7 +39,7 @@ class ImportSrpView {
     if (device.getPlatform() === 'ios') {
       await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
-        hideKeyboard: true,
+        hideKeyboard: false,
       });
       await this.tapTitle();
     } else {
