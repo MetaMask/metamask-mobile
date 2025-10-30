@@ -1862,6 +1862,15 @@
       "title": "Unable to connect to predictions",
       "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
       "retry": "Retry"
+    },
+    "error_messages": {
+      "place_order_failed": "Failed to place order",
+      "preview_failed": "Failed to preview order",
+      "preview_no_order_book": "No order book found",
+      "preview_no_order_match_buy": "No order match found for buy",
+      "preview_no_order_match_sell": "No order match found for sell",
+      "claim_failed": "Failed to claim",
+      "unknown_error": "An unknown error occurred"
     }
   },
   "receive": {
