@@ -287,14 +287,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - uses: actions/download-artifact@v4
-        with:
-          name: coverage
-          path: coverage/
-      - name: Upload coverage reports to Codecov
-        if: ${{ always() }}
-        continue-on-error: true
-        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
       - name: SonarCloud Scan
         if: ${{ env.HAVE_SONAR_TOKEN == 'true' && github.event_name == 'pull_request' }}
         continue-on-error: true
