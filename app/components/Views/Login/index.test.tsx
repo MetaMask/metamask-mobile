@@ -3,7 +3,9 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager, BackHandler, Alert } from 'react-native';
+import { InteractionManager, BackHandler, Alert, Image } from 'react-native';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import FOX_LOGO from '../../../images/branding/fox.png';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
@@ -1393,6 +1395,136 @@ describe('Login', () => {
       // Assert
       expect(styles.textField.backgroundColor).toBe(
         importedColors.gettingStartedTextColor,
+      );
+    });
+  });
+
+  describe('Conditional Rendering Based on OAuth Status', () => {
+    describe('Regular Login', () => {
+      beforeEach(() => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
+      });
+
+      it('renders animations and hides OAuth-specific elements', () => {
+        // Arrange & Act
+        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
+          <Login />,
+        );
+
+        // Assert - Animations are rendered
+        expect(getByTestId('onboarding-animation-mock')).toBeDefined();
+        expect(getByTestId('fox-animation-mock')).toBeDefined();
+
+        // Assert - Regular login elements
+        expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeDefined();
+
+        // Assert - OAuth elements are hidden
+        expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
+        expect(
+          queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+        ).toBeNull();
+
+        // Assert - Static images are not rendered
+        const images = UNSAFE_root.findAllByType(Image);
+        const hasMetaMaskLogo = images.some(
+          (img) => img.props.source === METAMASK_NAME,
+        );
+        const hasStaticFox = images.some(
+          (img) => img.props.source === FOX_LOGO,
+        );
+        expect(hasMetaMaskLogo).toBe(false);
+        expect(hasStaticFox).toBe(false);
+      });
+
+      it('starts onboarding animation after delay', () => {
+        // Arrange
+        jest.useFakeTimers();
+        const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+        // Act
+        renderWithProvider(<Login />);
+
+        // Assert
+        expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+
+        setTimeoutSpy.mockRestore();
+        jest.useRealTimers();
+      });
+    });
+
+    describe('OAuth Rehydration', () => {
+      beforeEach(() => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: true,
+          },
+        });
+      });
+
+      it('renders static UI and hides animations', () => {
+        // Arrange & Act
+        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
+          <Login />,
+        );
+
+        // Assert - Animations are hidden
+        expect(queryByTestId('onboarding-animation-mock')).toBeNull();
+        expect(queryByTestId('fox-animation-mock')).toBeNull();
+
+        // Assert - OAuth-specific elements are rendered
+        expect(getByTestId(LoginViewSelectors.TITLE_ID)).toBeDefined();
+        expect(getByTestId(LoginViewSelectors.TITLE_ID).props.children).toBe(
+          strings('login.title'),
+        );
+        expect(
+          getByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+        ).toBeDefined();
+
+        // Assert - Regular login elements are hidden
+        expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
+
+        // Assert - Static images are rendered
+        const images = UNSAFE_root.findAllByType(Image);
+        const hasMetaMaskLogo = images.some(
+          (img) => img.props.source === METAMASK_NAME,
+        );
+        const hasStaticFox = images.some(
+          (img) => img.props.source === FOX_LOGO,
+        );
+        expect(hasMetaMaskLogo).toBe(true);
+        expect(hasStaticFox).toBe(true);
+      });
+    });
+
+    describe('Common Elements', () => {
+      it.each([
+        ['regular login', false],
+        ['OAuth rehydration', true],
+      ])(
+        'renders core login elements for %s',
+        (_description, oauthLoginSuccess) => {
+          // Arrange
+          mockRoute.mockReturnValue({
+            params: {
+              locked: false,
+              oauthLoginSuccess,
+            },
+          });
+
+          // Act
+          const { getByTestId } = renderWithProvider(<Login />);
+
+          // Assert
+          expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
+          expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
+          expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
+        },
       );
     });
   });

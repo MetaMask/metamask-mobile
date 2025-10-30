@@ -3,12 +3,16 @@ import {
   Alert,
   View,
   SafeAreaView,
+  Image,
   BackHandler,
   TouchableOpacity,
   TextInput,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { colors as importedColors } from '../../../styles/common';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -111,6 +115,8 @@ import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../Onboarding/FoxAnimation';
 import OnboardingAnimation from '../Onboarding/OnboardingAnimation';
+import FOX_LOGO from '../../../images/branding/fox.png';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -215,16 +221,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
-    // Start the onboarding animation after a short delay
-    setTimeout(() => {
-      setStartOnboardingAnimation(true);
-    }, 100);
+    // Start the onboarding animation after a short delay for regular login
+    if (!isComingFromOauthOnboarding) {
+      setTimeout(() => {
+        setStartOnboardingAnimation(true);
+      }, 100);
+    }
 
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isComingFromOauthOnboarding]);
 
   useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
@@ -784,65 +792,66 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           contentContainerStyle={styles.scrollContentContainer}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
-            <OnboardingAnimation
-              startOnboardingAnimation={startOnboardingAnimation}
-              setStartFoxAnimation={setStartFoxAnimationCallback}
-            >
-              <View style={styles.field}>
-                <TextField
-                  size={TextFieldSize.Lg}
-                  placeholder={strings('login.password_placeholder')}
-                  placeholderTextColor={colors.text.alternative}
-                  testID={LoginViewSelectors.PASSWORD_INPUT}
-                  returnKeyType={'done'}
-                  autoCapitalize="none"
-                  secureTextEntry
-                  ref={fieldRef}
-                  onChangeText={handlePasswordChange}
-                  value={password}
-                  onSubmitEditing={onLogin}
-                  endAccessory={
-                    <BiometryButton
-                      onPress={tryBiometric}
-                      hidden={shouldHideBiometricAccessoryButton}
-                      biometryType={biometryType as BIOMETRY_TYPE}
-                    />
-                  }
-                  keyboardAppearance={themeAppearance}
-                  isDisabled={disabledInput}
-                  isError={!!error}
-                  style={styles.textField}
-                />
-              </View>
+            {!isComingFromOauthOnboarding ? (
+              // Regular Login flow
+              <OnboardingAnimation
+                startOnboardingAnimation={startOnboardingAnimation}
+                setStartFoxAnimation={setStartFoxAnimationCallback}
+              >
+                <View style={styles.field}>
+                  <TextField
+                    size={TextFieldSize.Lg}
+                    placeholder={strings('login.password_placeholder')}
+                    placeholderTextColor={colors.text.alternative}
+                    testID={LoginViewSelectors.PASSWORD_INPUT}
+                    returnKeyType={'done'}
+                    autoCapitalize="none"
+                    secureTextEntry
+                    ref={fieldRef}
+                    onChangeText={handlePasswordChange}
+                    value={password}
+                    onSubmitEditing={onLogin}
+                    endAccessory={
+                      <BiometryButton
+                        onPress={tryBiometric}
+                        hidden={shouldHideBiometricAccessoryButton}
+                        biometryType={biometryType as BIOMETRY_TYPE}
+                      />
+                    }
+                    keyboardAppearance={themeAppearance}
+                    isDisabled={disabledInput}
+                    isError={!!error}
+                    style={styles.textField}
+                  />
+                </View>
 
-              <View style={styles.helperTextContainer}>
-                {!!error && (
-                  <HelpText
-                    severity={HelpTextSeverity.Error}
-                    variant={TextVariant.BodyMD}
-                    testID={LoginViewSelectors.PASSWORD_ERROR}
-                  >
-                    {error}
-                  </HelpText>
-                )}
-              </View>
+                <View style={styles.helperTextContainer}>
+                  {!!error && (
+                    <HelpText
+                      severity={HelpTextSeverity.Error}
+                      variant={TextVariant.BodyMD}
+                      testID={LoginViewSelectors.PASSWORD_ERROR}
+                    >
+                      {error}
+                    </HelpText>
+                  )}
+                </View>
 
-              <View style={styles.ctaWrapper}>
-                {renderSwitch()}
-                <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  onPress={onLogin}
-                  label={strings('login.unlock_button')}
-                  isDisabled={
-                    password.length === 0 || disabledInput || finalLoading
-                  }
-                  testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={finalLoading}
-                />
+                <View style={styles.ctaWrapper}>
+                  {renderSwitch()}
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    width={ButtonWidthTypes.Full}
+                    size={ButtonSize.Lg}
+                    onPress={onLogin}
+                    label={strings('login.unlock_button')}
+                    isDisabled={
+                      password.length === 0 || disabledInput || finalLoading
+                    }
+                    testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                    loading={finalLoading}
+                  />
 
-                {!isComingFromOauthOnboarding && (
                   <Button
                     style={styles.goBack}
                     variant={ButtonVariants.Link}
@@ -852,38 +861,132 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                     isDisabled={finalLoading}
                     size={ButtonSize.Lg}
                   />
-                )}
-              </View>
+                </View>
+              </OnboardingAnimation>
+            ) : (
+              // OAuth Rehydration flow
+              <View style={styles.oauthContentWrapper}>
+                <Image
+                  source={METAMASK_NAME}
+                  style={styles.metamaskName}
+                  resizeMode="contain"
+                  resizeMethod={'auto'}
+                />
 
-              {isComingFromOauthOnboarding && (
+                <TouchableOpacity
+                  style={styles.foxWrapper}
+                  delayLongPress={10 * 1000}
+                  onLongPress={handleDownloadStateLogs}
+                  activeOpacity={1}
+                >
+                  <Image
+                    source={FOX_LOGO}
+                    style={styles.image}
+                    resizeMethod={'auto'}
+                  />
+                </TouchableOpacity>
+
+                <Text
+                  variant={TextVariant.DisplayMD}
+                  color={TextColor.Default}
+                  style={styles.title}
+                  testID={LoginViewSelectors.TITLE_ID}
+                >
+                  {strings('login.title')}
+                </Text>
+
+                <View style={styles.field}>
+                  <TextField
+                    size={TextFieldSize.Lg}
+                    placeholder={strings('login.password_placeholder')}
+                    placeholderTextColor={colors.text.alternative}
+                    testID={LoginViewSelectors.PASSWORD_INPUT}
+                    returnKeyType={'done'}
+                    autoCapitalize="none"
+                    secureTextEntry
+                    ref={fieldRef}
+                    onChangeText={handlePasswordChange}
+                    value={password}
+                    onSubmitEditing={onLogin}
+                    endAccessory={
+                      <BiometryButton
+                        onPress={tryBiometric}
+                        hidden={shouldHideBiometricAccessoryButton}
+                        biometryType={biometryType as BIOMETRY_TYPE}
+                      />
+                    }
+                    keyboardAppearance={themeAppearance}
+                    isDisabled={disabledInput}
+                    isError={!!error}
+                    style={styles.textField}
+                  />
+                </View>
+
+                <View style={styles.helperTextContainer}>
+                  {!!error && (
+                    <HelpText
+                      severity={HelpTextSeverity.Error}
+                      variant={TextVariant.BodyMD}
+                      testID={LoginViewSelectors.PASSWORD_ERROR}
+                    >
+                      {error}
+                    </HelpText>
+                  )}
+                </View>
+
+                <View style={styles.ctaWrapper}>
+                  {renderSwitch()}
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    width={ButtonWidthTypes.Full}
+                    size={ButtonSize.Lg}
+                    onPress={onLogin}
+                    label={strings('login.unlock_button')}
+                    isDisabled={
+                      password.length === 0 || disabledInput || finalLoading
+                    }
+                    testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                    loading={finalLoading}
+                  />
+                </View>
+
                 <View style={styles.footer}>
                   <Button
                     style={styles.goBack}
                     variant={ButtonVariants.Link}
                     onPress={handleUseOtherMethod}
                     testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                    label={strings('login.other_methods')}
+                    label={
+                      <Text
+                        variant={TextVariant.BodyLGMedium}
+                        color={TextColor.Default}
+                      >
+                        {strings('login.other_methods')}
+                      </Text>
+                    }
                     loading={finalLoading}
                     isDisabled={finalLoading}
                     size={ButtonSize.Lg}
                   />
                 </View>
-              )}
-            </OnboardingAnimation>
+              </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
-        <TouchableOpacity
-          style={styles.foxAnimationWrapper}
-          delayLongPress={10 * 1000} // 10 seconds
-          onLongPress={handleDownloadStateLogs}
-          activeOpacity={1}
-        >
-          <FoxAnimation
-            hasFooter={false}
-            trigger={startFoxAnimation || undefined}
-          />
-        </TouchableOpacity>
+        {!isComingFromOauthOnboarding && (
+          <TouchableOpacity
+            style={styles.foxAnimationWrapper}
+            delayLongPress={10 * 1000} // 10 seconds
+            onLongPress={handleDownloadStateLogs}
+            activeOpacity={1}
+          >
+            <FoxAnimation
+              hasFooter={false}
+              trigger={startFoxAnimation || undefined}
+            />
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     </ErrorBoundary>
   );

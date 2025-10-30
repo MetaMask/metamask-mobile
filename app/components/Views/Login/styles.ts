@@ -27,6 +27,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       flexDirection: 'column',
       width: '100%',
+      paddingHorizontal: 24,
     },
     scrollContentContainer: {
       flex: 1,
@@ -55,7 +56,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 24,
     },
     field: {
-      marginBottom: 0,
       flexDirection: 'column',
       width: '100%',
       rowGap: 8,
@@ -65,11 +65,17 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       flexDirection: 'column',
       alignItems: 'center',
-      rowGap: 24,
-      marginTop: 0,
+      gap: Platform.select({
+        ios: 0,
+        android: 16,
+      }),
+      marginTop: Platform.select({
+        ios: -16,
+        android: 16,
+      }),
     },
     footer: {
-      marginVertical: 40,
+      marginTop: 32,
       alignItems: 'center',
     },
     goBack: {
@@ -141,10 +147,19 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 10,
       color: colors.error.default,
     },
+    oauthContentWrapper: {
+      width: '100%',
+      alignItems: 'center',
+      marginTop: Platform.select({
+        ios: -200,
+        android: -180,
+      }),
+    },
     metamaskName: {
       width: 80,
       height: 40,
-      marginTop: 10,
+      alignSelf: 'center',
+      marginTop: 0,
       tintColor: colors.icon.default,
     },
     input: {
