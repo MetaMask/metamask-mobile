@@ -108,8 +108,6 @@ import migration104 from './104';
 import migration105 from './105';
 
 // Add migrations above this line
-import { validatePostMigrationState } from '../validateMigration/validateMigration';
-import { RootState } from '../../reducers';
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
 
@@ -233,10 +231,7 @@ export const migrationList: MigrationsList = {
 };
 
 // Enable both synchronous and asynchronous migrations
-export const asyncifyMigrations = (
-  inputMigrations: MigrationsList,
-  onMigrationsComplete?: (state: unknown) => void,
-) => {
+export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
   let didInflate = false;
 
@@ -385,13 +380,6 @@ export const asyncifyMigrations = (
         }
 
         const migratedState = await migrationFunction(state);
-
-        if (
-          onMigrationsComplete &&
-          Number(migrationNumber) === Object.keys(inputMigrations).length - 1
-        ) {
-          onMigrationsComplete(migratedState);
-        }
         if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
@@ -413,9 +401,9 @@ export const asyncifyMigrations = (
 };
 
 // Convert all migrations to async
-export const migrations = asyncifyMigrations(migrationList, (state) => {
-  validatePostMigrationState(state as RootState);
-}) as unknown as MigrationManifest;
+export const migrations = asyncifyMigrations(
+  migrationList,
+) as unknown as MigrationManifest;
 
 // The latest (i.e. highest) version number.
 export const version = Object.keys(migrations).length - 1;

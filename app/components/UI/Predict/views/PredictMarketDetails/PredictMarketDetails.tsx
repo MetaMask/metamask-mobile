@@ -92,6 +92,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const [activeTab, setActiveTab] = useState<number | null>(null);
+  const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
 
   const { marketId, entryPoint } = route.params || {};
@@ -310,6 +311,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handleTabPress = (tabIndex: number) => {
     if (!tabsReady) return;
+    setUserSelectedTab(true);
     setActiveTab(tabIndex);
   };
 
@@ -349,14 +351,33 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   useEffect(() => {
     if (!tabsReady) return;
+
+    const outcomesIndex = tabs.findIndex((t) => t.key === 'outcomes');
+
+    // for closed markets, display 'outcomes' by default until the user selects a tab
+    if (market?.status === PredictMarketStatus.CLOSED) {
+      if (!userSelectedTab) {
+        setActiveTab(outcomesIndex >= 0 ? outcomesIndex : 0);
+        return;
+      }
+      // if user selected but current index is out of bounds after tabs change
+      if (activeTab !== null && activeTab >= tabs.length) {
+        setActiveTab(outcomesIndex >= 0 ? outcomesIndex : 0);
+      }
+      return;
+    }
+
+    // non-closed markets: initialize to first tab if not set yet
     if (activeTab === null) {
       setActiveTab(0);
       return;
     }
+
+    // Guard against out-of-bounds when tabs change
     if (activeTab >= tabs.length) {
       setActiveTab(0);
     }
-  }, [tabsReady, tabs.length, activeTab]);
+  }, [tabsReady, tabs, activeTab, market?.status, userSelectedTab]);
 
   // Track market details opened on initial load and tab changes
   useEffect(() => {

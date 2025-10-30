@@ -90,7 +90,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full py-2 gap-3"
+        twClassName="w-full py-2 px-4 gap-3"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}

@@ -12,6 +12,8 @@ import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
 import { usePredictBalance } from './usePredictBalance';
+import { parseErrorMessage } from '../utils/predictErrorHandler';
+import { PREDICT_ERROR_CODES } from '../constants/errors';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -93,11 +95,6 @@ export function usePredictPlaceOrder(
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
 
-        if (!orderResult.success) {
-          // Error will be caught and toast shown in catch block
-          throw new Error(orderResult.error);
-        }
-
         // Clear any previous error state
         setError(undefined);
 
@@ -117,10 +114,12 @@ export function usePredictPlaceOrder(
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to place order';
-        DevLogger.log('usePredictPlaceOrder: Error placing order', {
+        const parsedErrorMessage = parseErrorMessage({
           error: err,
+          defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        });
+        DevLogger.log('usePredictPlaceOrder: Error placing order', {
+          error: parsedErrorMessage,
           orderParams,
         });
 
@@ -141,8 +140,8 @@ export function usePredictPlaceOrder(
           },
         });
 
-        setError(errorMessage);
-        onError?.(errorMessage);
+        setError(parsedErrorMessage);
+        onError?.(parsedErrorMessage);
       } finally {
         setIsLoading(false);
       }

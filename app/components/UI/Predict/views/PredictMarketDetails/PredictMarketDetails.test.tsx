@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -2178,6 +2178,105 @@ describe('PredictMarketDetails', () => {
           screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
         },
       );
+    });
+  });
+
+  describe('Closed Market Tab Selection', () => {
+    it('defaults to Outcomes tab when market is closed and no tab is selected', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 't1', price: 1 }],
+            volume: 1,
+          },
+          {
+            id: 'outcome-2',
+            title: 'No',
+            tokens: [{ id: 't2', price: 0 }],
+            volume: 1,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      expect(
+        screen.getAllByTestId('predict-market-outcome').length,
+      ).toBeGreaterThan(0);
+    });
+
+    it('keeps user-selected About tab on closed market', () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+      });
+
+      setupPredictMarketDetailsTest(closedMarket);
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
+      expect(
+        screen.getByText('predict.market_details.volume'),
+      ).toBeOnTheScreen();
+    });
+
+    it('resets to Outcomes when selected tab becomes invalid after tabs change on closed market', async () => {
+      const closedMarket = createMockMarket({
+        status: 'closed',
+      });
+
+      const { rerender } = setupPredictMarketDetailsTest(
+        closedMarket,
+        {},
+        {
+          positions: {
+            positions: [
+              {
+                id: 'position-1',
+                outcomeId: 'outcome-1',
+                outcome: 'Yes',
+                size: 1,
+                initialValue: 1,
+                currentValue: 1,
+                avgPrice: 1,
+                percentPnl: 0,
+              },
+            ],
+          },
+        },
+      );
+
+      const aboutTabWithPositions = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-2',
+      );
+      fireEvent.press(aboutTabWithPositions);
+
+      const { usePredictPositions } = jest.requireMock(
+        '../../hooks/usePredictPositions',
+      );
+      usePredictPositions.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: jest.fn(),
+      });
+
+      rerender(<PredictMarketDetails />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('predict.market_details.volume'),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId('predict-market-details-outcomes-tab'),
+        ).toBeOnTheScreen();
+      });
     });
   });
 });

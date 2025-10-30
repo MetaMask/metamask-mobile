@@ -659,7 +659,7 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('Bitcoin Price ·')).toBeOnTheScreen();
+      expect(getByText('Bitcoin Price')).toBeOnTheScreen();
       expect(getByText('Yes at 50¢')).toBeOnTheScreen();
     });
 

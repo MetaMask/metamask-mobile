@@ -270,7 +270,7 @@ describe('PerpsTutorialCarousel', () => {
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
         Routes.PERPS.ROOT,
         {
-          screen: Routes.PERPS.MARKETS,
+          screen: Routes.PERPS.PERPS_HOME,
         },
       );
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
@@ -303,7 +303,7 @@ describe('PerpsTutorialCarousel', () => {
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
         Routes.PERPS.ROOT,
         {
-          screen: Routes.PERPS.MARKETS,
+          screen: Routes.PERPS.PERPS_HOME,
         },
       );
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
@@ -494,7 +494,7 @@ describe('PerpsTutorialCarousel', () => {
         expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
           Routes.PERPS.ROOT,
           {
-            screen: Routes.PERPS.MARKETS,
+            screen: Routes.PERPS.PERPS_HOME,
           },
         );
         expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
@@ -632,7 +632,7 @@ describe('PerpsTutorialCarousel', () => {
         expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
           Routes.PERPS.ROOT,
           {
-            screen: Routes.PERPS.MARKETS,
+            screen: Routes.PERPS.PERPS_HOME,
           },
         );
         // Should NOT navigate to deposit screen or call deposit
