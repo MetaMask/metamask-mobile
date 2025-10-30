@@ -26,7 +26,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockHandleSellCrypto = jest.fn();
   const mockHandleDepositCash = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
-  const mockHandleEnableCardButton = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -46,7 +45,6 @@ describe('handleMetaMaskProtocol', () => {
     _handleSellCrypto: mockHandleSellCrypto,
     _handleDepositCash: mockHandleDepositCash,
     _handleBrowserUrl: mockHandleBrowserUrl,
-    _handleEnableCardButton: mockHandleEnableCardButton,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -553,25 +551,6 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(mockHandleDepositCash).toHaveBeenCalled();
-    });
-  });
-
-  describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.ENABLE_CARD_BUTTON}', () => {
-    beforeEach(() => {
-      url = `${PREFIXES.METAMASK}${ACTIONS.ENABLE_CARD_BUTTON}`;
-    });
-
-    it('calls _handleEnableCardButton', () => {
-      handleMetaMaskDeeplink({
-        instance,
-        handled,
-        params,
-        url,
-        origin,
-        wcURL,
-      });
-
-      expect(mockHandleEnableCardButton).toHaveBeenCalled();
     });
   });
 });
