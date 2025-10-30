@@ -293,6 +293,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -316,6 +317,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -339,6 +341,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -367,8 +370,8 @@ describe('NftGrid', () => {
     };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles) // multichainCollectiblesByEnabledNetworksSelector
-      .mockReturnValueOnce(true); // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
     const { getByTestId } = render(
@@ -395,8 +398,8 @@ describe('NftGrid', () => {
     };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles) // multichainCollectiblesByEnabledNetworksSelector
-      .mockReturnValueOnce(false); // selectHomepageRedesignV1Enabled (maxItems = undefined)
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled (maxItems = undefined)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
     const { queryByTestId } = render(
@@ -423,6 +426,7 @@ describe('NftGrid', () => {
     };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -478,6 +482,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -506,6 +511,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [nftWithoutName] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -528,6 +534,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(true) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -550,6 +557,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -571,6 +579,7 @@ describe('NftGrid', () => {
   it('shows empty state when no collectibles and not fetching', async () => {
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce({}); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -592,6 +601,7 @@ describe('NftGrid', () => {
   it('hides empty state when fetching NFTs', async () => {
     mockUseSelector
       .mockReturnValueOnce(true) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce({}); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -619,8 +629,8 @@ describe('NftGrid', () => {
     };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce(mockCollectibles) // multichainCollectiblesByEnabledNetworksSelector
-      .mockReturnValueOnce(true); // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
     const { getByTestId } = render(

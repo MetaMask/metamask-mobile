@@ -29,6 +29,23 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Mock selectors
+jest.mock('../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+  selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(() => true),
+}));
+
 // Mock child components
 jest.mock('./TokenListItem', () => ({
   TokenListItem: ({ assetKey }: { assetKey: { address: string } }) => {
@@ -56,9 +73,11 @@ jest.mock('@metamask/design-system-react-native', () => ({
   Box: ({
     children,
     testID,
+    twClassName,
   }: {
     children: React.ReactNode;
     testID?: string;
+    twClassName?: string;
   }) => {
     const React = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
@@ -68,10 +87,14 @@ jest.mock('@metamask/design-system-react-native', () => ({
     children,
     onPress,
     testID,
+    variant,
+    isFullWidth,
   }: {
     children: React.ReactNode;
     onPress: () => void;
     testID?: string;
+    variant?: string;
+    isFullWidth?: boolean;
   }) => {
     const React = jest.requireActual('react');
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -139,25 +162,8 @@ describe('TokenList', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    // Mock useSelector to return default values
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-      if (
-        selector
-          .toString()
-          .includes('selectIsTokenNetworkFilterEqualCurrentNetwork')
-      ) {
-        return true;
-      }
-      if (
-        selector.toString().includes('selectMultichainAccountsState2Enabled')
-      ) {
-        return false;
-      }
-      return undefined;
-    });
+    // Mock useSelector to call the selector function
+    mockUseSelector.mockImplementation((selector) => selector());
   });
 
   const renderComponent = (props = {}, storeState = initialState) => {

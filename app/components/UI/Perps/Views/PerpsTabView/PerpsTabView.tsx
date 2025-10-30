@@ -1,5 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -78,6 +78,17 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
+
+  const contentContainerStyle = useMemo(
+    () => [
+      styles.contentContainer,
+      isHomepageRedesignV1Enabled && {
+        flexGrow: undefined,
+        minHeight: isInitialLoading ? 100 : undefined,
+      },
+    ],
+    [styles.contentContainer, isHomepageRedesignV1Enabled, isInitialLoading],
+  );
 
   // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
@@ -228,15 +239,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           ]}
           scrollEnabled={!isHomepageRedesignV1Enabled}
         >
-          <View
-            style={[
-              styles.contentContainer,
-              isHomepageRedesignV1Enabled && {
-                flexGrow: undefined,
-                minHeight: isInitialLoading ? 100 : undefined,
-              },
-            ]}
-          >
+          <View style={contentContainerStyle}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
                 onAction={handleNewTrade}
