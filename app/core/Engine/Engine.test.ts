@@ -251,7 +251,16 @@ describe('Engine', () => {
         withdrawalProgress: {
           progress: 0,
           lastUpdated: 0,
-          activeWithdrawalId: undefined,
+          activeWithdrawalId: null,
+        },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
         },
         marketFilterPreferences: 'volume',
         tradeConfigurations: {

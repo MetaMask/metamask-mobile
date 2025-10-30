@@ -12,7 +12,13 @@ import {
   FeatureFlagInfo,
   getFeatureFlagDescription,
   getFeatureFlagType,
+  isMinimumRequiredVersionSupported,
 } from '../util/feature-flags';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../component-library/components/Toast';
+import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -21,7 +27,7 @@ interface FeatureFlagOverrides {
 export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
-  getFeatureFlag: (key: string) => FeatureFlagInfo;
+  getFeatureFlag: (key: string) => unknown;
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
@@ -47,6 +53,8 @@ export const FeatureFlagOverrideProvider: React.FC<
 > = ({ children }) => {
   // Get the initial feature flags from Redux
   const rawFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const toastContext = useContext(ToastContext);
+  const toastRef = toastContext?.toastRef;
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
@@ -135,10 +143,50 @@ export const FeatureFlagOverrideProvider: React.FC<
     a.key.localeCompare(b.key),
   );
 
+  const validateMinimumVersion = useCallback(
+    (flagKey: string, flagValue: MinimumVersionFlagValue) => {
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
+      ) {
+        toastRef?.current?.showToast({
+          labelOptions: [
+            {
+              label: 'Unsupported version',
+              isBold: true,
+            },
+            {
+              label: `${flagKey} is not supported on your version of the app.`,
+            },
+          ],
+          hasNoTimeout: false,
+          variant: ToastVariants.Plain,
+        });
+        return false;
+      }
+      return flagValue.enabled;
+    },
+    [toastRef],
+  );
+
   /**
    * get a specific feature flag value with overrides applied
    */
-  const getFeatureFlag = (key: string) => featureFlags[key];
+  const getFeatureFlag = (key: string) => {
+    const flag = featureFlags[key];
+    if (!flag) {
+      return undefined;
+    }
+
+    if (flag.type === 'boolean with minimumVersion') {
+      return validateMinimumVersion(
+        flag.key,
+        flag.value as unknown as MinimumVersionFlagValue,
+      );
+    }
+
+    return flag.value;
+  };
 
   const getOverrideCount = useCallback(
     (): number => Object.keys(overrides).length,
