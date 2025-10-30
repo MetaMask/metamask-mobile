@@ -642,6 +642,1268 @@ workflows:
                 echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
+  # E2E Steps
+  ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
+  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
+  ios_build_regression_tests:
+    after_run:
+      - ios_e2e_build
+  ios_run_regression_confirmations_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_wallet_platform_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_trade_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_abstraction_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_abstraction_tests_gns_disabled:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_expansion_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_performance_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_accounts_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_assets_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_ux_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
+    after_run:
+      - ios_e2e_test
+  android_build_regression_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    after_run:
+      - android_e2e_build
+  android_run_regression_confirmations_tests:
+    meta:
+        bitrise.io:
+          stack: linux-docker-android-22.04
+          machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - android_e2e_test
+  android_run_regression_wallet_platform_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - android_e2e_test
+  android_run_regression_trade_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_abstraction_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_expansion_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - android_e2e_test
+  android_run_regression_performance_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - android_e2e_test
+  android_run_regression_accounts_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
+    after_run:
+      - android_e2e_test
+  android_run_regression_ux_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
+    after_run:
+      - android_e2e_test
+  android_run_regression_assets_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
+    after_run:
+      - android_e2e_test
+  download_production_qa_apk:
+    steps:
+      - script@1:
+          title: Download Production QA APK
+          inputs:
+            - content: |
+                #!/usr/bin/env bash
+                ./scripts/download-android-qa-app.sh
+                # APK_PATH is already set by the download script using envman
+  build_flask_e2e_android:
+    after_run:
+      - android_flask_e2e_build
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  # TODO: Remove this workflow since it's not used anymore
+  run_flask_e2e_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - android_e2e_test
+  build_flask_e2e_ios:
+    envs:
+      - COMMAND_YARN: 'build:ios:flask:e2e'
+    after_run:
+      - ios_e2e_build
+  # TODO: Remove this workflow since it's not used anymore
+  run_flask_e2e_ios:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_test
+  run_tag_upgrade_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    before_run:
+      - setup
+      - prep_environment
+      - download_production_qa_apk
+    after_run:
+      -  wdio_android_e2e_test
+    envs:
+      # Note: CUCUMBER_TAG_EXPRESSION removed with Cucumber - configure test filtering as needed
+      # - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
+      - TEST_TYPE: 'upgrade'
+      - NEW_BUILD_STRING: 'MetaMask v$VERSION_NAME ($VERSION_NUMBER)' # this is the build string for the new build that was generated by build_android_qa
+    steps:
+      - script@1:
+          title: Set Build Strings
+          inputs:
+            - content: |
+                envman add --key PRODUCTION_BUILD_STRING --value "MetaMask v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
+
+                BITRISE_GIT_BRANCH="qa-release"
+                VERSION_NAME="$PRODUCTION_BUILD_NAME" #  This value (PRODUCTION_BUILD_NAME) comes from the script to download the production build
+                VERSION_NUMBER="$PRODUCTION_BUILD_NUMBER" # This value (PRODUCTION_BUILD_NUMBER) comes from the script to download the production build
+                echo "Using qa-release with production version: $VERSION_NAME ($VERSION_NUMBER)"
+
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+                CUSTOM_ID=${CUSTOM_ID////-}
+
+                #### The UPLOAD_APK_PATH is the path to the apk file that was downloaded by the download_production_qa_apk step
+                echo "apk path: $UPLOAD_APK_PATH"
+                RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                    -F "file=@$UPLOAD_APK_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}')
+
+                # Extract app_url
+                APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
+
+                # Set the environment variable
+                envman add --key PRODUCTION_APP_URL --value "$APP_URL"
+
+                # Debug output
+                echo "Response: $RESPONSE"
+                echo "APP_URL: $APP_URL"
+                echo "PRODUCTION_APP_URL: $PRODUCTION_APP_URL"
+
+  build_ios_multichain_permissions_e2e:
+    after_run:
+      - ios_e2e_build
+      # - android_e2e_build
+  build_android_multichain_permissions_e2e:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    after_run:
+      - android_e2e_build
+  run_android_app_launch_times_appium_test:
+    envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
+      - TEST_TYPE: 'performance'
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    after_run:
+      - wdio_android_e2e_test
+
+  ### Report automated test results to TestRail
+  run_testrail_update_automated_test_results:
+    before_run:
+      - code_setup
+    steps:
+      - script@1:
+          title: 'Add Automated Test Results to TestRail'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo 'REPORT AUTOMATED TEST RESULTS TO TESTRAIL'
+                node ./scripts/testrail/testrail.api.js
+
+  run_ios_app_launch_times_appium_test:
+    envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
+      - TEST_TYPE: 'performance'
+    after_run:
+      - wdio_ios_e2e_test
+
+  ### Separating workflows so they run concurrently during smoke runs
+  run_tag_smoke_multichain_api_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeMultiChainAPI.*'
+    after_run:
+      - ios_e2e_test
+
+  run_network_expansion_swimlane_ios_smoke:
+    envs:
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
+    after_run:
+      - ios_e2e_test
+  run_network_expansion_swimlane_android_smoke:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
+    after_run:
+      - android_e2e_test
+
+  run_wallet_platform_swimlane_ios_smoke:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
+    after_run:
+      - ios_e2e_test
+  run_wallet_platform_swimlane_android_smoke:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
+    after_run:
+      - android_e2e_test
+
+  run_network_abstraction_swimlane_ios_smoke:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
+    after_run:
+      - ios_e2e_test
+  run_network_abstraction_swimlane_android_smoke:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
+    after_run:
+      - android_e2e_test
+  run_trade_swimlane_ios_smoke:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
+    after_run:
+      - ios_e2e_test
+  run_trade_swimlane_android_smoke:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
+    after_run:
+      - android_e2e_test
+  run_ios_api_specs:
+    after_run:
+      - ios_api_specs
+  run_tag_smoke_confirmations_redesigned_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned '
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_confirmations_redesigned_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_performance_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokePerformance.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_performance_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokePerformance.*'
+    after_run:
+      - android_e2e_test
+  run_tag_multichain_permissions_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_multichain_permissions_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
+    after_run:
+      - android_e2e_test
+  run_tag_flask_build_tests_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*FlaskBuildTests.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_flask_build_tests_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*FlaskBuildTests.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_identity_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeIdentity'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_identity_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeIdentity'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_accounts_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeAccounts'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeAccounts'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_card_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_card_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
+    after_run:
+      - android_e2e_test
+  android_e2e_build:
+    envs:
+      - KEYSTORE_URL: $BITRISEIO_ANDROID_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - BUILD_COMMAND: 'yarn build:android:main:e2e'
+    after_run:
+      - _android_e2e_build_template
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+  # TODO: Consolidate android_e2e_build and android_flask_e2e_build once _android_e2e_build_template and _android_build_template is consolidated
+  android_flask_e2e_build:
+    envs:
+      - KEYSTORE_URL: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - BUILD_COMMAND: 'yarn build:android:flask:e2e'
+    after_run:
+      - _android_e2e_build_template
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+  run_single_android_e2e_test:
+    run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
+    after_run:
+      - android_e2e_test
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  run_single_ios_e2e_test:
+    run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
+    after_run:
+      - ios_e2e_test
+
+  android_e2e_test:
+    before_run:
+      - setup
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - restore-gradle-cache@2: {}
+      - restore-cache@2:
+          title: Restore Android PR Build Cache (if build was skipped)
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Copy Android build from cache (if build was skipped)
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Copying Android build from cache..."
+                
+                if [ -d "/tmp/android-cache/build/outputs" ]; then
+                    echo "Restoring Android build outputs from cache..."
+                    mkdir -p android/app/build/outputs
+                    cp -r /tmp/android-cache/build/outputs/* android/app/build/outputs/
+                    echo "✅ Android build artifacts restored from cache"
+                    
+                    echo "Restored files:"
+                    find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" | head -5
+                else
+                    echo "❌ Cache directory /tmp/android-cache/build/outputs not found"
+                    echo "Cache may not have been restored properly"
+                fi
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull Android build
+      - script@1:
+          title: Copy Android build for Detox
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
+      - avd-manager@1:
+          inputs:
+            - api_level: '34'
+            - abi: 'x86_64'
+            - create_command_flags: --sdcard 8192M
+            - start_command_flags: -read-only
+            - profile: pixel_5
+      - wait-for-android-emulator@1: {}
+      - script@1:
+          title: Run detox test
+          timeout: 1800
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                export METAMASK_ENVIRONMENT='dev'
+                 node -v
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
+                fi
+      - custom-test-results-export@1:
+          title: Export test results
+          is_always_run: true
+          is_skippable: true
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          title: Deploy test report files
+          is_always_run: true
+          is_skippable: true
+      - script@1:
+          title: Copy screenshot files
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy test screenshots
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: E2E_Android_Failure_Artifacts
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
+                fi
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  # Performance-specific Android E2E test workflow
+  android_e2e_test_performance:
+    before_run:
+      - setup
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - restore-gradle-cache@2: {}
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull Android build
+      - script@1:
+          title: Copy Android build for Detox
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
+      - avd-manager@1:
+          inputs:
+            - api_level: '34'
+            - abi: 'x86_64'
+            - create_command_flags: --sdcard 8192M
+            - start_command_flags: -read-only
+            - profile: pixel_5
+      - wait-for-android-emulator@1: {}
+      - script@1:
+          title: Run detox test
+          timeout: 1200
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+
+                export METAMASK_ENVIRONMENT='e2e'
+
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
+                fi
+      - custom-test-results-export@1:
+          title: Export test results
+          is_always_run: true
+          is_skippable: true
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          title: Deploy test report files
+          is_always_run: true
+          is_skippable: true
+      - script@1:
+          title: Copy screenshot files
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy test screenshots
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: E2E_Android_Failure_Artifacts
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
+                fi
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  ios_api_specs:
+    before_run:
+      - setup
+      - code_setup
+      - install_applesimutils
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - restore-cache@2:
+          title: Restore iOS PR Build Cache (if build was skipped)
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Copy iOS build from cache (if build was skipped)
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Copying iOS build from cache..."
+                
+                # Check if cached build products exist
+                if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
+                    echo "✅ iOS build artifacts found in cache"
+                    echo "Build products directory contents:"
+                    ls -la ios/build/Build/Products/Release-iphonesimulator/ | head -5
+                else
+                    echo "❌ iOS build products not found in cache"
+                    mkdir -p ios/build/Build/Products/Release-iphonesimulator
+                fi
+                
+                # Check if cached Detox artifacts exist
+                if [ -d "../Library/Detox/ios" ]; then
+                    echo "✅ Detox iOS artifacts found in cache"
+                    echo "Detox directory contents:"
+                    ls -la ../Library/Detox/ios/ | head -5
+                else
+                    echo "❌ Detox iOS artifacts not found in cache"
+                    mkdir -p ../Library/Detox/ios
+                fi
+                
+                echo "iOS build artifacts restored from cache"
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
+      # - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Run detox test
+          timeout: 1800
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                yarn test:api-specs --retries 1
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Add tests reports to Bitrise
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cp -r $BITRISE_SOURCE_DIR/html-report/index.html $BITRISE_HTML_REPORT_DIR/
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          inputs:
+            - deploy_path: $BITRISE_HTML_REPORT_DIR
+          title: Deploy test report files
+
+  pr_check_build_cache:
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6: {}
+      - restore-cache@2:
+          title: Restore last successful build commit marker
+          is_skippable: true
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+      - script@1:
+          title: Generate cache keys and check both iOS and Android builds
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/generate-pr-cache-keys.sh
+      - restore-cache@2:
+          title: Check iOS cache
+          is_skippable: true
+          run_if: '{{getenv "IOS_PR_BUILD_CACHE_KEY" | ne ""}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Process iOS cache result
+          run_if: '{{getenv "IOS_PR_BUILD_CACHE_KEY" | ne ""}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
+                    echo "✅ iOS cache found - build will be skipped"
+                    envman add --key SKIP_IOS_BUILD --value "true"
+                else
+                    echo "❌ iOS cache not found - build will proceed"
+                    envman add --key SKIP_IOS_BUILD --value "false"
+                fi
+                envman add --key BITRISE_CACHE_HIT --value ""  # Reset for next check
+      - restore-cache@2:
+          title: Check Android cache
+          is_skippable: true
+          run_if: '{{getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne ""}}'
+          inputs:
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Process Android cache result and finalize decisions
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                
+                # Initialize local variables with current state
+                LOCAL_SKIP_IOS="$SKIP_IOS_BUILD"
+                LOCAL_SKIP_ANDROID="$SKIP_ANDROID_BUILD"
+                
+                # Ensure iOS value is set if cache check was skipped
+                if [[ -z "$IOS_PR_BUILD_CACHE_KEY" ]]; then
+                    echo "No iOS cache key available - build will proceed"
+                    LOCAL_SKIP_IOS="false"
+                    envman add --key SKIP_IOS_BUILD --value "false"
+                fi
+                
+                # Only process Android cache if we have cache keys
+                if [[ -n "$ANDROID_PR_BUILD_CACHE_KEY" ]]; then
+                    if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
+                        echo "✅ Android cache found - build will be skipped"
+                        LOCAL_SKIP_ANDROID="true"
+                        envman add --key SKIP_ANDROID_BUILD --value "true"
+                    else
+                        echo "❌ Android cache not found - build will proceed"
+                        LOCAL_SKIP_ANDROID="false"
+                        envman add --key SKIP_ANDROID_BUILD --value "false"
+                    fi
+                else
+                    echo "No Android cache key available - build will proceed"
+                    LOCAL_SKIP_ANDROID="false"
+                    envman add --key SKIP_ANDROID_BUILD --value "false"
+                fi
+                
+                echo ""
+                echo "=== Final Build Decisions ==="
+                echo "iOS build:     $([ "$LOCAL_SKIP_IOS" == "true" ] && echo "SKIP" || echo "BUILD")"
+                echo "Android build: $([ "$LOCAL_SKIP_ANDROID" == "true" ] && echo "SKIP" || echo "BUILD")"
+      - share-pipeline-variable@1:
+          title: Share variables across pipeline stages
+          inputs:
+            - variables: |-
+                SKIP_IOS_BUILD
+                SKIP_ANDROID_BUILD
+                IOS_PR_BUILD_CACHE_KEY
+                ANDROID_PR_BUILD_CACHE_KEY
+
+  ios_e2e_build:
+    before_run:
+      - install_applesimutils
+      - code_setup
+      - set_commit_hash
+    after_run:
+      - notify_failure
+    steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh ios
+      - certificate-and-profile-installer@1: {}
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Install CCache & symlink
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                ln -s $(which ccache) /usr/local/bin/gcc
+                ln -s $(which ccache) /usr/local/bin/g++
+                ln -s $(which ccache) /usr/local/bin/cc
+                ln -s $(which ccache) /usr/local/bin/c++
+                ln -s $(which ccache) /usr/local/bin/clang
+                ln -s $(which ccache) /usr/local/bin/clang++
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - script@1:
+          title: Run detox build
+          timeout: 1800
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/setup-ccache.sh
+                node -v
+                if [ -n "$COMMAND_YARN" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
+                else
+                    echo "No COMMAND_YARN provided. Running yarn build:ios:main:e2e..."
+                    yarn build:ios:main:e2e
+                fi
+      - save-cocoapods-cache@1: {}
+      - save-cache@1:
+          title: Save CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+            - paths: |-
+                ccache
+      - save-cache@1:
+          title: Save iOS PR Build Cache
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+            - paths: |-
+                ios/build/Build/Products/Release-iphonesimulator
+                ../Library/Detox/ios
+      - script@1:
+          title: Save last successful build commit
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Create a marker file with the current commit
+                mkdir -p /tmp/last-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
+                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+      - save-cache@1:
+          title: Save last successful build commit marker
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-build-commit
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - pipeline_intermediate_files: |-
+                ios/build/Build/Products/Release-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Save iOS build
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+            - paths: node_modules
+  ios_e2e_test:
+    before_run:
+      - setup
+      - code_setup
+      - install_applesimutils
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - restore-cache@2:
+          title: Restore iOS PR Build Cache (if build was skipped)
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Copy iOS build from cache (if build was skipped)
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Copying iOS build from cache..."
+                
+                # Check if cached build products exist
+                if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
+                    echo "✅ iOS build artifacts found in cache"
+                    echo "Build products directory contents:"
+                    ls -la ios/build/Build/Products/Release-iphonesimulator/ | head -5
+                else
+                    echo "❌ iOS build products not found in cache"
+                    mkdir -p ios/build/Build/Products/Release-iphonesimulator
+                fi
+                
+                # Check if cached Detox artifacts exist
+                if [ -d "../Library/Detox/ios" ]; then
+                    echo "✅ Detox iOS artifacts found in cache"
+                    echo "Detox directory contents:"
+                    ls -la ../Library/Detox/ios/ | head -5
+                else
+                    echo "❌ Detox iOS artifacts not found in cache"
+                    mkdir -p ../Library/Detox/ios
+                fi
+                
+                echo "iOS build artifacts restored from cache"
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
+      # - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Boot up simulator
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                xcrun simctl boot "iPhone 15 Pro" || true
+                xcrun simctl list | grep Booted
+      - script@1:
+          title: Run detox test
+          timeout: 1800
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+
+                # node -v
+                export METAMASK_ENVIRONMENT='dev'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
+                # else
+                # ./scripts/run-e2e-tags.sh
+                # fi
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
+                fi
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
+                fi
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: standard
+  # CI Steps
+  ci_test:
+    before_run:
+      - code_setup
+    steps:
+      - yarn@0:
+          inputs:
+            - args: ''
+            - command: test:unit --silent
+          title: Unit Test
+          is_always_run: false
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo 'weew - everything passed!'
+          title: All Tests Passed
+          is_always_run: false
         
   download_production_qa_apk:
     steps:

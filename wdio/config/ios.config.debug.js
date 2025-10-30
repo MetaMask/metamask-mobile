@@ -19,7 +19,8 @@ config.capabilities = [
   },
 ];
 
-config.cucumberOpts.tagExpression = '@performance and @iosApp'; // pass tag to run tests specific to ios
+// Note: Cucumber removed - configure test filtering as needed for your test framework
+// config.cucumberOpts.tagExpression = '@performance and @iosApp';
 
 const _config = config;
  

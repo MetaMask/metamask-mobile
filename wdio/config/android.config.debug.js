@@ -15,7 +15,8 @@ config.capabilities = [
   },
 ];
 
-config.cucumberOpts.tagExpression = '@performance and @androidApp'; // pass tag to run tests specific to android
+// Note: Cucumber removed - configure test filtering as needed for your test framework
+// config.cucumberOpts.tagExpression = '@performance and @androidApp';
 
 const _config = config;
  

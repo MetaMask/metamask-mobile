@@ -87,8 +87,10 @@ jobs:
       # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
       - name: Generate current fingerprint
         id: generate-fingerprint
+        timeout-minutes: 5
+        continue-on-error: true
         run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
+          FINGERPRINT=$(yarn fingerprint:generate || echo "fallback-${{ github.sha }}")
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
