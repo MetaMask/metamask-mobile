@@ -333,6 +333,13 @@ const PerpsMarketListView = ({
     }
   }, [filteredMarkets.length, fadeAnimation]);
 
+  // Reset stocks/commodities filter to 'all' when switching tabs
+  // This ensures that when switching to the Stocks tab, it always shows both stocks and commodities
+  // (user can then filter if needed), and when switching away, the filter is reset for next time
+  useEffect(() => {
+    setStocksCommoditiesFilter('all');
+  }, [marketTypeFilter]);
+
   const { track } = usePerpsEventTracking();
 
   // Use navigation hook for back button
