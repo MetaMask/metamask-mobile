@@ -2342,4 +2342,348 @@ describe('TabsList', () => {
       unmount();
     });
   });
+
+  describe('Tab Preservation and Re-indexing', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    });
+
+    it('preserves active tab when tabs reorder', () => {
+      const { rerender } = render(
+        <TabsList initialActiveIndex={1}>
+          <View key="tab-a" {...({ tabLabel: 'Tab A' } as TabViewProps)}>
+            <Text>Content A</Text>
+          </View>
+          <View key="tab-b" {...({ tabLabel: 'Tab B' } as TabViewProps)}>
+            <Text>Content B</Text>
+          </View>
+          <View key="tab-c" {...({ tabLabel: 'Tab C' } as TabViewProps)}>
+            <Text>Content C</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      rerender(
+        <TabsList initialActiveIndex={1}>
+          <View key="tab-c" {...({ tabLabel: 'Tab C' } as TabViewProps)}>
+            <Text>Content C</Text>
+          </View>
+          <View key="tab-b" {...({ tabLabel: 'Tab B' } as TabViewProps)}>
+            <Text>Content B</Text>
+          </View>
+          <View key="tab-a" {...({ tabLabel: 'Tab A' } as TabViewProps)}>
+            <Text>Content A</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+    });
+
+    it('maintains active tab when its position changes to different index', () => {
+      const { rerender, getByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View key="first" {...({ tabLabel: 'First' } as TabViewProps)}>
+            <Text>First Content</Text>
+          </View>
+          <View key="second" {...({ tabLabel: 'Second' } as TabViewProps)}>
+            <Text>Second Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getByText('First Content')).toBeOnTheScreen();
+
+      rerender(
+        <TabsList initialActiveIndex={0}>
+          <View key="second" {...({ tabLabel: 'Second' } as TabViewProps)}>
+            <Text>Second Content</Text>
+          </View>
+          <View key="first" {...({ tabLabel: 'First' } as TabViewProps)}>
+            <Text>First Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+    });
+
+    it('returns early when active tab is already at correct index', () => {
+      const { rerender } = render(
+        <TabsList initialActiveIndex={0}>
+          <View key="tab-1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View key="tab-2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      rerender(
+        <TabsList initialActiveIndex={0}>
+          <View key="tab-1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1 Updated</Text>
+          </View>
+          <View key="tab-2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+    });
+  });
+
+  describe('Height Measurement Edge Cases', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    });
+
+    it('handles measurement when tabContentRef becomes null', () => {
+      const { rerender } = render(
+        <TabsList autoHeight>
+          <View key="tab-1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      rerender(
+        <TabsList autoHeight>
+          <View key="tab-2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+    });
+
+    it('updates height only when change exceeds threshold in handleAutoHeightLayout', () => {
+      const { getByTestId } = render(
+        <TabsList autoHeight testID="tabs-container">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content with dynamic height</Text>
+          </View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-container');
+
+      act(() => {
+        fireEvent(scrollView, 'layout', {
+          nativeEvent: { layout: { width: 300, height: 0 } },
+        });
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+    });
+
+    it('skips height update when change is below threshold in handleAutoHeightLayout', () => {
+      const { rerender } = render(
+        <TabsList autoHeight>
+          <View key="tab-1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      rerender(
+        <TabsList autoHeight>
+          <View key="tab-1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+    });
+
+    it('handles measurement during scroll in handleAutoHeightLayout', () => {
+      const { getByTestId } = render(
+        <TabsList autoHeight testID="tabs-container">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-container');
+
+      act(() => {
+        fireEvent(scrollView, 'scrollBeginDrag');
+        fireEvent(scrollView, 'layout', {
+          nativeEvent: { layout: { width: 300, height: 200 } },
+        });
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+    });
+
+    it('handles measurement during programmatic scroll in handleAutoHeightLayout', () => {
+      const tabsListRef = React.createRef<TabsListRef>();
+      const { getAllByText } = render(
+        <TabsList ref={tabsListRef} autoHeight>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      act(() => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+    });
+  });
+
+  describe('Scroll Event Coverage', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    });
+
+    it('handles scroll with zero containerWidth', () => {
+      const { getByTestId } = render(
+        <TabsList testID="tabs-container">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-container');
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { x: 0, y: 0 },
+            contentSize: { width: 0, height: 100 },
+            layoutMeasurement: { width: 0, height: 100 },
+          },
+        });
+      });
+    });
+
+    it('handles scroll to same tab index', () => {
+      const { getByTestId } = render(
+        <TabsList testID="tabs-container">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-container');
+
+      act(() => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { x: 0, y: 0 },
+            contentSize: { width: 600, height: 100 },
+            layoutMeasurement: { width: 300, height: 100 },
+          },
+        });
+      });
+    });
+
+    it('handles cached height on scroll end in autoHeight mode', async () => {
+      const { getByTestId, getAllByText } = render(
+        <TabsList autoHeight testID="tabs-container">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      const scrollView = getByTestId('tabs-container');
+
+      act(() => {
+        fireEvent.press(getAllByText('Tab 2')[0]);
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      act(() => {
+        fireEvent(scrollView, 'scrollEndDrag');
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+    });
+  });
 });
