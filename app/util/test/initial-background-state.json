@@ -240,6 +240,7 @@
       "0xa869": true,
       "0xaa37dc": true,
       "0x89": true,
+      "0x8f": true,
       "0x13881": true,
       "0xa86a": true,
       "0xfa": true,
@@ -659,8 +660,7 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "claimTransaction": null,
-    "depositTransaction": null,
+    "pendingDeposits": {},
     "isOnboarded": {}
   }
 }

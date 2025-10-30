@@ -177,7 +177,7 @@ class TestableRewardsController extends RewardsController {
 
     // Call the messaging system with the expected parameters and properly handle errors
     // This will use the mock that's set up in the test
-    return this.messagingSystem
+    return this.messenger
       .call('KeyringController:signPersonalMessage', {
         data: hexMessage,
         from: account.address,
@@ -1853,9 +1853,8 @@ describe('RewardsController', () => {
     it('should return 0 when feature flag is disabled', async () => {
       mockSelectRewardsEnabledFlag.mockReturnValue(false);
 
-      const result = await controller.getPerpsDiscountForAccount(
-        CAIP_ACCOUNT_1,
-      );
+      const result =
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
 
       expect(result).toBe(0);
     });
@@ -1880,9 +1879,8 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await controller.getPerpsDiscountForAccount(
-        CAIP_ACCOUNT_1,
-      );
+      const result =
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
 
       expect(result).toBe(750);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -1916,9 +1914,8 @@ describe('RewardsController', () => {
         discountBips: 1000,
       });
 
-      const result = await controller.getPerpsDiscountForAccount(
-        CAIP_ACCOUNT_1,
-      );
+      const result =
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -1953,9 +1950,8 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await controller.getPerpsDiscountForAccount(
-        CAIP_ACCOUNT_1,
-      );
+      const result =
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
 
       // Assert - verify state has been updated
       expect(result).toBe(1500);
@@ -1977,9 +1973,8 @@ describe('RewardsController', () => {
         discountBips: 1500,
       });
 
-      const result = await controller.getPerpsDiscountForAccount(
-        CAIP_ACCOUNT_2,
-      );
+      const result =
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
@@ -1995,9 +1990,8 @@ describe('RewardsController', () => {
       });
 
       // Act - check discount for account that doesn't exist in state
-      const result = await controller.getPerpsDiscountForAccount(
-        CAIP_ACCOUNT_3,
-      );
+      const result =
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_3);
 
       // Assert - verify new account state was created with correct values
       expect(result).toBe(2000);
@@ -2017,9 +2011,8 @@ describe('RewardsController', () => {
     it('should return 0 on data service error', async () => {
       mockMessenger.call.mockRejectedValue(new Error('Network error'));
 
-      const result = await controller.getPerpsDiscountForAccount(
-        CAIP_ACCOUNT_2,
-      );
+      const result =
+        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
 
       expect(result).toBe(0);
     });
@@ -2036,9 +2029,8 @@ describe('RewardsController', () => {
         });
 
         // Act - fetch discount for account that needs coercion
-        const result = await controller.getPerpsDiscountForAccount(
-          nonCoercedAccount,
-        );
+        const result =
+          await controller.getPerpsDiscountForAccount(nonCoercedAccount);
 
         // Assert - verify result is correct
         expect(result).toBe(1500);
@@ -2085,9 +2077,8 @@ describe('RewardsController', () => {
 
         // Act - fetch discount for non-coerced account format (should coerce to same key)
         const nonCoercedAccount = 'eip155:1:0xABCDEF' as CaipAccountId;
-        const result = await controller.getPerpsDiscountForAccount(
-          nonCoercedAccount,
-        );
+        const result =
+          await controller.getPerpsDiscountForAccount(nonCoercedAccount);
 
         // Assert
         expect(result).toBe(1000);
@@ -2110,9 +2101,8 @@ describe('RewardsController', () => {
         });
 
         // Act
-        const result = await controller.getPerpsDiscountForAccount(
-          correctAccount,
-        );
+        const result =
+          await controller.getPerpsDiscountForAccount(correctAccount);
 
         // Assert - should store with same key (lowercased)
         expect(result).toBe(2000);
@@ -5113,7 +5103,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle messagingSystem.call throwing an error', async () => {
+    it('should handle messenger.call throwing an error', async () => {
       // Arrange
       mockMessenger.call.mockImplementation(() => {
         throw new Error('Messaging system error');
@@ -7923,9 +7913,8 @@ describe('RewardsController', () => {
       const accounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
 
       // Act
-      const result = await controller.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await controller.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -7963,9 +7952,8 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await testController.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await testController.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -8025,9 +8013,8 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await testController.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await testController.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -8072,9 +8059,8 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await testController.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await testController.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -8108,9 +8094,8 @@ describe('RewardsController', () => {
         .mockReturnValue(null);
 
       // Act
-      const result = await testController.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await testController.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -8144,9 +8129,8 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(false); // Second account returns false
 
       // Act
-      const result = await testController.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await testController.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(linkSpy).toHaveBeenCalledTimes(2);
@@ -9610,7 +9594,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Mock messagingSystem.call to return accounts
+      // Mock messenger.call to return accounts
       mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
 
       // Mock getOptInStatus to return no opted-in accounts
@@ -9654,7 +9638,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Mock messagingSystem.call to return accounts
+      // Mock messenger.call to return accounts
       mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
 
       // Mock getOptInStatus to return opted-in accounts
@@ -9693,7 +9677,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Mock messagingSystem.call to return accounts
+      // Mock messenger.call to return accounts
       mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
 
       // Mock getOptInStatus to throw an error
@@ -9842,9 +9826,10 @@ describe('RewardsController', () => {
       mockSelectRewardsEnabledFlag.mockReturnValue(false);
 
       // Act
-      const result = await controller.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await controller.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(false);
@@ -9891,9 +9876,10 @@ describe('RewardsController', () => {
       jest.spyOn(testController, 'isOptInSupported').mockReturnValue(false);
 
       // Act
-      const result = await testController.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(false);
@@ -9988,9 +9974,10 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await testController.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(true);
@@ -10053,9 +10040,10 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
 
       // Act
-      const result = await testController.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(true);
@@ -10293,9 +10281,10 @@ describe('RewardsController', () => {
         .mockRejectedValueOnce(mockError); // mobileJoin
 
       // Act
-      const result = await testController.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(false);
@@ -10383,9 +10372,10 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
 
       // Act
-      const result = await testController.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(true);
@@ -10643,9 +10633,10 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
 
       // Act
-      const result = await testController.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(true);
@@ -10734,9 +10725,10 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await testController.linkAccountToSubscriptionCandidate(
-        mockInternalAccount,
-      );
+      const result =
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
 
       // Assert
       expect(result).toBe(true);
@@ -10797,9 +10789,8 @@ describe('RewardsController', () => {
       const accounts = [mockInternalAccount1, mockInternalAccount2];
 
       // Act
-      const result = await controller.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await controller.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -10816,9 +10807,8 @@ describe('RewardsController', () => {
       const accounts: InternalAccount[] = [];
 
       // Act
-      const result = await controller.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await controller.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([]);
@@ -10838,9 +10828,8 @@ describe('RewardsController', () => {
         .mockRejectedValueOnce(new Error('Linking failed'));
 
       // Act
-      const result = await controller.linkAccountsToSubscriptionCandidate(
-        accounts,
-      );
+      const result =
+        await controller.linkAccountsToSubscriptionCandidate(accounts);
 
       // Assert
       expect(result).toEqual([
@@ -12849,7 +12838,7 @@ describe('RewardsController', () => {
         deriveStateFromMetadata(
           controller.state,
           controller.metadata,
-          'anonymous',
+          'includeInDebugSnapshot',
         ),
       ).toMatchInlineSnapshot(`{}`);
     });
