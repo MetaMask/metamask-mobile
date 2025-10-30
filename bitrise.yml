@@ -1989,6 +1989,12 @@ app:
       MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB,BE"
     - opts:
         is_expand: false
+      MM_PERPS_HIP3_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_PERPS_HIP3_ENABLED_DEXS: ""
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false

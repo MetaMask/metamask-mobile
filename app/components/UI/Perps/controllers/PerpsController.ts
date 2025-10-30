@@ -109,6 +109,7 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
+import { compare, validate } from 'compare-versions';
 
 // Simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -590,9 +591,21 @@ export interface PerpsControllerOptions {
   clientConfig?: PerpsControllerConfig;
 }
 
+type FeatureFlagSource = 'remote' | 'fallback';
+
+interface VersionGatedFeatureFlag {
+  enabled: boolean;
+  minimumVersion: string;
+}
+
 interface BlockedRegionList {
   list: string[];
-  source: 'remote' | 'fallback';
+  source: FeatureFlagSource;
+}
+
+interface EnabledHIP3Dexs {
+  dexs: string[];
+  source: FeatureFlagSource;
 }
 
 /**
@@ -610,8 +623,8 @@ export class PerpsController extends BaseController<
 > {
   private providers: Map<string, IPerpsProvider>;
   private isInitialized = false;
-  private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
+  private pendingReinitialization = false;
 
   // Geo-location cache
   private geoLocationCache: { location: string; timestamp: number } | null =
@@ -619,20 +632,24 @@ export class PerpsController extends BaseController<
   private geoLocationFetchPromise: Promise<string> | null = null;
   private readonly GEO_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+  private clientVersion: string = '0.0.0';
+
   private blockedRegionList: BlockedRegionList = {
     list: [],
     source: 'fallback',
   };
 
-  // Store HIP-3 configuration from client
-  private readonly equityEnabled: boolean;
-  private readonly enabledDexs: string[];
+  private hip3EnabledFlag = {
+    enabled: false,
+    source: 'fallback',
+  };
 
-  constructor({
-    messenger,
-    state = {},
-    clientConfig = {},
-  }: PerpsControllerOptions) {
+  private enabledHIP3Dexs: EnabledHIP3Dexs = {
+    dexs: [],
+    source: 'fallback',
+  };
+
+  constructor({ messenger, state = {}, clientConfig }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
       metadata,
@@ -640,14 +657,29 @@ export class PerpsController extends BaseController<
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
 
-    // Store HIP-3 configuration from client (immutable after construction)
-    // Clone array to prevent external mutations
-    this.equityEnabled = clientConfig.equityEnabled ?? false;
-    this.enabledDexs = [...(clientConfig.enabledDexs ?? [])];
+    Logger.log(
+      'PerpsController: clientConfig on initialization: ',
+      clientConfig,
+    );
+
+    // Controller Configuration
+    this.setClientVersion(clientConfig?.clientVersion ?? '0.0.0');
+
+    // Immediately set the fallback HIP-3 enabled flag since RemoteFeatureFlagController is empty by default and takes a moment to populate.
+    this.setHIP3EnabledFlag(
+      clientConfig?.fallbackEquityEnabled ?? false,
+      'fallback',
+    );
+
+    // Immediately set the fallback DEX list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
+    this.setEnabledHIP3Dexs(
+      clientConfig?.fallbackEnabledDexs ?? [],
+      'fallback',
+    );
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
-      clientConfig.fallbackBlockedRegions ?? [],
+      clientConfig?.fallbackBlockedRegions ?? [],
       'fallback',
     );
 
@@ -664,9 +696,15 @@ export class PerpsController extends BaseController<
       );
 
       this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
+      this.refreshHIP3EnabledFlagOnFeatureFlagChange(
+        currentRemoteFeatureFlagState,
+      );
+      this.refreshEnabledHIP3DexsOnFeatureFlagChange(
+        currentRemoteFeatureFlagState,
+      );
     } catch (error) {
       // If we can't read the remote feature flags at construction time, we'll rely on:
-      // 1. The fallback blocked regions already set above
+      // 1. The fallback values already set above
       // 2. The subscription to catch updates when RemoteFeatureFlagController is ready
       Logger.error(
         ensureError(error),
@@ -678,17 +716,21 @@ export class PerpsController extends BaseController<
 
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      this.refreshEligibilityOnFeatureFlagChange.bind(this),
+      (remoteFeatureFlagState: RemoteFeatureFlagControllerState) => {
+        this.refreshEligibilityOnFeatureFlagChange(remoteFeatureFlagState);
+        // Re-initialize providers with new feature flag configuration.
+        this.refreshHIP3ConfigOnFeatureFlagChange(remoteFeatureFlagState);
+      },
     );
 
     this.providers = new Map();
 
-    this.initializeProviders().catch((error) => {
+    this.performInitialization().catch((error) => {
       Logger.error(ensureError(error), this.getErrorContext('constructor'));
     });
   }
 
-  private setBlockedRegionList(list: string[], source: 'remote' | 'fallback') {
+  private setBlockedRegionList(list: string[], source: FeatureFlagSource) {
     // Never downgrade from remote to fallback
     if (source === 'fallback' && this.blockedRegionList.source === 'remote')
       return;
@@ -706,6 +748,155 @@ export class PerpsController extends BaseController<
         this.getErrorContext('setBlockedRegionList', { source }),
       );
     });
+  }
+
+  private readonly hasMinimumRequiredVersion = (minRequiredVersion: string) => {
+    if (!minRequiredVersion) return false;
+    const currentVersion = this.clientVersion;
+    return compare(currentVersion, minRequiredVersion, '>=');
+  };
+
+  /**
+   *
+   * @param remoteFlag - The remote flag to validate
+   * @returns true if the remote flag is valid and the client version is greater than or equal to the minimum version.
+   * Returns undefined if the remote flag is not valid
+   */
+  private validatedVersionGatedFeatureFlag = (
+    remoteFlag: VersionGatedFeatureFlag | undefined,
+  ) => {
+    if (
+      !remoteFlag ||
+      typeof remoteFlag.enabled !== 'boolean' ||
+      typeof remoteFlag.minimumVersion !== 'string'
+    ) {
+      return undefined;
+    }
+
+    return (
+      remoteFlag.enabled &&
+      this.hasMinimumRequiredVersion(remoteFlag.minimumVersion)
+    );
+  };
+
+  private refreshHIP3EnabledFlagOnFeatureFlagChange(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
+    const perpsEquityEnabledFeatureFlag = remoteFeatureFlagControllerState
+      .remoteFeatureFlags?.perpsEquityEnabled as unknown as
+      | VersionGatedFeatureFlag
+      | undefined;
+
+    // true or false = valid remote flag -> always update (remote trumps fallback)
+    this.setHIP3EnabledFlag(
+      perpsEquityEnabledFeatureFlag?.enabled ?? false,
+      'remote',
+    );
+  }
+
+  private refreshEnabledHIP3DexsOnFeatureFlagChange(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
+    const perpsEnabledDexsFeatureFlag = remoteFeatureFlagControllerState
+      .remoteFeatureFlags?.perpsEnabledDexs as unknown as string[] | undefined;
+
+    if (Array.isArray(perpsEnabledDexsFeatureFlag)) {
+      this.setEnabledHIP3Dexs(perpsEnabledDexsFeatureFlag, 'remote');
+    }
+  }
+
+  private refreshHIP3ConfigOnFeatureFlagChange(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
+    const previousEquityEnabled = this.hip3EnabledFlag.enabled;
+    const previousEnabledDexs = [...this.enabledHIP3Dexs.dexs];
+    const previousEnabledDexsSource = this.enabledHIP3Dexs.source;
+
+    this.refreshHIP3EnabledFlagOnFeatureFlagChange(
+      remoteFeatureFlagControllerState,
+    );
+
+    this.refreshEnabledHIP3DexsOnFeatureFlagChange(
+      remoteFeatureFlagControllerState,
+    );
+
+    const equityEnabledChanged =
+      previousEquityEnabled !== this.hip3EnabledFlag.enabled;
+
+    // Order-independent comparison: check if sets are different
+    const previousDexsSet = new Set(previousEnabledDexs);
+    const currentDexsSet = new Set(this.enabledHIP3Dexs.dexs);
+    const hasDexsChanged =
+      previousDexsSet.size !== currentDexsSet.size ||
+      [...previousDexsSet].some((dex) => !currentDexsSet.has(dex)) ||
+      // Also trigger re-init if source changed (fallback -> remote)
+      previousEnabledDexsSource !== this.enabledHIP3Dexs.source;
+
+    if (equityEnabledChanged || hasDexsChanged) {
+      Logger.log(
+        'PerpsController: HIP-3 configuration changed, re-initializing providers',
+        {
+          equityEnabled: {
+            from: previousEquityEnabled,
+            to: this.hip3EnabledFlag.enabled,
+          },
+          enabledDexs: {
+            from: previousEnabledDexs,
+            to: this.enabledHIP3Dexs.dexs,
+          },
+          enabledDexsSource: {
+            from: previousEnabledDexsSource,
+            to: this.enabledHIP3Dexs.source,
+          },
+        },
+      );
+
+      this.performInitialization().catch((error) => {
+        console.error(
+          'PerpsController: Error performing initialization',
+          error,
+        );
+      });
+    }
+  }
+
+  private setClientVersion(version: string): void {
+    if (!validate(version)) {
+      Logger.error(
+        new Error('Invalid client version'),
+        this.getErrorContext('setClientVersion', { version }),
+      );
+      return;
+    }
+
+    this.clientVersion = version;
+  }
+
+  private setHIP3EnabledFlag(
+    enabled: boolean,
+    source: FeatureFlagSource,
+  ): void {
+    // Never downgrade from remote to fallback
+    if (source === 'fallback' && this.hip3EnabledFlag.source === 'remote') {
+      return;
+    }
+
+    this.hip3EnabledFlag = {
+      enabled,
+      source,
+    };
+  }
+
+  private setEnabledHIP3Dexs(dexs: string[], source: FeatureFlagSource): void {
+    // Never downgrade from remote to fallback
+    if (source === 'fallback' && this.enabledHIP3Dexs.source === 'remote') {
+      return;
+    }
+
+    this.enabledHIP3Dexs = {
+      dexs,
+      source,
+    };
   }
 
   /**
@@ -931,76 +1122,137 @@ export class PerpsController extends BaseController<
   /**
    * Initialize the PerpsController providers
    * Must be called before using any other methods
-   * Prevents double initialization with promise caching
+   * Delegates to performInitialization() which handles concurrency via queue
    */
   async initializeProviders(): Promise<void> {
-    if (this.isInitialized) {
-      return;
-    }
-
-    if (this.initializationPromise) {
-      return this.initializationPromise;
-    }
-
-    this.initializationPromise = this.performInitialization();
-    return this.initializationPromise;
+    return this.performInitialization();
   }
 
   /**
-   * Actual initialization implementation
+   * Actual initialization implementation with queue-based concurrency control
+   *
+   * This method prevents concurrent initializations while ensuring feature flag updates
+   * are never dropped. If called while already initializing, it queues a re-initialization
+   * that will run with the latest configuration after the current one completes.
+   *
+   * The do-while loop ensures that the final provider configuration always reflects
+   * the most recent HIP-3 feature flags (remote values trump fallback via source tracking).
    */
   private async performInitialization(): Promise<void> {
-    DevLogger.log('PerpsController: Initializing providers', {
-      currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
-      existingProviders: Array.from(this.providers.keys()),
-      timestamp: new Date().toISOString(),
-    });
+    // If already initializing, queue a re-initialization to run after
+    if (this.isReinitializing) {
+      DevLogger.log(
+        'PerpsController: Initialization in progress, queuing re-initialization',
+        {
+          timestamp: new Date().toISOString(),
+        },
+      );
+      this.pendingReinitialization = true;
+      return;
+    }
 
-    // Disconnect existing providers to close WebSocket connections
-    const existingProviders = Array.from(this.providers.values());
-    if (existingProviders.length > 0) {
-      DevLogger.log('PerpsController: Disconnecting existing providers', {
-        count: existingProviders.length,
+    this.isReinitializing = true;
+
+    try {
+      // Loop until no more pending re-initializations
+      do {
+        this.pendingReinitialization = false;
+
+        DevLogger.log('PerpsController: Initializing providers', {
+          currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
+          existingProviders: Array.from(this.providers.keys()),
+          equityEnabled: this.hip3EnabledFlag.enabled,
+          equityEnabledSource: this.hip3EnabledFlag.source,
+          enabledDexs: this.enabledHIP3Dexs.dexs,
+          enabledDexsSource: this.enabledHIP3Dexs.source,
+          timestamp: new Date().toISOString(),
+        });
+
+        // Disconnect existing providers to close WebSocket connections
+        const existingProviders = Array.from(this.providers.values());
+        if (existingProviders.length > 0) {
+          DevLogger.log('PerpsController: Disconnecting existing providers', {
+            count: existingProviders.length,
+            timestamp: new Date().toISOString(),
+          });
+          await Promise.all(
+            existingProviders.map((provider) => provider.disconnect()),
+          );
+        }
+        this.providers.clear();
+
+        DevLogger.log(
+          'PerpsController: Creating provider with HIP-3 configuration',
+          {
+            equityEnabled: this.hip3EnabledFlag.enabled,
+            enabledDexs: this.enabledHIP3Dexs.dexs,
+            isTestnet: this.state.isTestnet,
+          },
+        );
+
+        this.providers.set(
+          'hyperliquid',
+          new HyperLiquidProvider({
+            isTestnet: this.state.isTestnet,
+            equityEnabled: this.hip3EnabledFlag.enabled,
+            enabledDexs: this.enabledHIP3Dexs.dexs,
+          }),
+        );
+
+        // Future providers can be added here with their own authentication patterns:
+        // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
+        // - Some might use different wallet patterns: new GMXProvider({ signer })
+        // - Some might not need auth at all: new DydxProvider()
+
+        // Wait for WebSocket transport to be ready before marking as initialized
+        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+
+        DevLogger.log('PerpsController: Providers initialized successfully', {
+          providerCount: this.providers.size,
+          activeProvider: this.state.activeProvider,
+          timestamp: new Date().toISOString(),
+          willReinitialize: this.pendingReinitialization,
+        });
+
+        // If pendingReinitialization was set during this iteration,
+        // the loop will run again with the latest config
+        if (this.pendingReinitialization) {
+          DevLogger.log(
+            'PerpsController: Config changed during initialization, re-running with latest config',
+            {
+              timestamp: new Date().toISOString(),
+            },
+          );
+        }
+      } while (this.pendingReinitialization);
+
+      this.isInitialized = true;
+
+      // Clear StreamManager market cache to force refetch with new provider configuration
+      // This ensures HIP-3 markets appear after remote feature flags enable them
+      try {
+        const streamManager = getStreamManagerInstance();
+        streamManager.marketData.clearCache();
+        DevLogger.log(
+          'PerpsController: Cleared StreamManager market cache after provider initialization',
+        );
+      } catch (error) {
+        // StreamManager might not be available in tests
+        DevLogger.log(
+          'PerpsController: Could not clear StreamManager cache',
+          error,
+        );
+      }
+
+      DevLogger.log('PerpsController: Providers initialization complete', {
+        providerCount: this.providers.size,
+        activeProvider: this.state.activeProvider,
+        isInitialized: this.isInitialized,
         timestamp: new Date().toISOString(),
       });
-      await Promise.all(
-        existingProviders.map((provider) => provider.disconnect()),
-      );
+    } finally {
+      this.isReinitializing = false;
     }
-    this.providers.clear();
-
-    DevLogger.log(
-      'PerpsController: Creating provider with HIP-3 configuration',
-      {
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
-        isTestnet: this.state.isTestnet,
-      },
-    );
-
-    this.providers.set(
-      'hyperliquid',
-      new HyperLiquidProvider({
-        isTestnet: this.state.isTestnet,
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
-      }),
-    );
-
-    // Future providers can be added here with their own authentication patterns:
-    // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-    // - Some might use different wallet patterns: new GMXProvider({ signer })
-    // - Some might not need auth at all: new DydxProvider()
-
-    // Wait for WebSocket transport to be ready before marking as initialized
-    await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
-
-    this.isInitialized = true;
-    DevLogger.log('PerpsController: Providers initialized successfully', {
-      providerCount: this.providers.size,
-      activeProvider: this.state.activeProvider,
-      timestamp: new Date().toISOString(),
-    });
   }
 
   /**
@@ -3469,9 +3721,10 @@ export class PerpsController extends BaseController<
 
   /**
    * Toggle between testnet and mainnet
+   * Uses the queue-based performInitialization() for concurrency safety
    */
   async toggleTestnet(): Promise<ToggleTestnetResult> {
-    // Prevent concurrent reinitializations
+    // Check if already reinitializing to provide better user feedback
     if (this.isReinitializing) {
       DevLogger.log(
         'PerpsController: Already reinitializing, skipping toggle',
@@ -3485,8 +3738,6 @@ export class PerpsController extends BaseController<
         error: PERPS_ERROR_CODES.CLIENT_REINITIALIZING,
       };
     }
-
-    this.isReinitializing = true;
 
     try {
       const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3506,8 +3757,7 @@ export class PerpsController extends BaseController<
 
       // Reset initialization state and reinitialize provider with new testnet setting
       this.isInitialized = false;
-      this.initializationPromise = null;
-      await this.initializeProviders();
+      await this.performInitialization();
 
       DevLogger.log('PerpsController: Network toggle completed', {
         newNetwork,
@@ -3525,8 +3775,6 @@ export class PerpsController extends BaseController<
             ? error.message
             : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
-    } finally {
-      this.isReinitializing = false;
     }
   }
 
@@ -3716,7 +3964,6 @@ export class PerpsController extends BaseController<
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
-    this.initializationPromise = null;
   }
 
   /**

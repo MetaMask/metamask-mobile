@@ -3,6 +3,8 @@ import {
   SOLANA_SIGNUP_NOT_SUPPORTED,
   convertInternalAccountToCaipAccountId,
   deriveAccountMetricProps,
+  buildReferralUrl,
+  REFERRAL_BASE_URL,
 } from './utils';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
 import Logger from '../../../util/Logger';
@@ -558,6 +560,51 @@ describe('Rewards Utils', () => {
 
       const result = deriveAccountMetricProps(baseAccount);
       expect(result).toEqual({ scope: 'evm', account_type: 'HD Key Tree' });
+    });
+  });
+
+  describe('buildReferralUrl', () => {
+    it('builds URL with correct base URL', () => {
+      const referralCode = 'TEST123';
+
+      const result = buildReferralUrl(referralCode);
+
+      expect(result).toBe('https://link.metamask.io/rewards?referral=TEST123');
+    });
+
+    it('appends referral code to base URL', () => {
+      const referralCode = 'CUSTOM_CODE';
+
+      const result = buildReferralUrl(referralCode);
+
+      expect(result).toContain('CUSTOM_CODE');
+      expect(result).toContain(REFERRAL_BASE_URL);
+    });
+
+    it('handles alphanumeric referral codes', () => {
+      const referralCode = 'ABC123XYZ456';
+
+      const result = buildReferralUrl(referralCode);
+
+      expect(result).toBe(`${REFERRAL_BASE_URL}ABC123XYZ456`);
+    });
+
+    it('handles referral codes with special characters', () => {
+      const referralCode = 'CODE-WITH_SPECIAL.CHARS';
+
+      const result = buildReferralUrl(referralCode);
+
+      expect(result).toBe(`${REFERRAL_BASE_URL}CODE-WITH_SPECIAL.CHARS`);
+    });
+
+    it('returns complete URL string', () => {
+      const referralCode = 'TESTCODE';
+
+      const result = buildReferralUrl(referralCode);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('https://')).toBe(true);
+      expect(result.includes('link.metamask.io/rewards?referral=')).toBe(true);
     });
   });
 });

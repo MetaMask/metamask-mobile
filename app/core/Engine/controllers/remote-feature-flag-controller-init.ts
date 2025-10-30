@@ -6,7 +6,6 @@ import {
   type RemoteFeatureFlagControllerMessenger,
 } from '@metamask/remote-feature-flag-controller';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
 import {
   getFeatureFlagAppDistribution,
@@ -40,7 +39,8 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
         distribution: getFeatureFlagAppDistribution(),
       },
     }),
-    fetchInterval: AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
+    // fetchInterval: AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
+    fetchInterval: 1000,
   });
 
   if (disabled) {

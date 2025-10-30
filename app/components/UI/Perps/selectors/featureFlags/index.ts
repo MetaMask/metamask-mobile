@@ -52,7 +52,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsEquityEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_EQUITY_ENABLED === 'true';
+    const localFlag = process.env.MM_PERPS_HIP3_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsEquityEnabled as unknown as VersionGatedFeatureFlag;
 
@@ -73,8 +73,8 @@ export const selectPerpsEnabledDexs = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     // Parse local fallback (comma-separated list or empty string)
-    const localFallback = process.env.MM_PERPS_ENABLED_DEXS
-      ? process.env.MM_PERPS_ENABLED_DEXS.split(',')
+    const localFallback = process.env.MM_PERPS_HIP3_ENABLED_DEXS
+      ? process.env.MM_PERPS_HIP3_ENABLED_DEXS.split(',')
           .map((s) => s.trim())
           .filter((s) => s.length > 0)
       : [];
