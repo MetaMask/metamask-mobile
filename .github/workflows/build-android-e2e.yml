@@ -61,6 +61,12 @@ jobs:
           configure-keystores: true
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
+      - name: Check Gradle cache directories
+        run: |
+          ls -Al /home/admin/_work/.gradle/caches
+          ls -Al /home/runner/_work/.gradle/caches
+          ls -Al /home/admin/.gradle/caches
+
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
         env:
@@ -81,6 +87,12 @@ jobs:
           command: |
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
+
+      - name: Check Gradle cache directories again after setup
+        run: |
+          ls -Al /home/admin/_work/.gradle/caches
+          ls -Al /home/runner/_work/.gradle/caches
+          ls -Al /home/admin/.gradle/caches
 
       # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
       - name: Generate current fingerprint
