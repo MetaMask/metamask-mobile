@@ -73,7 +73,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
   Box: ({
     children,
     testID,
-    twClassName,
+    twClassName: _twClassName,
   }: {
     children: React.ReactNode;
     testID?: string;
@@ -87,8 +87,8 @@ jest.mock('@metamask/design-system-react-native', () => ({
     children,
     onPress,
     testID,
-    variant,
-    isFullWidth,
+    variant: _variant,
+    isFullWidth: _isFullWidth,
   }: {
     children: React.ReactNode;
     onPress: () => void;
@@ -162,8 +162,8 @@ describe('TokenList', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    // Mock useSelector to call the selector function
-    mockUseSelector.mockImplementation((selector) => selector());
+    // Mock useSelector to call the selector function with empty state
+    mockUseSelector.mockImplementation((selector) => selector({}));
   });
 
   const renderComponent = (props = {}, storeState = initialState) => {
