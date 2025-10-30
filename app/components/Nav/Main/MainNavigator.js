@@ -199,6 +199,11 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
+      name="AddAsset"
+      component={AddAsset}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
       name="Collectible"
       component={Collectible}
       options={Collectible.navigationOptions}
@@ -938,11 +943,6 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AddAsset"
-        component={AddAsset}
         options={{ headerShown: false }}
       />
       {isRewardsEnabled && (
