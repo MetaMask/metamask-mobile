@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
@@ -65,7 +65,12 @@ interface PopularToken {
 
 interface SearchTokensResponse {
   data: PopularToken[];
-  cursor?: string;
+  count: number;
+  totalCount: number;
+  pageInfo: {
+    hasNextPage: boolean;
+    endCursor?: string;
+  };
 }
 
 const createStyles = (params: { theme: Theme }) => {
@@ -73,6 +78,9 @@ const createStyles = (params: { theme: Theme }) => {
   return StyleSheet.create({
     tokensList: {
       marginTop: 10,
+    },
+    tokensListContainer: {
+      flex: 1,
     },
     buttonContainer: {
       paddingHorizontal: 8,
@@ -100,6 +108,9 @@ export const BridgeTokenSelector: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchString, setSearchString] = useState<string>('');
   const hasSearchedOnce = useRef(false);
+  const [searchCursor, setSearchCursor] = useState<string | undefined>();
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const currentSearchQuery = useRef<string>('');
 
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
@@ -197,10 +208,21 @@ export const BridgeTokenSelector: React.FC = () => {
         // If query is empty, reset search state
         setSearchResults([]);
         hasSearchedOnce.current = false;
+        setSearchCursor(undefined);
+        currentSearchQuery.current = '';
         return;
       }
 
-      setIsLoading(true);
+      // Determine if this is a pagination request (same query with cursor)
+      const isPagination =
+        cursor && currentSearchQuery.current === query.trim();
+
+      if (isPagination) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+        currentSearchQuery.current = query.trim();
+      }
 
       try {
         const excludeAssetIds = JSON.parse(assetsWithBalanceAssetIds);
@@ -243,15 +265,39 @@ export const BridgeTokenSelector: React.FC = () => {
           }),
         );
 
-        setSearchResults(searchBridgeTokens);
+        // Store the cursor for pagination if there's a next page
+        setSearchCursor(
+          searchData.pageInfo.hasNextPage
+            ? searchData.pageInfo.endCursor
+            : undefined,
+        );
+
+        // If this is a pagination request, append to existing results
+        // Otherwise, replace results (initial search)
+        if (isPagination) {
+          setSearchResults((prevResults) => [
+            ...prevResults,
+            ...searchBridgeTokens,
+          ]);
+        } else {
+          setSearchResults(searchBridgeTokens);
+        }
+
         hasSearchedOnce.current = true;
       } catch (error) {
         console.error('Error searching tokens:', error);
-        // Reset search state on error
-        setSearchResults([]);
+        // Reset search state on error only if it's not a pagination request
+        if (!isPagination) {
+          setSearchResults([]);
+          setSearchCursor(undefined);
+        }
         hasSearchedOnce.current = true;
       } finally {
-        setIsLoading(false);
+        if (isPagination) {
+          setIsLoadingMore(false);
+        } else {
+          setIsLoading(false);
+        }
       }
     },
     [displayChainIds, assetsWithBalanceAssetIds],
@@ -267,9 +313,12 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   // Cleanup debounce on unmount
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       debouncedSearch.cancel();
-    }, [debouncedSearch]);
+    },
+    [debouncedSearch],
+  );
 
   const displayData = useMemo(() => {
     if (isLoading) {
@@ -305,6 +354,8 @@ export const BridgeTokenSelector: React.FC = () => {
     setSearchString('');
     setSearchResults([]);
     hasSearchedOnce.current = false;
+    setSearchCursor(undefined);
+    currentSearchQuery.current = '';
   };
 
   const handleSearchTextChange = (text: string) => {
@@ -378,6 +429,32 @@ export const BridgeTokenSelector: React.FC = () => {
   const keyExtractor = (item: BridgeToken | null, index: number) =>
     item ? `${item.chainId}-${item.address}` : `skeleton-${index}`;
 
+  // Load more results when user scrolls to the bottom
+  const handleLoadMore = useCallback(() => {
+    // Only load more if:
+    // 1. We have a search query
+    // 2. We're not currently loading
+    // 3. We have a cursor for pagination
+    // 4. We have already searched once
+    if (
+      searchString.trim() &&
+      !isLoading &&
+      !isLoadingMore &&
+      searchCursor &&
+      hasSearchedOnce.current
+    ) {
+      searchTokens(searchString, searchCursor);
+    }
+  }, [searchString, isLoading, isLoadingMore, searchCursor, searchTokens]);
+
+  // Render footer for pagination loading indicator
+  const renderFooter = useCallback(() => {
+    if (!isLoadingMore) {
+      return null;
+    }
+    return <SkeletonItem />;
+  }, [isLoadingMore]);
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -405,7 +482,7 @@ export const BridgeTokenSelector: React.FC = () => {
         />
       </Box>
 
-      <View>
+      <Box style={styles.tokensListContainer}>
         <FlatList
           style={styles.tokensList}
           data={displayData}
@@ -413,8 +490,11 @@ export const BridgeTokenSelector: React.FC = () => {
           keyExtractor={keyExtractor}
           showsVerticalScrollIndicator
           showsHorizontalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
         />
-      </View>
+      </Box>
     </BottomSheet>
   );
 };
