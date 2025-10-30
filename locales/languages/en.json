@@ -6565,11 +6565,11 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 points per $100",
+        "description": "10 points per $100 order value",
         "sheet": {
           "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+          "points": "10 points per $100 order value",
+          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments. Order value is based on the size post-leverage.",
           "cta_label": "Start a trade"
         }
       },
