@@ -133,7 +133,7 @@ const initialState = {
       NetworkController: {
         networkConfigurationsByChainId: {
           '0x1': {
-            chainId: '0x1',
+            chainId: '0x1' as const,
             name: 'Ethereum Mainnet',
             nativeCurrency: 'ETH',
             rpcEndpoints: [{ networkClientId: '0x1' }],
@@ -195,9 +195,9 @@ const initialState = {
         tokenBalances: {
           [selectedAddress]: {
             '0x1': {
-              '0x00': '0x2386F26FC10000',
-              '0x01': '0xDE0B6B3A7640000',
-              '0x02': '0x0',
+              '0x00': '0x2386F26FC10000' as const,
+              '0x01': '0xDE0B6B3A7640000' as const,
+              '0x02': '0x0' as const,
             },
           },
         },
