@@ -214,7 +214,13 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
     method: 'GET',
   });
   if (!response.ok) {
-    throw new Error('Failed to get order book');
+    const responseData = (await response.json()) as { error: string };
+    if (
+      responseData.error === 'No orderbook exists for the requested token id'
+    ) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+    }
+    throw new Error(responseData.error);
   }
   const responseData = (await response.json()) as OrderBook;
   return responseData;
