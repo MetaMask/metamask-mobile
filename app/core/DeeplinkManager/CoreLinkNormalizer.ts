@@ -31,12 +31,6 @@ export class CoreLinkNormalizer {
     [ACTIONS.CREATE_ACCOUNT]: 'createAccountPath',
     [ACTIONS.DEPOSIT]: 'depositCashPath',
     [ACTIONS.PERPS]: 'perpsPath',
-    [ACTIONS.PERPS_MARKETS]: 'perpsMarketsPath',
-    [ACTIONS.PERPS_ASSET]: 'perpsAssetPath',
-    [ACTIONS.BUY]: 'buyPath',
-    [ACTIONS.SELL]: 'sellPath',
-    [ACTIONS.BUY_CRYPTO]: 'buyCryptoPath',
-    [ACTIONS.SELL_CRYPTO]: 'sellCryptoPath',
   };
 
   /**
