@@ -93,6 +93,13 @@ export type SignTypedMessageFn = (
   version: SignTypedDataVersion,
 ) => Promise<string>;
 
+interface RecentSellOrder {
+  outcomeTokenId: string;
+  size: number;
+  decimals: number;
+  timestamp: number;
+}
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
 
@@ -100,6 +107,7 @@ export class PolymarketProvider implements PredictProvider {
   #accountStateByAddress: Map<string, AccountState> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
+  #recentSellOrdersByAddress = new Map<string, RecentSellOrder[]>();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
 
@@ -299,7 +307,22 @@ export class PolymarketProvider implements PredictProvider {
       positions: positionsData,
     });
 
-    return parsedPositions;
+    // Remove positions that match recent sell orders
+    const recentSellOrders = this.#recentSellOrdersByAddress.get(address) ?? [];
+    const filteredPositions = parsedPositions.filter(
+      (position) =>
+        !recentSellOrders.some(
+          (rso) =>
+            rso.outcomeTokenId === position.outcomeTokenId &&
+            rso.size ===
+              roundOrderAmount({
+                amount: position.size,
+                decimals: rso.decimals,
+              }),
+        ),
+    );
+
+    return filteredPositions;
   }
 
   private async fetchActivity({
@@ -542,6 +565,20 @@ export class PolymarketProvider implements PredictProvider {
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
+      } else {
+        // Delete order older than 5 minutes
+        const recentSellOrders = (
+          this.#recentSellOrdersByAddress.get(signer.address) ?? []
+        ).filter((rso) => rso.timestamp > Date.now() - 5 * 60000);
+
+        // Add this sell order to recent sell orders
+        recentSellOrders.push({
+          outcomeTokenId,
+          size: Number(response.makingAmount),
+          decimals: roundConfig.size,
+          timestamp: Date.now(),
+        });
+        this.#recentSellOrdersByAddress.set(signer.address, recentSellOrders);
       }
 
       return {
