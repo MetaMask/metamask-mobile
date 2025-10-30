@@ -307,13 +307,15 @@ const ImportNewSecretRecoveryPhrase = () => {
         extraScrollHeight={20}
         showsVerticalScrollIndicator={false}
       >
-        {/* Title */}
-        <Text variant={TextVariant.DisplayMD} style={styles.title}>
+        <Text
+          variant={TextVariant.DisplayMD}
+          style={styles.title}
+          testID={ImportSRPIDs.SCREEN_TITLE_ID}
+        >
           {strings('import_new_secret_recovery_phrase.import_wallet_title')}
         </Text>
 
         <View style={styles.contentContainer}>
-          {/* Subtitle with info icon */}
           <View style={styles.subtitleContainer}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
@@ -327,7 +329,6 @@ const ImportNewSecretRecoveryPhrase = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Dynamic Grid: Single textarea → Numbered boxes */}
           <SrpInputGrid
             seedPhrase={seedPhrase}
             seedPhraseInputFocusedIndex={seedPhraseInputFocusedIndex}
@@ -347,7 +348,6 @@ const ImportNewSecretRecoveryPhrase = () => {
             uniqueId={uniqueId}
           />
 
-          {/* Continue Button */}
           <View style={styles.buttonWrapper}>
             <StyledButton
               containerStyle={styles.button}

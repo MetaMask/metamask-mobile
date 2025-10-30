@@ -7,6 +7,10 @@ class ImportSrpView {
     return Matchers.getElementByID(ImportSRPIDs.CONTAINER);
   }
 
+  get title(): DetoxElement {
+    return Matchers.getElementByID(ImportSRPIDs.SCREEN_TITLE_ID);
+  }
+
   get importButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON)
@@ -17,18 +21,16 @@ class ImportSrpView {
     return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
   }
 
+  async tapTitle() {
+    await Gestures.tap(this.title, {
+      elemDescription: 'Import SRP screen title',
+    });
+  }
+
   async tapImportButton() {
-    if (device.getPlatform() === 'ios') {
-      await Gestures.dblTap(this.importButton, {
-        elemDescription: 'Import button',
-        checkVisibility: false,
-        checkEnabled: false,
-      });
-    } else {
-      await Gestures.waitAndTap(this.importButton, {
-        elemDescription: 'Import button',
-      });
-    }
+    await Gestures.waitAndTap(this.importButton, {
+      elemDescription: 'Import button',
+    });
   }
 
   async enterSrp(mnemonic: string): Promise<void> {
@@ -37,8 +39,9 @@ class ImportSrpView {
     if (device.getPlatform() === 'ios') {
       await Gestures.typeText(this.textareaInput, mnemonic, {
         elemDescription,
-        hideKeyboard: false,
+        hideKeyboard: true,
       });
+      await this.tapTitle();
     } else {
       await Gestures.replaceText(this.textareaInput, mnemonic, {
         elemDescription,
