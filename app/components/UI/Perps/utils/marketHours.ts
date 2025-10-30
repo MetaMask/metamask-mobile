@@ -10,80 +10,174 @@ export interface MarketHoursStatus {
 }
 
 /**
- * Convert a date to EST timezone
- * @param date - Date to convert
- * @returns Date adjusted to EST
+ * Get the day of week in EST timezone
+ * @param date - Date to check
+ * @returns Day of week (0-6, where 0 is Sunday)
  */
-const toEST = (date: Date): Date => {
-  // Convert to EST (UTC-5) or EDT (UTC-4) depending on DST
-  const estString = date.toLocaleString('en-US', {
+const getESTDay = (date: Date): number => {
+  const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/New_York',
+    weekday: 'short',
   });
-  return new Date(estString);
+  const dayName = formatter.format(date);
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return days.indexOf(dayName);
 };
 
 /**
- * Check if a given date is a weekday (Monday-Friday)
+ * Get the hours and minutes in EST timezone
+ * @param date - Date to check
+ * @returns Object with hours and minutes in EST
+ */
+const getESTTime = (
+  date: Date,
+): {
+  hours: number;
+  minutes: number;
+  day: number;
+  month: number;
+  year: number;
+} => {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  const parts = formatter.formatToParts(date);
+  const values: Record<string, string> = {};
+  parts.forEach((part) => {
+    if (part.type !== 'literal') {
+      values[part.type] = part.value;
+    }
+  });
+
+  return {
+    hours: parseInt(values.hour, 10),
+    minutes: parseInt(values.minute, 10),
+    day: parseInt(values.day, 10),
+    month: parseInt(values.month, 10),
+    year: parseInt(values.year, 10),
+  };
+};
+
+/**
+ * Check if a given date is a weekday (Monday-Friday) in EST timezone
  * @param date - Date to check
  * @returns true if weekday, false if weekend
  */
 const isWeekday = (date: Date): boolean => {
-  const day = date.getDay();
+  const day = getESTDay(date);
   return day >= 1 && day <= 5; // Monday = 1, Friday = 5
 };
 
 /**
+ * Create a Date object for a specific EST time
+ * @param year - Year
+ * @param month - Month (1-12)
+ * @param day - Day of month
+ * @param hours - Hours (0-23)
+ * @param minutes - Minutes
+ * @returns Date object representing that EST time
+ */
+const createDateInEST = (
+  year: number,
+  month: number,
+  day: number,
+  hours: number,
+  minutes: number,
+): Date => {
+  // Create an ISO string and explicitly specify it's in America/New_York timezone
+  // by parsing it as if it were UTC, then adjusting for EST offset
+  const monthStr = String(month).padStart(2, '0');
+  const dayStr = String(day).padStart(2, '0');
+  const hoursStr = String(hours).padStart(2, '0');
+  const minutesStr = String(minutes).padStart(2, '0');
+
+  // Create a date in UTC
+  const utcDate = new Date(
+    `${year}-${monthStr}-${dayStr}T${hoursStr}:${minutesStr}:00Z`,
+  );
+
+  // Get what time this UTC date would be in EST
+  const estTime = getESTTime(utcDate);
+
+  // Calculate the offset needed to make the EST time match our target
+  const hourDiff = hours - estTime.hours;
+  const minuteDiff = minutes - estTime.minutes;
+
+  // Adjust the UTC date by the difference
+  return new Date(
+    utcDate.getTime() + hourDiff * 60 * 60 * 1000 + minuteDiff * 60 * 1000,
+  );
+};
+
+/**
  * Get the next market open time from a given date
- * @param date - Current date in EST
+ * @param date - Current date
  * @returns Next market open date
  */
 const getNextMarketOpen = (date: Date): Date => {
-  const nextOpen = new Date(date);
+  const estDay = getESTDay(date);
+  const estTime = getESTTime(date);
 
   // If weekend, move to next Monday
-  if (date.getDay() === 0) {
+  if (estDay === 0) {
     // Sunday -> Monday
-    nextOpen.setDate(date.getDate() + 1);
-  } else if (date.getDay() === 6) {
+    return createDateInEST(estTime.year, estTime.month, estTime.day + 1, 9, 30);
+  } else if (estDay === 6) {
     // Saturday -> Monday
-    nextOpen.setDate(date.getDate() + 2);
+    return createDateInEST(estTime.year, estTime.month, estTime.day + 2, 9, 30);
+  }
+
+  // Weekday - check if before 9:30 AM EST
+  if (estTime.hours < 9 || (estTime.hours === 9 && estTime.minutes < 30)) {
+    // Before market open today - open today at 9:30 AM EST
+    return createDateInEST(estTime.year, estTime.month, estTime.day, 9, 30);
+  }
+
+  // After market hours - move to next day
+  let nextDay = estTime.day + 1;
+  let nextMonth = estTime.month;
+  let nextYear = estTime.year;
+
+  // Create the next date to check if it's a weekend
+  const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+  const nextEstDay = getESTDay(nextDate);
+  const nextEstTime = getESTTime(nextDate);
+
+  // If next day is Saturday, move to Monday
+  if (nextEstDay === 6) {
+    nextDay = nextEstTime.day + 2;
+    nextMonth = nextEstTime.month;
+    nextYear = nextEstTime.year;
+  } else if (nextEstDay === 0) {
+    // If next day is Sunday, move to Monday
+    nextDay = nextEstTime.day + 1;
+    nextMonth = nextEstTime.month;
+    nextYear = nextEstTime.year;
   } else {
-    // Weekday - check if before 9:30 AM
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    if (hours < 9 || (hours === 9 && minutes < 30)) {
-      // Before market open today - open today at 9:30 AM
-      nextOpen.setHours(9, 30, 0, 0);
-      return nextOpen;
-    }
-    // After market hours - move to next day
-    nextOpen.setDate(date.getDate() + 1);
+    nextDay = nextEstTime.day;
+    nextMonth = nextEstTime.month;
+    nextYear = nextEstTime.year;
   }
 
-  // Set to 9:30 AM
-  nextOpen.setHours(9, 30, 0, 0);
-
-  // If we landed on weekend, move to Monday
-  if (nextOpen.getDay() === 0) {
-    nextOpen.setDate(nextOpen.getDate() + 1);
-  } else if (nextOpen.getDay() === 6) {
-    nextOpen.setDate(nextOpen.getDate() + 2);
-  }
-
-  return nextOpen;
+  return createDateInEST(nextYear, nextMonth, nextDay, 9, 30);
 };
 
 /**
  * Get the next market close time from a given date
  * Assumes market is currently open
- * @param date - Current date in EST
- * @returns Next market close date (today at 4:00 PM)
+ * @param date - Current date
+ * @returns Next market close date (today at 4:00 PM EST)
  */
 const getNextMarketClose = (date: Date): Date => {
-  const nextClose = new Date(date);
-  nextClose.setHours(16, 0, 0, 0);
-  return nextClose;
+  const estTime = getESTTime(date);
+  return createDateInEST(estTime.year, estTime.month, estTime.day, 16, 0);
 };
 
 /**
@@ -114,14 +208,13 @@ export const formatCountdown = (diffMs: number): string => {
 export const getMarketHoursStatus = (
   now: Date = new Date(),
 ): MarketHoursStatus => {
-  const estNow = toEST(now);
-  const hours = estNow.getHours();
-  const minutes = estNow.getMinutes();
+  const estTime = getESTTime(now);
+  const { hours, minutes } = estTime;
 
-  // Check if it's a weekday
-  if (!isWeekday(estNow)) {
+  // Check if it's a weekday in EST
+  if (!isWeekday(now)) {
     // Weekend - market is closed
-    const nextOpen = getNextMarketOpen(estNow);
+    const nextOpen = getNextMarketOpen(now);
     const diffMs = nextOpen.getTime() - now.getTime();
 
     return {
@@ -131,7 +224,7 @@ export const getMarketHoursStatus = (
     };
   }
 
-  // Weekday - check if within market hours (9:30 AM - 4:00 PM)
+  // Weekday - check if within market hours (9:30 AM - 4:00 PM EST)
   const currentTimeInMinutes = hours * 60 + minutes;
   const marketOpenInMinutes = 9 * 60 + 30; // 9:30 AM
   const marketCloseInMinutes = 16 * 60; // 4:00 PM
@@ -141,7 +234,7 @@ export const getMarketHoursStatus = (
     currentTimeInMinutes < marketCloseInMinutes
   ) {
     // Market is open
-    const nextClose = getNextMarketClose(estNow);
+    const nextClose = getNextMarketClose(now);
     const diffMs = nextClose.getTime() - now.getTime();
 
     return {
@@ -152,7 +245,7 @@ export const getMarketHoursStatus = (
   }
 
   // Market is closed (before 9:30 AM or after 4:00 PM on weekday)
-  const nextOpen = getNextMarketOpen(estNow);
+  const nextOpen = getNextMarketOpen(now);
   const diffMs = nextOpen.getTime() - now.getTime();
 
   return {

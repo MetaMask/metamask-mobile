@@ -57,8 +57,8 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
   // Check if this is an equity asset
   const shouldDisplay = useMemo(() => isEquityAsset(marketType), [marketType]);
 
-  // Get current market hours status
-  const marketHoursStatus = useMemo(() => getMarketHoursStatus(), []);
+  // Get current market hours status - recalculated on each render to stay current
+  const marketHoursStatus = getMarketHoursStatus();
 
   // Don't render if not an equity asset
   if (!shouldDisplay) {

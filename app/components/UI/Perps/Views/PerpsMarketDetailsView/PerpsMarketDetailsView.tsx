@@ -539,11 +539,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setIsMarketHoursModalVisible(true);
   }, []);
 
-  // Determine market hours content key based on current status
-  const marketHoursContentKey = useMemo(() => {
+  // Determine market hours content key based on current status - recalculated on each render to stay current
+  const marketHoursContentKey = (() => {
     const status = getMarketHoursStatus();
     return status.isOpen ? 'market_hours' : 'after_hours_trading';
-  }, []);
+  })();
 
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
