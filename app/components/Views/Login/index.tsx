@@ -250,8 +250,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+        PASSCODE_DISABLED,
+      );
 
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
@@ -446,6 +447,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.message ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
       ) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
+        }
         setError(strings('login.invalid_password'));
         return;
       } else if (
@@ -517,6 +525,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
         account_type: 'social',
         failed_attempts: rehydrationFailedAttempts,
+        error_type: 'incorrect_password',
       });
     }
 
