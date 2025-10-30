@@ -131,7 +131,7 @@ const BuildQuote = () => {
   const [quoteError, setError] = useState<string | null>();
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
-    useDepositRouting('BuildQuote Screen');
+    useDepositRouting({ screenLocation: 'BuildQuote Screen' });
 
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,

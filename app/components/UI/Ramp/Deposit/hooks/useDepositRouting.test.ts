@@ -2,7 +2,7 @@ import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { REDIRECTION_URL } from '../constants';
+import { KycStatus, REDIRECTION_URL } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { endTrace } from '../../../../../util/trace';
@@ -17,7 +17,9 @@ const mockUseDepositSdkMethodInitialState = {
   isFetching: false,
 };
 
-let mockGetKycRequirement = jest.fn().mockResolvedValue({ status: 'APPROVED' });
+let mockGetKycRequirement = jest
+  .fn()
+  .mockResolvedValue({ status: KycStatus.APPROVED });
 let mockGetAdditionalRequirements = jest
   .fn()
   .mockResolvedValue({ formsRequired: [] });
@@ -632,7 +634,9 @@ describe('useDepositRouting', () => {
 
       expect(mockSubmitPurposeOfUsage).toHaveBeenCalledTimes(5);
     });
+  });
 
+  describe('KYC status handling', () => {
     it('should navigate to KycProcessing when KYC is submitted', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
@@ -651,9 +655,7 @@ describe('useDepositRouting', () => {
         quote: mockQuote,
       });
     });
-  });
 
-  describe('KYC status handling', () => {
     it('should navigate to KycProcessing when KYC is not approved', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
