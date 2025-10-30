@@ -71,6 +71,19 @@ const styleSheet = (params: { theme: Theme }) => {
       }),
       marginTop: Platform.select({
         ios: -16,
+        android: -16,
+      }),
+    },
+    ctaWrapperRehydration: {
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: Platform.select({
+        ios: 0,
+        android: 16,
+      }),
+      marginTop: Platform.select({
+        ios: 8,
         android: 16,
       }),
     },

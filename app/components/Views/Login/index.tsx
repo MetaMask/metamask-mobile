@@ -7,6 +7,7 @@ import {
   BackHandler,
   TouchableOpacity,
   TextInput,
+  Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -767,6 +768,62 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(null);
   };
 
+  const renderPasswordField = () => (
+    <View style={styles.field}>
+      <TextField
+        size={TextFieldSize.Lg}
+        placeholder={strings('login.password_placeholder')}
+        placeholderTextColor={colors.text.alternative}
+        testID={LoginViewSelectors.PASSWORD_INPUT}
+        returnKeyType={'done'}
+        autoCapitalize="none"
+        secureTextEntry
+        ref={fieldRef}
+        onChangeText={handlePasswordChange}
+        value={password}
+        onSubmitEditing={onLogin}
+        endAccessory={
+          <BiometryButton
+            onPress={tryBiometric}
+            hidden={shouldHideBiometricAccessoryButton}
+            biometryType={biometryType as BIOMETRY_TYPE}
+          />
+        }
+        keyboardAppearance={themeAppearance}
+        isDisabled={disabledInput}
+        isError={!!error}
+        style={styles.textField}
+      />
+    </View>
+  );
+
+  const renderErrorMessage = () => (
+    <View style={styles.helperTextContainer}>
+      {!!error && (
+        <HelpText
+          severity={HelpTextSeverity.Error}
+          variant={TextVariant.BodyMD}
+          testID={LoginViewSelectors.PASSWORD_ERROR}
+        >
+          {error}
+        </HelpText>
+      )}
+    </View>
+  );
+
+  const renderUnlockButton = () => (
+    <Button
+      variant={ButtonVariants.Primary}
+      width={ButtonWidthTypes.Full}
+      size={ButtonSize.Lg}
+      onPress={onLogin}
+      label={strings('login.unlock_button')}
+      isDisabled={password.length === 0 || disabledInput || finalLoading}
+      testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+      loading={finalLoading}
+    />
+  );
+
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -790,6 +847,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
           contentContainerStyle={styles.scrollContentContainer}
+          extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
+          enableResetScrollToCoords={false}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
             {!isComingFromOauthOnboarding ? (
@@ -798,59 +857,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 startOnboardingAnimation={startOnboardingAnimation}
                 setStartFoxAnimation={setStartFoxAnimationCallback}
               >
-                <View style={styles.field}>
-                  <TextField
-                    size={TextFieldSize.Lg}
-                    placeholder={strings('login.password_placeholder')}
-                    placeholderTextColor={colors.text.alternative}
-                    testID={LoginViewSelectors.PASSWORD_INPUT}
-                    returnKeyType={'done'}
-                    autoCapitalize="none"
-                    secureTextEntry
-                    ref={fieldRef}
-                    onChangeText={handlePasswordChange}
-                    value={password}
-                    onSubmitEditing={onLogin}
-                    endAccessory={
-                      <BiometryButton
-                        onPress={tryBiometric}
-                        hidden={shouldHideBiometricAccessoryButton}
-                        biometryType={biometryType as BIOMETRY_TYPE}
-                      />
-                    }
-                    keyboardAppearance={themeAppearance}
-                    isDisabled={disabledInput}
-                    isError={!!error}
-                    style={styles.textField}
-                  />
-                </View>
+                {renderPasswordField()}
 
-                <View style={styles.helperTextContainer}>
-                  {!!error && (
-                    <HelpText
-                      severity={HelpTextSeverity.Error}
-                      variant={TextVariant.BodyMD}
-                      testID={LoginViewSelectors.PASSWORD_ERROR}
-                    >
-                      {error}
-                    </HelpText>
-                  )}
-                </View>
+                {renderErrorMessage()}
 
                 <View style={styles.ctaWrapper}>
                   {renderSwitch()}
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    width={ButtonWidthTypes.Full}
-                    size={ButtonSize.Lg}
-                    onPress={onLogin}
-                    label={strings('login.unlock_button')}
-                    isDisabled={
-                      password.length === 0 || disabledInput || finalLoading
-                    }
-                    testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                    loading={finalLoading}
-                  />
+                  {renderUnlockButton()}
 
                   <Button
                     style={styles.goBack}
@@ -895,79 +908,28 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   {strings('login.title')}
                 </Text>
 
-                <View style={styles.field}>
-                  <TextField
-                    size={TextFieldSize.Lg}
-                    placeholder={strings('login.password_placeholder')}
-                    placeholderTextColor={colors.text.alternative}
-                    testID={LoginViewSelectors.PASSWORD_INPUT}
-                    returnKeyType={'done'}
-                    autoCapitalize="none"
-                    secureTextEntry
-                    ref={fieldRef}
-                    onChangeText={handlePasswordChange}
-                    value={password}
-                    onSubmitEditing={onLogin}
-                    endAccessory={
-                      <BiometryButton
-                        onPress={tryBiometric}
-                        hidden={shouldHideBiometricAccessoryButton}
-                        biometryType={biometryType as BIOMETRY_TYPE}
-                      />
-                    }
-                    keyboardAppearance={themeAppearance}
-                    isDisabled={disabledInput}
-                    isError={!!error}
-                    style={styles.textField}
-                  />
-                </View>
+                {renderPasswordField()}
 
-                <View style={styles.helperTextContainer}>
-                  {!!error && (
-                    <HelpText
-                      severity={HelpTextSeverity.Error}
-                      variant={TextVariant.BodyMD}
-                      testID={LoginViewSelectors.PASSWORD_ERROR}
-                    >
-                      {error}
-                    </HelpText>
-                  )}
-                </View>
+                {renderErrorMessage()}
 
-                <View style={styles.ctaWrapper}>
+                <View style={styles.ctaWrapperRehydration}>
                   {renderSwitch()}
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    width={ButtonWidthTypes.Full}
-                    size={ButtonSize.Lg}
-                    onPress={onLogin}
-                    label={strings('login.unlock_button')}
-                    isDisabled={
-                      password.length === 0 || disabledInput || finalLoading
-                    }
-                    testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                    loading={finalLoading}
-                  />
+                  {renderUnlockButton()}
                 </View>
 
                 <View style={styles.footer}>
-                  <Button
-                    style={styles.goBack}
-                    variant={ButtonVariants.Link}
+                  <TouchableOpacity
                     onPress={handleUseOtherMethod}
+                    disabled={finalLoading}
                     testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                    label={
-                      <Text
-                        variant={TextVariant.BodyLGMedium}
-                        color={TextColor.Default}
-                      >
-                        {strings('login.other_methods')}
-                      </Text>
-                    }
-                    loading={finalLoading}
-                    isDisabled={finalLoading}
-                    size={ButtonSize.Lg}
-                  />
+                  >
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Default}
+                    >
+                      {strings('login.other_methods')}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
