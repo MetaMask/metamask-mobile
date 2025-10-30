@@ -207,6 +207,8 @@ export const PerpsEventValues = {
     TP_SL: 'tp_sl',
     DEPOSIT_INPUT: 'deposit_input',
     DEPOSIT_REVIEW: 'deposit_review',
+    CLOSE_ALL_POSITIONS: 'close_all_positions',
+    CANCEL_ALL_ORDERS: 'cancel_all_orders',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
