@@ -148,7 +148,23 @@ class WalletMainScreen {
   }
 
   async tapNFTTab() {
-    await Gestures.tapTextByXpath('NFTs');
+    if (!this._device) {
+      await Gestures.tapTextByXpath('NFTs');
+    } else {
+      // For Appwright, tap by text
+      const nftTabText = AppwrightSelectors.getElementByText(this._device, 'NFTs');
+      await AppwrightGestures.tap(nftTabText);
+    }
+  }
+
+  async tapTokensTab() {
+    if (!this._device) {
+      await Gestures.tapTextByXpath('Tokens');
+    } else {
+      // For Appwright, tap by text
+      const tokensTabText = AppwrightSelectors.getElementByText(this._device, 'Tokens');
+      await AppwrightGestures.tap(tokensTabText);
+    }
   }
 
   async tapOnToken(token) {

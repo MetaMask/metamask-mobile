@@ -467,7 +467,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   return (
     <View style={styles.tabContainer}>
-      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList
+        key={tabsKey}
+        ref={tabsListRef}
+        onChangeTab={handleTabChange}
+        testID="wallet-tabs"
+      >
         {tabsToRender}
       </TabsList>
     </View>
