@@ -84,8 +84,7 @@ export type PredictControllerState = {
   balances: { [providerId: string]: { [address: string]: number } };
 
   // Claim management
-  // TODO: change to be per-account basis
-  claimablePositions: PredictPosition[];
+  claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
   pendingDeposits: { [providerId: string]: { [address: string]: boolean } };
@@ -108,7 +107,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
-  claimablePositions: [],
+  claimablePositions: {},
   pendingDeposits: {},
   withdrawTransaction: null,
   isOnboarded: {},
@@ -146,7 +145,7 @@ const metadata: StateMetadata<PredictControllerState> = {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
-    usedInUi: false,
+    usedInUi: true,
   },
   pendingDeposits: {
     persist: false,
@@ -182,13 +181,13 @@ export type PredictControllerEvents = ControllerStateChangeEvent<
 export type PredictControllerActions =
   | ControllerGetStateAction<'PredictController', PredictControllerState>
   | {
-    type: 'PredictController:refreshEligibility';
-    handler: PredictController['refreshEligibility'];
-  }
+      type: 'PredictController:refreshEligibility';
+      handler: PredictController['refreshEligibility'];
+    }
   | {
-    type: 'PredictController:placeOrder';
-    handler: PredictController['placeOrder'];
-  };
+      type: 'PredictController:placeOrder';
+      handler: PredictController['placeOrder'];
+    };
 
 /**
  * External actions the PredictController can call
@@ -561,42 +560,29 @@ export class PredictController extends BaseController<
    */
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
     try {
-      const { address, providerId } = params;
+      const { address, providerId = 'polymarket' } = params;
       const { AccountsController } = Engine.context;
 
       const selectedAddress =
         address ?? AccountsController.getSelectedAccount().address;
 
-      const providerIds = providerId
-        ? [providerId]
-        : Array.from(this.providers.keys());
+      const provider = this.providers.get(providerId);
 
-      if (providerIds.some((id) => !this.providers.has(id))) {
+      if (!provider) {
         throw new Error('Provider not available');
       }
 
-      const allPositions = await Promise.all(
-        providerIds.map((id: string) =>
-          this.providers.get(id)?.getPositions({
-            ...params,
-            address: selectedAddress,
-          }),
-        ),
-      );
-
-      //TODO: We need to sort the positions after merging them
-      const positions = allPositions
-        .flat()
-        .filter(
-          (position): position is PredictPosition => position !== undefined,
-        );
+      const positions = await provider.getPositions({
+        ...params,
+        address: selectedAddress,
+      });
 
       // Only update state if the provider call succeeded
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
         if (params.claimable) {
-          state.claimablePositions = [...positions];
+          state.claimablePositions[selectedAddress] = [...positions];
         }
       });
 
@@ -1106,7 +1092,7 @@ export class PredictController extends BaseController<
       const signer = this.getSigner();
 
       // Get claimable positions from state
-      const claimablePositions = this.state.claimablePositions;
+      const claimablePositions = this.state.claimablePositions[signer.address];
 
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
@@ -1220,11 +1206,12 @@ export class PredictController extends BaseController<
   }: {
     providerId: string;
   }): void {
-    DevLogger.log('📊 [Analytics] PREDICT_CLAIM_CONFIRMED', {
-      providerId,
-    });
-    console.warn('confirmClaim, providerId:', providerId);
-    const claimedPositions = this.state.claimablePositions;
+    const provider = this.providers.get(providerId);
+    if (!provider) {
+      throw new Error('Provider not available');
+    }
+    const signer = this.getSigner();
+    const claimedPositions = this.state.claimablePositions[signer.address];
     if (!claimedPositions || claimedPositions.length === 0) {
       return;
     }
@@ -1235,7 +1222,7 @@ export class PredictController extends BaseController<
     });
 
     this.update((state) => {
-      state.claimablePositions = [];
+      state.claimablePositions[signer.address] = [];
     });
   }
 
@@ -1557,8 +1544,8 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
   }): Promise<
     | {
-      updateTransaction?: (transaction: TransactionMeta) => void;
-    }
+        updateTransaction?: (transaction: TransactionMeta) => void;
+      }
     | undefined
   > {
     if (!this.state.withdrawTransaction) {

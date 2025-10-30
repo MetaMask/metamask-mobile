@@ -129,12 +129,12 @@ export interface ClaimOrderResponse {
 }
 
 export interface GetPositionsParams {
-  address?: string;
   providerId?: string;
-  limit?: number;
-  offset?: number;
+  address?: string;
   claimable?: boolean;
   marketId?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface PrepareDepositParams {

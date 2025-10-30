@@ -15,25 +15,34 @@ const selectPredictClaimablePositions = createSelector(
   (predictControllerState) => predictControllerState?.claimablePositions || [],
 );
 
-const selectPredictWonPositions = createSelector(
-  selectPredictClaimablePositions,
-  (claimablePositions) =>
-    claimablePositions.filter(
-      (position) => position.status === PredictPositionStatus.WON,
-    ),
-);
+const selectPredictClaimablePositionsByAddress = ({
+  address,
+}: {
+  address: string;
+}) =>
+  createSelector(
+    selectPredictClaimablePositions,
+    (claimablePositions) => claimablePositions[address] || [],
+  );
 
-const selectPredictWinFiat = createSelector(
-  selectPredictWonPositions,
-  (winningPositions) =>
+const selectPredictWonPositions = ({ address }: { address: string }) =>
+  createSelector(
+    selectPredictClaimablePositionsByAddress({ address }),
+    (claimablePositions) =>
+      claimablePositions.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ),
+  );
+
+const selectPredictWinFiat = ({ address }: { address: string }) =>
+  createSelector(selectPredictWonPositions({ address }), (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.currentValue, 0),
-);
+  );
 
-const selectPredictWinPnl = createSelector(
-  selectPredictWonPositions,
-  (winningPositions) =>
+const selectPredictWinPnl = ({ address }: { address: string }) =>
+  createSelector(selectPredictWonPositions({ address }), (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
-);
+  );
 
 const selectPredictBalances = createSelector(
   selectPredictControllerState,
@@ -68,6 +77,7 @@ export {
   selectPredictControllerState,
   selectPredictPendingDeposits,
   selectPredictClaimablePositions,
+  selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
