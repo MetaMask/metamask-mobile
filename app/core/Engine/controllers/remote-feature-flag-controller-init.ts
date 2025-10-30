@@ -40,8 +40,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
         distribution: getFeatureFlagAppDistribution(),
       },
     }),
-    // fetchInterval: AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
-    fetchInterval: 1000,
+    fetchInterval: AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
   });
 
   if (disabled) {

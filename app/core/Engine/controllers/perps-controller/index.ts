@@ -5,6 +5,7 @@ import {
   getDefaultPerpsControllerState,
 } from '../../../../components/UI/Perps/controllers';
 import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
+import { getVersion } from 'react-native-device-info';
 
 /**
  * Initialize the PerpsController.
@@ -30,8 +31,7 @@ export const perpsControllerInit: ControllerInitFunction<
       fallbackEnabledDexs:
         process.env.MM_PERPS_HIP3_ENABLED_DEXS?.split(',').filter(Boolean) ||
         [],
-      // clientVersion: getVersion(),
-      clientVersion: '7.60.0',
+      clientVersion: getVersion(),
     },
   });
 
