@@ -172,11 +172,11 @@ class PerpsMarketDetailsView {
   }
 
   get positionTab() {
-    return Matchers.getElementByID(PerpsMarketTabsSelectorsIDs.POSITION_TAB);
+    return Matchers.getElementByTextContains('Position');
   }
 
   get ordersTab() {
-    return Matchers.getElementByID(PerpsMarketTabsSelectorsIDs.ORDERS_TAB);
+    return Matchers.getElementByTextContains('Orders');
   }
 
   get notificationTooltipTurnOnButton() {

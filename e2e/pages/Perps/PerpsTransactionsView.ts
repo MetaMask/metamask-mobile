@@ -85,6 +85,8 @@ class PerpsTransactionsView {
           (attributes as { label?: string; text?: string }).text ??
           '') as string;
       }
+      // CI may prepend a transient progress label (e.g., "In progress ")
+      label = label.replace(/^In progress\s+/i, '');
       console.log(
         `${PerpsTransactionSelectorsIDs.TRANSACTION_ITEM} ${i} label -> "${label}"`,
       );
