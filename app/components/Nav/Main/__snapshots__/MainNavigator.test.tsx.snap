@@ -219,6 +219,15 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="FeatureFlagOverride"
+    options={
+      {
+        "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="OptInStack"
   />
   <Screen

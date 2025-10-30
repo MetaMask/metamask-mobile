@@ -131,6 +131,9 @@ const Settings = () => {
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
   };
+  const onPressFeatureFlagOverride = () => {
+    navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
+  };
 
   const goToManagePermissions = () => {
     navigation.navigate('PermissionsManager');
@@ -324,6 +327,15 @@ const Settings = () => {
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
             onPress={onPressDeveloperOptions}
+          />
+        )}
+        {process.env.NODE_ENV !== 'production' && (
+          <SettingsDrawer
+            title={strings('app_settings.feature_flag_override.title')}
+            description={strings(
+              'app_settings.feature_flag_override.description',
+            )}
+            onPress={onPressFeatureFlagOverride}
           />
         )}
         <SettingsDrawer
