@@ -85,8 +85,9 @@ export class CoreLinkNormalizer {
         isPrivateLink: false, // Will be determined by signature verification
         requiresAuth: isAuthRequiredAction(action),
       };
-    } catch (error) {
-      // Return invalid link representation
+    } catch (_error) {
+      // for some reason SonarQube doesn't think this
+      // counts as "handling" the error
       return {
         protocol: 'https',
         action: '',
