@@ -1,17 +1,47 @@
 import React from 'react';
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-import renderWithProvider, {
-  renderScreen,
-} from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
+// Comprehensive module-level mocking to prevent cascading import failures
+jest.mock('../../../../../selectors/tokensController', () => ({
+  selectTokens: jest.fn(() => []),
+  selectAllTokens: jest.fn(() => ({})),
+  selectTransformedTokens: jest.fn(() => []),
+  getChainIdsToPoll: jest.fn(() => ['0x1']),
+}));
+
+jest.mock('../../../../../selectors/networkController', () => ({
+  selectEvmChainId: jest.fn(() => '0x1'),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
+  selectIsAllNetworks: jest.fn(() => false),
+  selectIsPopularNetwork: jest.fn(() => false),
+  selectChainId: jest.fn(() => '0x1'),
+}));
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectInternalAccountsById: jest.fn(() => ({})),
+  selectSelectedInternalAccountByScope: jest.fn(() => () => undefined),
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(
+    () => '0x1234567890123456789012345678901234567890',
+  ),
+  selectSelectedInternalAccount: jest.fn(() => ({
+    id: 'test-account-id',
+    address: '0x1234567890123456789012345678901234567890',
+    name: 'Test Account',
+  })),
+  selectSelectedInternalAccountFormattedAddress: jest.fn(
+    () => '0x1234567890123456789012345678901234567890',
+  ),
+}));
+
 jest.mock('../../../../../selectors/assets/balances', () => ({
-  // This selector is used directly with useSelector, so it must accept (state) and return a value
   selectBalanceBySelectedAccountGroup: jest.fn(() => null),
-  // New selector for wallet-level balance (for empty state logic)
   selectWalletBalanceForEmptyState: jest.fn(() => null),
-  // This one is a factory: selectBalanceChangeBySelectedAccountGroup(period) -> (state) => value
   selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
 }));
 
@@ -29,11 +59,30 @@ jest.mock(
   '../../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
     selectSelectedAccountGroupId: jest.fn(() => 'wallet-1/group-1'),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: jest.fn(() => []),
+    selectAccountTreeControllerState: jest.fn(() => ({})),
+    selectSelectedAccountGroupInternalAccounts: jest.fn(() => []),
   }),
 );
 
-jest.mock('../../../../../selectors/networkController', () => ({
-  selectEvmChainId: jest.fn(() => '0x1'), // Default to Ethereum mainnet
+// Mock entire problematic selector modules to prevent cascading failures
+jest.mock('../../../../../selectors/smartTransactionsController', () => ({
+  selectSmartTransactionsEnabled: jest.fn(() => false),
+  selectPendingSmartTransactionsForSelectedAccountGroup: jest.fn(() => []),
+}));
+
+jest.mock('../../../../../selectors/transactionController', () => ({
+  // Add any transaction-related selectors as empty mocks
+}));
+
+jest.mock('../../../../../selectors/gasFeeController', () => ({
+  // Add any gas fee selectors as empty mocks
+}));
+
+// Mock the entire bridge slice to prevent import-time failures
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  selectAllBridgeableNetworks: jest.fn(() => []),
+  selectNetworkConfigurations: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../constants/network', () => ({
@@ -69,9 +118,11 @@ const testState = {
 
 describe('AccountGroupBalance', () => {
   it('renders loader when balance is not ready', () => {
-    const { queryByTestId } = renderWithProvider(<AccountGroupBalance />, {
-      state: testState,
-    });
+    const { queryByTestId } = renderScreen(
+      AccountGroupBalance,
+      { name: 'AccountGroupBalance' },
+      { state: testState },
+    );
 
     expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
   });
@@ -95,11 +146,10 @@ describe('AccountGroupBalance', () => {
       userCurrency: 'usd',
     }));
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
-      {
-        state: testState,
-      },
+    const { getByTestId, queryByTestId } = renderScreen(
+      AccountGroupBalance,
+      { name: 'AccountGroupBalance' },
+      { state: testState },
     );
 
     // Should render balance text, not empty state
@@ -174,8 +224,9 @@ describe('AccountGroupBalance', () => {
     // Ensure the feature flag is disabled for this test
     (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(false);
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
+    const { getByTestId, queryByTestId } = renderScreen(
+      AccountGroupBalance,
+      { name: 'AccountGroupBalance' },
       { state: testState },
     );
 
@@ -214,8 +265,9 @@ describe('AccountGroupBalance', () => {
 
     (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(true);
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
+    const { getByTestId, queryByTestId } = renderScreen(
+      AccountGroupBalance,
+      { name: 'AccountGroupBalance' },
       { state: testState },
     );
 
@@ -291,8 +343,9 @@ describe('AccountGroupBalance', () => {
 
     (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(true);
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
+    const { getByTestId, queryByTestId } = renderScreen(
+      AccountGroupBalance,
+      { name: 'AccountGroupBalance' },
       { state: testState },
     );
 
@@ -337,8 +390,9 @@ describe('AccountGroupBalance', () => {
     // Enable the feature flag
     (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(true);
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
+    const { getByTestId, queryByTestId } = renderScreen(
+      AccountGroupBalance,
+      { name: 'AccountGroupBalance' },
       { state: testState },
     );
 
@@ -382,8 +436,9 @@ describe('AccountGroupBalance', () => {
     // Enable the feature flag
     (selectHomepageRedesignV1Enabled as jest.Mock).mockReturnValue(true);
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
+    const { getByTestId, queryByTestId } = renderScreen(
+      AccountGroupBalance,
+      { name: 'AccountGroupBalance' },
       { state: testState },
     );
 
