@@ -142,7 +142,7 @@ export const selectMultichainSelectedAccountCachedBalance =
     selectNonEvmCachedBalance,
     (isEvmSelected, accountBalanceByChainId, nonEvmCachedBalance) =>
       isEvmSelected
-        ? accountBalanceByChainId?.balance ?? '0x0'
+        ? (accountBalanceByChainId?.balance ?? '0x0')
         : nonEvmCachedBalance,
   );
 
