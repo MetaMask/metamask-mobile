@@ -274,9 +274,10 @@ export class CoreLinkNormalizer {
     const path = pathSegments.join('/');
     const query = urlObj.search;
 
-    return path
+    const output = path
       ? `${action}${path ? '/' + path : ''}${query}`
       : `${action}${query}`;
+    return output;
   }
 
   private static getActionSpecificParams(
