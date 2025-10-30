@@ -548,7 +548,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           nextCardBgOpacity={nextCardBgOpacity}
           onSlideClick={handleSlideClick}
           onTransitionToNextCard={() => handleTransitionToNextCard(slide.id)}
-          onTransitionToEmpty={() => handleTransitionToEmpty()}
         />
       );
     },

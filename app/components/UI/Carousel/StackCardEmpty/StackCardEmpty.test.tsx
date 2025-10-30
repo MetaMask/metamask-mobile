@@ -28,7 +28,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 jest.mock('../animations/animationTimings', () => ({
   ANIMATION_TIMINGS: {
-    EMPTY_STATE_IDLE_TIME: 500,
+    EMPTY_STATE_IDLE_TIME: 1800,
   },
 }));
 
@@ -94,7 +94,7 @@ describe('StackCardEmpty', () => {
     it('calls onTransitionToEmpty after idle timeout', () => {
       render(<StackCardEmpty {...defaultProps} />);
 
-      jest.advanceTimersByTime(500);
+      jest.advanceTimersByTime(1800);
 
       expect(defaultProps.onTransitionToEmpty).toHaveBeenCalledTimes(1);
     });
@@ -112,7 +112,7 @@ describe('StackCardEmpty', () => {
         <StackCardEmpty {...defaultProps} onTransitionToEmpty={undefined} />,
       );
 
-      jest.advanceTimersByTime(600);
+      jest.advanceTimersByTime(1900);
 
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
     });
@@ -122,7 +122,7 @@ describe('StackCardEmpty', () => {
 
       jest.advanceTimersByTime(250);
       unmount();
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(1600);
 
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
     });

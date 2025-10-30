@@ -68,7 +68,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
     };
   }, [emptyStateOpacity]);
 
-  // Auto-dismiss empty card after 1000ms when rendered
+  // Auto-dismiss empty card after 1800ms when rendered
   useEffect(() => {
     if (onTransitionToEmpty) {
       const timer = setTimeout(() => {
