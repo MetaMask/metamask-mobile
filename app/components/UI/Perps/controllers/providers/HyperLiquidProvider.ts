@@ -11,6 +11,7 @@ import {
   getBridgeInfo,
   getChainId,
   HIP3_ASSET_MARKET_TYPES,
+  HIP3_FEE_CONFIG,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   REFERRAL_CONFIG,
@@ -4373,14 +4374,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     if (isHip3Asset) {
       const originalRate = feeRate;
-      feeRate *= 2;
+      feeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
 
       DevLogger.log('HIP-3 Fee Multiplier Applied', {
         coin,
         dex,
         originalBaseRate: originalRate,
         hip3BaseRate: feeRate,
-        multiplier: 2,
+        multiplier: HIP3_FEE_CONFIG.FEE_MULTIPLIER,
       });
     }
 
@@ -4416,7 +4417,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
           // Apply HIP-3 multiplier to user-specific rates
           if (isHip3Asset) {
-            userFeeRate *= 2;
+            userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
           }
 
           feeRate = userFeeRate;
@@ -4540,7 +4541,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Apply HIP-3 multiplier to API-fetched rates
         if (isHip3Asset) {
-          userFeeRate *= 2;
+          userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
         }
 
         feeRate = userFeeRate;
