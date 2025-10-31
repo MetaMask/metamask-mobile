@@ -87,7 +87,7 @@ export function handleMetaMaskDeeplink({
           context: 'deeplink_scheme',
           originatorInfo,
           rpc: params.rpc,
-          hideReturnToApp: params.hr,
+          hideReturnToApp: ['1', 'true'].includes(params.hr),
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err) => {
