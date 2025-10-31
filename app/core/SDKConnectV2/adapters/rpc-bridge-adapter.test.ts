@@ -92,7 +92,7 @@ describe('RPCBridgeAdapter', () => {
       );
       expect(MockedBackgroundBridge).toHaveBeenCalledTimes(1);
       expect(backgroundBridgeInstance.onMessage).toHaveBeenCalledWith({
-        name: 'metamask-multichain-provider',
+        name: 'metamask-provider',
         data: request,
       });
     });
@@ -145,11 +145,11 @@ describe('RPCBridgeAdapter', () => {
 
       expect(backgroundBridgeInstance.onMessage).toHaveBeenCalledTimes(2);
       expect(backgroundBridgeInstance.onMessage).toHaveBeenCalledWith({
-        name: 'metamask-multichain-provider',
+        name: 'metamask-provider',
         data: request1,
       });
       expect(backgroundBridgeInstance.onMessage).toHaveBeenCalledWith({
-        name: 'metamask-multichain-provider',
+        name: 'metamask-provider',
         data: request2,
       });
     });
@@ -163,7 +163,7 @@ describe('RPCBridgeAdapter', () => {
       await new Promise(process.nextTick);
 
       expect(backgroundBridgeInstance.onMessage).toHaveBeenCalledWith({
-        name: 'metamask-multichain-provider',
+        name: 'metamask-provider',
         data: request,
       });
     });
