@@ -112,9 +112,8 @@ class ManualBackupStep3 extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
@@ -158,9 +157,8 @@ class ManualBackupStep3 extends PureComponent {
       return;
     }
     this.toggleHint();
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints = JSON.parse(currentSeedphraseHints);
     await StorageWrapper.setItem(
       SEED_PHRASE_HINTS,

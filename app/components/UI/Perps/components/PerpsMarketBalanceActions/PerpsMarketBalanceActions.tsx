@@ -317,8 +317,8 @@ const PerpsMarketBalanceActions: React.FC<
                   {isOnlyDepositInProgress && transactionAmountWei
                     ? convertPerpsAmountToUSD(transactionAmountWei)
                     : isOnlyWithdrawalInProgress && withdrawalAmount
-                    ? convertPerpsAmountToUSD(withdrawalAmount)
-                    : null}
+                      ? convertPerpsAmountToUSD(withdrawalAmount)
+                      : null}
                 </Text>
               )}
             </Box>
