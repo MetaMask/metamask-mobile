@@ -10,6 +10,7 @@ import {
   PredictActivitySell,
   PredictActivityEntry,
 } from '../../types';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -518,6 +519,32 @@ describe('polymarket utils', () => {
         'Network error',
       );
     });
+
+    it('throws PREVIEW_NO_ORDER_BOOK error when orderbook does not exist', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({
+          error: 'No orderbook exists for the requested token id',
+        }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
+      );
+    });
+
+    it('throws error message from response when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({ error: 'Custom error message' }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        'Custom error message',
+      );
+    });
   });
 
   describe('generateSalt', () => {
@@ -903,7 +930,8 @@ describe('polymarket utils', () => {
         status: 'open',
         recurrence: 'daily',
         endDate: undefined,
-        categories: [mockCategory],
+        category: mockCategory,
+        tags: [],
         outcomes: [
           {
             id: 'market-1',
@@ -2325,7 +2353,7 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no orderbook');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_BOOK');
     });
 
     it('throws error for BUY when no asks available', async () => {
@@ -2351,7 +2379,7 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (buy)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_BUY');
     });
 
     it('throws error for SELL when no bids available', async () => {
@@ -2377,7 +2405,7 @@ describe('polymarket utils', () => {
           side: Side.SELL,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (sell)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_SELL');
     });
 
     it('includes fees for BUY orders', async () => {

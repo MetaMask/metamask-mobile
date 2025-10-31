@@ -1777,12 +1777,13 @@
       "adding_your_funds": "Adding your funds",
       "add_funds": "Add funds",
       "withdraw": "Withdraw",
-      "estimated_processing_time": "Est. {{time}} seconds",
+      "in_progress_description": "They'll be available in a moment",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
       "error_title": "Something went wrong",
       "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "in_progress_link": "View"
     },
     "add_funds_sheet": {
       "title": "Add funds",
@@ -1862,6 +1863,15 @@
       "title": "Unable to connect to predictions",
       "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
       "retry": "Retry"
+    },
+    "error_messages": {
+      "place_order_failed": "Failed to place order",
+      "preview_failed": "Failed to preview order",
+      "preview_no_order_book": "No order book found",
+      "preview_no_order_match_buy": "No order match found for buy",
+      "preview_no_order_match_sell": "No order match found for sell",
+      "claim_failed": "Failed to claim",
+      "unknown_error": "An unknown error occurred"
     }
   },
   "receive": {
@@ -6074,6 +6084,7 @@
   },
   "card": {
     "card": "MetaMask Card",
+    "card_button_enabled_toast": "You can now sign up for MetaMask Card!",
     "add_funds_bottomsheet": {
       "deposit": "Fund with cash",
       "deposit_description": "Low-cost card or bank transfer",
@@ -6173,11 +6184,19 @@
         "state_placeholder": "Enter your state",
         "zip_code_placeholder": "Enter your ZIP code or postal code",
         "same_mailing_address_label": "Residential address is the same as mailing address",
-        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically",
-        "terms_and_conditions": "I agree to the Terms and Conditions of MetaMask Card",
-        "privacy_policy": "I agree to the data practices described in the Privacy Policy",
-        "right_to_information": "I have been informed of my right to access certain information as provided by law",
-        "account_opening_disclosure": "I agree to the terms, conditions, fees, and features outlined in the Account Opening Disclosure"
+        "electronic_consent_1": "I agree to the ",
+        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
+        "electronic_consent_3": " and to receive all communications electronically",
+        "terms_and_conditions_1": "I agree to the ",
+        "terms_and_conditions_2": "Terms and Conditions",
+        "terms_and_conditions_3": " of MetaMask Card",
+        "privacy_policy_1": "I agree to the data practices described in the ",
+        "privacy_policy_2": "Privacy Policy",
+        "right_to_information_1": "I have been informed of my ",
+        "right_to_information_2": "Right to Information",
+        "right_to_information_3": " as provided by law",
+        "account_opening_disclosure_1": "I agree to the terms, conditions, fees, and features outlined in the ",
+        "account_opening_disclosure_2": "Account Opening Disclosure"
       },
       "mailing_address": {
         "title": "Mailing address",
@@ -6565,11 +6584,11 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 points per $100",
+        "description": "10 points per $100 order value",
         "sheet": {
           "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+          "points": "10 points per $100 order value",
+          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments. Order value is based on the size with leverage.",
           "cta_label": "Start a trade"
         }
       },

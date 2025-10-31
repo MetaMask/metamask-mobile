@@ -18,12 +18,12 @@ export function getSnapKeyringBuilderMessenger(
   rootMessenger: RootMessenger,
 ): SnapKeyringBuilderMessenger {
   const messenger = new Messenger<
-    'SnapKeyringBuilder',
+    'SnapKeyring',
     MessengerActions<SnapKeyringBuilderMessenger>,
     MessengerEvents<SnapKeyringBuilderMessenger>,
     RootMessenger
   >({
-    namespace: 'SnapKeyringBuilder',
+    namespace: 'SnapKeyring',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
@@ -71,12 +71,12 @@ export function getSnapKeyringBuilderInitMessenger(
   rootMessenger: RootMessenger,
 ) {
   const messenger = new Messenger<
-    'SnapKeyringBuilderInit',
+    'SnapKeyringInit',
     AllowedInitializationActions,
     never,
     RootMessenger
   >({
-    namespace: 'SnapKeyringBuilderInit',
+    namespace: 'SnapKeyringInit',
     parent: rootMessenger,
   });
   rootMessenger.delegate({

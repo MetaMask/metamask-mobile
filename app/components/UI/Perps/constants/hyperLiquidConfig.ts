@@ -58,6 +58,10 @@ export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
 export const HYPERLIQUID_ASSET_ICONS_BASE_URL =
   'https://app.hyperliquid.xyz/coins/';
 
+// HIP-3 asset icons base URL (for assets with dex:symbol format)
+export const HIP3_ASSET_ICONS_BASE_URL =
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/';
+
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
   USDC: {
@@ -246,24 +250,36 @@ export const HIP3_ASSET_ID_CONFIG = {
 export const BASIS_POINTS_DIVISOR = 10000;
 
 /**
- * HIP-3 DEX market type classifications
- * Maps DEX identifiers to their asset category for badge display
+ * HIP-3 asset market type classifications (PRODUCTION DEFAULT)
+ *
+ * This is the production default configuration, can be overridden via feature flag
+ * (remoteFeatureFlags.perpsAssetMarketTypes) for dynamic control.
+ *
+ * Maps asset symbols (e.g., "xyz:TSLA") to their market type for badge display.
  *
  * Market type determines the badge shown in the UI:
- * - 'equity': STOCK badge (for stock markets like xyz)
- * - 'forex': FOREX badge (for forex markets)
- * - 'commodity': COMMODITY badge (for commodity markets)
- * - 'crypto': CRYPTO badge (for crypto-only DEXs)
- * - undefined: Falls back to 'experimental' badge for HIP-3 DEXs
+ * - 'equity': STOCK badge (stocks like TSLA, NVDA)
+ * - 'commodity': COMMODITY badge (commodities like GOLD)
+ * - 'forex': FOREX badge (forex pairs)
+ * - undefined: No badge for crypto or unmapped assets
  *
- * DEXs not listed here will show the 'experimental' badge by default.
- * Main DEX (no prefix) shows no badge.
+ * Format: 'dex:SYMBOL' → MarketType
+ * This allows flexible per-asset classification.
+ * Assets not listed here will have no market type (undefined).
  */
-export const HIP3_DEX_MARKET_TYPES = {
-  xyz: 'equity' as const, // xyz DEX offers stock trading
-  // Future DEX classifications:
-  // abc: 'forex' as const,
-  // commodity_dex: 'commodity' as const,
+export const HIP3_ASSET_MARKET_TYPES: Record<
+  string,
+  'equity' | 'commodity' | 'forex' | 'crypto'
+> = {
+  // xyz DEX - Equities
+  'xyz:TSLA': 'equity',
+  'xyz:NVDA': 'equity',
+  'xyz:XYZ100': 'equity',
+
+  // xyz DEX - Commodities
+  'xyz:GOLD': 'commodity',
+
+  // Future asset mappings as xyz adds more markets
 } as const;
 
 /**
