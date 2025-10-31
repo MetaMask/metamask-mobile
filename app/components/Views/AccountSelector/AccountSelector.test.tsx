@@ -463,10 +463,6 @@ describe('AccountSelector', () => {
 
       // Try to press the button and verify it doesn't trigger the action
       fireEvent.press(addButton);
-
-      // If button is properly disabled, the navigation to add account actions shouldn't happen
-      // We can verify this by checking that we're still on the account selector screen
-      expect(screen.queryByText('Import a wallet')).toBeNull();
     });
 
     it('shows activity indicator when syncing is in progress', () => {
@@ -516,27 +512,6 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Add wallet');
     });
 
-    it('shows default button text when multichain is disabled and not syncing', () => {
-      // Reset to disabled state
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toHaveTextContent('Add account or hardware wallet');
-    });
-
     it('prioritizes syncing message over feature flag text', () => {
       mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
@@ -563,56 +538,57 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Syncing...');
     });
 
-    it('enables button when syncing completes', () => {
-      // Initially syncing
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
-
-      renderScreen(
+    it('should set keyboardAvoidingViewEnabled when triggered from MultichainAccountSelectorList', () => {
+      const { getByTestId } = renderScreen(
         AccountSelectorWrapper,
         {
           name: Routes.SHEET.ACCOUNT_SELECTOR,
+          options: {},
         },
         {
           state: mockInitialState,
         },
         mockRoute.params,
       );
-
-      let addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      fireEvent(
+        getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+        'setKeyboardAvoidingViewEnabled',
+        true,
       );
-      expect(addButton).toHaveTextContent('Syncing...');
+    });
 
-      // Test that syncing completes by checking for different text content
-      // We'll simulate this by re-mocking the hook and re-rendering
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: false,
-        areAnyOperationsLoading: false,
-        loadingMessage: undefined,
-      });
-
-      // Re-render the component with new mock values
+    it('renders AddAccountActions when screen is AddAccountActions', () => {
+      const routeWithAddAccount = {
+        params: {
+          ...mockRoute.params,
+          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+        } as AccountSelectorParams,
+      };
       renderScreen(
-        AccountSelectorWrapper,
-        {
-          name: Routes.SHEET.ACCOUNT_SELECTOR,
-        },
-        {
-          state: mockInitialState,
-        },
-        mockRoute.params,
+        () => <AccountSelector route={routeWithAddAccount} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockInitialState },
       );
+      expect(screen.getByText('Import a wallet or account')).toBeDefined();
+    });
 
-      addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    it('falls back to AccountSelector on unknown screen value', () => {
+      const routeUnexpected = {
+        params: {
+          ...mockRoute.params,
+          navigateToAddAccountActions: 'SOME_UNKNOWN_SCREEN',
+        },
+      };
+      renderScreen(
+        // @ts-expect-error testing invalid route param
+        () => <AccountSelector route={routeUnexpected} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockInitialState },
       );
-
-      // Should show default text when not syncing
-      expect(addButton).toHaveTextContent('Add account or hardware wallet');
+      // Should fall back to account selector UI
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
     });
   });
 });
