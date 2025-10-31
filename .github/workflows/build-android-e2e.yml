@@ -111,7 +111,9 @@ jobs:
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           # Include Gradle properties in key to force rebuild when properties change
-          # Keep the `hashFiles` call for Gradle config in-sync with "Cache Gradle dependencies" step
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Cache Gradle dependencies"
+          # - "Cache build artifacts"
           key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-
@@ -126,7 +128,9 @@ jobs:
           path: |
             ~/_work/.gradle/caches
             ~/_work/.gradle/wrapper
-          # Keep the `hashFiles` call for Gradle config in-sync with "Check and restore cached APKs if Fingerprint is found" step
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Check and restore cached APKs if Fingerprint is found"
+          # - "Cache build artifacts"
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
@@ -239,7 +243,10 @@ jobs:
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Check and restore cached APKs if Fingerprint is found"
+          # - "Cache Gradle dependencies"
+          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Upload Android APK
         id: upload-apk
