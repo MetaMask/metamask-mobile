@@ -38,12 +38,7 @@ class LimitExceededError extends Error {
   }
 }
 
-interface UseDepositRoutingConfig {
-  screenLocation: string;
-}
-
-export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
-  const { screenLocation = '' } = config || {};
+export const useDepositRouting = () => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const {
@@ -54,12 +49,7 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
-
-  const { fetchUserDetails } = useDepositUser({
-    screenLocation,
-    shouldTrackFetch: true,
-    fetchOnMount: false,
-  });
+  const { fetchUserDetails } = useDepositUser();
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',
