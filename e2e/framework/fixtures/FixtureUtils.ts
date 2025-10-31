@@ -59,42 +59,12 @@ export function getLocalHost() {
   return isBrowserStack() ? 'bs-local.com' : 'localhost';
 }
 
-function transformToValidPort(defaultPort: number) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const currentTestName = (global as any).getCurrentTestName?.();
+function transformToValidPort(defaultPort: number, pid: number) {
+  // Improve uniqueness by using a simple transformation
+  const transformedPort = (pid % 100000) + defaultPort;
 
-  function hashStringToUInt32(input: string): number {
-    // FNV-1a 32-bit for stable, fast hashing
-    let hash = 0x811c9dc5;
-    for (let i = 0; i < input.length; i++) {
-      hash ^= input.charCodeAt(i);
-      hash = Math.imul(hash, 0x01000193);
-    }
-    return hash >>> 0;
-  }
-
-  // Combine test name (if present) with PID to add entropy for duplicated runs
-  const seed = currentTestName
-    ? `${String(currentTestName)}|pid:${String(process.pid)}`
-    : `pid:${String(process.pid)}`;
-
-  const nameHash = hashStringToUInt32(seed);
-
-  // Offset range chosen to minimize collisions while keeping within safe port limits
-  const offset = nameHash % 30000; // 0..29999
-  let candidate = defaultPort + offset;
-
-  // Normalize into valid port range 0..65535
-  candidate %= 65536;
-
-  // Avoid privileged/invalid ports (<1024). Map into 1024..65535 deterministically
-  if (candidate < 1024) {
-    // Shift remapped range to avoid direct collisions with existing 1024..2047 values.
-    // Maps 0..1023 -> 2048..3071 instead of 1024..2047.
-    candidate = 1024 + ((candidate + 1024) % (65536 - 1024));
-  }
-
-  return candidate;
+  // Ensure the transformed port falls within the valid port range (0-65535)
+  return transformedPort % 65536;
 }
 
 function getServerPort(defaultPort: number) {
@@ -103,7 +73,7 @@ function getServerPort(defaultPort: number) {
       // if running on browserstack, do not use dynamic ports
       return defaultPort;
     }
-    return transformToValidPort(defaultPort);
+    return transformToValidPort(defaultPort, process.pid);
   }
   return defaultPort;
 }

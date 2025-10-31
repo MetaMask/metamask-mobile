@@ -554,6 +554,7 @@
     "@types/react-native-vector-icons": "^6.4.13",
     "@types/react-native-video": "^5.0.14",
     "@types/redux-mock-store": "^1.0.3",
+    "@types/serve-handler": "^6.1.4",
     "@types/url-parse": "^1.4.8",
     "@types/valid-url": "^1.0.4",
     "@typescript-eslint/eslint-plugin": "^7.10.0",

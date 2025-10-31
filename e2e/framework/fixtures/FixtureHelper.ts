@@ -1,28 +1,20 @@
 /* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
-import FixtureServer, { ServerStatus } from './FixtureServer';
+import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
-
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
-import createStaticServer from '../../create-static-server';
 import {
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
-  getCommandQueueServerPort,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
-import {
-  startMockServer,
-  stopMockServer,
-  validateLiveRequests,
-} from '../../api-mocking/mock-server';
+import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
-import type http from 'http';
 import {
   LocalNodeConfig,
   LocalNodeOptionsInput,
@@ -40,36 +32,13 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
-import { type Mockttp } from 'mockttp';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer';
+import DappServer from '../DappServer';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
-
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
-const COMMAND_QUEUE_SERVER_URL = `http://localhost:${getCommandQueueServerPort()}/queue.json`;
-
-// checks if server has already been started
-const isFixtureServerStarted = async () => {
-  try {
-    const response = await axios.get(FIXTURE_SERVER_URL);
-    return response.status === 200;
-  } catch (error) {
-    return false;
-  }
-};
-
-// checks if command queue server has already been started
-const isCommandQueueServerStarted = async () => {
-  try {
-    const response = await axios.get(COMMAND_QUEUE_SERVER_URL);
-    return response.status === 200;
-  } catch (error) {
-    return false;
-  }
-};
 
 /**
  * Handles the dapps by starting the servers and listening to the ports.
@@ -78,7 +47,7 @@ const isCommandQueueServerStarted = async () => {
  */
 async function handleDapps(
   dapps: DappOptions[],
-  dappServer: http.Server[],
+  dappServer: DappServer[],
 ): Promise<void> {
   logger.debug(
     `Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
@@ -89,24 +58,34 @@ async function handleDapps(
     switch (dapp.dappVariant) {
       case DappVariants.TEST_DAPP:
         dappServer.push(
-          createStaticServer(
-            dapp.dappPath || TestDapps[DappVariants.TEST_DAPP].dappPath,
-          ),
+          new DappServer({
+            port: dappBasePort + i,
+            rootDirectory:
+              dapp.dappPath || TestDapps[DappVariants.TEST_DAPP].dappPath,
+            dappVariant: DappVariants.TEST_DAPP,
+          }),
         );
         break;
       case DappVariants.MULTICHAIN_TEST_DAPP:
         dappServer.push(
-          createStaticServer(
-            dapp.dappPath ||
+          new DappServer({
+            port: dappBasePort + i,
+            rootDirectory:
+              dapp.dappPath ||
               TestDapps[DappVariants.MULTICHAIN_TEST_DAPP].dappPath,
-          ),
+            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
+          }),
         );
         break;
       case DappVariants.SOLANA_TEST_DAPP:
         dappServer.push(
-          createStaticServer(
-            dapp.dappPath || TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
-          ),
+          new DappServer({
+            port: dappBasePort + i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
         );
         break;
       default:
@@ -114,11 +93,7 @@ async function handleDapps(
           `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,
         );
     }
-    dappServer[i].listen(`${dappBasePort + i}`);
-    await new Promise((resolve, reject) => {
-      dappServer[i].on('listening', resolve);
-      dappServer[i].on('error', reject);
-    });
+    await dappServer[i].start();
   }
 }
 
@@ -261,22 +236,13 @@ async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
  */
 async function handleDappCleanup(
   dapps: DappOptions[],
-  dappServer: http.Server[],
+  dappServer: DappServer[],
 ): Promise<void> {
   logger.debug(
     `Stopping dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
   );
   for (let i = 0; i < dapps.length; i++) {
-    if (dappServer[i]?.listening) {
-      await new Promise<void>((resolve, reject) => {
-        dappServer[i].close((error) => {
-          if (error) {
-            return reject(error);
-          }
-          return resolve();
-        });
-      });
-    }
+    await dappServer[i].stop();
   }
 }
 
@@ -299,9 +265,9 @@ export const loadFixture = async (
   await fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
   logger.debug(
-    `Loading fixture into fixture server: ${fixtureServer.fixtureServerUrl}`,
+    `Loading fixture into fixture server: ${fixtureServer.getServerUrl}`,
   );
-  const response = await axios.get(fixtureServer.fixtureServerUrl);
+  const response = await axios.get(fixtureServer.getServerUrl);
 
   // Throws if state is not properly loaded
   if (response.status !== 200) {
@@ -310,64 +276,20 @@ export const loadFixture = async (
   }
 };
 
-// Start the fixture server
-export const startFixtureServer = async (fixtureServer: FixtureServer) => {
-  if (fixtureServer.serverStatus === ServerStatus.STARTED) {
-    logger.debug('The fixture server has already been started');
-    return;
-  }
-
-  try {
-    await fixtureServer.start();
-    logger.debug('The fixture server is started');
-  } catch (err) {
-    logger.error('Fixture server error:', err);
-  }
-};
-
-// Stop the fixture server
-export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
-  if (fixtureServer.serverStatus === ServerStatus.STOPPED) {
-    logger.debug('The fixture server has already been stopped');
-    return;
-  }
-  await fixtureServer.stop();
-  logger.debug('The fixture server is stopped');
-};
-
-// Start the command queue server
-export const startCommandQueueServer = async (
-  commandQueueServer: CommandQueueServer,
-) => {
-  if (await isCommandQueueServerStarted()) {
-    logger.debug('The command queue server has already been started');
-    return;
-  }
-
-  await commandQueueServer.start();
-  logger.debug('The command queue server is started');
-};
-
-// Stop the command queue server
-export const stopCommandQueueServer = async (
-  commandQueueServer: CommandQueueServer,
-) => {
-  await commandQueueServer.stop();
-  logger.debug('The command queue server is stopped');
-};
-
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
-  mockServer: Mockttp;
+  mockServerInstance: MockServerE2E;
   mockServerPort: number;
 }> => {
   const mockServerPort = getMockServerPort();
-  const mockServer = await startMockServer(
-    DEFAULT_MOCKS,
-    mockServerPort,
-    testSpecificMock, // Applied First, so any test-specific mocks take precedence
-  );
+  const mockServerInstance = new MockServerE2E({
+    events: DEFAULT_MOCKS,
+    port: mockServerPort,
+    testSpecificMock,
+  });
+  mockServerInstance.start();
+  const mockServer = mockServerInstance.server;
 
   if (testSpecificMock) {
     logger.debug(
@@ -388,7 +310,7 @@ export const createMockAPIServer = async (
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
 
   return {
-    mockServer,
+    mockServerInstance,
     mockServerPort,
   };
 };
@@ -432,7 +354,7 @@ export async function withFixtures(
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  const { mockServer, mockServerPort } =
+  const { mockServerInstance, mockServerPort } =
     await createMockAPIServer(testSpecificMock);
 
   // Handle local nodes
@@ -442,7 +364,7 @@ export async function withFixtures(
     localNodes = await handleLocalNodes(localNodeOptions);
   }
 
-  const dappServer: http.Server[] = [];
+  const dappServer: DappServer[] = [];
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
 
@@ -473,14 +395,15 @@ export async function withFixtures(
     }
 
     // Start fixture server
-    await startFixtureServer(fixtureServer);
+    await fixtureServer.start();
+
     await loadFixture(fixtureServer, { fixture });
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
 
     if (useCommandQueueServer) {
-      await startCommandQueueServer(commandQueueServer);
+      await commandQueueServer.start();
     }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
@@ -501,7 +424,7 @@ export async function withFixtures(
 
     await testSuite({
       contractRegistry,
-      mockServer,
+      mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
     });
@@ -515,7 +438,7 @@ export async function withFixtures(
       try {
         // Pass the mockServer to the endTestfn if it exists as we may want
         // to capture events before cleanup
-        await endTestfn({ mockServer });
+        await endTestfn({ mockServer: mockServerInstance.server });
       } catch (endTestError) {
         logger.error('Error in endTestfn:', endTestError);
         cleanupErrors.push(endTestError as Error);
@@ -541,31 +464,38 @@ export async function withFixtures(
       }
     }
 
-    if (mockServer) {
+    // Clean up the mock server
+    if (mockServerInstance?.isStarted()) {
       try {
-        await stopMockServer(mockServer);
+        await mockServerInstance.stop();
       } catch (cleanupError) {
         logger.error('Error during mock server cleanup:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
       }
     }
 
-    try {
-      await stopFixtureServer(fixtureServer);
-    } catch (cleanupError) {
-      logger.error('Error during fixture server cleanup:', cleanupError);
-      cleanupErrors.push(cleanupError as Error);
+    // Clean up the fixture server
+    if (fixtureServer?.isStarted()) {
+      try {
+        await fixtureServer.stop();
+      } catch (cleanupError) {
+        logger.error('Error during fixture server cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
+    // Clean up the command queue server
     if (useCommandQueueServer) {
-      try {
-        await stopCommandQueueServer(commandQueueServer);
-      } catch (cleanupError) {
-        logger.error(
-          'Error during command queue server cleanup:',
-          cleanupError,
-        );
-        cleanupErrors.push(cleanupError as Error);
+      if (commandQueueServer?.isStarted()) {
+        try {
+          await commandQueueServer.stop();
+        } catch (cleanupError) {
+          logger.error(
+            'Error during command queue server cleanup:',
+            cleanupError,
+          );
+          cleanupErrors.push(cleanupError as Error);
+        }
       }
     }
 
@@ -582,7 +512,7 @@ export async function withFixtures(
 
     try {
       // Validate live requests
-      validateLiveRequests(mockServer);
+      mockServerInstance.validateLiveRequests();
     } catch (cleanupError) {
       logger.error('Error during live request validation:', cleanupError);
       cleanupErrors.push(cleanupError as Error);
