@@ -33,10 +33,11 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -110,6 +111,10 @@ const AssetOptions = (props: Props) => {
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
+  );
+  // Get the selected account for the current network (works for all non-EVM chains)
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
 
   // Memoize the provider config for the token explorer
@@ -256,7 +261,6 @@ const AssetOptions = (props: Props) => {
   };
 
   const removeToken = () => {
-    const { TokensController } = Engine.context;
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: 'AssetHideConfirmation',
       params: {
@@ -264,31 +268,45 @@ const AssetOptions = (props: Props) => {
           navigation.navigate('WalletView');
           InteractionManager.runAfterInteractions(async () => {
             try {
-              const { NetworkController } = Engine.context;
-
-              const chainIdToUse = isPortfolioViewEnabled()
-                ? networkId
-                : chainId;
-
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(
-                  chainIdToUse as Hex,
+              let tokenSymbol;
+              if (isNonEvmChainId(networkId)) {
+                const selectedNonEvmAccount = selectInternalAccountByScope(
+                  networkId as CaipChainId,
                 );
+                if (!selectedNonEvmAccount) {
+                  Logger.log('AssetDetails: No account ID found');
+                  return;
+                }
+                const { MultichainAssetsController } = Engine.context;
+                await MultichainAssetsController.ignoreAssets(
+                  [address as CaipAssetType],
+                  selectedNonEvmAccount.id,
+                );
+                tokenSymbol =
+                  MultichainAssetsController.state.assetsMetadata[
+                    address as CaipAssetType
+                  ]?.symbol || null;
+              } else {
+                const chainIdToUse = isPortfolioViewEnabled()
+                  ? networkId
+                  : chainId;
 
-              // Extract the actual token address from CAIP format only for non-EVM chains
-              const tokenAddress = isNonEvmChainId(networkId)
-                ? extractTokenAddressFromCaip(address)
-                : address;
-              await TokensController.ignoreTokens(
-                [tokenAddress],
-                networkClientId,
-              );
+                const { TokensController, NetworkController } = Engine.context;
+
+                const networkClientId =
+                  NetworkController.findNetworkClientIdByChainId(
+                    chainIdToUse as Hex,
+                  );
+                await TokensController.ignoreTokens([address], networkClientId);
+                tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
+              }
+
               NotificationManager.showSimpleNotification({
                 status: `simple_notification`,
                 duration: 5000,
                 title: strings('wallet.token_toast.token_hidden_title'),
                 description: strings('wallet.token_toast.token_hidden_desc', {
-                  tokenSymbol: tokenList[address.toLowerCase()]?.symbol || null,
+                  tokenSymbol,
                 }),
               });
               trackEvent(
@@ -342,7 +360,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
-      !isNonEvmChainId(networkId) &&
+      !isNonEvmChainId(networkId) && // TODO: Remove this once we have a way to add tokens on non-EVM chains
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,
