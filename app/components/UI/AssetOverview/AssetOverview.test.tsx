@@ -178,6 +178,11 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      addListener: jest.fn(() => jest.fn()), // Returns unsubscribe function
+    }),
+    useFocusEffect: jest.fn((callback) => {
+      // Call the callback immediately to simulate focus
+      callback();
     }),
   };
 });

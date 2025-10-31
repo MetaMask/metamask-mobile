@@ -82,6 +82,8 @@ import {
   selectPerpsEligibility,
   createSelectIsWatchlistMarket,
 } from '../../selectors/perpsController';
+import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
+import { getMarketHoursStatus } from '../../utils/marketHours';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
@@ -117,6 +119,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+  const [isMarketHoursModalVisible, setIsMarketHoursModalVisible] =
     useState(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -547,6 +551,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   }, []);
 
+  const handleMarketHoursInfoPress = useCallback(() => {
+    setIsMarketHoursModalVisible(true);
+  }, []);
+
+  // Determine market hours content key based on current status - recalculated on each render to stay current
+  const marketHoursContentKey = (() => {
+    const status = getMarketHoursStatus();
+    return status.isOpen ? 'market_hours' : 'after_hours_trading';
+  })();
+
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
     () => !isLoadingPosition && !hasZeroBalance,
@@ -665,6 +679,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
+          {/* Market Hours Banner */}
+          <PerpsMarketHoursBanner
+            marketType={market?.marketType}
+            onInfoPress={handleMarketHoursInfoPress}
+            testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
+          />
+
           {/* Market Tabs Section */}
           <View style={styles.tabsSection}>
             <PerpsMarketTabs
@@ -773,6 +794,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           contentKey={'geo_block'}
           testID={
             PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+          }
+        />
+      )}
+
+      {/* Market Hours Bottom Sheet */}
+      {isMarketHoursModalVisible && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={() => setIsMarketHoursModalVisible(false)}
+          contentKey={marketHoursContentKey}
+          testID={
+            PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BOTTOM_SHEET_TOOLTIP
           }
         />
       )}
