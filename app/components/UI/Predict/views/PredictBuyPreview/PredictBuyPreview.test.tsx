@@ -222,7 +222,8 @@ const mockMarket: PredictMarket = {
   status: 'open',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recurrence: 'none' as any,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: ['blockchain', 'cryptocurrency'],
   outcomes: [
     {
       id: 'outcome-456',
@@ -444,12 +445,22 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
+      // Enter valid amount (minimum $1)
+      act(() => {
+        capturedOnChange?.({
+          value: '50',
+          valueAsNumber: 50,
+        });
+      });
+
       // Press done to show place bet button
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
       const placeBetButton = getByText('Yes · 50¢');
-      fireEvent.press(placeBetButton);
+      await act(async () => {
+        fireEvent.press(placeBetButton);
+      });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         providerId: 'polymarket',
@@ -463,6 +474,7 @@ describe('PredictBuyPreview', () => {
           marketId: 'market-123',
           marketTitle: 'Will Bitcoin reach $150,000?',
           marketCategory: 'crypto',
+          marketTags: expect.any(Array),
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
           transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
           liquidity: 1000000,
@@ -912,6 +924,14 @@ describe('PredictBuyPreview', () => {
           state: initialState,
         },
       );
+
+      // Enter valid amount (minimum $1)
+      act(() => {
+        capturedOnChange?.({
+          value: '50',
+          valueAsNumber: 50,
+        });
+      });
 
       // Press done to show place bet button
       const doneButton = getByText('Done');
