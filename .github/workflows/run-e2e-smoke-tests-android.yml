@@ -170,6 +170,7 @@ jobs:
     if: ${{ !cancelled() }}
     needs:
       - trade-android-smoke
+      - perps-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke
       - accounts-android-smoke

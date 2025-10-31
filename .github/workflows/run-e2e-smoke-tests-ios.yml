@@ -171,6 +171,7 @@ jobs:
     needs:
       - confirmations-redesigned-ios-smoke
       - trade-ios-smoke
+      - perps-ios-smoke
       - wallet-platform-ios-smoke
       - identity-ios-smoke
       - accounts-ios-smoke
