@@ -11,6 +11,7 @@ import {
   calculateBalanceChangeForAllWallets,
   calculateBalanceChangeForAccountGroup,
   type BalanceChangePeriod,
+  MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
@@ -33,6 +34,9 @@ import {
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
+  selectMultichainAssetsAllIgnoredAssets,
+  selectMultichainAssets,
+  selectMultichainAssetsMetadata,
 } from '../multichain/multichain';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { selectAllTokenBalances } from '../tokenBalancesController';
@@ -98,6 +102,23 @@ const selectMultichainBalancesStateForBalances = createSelector(
     ({ balances }) as MultichainBalancesControllerState,
 );
 
+const selectMultichainAssetsControllerStateForBalances = createSelector(
+  [
+    selectMultichainAssets,
+    selectMultichainAssetsMetadata,
+    selectMultichainAssetsAllIgnoredAssets,
+  ],
+  (
+    accountsAssets,
+    assetsMetadata,
+    allIgnoredAssets,
+  ): MultichainAssetsControllerState => ({
+    accountsAssets,
+    assetsMetadata,
+    allIgnoredAssets,
+  }),
+);
+
 const selectMultichainAssetsRatesStateForBalances = createSelector(
   [selectMultichainAssetsRates],
   (conversionRates): MultichainAssetsRatesControllerState =>
@@ -131,6 +152,7 @@ export const selectBalanceForAllWallets = createSelector(
     selectTokenRatesStateForBalances,
     selectMultichainAssetsRatesStateForBalances,
     selectMultichainBalancesStateForBalances,
+    selectMultichainAssetsControllerStateForBalances,
     selectTokensStateForBalances,
     selectCurrencyRateStateForBalances,
     selectEnabledNetworksByNamespace,
@@ -142,6 +164,7 @@ export const selectBalanceForAllWallets = createSelector(
     tokenRatesState: TokenRatesControllerState,
     multichainRatesState: MultichainAssetsRatesControllerState,
     multichainBalancesState: MultichainBalancesControllerState,
+    multichainAssetsControllerState: MultichainAssetsControllerState,
     tokensState: TokensControllerState,
     currencyRateState: CurrencyRateState,
     enabledNetworkMap: Record<string, Record<string, boolean>> | undefined,
@@ -153,6 +176,7 @@ export const selectBalanceForAllWallets = createSelector(
       tokenRatesState,
       multichainRatesState,
       multichainBalancesState,
+      multichainAssetsControllerState,
       tokensState,
       currencyRateState,
       enabledNetworkMap,
@@ -167,6 +191,7 @@ export const selectBalanceForAllWalletsAndChains = createSelector(
     selectTokenRatesStateForBalances,
     selectMultichainAssetsRatesStateForBalances,
     selectMultichainBalancesStateForBalances,
+    selectMultichainAssetsControllerStateForBalances,
     selectTokensStateForBalances,
     selectCurrencyRateStateForBalances,
   ],
@@ -177,6 +202,7 @@ export const selectBalanceForAllWalletsAndChains = createSelector(
     tokenRatesState,
     multichainRatesState,
     multichainBalancesState,
+    multichainAssetsControllerState,
     tokensState,
     currencyRateState,
   ) =>
@@ -187,6 +213,7 @@ export const selectBalanceForAllWalletsAndChains = createSelector(
       tokenRatesState,
       multichainRatesState,
       multichainBalancesState,
+      multichainAssetsControllerState,
       tokensState,
       currencyRateState,
       undefined,
@@ -380,6 +407,7 @@ export const selectBalanceChangeForAllWallets = (period: BalanceChangePeriod) =>
       selectTokenRatesStateForBalances,
       selectMultichainAssetsRatesStateForBalances,
       selectMultichainBalancesStateForBalances,
+      selectMultichainAssetsControllerStateForBalances,
       selectTokensStateForBalances,
       selectCurrencyRateStateForBalances,
       selectEnabledNetworksByNamespace,
@@ -391,6 +419,7 @@ export const selectBalanceChangeForAllWallets = (period: BalanceChangePeriod) =>
       tokenRatesState,
       multichainRatesState,
       multichainBalancesState,
+      multichainAssetsControllerState,
       tokensState,
       currencyRateState,
       enabledNetworkMap,
@@ -402,6 +431,7 @@ export const selectBalanceChangeForAllWallets = (period: BalanceChangePeriod) =>
         tokenRatesState,
         multichainRatesState,
         multichainBalancesState,
+        multichainAssetsControllerState,
         tokensState,
         currencyRateState,
         enabledNetworkMap,
@@ -422,6 +452,7 @@ export const selectBalanceChangeByAccountGroup = (
       selectTokenRatesStateForBalances,
       selectMultichainAssetsRatesStateForBalances,
       selectMultichainBalancesStateForBalances,
+      selectMultichainAssetsControllerStateForBalances,
       selectTokensStateForBalances,
       selectCurrencyRateStateForBalances,
       selectEnabledNetworksByNamespace,
@@ -433,6 +464,7 @@ export const selectBalanceChangeByAccountGroup = (
       tokenRatesState,
       multichainRatesState,
       multichainBalancesState,
+      multichainAssetsControllerState,
       tokensState,
       currencyRateState,
       enabledNetworkMap,
@@ -444,6 +476,7 @@ export const selectBalanceChangeByAccountGroup = (
         tokenRatesState,
         multichainRatesState,
         multichainBalancesState,
+        multichainAssetsControllerState,
         tokensState,
         currencyRateState,
         enabledNetworkMap,
@@ -474,6 +507,7 @@ export const selectBalanceChangeBySelectedAccountGroup = (
       selectTokenRatesStateForBalances,
       selectMultichainAssetsRatesStateForBalances,
       selectMultichainBalancesStateForBalances,
+      selectMultichainAssetsControllerStateForBalances,
       selectTokensStateForBalances,
       selectCurrencyRateStateForBalances,
       selectEnabledNetworksByNamespace,
@@ -486,6 +520,7 @@ export const selectBalanceChangeBySelectedAccountGroup = (
       tokenRatesState,
       multichainRatesState,
       multichainBalancesState,
+      multichainAssetsControllerState,
       tokensState,
       currencyRateState,
       enabledNetworkMap,
@@ -500,6 +535,7 @@ export const selectBalanceChangeBySelectedAccountGroup = (
         tokenRatesState,
         multichainRatesState,
         multichainBalancesState,
+        multichainAssetsControllerState,
         tokensState,
         currencyRateState,
         enabledNetworkMap,

@@ -24,7 +24,8 @@ export const currencyRateControllerInit: ControllerInitFunction<
   CurrencyRateController,
   CurrencyRateMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState, getState } = request;
+  const { controllerMessenger, persistedState, getState, codefiTokenApiV2 } =
+    request;
 
   // Get the persisted state or use default state
   const persistedCurrencyRateState =
@@ -52,6 +53,7 @@ export const currencyRateControllerInit: ControllerInitFunction<
       currencyRates: normalizedCurrencyRates,
     },
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
+    tokenPricesService: codefiTokenApiV2,
   });
 
   return { controller };

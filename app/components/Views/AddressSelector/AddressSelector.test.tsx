@@ -132,6 +132,12 @@ describe('AccountSelector', () => {
 
     expect(networkNames).toEqual([
       MAINNET_DISPLAY_NAME,
+      // TODO: They need to be updated to the new names
+      'BSC Mainnet',
+      'Sei Mainnet',
+      'Polygon Mainnet',
+      'Optimism Mainnet',
+      'Arbitrum One',
       LINEA_MAINNET_DISPLAY_NAME,
       BASE_DISPLAY_NAME,
     ]);

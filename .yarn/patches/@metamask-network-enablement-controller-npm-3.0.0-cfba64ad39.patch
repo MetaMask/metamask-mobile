@@ -1,0 +1,16 @@
+diff --git a/dist/NetworkEnablementController.cjs b/dist/NetworkEnablementController.cjs
+index d4a40bea9e4ed3c28e347d96e309efe1ff889e81..fab280760de6bd5cdfdbecf01495c2d5616b2e16 100644
+--- a/dist/NetworkEnablementController.cjs
++++ b/dist/NetworkEnablementController.cjs
+@@ -25,6 +25,11 @@ const getDefaultNetworkEnablementControllerState = () => ({
+             [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.Mainnet]]: true,
+             [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.LineaMainnet]]: true,
+             [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.BaseMainnet]]: true,
++            [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.ArbitrumOne]]: true,
++            [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.BscMainnet]]: true,
++            [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.OptimismMainnet]]: true,
++            [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.PolygonMainnet]]: true,
++            [controller_utils_1.ChainId[controller_utils_1.BuiltInNetworkName.SeiMainnet]]: true,
+         },
+         [utils_1.KnownCaipNamespace.Solana]: {
+             [keyring_api_1.SolScope.Mainnet]: true,
