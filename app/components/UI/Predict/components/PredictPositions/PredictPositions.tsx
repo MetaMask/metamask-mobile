@@ -3,14 +3,11 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
-  useRef,
 } from 'react';
 
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { ActivityIndicator, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -64,21 +61,6 @@ const PredictPositions = forwardRef<
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const listRef = useRef<FlashListRef<PredictPositionType>>(null);
-
-  const estimatedPositionItemHeight = 92;
-
-  const activePositionsHeight = useMemo(() => {
-    if (!isHomepageRedesignV1Enabled) return undefined;
-    if (positions.length === 0) return undefined;
-    return positions.length * estimatedPositionItemHeight + 92;
-  }, [isHomepageRedesignV1Enabled, positions.length]);
-
-  const claimablePositionsHeight = useMemo(() => {
-    if (!isHomepageRedesignV1Enabled) return undefined;
-    if (claimablePositions.length === 0) return undefined;
-    return claimablePositions.length * estimatedPositionItemHeight + 48;
-  }, [isHomepageRedesignV1Enabled, claimablePositions.length]);
 
   // Notify parent of errors while keeping state isolated
   useEffect(() => {
@@ -171,72 +153,46 @@ const PredictPositions = forwardRef<
 
   return (
     <>
-      {activePositionsHeight ? (
-        <View style={{ height: activePositionsHeight }}>
-          <FlashList
-            testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}
-            ref={listRef}
-            data={positions}
-            renderItem={renderPosition}
-            scrollEnabled={false}
-            keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-            removeClippedSubviews
-            decelerationRate={0}
-            ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
-            ListFooterComponent={isTrulyEmpty ? null : <PredictNewButton />}
-          />
-        </View>
+      {isTrulyEmpty ? (
+        <PredictPositionEmpty />
       ) : (
-        <FlashList
-          testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}
-          ref={listRef}
-          data={positions}
-          renderItem={renderPosition}
-          scrollEnabled={false}
-          keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-          removeClippedSubviews
-          decelerationRate={0}
-          ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
-          ListFooterComponent={isTrulyEmpty ? null : <PredictNewButton />}
-        />
-      )}
-      {claimablePositions.length > 0 && (
         <>
-          <Box>
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-alternative mb-4"
-            >
-              {strings('predict.tab.resolved_markets')}
-            </Text>
-          </Box>
-          {claimablePositionsHeight ? (
-            <View style={{ height: claimablePositionsHeight }}>
-              <FlashList
+          <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
+            {positions.map((item) => (
+              <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
+                {renderPosition({ item })}
+              </React.Fragment>
+            ))}
+          </View>
+          <PredictNewButton />
+          {claimablePositions.length > 0 && (
+            <>
+              <Box>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-alternative mb-4"
+                >
+                  {strings('predict.tab.resolved_markets')}
+                </Text>
+              </Box>
+              <View
                 testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}
-                data={claimablePositions.sort(
-                  (a, b) =>
-                    new Date(b.endDate).getTime() -
-                    new Date(a.endDate).getTime(),
-                )}
-                renderItem={renderResolvedPosition}
-                scrollEnabled={false}
-                keyExtractor={(item) =>
-                  `${item.outcomeId}:${item.outcomeIndex}`
-                }
-              />
-            </View>
-          ) : (
-            <FlashList
-              testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}
-              data={claimablePositions.sort(
-                (a, b) =>
-                  new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
-              )}
-              renderItem={renderResolvedPosition}
-              scrollEnabled={false}
-              keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-            />
+              >
+                {claimablePositions
+                  .sort(
+                    (a, b) =>
+                      new Date(b.endDate).getTime() -
+                      new Date(a.endDate).getTime(),
+                  )
+                  .map((item) => (
+                    <React.Fragment
+                      key={`${item.outcomeId}:${item.outcomeIndex}`}
+                    >
+                      {renderResolvedPosition({ item })}
+                    </React.Fragment>
+                  ))}
+              </View>
+            </>
           )}
         </>
       )}
