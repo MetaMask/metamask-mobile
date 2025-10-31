@@ -6520,7 +6520,7 @@
     },
     "optout": {
       "title": "Permanenteng Tanggalin sa mga Reward",
-      "description": "Ang aksyong ito ay permanenteng mag-aalis ng iyong account ...",
+      "description": "Ang aksyong ito ay permanenteng mag-aalis ng iyong account mula sa programa ng mga Reward at buburahin ang lahat ng iyong puntos at progreso. Hindi mo na ito maibabalik.",
       "confirm": "Permanenteng Tanggalin",
       "modal": {
         "confirmation_title": "Sigurado ka ba?",
