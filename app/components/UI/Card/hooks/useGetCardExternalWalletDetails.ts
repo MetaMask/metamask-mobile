@@ -61,7 +61,7 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
       walletAddress: cardExternalWalletDetail.walletAddress,
       caipChainId: cardExternalWalletDetail.caipChainId,
       allowanceState,
-      totalAllowance,
+      totalAllowance: totalAllowance?.allowance,
       allowance: allowanceFloat.toString(),
       availableBalance: availableBalance.toString(),
       delegationContract: cardExternalWalletDetail.delegationContractAddress,

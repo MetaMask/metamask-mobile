@@ -1035,7 +1035,6 @@ export class CardSDK {
 
       // Skip if not a valid EVM address (e.g., Solana addresses)
       if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
-        Logger.log('getTotalAllowance: Skipping non-EVM address', tokenAddress);
         return {
           address: tokenAddress,
           allowance: undefined,
@@ -2139,15 +2138,6 @@ export class CardSDK {
         return SOLANA_MAINNET.chainId;
       default:
         return this.lineaChainId;
-    }
-  }
-
-  private mapAPINetworkToAssetChainId(network: CardNetwork): string {
-    switch (network) {
-      case 'solana':
-        return SOLANA_MAINNET.chainId;
-      default:
-        return LINEA_CHAIN_ID; // Asset only supports HEX chainId on EVM assets.
     }
   }
 

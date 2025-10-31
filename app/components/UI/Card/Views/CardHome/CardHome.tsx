@@ -171,12 +171,11 @@ const CardHome = () => {
         sheetRef={assetSelectionSheetRef}
         setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
         tokensWithAllowances={allTokens}
-        priorityToken={priorityToken}
         delegationSettings={delegationSettings}
         cardExternalWalletDetails={externalWalletDetailsData}
       />
     ),
-    [allTokens, priorityToken, delegationSettings, externalWalletDetailsData],
+    [allTokens, delegationSettings, externalWalletDetailsData],
   );
 
   // Track event only once after priorityToken and balances are loaded

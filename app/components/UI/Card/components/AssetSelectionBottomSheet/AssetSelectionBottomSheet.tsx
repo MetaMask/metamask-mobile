@@ -5,7 +5,7 @@ import { useTheme } from '../../../../../util/theme';
 import { useCardSDK } from '../../sdk';
 import {
   AllowanceState,
-  CardExternalWalletDetail,
+  CardExternalWalletDetailsResponse,
   CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../../types';
@@ -61,6 +61,7 @@ import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import Logger from '../../../../../util/Logger';
+import { useAssetBalances } from '../../hooks/useAssetBalances';
 
 export interface SupportedTokenWithChain {
   address: string;
@@ -79,17 +80,27 @@ export interface SupportedTokenWithChain {
   allowance?: string;
   delegationContract?: string;
   priority?: number; // Lower number = higher priority (1 is highest)
+  availableBalance?: string; // Available balance from API for enabled tokens
+  stagingTokenAddress?: string;
 }
 
 export interface AssetSelectionBottomSheetProps {
   setOpenAssetSelectionBottomSheet: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
-  priorityToken: CardTokenAllowance | null;
   tokensWithAllowances: CardTokenAllowance[];
   delegationSettings: DelegationSettingsResponse | null;
-  cardExternalWalletDetails?: {
-    walletDetails?: CardExternalWalletDetail[];
-  } | null;
+  cardExternalWalletDetails?:
+    | {
+        walletDetails: never[];
+        mappedWalletDetails: never[];
+        priorityWalletDetail: null;
+      }
+    | {
+        walletDetails: CardExternalWalletDetailsResponse;
+        mappedWalletDetails: CardTokenAllowance[];
+        priorityWalletDetail: CardTokenAllowance | undefined;
+      }
+    | null;
   navigateToCardHomeOnPriorityToken?: boolean;
   // Selection only mode: just call onTokenSelect and close, don't handle priority/navigation
   selectionOnly?: boolean;
@@ -101,7 +112,6 @@ export interface AssetSelectionBottomSheetProps {
 const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   setOpenAssetSelectionBottomSheet,
   sheetRef,
-  priorityToken,
   tokensWithAllowances,
   delegationSettings,
   cardExternalWalletDetails,
@@ -119,6 +129,12 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
+
+  // Get supported tokens from the card SDK to display in the bottom sheet.
+  const cardSupportedTokens = useMemo(
+    () => sdk?.getSupportedTokensByChainId(sdk?.lineaChainId) ?? [],
+    [sdk],
+  );
 
   // Helper function to check if two chain IDs represent the same Solana chain
   const isSameSolanaChain = useCallback(
@@ -189,12 +205,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           userToken.address || '',
         );
 
-        // Format balance
-        const balance = userToken.availableBalance
-          ? parseFloat(userToken.availableBalance).toFixed(6)
-          : '0';
-        const balanceFiat = `$${parseFloat(balance).toFixed(2)} USD`;
-
+        // Preserve original availableBalance for the hook to use
         return {
           address: userToken.address ?? '',
           symbol: userToken.symbol?.toUpperCase() ?? '',
@@ -204,14 +215,16 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           caipChainId: userToken.caipChainId,
           chainName,
           walletAddress: userToken.walletAddress,
-          balance,
-          balanceFiat,
+          balance: '0', // Will be updated from hook
+          balanceFiat: '$0.00', // Will be updated from hook
           image: iconUrl,
           logo: iconUrl,
           allowanceState: userToken.allowanceState,
           allowance: userToken.allowance || '0',
           delegationContract: userToken.delegationContract ?? undefined,
           priority: userToken.priority, // Preserve priority from API
+          availableBalance: userToken.availableBalance, // Preserve for hook
+          stagingTokenAddress: userToken.stagingTokenAddress ?? undefined, // Preserve staging address for delegation/allowance
         };
       })
       .filter((token) => {
@@ -393,10 +406,23 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             continue;
           }
 
-          const iconUrl = buildTokenIconUrl(caipChainId, tokenConfig.address);
+          // If the token is on development or staging, use the card supported token address.
+          // That's necessary because the token address is different in the staging/development environment.
+          const isNonProductionEnvironment =
+            network.environment !== 'production';
+          const cardSupportedToken = cardSupportedTokens.find(
+            (token) =>
+              tokenConfig.symbol.toUpperCase() === token.symbol?.toUpperCase(),
+          );
+          const tokenAddress =
+            isNonProductionEnvironment && cardSupportedToken?.address
+              ? cardSupportedToken?.address
+              : tokenConfig.address;
+
+          const iconUrl = buildTokenIconUrl(caipChainId, tokenAddress);
 
           supportedFromSettings.push({
-            address: tokenConfig.address,
+            address: tokenAddress,
             symbol: tokenConfig.symbol.toUpperCase(),
             name: tokenConfig.symbol.toUpperCase(),
             decimals: tokenConfig.decimals,
@@ -412,6 +438,9 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             allowance: '0',
             delegationContract: network.delegationContract,
             priority: undefined, // No priority for unsupported tokens
+            stagingTokenAddress: isNonProductionEnvironment
+              ? tokenConfig.address
+              : undefined,
           });
         }
       }
@@ -439,17 +468,21 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
       // If neither has priority (unauthenticated mode), check if either matches priorityToken
       const aIsPriority =
-        priorityToken &&
-        a.address?.toLowerCase() === priorityToken.address?.toLowerCase() &&
-        a.caipChainId === priorityToken.caipChainId &&
+        cardExternalWalletDetails?.priorityWalletDetail &&
+        a.address?.toLowerCase() ===
+          cardExternalWalletDetails.priorityWalletDetail.address?.toLowerCase() &&
+        a.caipChainId ===
+          cardExternalWalletDetails.priorityWalletDetail.caipChainId &&
         a.walletAddress?.toLowerCase() ===
-          priorityToken.walletAddress?.toLowerCase();
+          cardExternalWalletDetails.priorityWalletDetail.walletAddress?.toLowerCase();
       const bIsPriority =
-        priorityToken &&
-        b.address?.toLowerCase() === priorityToken.address?.toLowerCase() &&
-        b.caipChainId === priorityToken.caipChainId &&
+        cardExternalWalletDetails?.priorityWalletDetail &&
+        b.address?.toLowerCase() ===
+          cardExternalWalletDetails.priorityWalletDetail.address?.toLowerCase() &&
+        b.caipChainId ===
+          cardExternalWalletDetails.priorityWalletDetail.caipChainId &&
         b.walletAddress?.toLowerCase() ===
-          priorityToken.walletAddress?.toLowerCase();
+          cardExternalWalletDetails.priorityWalletDetail.walletAddress?.toLowerCase();
 
       if (aIsPriority) return -1;
       if (bIsPriority) return 1;
@@ -462,13 +495,37 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     });
   }, [
     tokensWithAllowances,
-    priorityToken,
+    cardExternalWalletDetails,
     sdk,
     hideSolanaAssets,
     delegationSettings,
     isSameSolanaChain,
     isSameLineaChain,
+    cardSupportedTokens,
   ]);
+
+  // Get balances for all tokens (including those from delegation settings)
+  const assetBalances = useAssetBalances(supportedTokens);
+
+  // Merge balance data into supportedTokens
+  const supportedTokensWithBalances = useMemo(
+    () =>
+      supportedTokens.map((token) => {
+        const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+        const balanceInfo = assetBalances.get(tokenKey);
+
+        if (balanceInfo) {
+          return {
+            ...token,
+            balance: balanceInfo.rawTokenBalance?.toFixed(6) || '0',
+            balanceFiat: balanceInfo.balanceFiat || '$0.00',
+          };
+        }
+
+        return token;
+      }),
+    [supportedTokens, assetBalances],
+  );
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -610,12 +667,14 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
   const isPriorityToken = useCallback(
     (token: SupportedTokenWithChain) =>
-      priorityToken &&
-      priorityToken.address?.toLowerCase() === token.address?.toLowerCase() &&
-      priorityToken.caipChainId === token.caipChainId &&
-      priorityToken.walletAddress?.toLowerCase() ===
+      cardExternalWalletDetails?.priorityWalletDetail &&
+      cardExternalWalletDetails.priorityWalletDetail.address?.toLowerCase() ===
+        token.address?.toLowerCase() &&
+      cardExternalWalletDetails.priorityWalletDetail.caipChainId ===
+        token.caipChainId &&
+      cardExternalWalletDetails.priorityWalletDetail.walletAddress?.toLowerCase() ===
         token.walletAddress?.toLowerCase(),
-    [priorityToken],
+    [cardExternalWalletDetails],
   );
 
   const handleTokenPress = useCallback(
@@ -693,10 +752,10 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             color={theme.colors.primary.default}
           />
         </View>
-      ) : supportedTokens.length > 0 ? (
+      ) : supportedTokensWithBalances.length > 0 ? (
         <FlatList
           scrollEnabled
-          data={supportedTokens}
+          data={supportedTokensWithBalances}
           ListFooterComponent={
             hideSolanaAssets ? (
               <ListItemSelect onPress={navigateToCardPage}>
