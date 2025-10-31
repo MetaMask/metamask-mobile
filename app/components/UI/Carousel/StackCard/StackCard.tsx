@@ -35,21 +35,8 @@ export const StackCard: React.FC<StackCardProps> = ({
   nextCardBgOpacity,
   onSlideClick,
   onTransitionToNextCard,
-  onTransitionToEmpty,
 }) => {
   const tw = useTailwind();
-  const isEmptyCard = slide.variableName === 'empty';
-
-  // Auto-dismiss empty card after 1000ms when it becomes current
-  React.useEffect(() => {
-    if (isCurrentCard && isEmptyCard) {
-      const timer = setTimeout(() => {
-        onTransitionToEmpty?.();
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isCurrentCard, isEmptyCard, onTransitionToEmpty]);
 
   return (
     <Animated.View
@@ -103,7 +90,7 @@ export const StackCard: React.FC<StackCardProps> = ({
               )}
             />
           )}
-          {isEmptyCard ? (
+          {slide.variableName === 'empty' ? (
             // Empty card layout - centered text only
             <Box twClassName="w-full h-full flex justify-center items-center">
               <Text

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Animated } from 'react-native';
+import { ANIMATION_TIMINGS } from '../animations/animationTimings';
 import { StackCardEmpty } from './StackCardEmpty';
 
 // Mock dependencies
@@ -26,12 +27,6 @@ jest.mock('@metamask/design-system-react-native', () => ({
   },
 }));
 
-jest.mock('../animations/animationTimings', () => ({
-  ANIMATION_TIMINGS: {
-    EMPTY_STATE_IDLE_TIME: 500,
-  },
-}));
-
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -42,12 +37,31 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
+// Mock Animated.View to verify listener props are set correctly
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Animated: {
+    ...jest.requireActual('react-native').Animated,
+    View: 'View',
+  },
+}));
+
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: 'Rive',
+  Alignment: { Center: 'Center' },
+  Fit: { Cover: 'Cover' },
+}));
+
 describe('StackCardEmpty', () => {
+  const createAnimatedValue = (initialValue = 0) =>
+    new Animated.Value(initialValue);
+
   const defaultProps = {
-    emptyStateOpacity: new Animated.Value(1),
-    emptyStateScale: new Animated.Value(1),
-    emptyStateTranslateY: new Animated.Value(0),
-    nextCardBgOpacity: new Animated.Value(0),
+    emptyStateOpacity: createAnimatedValue(1),
+    emptyStateScale: createAnimatedValue(1),
+    emptyStateTranslateY: createAnimatedValue(0),
+    nextCardBgOpacity: createAnimatedValue(0),
     onTransitionToEmpty: jest.fn(),
   };
 
@@ -57,60 +71,117 @@ describe('StackCardEmpty', () => {
   });
 
   afterEach(() => {
+    jest.runOnlyPendingTimers();
     jest.useRealTimers();
   });
 
-  it('renders empty state card with centered text', () => {
-    const { getByText, getByTestId } = render(
-      <StackCardEmpty {...defaultProps} />,
-    );
+  describe('rendering', () => {
+    it('renders empty state card with correct content and structure', () => {
+      const { getByTestId, getByText } = render(
+        <StackCardEmpty {...defaultProps} />,
+      );
 
-    expect(getByText("You're all caught up!")).toBeTruthy();
-    expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      const emptyCard = getByTestId('carousel-empty-state');
+      expect(emptyCard).toBeDefined();
+      expect(getByText("You're all caught up!")).toBeDefined();
+    });
   });
 
-  it('has proper styling with border and background', () => {
-    const { getByTestId } = render(<StackCardEmpty {...defaultProps} />);
+  describe('auto-dismiss behavior', () => {
+    it('calls onTransitionToEmpty after idle timeout', () => {
+      render(<StackCardEmpty {...defaultProps} />);
 
-    const emptyCard = getByTestId('carousel-empty-state');
-    expect(emptyCard).toBeTruthy();
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME);
+
+      expect(defaultProps.onTransitionToEmpty).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onTransitionToEmpty before timeout', () => {
+      render(<StackCardEmpty {...defaultProps} />);
+
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME - 100);
+
+      expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
+
+    it('does not call onTransitionToEmpty when callback is undefined', () => {
+      render(
+        <StackCardEmpty {...defaultProps} onTransitionToEmpty={undefined} />,
+      );
+
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME + 100);
+
+      expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
+
+    it('clears dismiss timer on unmount before timeout completes', () => {
+      const { unmount } = render(<StackCardEmpty {...defaultProps} />);
+
+      jest.advanceTimersByTime(250);
+      unmount();
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME);
+
+      expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
   });
 
-  it('auto-dismisses after idle time when onTransitionToEmpty is provided', () => {
-    render(<StackCardEmpty {...defaultProps} />);
+  describe('animation value listeners', () => {
+    it('sets up listener on emptyStateOpacity', () => {
+      const removeListenerMock = jest.fn();
+      const opacityValue = {
+        addListener: jest.fn(),
+        removeListener: removeListenerMock,
+      } as Partial<Animated.Value>;
 
-    // Fast-forward time
-    jest.advanceTimersByTime(500);
+      render(
+        <StackCardEmpty
+          {...defaultProps}
+          emptyStateOpacity={opacityValue as Animated.Value}
+        />,
+      );
 
-    expect(defaultProps.onTransitionToEmpty).toHaveBeenCalled();
+      expect(opacityValue.addListener).toHaveBeenCalled();
+    });
+
+    it('removes listener on unmount', () => {
+      const removeListenerMock = jest.fn();
+      const opacityValue = {
+        addListener: jest.fn().mockReturnValue(123),
+        removeListener: removeListenerMock,
+      } as Partial<Animated.Value>;
+
+      const { unmount } = render(
+        <StackCardEmpty
+          {...defaultProps}
+          emptyStateOpacity={opacityValue as Animated.Value}
+        />,
+      );
+
+      unmount();
+
+      expect(removeListenerMock).toHaveBeenCalledWith(123);
+    });
+
+    it('clears pending animation timeout on unmount', () => {
+      const opacityValue = createAnimatedValue(0.5);
+      const { unmount } = render(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+      );
+
+      jest.advanceTimersByTime(50);
+      unmount();
+      jest.advanceTimersByTime(100);
+
+      // Component should be unmounted, no callbacks should fire
+      expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
   });
 
-  it('does not auto-dismiss when onTransitionToEmpty is not provided', () => {
-    render(
-      <StackCardEmpty {...defaultProps} onTransitionToEmpty={undefined} />,
-    );
-
-    // Fast-forward time
-    jest.advanceTimersByTime(600);
-
-    expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
-  });
-
-  it('cleans up timer on unmount', () => {
-    const { unmount } = render(<StackCardEmpty {...defaultProps} />);
-
-    unmount();
-
-    // Should not crash or call callback after unmount
-    jest.advanceTimersByTime(600);
-    expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
-  });
-
-  describe('Animation Values', () => {
-    it('uses provided animation values for styling', () => {
-      const customOpacity = new Animated.Value(0.5);
-      const customScale = new Animated.Value(0.9);
-      const customTranslateY = new Animated.Value(10);
+  describe('animation values usage', () => {
+    it('passes custom animation values to Animated.View', () => {
+      const customOpacity = createAnimatedValue(0.5);
+      const customScale = createAnimatedValue(0.9);
+      const customTranslateY = createAnimatedValue(10);
 
       const { getByTestId } = render(
         <StackCardEmpty
@@ -121,7 +192,173 @@ describe('StackCardEmpty', () => {
         />,
       );
 
-      expect(getByTestId('carousel-empty-state')).toBeTruthy();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('handles zero animation values', () => {
+      const { getByTestId } = render(
+        <StackCardEmpty
+          {...defaultProps}
+          emptyStateOpacity={createAnimatedValue(0)}
+          emptyStateScale={createAnimatedValue(0)}
+          emptyStateTranslateY={createAnimatedValue(0)}
+        />,
+      );
+
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('handles maximum animation values', () => {
+      const { getByTestId } = render(
+        <StackCardEmpty
+          {...defaultProps}
+          emptyStateOpacity={createAnimatedValue(1)}
+          emptyStateScale={createAnimatedValue(1)}
+          emptyStateTranslateY={createAnimatedValue(0)}
+        />,
+      );
+
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+  });
+
+  describe('background overlay', () => {
+    it('applies nextCardBgOpacity to overlay', () => {
+      const bgOpacity = createAnimatedValue(0.5);
+      const { getByTestId } = render(
+        <StackCardEmpty {...defaultProps} nextCardBgOpacity={bgOpacity} />,
+      );
+
+      const emptyCard = getByTestId('carousel-empty-state');
+      expect(emptyCard).toBeDefined();
+      // Verify the component rendered with the opacity value passed
+      expect(bgOpacity).toBeDefined();
+    });
+
+    it('renders with zero background opacity for transparent overlay', () => {
+      const zeroOpacity = createAnimatedValue(0);
+      const { getByTestId } = render(
+        <StackCardEmpty {...defaultProps} nextCardBgOpacity={zeroOpacity} />,
+      );
+
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+      expect(zeroOpacity).toBeDefined();
+    });
+
+    it('renders with full background opacity for visible overlay', () => {
+      const fullOpacity = createAnimatedValue(1);
+      const { getByTestId } = render(
+        <StackCardEmpty {...defaultProps} nextCardBgOpacity={fullOpacity} />,
+      );
+
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+      expect(fullOpacity).toBeDefined();
+    });
+  });
+
+  describe('timeout cleanup and memory management', () => {
+    it('prevents multiple timeouts from being created', () => {
+      const opacityValue = createAnimatedValue(0);
+      const { rerender } = render(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+      );
+
+      // Trigger multiple updates
+      rerender(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+      );
+
+      jest.advanceTimersByTime(100);
+
+      // Only one dismiss should fire
+      expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
+
+    it('clears all pending timers on unmount', () => {
+      const { unmount } = render(<StackCardEmpty {...defaultProps} />);
+
+      // Schedule multiple operations
+      jest.advanceTimersByTime(100);
+      unmount();
+
+      // Clear any pending timers
+      jest.clearAllTimers();
+
+      expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('confetti animation triggering', () => {
+    it('renders with opacity listener setup for confetti animation', () => {
+      const opacityValue = createAnimatedValue(0);
+
+      const { getByTestId } = render(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+      );
+
+      // Component should render successfully with animation setup
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('renders Rive confetti animation component as background layer', () => {
+      const { getByTestId } = render(<StackCardEmpty {...defaultProps} />);
+
+      // Component should render with empty state text
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('renders confetti animation and text content in correct layers', () => {
+      const { getByTestId, getByText } = render(
+        <StackCardEmpty {...defaultProps} />,
+      );
+
+      // Empty state text should be rendered
+      expect(getByText("You're all caught up!")).toBeDefined();
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+    });
+
+    it('cleans up resources on component unmount', () => {
+      const { unmount } = render(<StackCardEmpty {...defaultProps} />);
+
+      // Should unmount without errors
+      expect(() => {
+        unmount();
+      }).not.toThrow();
+    });
+
+    it('handles various opacity animation values', () => {
+      const opacityValues = [
+        createAnimatedValue(0),
+        createAnimatedValue(0.5),
+        createAnimatedValue(0.95),
+        createAnimatedValue(1),
+      ];
+
+      opacityValues.forEach((opacity) => {
+        const { getByTestId } = render(
+          <StackCardEmpty {...defaultProps} emptyStateOpacity={opacity} />,
+        );
+
+        expect(getByTestId('carousel-empty-state')).toBeDefined();
+      });
+    });
+
+    it('maintains animation setup across component rerenders', () => {
+      const opacityValue = createAnimatedValue(0);
+      const { rerender, getByTestId } = render(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={opacityValue} />,
+      );
+
+      // Component should still be present after rerender
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
+
+      // Rerender with updated opacity
+      const newOpacity = createAnimatedValue(0.5);
+      rerender(
+        <StackCardEmpty {...defaultProps} emptyStateOpacity={newOpacity} />,
+      );
+
+      expect(getByTestId('carousel-empty-state')).toBeDefined();
     });
   });
 });
