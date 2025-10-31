@@ -84,7 +84,7 @@ export function usePerpsDataMonitor(
   const [initialOrderCount, setInitialOrderCount] = useState<number>(0);
 
   // Get orders data (real-time WebSocket)
-  const orders = usePerpsLiveOrders({});
+  const { orders } = usePerpsLiveOrders({});
   const isLoadingOrders = !orders; // Simple loading check - orders is undefined until loaded
 
   // Get all positions data (real-time WebSocket)

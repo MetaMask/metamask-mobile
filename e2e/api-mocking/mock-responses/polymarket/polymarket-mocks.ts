@@ -102,6 +102,19 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket geoblock endpoint
+ * This simulates the user being in a geo-restricted region
+ */
+export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: 'https://polymarket.com/api/geoblock',
+    responseCode: 200,
+    response: { blocked: true },
+  });
+};
+
+/**
  * Mock for Polymarket event details API
  * Returns event details based on the requested event ID
  */

@@ -227,9 +227,8 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         balances: {},
-        claimTransaction: null,
         claimablePositions: [],
-        depositTransaction: null,
+        pendingDeposits: {},
         withdrawTransaction: null,
         isOnboarded: {},
       },
@@ -252,7 +251,16 @@ describe('Engine', () => {
         withdrawalProgress: {
           progress: 0,
           lastUpdated: 0,
-          activeWithdrawalId: undefined,
+          activeWithdrawalId: null,
+        },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
         },
       },
     };

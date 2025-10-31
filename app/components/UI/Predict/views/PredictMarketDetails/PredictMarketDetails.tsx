@@ -90,6 +90,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
   const [activeTab, setActiveTab] = useState<number | null>(null);
+  const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
 
   const { marketId, entryPoint } = route.params || {};
@@ -308,6 +309,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handleTabPress = (tabIndex: number) => {
     if (!tabsReady) return;
+    setUserSelectedTab(true);
     setActiveTab(tabIndex);
   };
 
@@ -320,7 +322,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       Engine.context.PredictController.trackMarketDetailsOpened({
         marketId: market.id,
         marketTitle: market.title,
-        marketCategory: market.categories?.[0],
+        marketCategory: market.category,
+        marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
       });
@@ -347,14 +350,33 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   useEffect(() => {
     if (!tabsReady) return;
+
+    const outcomesIndex = tabs.findIndex((t) => t.key === 'outcomes');
+
+    // for closed markets, display 'outcomes' by default until the user selects a tab
+    if (market?.status === PredictMarketStatus.CLOSED) {
+      if (!userSelectedTab) {
+        setActiveTab(outcomesIndex >= 0 ? outcomesIndex : 0);
+        return;
+      }
+      // if user selected but current index is out of bounds after tabs change
+      if (activeTab !== null && activeTab >= tabs.length) {
+        setActiveTab(outcomesIndex >= 0 ? outcomesIndex : 0);
+      }
+      return;
+    }
+
+    // non-closed markets: initialize to first tab if not set yet
     if (activeTab === null) {
       setActiveTab(0);
       return;
     }
+
+    // Guard against out-of-bounds when tabs change
     if (activeTab >= tabs.length) {
       setActiveTab(0);
     }
-  }, [tabsReady, tabs.length, activeTab]);
+  }, [tabsReady, tabs, activeTab, market?.status, userSelectedTab]);
 
   // Track market details opened on initial load and tab changes
   useEffect(() => {
@@ -368,7 +390,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderCustomTabBar = () => (
     <Box
-      twClassName="bg-default border-b border-muted"
+      twClassName="bg-default border-b border-muted pt-4"
       testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
     >
       <Box
@@ -382,16 +404,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onPress={() => handleTabPress(index)}
             style={tw.style(
               'w-1/3 py-3',
-              activeTab === index ? 'border-b-2 border-primary-default' : '',
+              activeTab === index ? 'border-b-2 border-default' : '',
             )}
             testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
           >
             <Text
               variant={TextVariant.BodyMDMedium}
               color={
-                activeTab === index ? TextColor.Primary : TextColor.Alternative
+                activeTab === index ? TextColor.Default : TextColor.Alternative
               }
-              style={tw.style('text-center font-bold')}
+              style={tw.style('text-center')}
             >
               {tab.label}
             </Text>
@@ -403,7 +425,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderHeader = () => (
     <Box
-      twClassName="flex-row items-center gap-3"
+      twClassName="flex-row items-start gap-3"
       style={{ paddingTop: insets.top + 12 }}
     >
       <Pressable
@@ -543,7 +565,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 my-2"
+        twClassName="gap-3 mb-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}

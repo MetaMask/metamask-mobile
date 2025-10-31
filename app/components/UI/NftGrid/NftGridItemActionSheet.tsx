@@ -4,14 +4,9 @@ import { Alert } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
-import { getDecimalChainId } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectSelectedNetworkClientId,
-} from '../../../selectors/networkController';
+import { selectSelectedNetworkClientId } from '../../../selectors/networkController';
 
 const NftGridItemActionSheet = ({
   actionSheetRef,
@@ -20,9 +15,7 @@ const NftGridItemActionSheet = ({
   actionSheetRef: React.RefObject<typeof ActionSheet>;
   longPressedCollectible: Nft | null;
 }) => {
-  const chainId = useSelector(selectChainId);
   const { themeAppearance } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const removeNft = () => {
@@ -36,13 +29,6 @@ const NftGridItemActionSheet = ({
       selectedNetworkClientId,
     );
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),

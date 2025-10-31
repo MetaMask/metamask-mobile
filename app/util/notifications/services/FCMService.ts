@@ -33,7 +33,7 @@ function analyticsTrackPushClickEvent(
   try {
     if (remoteMessage?.data?.data) {
       const rawData = JSON.parse(remoteMessage.data.data?.toString() ?? null);
-      const kind = rawData?.kind ?? rawData?.data?.kind;
+      const kind = rawData?.kind ?? rawData?.data?.kind ?? rawData.type;
 
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
@@ -41,7 +41,7 @@ function analyticsTrackPushClickEvent(
         )
           .addProperties({
             deeplink: remoteMessage?.data?.deeplink?.toString(),
-            kind,
+            notification_type: kind,
             data: rawData,
           })
           .build(),
