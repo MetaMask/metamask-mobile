@@ -6519,8 +6519,8 @@
       "link_account_unknown_error": "Ein unbekannter Fehler ist aufgetreten"
     },
     "optout": {
-      "title": "Belohnungskonto löschen",
-      "description": "Diese Aktion entfernt Ihre Konten dauerhaft aus dem Belohnungsprogramm entfernt und Ihre Punkte sowie Ihr Fortschritt werden gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
+      "title": "Rewards-Fortschritt löschen",
+      "description": "Dadurch werden Ihre Konten aus dem Rewards-Programm entfernt und Ihre Punkte sowie Ihr Fortschritt gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
       "confirm": "Löschen",
       "modal": {
         "confirmation_title": "Sind Sie sicher?",
