@@ -450,6 +450,7 @@ export interface PointsBoostDto {
   startDate?: string;
   endDate?: string;
   backgroundColor: string;
+  deeplink?: string;
 }
 
 export interface RewardDto {

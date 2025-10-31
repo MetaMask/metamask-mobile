@@ -44,6 +44,7 @@ import {
   usePerpsOrderFees,
   usePerpsRewards,
   usePerpsToasts,
+  usePerpsMarketData,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -81,6 +82,9 @@ const PerpsClosePositionView: React.FC = () => {
   const inputMethodRef = useRef<InputMethod>('default');
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+
+  // Get market data for szDecimals
+  const { marketData } = usePerpsMarketData(position.coin);
 
   // Track screen load performance with unified hook (immediate measurement)
   usePerpsMeasurement({
@@ -310,6 +314,7 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
       },
+      priceData[position.coin]?.price,
     );
   };
 
@@ -492,7 +497,7 @@ const PerpsClosePositionView: React.FC = () => {
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          tokenAmount={formatPositionSize(closeAmount)}
+          tokenAmount={formatPositionSize(closeAmount, marketData?.szDecimals)}
           hasError={filteredErrors.length > 0}
           tokenSymbol={position.coin}
           showMaxAmount={false}
@@ -501,7 +506,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {`${formatPositionSize(closeAmount)} ${position.coin}`}
+            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${position.coin}`}
           </Text>
         </View>
 
@@ -560,8 +565,8 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Filter the errors and only show minimum $10 error */}
         {filteredErrors.length > 0 && (
           <View style={styles.validationSection}>
-            {filteredErrors.map((error) => (
-              <View key={error} style={styles.errorMessage}>
+            {filteredErrors.map((error, index) => (
+              <View key={`error-${index}`} style={styles.errorMessage}>
                 <Icon
                   name={IconName.Danger}
                   size={IconSize.Sm}
