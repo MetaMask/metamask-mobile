@@ -15,8 +15,13 @@ import {
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
-import { parseCaipChainId, Hex, CaipChainId } from '@metamask/utils';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../constants/popular-networks';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import { TEST_NETWORK_IDS } from '../../constants/network';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
@@ -248,12 +253,10 @@ export const selectBalanceBySelectedAccountGroup = createSelector(
 );
 
 /**
- * Selector that returns the selected account group's balance across mainnet networks only (excluding testnets).
- * This aggregates balance for the current account group across all mainnet networks
- * regardless of enabled/disabled status, used for empty state logic.
- * Different from selectBalanceBySelectedAccountGroup which respects enabled network filtering.
+ * Returns the selected account group's balance
+ * across mainnet networks for balance empty state display
  */
-export const selectWalletBalanceForEmptyState = createSelector(
+export const selectAccountGroupBalanceForEmptyState = createSelector(
   [
     selectSelectedAccountGroupId,
     selectNetworkConfigurationsByCaipChainId,
@@ -282,30 +285,37 @@ export const selectWalletBalanceForEmptyState = createSelector(
       return null;
     }
 
-    // Filter to mainnet networks only (exclude testnets)
+    // Extract mainnet chainIds from network configurations and filter out testnets
+    // Using proper CAIP utilities instead of manual string parsing
     const mainnetCaipChainIds = Object.keys(
       networkConfigurationsByChainId,
     ).filter((caipChainId) => {
-      const networkConfig =
-        networkConfigurationsByChainId[caipChainId as CaipChainId];
+      const { namespace, reference } = parseCaipChainId(
+        caipChainId as CaipChainId,
+      );
 
-      // For EVM networks, check if they're in popular networks (mainnet)
-      if (caipChainId.startsWith('eip155:')) {
-        return POPULAR_NETWORK_CHAIN_IDS.has(networkConfig.chainId as Hex);
+      // For EVM networks, check against TEST_NETWORK_IDS using proper utilities
+      if (namespace === KnownCaipNamespace.Eip155) {
+        const chainIdHex = toHex(reference);
+        return !TEST_NETWORK_IDS.includes(chainIdHex);
       }
 
-      // For non-EVM networks, exclude testnets
+      // For non-EVM networks, exclude testnets using existing constant
       return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
     });
 
-    // Build custom enabledNetworkMap from mainnet CAIP chainIds
+    // Build enabledNetworkMap for mainnet networks only
+    // Using proper CAIP utilities instead of manual string manipulation
     const enabledNetworkMap: Record<string, Record<string, boolean>> = {};
 
     mainnetCaipChainIds.forEach((caipChainId) => {
-      if (caipChainId.startsWith('eip155:')) {
-        // EVM networks: convert CAIP to hex format
-        const chainIdDecimal = caipChainId.split(':')[1];
-        const chainIdHex = `0x${parseInt(chainIdDecimal, 10).toString(16)}`;
+      const { namespace, reference } = parseCaipChainId(
+        caipChainId as CaipChainId,
+      );
+
+      if (namespace === KnownCaipNamespace.Eip155) {
+        // EVM networks: convert decimal reference to hex format using proper utility
+        const chainIdHex = toHex(reference);
 
         if (!enabledNetworkMap.eip155) {
           enabledNetworkMap.eip155 = {};
@@ -313,7 +323,6 @@ export const selectWalletBalanceForEmptyState = createSelector(
         enabledNetworkMap.eip155[chainIdHex] = true;
       } else {
         // Non-EVM networks: use full CAIP format
-        const { namespace } = parseCaipChainId(caipChainId as CaipChainId);
         if (!enabledNetworkMap[namespace]) {
           enabledNetworkMap[namespace] = {};
         }
@@ -321,7 +330,7 @@ export const selectWalletBalanceForEmptyState = createSelector(
       }
     });
 
-    // Calculate balance using custom mainnet network map
+    // Calculate balance using the mainnet-only network map
     const allBalances = calculateBalanceForAllWallets(
       accountTreeState,
       accountsState,
@@ -334,7 +343,7 @@ export const selectWalletBalanceForEmptyState = createSelector(
       enabledNetworkMap,
     );
 
-    // Extract ACCOUNT GROUP-level balance across mainnet networks (not wallet-level)
+    // Extract account group balance across mainnet networks
     const walletId = selectedGroupId.split('/')[0];
     const wallet = allBalances.wallets[walletId] ?? null;
     const { userCurrency } = allBalances;

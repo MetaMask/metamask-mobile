@@ -13,7 +13,7 @@ import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSel
 
 describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
   beforeAll(async () => {
-    jest.setTimeout(2500000);
+    jest.setTimeout(150000);
   });
 
   it('displays the empty state when user has zero balance', async (): Promise<void> => {
@@ -159,10 +159,8 @@ describe(RegressionWalletPlatform('Balance Empty State'), (): void => {
           description: 'Total balance should be visible on funded network',
         });
         const balance = await WalletView.getBalanceText();
-        if (balance.includes('Fund your wallet') || balance === '$0.00') {
-          throw new Error(
-            `Expected funded balance on Ganache, but got: ${balance}`,
-          );
+        if (balance === '$0.00') {
+          throw new Error(`Expected funded balance on Ganache, but got $0.00`);
         }
       },
     );

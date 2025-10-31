@@ -7,7 +7,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
-  selectWalletBalanceForEmptyState,
+  selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
@@ -28,7 +28,9 @@ const AccountGroupBalance = () => {
   const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
   const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
-  const walletBalance = useSelector(selectWalletBalanceForEmptyState);
+  const accountGroupBalance = useSelector(
+    selectAccountGroupBalanceForEmptyState,
+  );
   const balanceChange1d = useSelector(
     selectBalanceChangeBySelectedAccountGroup('1d'),
   );
@@ -48,16 +50,16 @@ const AccountGroupBalance = () => {
   const userCurrency = groupBalance?.userCurrency ?? '';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
-  // Check if wallet balance (across all mainnet networks) is zero for empty state
-  const hasZeroWalletBalance =
-    walletBalance && walletBalance.totalBalanceInUserCurrency === 0;
+  // Check if account group balance (across all mainnet networks) is zero for empty state
+  const hasZeroAccountGroupBalance =
+    accountGroupBalance && accountGroupBalance.totalBalanceInUserCurrency === 0;
 
   // Check if current network is a testnet
   const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
 
   // Show empty state on accounts with an aggregated mainnet balance of zero
   const shouldShowEmptyState =
-    hasZeroWalletBalance &&
+    hasZeroAccountGroupBalance &&
     isHomepageRedesignV1Enabled &&
     !isCurrentNetworkTestnet;
 
