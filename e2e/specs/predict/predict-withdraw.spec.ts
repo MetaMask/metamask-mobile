@@ -9,7 +9,8 @@ import {
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
-  MOCK_BATCH_TRANSACTIONS,
+  POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
+  POLYMARKET_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -21,7 +22,8 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationsRedesignedFeatureFlags),
   }); // we need to mock the confirmations redesign Feature flag
-  await MOCK_BATCH_TRANSACTIONS(mockServer);
+  await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
+  await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer); // needed to load the withdraw/deposit/claim screen
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings for claim flow
 };
 
