@@ -21,6 +21,15 @@ class ImportSrpView {
     return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
   }
 
+  seedPhraseInput(index: number): DetoxElement {
+    if (index !== 0) {
+      return Matchers.getElementByID(
+        `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+      );
+    }
+    return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+  }
+
   async tapTitle() {
     await Gestures.tap(this.title, {
       elemDescription: 'Import SRP screen title',
@@ -34,17 +43,18 @@ class ImportSrpView {
   }
 
   async enterSrp(mnemonic: string): Promise<void> {
-    const elemDescription = 'SRP textarea input';
-
     if (device.getPlatform() === 'ios') {
-      await Gestures.typeText(this.textareaInput, mnemonic, {
-        elemDescription,
-        hideKeyboard: false,
-      });
+      const srpArray = mnemonic.split(' ');
+      for (const [i, word] of srpArray.entries()) {
+        await Gestures.typeText(this.seedPhraseInput(i), `${word} `, {
+          elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
+          hideKeyboard: i === srpArray.length - 1,
+        });
+      }
       await this.tapTitle();
     } else {
       await Gestures.replaceText(this.textareaInput, mnemonic, {
-        elemDescription,
+        elemDescription: 'SRP textarea input',
         checkVisibility: false,
       });
     }
