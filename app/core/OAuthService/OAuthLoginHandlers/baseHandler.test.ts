@@ -183,6 +183,7 @@ describe('BaseLoginHandler', () => {
         success: true,
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
         indexes: [1, 2, 3],
         endpoints: { endpoint1: 'value1' },
         message: 'Success',
@@ -259,6 +260,7 @@ describe('BaseLoginHandler', () => {
         success: true,
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
         indexes: [1, 2, 3],
         endpoints: { endpoint1: 'value1' },
         message: 'Success',
@@ -361,6 +363,8 @@ describe('BaseLoginHandler', () => {
       const mockResponse = {
         success: true,
         id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
         message: 'Success',
       };
 
@@ -410,6 +414,8 @@ describe('BaseLoginHandler', () => {
       const mockResponse = {
         success: true,
         id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
         message: 'Success',
       };
 
