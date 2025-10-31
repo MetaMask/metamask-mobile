@@ -62,6 +62,16 @@ jobs:
           configure-keystores: true
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --no-build-ios
+
       # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
       - name: Generate current fingerprint
         id: generate-fingerprint
@@ -118,16 +128,6 @@ jobs:
             ~/_work/.gradle/wrapper
           # Keep the `hashFiles` call for Gradle config in-sync with "Check and restore cached APKs if Fingerprint is found" step
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      - name: Setup project dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            yarn setup:github-ci --no-build-ios
 
       - name: Build Android E2E APKs
         if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
