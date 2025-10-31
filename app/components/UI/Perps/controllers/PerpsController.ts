@@ -773,6 +773,11 @@ export class PerpsController extends BaseController<
       return undefined;
     }
 
+    // Validate semver format - invalid versions mean the flag is malformed
+    if (!validate(remoteFlag.minimumVersion)) {
+      return undefined;
+    }
+
     return (
       remoteFlag.enabled &&
       this.hasMinimumRequiredVersion(remoteFlag.minimumVersion)

@@ -888,6 +888,47 @@ describe('PerpsController', () => {
         expect((testController as any).hip3EnabledFlag.enabled).toBe(false);
         expect((testController as any).hip3EnabledFlag.source).toBe('remote');
       });
+
+      it('keeps fallback when subscription fires with invalid minimumVersion format', () => {
+        const mockSubscribe = jest.fn();
+        const mockCall = jest.fn().mockImplementation((action: string) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        });
+
+        const testController = new PerpsController({
+          messenger: createMockMessenger(mockCall, mockSubscribe),
+          state: getDefaultPerpsControllerState(),
+          clientConfig: {
+            fallbackEquityEnabled: true,
+            clientVersion: '8.0.0',
+          },
+        });
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('fallback');
+
+        const subscribeCallback = mockSubscribe.mock.calls.find(
+          (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+        )?.[1];
+
+        // Test with invalid semver format - should not crash and should keep fallback
+        expect(() => {
+          subscribeCallback({
+            remoteFeatureFlags: {
+              perpsEquityEnabled: {
+                enabled: true,
+                minimumVersion: 'invalid-version',
+              },
+            },
+          });
+        }).not.toThrow();
+
+        expect((testController as any).hip3EnabledFlag.enabled).toBe(true);
+        expect((testController as any).hip3EnabledFlag.source).toBe('fallback');
+      });
     });
 
     describe('enabledHIP3Dexs updates via subscription', () => {
