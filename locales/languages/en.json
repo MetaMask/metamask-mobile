@@ -1748,6 +1748,7 @@
     },
     "outcomes_singular": "outcome",
     "outcomes_plural": "outcomes",
+    "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
       "new": "New",
