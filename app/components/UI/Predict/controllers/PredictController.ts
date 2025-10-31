@@ -1342,7 +1342,7 @@ export class PredictController extends BaseController<
 
       this.update((state) => {
         state.pendingDeposits[params.providerId] = {
-          [selectedAccount.address]: true,
+          [signer.address]: true,
         };
       });
 

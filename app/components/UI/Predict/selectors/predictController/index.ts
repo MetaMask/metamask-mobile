@@ -12,7 +12,7 @@ const selectPredictPendingDeposits = createSelector(
 
 const selectPredictClaimablePositions = createSelector(
   selectPredictControllerState,
-  (predictControllerState) => predictControllerState?.claimablePositions || [],
+  (predictControllerState) => predictControllerState?.claimablePositions || {},
 );
 
 const selectPredictClaimablePositionsByAddress = ({

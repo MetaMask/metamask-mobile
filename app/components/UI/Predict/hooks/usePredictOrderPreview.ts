@@ -104,6 +104,7 @@ export function usePredictOrderPreview(
     outcomeId,
     outcomeTokenId,
     side,
+    positionId,
   ]);
 
   const calculatePreviewRef = useRef(calculatePreview);
