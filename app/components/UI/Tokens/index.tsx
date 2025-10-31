@@ -29,10 +29,10 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
+import TokenListSkeleton from './TokenList/TokenListSkeleton';
 import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import Loader from '../../../component-library/components-temp/Loader';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -277,35 +277,20 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         goToAddToken={goToAddToken}
         style={isFullView ? tw`px-4 pb-4` : undefined}
       />
-      {!isTokensLoading &&
-      renderedTokenKeys.length === 0 &&
-      progressiveTokens.length === 0 ? (
-        <Box
-          twClassName={
-            isHomepageRedesignV1Enabled && !isFullView
-              ? 'bg-default'
-              : 'flex-1 bg-default'
-          }
+      {progressiveTokens.length > 0 || renderedTokenKeys.length > 0 ? (
+        <TokenList
+          tokenKeys={isTokensLoading ? progressiveTokens : renderedTokenKeys}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          setShowScamWarningModal={handleScamWarningModal}
+          maxItems={maxItems}
+          isFullView={isFullView}
         />
       ) : (
-        <>
-          {isTokensLoading && progressiveTokens.length === 0 && (
-            <Loader size="large" />
-          )}
-          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
-            <TokenList
-              tokenKeys={
-                isTokensLoading ? progressiveTokens : renderedTokenKeys
-              }
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              showRemoveMenu={showRemoveMenu}
-              setShowScamWarningModal={handleScamWarningModal}
-              maxItems={maxItems}
-              isFullView={isFullView}
-            />
-          )}
-        </>
+        <Box twClassName={isFullView ? 'px-4' : undefined}>
+          <TokenListSkeleton />
+        </Box>
       )}
       {showScamWarningModal && (
         <ScamWarningModal

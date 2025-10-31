@@ -1,5 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef, useMemo } from 'react';
-import { View, RefreshControl } from 'react-native';
+import { RefreshControl } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -7,10 +7,7 @@ import {
   selectIsTokenNetworkFilterEqualCurrentNetwork,
   selectPrivacyMode,
 } from '../../../../selectors/preferencesController';
-import createStyles from '../styles';
-import TextComponent, {
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
+
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListItem, TokenListItemBip44 } from './TokenListItem';
@@ -25,6 +22,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { TokensEmptyState } from '../../TokensEmptyState';
 
 export interface FlashListAssetKey {
   address: string;
@@ -73,7 +71,6 @@ const TokenListComponent = ({
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
-  const styles = createStyles(colors);
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
@@ -163,19 +160,6 @@ const TokenListComponent = ({
             return `${item.address}-${item.chainId}-${staked}-${idx}`;
           }}
           decelerationRate="fast"
-          ListFooterComponent={
-            isHomepageRedesignV1Enabled && shouldShowViewAllButton ? (
-              <Box twClassName="pt-3 pb-9">
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  onPress={handleViewAllTokens}
-                  isFullWidth
-                >
-                  {strings('wallet.view_all_tokens')}
-                </Button>
-              </Box>
-            ) : null
-          }
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}
@@ -193,20 +177,9 @@ const TokenListComponent = ({
   return displayTokenKeys?.length ? (
     tokenList
   ) : (
-    <View style={styles.emptyView}>
-      <View style={styles.emptyTokensView}>
-        <TextComponent style={styles.emptyTokensViewText}>
-          {strings('wallet.no_tokens')}
-        </TextComponent>
-        <TextComponent
-          style={styles.emptyTokensViewText}
-          color={TextColor.Info}
-          onPress={handleLink}
-        >
-          {strings('wallet.show_tokens_without_balance')}
-        </TextComponent>
-      </View>
-    </View>
+    <Box twClassName={'items-center'}>
+      <TokensEmptyState />
+    </Box>
   );
 };
 
