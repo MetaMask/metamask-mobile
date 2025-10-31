@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Dimensions, Animated } from 'react-native';
+import { Dimensions, Animated , Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
@@ -42,9 +42,7 @@ import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
-import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import { Linking } from 'react-native';
 import { isInternalDeepLink } from '../../../util/deeplinks';
 
 const MAX_CAROUSEL_SLIDES = 8;
@@ -355,7 +353,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           return false;
         });
       }
-      
+
       // For external URLs, use the OS linking system
       return Linking.openURL(href)
         .then(() => true)

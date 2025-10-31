@@ -47,4 +47,5 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
  * @param url - The URL to check
  * @returns true if the URL should be opened externally
  */
-export const shouldOpenExternally = (url: string): boolean => !isInternalDeepLink(url);
+export const shouldOpenExternally = (url: string): boolean =>
+  !isInternalDeepLink(url);
