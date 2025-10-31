@@ -419,7 +419,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
           deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-          kind: 'take_profit_executed',
+          notification_type: 'take_profit_executed',
           data: JSON.parse(testData.data),
         });
       });
@@ -431,7 +431,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         expect(result).toBeFalsy();
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
-          kind: 'take_profit_executed',
+          notification_type: 'take_profit_executed',
           data: JSON.parse(testData.data),
         });
       });
@@ -521,7 +521,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     );
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-      kind: 'take_profit_executed',
+      notification_type: 'take_profit_executed',
       data: JSON.parse(testData.data),
     });
   });
@@ -532,7 +532,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
 
     expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
-      kind: 'take_profit_executed',
+      notification_type: 'take_profit_executed',
       data: JSON.parse(testData.data),
     });
   });
@@ -558,7 +558,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       // Assert - Analytics should still be tracked even if callback fails
       assertTrackEventCalledWith(mocks.mockTrackEvent, {
         deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-        kind: 'take_profit_executed',
+        notification_type: 'take_profit_executed',
         data: JSON.parse(testData.data),
       });
     }).not.toThrow();

@@ -42,6 +42,7 @@ export interface PlaceOrderParams {
     marketId?: string;
     marketTitle?: string;
     marketCategory?: string;
+    marketTags?: string[];
     entryPoint?: string;
     transactionType?: string;
     sharePrice?: number;
@@ -57,6 +58,7 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
+  signer?: Signer;
 }
 
 // Fees in US dollars
@@ -94,6 +96,7 @@ export interface OrderPreview {
   minOrderSize: number;
   negRisk: boolean;
   fees?: PredictFees;
+  rateLimited?: boolean;
 }
 
 export type OrderResult = Result<{
@@ -153,7 +156,7 @@ export interface GetPredictWalletParams {
 }
 
 export interface AccountState {
-  address: string;
+  address: Hex;
   isDeployed: boolean;
   hasAllowances: boolean;
 }
@@ -161,6 +164,32 @@ export interface AccountState {
 export interface GetBalanceParams {
   address?: string;
   providerId: string;
+}
+
+export interface PrepareWithdrawParams {
+  providerId: string;
+}
+
+export interface PrepareWithdrawResponse {
+  chainId: Hex;
+  transaction: {
+    params: {
+      to: Hex;
+      data: Hex;
+    };
+    type?: TransactionType;
+  };
+  predictAddress: Hex;
+}
+
+export interface SignWithdrawParams {
+  callData: Hex;
+  signer: Signer;
+}
+
+export interface SignWithdrawResponse {
+  callData: Hex;
+  amount: number;
 }
 
 export interface PredictProvider {
@@ -199,6 +228,10 @@ export interface PredictProvider {
   getAccountState(
     params: GetAccountStateParams & { ownerAddress: string },
   ): Promise<AccountState>;
+  prepareWithdraw(
+    params: PrepareWithdrawParams & { signer: Signer },
+  ): Promise<PrepareWithdrawResponse>;
+  signWithdraw?(params: SignWithdrawParams): Promise<SignWithdrawResponse>;
 
   getBalance(params: GetBalanceParams): Promise<number>;
 }

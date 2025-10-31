@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { PerpsMarketData } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsMarketData } from '../controllers/types';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { parseCurrencyString } from '../utils/formatUtils';
 
@@ -76,15 +76,18 @@ export const parseVolume = (volumeStr: string | undefined): number => {
 
   // Handle special cases
   if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
-  if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
+  // Special case: '$<1' represents volumes less than $1 (e.g., $0.50, $0.75)
+  // This is a display format from the provider, not a validation constant
+  // We treat it as 0.5 for sorting purposes (small but not zero)
+  if (volumeStr === '$<1') return 0.5;
 
   // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
-  const suffixMatch = volumeStr.match(VOLUME_SUFFIX_REGEX);
+  const suffixMatch = VOLUME_SUFFIX_REGEX.exec(volumeStr);
   if (suffixMatch) {
     const [, numberPart, suffix] = suffixMatch;
-    const baseValue = parseFloat(removeCommas(numberPart));
+    const baseValue = Number.parseFloat(removeCommas(numberPart));
 
-    if (isNaN(baseValue)) return -1;
+    if (Number.isNaN(baseValue)) return -1;
 
     return suffix ? baseValue * multipliers[suffix] : baseValue;
   }

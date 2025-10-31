@@ -26,8 +26,14 @@ export enum FillType {
 
 export interface PerpsTransaction {
   id: string;
-  type: 'trade' | 'order' | 'funding';
-  category: 'position_open' | 'position_close' | 'limit_order' | 'funding_fee';
+  type: 'trade' | 'order' | 'funding' | 'deposit' | 'withdrawal';
+  category:
+    | 'position_open'
+    | 'position_close'
+    | 'limit_order'
+    | 'funding_fee'
+    | 'deposit'
+    | 'withdrawal';
   title: string;
   subtitle: string; // Asset amount (e.g., "2.01 ETH")
   timestamp: number;
@@ -68,6 +74,16 @@ export interface PerpsTransaction {
     feeNumber: number;
     rate: string;
   };
+  // For deposits/withdrawals: deposit/withdrawal info
+  depositWithdrawal?: {
+    amount: string;
+    amountNumber: number;
+    isPositive: boolean;
+    asset: string;
+    txHash: string;
+    status: 'completed' | 'failed' | 'pending' | 'bridging';
+    type: 'deposit' | 'withdrawal';
+  };
 }
 
 // Helper interface for date-grouped data
@@ -81,7 +97,7 @@ export type ListItem =
   | { type: 'header'; title: string; id: string }
   | { type: 'transaction'; transaction: PerpsTransaction; id: string };
 
-export type FilterTab = 'Trades' | 'Orders' | 'Funding';
+export type FilterTab = 'Trades' | 'Orders' | 'Funding' | 'Deposits';
 
 export interface PerpsTransactionsViewProps {}
 

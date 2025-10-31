@@ -1,13 +1,14 @@
 import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import { verifyCardAuthentication } from '../../../../core/redux/slices/card';
-import { selectUserLoggedIn } from '../../../../reducers/user';
 import {
-  CardFeatureFlag,
-  selectCardFeatureFlag,
-} from '../../../../selectors/featureFlagController/card';
+  resetAuthenticatedData,
+  selectIsAuthenticatedCard,
+  verifyCardAuthentication,
+} from '../../../../core/redux/slices/card';
+import { selectUserLoggedIn } from '../../../../reducers/user';
 import Logger from '../../../../util/Logger';
+import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 
 /**
  * Hook that automatically verifies card authentication status when the app loads.
@@ -17,23 +18,23 @@ import Logger from '../../../../util/Logger';
 export const useCardAuthenticationVerification = () => {
   const dispatch = useThunkDispatch();
   const userLoggedIn = useSelector(selectUserLoggedIn);
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag) as CardFeatureFlag;
+  const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
   const checkAuthentication = useCallback(() => {
-    const isBaanxLoginEnabled = cardFeatureFlag?.isBaanxLoginEnabled ?? false;
-
     dispatch(
       verifyCardAuthentication({
         isBaanxLoginEnabled,
       }),
     );
-  }, [cardFeatureFlag, dispatch]);
+  }, [isBaanxLoginEnabled, dispatch]);
 
   useEffect(() => {
     // Only run authentication check when:
     // 1. User is logged in
-    // 2. Card feature flag is enabled
-    if (userLoggedIn && cardFeatureFlag) {
+    // 2. Baanx login is enabled
+    // As a fallback, set the authentication state to false
+    if (userLoggedIn && isBaanxLoginEnabled) {
       try {
         checkAuthentication();
       } catch (error) {
@@ -42,6 +43,19 @@ export const useCardAuthenticationVerification = () => {
           'useCardAuthenticationVerification::Error verifying authentication',
         );
       }
+    } else if (userLoggedIn && !isBaanxLoginEnabled) {
+      if (isAuthenticated) {
+        Logger.log(
+          'useCardAuthenticationVerification::User is logged in but Baanx login is disabled, setting authentication state to false',
+        );
+        dispatch(resetAuthenticatedData());
+      }
     }
-  }, [userLoggedIn, cardFeatureFlag, checkAuthentication]);
+  }, [
+    userLoggedIn,
+    isBaanxLoginEnabled,
+    checkAuthentication,
+    dispatch,
+    isAuthenticated,
+  ]);
 };

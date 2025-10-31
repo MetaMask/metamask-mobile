@@ -764,13 +764,13 @@ class AuthenticationService {
       this.dispatchOauthReset();
     } catch (error) {
       const { Engine: EngineClass } = await import('../Engine/Engine');
-      
+
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
-      
+
       // Disable automatic vault backups during OAuth error recovery
       EngineClass.disableAutomaticVaultBackup = true;
-      
+
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -779,7 +779,7 @@ class AuthenticationService {
         // ALWAYS re-enable automatic backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
       }
-      
+
       SeedlessOnboardingController.clearState();
       throw error;
     }
