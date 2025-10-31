@@ -248,6 +248,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [openOrders],
   );
 
+  const orderChildOrderIds = useMemo(
+    () =>
+      openOrders
+        .filter((order) => order.takeProfitOrderId || order.stopLossOrderId)
+        .reduce((acc, order) => {
+          if (order.takeProfitOrderId) {
+            acc.push(order.takeProfitOrderId);
+          }
+          if (order.stopLossOrderId) {
+            acc.push(order.stopLossOrderId);
+          }
+          return acc;
+        }, [] as string[]),
+    [openOrders],
+  );
+
   // Determine which TP/SL lines to show on the chart
   const selectedOrderTPSL = useMemo(() => {
     // Find the active TP order
@@ -257,10 +273,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only use default TP if no TP has ever been explicitly selected
     if (!activeTPOrder && activeTPOrderId === null) {
       activeTPOrder = ordersWithTPSL.find((order) => {
-        if (order.takeProfitPrice) return true;
         if (
           order.isTrigger &&
-          order.detailedOrderType?.toLowerCase().includes('take profit')
+          order.detailedOrderType?.toLowerCase().includes('take profit') &&
+          !orderChildOrderIds.includes(order.orderId)
         )
           return true;
         return false;
@@ -274,10 +290,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only use default SL if no SL has ever been explicitly selected
     if (!activeSLOrder && activeSLOrderId === null) {
       activeSLOrder = ordersWithTPSL.find((order) => {
-        if (order.stopLossPrice) return true;
         if (
           order.isTrigger &&
-          order.detailedOrderType?.toLowerCase().includes('stop')
+          order.detailedOrderType?.toLowerCase().includes('stop') &&
+          !orderChildOrderIds.includes(order.orderId)
         )
           return true;
         return false;
@@ -291,7 +307,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       activeSLOrderId: activeSLOrder?.orderId,
     };
     return result;
-  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId]);
+  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId, orderChildOrderIds]);
 
   const hasZeroBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0') === 0,
