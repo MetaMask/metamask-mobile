@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  CaipChainId,
-  CaipAssetType,
-  parseCaipAssetType,
-} from '@metamask/utils';
-import { BridgeToken } from '../types';
+import { CaipChainId, CaipAssetType } from '@metamask/utils';
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -21,7 +16,7 @@ interface UsePopularTokensParams {
 }
 
 interface UsePopularTokensResult {
-  popularTokens: BridgeToken[];
+  popularTokens: PopularToken[];
   isLoading: boolean;
 }
 
@@ -34,7 +29,7 @@ export const usePopularTokens = ({
   chainIds,
   excludeAssetIds,
 }: UsePopularTokensParams): UsePopularTokensResult => {
-  const [popularTokens, setPopularTokens] = useState<BridgeToken[]>([]);
+  const [popularTokens, setPopularTokens] = useState<PopularToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -60,15 +55,7 @@ export const usePopularTokens = ({
         );
         const popularAssets: PopularToken[] = await response.json();
 
-        // Convert PopularToken to BridgeToken format for display
-        const popularBridgeTokens: BridgeToken[] = popularAssets.map(
-          (asset) => ({
-            ...asset,
-            address: parseCaipAssetType(asset.assetId).assetReference,
-          }),
-        );
-
-        setPopularTokens(popularBridgeTokens);
+        setPopularTokens(popularAssets);
       } catch (error) {
         console.error('Error fetching popular tokens:', error);
         setPopularTokens([]);

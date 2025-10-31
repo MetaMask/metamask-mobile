@@ -60,13 +60,20 @@ interface SearchTokensResponse {
   };
 }
 
+const convertAPITokensToBridgeTokens = (
+  apiTokens: PopularToken[],
+): BridgeToken[] => apiTokens.map((token) => ({
+    ...token,
+    address: parseCaipAssetType(token.assetId).assetReference,
+  }));
+
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
-  const [searchResults, setSearchResults] = useState<BridgeToken[]>([]);
+  const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchString, setSearchString] = useState<string>('');
   const hasSearchedOnce = useRef(false);
@@ -195,14 +202,6 @@ export const BridgeTokenSelector: React.FC = () => {
         );
         const searchData: SearchTokensResponse = await response.json();
 
-        // Convert PopularToken to BridgeToken format for display
-        const searchBridgeTokens: BridgeToken[] = searchData.data.map(
-          (asset) => ({
-            ...asset,
-            address: parseCaipAssetType(asset.assetId).assetReference,
-          }),
-        );
-
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
           searchData.pageInfo.hasNextPage
@@ -215,10 +214,10 @@ export const BridgeTokenSelector: React.FC = () => {
         if (isPagination) {
           setSearchResults((prevResults) => [
             ...prevResults,
-            ...searchBridgeTokens,
+            ...searchData.data,
           ]);
         } else {
-          setSearchResults(searchBridgeTokens);
+          setSearchResults(searchData.data);
         }
 
         hasSearchedOnce.current = true;
@@ -267,13 +266,17 @@ export const BridgeTokenSelector: React.FC = () => {
 
     // If we have a search query, show search results
     if (searchString.trim()) {
+      const convertedSearchResults =
+        convertAPITokensToBridgeTokens(searchResults);
       return hasSearchedOnce.current
-        ? [...filteredTokensWithBalance, ...searchResults]
+        ? [...filteredTokensWithBalance, ...convertedSearchResults]
         : filteredTokensWithBalance;
     }
 
     // Default: show tokens with balance and popular tokens
-    return [...tokensWithBalance, ...popularTokens];
+    const convertedPopularTokens =
+      convertAPITokensToBridgeTokens(popularTokens);
+    return [...tokensWithBalance, ...convertedPopularTokens];
   }, [
     isPopularTokensLoading,
     isSearchLoading,
