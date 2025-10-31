@@ -12,6 +12,9 @@ export const USER_WALLET_ADDRESS = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 export const MOCK_USDC_BALANCE_WEI =
   '0x0000000000000000000000000000000000000000000000000000000001adb5e4'; // 28160000 in hex
 
+export const MOCK_USDC_BALANCE_WEI_END =
+  '0x00000000000000000000000000000000000000000000000000000000019e6dc0'; // 27160000 in hex
+
 // Post-claim USDC balance (48.16 USDC = 48,160,000 = 0x2de0300)
 export const POST_CLAIM_USDC_BALANCE_WEI =
   '0x0000000000000000000000000000000000000000000000000000000002de0300';
@@ -19,10 +22,10 @@ export const POST_CLAIM_USDC_BALANCE_WEI =
 export const POST_CASH_OUT_USDC_BALANCE_WEI =
   '0x00000000000000000000000000000000000000000000000000000000037f14a0'; // 58.66 USDC
 
-// Post-withdraw USDC balance (simulate funds withdrawn to EOA; pick 0.00 remaining on Predict)
-// 0.00 USDC = 0 wei
-export const POST_WITHDRAW_USDC_BALANCE_WEI =
-  '0x0000000000000000000000000000000000000000000000000000000000000000';
+// Post-withdraw USDC balance (example: keep the same for now; tests assert toast only)
+// If balance assertions are added later, update this to the expected post-withdraw value
+export const POST_WITHDRAW_USDC_BALANCE_WEI = MOCK_USDC_BALANCE_WEI_END;
+
 // Mock contract addresses
 export const SAFE_FACTORY_ADDRESS =
   '0xaacfeea03eb1561c4e67d661e40682bd20e3541b';
