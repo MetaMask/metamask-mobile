@@ -29,8 +29,7 @@ export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
   getFeatureFlag: (key: string) => unknown;
-  getFeatureFlagSnapshotQueue: () => FeatureFlagInfoSnapshot[];
-  takeSnapshot: (featureFlagInfo: FeatureFlagInfo) => void;
+  getFeatureFlagSnapshots: () => { relatedFlags?: FeatureFlagInfoSnapshot[] };
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
@@ -72,10 +71,6 @@ export const FeatureFlagOverrideProvider: React.FC<
     }));
   }, []);
 
-  const clearSnapshot = useCallback(() => {
-    setFeatureFlagSnapshots([]);
-  }, []);
-
   const takeSnapshot = useCallback((featureFlagInfo: FeatureFlagInfo) => {
     setFeatureFlagSnapshots((prev) => [
       ...prev,
@@ -85,12 +80,6 @@ export const FeatureFlagOverrideProvider: React.FC<
       },
     ]);
   }, []);
-
-  const getFeatureFlagSnapshotQueue = useCallback(() => {
-    const currentSnapshot = featureFlagSnapshots;
-    clearSnapshot();
-    return currentSnapshot;
-  }, [featureFlagSnapshots, clearSnapshot]);
 
   const removeOverride = useCallback((key: string) => {
     setOverrides((prev) => {
@@ -169,6 +158,10 @@ export const FeatureFlagOverrideProvider: React.FC<
     a.key.localeCompare(b.key),
   );
 
+  const getFeatureFlagSnapshots = useCallback(() => ({
+      relatedFlags: featureFlagSnapshots,
+    }), [featureFlagSnapshots]);
+
   const validateMinimumVersion = useCallback(
     (flagKey: string, flagValue: MinimumVersionFlagValue) => {
       if (
@@ -203,6 +196,7 @@ export const FeatureFlagOverrideProvider: React.FC<
     if (!flag) {
       return undefined;
     }
+    takeSnapshot(flag);
 
     if (flag.type === 'boolean with minimumVersion') {
       return validateMinimumVersion(
@@ -223,8 +217,7 @@ export const FeatureFlagOverrideProvider: React.FC<
     featureFlags,
     originalFlags: rawFeatureFlags,
     getFeatureFlag,
-    getFeatureFlagSnapshotQueue,
-    takeSnapshot,
+    getFeatureFlagSnapshots,
     featureFlagsList,
     overrides,
     setOverride,
