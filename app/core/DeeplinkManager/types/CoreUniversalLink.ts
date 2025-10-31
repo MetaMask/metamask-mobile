@@ -111,6 +111,7 @@ export const RAMP_ACTIONS = [
   ACTIONS.SELL,
   ACTIONS.SELL_CRYPTO,
   ACTIONS.DEPOSIT,
+  ACTIONS.RAMP,
 ] as const;
 
 /**
