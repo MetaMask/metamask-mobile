@@ -1191,9 +1191,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         await fireEvent.press(infoIcon);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SeedphraseModal',
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('SeedphraseModal');
     });
   });
 

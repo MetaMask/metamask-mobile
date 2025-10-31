@@ -598,6 +598,7 @@ const ImportPrivateKeyView = () => (
 
 const ImportSRPView = () => (
   <Stack.Navigator
+    mode="modal"
     screenOptions={{
       headerShown: false,
     }}
@@ -607,6 +608,13 @@ const ImportSRPView = () => (
       component={ImportNewSecretRecoveryPhrase}
     />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+    <Stack.Screen
+      name={Routes.SHEET.SEEDPHRASE_MODAL}
+      component={SeedphraseModal}
+      options={{
+        cardStyle: { backgroundColor: 'transparent' },
+      }}
+    />
   </Stack.Navigator>
 );
 
