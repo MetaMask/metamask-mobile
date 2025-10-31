@@ -921,7 +921,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         <Icon
                           name={IconName.Info}
                           size={IconSize.Sm}
-                          color={IconColor.Muted}
+                          color={IconColor.Alternative}
                           testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
                         />
                       </TouchableOpacity>
@@ -992,7 +992,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         <Icon
                           name={IconName.Info}
                           size={IconSize.Sm}
-                          color={IconColor.Muted}
+                          color={IconColor.Alternative}
                           testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
                         />
                       </TouchableOpacity>
@@ -1046,7 +1046,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                   testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
                 />
               </TouchableOpacity>
@@ -1072,7 +1072,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                   testID={
                     PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
                   }
@@ -1099,7 +1099,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                   testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
                 />
               </TouchableOpacity>
@@ -1134,7 +1134,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   <Icon
                     name={IconName.Info}
                     size={IconSize.Sm}
-                    color={IconColor.Muted}
+                    color={IconColor.Alternative}
                   />
                 </TouchableOpacity>
               </View>
