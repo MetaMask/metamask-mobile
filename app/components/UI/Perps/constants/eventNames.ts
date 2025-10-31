@@ -12,6 +12,7 @@ export const PerpsEventProperties = {
   ASSET: 'asset',
   DIRECTION: 'direction',
   SOURCE: 'source',
+  TAB_NAME: 'tab_name',
 
   // Trade properties
   LEVERAGE: 'leverage',
@@ -19,6 +20,7 @@ export const PerpsEventProperties = {
   ORDER_SIZE: 'order_size',
   MARGIN_USED: 'margin_used',
   ORDER_TYPE: 'order_type', // lowercase per dashboard
+  ORDER_TIMESTAMP: 'order_timestamp',
   LIMIT_PRICE: 'limit_price',
   FEES: 'fees',
   FEE: 'fee',
@@ -173,6 +175,7 @@ export const PerpsEventValues = {
     SKIP: 'skip',
     STOP_LOSS_SET: 'stop_loss_set',
     TAKE_PROFIT_SET: 'take_profit_set',
+    ADL_LEARN_MORE: 'adl_learn_more',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'position_liquidated',
@@ -221,9 +224,16 @@ export const PerpsEventValues = {
   SCREEN_NAME: {
     CONNECTION_ERROR: 'connection_error',
     PERPS_HERO_CARD: 'perps_hero_card',
+    PERPS_ACTIVITY_HISTORY: 'perps_activity_history',
   },
   ACTION: {
     CONNECTION_RETRY: 'connection_retry',
     SHARE: 'share',
+  },
+  PERPS_HISTORY_TABS: {
+    TRADES: 'trades',
+    ORDERS: 'orders',
+    FUNDING: 'funding',
+    DEPOSITS: 'deposits',
   },
 } as const;

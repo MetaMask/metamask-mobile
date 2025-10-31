@@ -196,6 +196,7 @@ describe('usePerpsOrderFees', () => {
         orderType: 'market',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
       expect(result.current.protocolFee).toBe(45); // 100000 * 0.00045
@@ -234,6 +235,7 @@ describe('usePerpsOrderFees', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00015);
       expect(result.current.protocolFee).toBeCloseTo(15, 10);
@@ -265,6 +267,7 @@ describe('usePerpsOrderFees', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
       expect(result.current.protocolFee).toBe(45);
@@ -800,6 +803,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'market',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
     });
@@ -836,6 +840,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
     });
@@ -870,6 +875,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
 
@@ -903,6 +909,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00015);
     });
@@ -939,6 +946,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
     });
@@ -973,6 +981,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
 
@@ -1006,6 +1015,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
+        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00015);
     });
@@ -1040,6 +1050,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
 
@@ -1073,6 +1084,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
 
@@ -1106,6 +1118,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
 
@@ -1139,6 +1152,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
 
@@ -1172,6 +1186,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
 
@@ -1204,6 +1219,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
   });
@@ -1237,6 +1253,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
+        coin: 'ETH',
       });
     });
   });
