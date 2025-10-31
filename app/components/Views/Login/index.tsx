@@ -847,7 +847,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
           contentContainerStyle={styles.scrollContentContainer}
-          extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
+          extraScrollHeight={
+            Platform.OS === 'android'
+              ? isComingFromOauthOnboarding
+                ? -200
+                : 50
+              : 0
+          }
           enableResetScrollToCoords={false}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
