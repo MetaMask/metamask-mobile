@@ -32,6 +32,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
@@ -54,6 +55,7 @@ import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -322,7 +324,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       Engine.context.PredictController.trackMarketDetailsOpened({
         marketId: market.id,
         marketTitle: market.title,
-        marketCategory: market.categories?.[0],
+        marketCategory: market.category,
+        marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
       });
@@ -706,21 +709,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       {(() => {
         if (market?.status === PredictMarketStatus.CLOSED && hasPositivePnl) {
           return (
-            <Box
-              twClassName="w-full mt-4 gap-3"
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              alignItems={BoxAlignItems.Center}
+            <ButtonHero
+              size={ButtonSizeHero.Lg}
+              style={tw.style('w-full')}
+              onPress={handleClaimPress}
             >
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                style={tw.style('flex-1 bg-primary-default mx-4')}
-                label={strings('confirm.predict_claim.button_label')}
-                onPress={handleClaimPress}
-              />
-            </Box>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={tw.style('text-white')}
+              >
+                {strings('confirm.predict_claim.button_label')}
+              </Text>
+            </ButtonHero>
           );
         }
 
