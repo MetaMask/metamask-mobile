@@ -61,45 +61,6 @@ jobs:
           configure-keystores: true
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
-      - name: Check Gradle cache directories
-        run: |
-          if [ -d '/home/admin' ]; then
-            if [ -d '/home/admin/_work/.gradle' ]; then
-              echo "check 1"
-              ls -Al /home/admin/_work/.gradle
-            fi
-
-            if [ -d '/home/admin/.gradle' ]; then
-              echo "check 2"
-              ls -Al /home/admin/.gradle
-            fi
-          fi
-          if [ -d '/home/runner' ]; then
-            if [ -d '/home/runner/_work/.gradle' ]; then
-              echo "check 3"
-              ls -Al /home/runner/_work/.gradle
-            fi
-
-            if [ -d '/home/runner/.gradle' ]; then
-              echo "check 4"
-              ls -Al /home/runner/.gradle
-            fi
-          fi
-
-          echo "HOME: ${HOME}"
-
-          if [ -d "${HOME}" ]; then
-            if [ -d "${HOME}/_work/.gradle" ]; then
-              echo "check 5"
-              ls -Al "${HOME}/_work/.gradle"
-            fi
-
-            if [ -d "${HOME}/.gradle" ]; then
-              echo "check 6"
-              ls -Al "${HOME}/.gradle"
-            fi
-          fi
-
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
         id: gradle-cache-restore
@@ -107,9 +68,8 @@ jobs:
           GRADLE_CACHE_VERSION: 1
         with:
           path: |
-            /home/admin/_work/.gradle/caches
-            /home/admin/_work/.gradle/wrapper
-            android/.gradle
+            ~/_work/.gradle/caches
+            ~/_work/.gradle/wrapper
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Setup project dependencies with retry
@@ -215,46 +175,6 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-
-      - name: Check Gradle cache directories again after setup+build
-        run: |
-
-          if [ -d '/home/admin' ]; then
-            if [ -d '/home/admin/_work/.gradle' ]; then
-              echo "check 1"
-              ls -Al /home/admin/_work/.gradle
-            fi
-
-            if [ -d '/home/admin/.gradle' ]; then
-              echo "check 2"
-              ls -Al /home/admin/.gradle
-            fi
-          fi
-          if [ -d '/home/runner' ]; then
-            if [ -d '/home/runner/_work/.gradle' ]; then
-              echo "check 3"
-              ls -Al /home/runner/_work/.gradle
-            fi
-
-            if [ -d '/home/runner/.gradle' ]; then
-              echo "check 4"
-              ls -Al /home/runner/.gradle
-            fi
-          fi
-
-          echo "HOME: ${HOME}"
-
-          if [ -d "${HOME}" ]; then
-            if [ -d "${HOME}/_work/.gradle" ]; then
-              echo "check 5"
-              ls -Al "${HOME}/_work/.gradle"
-            fi
-
-            if [ -d "${HOME}/.gradle" ]; then
-              echo "check 6"
-              ls -Al "${HOME}/.gradle"
-            fi
-          fi
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' && steps.gradle-cache-restore.outputs.cache-hit == 'true' }}
