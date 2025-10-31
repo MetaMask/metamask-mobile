@@ -28,7 +28,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
     },
     avatar: {
-      marginRight: 12,
+      marginRight: 16,
     },
     labelsContainer: {
       flex: 1,
