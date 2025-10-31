@@ -2,6 +2,7 @@ import enContent from '../../../locales/languages/en.json';
 
 export const WalletViewSelectorsIDs = {
   WALLET_CONTAINER: 'wallet-screen',
+  WALLET_BURGER_MENU: 'navbar-hamburger-menu-button',
   NETWORK_NAME: 'network-name',
   NFT_CONTAINER: 'collectible-name',
   WALLET_SCAN_BUTTON: 'wallet-scan-button',
