@@ -867,7 +867,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
                 {renderErrorMessage()}
 
-                <View style={styles.ctaWrapper}>
+                <View style={styles.ctaWrapper} pointerEvents="box-none">
                   {renderSwitch()}
                   {renderUnlockButton()}
 
