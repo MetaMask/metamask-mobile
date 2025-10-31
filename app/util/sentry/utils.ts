@@ -11,16 +11,7 @@ import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { getTraceTags } from './tags';
 import { ReduxStore } from '../../core/redux';
-/**
- * This symbol matches all object properties when used in a mask
- */
-export const AllProperties = Symbol('*');
-
-type MaskValue =
-  | boolean
-  | typeof AllProperties
-  | { [key: string]: MaskValue }
-  | MaskValue[];
+import { AllProperties, maskObject } from './mask-object';
 
 // This describes the subset of background controller state attached to errors
 // sent to Sentry These properties have some potential to be useful for
@@ -98,21 +89,24 @@ export const sentryStateMask = {
         [AllProperties]: false,
       },
       NetworkController: {
-        networksMetadata: true,
-        providerConfig: {
-          chainId: true,
-          id: true,
-          nickname: true,
-          ticker: true,
-          type: true,
+        networkConfigurations: {
+          [AllProperties]: {
+            rpcEndpoints: {
+              [AllProperties]: {
+                networkClientId: true,
+              },
+            },
+          },
         },
+        networksMetadata: true,
+        selectedNetworkClientId: true,
       },
       NftController: {
         [AllProperties]: false,
       },
       PPOMController: {
-        storageMetadata: [],
-        versionInfo: [],
+        storageMetadata: false,
+        versionInfo: false,
       },
       PermissionController: {
         [AllProperties]: false,
@@ -250,7 +244,7 @@ export const sentryStateMask = {
     seedphraseBackedUp: true,
     userLoggedIn: true,
   },
-} as Record<string, MaskValue>;
+};
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'dev'; // eslint-disable-line dot-notation
 const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
@@ -376,69 +370,6 @@ function removeSES(report: SentryEvent): void {
   }
 }
 
-/**
- * Return a "masked" copy of the given object. The returned object includes
- * only the properties present in the mask.
- *
- * The mask is an object that mirrors the structure of the given object, except
- * the only values are `true`, `false, a sub-mask, or the 'AllProperties"
- * symbol. `true` implies the property should be included, and `false` will
- * exclude it. A sub-mask implies the property should be further masked
- * according to that sub-mask. The "AllProperties" symbol is used for objects
- * with dynamic keys, and applies a rule (either `true`, `false`, or a
- * sub-mask`) to every property in that object.
- *
- * If a property is excluded, its type is included instead.
- *
- * @param objectToMask - The object to mask
- * @param mask - The mask to apply to the object
- * @returns - The masked object
- */
-export function maskObject(
-  objectToMask: Record<string, unknown>,
-  mask: Record<string, MaskValue> = {},
-): Record<string, unknown> {
-  if (!objectToMask) return {};
-
-  // Include both string and symbol keys.
-  const maskKeys = Reflect.ownKeys(mask);
-  const allPropertiesMask = maskKeys.includes(AllProperties)
-    ? (Reflect.get(mask, AllProperties) as MaskValue | undefined)
-    : undefined;
-
-  return Object.keys(objectToMask).reduce((maskedObject, key) => {
-    // Start with the AllProperties mask if available
-    let maskKey = allPropertiesMask;
-
-    // If a key-specific mask exists, it overrides the AllProperties mask
-    if (mask[key] !== undefined && mask[key] !== AllProperties) {
-      maskKey = mask[key];
-    }
-
-    const shouldPrintValue = maskKey === true;
-    const shouldIterateSubMask =
-      maskKey !== AllProperties &&
-      Boolean(maskKey) &&
-      typeof maskKey === 'object';
-    const shouldPrintType = maskKey === undefined || maskKey === false;
-
-    if (shouldPrintValue) {
-      maskedObject[key] = objectToMask[key];
-    } else if (shouldIterateSubMask) {
-      maskedObject[key] = maskObject(
-        objectToMask[key] as Record<string, unknown>,
-        maskKey as Record<string, MaskValue>,
-      );
-    } else if (shouldPrintType) {
-      // For excluded fields, return their type or a placeholder
-      maskedObject[key] =
-        objectToMask[key] === null ? 'null' : typeof objectToMask[key];
-    }
-
-    return maskedObject;
-  }, {} as Record<string, unknown>);
-}
-
 export function rewriteReport(report: SentryEvent): SentryEvent {
   try {
     // filter out SES from error stack trace
@@ -458,14 +389,15 @@ export function rewriteReport(report: SentryEvent): SentryEvent {
     removeDeviceName(report);
 
     const appState = (store as ReduxStore | undefined)?.getState();
-    const maskedState = maskObject(
-      appState as unknown as Record<string, unknown>,
-      sentryStateMask,
-    );
+    const maskedState = appState
+      ? maskObject(appState, sentryStateMask)
+      : undefined;
     if (!report.contexts) {
       report.contexts = {};
     }
-    report.contexts.appState = maskedState;
+    if (maskedState) {
+      report.contexts.appState = maskedState;
+    }
   } catch (err) {
     console.error('ENTER ERROR OF REPORT ', err);
     throw err;

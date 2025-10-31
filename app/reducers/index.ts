@@ -53,20 +53,24 @@ import { isTest } from '../util/test/utils';
  *
  * @template reducer A reducer function
  */
-export type StateFromReducer<reducer> = reducer extends Reducer<
-  infer State,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  any
->
-  ? State
-  : never;
+export type StateFromReducer<reducer> =
+  reducer extends Reducer<
+    infer State,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any
+  >
+    ? State
+    : never;
 
 // TODO: Convert all reducers to valid TypeScript Redux reducers, and add them
 // to this type. Once that is complete, we can automatically generate this type
 // using the `StateFromReducersMapObject` type from redux.
-export interface RootState {
+// We need to use a `type` as `interface`s are not compatible with our `Json` type.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type RootState = {
   legalNotices: LegalNoticesState;
+  /*
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
@@ -137,7 +141,8 @@ export interface RootState {
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
-}
+  */
+};
 
 const baseReducers = {
   legalNotices: legalNoticesReducer,
