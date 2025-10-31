@@ -8,7 +8,6 @@ exports[`SRP -> Input should render correctly 1`] = `
   onFocus={[Function]}
   style={
     {
-      "backgroundColor": "#ffffff",
       "borderColor": "transparent",
       "borderWidth": 1,
       "color": "#121314",
