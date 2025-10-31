@@ -116,6 +116,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1293,6 +1294,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1333,6 +1335,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1543,6 +1546,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1583,6 +1587,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -2272,6 +2277,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         disabled={false}
         onPress={[MockFunction]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -2312,6 +2318,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",

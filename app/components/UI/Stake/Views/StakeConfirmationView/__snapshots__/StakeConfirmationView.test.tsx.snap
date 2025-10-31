@@ -1063,6 +1063,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           disabled={false}
           onPress={[Function]}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -1106,6 +1107,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           loading={false}
           onPress={[Function]}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
