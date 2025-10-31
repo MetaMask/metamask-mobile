@@ -156,7 +156,7 @@ export const PopularList = [
     ticker: 'MON',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'http://monadscan.com/',
+      blockExplorerUrl: 'https://monadscan.com/',
       imageUrl: 'MON',
       imageSource: require('../../images/monad-mainnet-logo.png'),
     },
