@@ -107,6 +107,10 @@ jest.mock('./NftGridHeader', () => {
     </View>
   );
 });
+jest.mock('./NftGridSkeleton', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="nft-grid-skeleton" />;
+});
 
 // Mock CollectiblesEmptyState - has complex dependencies
 jest.mock('../CollectiblesEmptyState', () => ({
@@ -167,6 +171,7 @@ jest.mock('../CollectibleMedia', () => () => null);
 jest.mock('@metamask/design-system-react-native', () => ({
   Text: ({ children }: { children: React.ReactNode }) => children,
   TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
+  FontWeight: { Medium: 'Medium' },
   Box: ({
     children,
     testID,
