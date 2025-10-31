@@ -726,7 +726,7 @@ export class PredictController extends BaseController<
    */
   public async trackPredictOrderEvent({
     eventType,
-    amount,
+    amountUsd,
     analyticsProperties,
     providerId,
     completionDuration,
@@ -735,7 +735,7 @@ export class PredictController extends BaseController<
     sharePrice,
   }: {
     eventType: PredictEventTypeValue;
-    amount?: number;
+    amountUsd?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
     providerId: string;
     completionDuration?: number;
@@ -764,6 +764,7 @@ export class PredictController extends BaseController<
       [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]:
         analyticsProperties.marketCategory,
+      [PredictEventProperties.MARKET_TAGS]: analyticsProperties.marketTags,
       [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
@@ -782,8 +783,8 @@ export class PredictController extends BaseController<
 
     // Build sensitive properties
     const sensitiveProperties = {
-      ...(amount !== undefined && {
-        [PredictEventProperties.AMOUNT]: amount,
+      ...(amountUsd !== undefined && {
+        [PredictEventProperties.AMOUNT_USD]: amountUsd,
       }),
       // Add user address only if we have it
       ...(safeAddress && {
@@ -839,12 +840,14 @@ export class PredictController extends BaseController<
     marketId,
     marketTitle,
     marketCategory,
+    marketTags,
     entryPoint,
     marketDetailsViewed,
   }: {
     marketId: string;
     marketTitle: string;
     marketCategory?: string;
+    marketTags?: string[];
     entryPoint: string;
     marketDetailsViewed: string;
   }): void {
@@ -852,6 +855,7 @@ export class PredictController extends BaseController<
       [PredictEventProperties.MARKET_ID]: marketId,
       [PredictEventProperties.MARKET_TITLE]: marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]: marketCategory,
+      [PredictEventProperties.MARKET_TAGS]: marketTags,
       [PredictEventProperties.ENTRY_POINT]: entryPoint,
       [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
     };
@@ -958,7 +962,10 @@ export class PredictController extends BaseController<
     const { analyticsProperties, preview, providerId } = params;
 
     const sharePrice = preview?.sharePrice;
-    const amount = preview?.maxAmountSpent;
+    const amountUsd =
+      preview.side === Side.BUY
+        ? preview?.maxAmountSpent
+        : preview?.minAmountReceived;
 
     try {
       const provider = this.providers.get(providerId);
@@ -981,7 +988,7 @@ export class PredictController extends BaseController<
       // Track Predict Action Submitted (fire and forget)
       this.trackPredictOrderEvent({
         eventType: PredictEventType.SUBMITTED,
-        amount,
+        amountUsd,
         analyticsProperties,
         providerId,
         sharePrice,
@@ -995,12 +1002,15 @@ export class PredictController extends BaseController<
       if (result.success) {
         const { id: orderId, spentAmount, receivedAmount } = result.response;
 
+        let realAmountUsd = amountUsd;
         let realSharePrice = sharePrice;
         try {
           if (preview.side === Side.BUY) {
+            realAmountUsd = parseFloat(spentAmount);
             realSharePrice =
               parseFloat(spentAmount) / parseFloat(receivedAmount);
           } else {
+            realAmountUsd = parseFloat(receivedAmount);
             realSharePrice =
               parseFloat(receivedAmount) / parseFloat(spentAmount);
           }
@@ -1011,7 +1021,7 @@ export class PredictController extends BaseController<
         // Track Predict Action Completed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.COMPLETED,
-          amount: spentAmount ? parseFloat(spentAmount) : amount,
+          amountUsd: realAmountUsd,
           analyticsProperties,
           providerId,
           completionDuration,
@@ -1022,7 +1032,7 @@ export class PredictController extends BaseController<
         // Track Predict Action Failed (fire and forget)
         this.trackPredictOrderEvent({
           eventType: PredictEventType.FAILED,
-          amount,
+          amountUsd,
           analyticsProperties,
           providerId,
           sharePrice,
@@ -1042,7 +1052,7 @@ export class PredictController extends BaseController<
 
       this.trackPredictOrderEvent({
         eventType: PredictEventType.FAILED,
-        amount,
+        amountUsd,
         analyticsProperties,
         providerId,
         sharePrice,

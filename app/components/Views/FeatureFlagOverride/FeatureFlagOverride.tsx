@@ -29,7 +29,7 @@ interface FeatureFlagRowProps {
   onToggle: (key: string, newValue: unknown) => void;
 }
 
-interface MinimumVersionFlagValue {
+export interface MinimumVersionFlagValue {
   enabled: boolean;
   minimumVersion: string;
 }

@@ -148,3 +148,11 @@ export const PredictActivityDetailsSelectorsIDs = {
   TITLE_TEXT: 'predict-activity-details-title',
   AMOUNT_DISPLAY: 'predict-activity-details-amount',
 } as const;
+
+// ========================================
+// PREDICT BALANCE SELECTORS
+// ========================================
+
+export const PredictBalanceSelectorsIDs = {
+  BALANCE_CARD: 'predict-balance-card',
+} as const;

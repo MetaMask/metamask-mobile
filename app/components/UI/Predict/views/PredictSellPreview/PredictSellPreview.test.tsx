@@ -258,7 +258,8 @@ const mockMarket = {
   status: 'open' as const,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recurrence: 'none' as any,
-  categories: ['crypto' as const],
+  category: 'crypto' as const,
+  tags: ['blockchain', 'cryptocurrency'],
   outcomes: [mockOutcome],
   liquidity: 1000000,
   volume: 1000000,
@@ -474,6 +475,7 @@ describe('PredictSellPreview', () => {
           marketId: 'market-123',
           marketTitle: 'Will Bitcoin reach $150,000?',
           marketCategory: 'crypto',
+          marketTags: expect.any(Array),
           entryPoint: 'predict_market_details',
           transactionType: 'mm_predict_sell',
           liquidity: 1000000,
