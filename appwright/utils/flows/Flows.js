@@ -1,20 +1,20 @@
-import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
-import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
-import ImportFromSeedScreen from '../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
-import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
-import TimerHelper from './TimersHelper.js';
-import WelcomeScreen from '../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
-import TermOfUseScreen from '../../wdio/screen-objects/Modals/TermOfUseScreen.js';
-import OnboardingScreen from '../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
-import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
-import { getPasswordForScenario } from './TestConstants.js';
-import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
-import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
-import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
-import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
+import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
+import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import TimerHelper from '../TimersHelper.js';
+import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
+import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
+import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
+import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
+import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
+import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
+import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
+import { getPasswordForScenario } from '../TestConstants.js';
+import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import MultichainAccountEducationModal from '../../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
+import PerpsGTMModal from '../../../wdio/screen-objects/Modals/PerpsGTMModal.js';
+import RewardsGTMModal from '../../../wdio/screen-objects/Modals/RewardsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -115,7 +115,11 @@ export async function importSRPFlow(device, srp) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { skipIntro = false, scenarioType = 'login' } = options;
+  const {
+    skipIntro = false,
+    scenarioType = 'login',
+    shouldDismissModals = true,
+  } = options;
 
   const password = getPasswordForScenario(scenarioType);
 
@@ -124,7 +128,9 @@ export async function login(device, options = {}) {
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
 
-  await dissmissAllModals(device);
+  if (shouldDismissModals) {
+    await dissmissAllModals(device);
+  }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;

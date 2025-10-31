@@ -16,7 +16,7 @@ import AccountListComponent from '../../../../wdio/screen-objects/AccountListCom
 import {
   dissmissAllModals,
   tapPerpsBottomSheetGotItButton,
-} from '../../../utils/Flows.js';
+} from '../../../utils/flows/Flows.js';
 
 /* Scenario 2: Account creation after fresh install */
 

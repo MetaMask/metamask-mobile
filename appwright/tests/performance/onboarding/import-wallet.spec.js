@@ -14,7 +14,7 @@ import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/Cre
 import ImportFromSeedScreen from '../../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 
-import { dissmissAllModals } from '../../../utils/Flows.js';
+import { dissmissAllModals } from '../../../utils/flows/Flows.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.setTimeout(150000000);
