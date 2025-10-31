@@ -14,7 +14,6 @@ jobs:
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
@@ -110,20 +109,20 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
-      - name: Check and restore cached iOS app if Fingerprint is found
-        id: cache-restore
-        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
-        with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-            ios-app-
+      # - name: Check and restore cached iOS app if Fingerprint is found
+      #   id: cache-restore
+      #   uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+      #   with:
+      #     path: |
+      #       ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+      #     key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
+      #     restore-keys: |
+      #       ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
+      #       ios-app-
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        # if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -157,50 +156,50 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
-      - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
-        run: |
-          echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
-          # Use the optimized repack script which uses @expo/repack-app
-          yarn build:repack:ios
-          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
-        env:
-          PLATFORM: ios
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: true
-          E2E: 'true'
-          IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: 'true'
-          CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
-          BRIDGE_USE_DEV_APIS: 'true'
-          RAMP_INTERNAL_BUILD: 'true'
-          SEEDLESS_ONBOARDING_ENABLED: 'true'
-          MM_NOTIFICATIONS_UI_ENABLED: 'true'
-          MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
-          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
-          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
-          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
-          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      # - name: Repack iOS app with JS updates using @expo/repack-app
+      #   if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+      #   run: |
+      #     echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
+      #     # Use the optimized repack script which uses @expo/repack-app
+      #     yarn build:repack:ios
+      #     echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
+      #   env:
+      #     PLATFORM: ios
+      #     METAMASK_ENVIRONMENT: qa
+      #     METAMASK_BUILD_TYPE: main
+      #     IS_TEST: true
+      #     E2E: 'true'
+      #     IGNORE_BOXLOGS_DEVELOPMENT: true
+      #     GITHUB_CI: 'true'
+      #     CI: 'true'
+      #     NODE_OPTIONS: '--max-old-space-size=8192'
+      #     BRIDGE_USE_DEV_APIS: 'true'
+      #     RAMP_INTERNAL_BUILD: 'true'
+      #     SEEDLESS_ONBOARDING_ENABLED: 'true'
+      #     MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      #     MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      #     MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+      #     BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
+      #     FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+      #     FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+      #     SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+      #     SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+      #     SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+      #     SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+      #     MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+      #     MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+      #     MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+      #     MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+      #     MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+      #     MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+      #     MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+      #     GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+      #     GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+      #     MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        # if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
         with:
           path: |
@@ -220,16 +219,16 @@ jobs:
 
       # Upload source map file for crash debugging and error tracking if exists
       # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
-      - name: Upload iOS Source Map
-        id: upload-sourcemap
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: index.js.map
-          path: sourcemaps/ios/index.js.map
-          retention-days: 7
-          if-no-files-found: error
-        continue-on-error: true
+      # - name: Upload iOS Source Map
+      #   id: upload-sourcemap
+      #   if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: index.js.map
+      #     path: sourcemaps/ios/index.js.map
+      #     retention-days: 7
+      #     if-no-files-found: error
+      #   continue-on-error: true
 
       # Generate artifact download URL and display upload status summary
       - name: Set Artifacts URL and Status
@@ -241,7 +240,6 @@ jobs:
           echo ""
           echo "Upload Status Summary:"
           echo "- APP (Simulator): ${{ steps.upload-app.outcome }}"
-          echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
           GITHUB_REPOSITORY: '${{ github.repository }}'
