@@ -22,7 +22,7 @@ describe('PerpsController Selectors', () => {
           },
         },
       },
-    }) as unknown as RootState;
+    } as unknown as RootState);
 
   describe('selectPerpsProvider', () => {
     it('returns the active provider from PerpsController state', () => {
@@ -88,10 +88,11 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const mockAccountState: AccountState = {
         availableBalance: '3000',
+        totalBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '50',
         returnOnEquity: '10.0',
-        totalBalance: '5500',
+        totalValue: '5500',
       };
 
       const mockState = createMockState({
@@ -133,10 +134,11 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const mockAccountState: AccountState = {
         availableBalance: '0',
+        totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalBalance: '0',
+        returnOnEquity: '10.0',
+        totalValue: '5500',
       };
 
       const mockState = createMockState({
@@ -156,10 +158,11 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const positivePnlState: AccountState = {
         availableBalance: '5000',
+        totalBalance: '6000',
         marginUsed: '1000',
         unrealizedPnl: '500',
         returnOnEquity: '100.0',
-        totalBalance: '6000',
+        totalValue: '6000',
       };
 
       const mockState = createMockState({
@@ -178,10 +181,11 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const negativePnlState: AccountState = {
         availableBalance: '3000',
+        totalBalance: '4500',
         marginUsed: '2000',
         unrealizedPnl: '-500',
         returnOnEquity: '-25.0',
-        totalBalance: '4000',
+        totalValue: '4000',
       };
 
       const mockState = createMockState({

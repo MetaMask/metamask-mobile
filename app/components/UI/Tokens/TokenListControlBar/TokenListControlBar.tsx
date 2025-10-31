@@ -1,5 +1,4 @@
 import React from 'react';
-import { ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -13,12 +12,10 @@ import createControlBarStyles from '../../shared/ControlBarStyles';
 
 interface TokenListControlBarProps {
   goToAddToken: () => void;
-  style?: ViewStyle;
 }
 
 export const TokenListControlBar = ({
   goToAddToken,
-  style,
 }: TokenListControlBarProps) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -41,7 +38,6 @@ export const TokenListControlBar = ({
       additionalButtons={additionalButtons}
       useEvmSelectionLogic={isEvmSelected}
       customWrapper="outer"
-      style={style}
     />
   );
 };

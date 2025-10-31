@@ -1,7 +1,9 @@
 import { ControllerInitFunction } from '../types';
-import { RatesControllerInitMessenger } from '../messengers/rates-controller-messenger';
 import {
+  RatesControllerInitMessenger,
   RatesControllerMessenger,
+} from '../messengers/rates-controller-messenger';
+import {
   CurrencyRateState,
   RatesController,
 } from '@metamask/assets-controllers';

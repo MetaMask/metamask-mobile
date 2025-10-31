@@ -54,8 +54,9 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         smartContracts: [ERC_20_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const erc20Address =
-          await contractRegistry?.getContractAddress(ERC_20_CONTRACT);
+        const erc20Address = await contractRegistry?.getContractAddress(
+          ERC_20_CONTRACT,
+        );
 
         await loginToApp();
 
@@ -127,8 +128,9 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         smartContracts: [ERC_721_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const erc721Address =
-          await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
+        const erc721Address = await contractRegistry?.getContractAddress(
+          ERC_721_CONTRACT,
+        );
 
         await loginToApp();
 

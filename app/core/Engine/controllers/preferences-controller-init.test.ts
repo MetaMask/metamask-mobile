@@ -1,22 +1,19 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getPreferencesControllerMessenger } from '../messengers/preferences-controller-messenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import {
+  getPreferencesControllerMessenger,
+  type PreferencesControllerMessenger,
+} from '../messengers/preferences-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { preferencesControllerInit } from './preferences-controller-init';
-import {
-  PreferencesController,
-  PreferencesControllerMessenger,
-} from '@metamask/preferences-controller';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { PreferencesController } from '@metamask/preferences-controller';
 
 jest.mock('@metamask/preferences-controller');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<PreferencesControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

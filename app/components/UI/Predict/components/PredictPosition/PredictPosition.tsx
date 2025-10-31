@@ -32,7 +32,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   return (
     <TouchableOpacity
-      testID={getPredictPositionSelector.currentPositionCard}
+      testID={getPredictPositionSelector.currentPositionCard(
+        position.outcomeIndex,
+      )}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
@@ -41,24 +43,24 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       </View>
       <View style={styles.positionDetails}>
         <Text
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMD}
           color={TextColor.Default}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
           {title}
         </Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           ${initialValue.toFixed(2)} on {outcome} •{' '}
           {(avgPrice * 100).toFixed(0)}¢
         </Text>
       </View>
       <View style={styles.positionPnl}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {formatPrice(currentValue, { maximumDecimals: 2 })}
         </Text>
         <Text
-          variant={TextVariant.BodySMMedium}
+          variant={TextVariant.BodyMD}
           color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
         >
           {formatPercentage(percentPnl)}

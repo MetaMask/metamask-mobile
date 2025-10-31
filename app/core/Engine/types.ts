@@ -1,12 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import {
-  SamplePetnamesController,
-  SamplePetnamesControllerState,
-  SamplePetnamesControllerActions,
-  SamplePetnamesControllerEvents,
-} from '@metamask/sample-controllers';
-///: END:ONLY_INCLUDE_IF
-import { ExtendedMessenger } from '../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   AccountTrackerController,
   AccountTrackerControllerState,
@@ -67,8 +59,6 @@ import {
   MultichainAssetsRatesControllerEvents,
   MultichainAssetsRatesControllerActions,
   CodefiTokenPricesServiceV2,
-  TokenDetectionControllerEvents,
-  TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -188,8 +178,6 @@ import {
   WebSocketServiceActions,
   WebSocketServiceEvents,
   MultichainRouter,
-  ExecutionServiceActions,
-  ExecutionServiceEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -253,16 +241,18 @@ import {
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller';
 import {
-  Messenger,
+  RestrictedMessenger,
   ActionConstraint,
   EventConstraint,
-} from '@metamask/messenger';
+} from '@metamask/base-controller';
 import {
   TokenSearchDiscoveryController,
   TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
+import {
   TokenSearchDiscoveryControllerActions,
   TokenSearchDiscoveryControllerEvents,
-} from '@metamask/token-search-discovery-controller';
+} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   MultichainNetworkController,
@@ -314,7 +304,6 @@ import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
-  SeedlessOnboardingControllerActions,
 } from '@metamask/seedless-onboarding-controller';
 import { EncryptionKey } from '../Encryptor/types';
 
@@ -345,8 +334,6 @@ import {
 } from '@metamask/multichain-account-service';
 import {
   GatorPermissionsController,
-  GatorPermissionsControllerActions,
-  GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
 import { DelegationController } from '@metamask/delegation-controller';
@@ -357,21 +344,6 @@ import {
 } from '@metamask/delegation-controller/dist/types.cjs';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
-import {
-  ControllerGetStateAction,
-  ControllerStateChangeEvent,
-} from '@metamask/base-controller';
-import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
-
-type NftDetectionControllerActions = ControllerGetStateAction<
-  'NftDetectionController',
-  NFTDetectionControllerState
->;
-
-type NftDetectionControllerEvents = ControllerStateChangeEvent<
-  'NftDetectionController',
-  NFTDetectionControllerState
->;
 
 /**
  * Controllers that area always instantiated
@@ -423,9 +395,6 @@ type SnapsGlobalEvents =
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | SamplePetnamesControllerActions
-  ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
   | NftControllerActions
   | SwapsControllerActions
@@ -433,7 +402,6 @@ type GlobalActions =
   | ApprovalControllerActions
   | CurrencyRateControllerActions
   | GasFeeControllerActions
-  | GatorPermissionsControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
   | NetworkEnablementControllerActions
@@ -449,7 +417,6 @@ type GlobalActions =
   | NotificationServicesPushControllerActions
   | CronjobControllerActions
   | WebSocketServiceActions
-  | ExecutionServiceActions
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
   | AccountActivityServiceActions
@@ -467,7 +434,6 @@ type GlobalActions =
   | PPOMControllerActions
   | TokenBalancesControllerActions
   | TokensControllerActions
-  | TokenDetectionControllerActions
   | TokenRatesControllerActions
   | TokenListControllerActions
   | TransactionControllerActions
@@ -489,14 +455,9 @@ type GlobalActions =
   | MultichainRouterActions
   | DeFiPositionsControllerActions
   | ErrorReportingServiceActions
-  | DelegationControllerActions
-  | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | DelegationControllerActions;
 
 type GlobalEvents =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | SamplePetnamesControllerEvents
-  ///: END:ONLY_INCLUDE_IF
   | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
@@ -505,7 +466,6 @@ type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
-  | GatorPermissionsControllerEvents
   | KeyringControllerEvents
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
@@ -519,7 +479,6 @@ type GlobalEvents =
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
   | WebSocketServiceEvents
-  | ExecutionServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
   | AccountActivityServiceEvents
@@ -538,7 +497,6 @@ type GlobalEvents =
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
   | TokensControllerEvents
-  | TokenDetectionControllerEvents
   | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
@@ -560,34 +518,16 @@ type GlobalEvents =
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
-  | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | DelegationControllerEvents;
 
 /**
- * Type definition for the messenger used in the Engine.
- * It extends the base Messenger with global actions and events.
+ * Type definition for the controller messenger used in the Engine.
+ * It extends the base ControllerMessenger with global actions and events.
  */
-export type RootExtendedMessenger = ExtendedMessenger<
-  'Root',
+export type BaseControllerMessenger = ExtendedControllerMessenger<
   GlobalActions,
   GlobalEvents
 >;
-
-export const getRootExtendedMessenger = (): RootExtendedMessenger =>
-  new ExtendedMessenger<'Root', GlobalActions, GlobalEvents>({
-    namespace: 'Root',
-  });
-
-/**
- * Type definition for the root messenger used in the Engine.
- * It extends the root messenger with global actions and events.
- */
-export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
-
-export const getRootMessenger = (): RootMessenger =>
-  new Messenger<'Root', GlobalActions, GlobalEvents>({
-    namespace: 'Root',
-  });
 
 /**
  * All mobile controllers, keyed by name
@@ -596,9 +536,6 @@ export const getRootMessenger = (): RootMessenger =>
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesController;
-  ///: END:ONLY_INCLUDE_IF
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
@@ -742,9 +679,6 @@ export type EngineState = {
   PredictController: PredictControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesControllerState;
-  ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
 };
@@ -763,21 +697,20 @@ export type ControllerByName = {
 };
 
 /**
- * A messenger for the controller
+ * A restricted version of the controller messenger
  */
-export type ControllerMessenger = Messenger<
+export type BaseRestrictedControllerMessenger = RestrictedMessenger<
   string,
   ActionConstraint,
-  EventConstraint
+  EventConstraint,
+  string,
+  string
 >;
 
 /**
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | 'SamplePetnamesController'
-  ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
@@ -853,8 +786,8 @@ export type ControllersToInitialize =
  * Callback that returns a controller messenger for a specific controller.
  */
 export type ControllerMessengerCallback = (
-  baseControllerMessenger: RootExtendedMessenger,
-) => ControllerMessenger;
+  baseControllerMessenger: BaseControllerMessenger,
+) => BaseRestrictedControllerMessenger;
 
 /**
  * Persisted state for all controllers.
@@ -878,8 +811,8 @@ export type ControllerMessengerByControllerName = typeof CONTROLLER_MESSENGERS;
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ControllerInitRequest<
-  ControllerMessengerType extends ControllerMessenger,
-  InitMessengerType extends void | ControllerMessenger = void,
+  ControllerMessengerType extends BaseRestrictedControllerMessenger,
+  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
 > = {
   /**
    * The token API service instance.
@@ -959,8 +892,8 @@ export type ControllerInitRequest<
  */
 export type ControllerInitFunction<
   ControllerType extends Controller,
-  ControllerMessengerType extends ControllerMessenger,
-  InitMessengerType extends void | ControllerMessenger = void,
+  ControllerMessengerType extends BaseRestrictedControllerMessenger,
+  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
 > = (
   request: ControllerInitRequest<ControllerMessengerType, InitMessengerType>,
 ) => {
@@ -979,7 +912,7 @@ export type ControllerInitFunctionByControllerName = {
 };
 
 export interface InitModularizedControllersFunctionRequest {
-  baseControllerMessenger: RootExtendedMessenger;
+  baseControllerMessenger: BaseControllerMessenger;
   controllerInitFunctions: ControllerInitFunctionByControllerName;
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;

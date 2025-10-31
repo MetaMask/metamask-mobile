@@ -1,28 +1,21 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
 import { AppMetadataControllerMessenger } from '@metamask/app-metadata-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { BaseControllerMessenger } from '../../types';
+
+// Export the types
+export * from './types';
 
 /**
  * Get the AppMetadataControllerMessenger for the AppMetadataController.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The AppMetadataControllerMessenger.
  */
 export function getAppMetadataControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): AppMetadataControllerMessenger {
-  const messenger = new Messenger<
-    'AppMetadataController',
-    MessengerActions<AppMetadataControllerMessenger>,
-    MessengerEvents<AppMetadataControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'AppMetadataController',
-    parent: rootExtendedMessenger,
+  return baseControllerMessenger.getRestricted({
+    name: 'AppMetadataController',
+    allowedEvents: [],
+    allowedActions: [],
   });
-  return messenger;
 }

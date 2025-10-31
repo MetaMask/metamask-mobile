@@ -1,6 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { UnrealizedPnL } from '../types';
@@ -93,20 +92,6 @@ export const useUnrealizedPnL = (
         setError(errorMessage);
         setUnrealizedPnL(null);
         DevLogger.log('useUnrealizedPnL: Error loading unrealized P&L', err);
-
-        // Capture exception with unrealized PnL loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
-          tags: {
-            component: 'useUnrealizedPnL',
-            action: 'unrealized_pnl_load',
-            operation: 'data_fetching',
-          },
-          extra: {
-            pnlContext: {
-              providerId,
-            },
-          },
-        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);

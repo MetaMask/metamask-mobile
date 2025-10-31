@@ -1,31 +1,14 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
-import { AccountTrackerControllerMessenger } from '@metamask/assets-controllers';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<AccountTrackerControllerMessenger>,
-  MessengerEvents<AccountTrackerControllerMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
 
 describe('getAccountTrackerControllerMessenger', () => {
   it('returns a restricted messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+    const messenger = new Messenger<never, never>();
     const accountTrackerControllerMessenger =
-      getAccountTrackerControllerMessenger(rootMessenger);
+      getAccountTrackerControllerMessenger(messenger);
 
-    expect(accountTrackerControllerMessenger).toBeInstanceOf(Messenger);
+    expect(accountTrackerControllerMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

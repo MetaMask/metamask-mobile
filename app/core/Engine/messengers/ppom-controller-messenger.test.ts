@@ -1,46 +1,24 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import { PPOMControllerMessenger } from '@metamask/ppom-validator';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import {
   getPPOMControllerMessenger,
   getPPOMControllerInitMessenger,
-  PPOMControllerInitMessenger,
 } from './ppom-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<PPOMControllerMessenger>
-  | MessengerActions<PPOMControllerInitMessenger>,
-  | MessengerEvents<PPOMControllerMessenger>
-  | MessengerEvents<PPOMControllerInitMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
-
 describe('getPPOMControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
-    const ppomControllerMessenger = getPPOMControllerMessenger(rootMessenger);
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
+    const ppomControllerMessenger = getPPOMControllerMessenger(messenger);
 
-    expect(ppomControllerMessenger).toBeInstanceOf(Messenger);
+    expect(ppomControllerMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });
 
 describe('getPPOMControllerInitializationMessenger', () => {
-  it('returns a messenger for initialization', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger for initialization', () => {
+    const messenger = new Messenger<never, never>();
     const ppomControllerInitMessenger =
-      getPPOMControllerInitMessenger(rootMessenger);
+      getPPOMControllerInitMessenger(messenger);
 
-    expect(ppomControllerInitMessenger).toBeInstanceOf(Messenger);
+    expect(ppomControllerInitMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });

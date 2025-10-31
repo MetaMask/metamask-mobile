@@ -1,36 +1,34 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import type { AuthenticationControllerMessenger } from '@metamask/profile-sync-controller/auth';
-import { RootMessenger } from '../../types';
+import { Messenger } from '@metamask/base-controller';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import type { HandleSnapRequest } from '@metamask/snaps-controllers';
 
-const name = 'AuthenticationController';
+type AllowedActions = HandleSnapRequest | KeyringControllerGetStateAction;
+type AllowedEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
+
+export type AuthenticationControllerMessenger = ReturnType<
+  typeof getAuthenticationControllerMessenger
+>;
 
 /**
- * Get a messenger for the authentication controller. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * authentication controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The AuthenticationControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getAuthenticationControllerMessenger(
-  rootMessenger: RootMessenger,
-): AuthenticationControllerMessenger {
-  const messenger = new Messenger<
-    typeof name,
-    MessengerActions<AuthenticationControllerMessenger>,
-    MessengerEvents<AuthenticationControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: name,
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'AuthenticationController',
+    allowedActions: [
+      'KeyringController:getState',
+      'SnapController:handleRequest',
+    ],
+    allowedEvents: ['KeyringController:lock', 'KeyringController:unlock'],
   });
-  rootMessenger.delegate({
-    actions: ['KeyringController:getState', 'SnapController:handleRequest'],
-    events: ['KeyringController:lock', 'KeyringController:unlock'],
-    messenger,
-  });
-  return messenger;
 }

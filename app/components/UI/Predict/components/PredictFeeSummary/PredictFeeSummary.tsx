@@ -1,18 +1,13 @@
 import React from 'react';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonIcon,
+  IconName,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
-  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { formatPrice } from '../../utils/format';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
@@ -31,17 +26,11 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
     return null;
   }
   return (
-    <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
+    <Box twClassName="p-4 flex-col gap-2">
       <Box twClassName="flex-row justify-between items-center">
         <Box twClassName=" flex-row gap-2 items-center">
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {strings('predict.fee_summary.provider_fee')}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSizes.Sm}
-            iconColor={IconColor.Alternative}
-          />
+          <Text color={TextColor.Alternative}>Provider fee</Text>
+          <ButtonIcon iconName={IconName.Info} twClassName="text-alternative" />
         </Box>
         <Text color={TextColor.Alternative}>
           {formatPrice(providerFee, {
@@ -51,14 +40,8 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       </Box>
       <Box twClassName="flex-row justify-between items-center">
         <Box twClassName="flex-row gap-2 items-center">
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {strings('predict.fee_summary.metamask_fee')}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSizes.Sm}
-            iconColor={IconColor.Alternative}
-          />
+          <Text color={TextColor.Alternative}>MetaMask fee</Text>
+          <ButtonIcon iconName={IconName.Info} />
         </Box>
         <Text color={TextColor.Alternative}>
           {formatPrice(metamaskFee, {
@@ -68,14 +51,8 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       </Box>
       <Box twClassName="flex-row justify-between items-center">
         <Box twClassName="flex-row gap-2 items-center">
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {strings('predict.fee_summary.total')}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSizes.Sm}
-            iconColor={IconColor.Alternative}
-          />
+          <Text color={TextColor.Alternative}>Total</Text>
+          <ButtonIcon iconName={IconName.Info} />
         </Box>
         <Text color={TextColor.Alternative}>
           {formatPrice(total, {

@@ -1,27 +1,12 @@
 import type { NotificationServicesPushControllerMessenger } from '@metamask/notification-services-controller/push-services';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { BaseControllerMessenger } from '../../types';
 
 export function getNotificationServicesPushControllerMessenger(
-  baseControllerMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): NotificationServicesPushControllerMessenger {
-  const messenger = new Messenger<
-    'NotificationServicesPushController',
-    MessengerActions<NotificationServicesPushControllerMessenger>,
-    MessengerEvents<NotificationServicesPushControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'NotificationServicesPushController',
-    parent: baseControllerMessenger,
+  return baseControllerMessenger.getRestricted({
+    name: 'NotificationServicesPushController',
+    allowedActions: ['AuthenticationController:getBearerToken'],
+    allowedEvents: [],
   });
-  baseControllerMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

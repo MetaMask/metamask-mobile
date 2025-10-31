@@ -1976,6 +1976,7 @@
     "token_is_needed_to_continue": "Απαιτείται τo {{tokenSymbol}} για να συνεχίσετε",
     "fund_your_wallet": "Χρηματοδοτήστε το πορτοφόλι σας",
     "get_ready_for_web3": "Get your wallet ready to use web3",
+    "fund_your_wallet_to_get_started": "Χρηματοδοτήστε το πορτοφόλι σας για να ξεκινήσετε στο web3",
     "add_funds": "Προσθήκη κεφαλαίων",
     "next": "Επόμενο",
     "buy_asset": "Αγοράστε {{asset}}",

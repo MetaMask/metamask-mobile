@@ -1,22 +1,19 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getSmartTransactionsControllerMessenger } from '../messengers/smart-transactions-controller-messenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import {
+  getSmartTransactionsControllerMessenger,
+  type SmartTransactionsControllerMessenger,
+} from '../messengers/smart-transactions-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { smartTransactionsControllerInit } from './smart-transactions-controller-init';
-import {
-  SmartTransactionsController,
-  SmartTransactionsControllerMessenger,
-} from '@metamask/smart-transactions-controller';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 
 jest.mock('@metamask/smart-transactions-controller');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SmartTransactionsControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
@@ -29,8 +26,9 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('SmartTransactionsControllerInit', () => {
   it('initializes the controller', () => {
-    const { controller } =
-      smartTransactionsControllerInit(getInitRequestMock());
+    const { controller } = smartTransactionsControllerInit(
+      getInitRequestMock(),
+    );
     expect(controller).toBeInstanceOf(SmartTransactionsController);
   });
 

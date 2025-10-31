@@ -808,8 +808,8 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
                           {item.allowanceState === AllowanceState.Enabled
                             ? strings('card.asset_selection.enabled')
                             : item.allowanceState === AllowanceState.Limited
-                              ? strings('card.asset_selection.limited')
-                              : strings('card.asset_selection.not_enabled')}
+                            ? strings('card.asset_selection.limited')
+                            : strings('card.asset_selection.not_enabled')}
                         </Text>
                         {item.walletAddress && (
                           <Text

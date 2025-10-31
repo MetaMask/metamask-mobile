@@ -23,10 +23,6 @@ import {
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { selectAccountsByChainId } from '../accountTrackerController';
-import {
-  TRON_RESOURCE_SYMBOLS_SET,
-  TronResourceSymbol,
-} from '../../core/Multichain/constants';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -201,12 +197,10 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets)
       .filter((asset) => {
-        // We need to filter out Tron resources from this list
+        // We need to filter out Tron energy and bandwidth from this list
         if (
           asset.chainId?.includes('tron:') &&
-          TRON_RESOURCE_SYMBOLS_SET.has(
-            asset.symbol?.toLowerCase() as TronResourceSymbol,
-          )
+          (asset.name === 'Energy' || asset.name === 'Bandwidth')
         ) {
           return false;
         }
@@ -348,23 +342,3 @@ function assetToToken(
     accountType: asset.accountType,
   };
 }
-
-// This is used to select Tron resources (Energy & Bandwidth)
-export const selectTronResourcesBySelectedAccountGroup =
-  createDeepEqualSelector(
-    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
-    (bip44Assets, enabledNetworks) => {
-      const assets = Object.entries(bip44Assets)
-        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-        .flatMap(([_, chainAssets]) => chainAssets)
-        .filter(
-          (asset) =>
-            asset.chainId?.includes('tron:') &&
-            TRON_RESOURCE_SYMBOLS_SET.has(
-              asset.symbol?.toLowerCase() as TronResourceSymbol,
-            ),
-        );
-
-      return assets;
-    },
-  );

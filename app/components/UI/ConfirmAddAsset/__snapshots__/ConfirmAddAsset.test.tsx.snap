@@ -1,11 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
-      "backgroundColor": "#ffffff",
-      "flex": 1,
       "paddingVertical": 16,
     }
   }
@@ -377,5 +375,5 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
     </View>
   </View>
   <View />
-</RCTSafeAreaView>
+</View>
 `;

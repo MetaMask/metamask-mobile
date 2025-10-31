@@ -1,5 +1,3 @@
-import enContent from '../../../locales/languages/en.json';
-
 // ========================================
 // PREDICT TAB VIEW SELECTORS
 // ========================================
@@ -75,15 +73,6 @@ export const PredictMarketDetailsSelectorsText = {
 } as const;
 
 // ========================================
-// PREDICT POSITIONS HEADER SELECTORS
-// ========================================
-
-export const PredictPositionsHeaderSelectorsIDs = {
-  // Claim button
-  CLAIM_BUTTON: 'predict-claim-button',
-} as const;
-
-// ========================================
 // PREDICT POSITIONS SELECTORS
 // ========================================
 
@@ -96,11 +85,12 @@ export const PredictPositionsSelectorsIDs = {
   RESOLVED_MARKETS_HEADER: 'predict-resolved-markets-header',
 } as const;
 
-// Helper functions for position selectors with unique identifiers
+// Helper functions for position selectors with index
 export const getPredictPositionSelector = {
-  currentPositionCard: 'predict-current-position-card',
-  resolvedPositionCard: (positionId: string) =>
-    `predict-resolved-position-card-${positionId}`,
+  currentPositionCard: (outcomeIndex: number) =>
+    `predict-current-position-card-${outcomeIndex}`,
+  resolvedPositionCard: (outcomeIndex: number) =>
+    `predict-resolved-position-card-${outcomeIndex}`,
 };
 
 // ========================================
@@ -113,46 +103,4 @@ export const PredictCashOutSelectorsIDs = {
 
   // Cash out buttons
   SELL_PREVIEW_CASH_OUT_BUTTON: 'predict-sell-preview-cash-out-button',
-} as const;
-
-// ========================================
-// PREDICT CLAIM CONFIRMATION SELECTORS
-// ========================================
-
-export const PredictClaimConfirmationSelectorsIDs = {
-  // Claim amount container
-  CLAIM_BACKGROUND_CONTAINER: 'predict-claim-background',
-  CLAIM_AMOUNT_CONTAINER: 'predict-claim-amount-container',
-
-  // Claim confirm button
-  CLAIM_CONFIRM_BUTTON: 'predict-claim-confirm-button',
-
-  // PREDICT UNAVAILABLE (GEO-BLOCK) SELECTORS
-  // ========================================
-} as const;
-
-export const PredictUnavailableSelectorsIDs = {
-  TITLE_TEXT: enContent.predict.unavailable.title,
-  DESCRIPTION_TEXT: enContent.predict.unavailable.description,
-  LINK_TEXT: enContent.predict.unavailable.link,
-  BUTTON_TEXT: enContent.predict.unavailable.button,
-} as const;
-
-// ========================================
-// PREDICT ACTIVITY DETAILS SELECTORS
-// ========================================
-
-export const PredictActivityDetailsSelectorsIDs = {
-  BACK_BUTTON: 'predict-activity-details-back-button',
-  CONTAINER: 'predict-activity-details-container',
-  TITLE_TEXT: 'predict-activity-details-title',
-  AMOUNT_DISPLAY: 'predict-activity-details-amount',
-} as const;
-
-// ========================================
-// PREDICT BALANCE SELECTORS
-// ========================================
-
-export const PredictBalanceSelectorsIDs = {
-  BALANCE_CARD: 'predict-balance-card',
 } as const;

@@ -75,7 +75,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
     },
     accountBox: {
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.alternative,
       paddingTop: 14,
       paddingBottom: 14,
       paddingLeft: 16,

@@ -8,8 +8,7 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 // eslint-disable-next-line import/no-namespace
 import * as createNotificationServicesControllerModule from './create-notification-services-controller';
 import { notificationServicesControllerInit } from './notification-services-controller-init';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 describe('notificationServicesControllerInit', () => {
   const arrangeMocks = () => {
@@ -21,9 +20,7 @@ describe('notificationServicesControllerInit', () => {
       )
       .mockReturnValue({} as NotificationServicesController);
 
-    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
+    const baseControllerMessenger = new ExtendedControllerMessenger();
 
     const initRequestMock = buildControllerInitRequestMock(
       baseControllerMessenger,

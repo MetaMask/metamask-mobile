@@ -1,34 +1,30 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { SwapsControllerMessenger } from '@metamask/swaps-controller';
-import { RootMessenger } from '../types';
+import { Messenger } from '@metamask/base-controller';
+import type {
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerNetworkDidChangeEvent,
+} from '@metamask/network-controller';
+
+type AllowedActions = NetworkControllerGetNetworkClientByIdAction;
+
+type AllowedEvents = NetworkControllerNetworkDidChangeEvent;
+
+export type SwapsControllerMessenger = ReturnType<
+  typeof getSwapsControllerMessenger
+>;
 
 /**
- * Get the messenger for the swaps controller. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * swaps controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The SwapsControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getSwapsControllerMessenger(
-  rootMessenger: RootMessenger,
-): SwapsControllerMessenger {
-  const messenger = new Messenger<
-    'SwapsController',
-    MessengerActions<SwapsControllerMessenger>,
-    MessengerEvents<SwapsControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'SwapsController',
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'SwapsController',
+    allowedActions: ['NetworkController:getNetworkClientById'],
+    allowedEvents: ['NetworkController:networkDidChange'],
   });
-  rootMessenger.delegate({
-    actions: ['NetworkController:getNetworkClientById'],
-    events: ['NetworkController:networkDidChange'],
-    messenger,
-  });
-  return messenger;
 }

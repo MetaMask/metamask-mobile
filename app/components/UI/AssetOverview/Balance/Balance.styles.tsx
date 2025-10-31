@@ -50,10 +50,6 @@ const styleSheet = (params: { theme: Theme }) => {
       fontFamily: getFontFamily(TextVariant.BodySM),
       color: theme.colors.text.alternative,
     } as TextStyle,
-    assetName: {
-      flexDirection: 'row',
-      gap: 8,
-    },
   });
 };
 

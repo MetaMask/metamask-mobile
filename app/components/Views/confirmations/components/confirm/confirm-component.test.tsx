@@ -6,6 +6,7 @@ import {
   generateContractInteractionState,
   getAppStateForConfirmation,
   personalSignatureConfirmationState,
+  securityAlertResponse,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
@@ -19,7 +20,6 @@ import { Confirm, ConfirmationLoader } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 
 jest.mock('../../hooks/useConfirmActions');
 
@@ -55,7 +55,6 @@ jest.mock(
 
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
-jest.mock('../../hooks/alerts/useConfirmationAlerts');
 
 const mockSetOptions = jest.fn();
 const mockNavigation = {
@@ -170,6 +169,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../hooks/alerts/useInsufficientPayTokenNativeAlert', () => ({
+  useInsufficientPayTokenNativeAlert: jest.fn().mockReturnValue([]),
+}));
+
 describe('Confirm', () => {
   const useConfirmActionsMock = jest.mocked(useConfirmActions);
   const mockOnReject = jest.fn();
@@ -184,8 +187,6 @@ describe('Confirm', () => {
     jest
       .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
-
-    jest.mocked(useConfirmationAlerts).mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -305,6 +306,22 @@ describe('Confirm', () => {
     ).toBeDefined();
     expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
+  });
+
+  it('renders a blockaid banner if the confirmation has blockaid error response', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: {
+        ...typedSignV1ConfirmationState,
+        signatureRequest: { securityAlertResponse },
+      },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(getByText('Signature request')).toBeDefined();
+    expect(getByText('This is a deceptive request')).toBeDefined();
   });
 
   it('renders splash page if present', async () => {

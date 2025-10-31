@@ -25,7 +25,7 @@ import {
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
-import { Messenger } from '@metamask/messenger';
+import { Messenger } from '@metamask/base-controller';
 import { SignatureStateChange } from '@metamask/signature-controller';
 import cloneDeep from 'lodash/cloneDeep';
 
@@ -41,7 +41,6 @@ export interface PPOMRequest {
 }
 
 export type PPOMMessenger = Messenger<
-  'PPOMMessenger',
   never,
   SignatureStateChange | TransactionControllerUnapprovedTransactionAddedEvent
 >;

@@ -1,5 +1,6 @@
 import { act } from '@testing-library/react-hooks';
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import { QuoteResponse } from '../../types';
+import { QuoteMetadata } from '@metamask/bridge-controller';
 
 /**
  * Unit tests for the blockaid validation logic.
@@ -94,7 +95,7 @@ describe('Blockaid Validation Logic', () => {
       trade: {} as QuoteResponse['trade'],
       estimatedProcessingTimeInSeconds: 60,
       // Add other required properties as needed
-    }) as unknown as QuoteResponse & QuoteMetadata;
+    } as unknown as QuoteResponse & QuoteMetadata);
 
   it('should navigate to blockaid modal with validation error', async () => {
     const mockQuote = createMockQuote('test-quote');

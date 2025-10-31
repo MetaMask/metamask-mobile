@@ -5,28 +5,31 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 
 describe('CustomAmount', () => {
   it('renders amount', () => {
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).toHaveProp(
+      'defaultValue',
+      '123.45',
+    );
   });
 
   it('renders fiat symbol for specified currency', () => {
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" currency="eur" />,
     );
 
-    expect(getByText('€')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-symbol')).toHaveProp('defaultValue', '€');
   });
 
   it('renders selected currency symbol if currency not specified', () => {
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
       { state: otherControllersMock },
     );
 
-    expect(getByText('$')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-symbol')).toHaveProp('defaultValue', '$');
   });
 
   it('renders skeleton if loading', () => {

@@ -184,7 +184,7 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NftGrid from '../../UI/NftGrid/NftGrid';
+import NftGrid from '../../UI/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
@@ -343,11 +343,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
-  // Calculate Predict tab visibility
-  const predictTabIndex =
-    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
-  const isPredictTabVisible = currentTabIndex === predictTabIndex;
-
   // Store the visibility update callback from PerpsTabView
   const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
     null,
@@ -414,11 +409,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
     if (isPredictEnabled) {
       tabs.push(
-        <PredictTabView
-          {...predictTabProps}
-          key={predictTabProps.key}
-          isVisible={isPredictTabVisible}
-        />,
+        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
       );
     }
 
@@ -447,7 +438,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsTabVisible,
     isPredictEnabled,
     predictTabProps,
-    isPredictTabVisible,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,

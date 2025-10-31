@@ -135,7 +135,7 @@ function TradeWalletActions() {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
         navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
+          screen: Routes.PERPS.MARKETS,
         });
       }
     };
@@ -144,8 +144,14 @@ function TradeWalletActions() {
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+          },
+        },
       });
     };
     handleNavigateBack();

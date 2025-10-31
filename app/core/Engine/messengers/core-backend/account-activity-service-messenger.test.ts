@@ -1,40 +1,25 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  type MockAnyNamespace,
-  MOCK_ANY_NAMESPACE,
-} from '@metamask/messenger';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { RestrictedMessenger } from '@metamask/base-controller';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { getAccountActivityServiceMessenger } from './account-activity-service-messenger';
-import { AccountActivityServiceMessenger } from '@metamask/core-backend';
-
-type RootMessenger = ExtendedMessenger<
-  MockAnyNamespace,
-  MessengerActions<AccountActivityServiceMessenger>,
-  MessengerEvents<AccountActivityServiceMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new ExtendedMessenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
 
 describe('getAccountActivityServiceMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    // Arrange
+    const messenger = new ExtendedControllerMessenger<never, never>();
 
+    // Act
     const accountActivityServiceMessenger =
-      getAccountActivityServiceMessenger(rootMessenger);
+      getAccountActivityServiceMessenger(messenger);
 
-    expect(accountActivityServiceMessenger).toBeInstanceOf(Messenger);
+    // Assert
+    expect(accountActivityServiceMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 
   it('allows required actions and events', () => {
-    const rootMessenger = getRootMessenger();
+    // Arrange
+    const messenger = new ExtendedControllerMessenger<never, never>();
 
-    expect(() =>
-      getAccountActivityServiceMessenger(rootMessenger),
-    ).not.toThrow();
+    // Act & Assert - no error means messenger is configured correctly
+    expect(() => getAccountActivityServiceMessenger(messenger)).not.toThrow();
   });
 });

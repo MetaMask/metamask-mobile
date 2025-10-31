@@ -4,33 +4,22 @@ import {
 } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
-import { fetch as expoFetch } from 'expo/fetch';
 
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeControllerMessenger } from '../../messengers/bridge-controller-messenger';
 import { ControllerInitRequest } from '../../types';
-import {
-  bridgeControllerInit,
-  handleBridgeFetch,
-} from './bridge-controller-init';
+import { bridgeControllerInit } from './bridge-controller-init';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/bridge-controller');
 jest.mock('../../../Analytics');
 jest.mock('../../../Analytics/MetricsEventBuilder');
 jest.mock('../../../../util/trace');
-jest.mock('@metamask/controller-utils', () => ({
-  ...jest.requireActual('@metamask/controller-utils'),
-  handleFetch: jest.fn(),
-}));
-jest.mock('expo/fetch', () => ({
-  fetch: jest.fn(),
-}));
+jest.mock('@metamask/controller-utils');
 
 /**
  * Build a mock TransactionController.
@@ -55,9 +44,7 @@ function buildTransactionControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<ControllerInitRequest<BridgeControllerMessenger>> {
-  const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseControllerMessenger = new ExtendedControllerMessenger();
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),
@@ -89,6 +76,7 @@ describe('BridgeController Init', () => {
         build: jest.fn().mockReturnValue({ mockEvent: true }),
       }),
     });
+    (handleFetch as jest.Mock).mockResolvedValue({ ok: true });
     (trace as jest.Mock).mockImplementation((_label, fn) => fn());
   });
 
@@ -160,7 +148,7 @@ describe('BridgeController Init', () => {
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
-      expect(constructorOptions.fetchFn).toBe(handleBridgeFetch);
+      expect(constructorOptions.fetchFn).toBe(handleFetch);
     });
 
     it('correctly sets up traceFn', () => {
@@ -277,29 +265,6 @@ describe('BridgeController Init', () => {
       expect(requestMock.getController).toHaveBeenCalledWith(
         'TransactionController',
       );
-    });
-  });
-
-  describe('handleBridgeFetch', () => {
-    it('should use expoFetch if the url includes Stream', () => {
-      const url = new URL(
-        'http://localhost:3000/getQuoteStream?srcChainId=1&destChainId=2&srcTokenAddress=0x123&destTokenAddress=0x456&srcAmount=100&destAmount=200',
-      );
-      const options = { headers: { 'Content-Type': 'application/json' } };
-
-      handleBridgeFetch(url, options);
-      expect(expoFetch).toHaveBeenCalledWith(url.toString(), options);
-    });
-
-    it.each([
-      ['http://localhost:3000/getQuote?srcChainId', {}],
-      [
-        'http://localhost:3000/getTokens',
-        { headers: { 'Content-Type': 'application/json' } },
-      ],
-    ])('should use handleFetch if the url is %s', (url, options) => {
-      handleBridgeFetch(url, options);
-      expect(handleFetch).toHaveBeenCalledWith(url.toString(), options);
     });
   });
 });

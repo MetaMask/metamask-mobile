@@ -1,7 +1,7 @@
+import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { Image } from 'expo-image';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { getAssetIconUrl } from '../utils/marketUtils';
 
 /**
  * Hook to prefetch Perps market icons for better performance
@@ -37,7 +37,10 @@ export const usePerpsImagePrefetch = (
             .filter(
               (symbol) => symbol && typeof symbol === 'string' && symbol.trim(),
             )
-            .map((symbol) => getAssetIconUrl(symbol));
+            .map(
+              (symbol) =>
+                `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${symbol.toUpperCase()}.svg`,
+            );
 
           // Prefetch with persistent disk caching
           // expo-image handles all caching internally, no need for HTTP headers
@@ -51,13 +54,13 @@ export const usePerpsImagePrefetch = (
 
           // Track successfully prefetched symbols
           const newPrefetched: string[] = [];
-          for (const [index, result] of results.entries()) {
+          results.forEach((result, index) => {
             if (result.status === 'fulfilled' && result.value) {
               const symbol = batch[index].toUpperCase();
               prefetchedRef.current.add(symbol);
               newPrefetched.push(symbol);
             }
-          }
+          });
 
           // Update state to trigger re-render
           if (newPrefetched.length > 0) {

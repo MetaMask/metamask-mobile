@@ -2,11 +2,7 @@ import {
   KeyringControllerSignTypedMessageAction,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
-import {
-  Messenger,
-  MOCK_ANY_NAMESPACE,
-  MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger } from '@metamask/base-controller';
 import {
   Delegation,
   Execution,
@@ -41,17 +37,6 @@ const EXECUTION_MOCK: Execution = {
   callData: '0x1234567890123456789012345678901234567895',
 };
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  KeyringControllerSignTypedMessageAction,
-  never
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-
 describe('Delegation Utils', () => {
   let keyringControllerSignTypedMessageMock: jest.MockedFn<
     KeyringControllerSignTypedMessageAction['handler']
@@ -64,27 +49,20 @@ describe('Delegation Utils', () => {
 
     keyringControllerSignTypedMessageMock = jest.fn();
 
-    const rootMessenger = getRootMessenger();
+    const baseMessenger = new Messenger<
+      KeyringControllerSignTypedMessageAction,
+      never
+    >();
 
-    rootMessenger.registerActionHandler(
+    baseMessenger.registerActionHandler(
       'KeyringController:signTypedMessage',
       keyringControllerSignTypedMessageMock,
     );
 
-    initMessenger = new Messenger<
-      'Test',
-      KeyringControllerSignTypedMessageAction,
-      never,
-      RootMessenger
-    >({
-      namespace: 'Test',
-      parent: rootMessenger,
-    });
-
-    rootMessenger.delegate({
-      actions: ['KeyringController:signTypedMessage'],
-      events: [],
-      messenger: initMessenger,
+    initMessenger = baseMessenger.getRestricted({
+      name: 'Test',
+      allowedActions: ['KeyringController:signTypedMessage'],
+      allowedEvents: [],
     });
   });
 

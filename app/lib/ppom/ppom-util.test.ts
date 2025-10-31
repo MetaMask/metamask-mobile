@@ -235,7 +235,8 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      MockEngine.context.PreferencesController.state.securityAlertsEnabled = false;
+      MockEngine.context.PreferencesController.state.securityAlertsEnabled =
+        false;
       await PPOMUtil.validateRequest(mockRequest, {
         transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
       });
@@ -292,7 +293,8 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      MockEngine.context.PreferencesController.state.securityAlertsEnabled = false;
+      MockEngine.context.PreferencesController.state.securityAlertsEnabled =
+        false;
       await PPOMUtil.validateRequest(
         {
           ...mockRequest,

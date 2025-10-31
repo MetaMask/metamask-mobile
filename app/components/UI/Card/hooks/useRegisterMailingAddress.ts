@@ -59,8 +59,9 @@ const useRegisterMailingAddress = (): {
           ? { ...request, location }
           : request;
 
-        const registerAddressResponse =
-          await sdk.registerMailingAddress(requestWithLocation);
+        const registerAddressResponse = await sdk.registerMailingAddress(
+          requestWithLocation,
+        );
 
         setIsSuccess(true);
 

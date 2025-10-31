@@ -111,7 +111,6 @@ const createStyles = ({ colors }) =>
     },
     title: {
       fontWeight: '700',
-      marginTop: 8,
     },
     sectionContainer: {
       backgroundColor: colors.background.section,

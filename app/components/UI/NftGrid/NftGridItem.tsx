@@ -9,6 +9,7 @@ import CollectibleMedia from '../CollectibleMedia';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 5,
   },
   collectible: {
     aspectRatio: 1,

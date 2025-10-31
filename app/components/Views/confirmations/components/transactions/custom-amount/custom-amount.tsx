@@ -1,18 +1,19 @@
 import React from 'react';
-import { View } from 'react-native';
+import { TextInput, View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import { MAX_LENGTH } from '../../../hooks/transactions/useTransactionCustomAmount';
 
 export interface CustomAmountProps {
   amountFiat: string;
   currency?: string;
   hasAlert?: boolean;
   isLoading?: boolean;
+  onChange?: (amount: string) => void;
   onPress?: () => void;
 }
 
@@ -22,6 +23,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     currency: currencyProp,
     hasAlert = false,
     isLoading,
+    onChange,
     onPress,
   } = props;
 
@@ -41,12 +43,23 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
 
   return (
     <View style={styles.container}>
-      <Text testID="custom-amount-symbol" style={styles.input}>
-        {fiatSymbol}
-      </Text>
-      <Text testID="custom-amount-input" style={styles.input} onPress={onPress}>
-        {amountFiat}
-      </Text>
+      <TextInput
+        testID="custom-amount-symbol"
+        style={styles.input}
+        defaultValue={fiatSymbol}
+        editable={false}
+      />
+      <TextInput
+        testID="custom-amount-input"
+        style={styles.input}
+        defaultValue={amountFiat}
+        showSoftInputOnFocus={false}
+        onPress={onPress}
+        onChangeText={onChange}
+        keyboardType="number-pad"
+        maxLength={MAX_LENGTH}
+        caretHidden
+      />
     </View>
   );
 });

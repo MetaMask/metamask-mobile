@@ -46,8 +46,9 @@ describe(RegressionConfirmations('ERC721 token'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const nftsAddress =
-          await contractRegistry?.getContractAddress(NFT_CONTRACT);
+        const nftsAddress = await contractRegistry?.getContractAddress(
+          NFT_CONTRACT,
+        );
         await loginToApp();
 
         // Navigate to the browser screen

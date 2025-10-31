@@ -46,12 +46,10 @@ export const createMockEngineContext = () => ({
     clearDepositResult: jest.fn(),
   },
   RewardsController: {
-    getPerpsDiscountForAccount: jest.fn().mockReturnValue(Promise.resolve(0)),
+    getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
     estimatePoints: jest
       .fn()
-      .mockReturnValue(
-        Promise.resolve({ pointsEstimate: 100, bonusBips: 200 }),
-      ),
+      .mockResolvedValue({ pointsEstimate: 100, bonusBips: 200 }),
   },
 });
 
