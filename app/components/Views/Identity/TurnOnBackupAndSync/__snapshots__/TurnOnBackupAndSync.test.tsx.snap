@@ -1,214 +1,211 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TurnOnBackupAndSync renders correctly 1`] = `
-[
-  <View
+<View
+  style={
+    {
+      "alignItems": "flex-start",
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingHorizontal": 16,
+      "paddingTop": 60,
+    }
+  }
+  testID="turn-on-backup-and-sync-view"
+>
+  <Text
+    accessibilityRole="text"
     style={
       {
-        "alignItems": "flex-start",
-        "backgroundColor": "#ffffff",
-        "flex": 1,
-        "paddingHorizontal": 16,
-        "paddingTop": 60,
+        "alignSelf": "center",
+        "color": "#121314",
+        "fontFamily": "Geist Bold",
+        "fontSize": 18,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 16,
       }
     }
-    testID="turn-on-backup-and-sync-view"
   >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "alignSelf": "center",
-          "color": "#121314",
-          "fontFamily": "Geist Bold",
-          "fontSize": 18,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-          "marginBottom": 16,
+    Turn on backup and sync
+  </Text>
+  <RCTScrollView>
+    <View>
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "borderRadius": 12,
+            "height": 240,
+            "marginBottom": 32,
+            "overflow": "hidden",
+            "width": 718,
+          }
         }
-      }
-    >
-      Turn on backup and sync
-    </Text>
-    <RCTScrollView>
-      <View>
-        <View
+      >
+        <Image
+          source={1}
           style={
             {
-              "alignSelf": "center",
-              "borderRadius": 12,
               "height": 240,
-              "marginBottom": 32,
-              "overflow": "hidden",
+              "resizeMode": "cover",
               "width": 718,
             }
           }
-        >
-          <Image
-            source={1}
-            style={
-              {
-                "height": 240,
-                "resizeMode": "cover",
-                "width": 718,
-              }
-            }
-          />
-        </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginBottom": 16,
-            }
-          }
-        >
-          Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask. This doesn’t back up your Secret Recovery Phrase.
-           
-          <Text
-            accessibilityRole="text"
-            onPress={[Function]}
-            style={
-              {
-                "color": "#4459ff",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Learn how we protect your privacy
-          </Text>
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "flexDirection": "column",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          You can update your preferences at any time in
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Settings &gt; Backup and sync.
-        </Text>
+        />
       </View>
-    </RCTScrollView>
-    <View
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginBottom": 16,
+          }
+        }
+      >
+        Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask. This doesn’t back up your Secret Recovery Phrase.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Learn how we protect your privacy
+        </Text>
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "flexDirection": "column",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        You can update your preferences at any time in
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Settings &gt; Backup and sync.
+      </Text>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "alignSelf": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
+          "alignItems": "center",
           "alignSelf": "center",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
+          "borderWidth": 1,
           "flexDirection": "row",
-          "justifyContent": "space-between",
-          "marginBottom": 16,
+          "height": 40,
+          "justifyContent": "center",
+          "margin": 4,
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+          "width": "48%",
         }
       }
+      testID="turn-on-backup-and-sync-cancel-button"
     >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+      <Text
+        accessibilityRole="text"
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 40,
-            "justifyContent": "center",
-            "margin": 4,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-            "width": "48%",
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           }
         }
-        testID="turn-on-backup-and-sync-cancel-button"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Cancel
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#121314",
+          "borderRadius": 12,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "margin": 4,
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+          "width": "48%",
+        }
+      }
+      testID="turn-on-backup-and-sync-enable-button"
+    >
+      <Text
+        accessibilityRole="text"
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "center",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 40,
-            "justifyContent": "center",
-            "margin": 4,
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
-            "width": "48%",
+            "color": "#ffffff",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           }
         }
-        testID="turn-on-backup-and-sync-enable-button"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Turn on
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>,
-  <View />,
-]
+        Turn on
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
 `;

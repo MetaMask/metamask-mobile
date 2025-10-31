@@ -353,7 +353,6 @@ exports[`SnapUIAssetSelector should render 1`] = `
                 />
               </TouchableOpacity>
             </View>
-            <View />
           </View>
         </TouchableHighlight>
       </View>

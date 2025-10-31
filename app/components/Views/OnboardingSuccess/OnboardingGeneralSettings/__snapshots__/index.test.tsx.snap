@@ -195,7 +195,6 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             Learn how we protect your privacy
           </Text>
         </Text>
-        <View />
       </View>
       <View
         style={

@@ -589,7 +589,6 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1192,7 +1191,6 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1795,7 +1793,6 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>

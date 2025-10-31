@@ -14685,6 +14685,9 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -16495,6 +16498,9 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -27552,6 +27558,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
