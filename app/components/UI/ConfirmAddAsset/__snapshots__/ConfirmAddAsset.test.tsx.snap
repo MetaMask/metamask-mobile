@@ -374,5 +374,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
       </TouchableOpacity>
     </View>
   </View>
+  <View />
 </View>
 `;

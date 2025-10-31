@@ -19,6 +19,7 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
         },
         {
           "backgroundColor": "blue",
+          "paddingHorizontal": 0,
         },
         [
           {
@@ -133,9 +134,9 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
       collapsable={false}
       style={
         {
-          "backgroundColor": "navy",
+          "backgroundColor": "#121314",
           "bottom": 0,
-          "height": 4,
+          "height": 2,
           "position": "absolute",
           "transform": [
             {
@@ -207,6 +208,7 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
         },
         {
           "backgroundColor": "#ffffff",
+          "paddingHorizontal": 0,
         },
         [
           {
@@ -321,9 +323,9 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
       collapsable={false}
       style={
         {
-          "backgroundColor": "navy",
+          "backgroundColor": "#121314",
           "bottom": 0,
-          "height": 4,
+          "height": 2,
           "position": "absolute",
           "transform": [
             {
@@ -395,6 +397,7 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
         },
         {
           "backgroundColor": "#ffffff",
+          "paddingHorizontal": 0,
         },
         [
           {
@@ -511,9 +514,9 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
       collapsable={false}
       style={
         {
-          "backgroundColor": "navy",
+          "backgroundColor": "#121314",
           "bottom": 0,
-          "height": 4,
+          "height": 2,
           "position": "absolute",
           "transform": [
             {

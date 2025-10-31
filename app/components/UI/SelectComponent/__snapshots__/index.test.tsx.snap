@@ -69,6 +69,7 @@ exports[`SelectComponent should render correctly 1`] = `
         </Text>
       </View>
     </TouchableOpacity>
+    <View />
   </View>
 </View>
 `;
