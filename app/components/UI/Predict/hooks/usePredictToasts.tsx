@@ -15,6 +15,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -32,6 +33,7 @@ interface ToastConfig {
 
 interface PendingToastConfig extends ToastConfig {
   getAmount?: (transactionMeta: TransactionMeta) => string;
+  onPress?: () => void;
 }
 
 interface ConfirmedToastConfig extends ToastConfig {
@@ -48,7 +50,7 @@ interface UsePredictToastsParams {
   pendingToastConfig?: PendingToastConfig;
   confirmedToastConfig: ConfirmedToastConfig;
   errorToastConfig: ErrorToastConfig;
-  clearTransaction: () => void;
+  clearTransaction?: () => void;
   onConfirmed?: () => void;
 }
 
@@ -91,6 +93,14 @@ export const usePredictToasts = ({
             />
           </View>
         ),
+        ...(config.onPress
+          ? {
+              linkButtonOptions: {
+                label: strings('predict.deposit.in_progress_link'),
+                onPress: config.onPress,
+              },
+            }
+          : {}),
       });
     },
     [theme.colors.accent04.dark, theme.colors.accent04.normal, toastRef],
@@ -173,23 +183,21 @@ export const usePredictToasts = ({
         return;
       }
 
-      if (
+      if (transactionMeta.status === TransactionStatus.rejected) {
+        clearTransaction?.();
+      } else if (
         transactionMeta.status === TransactionStatus.approved &&
         pendingToastConfig
       ) {
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
         showPendingToast({ amount, config: pendingToastConfig });
-      }
-
-      if (transactionMeta.status === TransactionStatus.confirmed) {
-        clearTransaction();
+      } else if (transactionMeta.status === TransactionStatus.confirmed) {
+        clearTransaction?.();
         const amount = confirmedToastConfig.getAmount(transactionMeta);
         showConfirmedToast(amount);
         onConfirmed?.();
-      }
-
-      if (transactionMeta.status === TransactionStatus.failed) {
-        clearTransaction();
+      } else if (transactionMeta.status === TransactionStatus.failed) {
+        clearTransaction?.();
         showErrorToast();
       }
     };

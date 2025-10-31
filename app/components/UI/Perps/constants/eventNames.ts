@@ -137,6 +137,7 @@ export const PerpsEventValues = {
     PERP_MARKET: 'perp_market',
     PERP_MARKET_SEARCH: 'perp_market_search',
     POSITION_SCREEN: 'position_screen',
+    TP_SL_VIEW: 'tp_sl_view',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -206,6 +207,8 @@ export const PerpsEventValues = {
     TP_SL: 'tp_sl',
     DEPOSIT_INPUT: 'deposit_input',
     DEPOSIT_REVIEW: 'deposit_review',
+    CLOSE_ALL_POSITIONS: 'close_all_positions',
+    CANCEL_ALL_ORDERS: 'cancel_all_orders',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',

@@ -1,26 +1,28 @@
-import { Messenger } from '@metamask/base-controller';
-
-type AllowedActions = never;
-
-type AllowedEvents = never;
-
-export type AddressBookControllerMessenger = ReturnType<
-  typeof getAddressBookControllerMessenger
->;
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { AddressBookControllerMessenger } from '@metamask/address-book-controller';
+import { RootMessenger } from '../types';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * address book controller is allowed to handle.
+ * Get the AddressBookControllerMessenger for the AddressBookController.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The AddressBookControllerMessenger.
  */
 export function getAddressBookControllerMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'AddressBookController',
-    allowedActions: [],
-    allowedEvents: [],
+  rootMessenger: RootMessenger,
+): AddressBookControllerMessenger {
+  const messenger = new Messenger<
+    'AddressBookController',
+    MessengerActions<AddressBookControllerMessenger>,
+    MessengerEvents<AddressBookControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'AddressBookController',
+    parent: rootMessenger,
   });
+  return messenger;
 }

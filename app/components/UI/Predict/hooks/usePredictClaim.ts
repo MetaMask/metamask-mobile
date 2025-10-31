@@ -1,17 +1,15 @@
-import { useCallback, useContext } from 'react';
-import { useSelector } from 'react-redux';
-import { createSelector } from 'reselect';
+import { useNavigation } from '@react-navigation/native';
 import { captureException } from '@sentry/react-native';
+import { useCallback, useContext } from 'react';
+import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import Routes from '../../../../constants/navigation/Routes';
-import { RootState } from '../../../../reducers';
+import { useAppThemeFromContext } from '../../../../util/theme';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { usePredictTrading } from './usePredictTrading';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 
 interface UsePredictClaimParams {
   providerId?: string;
@@ -24,12 +22,7 @@ export const usePredictClaim = ({
   const { claim: claimWinnings } = usePredictTrading();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-
-  const selectClaimTransaction = createSelector(
-    (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.claimTransaction,
-  );
-  const claimTransaction = useSelector(selectClaimTransaction);
+  const navigation = useNavigation();
 
   const claim = useCallback(async () => {
     try {
@@ -39,8 +32,6 @@ export const usePredictClaim = ({
       });
       await claimWinnings({ providerId });
     } catch (err) {
-      console.error('Failed to proceed with claim:', err);
-
       // Capture exception with claim context
       captureException(err instanceof Error ? err : new Error(String(err)), {
         tags: {
@@ -55,6 +46,9 @@ export const usePredictClaim = ({
         },
       });
 
+      navigation.goBack();
+
+      // Show error toast with retry option
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -80,6 +74,7 @@ export const usePredictClaim = ({
   }, [
     claimWinnings,
     navigateToConfirmation,
+    navigation,
     providerId,
     theme.colors.accent04.normal,
     theme.colors.error.default,
@@ -88,6 +83,5 @@ export const usePredictClaim = ({
 
   return {
     claim,
-    status: claimTransaction?.status,
   };
 };

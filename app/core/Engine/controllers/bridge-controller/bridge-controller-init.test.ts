@@ -6,7 +6,7 @@ import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
 import { fetch as expoFetch } from 'expo/fetch';
 
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeControllerMessenger } from '../../messengers/bridge-controller-messenger';
 import { ControllerInitRequest } from '../../types';
@@ -18,6 +18,7 @@ import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/bridge-controller');
 jest.mock('../../../Analytics');
@@ -54,7 +55,9 @@ function buildTransactionControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<ControllerInitRequest<BridgeControllerMessenger>> {
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),

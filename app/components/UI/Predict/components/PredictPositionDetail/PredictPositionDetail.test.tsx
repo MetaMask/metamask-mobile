@@ -70,7 +70,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   };
 });
 
-const mockExecuteGuardedAction = jest.fn((action) => action());
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
 jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
@@ -112,7 +112,8 @@ const baseMarket: PredictMarket = {
   image: 'https://example.com/market.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [
     {
       id: 'outcome-1',
@@ -176,7 +177,9 @@ describe('PredictPositionDetail', () => {
   beforeEach(() => {
     global.__mockNavigate.mockClear();
     mockExecuteGuardedAction.mockClear();
-    mockExecuteGuardedAction.mockImplementation((action) => action());
+    mockExecuteGuardedAction.mockImplementation(
+      async (action) => await action(),
+    );
   });
 
   afterEach(() => {

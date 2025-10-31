@@ -28,6 +28,7 @@ import HL from './HL_symbol_mint_green.png';
 import XRPLEVM_TOKEN from './xrp-logo.png';
 import SEI from './sei.png';
 import MONAD_TESTNET from './monad-testnet-logo.png';
+import MONAD_MAINNET from './monad-mainnet-logo.png';
 import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
@@ -90,6 +91,7 @@ export default {
   XRP: XRPLEVM_TOKEN,
   SEI,
   'MONAD-TESTNET': MONAD_TESTNET,
+  MON: MONAD_MAINNET,
   MATCHAIN,
   FLOW,
   LENS,
