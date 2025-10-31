@@ -35,6 +35,9 @@ export const MOCK_RPC_RESPONSES = {
 
   ETH_BALANCE_RESULT: '0xde0b6b3a7640000',
 
+  // Mock transaction count (nonce) - returns 0 as default nonce
+  TRANSACTION_COUNT_RESULT: '0x0',
+
   // Mock contract code for deployed contracts
   CONTRACT_CODE_RESULT: '0x608060405234801561001057600080fd5b50',
 };
