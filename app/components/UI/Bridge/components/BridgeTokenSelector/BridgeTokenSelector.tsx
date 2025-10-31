@@ -62,7 +62,8 @@ interface SearchTokensResponse {
 
 const convertAPITokensToBridgeTokens = (
   apiTokens: PopularToken[],
-): BridgeToken[] => apiTokens.map((token) => ({
+): BridgeToken[] =>
+  apiTokens.map((token) => ({
     ...token,
     address: parseCaipAssetType(token.assetId).assetReference,
   }));
