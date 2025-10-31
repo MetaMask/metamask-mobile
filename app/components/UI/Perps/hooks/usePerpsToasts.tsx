@@ -301,21 +301,20 @@ const usePerpsToasts = (): {
         position: Position,
         marketPrice?: string,
       ): ToastOptions['closeButtonOptions'] => ({
-        // label: strings('perps.pnl_hero_card.share_button'),
-        label: (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {strings('perps.pnl_hero_card.share_button')}
-          </Text>
-        ),
+        label: strings('perps.pnl_hero_card.share_button'),
         onPress: () =>
           navigationHandlers.goToPnlHeroCard(position, marketPrice),
         variant: ButtonVariants.Link,
-        style: {
-          backgroundColor: theme.colors.background.muted,
-        },
+      }),
+      goToActivityButton: (
+        transactionId: string,
+      ): ToastOptions['closeButtonOptions'] => ({
+        label: strings('perps.deposit.track'),
+        onPress: () => navigationHandlers.goToActivity(transactionId),
+        variant: ButtonVariants.Link,
       }),
     }),
-    [navigationHandlers, theme.colors.background.muted],
+    [navigationHandlers],
   );
 
   const showToast = useCallback(
@@ -372,11 +371,8 @@ const usePerpsToasts = (): {
             let closeButtonOptions;
 
             if (processingTimeInSeconds) {
-              closeButtonOptions = {
-                label: strings('perps.deposit.track'),
-                onPress: () => navigationHandlers.goToActivity(transactionId),
-                variant: ButtonVariants.Link,
-              };
+              closeButtonOptions =
+                perpsToastButtonOptions.goToActivityButton(transactionId);
             }
 
             return {
@@ -657,16 +653,17 @@ const usePerpsToasts = (): {
                     strings('perps.close_position.position_closed'),
                     <Text
                       variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
+                      color={TextColor.OverlayInverse}
                     >
                       {strings('perps.close_position.your_pnl_is')}
                       <Text
                         variant={TextVariant.BodyMd}
-                        color={
-                          roeValue >= 0
-                            ? TextColor.SuccessDefault
-                            : TextColor.ErrorDefault
-                        }
+                        style={{
+                          color:
+                            roeValue >= 0
+                              ? theme.colors.success.default
+                              : theme.colors.error.default,
+                        }}
                       >
                         {' '}
                         {`${roeValue.toFixed(1)}%`}
@@ -730,16 +727,17 @@ const usePerpsToasts = (): {
                     strings('perps.close_position.position_partially_closed'),
                     <Text
                       variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
+                      color={TextColor.OverlayInverse}
                     >
                       {strings('perps.close_position.your_pnl_is')}
                       <Text
                         variant={TextVariant.BodyMd}
-                        color={
-                          roeValue >= 0
-                            ? TextColor.SuccessDefault
-                            : TextColor.ErrorDefault
-                        }
+                        style={{
+                          color:
+                            roeValue >= 0
+                              ? theme.colors.success.default
+                              : theme.colors.error.default,
+                        }}
                       >
                         {' '}
                         {`${roeValue.toFixed(1)}%`}
@@ -893,6 +891,8 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.info,
       perpsBaseToastOptions.success,
       perpsToastButtonOptions,
+      theme.colors.error.default,
+      theme.colors.success.default,
     ],
   );
 
