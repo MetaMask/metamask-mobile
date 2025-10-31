@@ -23,6 +23,7 @@ import { RootState } from '../../../../../reducers';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
+  UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import {
   Box,
@@ -39,6 +40,10 @@ import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import { usePopularTokens, PopularToken } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { createStyles } from './BridgeTokenSelector.styles';
+import Engine from '../../../../../core/Engine';
+import { getNetworkName } from '../BridgeDestTokenSelector';
+import { Hex } from 'viem';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
 export interface BridgeTokenSelectorRouteParams {
   type: 'source' | 'dest';
@@ -60,6 +65,7 @@ export const BridgeTokenSelector: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
   const [searchString, setSearchString] = useState<string>('');
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
@@ -207,17 +213,19 @@ export const BridgeTokenSelector: React.FC = () => {
           },
         });
 
-        // TODO: update event props
-        // Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        //   UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
-        //   {
-        //     token_name: item.name ?? 'Unknown',
-        //     token_symbol: item.symbol,
-        //     token_contract: itemAddress,
-        //     chain_name: networkName,
-        //     chain_id: item.chainId,
-        //   },
-        // );
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+          {
+            token_name: item.name ?? 'Unknown',
+            token_symbol: item.symbol,
+            token_contract: item.address,
+            chain_name: getNetworkName(
+              item.chainId as Hex,
+              networkConfigurations,
+            ),
+            chain_id: item.chainId,
+          },
+        );
       };
 
       const isNoFeeAsset =
@@ -247,7 +255,13 @@ export const BridgeTokenSelector: React.FC = () => {
         </TokenSelectorItem>
       );
     },
-    [navigation, selectedToken, handleTokenPress, route.params?.type],
+    [
+      navigation,
+      selectedToken,
+      handleTokenPress,
+      route.params?.type,
+      networkConfigurations,
+    ],
   );
 
   const keyExtractor = (item: BridgeToken | null, index: number) =>
