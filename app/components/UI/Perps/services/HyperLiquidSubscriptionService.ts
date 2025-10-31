@@ -1227,17 +1227,50 @@ export class HyperLiquidSubscriptionService {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
-        // Update cache for ALL available symbols
-        Object.entries(data.mids).forEach(([symbol, price]) => {
-          this.cachedPriceData ??= new Map<string, PriceUpdate>();
+        // Initialize cache if needed
+        this.cachedPriceData ??= new Map<string, PriceUpdate>();
 
-          const priceUpdate = this.createPriceUpdate(symbol, price.toString());
+        // OPTIMIZATION: Only process symbols that have active subscribers
+        // This reduces processing from 200-300 symbols to typically 5-20
+        const subscribedSymbols = new Set<string>();
+
+        // Collect all symbols that have subscribers
+        for (const [symbol, subscriberSet] of this.priceSubscribers.entries()) {
+          if (subscriberSet.size > 0) {
+            subscribedSymbols.add(symbol);
+          }
+        }
+
+        // Track if any subscribed symbol was updated
+        let hasUpdates = false;
+
+        // OPTIMIZATION: Use for...in to avoid Object.entries() array allocation
+        // Only process symbols that are actually subscribed to
+        for (const symbol in data.mids) {
+          // Skip if nobody is subscribed to this symbol
+          if (!subscribedSymbols.has(symbol)) {
+            continue;
+          }
+
+          const price = data.mids[symbol].toString();
+          const cachedPrice = this.cachedPriceData.get(symbol);
+
+          // OPTIMIZATION: Skip if price hasn't changed
+          if (cachedPrice && cachedPrice.price === price) {
+            continue;
+          }
+
+          // Price changed or new symbol - update cache
+          const priceUpdate = this.createPriceUpdate(symbol, price);
           this.cachedPriceData.set(symbol, priceUpdate);
-        });
+          hasUpdates = true;
+        }
 
-        // Always notify price subscribers when we receive price data
-        // This ensures subscribers get updates and the UI can display current prices
-        this.notifyAllPriceSubscribers();
+        // Only notify subscribers if we actually have updates
+        // This prevents unnecessary React re-renders when prices haven't changed
+        if (hasUpdates) {
+          this.notifyAllPriceSubscribers();
+        }
       })
       .then((sub) => {
         this.globalAllMidsSubscription = sub;
