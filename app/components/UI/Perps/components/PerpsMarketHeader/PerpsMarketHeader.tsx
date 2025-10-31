@@ -29,7 +29,8 @@ interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
   onBackPress?: () => void;
   onMorePress?: () => void;
-  onActivityPress?: () => void;
+  onFavoritePress?: () => void;
+  isFavorite?: boolean;
   testID?: string;
 }
 
@@ -37,7 +38,8 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   market,
   onBackPress,
   onMorePress,
-  onActivityPress,
+  onFavoritePress,
+  isFavorite = false,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -97,10 +99,10 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       </View>
 
       {/* Right Action Button */}
-      {onActivityPress ? (
-        <TouchableOpacity onPress={onActivityPress} style={styles.moreButton}>
+      {onFavoritePress ? (
+        <TouchableOpacity onPress={onFavoritePress} style={styles.moreButton}>
           <Icon
-            name={IconName.Activity}
+            name={isFavorite ? IconName.StarFilled : IconName.Star}
             size={IconSize.Lg}
             color={IconColor.Default}
           />

@@ -95,6 +95,10 @@
     "perps_hardware_account": {
       "title": "Wallet not supported",
       "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+    },
+    "burn_address": {
+      "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
+      "title": "Sending Assets to Burn Address"
     }
   },
   "blockaid_banner": {
@@ -1773,12 +1777,13 @@
       "adding_your_funds": "Adding your funds",
       "add_funds": "Add funds",
       "withdraw": "Withdraw",
-      "estimated_processing_time": "Est. {{time}} seconds",
+      "in_progress_description": "They'll be available in a moment",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
       "error_title": "Something went wrong",
       "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "in_progress_link": "View"
     },
     "add_funds_sheet": {
       "title": "Add funds",
@@ -1858,6 +1863,15 @@
       "title": "Unable to connect to predictions",
       "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
       "retry": "Retry"
+    },
+    "error_messages": {
+      "place_order_failed": "Failed to place order",
+      "preview_failed": "Failed to preview order",
+      "preview_no_order_book": "No order book found",
+      "preview_no_order_match_buy": "No order match found for buy",
+      "preview_no_order_match_sell": "No order match found for sell",
+      "claim_failed": "Failed to claim",
+      "unknown_error": "An unknown error occurred"
     }
   },
   "receive": {
@@ -2759,6 +2773,10 @@
       "generate_trace_test_desc": "Generate a Developer Test Sentry trace.",
       "navigate_to_sample_feature": "Navigate to Sample Feature",
       "sample_feature_desc": "A sample feature as a template for developers."
+    },
+    "feature_flag_override":  {
+      "title": "Feature Flag Override",
+      "description": "Override the feature flags for the app locally."
     }
   },
   "aes_crypto_test_form": {
@@ -5310,6 +5328,10 @@
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
+    "tron": {
+      "bandwidth": "Bandwidth",
+      "energy": "Energy"
+    },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
     "staked_balance": "Staked balance",
@@ -5770,7 +5792,15 @@
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum Received",
     "minimum_received_tooltip_title": "Minimum Received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
+    "verified_token": "Verified token",
+    "price": "Price",
+    "percent_change": "Percent change",
+    "volume": "Volume",
+    "market_cap_fdv": "Market cap (FDV)",
+    "listed_on": "Listed on",
+    "centralized_exchanges": "Centralized exchanges",
+    "contract_address": "Contract address"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -5955,8 +5985,8 @@
     "wallet_details": {
       "wallet_name": "Wallet Name",
       "balance": "Balance",
-      "create_account": "Create account",
-      "creating_account": "Creating account...",
+      "create_account": "Add account",
+      "creating_account": "Adding account...",
       "discovering_accounts": "Discovering accounts...",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
@@ -6054,6 +6084,7 @@
   },
   "card": {
     "card": "MetaMask Card",
+    "card_button_enabled_toast": "You can now sign up for MetaMask Card!",
     "add_funds_bottomsheet": {
       "deposit": "Fund with cash",
       "deposit_description": "Low-cost card or bank transfer",
@@ -6153,7 +6184,19 @@
         "state_placeholder": "Enter your state",
         "zip_code_placeholder": "Enter your ZIP code or postal code",
         "same_mailing_address_label": "Residential address is the same as mailing address",
-        "electronic_consent": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically."
+        "electronic_consent_1": "I agree to the ",
+        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
+        "electronic_consent_3": " and to receive all communications electronically",
+        "terms_and_conditions_1": "I agree to the ",
+        "terms_and_conditions_2": "Terms and Conditions",
+        "terms_and_conditions_3": " of MetaMask Card",
+        "privacy_policy_1": "I agree to the data practices described in the ",
+        "privacy_policy_2": "Privacy Policy",
+        "right_to_information_1": "I have been informed of my ",
+        "right_to_information_2": "Right to Information",
+        "right_to_information_3": " as provided by law",
+        "account_opening_disclosure_1": "I agree to the terms, conditions, fees, and features outlined in the ",
+        "account_opening_disclosure_2": "Account Opening Disclosure"
       },
       "mailing_address": {
         "title": "Mailing address",
@@ -6194,6 +6237,10 @@
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "logout": "Log out",
       "logout_description": "Log out from your MetaMask Card account",
+      "logout_confirmation_title": "Log out of Card?",
+      "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
+      "logout_confirmation_cancel": "Cancel",
+      "logout_confirmation_confirm": "Log out",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6239,7 +6286,8 @@
       "set_new_limit": "Set a limit",
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
-      "update_error": "Failed to update spending limit"
+      "update_error": "Failed to update spending limit",
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -6263,7 +6311,9 @@
       "limited": "Limited",
       "not_enabled": "Not enabled",
       "update_success": "Spend priority updated successfully",
-      "update_error": "Failed to update spend priority"
+      "update_error": "Failed to update spend priority",
+      "solana_not_supported_button_title": "Others tokens on Solana",
+      "solana_not_supported_button_description": "Enable on card.metamask.io"
     },
     "card_authentication": {
       "title": "Log in to your MetaMask Card account",
@@ -6534,11 +6584,11 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 points per $100",
+        "description": "10 points per $100 order value",
         "sheet": {
           "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+          "points": "10 points per $100 order value",
+          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments. Order value is based on the size with leverage.",
           "cta_label": "Start a trade"
         }
       },
@@ -6662,6 +6712,8 @@
   "network_connection_banner": {
     "still_connecting_network": "Still connecting to {{networkName}}...",
     "unable_to_connect_network": "Unable to connect to {{networkName}}.",
-    "update_rpc": "Update RPC"
+    "update_rpc": "Update RPC",
+    "check_network_connectivity": "Check your network connectivity.",
+    "check_network_connectivity_or": "Check your network connectivity or"
   }
 }

@@ -52,7 +52,7 @@ describe('useGasFeeEstimates', () => {
       () =>
         ({
           chainId: '0x1',
-        } as unknown as NetworkConfiguration),
+        }) as unknown as NetworkConfiguration,
     );
   });
 
