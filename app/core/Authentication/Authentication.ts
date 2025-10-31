@@ -1,5 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
+import { Engine as EngineClass } from '../Engine/Engine';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
@@ -763,8 +764,6 @@ class AuthenticationService {
 
       this.dispatchOauthReset();
     } catch (error) {
-      const { Engine: EngineClass } = await import('../Engine/Engine');
-
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
 

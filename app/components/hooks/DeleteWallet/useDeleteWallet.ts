@@ -18,11 +18,11 @@ const useDeleteWallet = () => {
     try {
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
-      
+
       // CRITICAL: Disable automatic vault backups during wallet RESET
       // This prevents the temporary wallet (created during reset) from being backed up
       EngineClass.disableAutomaticVaultBackup = true;
-      
+
       try {
         await Authentication.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -33,7 +33,7 @@ const useDeleteWallet = () => {
         await depositResetProviderToken();
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
-        
+
         // Lock the app and navigate to onboarding
         await Authentication.lockApp({ navigateToLogin: false });
       } finally {

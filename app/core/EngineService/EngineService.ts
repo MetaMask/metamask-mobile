@@ -136,9 +136,9 @@ export class EngineService {
     });
 
     const state = persistedState?.backgroundState ?? {};
-      // (isE2E
-      //   ? reduxState?.engine?.backgroundState
-      //   : persistedState?.backgroundState) ?? {};
+    // (isE2E
+    //   ? reduxState?.engine?.backgroundState
+    //   : persistedState?.backgroundState) ?? {};
 
     const Engine = UntypedEngine;
     try {

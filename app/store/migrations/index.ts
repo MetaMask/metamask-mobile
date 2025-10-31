@@ -245,7 +245,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    * - Migrations 105+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
    * - "unpacking" distributed files back into a single object
-   * 
+   *
    * CRITICAL: Crashes if controller data cannot be loaded.
    * This ensures migrations run with complete data and prevents silent data loss.
    */

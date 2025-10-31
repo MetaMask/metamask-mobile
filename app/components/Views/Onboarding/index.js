@@ -380,7 +380,8 @@ class Onboarding extends PureComponent {
       // Detect migration failure scenario:
       // - existingUser is false (Redux state was corrupted/reset)
       // - BUT vault backup exists (user previously had a wallet)
-      const migrationFailureDetected = !existingUser && vaultBackupResult.success && vaultBackupResult.vault;
+      const migrationFailureDetected =
+        !existingUser && vaultBackupResult.success && vaultBackupResult.vault;
 
       if (migrationFailureDetected) {
         this.props.navigation.reset({
@@ -388,7 +389,10 @@ class Onboarding extends PureComponent {
         });
       }
     } catch (error) {
-      Logger.error(error, 'Failed to check for migration failure and vault backup');
+      Logger.error(
+        error,
+        'Failed to check for migration failure and vault backup',
+      );
     }
   }
 
@@ -524,18 +528,18 @@ class Onboarding extends PureComponent {
           });
           isIOS
             ? this.props.navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-              {
+                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+                {
+                  [PREVIOUS_SCREEN]: ONBOARDING,
+                  oauthLoginSuccess: true,
+                  onboardingTraceCtx: this.onboardingTraceCtx,
+                },
+              )
+            : this.props.navigation.navigate('Rehydrate', {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: this.onboardingTraceCtx,
-              },
-            )
-            : this.props.navigation.navigate('Rehydrate', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-              onboardingTraceCtx: this.onboardingTraceCtx,
-            });
+              });
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
