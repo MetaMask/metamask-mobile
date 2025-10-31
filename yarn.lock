@@ -8061,7 +8061,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^3.0.0":
+"@metamask/network-enablement-controller@npm:3.0.0":
   version: 3.0.0
   resolution: "@metamask/network-enablement-controller@npm:3.0.0"
   dependencies:
@@ -8076,6 +8076,24 @@ __metadata:
     "@metamask/network-controller": ^25.0.0
     "@metamask/transaction-controller": ^61.0.0
   checksum: 10/1e44c1a13d02f1c68601aea308c915d897f7df344e04954b2c7ba7cc0400c81bbab75526572085d17279014b0510bd2a081d828468c5468cbf84c8a4ab52498e
+  languageName: node
+  linkType: hard
+
+"@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.0.0-cfba64ad39.patch":
+  version: 3.0.0
+  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.0.0-cfba64ad39.patch::version=3.0.0&hash=0805d0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/keyring-api": "npm:^21.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.8.1"
+    reselect: "npm:^5.1.1"
+  peerDependencies:
+    "@metamask/multichain-network-controller": ^2.0.0
+    "@metamask/network-controller": ^25.0.0
+    "@metamask/transaction-controller": ^61.0.0
+  checksum: 10/3bbb6a13e2f1c08df6f79cbe5d619df20524e13e986307b2fb120e4950f3244b039a0f93710c1cfe9ce4b42b39f7a02d943bba7a93eaaa895e081af5324cfea4
   languageName: node
   linkType: hard
 
@@ -34335,7 +34353,7 @@ __metadata:
     "@metamask/multichain-transactions-controller": "npm:^6.0.0"
     "@metamask/native-utils": "npm:^0.5.0"
     "@metamask/network-controller": "npm:^25.0.0"
-    "@metamask/network-enablement-controller": "npm:^3.0.0"
+    "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.0.0-cfba64ad39.patch"
     "@metamask/notification-services-controller": "npm:^19.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^12.1.0"
