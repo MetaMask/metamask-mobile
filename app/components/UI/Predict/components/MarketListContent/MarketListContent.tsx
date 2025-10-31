@@ -123,7 +123,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   if (isFetching) {
     return (
-      <Box style={styles.loadingContainer} twClassName="py-4">
+      <Box style={styles.loadingContainer} twClassName="py-2 px-4">
         <Skeleton
           testID="skeleton-loading-1"
           height={60}
@@ -189,7 +189,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
-        contentContainerStyle={tw.style('pt-4 pb-5')}
+        contentContainerStyle={tw.style('pt-2 pb-4 px-4')}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
         getItemType={() => 'market'}
@@ -208,7 +208,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }
-      contentContainerStyle={tw.style('pt-4 pb-5')}
+      contentContainerStyle={tw.style('pt-4 pb-5 px-4')}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       getItemType={() => 'market'}

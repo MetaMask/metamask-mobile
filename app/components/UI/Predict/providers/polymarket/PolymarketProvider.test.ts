@@ -977,7 +977,7 @@ describe('PolymarketProvider', () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Failed to get safe address');
+      expect(result.error).toBe('Maker address not found');
     });
 
     it('fetches account state when not cached during placeOrder', async () => {
