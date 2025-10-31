@@ -1,0 +1,116 @@
+appId: io.metamask
+tags:
+  - android
+  - swap
+  - fixtures
+---
+# MetaMask Mobile Swap Test with Fixtures - ETH to USDC
+# This test mimics e2e/specs/swaps/swap-action-smoke.spec.ts with proper fixtures and mocking
+
+# Note: Start servers externally before running this test
+# Run these commands in separate terminals:
+# 1. node scripts/start-comprehensive-mock-server.js
+# 2. node scripts/start-ganache.js  
+# 3. node scripts/start-fixture-server.js
+
+# Launch MetaMask Mobile app
+- launchApp
+
+# Wait for app to fully load
+- waitForAnimationToEnd
+
+# Check what screen we're on after launch
+- assertVisible:
+    text: "Welcome back!"
+    optional: true
+
+- assertVisible:
+    text: "Unlock"
+    optional: true
+
+# Enter password to unlock wallet
+- tapOn:
+    id: "login-password-input"
+- inputText: "123123123"
+
+# Tap unlock button
+- tapOn:
+    text: "Unlock"
+
+# Now we should be in the main wallet view
+# Try different possible wallet screen indicators
+- assertVisible:
+    text: "Home"
+    optional: true
+
+- assertVisible:
+    text: "Account 1"
+    optional: true
+
+# Wait for wallet to fully load
+- waitForAnimationToEnd
+
+# Mimic prepareSwapsTestEnvironment() - disable Smart Transactions
+# Navigate to Settings using the correct test ID
+- tapOn:
+    id: "tab-bar-item-Setting"
+
+# Tap Advanced Settings
+- tapOn:
+    text: "Advanced"
+
+# Tap Reset Account button
+- tapOn:
+    text: "Reset account"
+
+# Confirm the reset
+- tapOn:
+    text: "Reset"
+
+# Wait for reset to complete and return to wallet
+- waitForAnimationToEnd
+
+# Navigate to swap functionality via Actions button
+# First tap the Actions button in the tab bar
+- tapOn:
+    text: "Actions"
+
+# Then tap the Swap button in the actions bottom sheet
+- tapOn:
+    text: "Swap"
+
+# Enter swap amount (1 ETH)
+- tapOn:
+    text: "0"
+- inputText: "1"
+
+# Select destination token (USDC)
+- tapOn:
+    text: "Select token"
+- tapOn:
+    text: "USDC"
+
+# Wait for quote to load and confirm swap
+- assertVisible:
+    text: "Review"
+
+- tapOn:
+    text: "Review"
+
+# Confirm the swap
+- assertVisible:
+    text: "Confirm"
+
+- tapOn:
+    text: "Confirm"
+
+# Wait for transaction to complete
+- assertVisible:
+    text: "Transaction submitted"
+
+# Verify transaction appears in activities
+- assertVisible:
+    text: "Confirmed"
+
+# Test completed successfully!
+# Note: Stop servers manually with: node scripts/stop-all-servers.js
