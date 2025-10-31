@@ -3106,6 +3106,10 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+<<<<<<<
+=======
+                              onPressOut={[Function]}
+>>>>>>>
                               style={
                                 {
                                   "alignItems": "center",
