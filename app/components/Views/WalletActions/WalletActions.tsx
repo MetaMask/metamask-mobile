@@ -136,7 +136,7 @@ const WalletActions = () => {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
         navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKETS,
+          screen: Routes.PERPS.PERPS_HOME,
           params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
         });
       }
