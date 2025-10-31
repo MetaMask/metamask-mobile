@@ -71,7 +71,6 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
-import { checkForWordErrors } from '../../../util/srp/srpInputUtils';
 import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -101,7 +100,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const seedPhraseInputRefs = useRef(null);
   const confirmPasswordInput = useRef();
 
   const { toastRef } = useContext(ToastContext);
@@ -114,10 +112,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState(['']);
-  const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-    useState(null);
-  const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
-    useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
@@ -143,26 +137,9 @@ const ImportFromSecretRecoveryPhrase = ({
     trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
 
-  const [errorWordIndexes, setErrorWordIndexes] = useState({});
-
   const handleClear = useCallback(() => {
     setSeedPhrase(['']);
-    setErrorWordIndexes({});
-    setError('');
-    setSeedPhraseInputFocusedIndex(0);
-    setNextSeedPhraseInputFocusedIndex(0);
   }, []);
-
-  useEffect(() => {
-    const wordErrorMap = checkForWordErrors(seedPhrase);
-    const hasWordErrors = Object.values(wordErrorMap).some(Boolean);
-    if (hasWordErrors) {
-      setError(strings('import_from_seed.spellcheck_error'));
-    } else {
-      setError('');
-    }
-    setErrorWordIndexes(wordErrorMap);
-  }, [seedPhrase]);
 
   const onQrCodePress = useCallback(() => {
     let shouldHideSRP = true;
@@ -178,12 +155,6 @@ const ImportFromSecretRecoveryPhrase = ({
         if (seed) {
           handleClear();
           setSeedPhrase(seed.trim().split(/\s+/));
-          setTimeout(() => {
-            setSeedPhraseInputFocusedIndex(null);
-            setNextSeedPhraseInputFocusedIndex(null);
-            seedPhraseInputRefs.current?.get(0)?.blur();
-            Keyboard.dismiss();
-          }, 100);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -196,7 +167,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  }, [hideSeedPhraseInput, navigation, handleClear, seedPhraseInputRefs]);
+  }, [hideSeedPhraseInput, navigation, handleClear]);
 
   const onBackPress = () => {
     if (currentStep === 0) {
@@ -320,14 +291,8 @@ const ImportFromSecretRecoveryPhrase = ({
     const text = await Clipboard.getString();
     if (text.trim() !== '') {
       setSeedPhrase(text.trim().split(/\s+/));
-      setTimeout(() => {
-        setSeedPhraseInputFocusedIndex(null);
-        setNextSeedPhraseInputFocusedIndex(null);
-        seedPhraseInputRefs.current?.get(0)?.blur();
-        Keyboard.dismiss();
-      }, 100);
     }
-  }, [seedPhraseInputRefs]);
+  }, []);
 
   const validateSeedPhrase = () => {
     // Trim each word before joining to ensure proper validation
@@ -393,8 +358,6 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPressImport = async () => {
-    seedPhraseInputRefs.current.get(seedPhraseInputFocusedIndex)?.blur();
-
     // Trim each word before joining for processing
     const trimmedSeedPhrase = seedPhrase.map((item) => item.trim()).join(' ');
     const vaultSeed = await parseVaultValue(password, trimmedSeedPhrase);
@@ -548,16 +511,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  useEffect(() => {
-    if (nextSeedPhraseInputFocusedIndex === null) return;
-
-    const refElement = seedPhraseInputRefs.current?.get(
-      nextSeedPhraseInputFocusedIndex,
-    );
-
-    refElement?.focus();
-  }, [nextSeedPhraseInputFocusedIndex]);
-
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
       <KeyboardAwareScrollView
@@ -609,18 +562,10 @@ const ImportFromSecretRecoveryPhrase = ({
               </View>
               <SrpInputGrid
                 seedPhrase={seedPhrase}
-                seedPhraseInputFocusedIndex={seedPhraseInputFocusedIndex}
-                nextSeedPhraseInputFocusedIndex={
-                  nextSeedPhraseInputFocusedIndex
-                }
-                errorWordIndexes={errorWordIndexes}
-                error={error}
                 onSeedPhraseChange={setSeedPhrase}
-                onFocusChange={setSeedPhraseInputFocusedIndex}
-                onNextFocusChange={setNextSeedPhraseInputFocusedIndex}
+                onError={setError}
                 onPaste={handlePaste}
                 onClear={handleClear}
-                seedPhraseInputRefs={seedPhraseInputRefs}
                 testIDPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}

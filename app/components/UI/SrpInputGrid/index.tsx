@@ -1,5 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from 'react';
+import { View, Keyboard } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
   TextVariant,
@@ -13,15 +19,15 @@ import { SrpInputGridProps } from './SrpInputGrid.types';
 import { strings } from '../../../../locales/i18n';
 import {
   getTrimmedSeedPhraseLength,
-  isFirstInput as SRPUtils_isFirstInput,
-  handleSeedPhraseChangeAtIndex as SRPUtils_handleSeedPhraseChangeAtIndex,
-  handleSeedPhraseChange as SRPUtils_handleSeedPhraseChange,
-  handleOnFocus as SRPUtils_handleOnFocus,
-  handleKeyPress as SRPUtils_handleKeyPress,
-  handleEnterKeyPress as SRPUtils_handleEnterKeyPress,
-  getSeedPhraseInputRef,
+  isFirstInput as isFirstInputUtil,
   getInputValue,
+  SRP_LENGTHS,
+  SPACE_CHAR,
+  checkValidSeedWord,
 } from '../../../util/srp/srpInputUtils';
+import { isValidMnemonic } from '../../../util/validators';
+import { formatSeedPhraseToSingleLine } from '../../../util/string';
+import Logger from '../../../util/Logger';
 
 /**
  * SrpInputGrid Component
@@ -36,16 +42,10 @@ import {
  */
 const SrpInputGrid: React.FC<SrpInputGridProps> = ({
   seedPhrase,
-  seedPhraseInputFocusedIndex,
-  nextSeedPhraseInputFocusedIndex,
-  errorWordIndexes,
-  error,
   onSeedPhraseChange,
-  onFocusChange,
-  onNextFocusChange,
+  onError,
   onPaste,
   onClear,
-  seedPhraseInputRefs,
   testIDPrefix,
   placeholderText,
   uniqueId = uuidv4(),
@@ -55,6 +55,20 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
   const { colors } = useAppTheme();
   const styles = createStyles(colors);
 
+  // Internal state
+  const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
+    useState<number | null>(null);
+  const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
+    useState<number | null>(null);
+  const [errorWordIndexes, setErrorWordIndexes] = useState<
+    Record<number, boolean>
+  >({});
+
+  const seedPhraseInputRefs = useRef<Map<
+    number,
+    { focus: () => void; blur: () => void }
+  > | null>(null);
+
   // Calculate trimmed seed phrase length
   const trimmedSeedPhraseLength = useMemo(
     () => getTrimmedSeedPhraseLength(seedPhrase),
@@ -63,90 +77,201 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
 
   // Determine if we're in single input (textarea) mode
   const isFirstInput = useMemo(
-    () => SRPUtils_isFirstInput(seedPhrase),
+    () => isFirstInputUtil(seedPhrase),
     [seedPhrase],
   );
 
-  // Wrapper callbacks to integrate with parent state
-  const handleSeedPhraseChangeAtIndex = useCallback(
-    (seedPhraseText: string, index: number) => {
-      SRPUtils_handleSeedPhraseChangeAtIndex(
-        seedPhraseText,
-        index,
-        seedPhrase,
-        {
-          setSeedPhrase: onSeedPhraseChange,
-          setSeedPhraseInputFocusedIndex: onFocusChange,
-          setNextSeedPhraseInputFocusedIndex: onNextFocusChange,
-        },
-      );
-    },
-    [seedPhrase, onSeedPhraseChange, onFocusChange, onNextFocusChange],
-  );
-
-  const handleSeedPhraseChange = useCallback(
-    (seedPhraseText: string) => {
-      SRPUtils_handleSeedPhraseChange(seedPhraseText, seedPhrase, {
-        setSeedPhrase: onSeedPhraseChange,
-        setSeedPhraseInputFocusedIndex: onFocusChange,
-        setNextSeedPhraseInputFocusedIndex: onNextFocusChange,
-        handleSeedPhraseChangeAtIndex,
-        seedPhraseInputRefs: seedPhraseInputRefs.current,
-      });
-    },
-    [
-      seedPhrase,
-      onSeedPhraseChange,
-      onFocusChange,
-      onNextFocusChange,
-      handleSeedPhraseChangeAtIndex,
-      seedPhraseInputRefs,
-    ],
-  );
-
-  // Error handling done in parent - empty function is intentional
-  // eslint-disable-next-line @typescript-eslint/no-empty-function, no-empty-function
-  const emptyErrorHandler = useCallback(() => {
-    // Intentionally empty - error handling is managed by parent component
+  // Initialize seed phrase input refs
+  const getSeedPhraseInputRef = useCallback(() => {
+    if (!seedPhraseInputRefs.current) {
+      seedPhraseInputRefs.current = new Map();
+    }
+    return seedPhraseInputRefs.current;
   }, []);
 
+  // Handle seed phrase change at a specific index (for grid mode)
+  const handleSeedPhraseChangeAtIndex = useCallback(
+    (seedPhraseText: string, index: number) => {
+      try {
+        const text = formatSeedPhraseToSingleLine(seedPhraseText);
+
+        if (text.includes(SPACE_CHAR)) {
+          const isEndWithSpace = text.at(-1) === SPACE_CHAR;
+          const splitArray = text
+            .trim()
+            .split(' ')
+            .filter((word) => word.trim() !== '');
+
+          if (splitArray.length === 0) {
+            onSeedPhraseChange((prev) => {
+              const newSeedPhrase = [...prev];
+              newSeedPhrase[index] = '';
+              return newSeedPhrase;
+            });
+            return;
+          }
+
+          const mergedSeedPhrase = [
+            ...seedPhrase.slice(0, index),
+            ...splitArray,
+            ...seedPhrase.slice(index + 1),
+          ];
+
+          const normalizedWords = mergedSeedPhrase
+            .map((w) => w.trim())
+            .filter((w) => w !== '');
+          const maxAllowed = Math.max(...SRP_LENGTHS);
+          const hasReachedMax = normalizedWords.length >= maxAllowed;
+          const isCompleteAndValid =
+            SRP_LENGTHS.includes(normalizedWords.length) &&
+            isValidMnemonic(normalizedWords.join(' '));
+
+          let nextSeedPhraseState = normalizedWords;
+          if (
+            isEndWithSpace &&
+            index === seedPhrase.length - 1 &&
+            !isCompleteAndValid &&
+            !hasReachedMax
+          ) {
+            nextSeedPhraseState = [...normalizedWords, ''];
+          }
+
+          onSeedPhraseChange(nextSeedPhraseState);
+
+          if (isCompleteAndValid || hasReachedMax) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
+          }
+
+          const targetIndex = Math.min(
+            nextSeedPhraseState.length - 1,
+            index + splitArray.length,
+          );
+          setTimeout(() => {
+            setNextSeedPhraseInputFocusedIndex(targetIndex);
+          }, 0);
+          return;
+        }
+
+        if (seedPhrase[index] !== text) {
+          onSeedPhraseChange((prev) => {
+            const newSeedPhrase = [...prev];
+            newSeedPhrase[index] = text;
+            return newSeedPhrase;
+          });
+        }
+      } catch (err) {
+        Logger.error(err as Error, 'Error handling seed phrase change');
+      }
+    },
+    [seedPhrase, onSeedPhraseChange],
+  );
+
+  // Handle seed phrase change in first input (textarea mode)
+  const handleSeedPhraseChange = useCallback(
+    (seedPhraseText: string) => {
+      const text = formatSeedPhraseToSingleLine(seedPhraseText);
+      const trimmedText = text.trim();
+      const updatedTrimmedText = trimmedText
+        .split(' ')
+        .filter((word) => word !== '');
+
+      if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
+        onSeedPhraseChange(updatedTrimmedText);
+      } else {
+        handleSeedPhraseChangeAtIndex(text, 0);
+      }
+
+      if (updatedTrimmedText.length > 1) {
+        setTimeout(() => {
+          setSeedPhraseInputFocusedIndex(null);
+          setNextSeedPhraseInputFocusedIndex(null);
+          seedPhraseInputRefs.current?.get(0)?.blur();
+          Keyboard.dismiss();
+        }, 100);
+      }
+    },
+    [handleSeedPhraseChangeAtIndex, onSeedPhraseChange],
+  );
+
+  // Handle focus change with validation
   const handleOnFocus = useCallback(
     (index: number) => {
-      SRPUtils_handleOnFocus(index, seedPhraseInputFocusedIndex, seedPhrase, {
-        setSeedPhraseInputFocusedIndex: onFocusChange,
-        setNextSeedPhraseInputFocusedIndex: onNextFocusChange,
-        setErrorWordIndexes: emptyErrorHandler,
-      });
+      if (seedPhraseInputFocusedIndex !== null) {
+        const currentWord = seedPhrase[seedPhraseInputFocusedIndex];
+        const trimmedWord = currentWord ? currentWord.trim() : '';
+
+        if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
+          setErrorWordIndexes((prev) => ({
+            ...prev,
+            [seedPhraseInputFocusedIndex]: true,
+          }));
+        } else {
+          setErrorWordIndexes((prev) => ({
+            ...prev,
+            [seedPhraseInputFocusedIndex]: false,
+          }));
+        }
+      }
+      setSeedPhraseInputFocusedIndex(index);
+      setNextSeedPhraseInputFocusedIndex(index);
     },
-    [
-      seedPhraseInputFocusedIndex,
-      seedPhrase,
-      onFocusChange,
-      onNextFocusChange,
-      emptyErrorHandler,
-    ],
+    [seedPhraseInputFocusedIndex, seedPhrase],
   );
 
+  // Handle key press in seed phrase input
   const handleKeyPress = useCallback(
     (e: { nativeEvent: { key: string } }, index: number) => {
-      SRPUtils_handleKeyPress(e, index, seedPhrase, {
-        setSeedPhrase: onSeedPhraseChange,
-        setNextSeedPhraseInputFocusedIndex: onNextFocusChange,
-      });
+      if (e.nativeEvent.key === 'Backspace') {
+        if (seedPhrase[index] === '') {
+          const newData = seedPhrase.filter((_, idx) => idx !== index);
+          if (index > 0) {
+            setNextSeedPhraseInputFocusedIndex(index - 1);
+          }
+          setTimeout(() => {
+            onSeedPhraseChange(index === 0 ? [''] : [...newData]);
+          }, 0);
+        }
+      }
     },
-    [seedPhrase, onSeedPhraseChange, onNextFocusChange],
+    [seedPhrase, onSeedPhraseChange],
   );
 
+  // Handle enter key press to add space
   const handleEnterKeyPress = useCallback(
     (index: number) => {
-      SRPUtils_handleEnterKeyPress(
-        index,
-        seedPhrase,
-        handleSeedPhraseChangeAtIndex,
-      );
+      handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
     },
     [seedPhrase, handleSeedPhraseChangeAtIndex],
   );
+
+  // Validate seed phrase and show errors
+  const error = useMemo(() => {
+    const hasWordErrors = Object.values(errorWordIndexes).some(Boolean);
+    if (hasWordErrors) {
+      return strings('import_from_seed.spellcheck_error');
+    }
+    return '';
+  }, [errorWordIndexes]);
+
+  // Update error word indexes when seed phrase changes
+  useEffect(() => {
+    const errorsMap: Record<number, boolean> = {};
+    seedPhrase.forEach((word, index) => {
+      const trimmedWord = word.trim();
+      if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
+        errorsMap[index] = true;
+      }
+    });
+    setErrorWordIndexes(errorsMap);
+  }, [seedPhrase]);
+
+  // Notify parent of error changes
+  useEffect(() => {
+    onError?.(error);
+  }, [error, onError]);
 
   return (
     <View style={styles.seedPhraseRoot}>
@@ -157,12 +282,7 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
               <SrpInput
                 key={`seed-phrase-item-${uniqueId}-${index}`}
                 ref={(ref) => {
-                  const inputRefs = getSeedPhraseInputRef(
-                    seedPhraseInputRefs.current,
-                  );
-                  if (!seedPhraseInputRefs.current) {
-                    seedPhraseInputRefs.current = inputRefs;
-                  }
+                  const inputRefs = getSeedPhraseInputRef();
                   if (ref) {
                     inputRefs.set(index, ref);
                   } else {
@@ -185,7 +305,7 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
                   handleOnFocus(index);
                 }}
                 onInputFocus={() => {
-                  onNextFocusChange(index);
+                  setNextSeedPhraseInputFocusedIndex(index);
                 }}
                 onChangeText={(text) => {
                   isFirstInput

@@ -625,20 +625,6 @@ exports[`SrpInputGrid renders correctly with error message 1`] = `
   >
     Paste
   </Text>
-  <Text
-    accessibilityRole="text"
-    style={
-      {
-        "color": "#ca3542",
-        "fontFamily": "Geist Medium",
-        "fontSize": 14,
-        "letterSpacing": 0,
-        "lineHeight": 22,
-      }
-    }
-  >
-    Invalid seed phrase
-  </Text>
 </View>
 `;
 
@@ -703,7 +689,7 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#b7bbc8",
+              "borderColor": "#ca3542",
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
@@ -801,7 +787,7 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
                   "opacity": 1,
                   "paddingRight": 8,
                   "paddingVertical": 0,
-                  "textAlign": "center",
+                  "textAlign": "left",
                   "textAlignVertical": "center",
                 }
               }
@@ -836,7 +822,7 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#b7bbc8",
+              "borderColor": "#ca3542",
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
@@ -934,7 +920,7 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
                   "opacity": 1,
                   "paddingRight": 8,
                   "paddingVertical": 0,
-                  "textAlign": "center",
+                  "textAlign": "left",
                   "textAlignVertical": "center",
                 }
               }
@@ -969,7 +955,7 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#b7bbc8",
+              "borderColor": "#ca3542",
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
@@ -1067,7 +1053,7 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
                   "opacity": 1,
                   "paddingRight": 8,
                   "paddingVertical": 0,
-                  "textAlign": "center",
+                  "textAlign": "left",
                   "textAlignVertical": "center",
                 }
               }
@@ -1100,6 +1086,20 @@ exports[`SrpInputGrid renders correctly with multiple words 1`] = `
     }
   >
     Clear all
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#ca3542",
+        "fontFamily": "Geist Medium",
+        "fontSize": 14,
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Use only lowercase letters, check your spelling, and put the words in the original order.
   </Text>
 </View>
 `;

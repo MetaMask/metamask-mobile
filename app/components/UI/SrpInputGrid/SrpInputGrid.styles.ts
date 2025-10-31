@@ -70,7 +70,7 @@ export const createStyles = (colors: Colors) =>
       ...fontStyles.normal,
       fontSize: 16,
       lineHeight: 20,
-      textAlign: 'center' as const,
+      textAlign: 'left' as const,
       textAlignVertical: 'center' as const,
       height: 40,
     } as TextStyle,

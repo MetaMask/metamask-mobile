@@ -10,39 +10,14 @@ export interface SrpInputGridProps {
   seedPhrase: string[];
 
   /**
-   * Index of the currently focused input
-   */
-  seedPhraseInputFocusedIndex: number | null;
-
-  /**
-   * Index of the next input to focus
-   */
-  nextSeedPhraseInputFocusedIndex: number | null;
-
-  /**
-   * Map of word indices that have validation errors
-   */
-  errorWordIndexes: Record<number, boolean>;
-
-  /**
-   * General error message to display
-   */
-  error?: string;
-
-  /**
    * Callback when seed phrase array changes
    */
   onSeedPhraseChange: React.Dispatch<React.SetStateAction<string[]>>;
 
   /**
-   * Callback when focus index changes
+   * Callback when error state changes
    */
-  onFocusChange: (index: number | null) => void;
-
-  /**
-   * Callback when next focus index changes
-   */
-  onNextFocusChange: (index: number | null) => void;
+  onError?: (error: string) => void;
 
   /**
    * Callback for paste action
@@ -53,14 +28,6 @@ export interface SrpInputGridProps {
    * Callback for clear action
    */
   onClear: () => void;
-
-  /**
-   * Ref to store input references for programmatic focus
-   */
-  seedPhraseInputRefs: React.MutableRefObject<Map<
-    number,
-    { focus: () => void; blur: () => void }
-  > | null>;
 
   /**
    * Prefix for test IDs (e.g., 'seed-phrase-input' or 'import-from-seed-input')

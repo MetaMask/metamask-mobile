@@ -1,10 +1,9 @@
 import React, {
-  useEffect,
   useState,
   useCallback,
   useMemo,
   useContext,
-  useRef,
+  useEffect,
 } from 'react';
 import { Alert, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -43,11 +42,7 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
-import {
-  isSRPLengthValid,
-  checkForWordErrors,
-  handleClearSeedPhrase,
-} from '../../../util/srp/srpInputUtils';
+import { isSRPLengthValid } from '../../../util/srp/srpInputUtils';
 
 /**
  * View that's displayed when the user is trying to import a new secret recovery phrase
@@ -59,23 +54,10 @@ const ImportNewSecretRecoveryPhrase = () => {
   const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
 
-  // Refs
-  const seedPhraseInputRefs = useRef<Map<
-    number,
-    { focus: () => void; blur: () => void }
-  > | null>(null);
-
   // State
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [errorWordIndexes, setErrorWordIndexes] = useState<
-    Record<number, boolean>
-  >({});
-  const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-    useState<number | null>(null);
-  const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
-    useState<number | null>(null);
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -98,27 +80,9 @@ const ImportNewSecretRecoveryPhrase = () => {
     [seedPhrase],
   );
 
-  // Validate and show errors
-  useEffect(() => {
-    const wordErrorMap = checkForWordErrors(seedPhrase);
-    const hasWordErrors = Object.values(wordErrorMap).some(Boolean);
-    if (hasWordErrors) {
-      setError(strings('import_from_seed.spellcheck_error'));
-    } else {
-      setError('');
-    }
-    setErrorWordIndexes(wordErrorMap);
-  }, [seedPhrase]);
-
   // Clear all
   const handleClear = useCallback(() => {
-    handleClearSeedPhrase({
-      setSeedPhrase,
-      setErrorWordIndexes,
-      setError,
-      setSeedPhraseInputFocusedIndex,
-      setNextSeedPhraseInputFocusedIndex,
-    });
+    setSeedPhrase(['']);
   }, []);
 
   // Paste from clipboard
@@ -162,17 +126,6 @@ const ImportNewSecretRecoveryPhrase = () => {
       },
     });
   }, [navigation, handleClear]);
-
-  // Focus management
-  useEffect(() => {
-    if (nextSeedPhraseInputFocusedIndex === null) return;
-
-    const refElement = seedPhraseInputRefs.current?.get(
-      nextSeedPhraseInputFocusedIndex,
-    );
-
-    refElement?.focus();
-  }, [nextSeedPhraseInputFocusedIndex]);
 
   const headerLeft = useCallback(
     () => (
@@ -329,16 +282,10 @@ const ImportNewSecretRecoveryPhrase = () => {
 
           <SrpInputGrid
             seedPhrase={seedPhrase}
-            seedPhraseInputFocusedIndex={seedPhraseInputFocusedIndex}
-            nextSeedPhraseInputFocusedIndex={nextSeedPhraseInputFocusedIndex}
-            errorWordIndexes={errorWordIndexes}
-            error={error}
             onSeedPhraseChange={setSeedPhrase}
-            onFocusChange={setSeedPhraseInputFocusedIndex}
-            onNextFocusChange={setNextSeedPhraseInputFocusedIndex}
+            onError={setError}
             onPaste={handlePaste}
             onClear={handleClear}
-            seedPhraseInputRefs={seedPhraseInputRefs}
             testIDPrefix={ImportSRPIDs.SEED_PHRASE_INPUT_ID}
             placeholderText={strings(
               'import_new_secret_recovery_phrase.textarea_placeholder',
