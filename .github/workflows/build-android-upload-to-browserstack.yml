@@ -356,8 +356,18 @@ jobs:
       - name: Download and Upload APKs to BrowserStack
         if: needs.check-builds-needed.outputs.builds-needed == 'true'
         id: browserstack-upload
+        env:
+          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
+          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
+          BROWSERSTACK_USERNAME: ${{ env.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ env.BROWSERSTACK_ACCESS_KEY }}
         run: |
+          set +e  # Don't exit on error - continue to try both APKs
           echo "Downloading APKs from Bitrise and uploading to BrowserStack..."
+          
+          # Initialize variables to avoid undefined references
+          WITH_SRP_APP_URL=""
+          WITHOUT_SRP_APP_URL=""
           
           # Initialize upload status outputs
           {
@@ -420,7 +430,29 @@ jobs:
               
               if [[ -n "$WITH_SRP_DOWNLOAD_URL" && "$WITH_SRP_DOWNLOAD_URL" != "null" ]]; then
                 echo "Downloading with-SRP APK..."
-                wget -O "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL"
+                DOWNLOAD_SUCCESS=false
+                if command -v wget >/dev/null 2>&1; then
+                  if wget -O "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
+                    DOWNLOAD_SUCCESS=true
+                  else
+                    echo "wget failed, trying curl..."
+                    if curl -L -f -o "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
+                      DOWNLOAD_SUCCESS=true
+                    fi
+                  fi
+                else
+                  echo "Using curl to download APK..."
+                  if curl -L -f -o "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
+                    DOWNLOAD_SUCCESS=true
+                  fi
+                fi
+                
+                if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-with-srp.apk" ]]; then
+                  echo "Error: Failed to download with-SRP APK"
+                  exit 1
+                fi
+                
+                echo "APK downloaded successfully. File size: $(du -h metamask-android-with-srp.apk | cut -f1)"
                 
                 # Upload to BrowserStack
                 echo "Uploading with-SRP APK to BrowserStack..."
@@ -500,7 +532,29 @@ jobs:
               
               if [[ -n "$WITHOUT_SRP_DOWNLOAD_URL" && "$WITHOUT_SRP_DOWNLOAD_URL" != "null" ]]; then
                 echo "Downloading without-SRP APK..."
-                wget -O "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL"
+                DOWNLOAD_SUCCESS=false
+                if command -v wget >/dev/null 2>&1; then
+                  if wget -O "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
+                    DOWNLOAD_SUCCESS=true
+                  else
+                    echo "wget failed, trying curl..."
+                    if curl -L -f -o "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
+                      DOWNLOAD_SUCCESS=true
+                    fi
+                  fi
+                else
+                  echo "Using curl to download APK..."
+                  if curl -L -f -o "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
+                    DOWNLOAD_SUCCESS=true
+                  fi
+                fi
+                
+                if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-without-srp.apk" ]]; then
+                  echo "Error: Failed to download without-SRP APK"
+                  exit 1
+                fi
+                
+                echo "APK downloaded successfully. File size: $(du -h metamask-android-without-srp.apk | cut -f1)"
                 
                 # Upload to BrowserStack
                 echo "Uploading without-SRP APK to BrowserStack..."
@@ -533,5 +587,13 @@ jobs:
           fi
           
           echo "BrowserStack upload process completed!"
-          echo "With-SRP URL: $WITH_SRP_APP_URL"
-          echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
+          if [[ -n "$WITH_SRP_APP_URL" ]]; then
+            echo "With-SRP URL: $WITH_SRP_APP_URL"
+          else
+            echo "With-SRP URL: (not uploaded)"
+          fi
+          if [[ -n "$WITHOUT_SRP_APP_URL" ]]; then
+            echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
+          else
+            echo "Without-SRP URL: (not uploaded)"
+          fi
