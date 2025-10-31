@@ -199,6 +199,8 @@ export class CoreLinkNormalizer {
       ...this.getActionSpecificParams(action, actionPath),
     };
 
+    params.hr = ['true', '1'].includes(params.hr as unknown as string);
+
     // Clean up message parameter
     if (params.message) {
       params.message = encodeURIComponent(params.message);
@@ -229,8 +231,8 @@ export class CoreLinkNormalizer {
 
   private static parseQueryString(urlObj: URL): Partial<CoreLinkParams> {
     const { searchParams } = urlObj;
-    const searhParamKeys = [...searchParams.keys()];
-    if (searhParamKeys.length === 0) {
+    const searchParamKeys = [...searchParams.keys()];
+    if (searchParamKeys.length === 0) {
       return {};
     }
 
@@ -303,7 +305,12 @@ export class CoreLinkNormalizer {
         value !== undefined &&
         value !== ''
       ) {
-        filteredParams[key] = String(value);
+        // Special handling for boolean hr parameter
+        if (key === 'hr' && typeof value === 'boolean') {
+          filteredParams[key] = value ? '1' : '0';
+        } else {
+          filteredParams[key] = String(value);
+        }
       }
     });
 

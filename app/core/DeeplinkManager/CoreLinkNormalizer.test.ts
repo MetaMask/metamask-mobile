@@ -89,7 +89,7 @@ describe('CoreLinkNormalizer', () => {
         protocol: 'https',
         host: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
         action: 'home',
-        params: { hr: '1' },
+        params: { hr: true },
         source: 'test',
         timestamp: mockTimestamp,
         originalUrl: '',

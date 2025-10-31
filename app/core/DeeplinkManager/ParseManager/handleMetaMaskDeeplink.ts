@@ -46,7 +46,7 @@ export function handleMetaMaskDeeplink({
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
           screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-          hideReturnToApp: ['1', 'true'].includes(params.hr),
+          hideReturnToApp: !!params.hr,
         },
       );
     } else if (params.channelId) {
@@ -87,7 +87,7 @@ export function handleMetaMaskDeeplink({
           context: 'deeplink_scheme',
           originatorInfo,
           rpc: params.rpc,
-          hideReturnToApp: ['1', 'true'].includes(params.hr),
+          hideReturnToApp: params.hr,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err) => {

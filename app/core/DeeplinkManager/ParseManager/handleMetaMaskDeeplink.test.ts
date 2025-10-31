@@ -57,7 +57,7 @@ describe('handleMetaMaskProtocol', () => {
     redirect: '',
     channelId: '',
     comm: '',
-    hr: '',
+    hr: false,
   } as ReturnType<typeof extractURLParams>['params'];
 
   let origin = '';
