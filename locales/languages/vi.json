@@ -6521,7 +6521,7 @@
     "optout": {
       "title": "Hủy tham gia chương trình Phần thưởng",
       "description": "Hành động này sẽ xóa các tài khoản của bạn khỏi chương trình Phần thưởng cũng như xóa toàn bộ điểm và tiến trình của bạn. Bạn sẽ không thể hoàn tác hành động này.",
-      "confirm": "Hủy tham gia",
+      "confirm": "Xóa vĩnh viễn",
       "modal": {
         "confirmation_title": "Bạn có chắc chắn không?",
         "confirmation_description": "Hành động này sẽ xóa toàn bộ tiến trình của bạn và không thể đảo ngược. Nếu bạn tham gia lại chương trình Phần thưởng sau này, bạn sẽ bắt đầu lại từ 0.",
