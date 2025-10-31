@@ -5,23 +5,16 @@ import SrpInputGrid from './index';
 
 describe('SrpInputGrid', () => {
   const mockOnSeedPhraseChange = jest.fn();
-  const mockOnFocusChange = jest.fn();
-  const mockOnNextFocusChange = jest.fn();
+  const mockOnError = jest.fn();
   const mockOnPaste = jest.fn();
   const mockOnClear = jest.fn();
-  const mockSeedPhraseInputRefs = { current: new Map() };
 
   const defaultProps = {
     seedPhrase: [''],
-    seedPhraseInputFocusedIndex: null,
-    nextSeedPhraseInputFocusedIndex: null,
-    errorWordIndexes: {},
     onSeedPhraseChange: mockOnSeedPhraseChange,
-    onFocusChange: mockOnFocusChange,
-    onNextFocusChange: mockOnNextFocusChange,
+    onError: mockOnError,
     onPaste: mockOnPaste,
     onClear: mockOnClear,
-    seedPhraseInputRefs: mockSeedPhraseInputRefs,
     testIDPrefix: ImportSRPIDs.SEED_PHRASE_INPUT_ID,
     placeholderText: 'Enter your Secret Recovery Phrase',
   };
@@ -30,12 +23,12 @@ describe('SrpInputGrid', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with empty seed phrase', () => {
+  it('renders with empty seed phrase', () => {
     const { toJSON } = renderWithProvider(<SrpInputGrid {...defaultProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with multiple words', () => {
+  it('renders with multiple words', () => {
     const seedPhrase = ['word1', 'word2', 'word3'];
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
@@ -43,21 +36,14 @@ describe('SrpInputGrid', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with error message', () => {
-    const { toJSON } = renderWithProvider(
-      <SrpInputGrid {...defaultProps} error="Invalid seed phrase" />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with disabled state', () => {
+  it('renders with disabled state', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} disabled />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with custom uniqueId', () => {
+  it('renders with custom uniqueId', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} uniqueId="custom-id" />,
     );
