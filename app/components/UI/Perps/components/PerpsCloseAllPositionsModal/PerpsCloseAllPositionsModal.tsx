@@ -69,7 +69,7 @@ const PerpsCloseAllPositionsModal: React.FC<
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent03],
@@ -91,7 +91,7 @@ const PerpsCloseAllPositionsModal: React.FC<
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent01],

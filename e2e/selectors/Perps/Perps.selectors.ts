@@ -50,6 +50,7 @@ export const PerpsPositionCardSelectorsIDs = {
   PNL: 'position-card-pnl',
   CLOSE_BUTTON: 'position-card-close',
   EDIT_BUTTON: 'position-card-edit',
+  SHARE_BUTTON: 'position-card-share',
   TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON:
     'position-card-tpsl-count-warning-tooltip-view-orders',
   TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
@@ -506,6 +507,46 @@ export const PerpsMarketTabsSelectorsIDs = {
   // Loading states
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
   SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
+};
+
+// ========================================
+// PERPS HERO CARD VIEW SELECTORS
+// ========================================
+
+export const PerpsHeroCardViewSelectorsIDs = {
+  CONTAINER: 'perps-hero-card-view-container',
+  HEADER: 'perps-hero-card-view-header',
+  HEADER_TITLE: 'perps-hero-card-view-header-title',
+  CLOSE_BUTTON: 'perps-hero-card-view-close-button',
+  CAROUSEL_WRAPPER: 'perps-hero-card-view-carousel-wrapper',
+  CAROUSEL: 'perps-hero-card-view-carousel',
+  CARD_CONTAINER: 'perps-hero-card-view-card-container',
+  REFERRAL_CODE_TAG: 'perps-hero-card-view-referral-code-tag',
+  QR_CODE: 'perps-hero-card-view-qr-code',
+  ASSET_SYMBOL: 'perps-hero-card-view-asset-symbol',
+  DIRECTION_BADGE: 'perps-hero-card-view-direction-badge',
+  DIRECTION_BADGE_TEXT: 'perps-hero-card-view-direction-badge-text',
+  PNL_TEXT: 'perps-hero-card-view-pnl-text',
+  SHARE_BUTTON: 'perps-hero-card-view-share-button',
+  DOT_INDICATOR: 'perps-hero-card-view-dot-indicator',
+} as const;
+
+// Helper functions for dynamic hero card selectors
+export const getPerpsHeroCardViewSelector = {
+  cardContainer: (index: number) =>
+    `${PerpsHeroCardViewSelectorsIDs.CARD_CONTAINER}-${index}`,
+  referralCodeTag: (index: number) =>
+    `${PerpsHeroCardViewSelectorsIDs.REFERRAL_CODE_TAG}-${index}`,
+  qrCode: (index: number) =>
+    `${PerpsHeroCardViewSelectorsIDs.QR_CODE}-${index}`,
+  assetSymbol: (index: number) =>
+    `${PerpsHeroCardViewSelectorsIDs.ASSET_SYMBOL}-${index}`,
+  directionBadge: (index: number) =>
+    `${PerpsHeroCardViewSelectorsIDs.DIRECTION_BADGE}-${index}`,
+  directionBadgeText: (index: number) =>
+    `${PerpsHeroCardViewSelectorsIDs.DIRECTION_BADGE_TEXT}-${index}`,
+  pnlText: (index: number) =>
+    `${PerpsHeroCardViewSelectorsIDs.PNL_TEXT}-${index}`,
 };
 
 // ========================================
