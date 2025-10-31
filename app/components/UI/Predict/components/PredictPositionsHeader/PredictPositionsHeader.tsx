@@ -3,10 +3,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonVariant,
   Text,
   TextVariant,
+  ButtonSize as ButtonSizeHero,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -33,16 +33,10 @@ import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictClaimablePositions } from '../../selectors/predictController';
-import {
-  PredictDepositStatus,
-  PredictPosition,
-  PredictPositionStatus,
-} from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
-
-// NOTE For some reason bg-primary-default and theme.colors.primary.default displaying #8b99ff
-const BUTTON_COLOR = '#4459FF';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 export interface PredictPositionsHeaderHandle {
   refresh: () => Promise<void>;
@@ -77,7 +71,7 @@ const PredictPositionsHeader = forwardRef<
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const { status } = usePredictDeposit();
+  const { isDepositPending } = usePredictDeposit();
   const claimablePositions = useSelector(selectPredictClaimablePositions);
 
   const {
@@ -96,10 +90,10 @@ const PredictPositionsHeader = forwardRef<
   }, [balanceError, pnlError, onError]);
 
   useEffect(() => {
-    if (status === PredictDepositStatus.CONFIRMED) {
+    if (!isDepositPending) {
       loadBalance({ isRefresh: true });
     }
-  }, [status, loadBalance]);
+  }, [isDepositPending, loadBalance]);
 
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
@@ -165,28 +159,18 @@ const PredictPositionsHeader = forwardRef<
   return (
     <Box twClassName="gap-4 pb-4 pt-2">
       {hasClaimableAmount && (
-        <Button
+        <ButtonHero
+          size={ButtonSizeHero.Lg}
           testID={PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON}
-          variant={ButtonVariant.Secondary}
           onPress={handleClaim}
-          twClassName="min-w-full bg-primary-default"
-          style={{
-            backgroundColor: BUTTON_COLOR, // TODO: update once call pull from a tw class
-          }}
+          style={tw.style('w-full')}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="gap-2"
-          >
-            <Text variant={TextVariant.BodyMd}>
-              {strings('predict.claim_amount_text', {
-                amount: totalClaimableAmount.toFixed(2),
-              })}
-            </Text>
-          </Box>
-        </Button>
+          <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
+            {strings('predict.claim_amount_text', {
+              amount: totalClaimableAmount.toFixed(2),
+            })}
+          </Text>
+        </ButtonHero>
       )}
 
       {shouldShowMainCard && (
