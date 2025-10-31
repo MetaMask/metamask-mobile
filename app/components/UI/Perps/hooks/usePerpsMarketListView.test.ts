@@ -67,16 +67,25 @@ describe('usePerpsMarketListView', () => {
     jest.clearAllMocks();
 
     // Default mock implementations
-    // Cast to unknown to avoid volumeNumber type issues in tests
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: mockAllMarkets as unknown as ReturnType<
-        typeof usePerpsMarkets
-      >['markets'],
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      refresh: jest.fn(),
-    });
+    // Mock usePerpsMarkets to filter markets based on showZeroVolume parameter
+    mockUsePerpsMarkets.mockImplementation(
+      (options?: { showZeroVolume?: boolean }) => {
+        const shouldFilter = !options?.showZeroVolume; // Default is false (filter out zero volume)
+        const filteredMarkets = shouldFilter
+          ? mockMarketsWithValidVolume
+          : mockAllMarkets;
+
+        return {
+          markets: filteredMarkets as unknown as ReturnType<
+            typeof usePerpsMarkets
+          >['markets'],
+          isLoading: false,
+          isRefreshing: false,
+          error: null,
+          refresh: jest.fn(),
+        };
+      },
+    );
 
     mockUsePerpsSearch.mockReturnValue({
       searchQuery: '',
@@ -157,15 +166,39 @@ describe('usePerpsMarketListView', () => {
 
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith({
         enablePolling: true,
+        showZeroVolume: false,
       });
     });
   });
 
   describe('Volume Filtering', () => {
+    it('passes showZeroVolume=false to usePerpsMarkets by default', () => {
+      renderHook(() => usePerpsMarketListView());
+
+      // Default behavior: hide zero volume markets
+      expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showZeroVolume: false,
+        }),
+      );
+    });
+
+    it('passes showZeroVolume=true when showZeroVolume=true', () => {
+      renderHook(() => usePerpsMarketListView({ showZeroVolume: true }));
+
+      // When showZeroVolume is true, show them
+      expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showZeroVolume: true,
+        }),
+      );
+    });
+
     it('filters out markets with zero volume displays', () => {
       renderHook(() => usePerpsMarketListView());
 
       // Should only pass markets with valid volume to usePerpsSearch
+      // (usePerpsMarkets mock filters them based on showZeroVolume parameter)
       expect(mockUsePerpsSearch).toHaveBeenCalledWith(
         expect.objectContaining({
           markets: expect.not.arrayContaining([

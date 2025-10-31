@@ -5,7 +5,7 @@ import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import type { PerpsMarketData, MarketTypeFilter } from '../controllers/types';
 import type { SortField, SortDirection } from '../utils/sortMarkets';
-import { PERPS_CONSTANTS, type SortOptionId } from '../constants/perpsConfig';
+import type { SortOptionId } from '../constants/perpsConfig';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
@@ -140,12 +140,14 @@ export const usePerpsMarketListView = ({
   showZeroVolume = false,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
+  // Volume filtering is handled at the data layer in usePerpsMarkets
   const {
     markets: allMarkets,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarkets({
     enablePolling,
+    showZeroVolume,
   });
 
   // Get Redux state
@@ -160,42 +162,10 @@ export const usePerpsMarketListView = ({
     defaultMarketTypeFilter,
   );
 
-  // Filter out markets with no valid volume
-  const marketsWithVolume = useMemo(
-    () =>
-      allMarkets.filter((market: PerpsMarketData) => {
-        // Always filter out fallback/error values
-        if (
-          market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
-          market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
-        ) {
-          return false;
-        }
-
-        // If showZeroVolume is true, allow $0.00 and $0 values
-        if (showZeroVolume) {
-          // Only filter if volume is completely missing
-          return !!market.volume;
-        }
-
-        // Default behavior: filter out zero and missing values
-        if (
-          !market.volume ||
-          market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY ||
-          market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
-        ) {
-          return false;
-        }
-
-        return true;
-      }),
-    [allMarkets, showZeroVolume],
-  );
-
   // Use search hook for search state and filtering
   // Pass ALL markets to search so it can search across all market types
   const searchHook = usePerpsSearch({
-    markets: marketsWithVolume,
+    markets: allMarkets,
     initialSearchVisible: defaultSearchVisible,
   });
 
@@ -266,7 +236,7 @@ export const usePerpsMarketListView = ({
   // Calculate market counts by type (for hiding empty tabs)
   const marketCounts = useMemo(() => {
     const counts = { crypto: 0, equity: 0, commodity: 0, forex: 0 };
-    marketsWithVolume.forEach((market) => {
+    allMarkets.forEach((market) => {
       if (!market.marketType) {
         counts.crypto++;
       } else if (market.marketType === 'equity') {
@@ -278,7 +248,7 @@ export const usePerpsMarketListView = ({
       }
     });
     return counts;
-  }, [marketsWithVolume]);
+  }, [allMarkets]);
 
   return {
     markets: finalMarkets,
