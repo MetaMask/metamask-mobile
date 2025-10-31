@@ -97,8 +97,16 @@ const createStyles = (theme: Theme) =>
     halfWidthButton: {
       width: '50%',
     },
+    halfWidthButtonDisabled: {
+      width: '50%',
+      opacity: 0.5,
+    },
     shouldBeHidden: {
       display: 'none',
+    },
+    managementOptionsContainer: {
+      marginTop: 16,
+      gap: 8,
     },
   });
 

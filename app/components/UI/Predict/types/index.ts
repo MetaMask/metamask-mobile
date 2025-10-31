@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
+import { Hex } from '@metamask/utils';
+
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -73,6 +75,14 @@ export enum PredictDepositStatus {
   ERROR = 'error',
 }
 
+export enum PredictWithdrawStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
+
 export type PredictMarket = {
   id: string;
   providerId: string;
@@ -83,7 +93,8 @@ export type PredictMarket = {
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
-  categories: PredictCategory[];
+  category: PredictCategory;
+  tags: string[];
   outcomes: PredictOutcome[];
   liquidity: number;
   volume: number;
@@ -114,6 +125,7 @@ export type PredictOutcome = {
   negRisk?: boolean;
   tickSize?: string;
   resolvedBy?: string;
+  resolutionStatus?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -268,4 +280,13 @@ export type PredictDeposit = {
   chainId: number;
   status: PredictDepositStatus;
   providerId: string;
+};
+
+export type PredictWithdraw = {
+  chainId: number;
+  status: PredictWithdrawStatus;
+  providerId: string;
+  predictAddress: Hex;
+  transactionId: string;
+  amount: number;
 };

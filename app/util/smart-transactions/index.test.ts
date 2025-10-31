@@ -13,7 +13,7 @@ import {
 import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 // eslint-disable-next-line import/no-namespace
 import * as environment from '../environment';
-import Engine, { type BaseControllerMessenger } from '../../core/Engine';
+import Engine, { type RootExtendedMessenger } from '../../core/Engine';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -386,7 +386,7 @@ describe('Smart Transactions utils', () => {
   });
   describe('getSmartTransactionMetricsProperties', () => {
     let smartTransactionsController: SmartTransactionsController;
-    let controllerMessenger: BaseControllerMessenger;
+    let controllerMessenger: RootExtendedMessenger;
 
     beforeEach(() => {
       smartTransactionsController = {
@@ -394,7 +394,7 @@ describe('Smart Transactions utils', () => {
       } as unknown as SmartTransactionsController;
       controllerMessenger = {
         subscribe: jest.fn(),
-      } as unknown as BaseControllerMessenger;
+      } as unknown as RootExtendedMessenger;
     });
 
     it('returns empty object if transactionMeta is undefined', async () => {

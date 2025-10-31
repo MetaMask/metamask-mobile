@@ -55,9 +55,8 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         smartContracts: [NFT_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry?.getContractAddress(
-          NFT_CONTRACT,
-        );
+        const nftsAddress =
+          await contractRegistry?.getContractAddress(NFT_CONTRACT);
         await loginToApp();
 
         // Navigate to the browser screen

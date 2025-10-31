@@ -22,13 +22,13 @@ export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
   ? // If T is a function, return T as is.
     T
   : T extends (infer U)[]
-  ? // If T is an array, apply DeepPartial to its elements.
-    DeepPartial<U>[]
-  : T extends object
-  ? // If T is an object, apply DeepPartial to each property of T.
-    { [K in keyof T]?: DeepPartial<T[K]> }
-  : // Otherwise, return T or undefined.
-    T | undefined;
+    ? // If T is an array, apply DeepPartial to its elements.
+      DeepPartial<U>[]
+    : T extends object
+      ? // If T is an object, apply DeepPartial to each property of T.
+        { [K in keyof T]?: DeepPartial<T[K]> }
+      : // Otherwise, return T or undefined.
+        T | undefined;
 export interface ProviderValues {
   state?: DeepPartial<RootState>;
   theme?: Theme;

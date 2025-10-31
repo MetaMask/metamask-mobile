@@ -107,9 +107,9 @@ exports[`EditAccountName should render correctly 1`] = `
                 "color": "#121314",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "height": 38,
                 "letterSpacing": 0,
+                "lineHeight": 20,
                 "opacity": 1,
                 "paddingVertical": 2,
                 "textAlignVertical": "center",
@@ -209,9 +209,9 @@ exports[`EditAccountName should render correctly 1`] = `
                 "color": "#121314",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "height": 38,
                 "letterSpacing": 0,
+                "lineHeight": 20,
                 "opacity": 1,
                 "paddingVertical": 2,
                 "textAlignVertical": "center",
@@ -236,7 +236,7 @@ exports[`EditAccountName should render correctly 1`] = `
       accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
-      onPress={[Function]}
+      onPress={[MockFunction]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={

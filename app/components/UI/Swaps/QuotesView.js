@@ -1221,9 +1221,8 @@ function SwapsQuotesView({
       }
     } else {
       if (approvalTransaction) {
-        approvalTransactionMetaId = await handleApprovalTransaction(
-          isHardwareAddress,
-        );
+        approvalTransactionMetaId =
+          await handleApprovalTransaction(isHardwareAddress);
 
         if (isHardwareAddress) {
           setIsHandlingSwap(false);

@@ -6,13 +6,14 @@ import type {
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData, MarketType } from '../controllers/types';
 import {
   formatVolume,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
+import { parseAssetName } from './hyperLiquidAdapter';
 
 /**
  * HyperLiquid-specific market data structure
@@ -134,17 +135,17 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
  */
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
+  assetMarketTypes?: Record<string, MarketType>,
 ): PerpsMarketData[] {
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
-  return universe.map((asset) => {
+  return universe.map((asset, index) => {
     const symbol = asset.name;
     const currentPrice = parseFloat(allMids[symbol]);
 
     // Find matching asset context for additional data
-    // Note: assetCtxs array from metaAndAssetCtxs might have different structure
-    // The array index should correspond to the universe array index
-    const assetCtx = assetCtxs[universe.indexOf(asset)];
+    // The assetCtxs array is aligned with universe array by index
+    const assetCtx = assetCtxs[index];
 
     // Calculate 24h change
     const prevDayPrice = assetCtx ? parseFloat(assetCtx.prevDayPx) : 0;
@@ -169,6 +170,12 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
+    // Format open interest
+    // If assetCtx is missing or openInterest is not available, use NaN to indicate missing data
+    const openInterest = assetCtx?.openInterest
+      ? parseFloat(assetCtx.openInterest)
+      : NaN;
+
     // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
 
@@ -188,23 +195,37 @@ export function transformMarketData(
       fundingRate = fundingData.predictedFundingRate;
     }
 
+    // Extract DEX and determine market type for badge display
+    const { dex } = parseAssetName(symbol);
+    const marketSource = dex || undefined;
+
+    // Simple per-asset lookup from feature flag (e.g., 'xyz:GOLD' → 'commodity')
+    const marketType: MarketType | undefined = assetMarketTypes?.[symbol];
+
     return {
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
-        ? '$0.00'
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
-      change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
+      change24h: isNaN(change24h)
+        ? PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
+        : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
       volume: isNaN(volume)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(volume),
+      openInterest: isNaN(openInterest)
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        : formatVolume(openInterest),
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,
+      marketSource,
+      marketType,
     };
   });
 }
