@@ -305,8 +305,9 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled =
-      await StorageWrapper.getItem(PASSCODE_DISABLED);
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+      PASSCODE_DISABLED,
+    );
 
     if (
       availableBiometryType &&
@@ -436,8 +437,9 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled =
-      await StorageWrapper.getItem(PASSCODE_DISABLED);
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+      PASSCODE_DISABLED,
+    );
 
     if (
       availableBiometryType &&
@@ -761,10 +763,23 @@ class AuthenticationService {
 
       this.dispatchOauthReset();
     } catch (error) {
-      await this.newWalletAndKeychain(`${Date.now()}`, {
-        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-      });
+      const { Engine: EngineClass } = await import('../Engine/Engine');
+
+      // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
+
+      // Disable automatic vault backups during OAuth error recovery
+      EngineClass.disableAutomaticVaultBackup = true;
+
+      try {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+      } finally {
+        // ALWAYS re-enable automatic backups, even if error occurs
+        EngineClass.disableAutomaticVaultBackup = false;
+      }
+
       SeedlessOnboardingController.clearState();
       throw error;
     }
@@ -810,8 +825,9 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            const keyringMetadata =
-              await this.importSeedlessMnemonicToVault(mnemonicToRestore);
+            const keyringMetadata = await this.importSeedlessMnemonicToVault(
+              mnemonicToRestore,
+            );
 
             // discover multichain accounts from imported srp
             if (isMultichainAccountsState2Enabled()) {
@@ -994,8 +1010,9 @@ class AuthenticationService {
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        allSRPs =
-          await SeedlessOnboardingController.fetchAllSecretData(password);
+        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
+          password,
+        );
         fetchSrpsSuccess = true;
       } catch (error) {
         const errorMessage =

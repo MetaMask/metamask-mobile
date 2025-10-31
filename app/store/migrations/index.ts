@@ -105,7 +105,6 @@ import migration101 from './101';
 import migration102 from './102';
 import migration103 from './103';
 import migration104 from './104';
-import migration105 from './105';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
@@ -227,7 +226,6 @@ export const migrationList: MigrationsList = {
   102: migration102,
   103: migration103,
   104: migration104,
-  105: migration105,
 };
 
 // Enable both synchronous and asynchronous migrations
@@ -243,11 +241,11 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    * Loads controller data from individual filesystem storage back into engine.backgroundState
    * for migrations to process.
    *
-   * - Migration 104 moved controller data from redux-persist to individual files
+   * - Individual controller files are created automatically by EngineService.setupEnginePersistence()
    * - Migrations 105+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
    * - "unpacking" distributed files back into a single object
-   *
+   * 
    * CRITICAL: Crashes if controller data cannot be loaded.
    * This ensures migrations run with complete data and prevents silent data loss.
    */
@@ -378,9 +376,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
           state = await inflateFromControllers(state);
           didInflate = true;
         }
-
         const migratedState = await migrationFunction(state);
-        if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
+        if (Number(migrationNumber) === lastVersion && lastVersion >= 104) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
