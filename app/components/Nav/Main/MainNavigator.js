@@ -204,11 +204,6 @@ const WalletTabStackFlow = () => (
       options={Collectible.navigationOptions}
     />
     <Stack.Screen
-      name="ConfirmAddAsset"
-      component={ConfirmAddAsset}
-      options={ConfirmAddAsset.navigationOptions}
-    />
-    <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
     />
@@ -944,6 +939,11 @@ const MainNavigator = () => {
         name="AddAsset"
         component={AddAsset}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ConfirmAddAsset"
+        component={ConfirmAddAsset}
+        options={{ headerShown: true }}
       />
       {isRewardsEnabled && (
         <Stack.Screen

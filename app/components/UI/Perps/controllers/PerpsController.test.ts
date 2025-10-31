@@ -1859,9 +1859,10 @@ describe('PerpsController', () => {
   describe('fee calculations', () => {
     it('should calculate fees', async () => {
       const feeParams = {
-        coin: 'BTC',
-        size: '0.1',
         orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+        coin: 'BTC',
       };
 
       const mockFees = {
