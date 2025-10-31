@@ -326,7 +326,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       Engine.context.PredictController.trackMarketDetailsOpened({
         marketId: market.id,
         marketTitle: market.title,
-        marketCategory: market.categories?.[0],
+        marketCategory: market.category,
+        marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
       });
