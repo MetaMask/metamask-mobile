@@ -1,18 +1,20 @@
-import React, { memo, useMemo, useState, useEffect } from 'react';
-import { View, ActivityIndicator, ViewStyle, ImageStyle } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
+import { Image } from 'expo-image';
+import React, { memo, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ImageStyle, View, ViewStyle } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
-import { Image } from 'expo-image';
-import { getAssetIconUrl } from '../../utils/marketUtils';
+import { useTheme } from '../../../../../util/theme';
 import {
-  ASSETS_REQUIRING_LIGHT_BG,
+  getAssetIconUrl,
+  getPerpsDisplaySymbol,
+} from '../../utils/marketUtils';
+import {
   ASSETS_REQUIRING_DARK_BG,
+  ASSETS_REQUIRING_LIGHT_BG,
   K_PREFIX_ASSETS,
 } from './PerpsAssetBgConfig';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
 
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
