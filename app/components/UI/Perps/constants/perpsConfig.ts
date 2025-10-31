@@ -411,3 +411,12 @@ export const SUPPORT_CONFIG = {
   TITLE_KEY: 'perps.support.title',
   DESCRIPTION_KEY: 'perps.support.description',
 } as const;
+
+/**
+ * Support article URLs
+ * Links to specific MetaMask support articles for Perps features
+ */
+export const PERPS_SUPPORT_ARTICLES_URLS = {
+  ADL_URL:
+    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
+} as const;
