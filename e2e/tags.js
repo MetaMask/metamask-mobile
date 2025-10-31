@@ -1,4 +1,5 @@
 const tags = {
+  SmokePerps: 'SmokePerps:',
   smokeAccounts: 'SmokeAccounts:',
   regressionAccounts: 'RegressionAccounts:',
   smokeCore: 'SmokeCore:',
@@ -61,6 +62,7 @@ const SmokeNotifications = (testName) =>
 const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
 
 const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
+const SmokePerps = (testName) => `${tags.SmokePerps} ${testName}`;
 const RegressionTrade = (testName) => `${tags.RegressionTrade} ${testName}`;
 const SmokeWalletPlatform = (testName) =>
   `${tags.SmokeWalletPlatform} ${testName}`;
@@ -87,6 +89,7 @@ const SmokeRewards = (testName) => `${tags.smokeRewards} ${testName}`;
 
 export {
   FlaskBuildTests,
+  SmokePerps,
   RegressionAccounts,
   SmokeAccounts,
   SmokeCore,

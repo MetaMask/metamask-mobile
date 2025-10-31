@@ -32,3 +32,13 @@ export const MULTICALL_CONTRACT_ADDRESS =
   '0xca11bde05977b3631167028862be2a173976ca11';
 export const CONDITIONAL_TOKENS_CONTRACT_ADDRESS =
   '0x4d97dcd97ec945f40cf65f87097ace5ea0476045';
+export const POLYGON_EIP7702_CONTRACT_ADDRESS =
+  '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B';
+
+// EIP-7702 format: 0xef01 (magic byte) + 00 (padding) + 20-byte contract address
+// This format indicates an EOA is upgraded with EIP-7702
+export const EIP7702_CODE_FORMAT = (contractAddress: string): string => {
+  const addressWithoutPrefix = contractAddress.toLowerCase().replace('0x', '');
+  // EIP-7702 format: ef01 (magic byte) + 00 (padding byte) + 20-byte address (40 hex chars)
+  return `0xef0100${addressWithoutPrefix}`;
+};

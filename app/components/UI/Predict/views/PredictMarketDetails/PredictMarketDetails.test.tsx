@@ -54,6 +54,11 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxJustifyContent: {
       Between: 'space-between',
     },
+    ButtonSize: {
+      Lg: 'lg',
+      Md: 'md',
+      Sm: 'sm',
+    },
   };
 });
 
@@ -299,6 +304,38 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     },
   };
 });
+
+jest.mock(
+  '../../../../../component-library/components-temp/Buttons/ButtonHero',
+  () => {
+    const { TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: function MockButtonHero({
+        onPress,
+        style,
+        children,
+        testID,
+      }: {
+        onPress?: () => void;
+        style?: object;
+        children?: React.ReactNode;
+        size?: string;
+        testID?: string;
+      }) {
+        return (
+          <TouchableOpacity
+            onPress={onPress}
+            testID={testID || 'button-hero'}
+            style={style}
+          >
+            {children}
+          </TouchableOpacity>
+        );
+      },
+    };
+  },
+);
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');

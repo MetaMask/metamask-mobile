@@ -160,7 +160,12 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 }
               />
             ) : (
-              <Text>{getYesPercentage()}</Text>
+              <Text
+                style={tw.style('text-[20px] font-medium')}
+                color={TextColor.Default}
+              >
+                {getYesPercentage()}
+              </Text>
             )}
           </Text>
         </Box>

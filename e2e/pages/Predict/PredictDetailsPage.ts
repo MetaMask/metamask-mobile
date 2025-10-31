@@ -1,6 +1,7 @@
 import { Matchers, Gestures } from '../../framework';
 import enContent from '../../../locales/languages/en.json';
 import {
+  PredictBalanceSelectorsIDs,
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../selectors/Predict/Predict.selectors';
