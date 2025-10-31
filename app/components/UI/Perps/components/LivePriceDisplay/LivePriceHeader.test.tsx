@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
 import { PriceUpdate, usePerpsLivePrices } from '../../hooks/stream';
+import Text from '../../../../../component-library/components/Texts/Text';
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
@@ -179,6 +180,99 @@ describe('LivePriceHeader', () => {
     );
     expect(getByText('$50,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+3.00%')).toBeTruthy();
+  });
+
+  describe('Color behavior for percentage change', () => {
+    it('uses neutral color for loading state when percentChange is undefined', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: {
+          coin: 'ETH',
+          price: '3000',
+          percentChange24h: undefined,
+          timestamp: Date.now(),
+        },
+      });
+
+      const { UNSAFE_getAllByType } = render(<LivePriceHeader symbol="ETH" />);
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const changeText = textElements.find((el) => el.props.children === '--%');
+      expect(changeText).toBeDefined();
+      expect(changeText?.props.color).toBe('Default');
+    });
+
+    it('uses neutral color for loading state when no live data exists', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" fallbackPrice="1800" />,
+      );
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const changeText = textElements.find((el) => el.props.children === '--%');
+      expect(changeText).toBeDefined();
+      expect(changeText?.props.color).toBe('Default');
+    });
+
+    it('uses success color for positive percentage change', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: {
+          coin: 'ETH',
+          price: '3000',
+          percentChange24h: '5.5',
+          timestamp: Date.now(),
+        },
+      });
+
+      const { UNSAFE_getAllByType } = render(<LivePriceHeader symbol="ETH" />);
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const changeText = textElements.find(
+        (el) => el.props.children === '+5.50%',
+      );
+      expect(changeText).toBeDefined();
+      expect(changeText?.props.color).toBe('Success');
+    });
+
+    it('uses error color for negative percentage change', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: {
+          coin: 'ETH',
+          price: '2500',
+          percentChange24h: '-3.2',
+          timestamp: Date.now(),
+        },
+      });
+
+      const { UNSAFE_getAllByType } = render(<LivePriceHeader symbol="ETH" />);
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const changeText = textElements.find(
+        (el) => el.props.children === '-3.20%',
+      );
+      expect(changeText).toBeDefined();
+      expect(changeText?.props.color).toBe('Error');
+    });
+
+    it('uses success color for zero percentage change', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: {
+          coin: 'ETH',
+          price: '2000',
+          percentChange24h: '0',
+          timestamp: Date.now(),
+        },
+      });
+
+      const { UNSAFE_getAllByType } = render(<LivePriceHeader symbol="ETH" />);
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const changeText = textElements.find(
+        (el) => el.props.children === '+0.00%',
+      );
+      expect(changeText).toBeDefined();
+      expect(changeText?.props.color).toBe('Success');
+    });
   });
 
   describe('Loading state for percentage change', () => {

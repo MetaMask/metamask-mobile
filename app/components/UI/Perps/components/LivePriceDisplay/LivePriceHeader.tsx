@@ -64,7 +64,12 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
 
   // Only determine change color when we have actual data (not loading)
   const isPositiveChange = displayChange !== null && displayChange >= 0;
-  const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+  const changeColor =
+    displayChange === null
+      ? TextColor.Default // Neutral color for loading state
+      : isPositiveChange
+        ? TextColor.Success
+        : TextColor.Error;
 
   // Format price display with edge case handling
   const formattedPrice = useMemo(() => {
