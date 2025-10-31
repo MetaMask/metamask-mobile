@@ -6519,9 +6519,9 @@
       "link_account_unknown_error": "Ocorreu um erro desconhecido"
     },
     "optout": {
-      "title": "Sair do Rewards",
-      "description": "Isso removerá suas contas do programa de recompensas e apagará seus pontos e progresso. Essa ação não poderá ser desfeita.",
-      "confirm": "Cancelar participação",
+      "title": "Sair do programa de recompensas",
+      "description": "Essa ação removerá suas contas do programa de recompensas e apagará seus pontos e progresso. Essa ação não poderá ser desfeita.",
+      "confirm": "Sair",
       "modal": {
         "confirmation_title": "Tem certeza?",
         "confirmation_description": "Essa ação removerá todo o seu progresso e não poderá ser revertida. Se você voltar a participar do programa de recompensas mais tarde, começará do zero.",
