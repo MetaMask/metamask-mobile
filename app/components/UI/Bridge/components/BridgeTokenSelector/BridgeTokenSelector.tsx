@@ -50,6 +50,7 @@ const convertAPITokensToBridgeTokens = (
   apiTokens.map((token) => ({
     ...token,
     address: parseCaipAssetType(token.assetId).assetReference,
+    noFee: token.noFee,
   }));
 
 export const BridgeTokenSelector: React.FC = () => {
@@ -219,6 +220,10 @@ export const BridgeTokenSelector: React.FC = () => {
         // );
       };
 
+      const isNoFeeAsset =
+        route.params?.type === 'source'
+          ? item.noFee?.isSource
+          : item.noFee?.isDestination;
       return (
         <TokenSelectorItem
           token={item}
@@ -231,6 +236,7 @@ export const BridgeTokenSelector: React.FC = () => {
           networkImageSource={getNetworkImageSource({
             chainId: item.chainId,
           })}
+          isNoFeeAsset={isNoFeeAsset}
         >
           <ButtonIcon
             iconName={IconName.Info}
@@ -241,7 +247,7 @@ export const BridgeTokenSelector: React.FC = () => {
         </TokenSelectorItem>
       );
     },
-    [navigation, selectedToken, handleTokenPress],
+    [navigation, selectedToken, handleTokenPress, route.params?.type],
   );
 
   const keyExtractor = (item: BridgeToken | null, index: number) =>

@@ -107,6 +107,7 @@ interface TokenSelectorItemProps {
   isSelected?: boolean;
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
+  isNoFeeAsset?: boolean;
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -117,13 +118,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   isSelected = false,
   shouldShowBalance = true,
   children,
+  isNoFeeAsset = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const noFeeAssets = useSelector((state: RootState) =>
     selectNoFeeAssets(state, token.chainId),
   );
 
-  const isNoFeeAsset = noFeeAssets?.includes(token.address);
+  const showNoFeeBadge = isNoFeeAsset || noFeeAssets?.includes(token.address);
 
   const fiatValue = token.balanceFiat;
 
@@ -214,7 +216,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
               {label && <Tag label={label} />}
-              {isNoFeeAsset && (
+              {showNoFeeBadge && (
                 <TagBase
                   shape={TagShape.Rectangle}
                   severity={TagSeverity.Info}

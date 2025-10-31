@@ -8,6 +8,10 @@ export interface PopularToken {
   image: string;
   name: string;
   symbol: string;
+  noFee?: {
+    isSource: boolean;
+    isDestination: boolean;
+  };
 }
 
 interface UsePopularTokensParams {
