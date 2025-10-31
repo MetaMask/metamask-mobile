@@ -891,5 +891,35 @@ describe('MarketsWonCard', () => {
       // Verify the callback is undefined
       expect(props.onClaimPress).toBeUndefined();
     });
+
+    it('uses fallback address when selectedAddress is undefined', () => {
+      // Arrange - create state with undefined selected account
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const stateWithNoAddress = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              claimablePositions: {
+                '0x0': [],
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+                accounts: {},
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      const { getByTestId } = renderWithProvider(<MarketsWonCard ref={ref} />, {
+        state: stateWithNoAddress,
+      });
+
+      // Assert - component renders without crashing
+      expect(getByTestId('markets-won-card')).toBeDefined();
+    });
   });
 });
