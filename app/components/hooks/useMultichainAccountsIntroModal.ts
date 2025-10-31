@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectMultichainAccountsState2Enabled } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectMultichainAccountsIntroModalSeen } from '../../reducers/user/selectors';
 import Routes from '../../constants/navigation/Routes';
 import StorageWrapper from '../../store/storage-wrapper';
@@ -20,9 +19,6 @@ const isE2ETest =
 export const useMultichainAccountsIntroModal = () => {
   const navigation = useNavigation();
 
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const hasSeenIntroModal = useSelector(selectMultichainAccountsIntroModalSeen);
 
   const checkAndShowMultichainAccountsIntroModal = useCallback(async () => {
@@ -47,24 +43,20 @@ export const useMultichainAccountsIntroModal = () => {
     // 2. User hasn't seen the modal
     // 3. This is not a fresh install (it's an update)
     const shouldShow =
-      isMultichainAccountsState2Enabled &&
-      !hasSeenIntroModal &&
-      isUpdate &&
-      isMultichainAccountsUpdate;
+      !hasSeenIntroModal && isUpdate && isMultichainAccountsUpdate;
 
     if (shouldShow && !isE2ETest) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO,
       });
     }
-  }, [isMultichainAccountsState2Enabled, hasSeenIntroModal, navigation]);
+  }, [hasSeenIntroModal, navigation]);
 
   useEffect(() => {
     checkAndShowMultichainAccountsIntroModal();
   }, [checkAndShowMultichainAccountsIntroModal]);
 
   return {
-    isMultichainAccountsState2Enabled,
     hasSeenIntroModal,
   };
 };

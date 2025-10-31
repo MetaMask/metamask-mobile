@@ -70,11 +70,7 @@ const NetworkMultiSelector = ({
     networkType: NetworkType.Popular,
   });
 
-  const {
-    networksToUse,
-    areAllNetworksSelectedCombined,
-    isMultichainAccountsState2Enabled,
-  } = useNetworksToUse({
+  const { networksToUse, areAllNetworksSelectedCombined } = useNetworksToUse({
     networks,
     networkType: NetworkType.Popular,
     areAllNetworksSelected,
@@ -148,8 +144,7 @@ const NetworkMultiSelector = ({
 
   const additionalNetworksComponent = useMemo(
     () =>
-      namespace === KnownCaipNamespace.Eip155 ||
-      isMultichainAccountsState2Enabled ? (
+      namespace === KnownCaipNamespace.Eip155 ? (
         <Box
           style={styles.customNetworkContainer}
           testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
@@ -157,12 +152,7 @@ const NetworkMultiSelector = ({
           <CustomNetwork {...customNetworkProps} />
         </Box>
       ) : null,
-    [
-      namespace,
-      customNetworkProps,
-      isMultichainAccountsState2Enabled,
-      styles.customNetworkContainer,
-    ],
+    [namespace, customNetworkProps, styles.customNetworkContainer],
   );
 
   const onSelectAllPopularNetworks = useCallback(async () => {

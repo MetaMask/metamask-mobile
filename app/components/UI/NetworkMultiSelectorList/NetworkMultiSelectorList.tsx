@@ -56,7 +56,6 @@ import {
 } from './NetworkMultiSelectorList.constants';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -89,9 +88,6 @@ const NetworkMultiSelectList = ({
   const selectedChainId = useSelector(selectChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -126,10 +122,7 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
-    if (
-      (selectAllNetworksComponent && isEvmSelected) ||
-      isMultichainAccountsState2Enabled
-    ) {
+    if (selectAllNetworksComponent && isEvmSelected) {
       data.unshift({
         id: SELECT_ALL_NETWORKS_SECTION_ID,
         type: NetworkListItemType.SelectAllNetworksListItem,
@@ -151,7 +144,6 @@ const NetworkMultiSelectList = ({
     additionalNetworksComponent,
     selectAllNetworksComponent,
     isEvmSelected,
-    isMultichainAccountsState2Enabled,
   ]);
 
   const contentContainerStyle = useMemo(

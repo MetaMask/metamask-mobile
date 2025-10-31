@@ -8,7 +8,6 @@ import {
   selectInternalAccounts,
   selectInternalAccountsById,
 } from '../../../../selectors/accountsController';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import {
   selectAccountToWalletMap,
   selectWalletsMap,
@@ -25,9 +24,6 @@ const useAccountInfo = (address: string, chainId: Hex) => {
   const accountToWalletMap = useSelector(selectAccountToWalletMap);
   const walletsMap = useSelector(selectWalletsMap);
   const accountGroups = useSelector(selectAccountGroups);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const activeAddress = toChecksumAddress(address as Hex);
   const { addressBalance: accountBalance } = useAddressBalance(
     undefined,
@@ -54,12 +50,7 @@ const useAccountInfo = (address: string, chainId: Hex) => {
   );
 
   const walletName = useMemo(() => {
-    if (
-      !isMultichainAccountsState2Enabled ||
-      !walletsMap ||
-      !activeAddress ||
-      Object.keys(walletsMap).length <= 1
-    ) {
+    if (!walletsMap || !activeAddress || Object.keys(walletsMap).length <= 1) {
       return undefined;
     }
 
@@ -77,39 +68,25 @@ const useAccountInfo = (address: string, chainId: Hex) => {
     const wallet = walletsMap[walletId];
 
     return wallet?.metadata?.name;
-  }, [
-    isMultichainAccountsState2Enabled,
-    walletsMap,
-    activeAddress,
-    internalAccountsById,
-    accountToWalletMap,
-  ]);
+  }, [walletsMap, activeAddress, internalAccountsById, accountToWalletMap]);
 
   const accountGroupName = useMemo(() => {
-    if (!isMultichainAccountsState2Enabled || !activeAddress) {
+    if (!activeAddress) {
       return undefined;
     }
 
-    const accountGroupNames = accountGroups.reduce(
-      (acc, group) => {
-        group.accounts.forEach((accountId) => {
-          const account = internalAccountsById[accountId];
-          if (account) {
-            acc[account.address.toLowerCase()] = group.metadata.name;
-          }
-        });
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
+    const accountGroupNames = accountGroups.reduce((acc, group) => {
+      group.accounts.forEach((accountId) => {
+        const account = internalAccountsById[accountId];
+        if (account) {
+          acc[account.address.toLowerCase()] = group.metadata.name;
+        }
+      });
+      return acc;
+    }, {} as Record<string, string>);
 
     return accountGroupNames[activeAddress.toLowerCase()];
-  }, [
-    isMultichainAccountsState2Enabled,
-    activeAddress,
-    accountGroups,
-    internalAccountsById,
-  ]);
+  }, [activeAddress, accountGroups, internalAccountsById]);
 
   return {
     accountName,
