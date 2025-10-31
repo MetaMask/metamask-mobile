@@ -8,7 +8,6 @@ import React, {
 import { Alert, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Clipboard from '@react-native-clipboard/clipboard';
 import StyledButton from '../../UI/StyledButton';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -58,6 +57,9 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [externalSeedPhrase, setExternalSeedPhrase] = useState<string | null>(
+    null,
+  );
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -80,18 +82,8 @@ const ImportNewSecretRecoveryPhrase = () => {
     [seedPhrase],
   );
 
-  // Clear all
-  const handleClear = useCallback(() => {
-    setSeedPhrase(['']);
-  }, []);
-
-  // Paste from clipboard
-  const handlePaste = useCallback(async () => {
-    const text = await Clipboard.getString();
-    if (text.trim() !== '') {
-      // Let SrpInputGrid handle the seed phrase change
-      setSeedPhrase(text.trim().split(/\s+/));
-    }
+  const handleExternalSeedPhraseProcessed = useCallback(() => {
+    setExternalSeedPhrase(null);
   }, []);
 
   const dismiss = useCallback(() => {
@@ -110,8 +102,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         const seed = data?.seed || content;
 
         if (seed) {
-          handleClear();
-          setSeedPhrase(seed.trim().split(/\s+/));
+          setExternalSeedPhrase(seed);
         } else {
           Alert.alert(
             strings('import_new_secret_recovery_phrase.invalid_qr_code_title'),
@@ -125,7 +116,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         Logger.error(error as Error, 'QR scan error');
       },
     });
-  }, [navigation, handleClear]);
+  }, [navigation]);
 
   const headerLeft = useCallback(
     () => (
@@ -284,8 +275,8 @@ const ImportNewSecretRecoveryPhrase = () => {
             seedPhrase={seedPhrase}
             onSeedPhraseChange={setSeedPhrase}
             onError={setError}
-            onPaste={handlePaste}
-            onClear={handleClear}
+            externalSeedPhrase={externalSeedPhrase}
+            onExternalSeedPhraseProcessed={handleExternalSeedPhraseProcessed}
             testIDPrefix={ImportSRPIDs.SEED_PHRASE_INPUT_ID}
             placeholderText={strings(
               'import_new_secret_recovery_phrase.textarea_placeholder',

@@ -20,14 +20,16 @@ export interface SrpInputGridProps {
   onError?: (error: string) => void;
 
   /**
-   * Callback for paste action
+   * External seed phrase from QR scan or file import
+   * When set, grid will process it through handleSeedPhraseChange
    */
-  onPaste: () => Promise<void>;
+  externalSeedPhrase?: string | null;
 
   /**
-   * Callback for clear action
+   * Callback when external seed phrase has been processed
+   * Use this to reset externalSeedPhrase to null
    */
-  onClear: () => void;
+  onExternalSeedPhraseProcessed?: () => void;
 
   /**
    * Prefix for test IDs (e.g., 'seed-phrase-input' or 'import-from-seed-input')

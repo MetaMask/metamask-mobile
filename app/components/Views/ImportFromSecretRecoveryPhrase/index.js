@@ -11,7 +11,6 @@ import { Alert, View, Keyboard, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
 import {
@@ -112,6 +111,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState(['']);
+  const [externalSeedPhrase, setExternalSeedPhrase] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
@@ -137,8 +137,8 @@ const ImportFromSecretRecoveryPhrase = ({
     trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
 
-  const handleClear = useCallback(() => {
-    setSeedPhrase(['']);
+  const handleExternalSeedPhraseProcessed = useCallback(() => {
+    setExternalSeedPhrase(null);
   }, []);
 
   const onQrCodePress = useCallback(() => {
@@ -153,8 +153,7 @@ const ImportFromSecretRecoveryPhrase = ({
       disableTabber: true,
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
-          handleClear();
-          setSeedPhrase(seed.trim().split(/\s+/));
+          setExternalSeedPhrase(seed);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -167,7 +166,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  }, [hideSeedPhraseInput, navigation, handleClear]);
+  }, [hideSeedPhraseInput, navigation]);
 
   const onBackPress = () => {
     if (currentStep === 0) {
@@ -286,13 +285,6 @@ const ImportFromSecretRecoveryPhrase = ({
     const { current } = confirmPasswordInput;
     current && current.focus();
   };
-
-  const handlePaste = useCallback(async () => {
-    const text = await Clipboard.getString();
-    if (text.trim() !== '') {
-      setSeedPhrase(text.trim().split(/\s+/));
-    }
-  }, []);
 
   const validateSeedPhrase = () => {
     // Trim each word before joining to ensure proper validation
@@ -564,8 +556,10 @@ const ImportFromSecretRecoveryPhrase = ({
                 seedPhrase={seedPhrase}
                 onSeedPhraseChange={setSeedPhrase}
                 onError={setError}
-                onPaste={handlePaste}
-                onClear={handleClear}
+                externalSeedPhrase={externalSeedPhrase}
+                onExternalSeedPhraseProcessed={
+                  handleExternalSeedPhraseProcessed
+                }
                 testIDPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}

@@ -6,6 +6,7 @@ import React, {
   useEffect,
 } from 'react';
 import { View, Keyboard } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
   TextVariant,
@@ -44,8 +45,8 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
   seedPhrase,
   onSeedPhraseChange,
   onError,
-  onPaste,
-  onClear,
+  externalSeedPhrase,
+  onExternalSeedPhraseProcessed,
   testIDPrefix,
   placeholderText,
   uniqueId = uuidv4(),
@@ -149,9 +150,7 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
             nextSeedPhraseState.length - 1,
             index + splitArray.length,
           );
-          setTimeout(() => {
-            setNextSeedPhraseInputFocusedIndex(targetIndex);
-          }, 0);
+          setNextSeedPhraseInputFocusedIndex(targetIndex);
           return;
         }
 
@@ -180,17 +179,14 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
 
       if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
         onSeedPhraseChange(updatedTrimmedText);
-      } else {
-        handleSeedPhraseChangeAtIndex(text, 0);
-      }
-
-      if (updatedTrimmedText.length > 1) {
         setTimeout(() => {
           setSeedPhraseInputFocusedIndex(null);
           setNextSeedPhraseInputFocusedIndex(null);
           seedPhraseInputRefs.current?.get(0)?.blur();
           Keyboard.dismiss();
         }, 100);
+      } else {
+        handleSeedPhraseChangeAtIndex(text, 0);
       }
     },
     [handleSeedPhraseChangeAtIndex, onSeedPhraseChange],
@@ -221,13 +217,16 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
     [seedPhraseInputFocusedIndex, seedPhrase],
   );
 
-  // Handle key press in seed phrase input
   const handleKeyPress = useCallback(
     (e: { nativeEvent: { key: string } }, index: number) => {
       if (e.nativeEvent.key === 'Backspace') {
         if (seedPhrase[index] === '') {
           const newData = seedPhrase.filter((_, idx) => idx !== index);
           if (index > 0) {
+            const prevInputRef = seedPhraseInputRefs.current?.get(index - 1);
+            if (prevInputRef) {
+              prevInputRef.focus();
+            }
             setNextSeedPhraseInputFocusedIndex(index - 1);
           }
           setTimeout(() => {
@@ -239,7 +238,6 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
     [seedPhrase, onSeedPhraseChange],
   );
 
-  // Handle enter key press to add space
   const handleEnterKeyPress = useCallback(
     (index: number) => {
       handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
@@ -268,10 +266,37 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
     setErrorWordIndexes(errorsMap);
   }, [seedPhrase]);
 
-  // Notify parent of error changes
   useEffect(() => {
     onError?.(error);
   }, [error, onError]);
+
+  useEffect(() => {
+    if (!externalSeedPhrase || externalSeedPhrase.trim() === '') {
+      return;
+    }
+
+    handleSeedPhraseChange(externalSeedPhrase);
+
+    onExternalSeedPhraseProcessed?.();
+  }, [
+    externalSeedPhrase,
+    handleSeedPhraseChange,
+    onExternalSeedPhraseProcessed,
+  ]);
+
+  const handlePaste = useCallback(async () => {
+    const text = await Clipboard.getString();
+    if (text.trim() !== '') {
+      handleSeedPhraseChange(text);
+    }
+  }, [handleSeedPhraseChange]);
+
+  const handleClear = useCallback(() => {
+    onSeedPhraseChange(['']);
+    setErrorWordIndexes({});
+    setSeedPhraseInputFocusedIndex(null);
+    setNextSeedPhraseInputFocusedIndex(null);
+  }, [onSeedPhraseChange]);
 
   return (
     <View style={styles.seedPhraseRoot}>
@@ -368,9 +393,9 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
         style={styles.pasteText}
         onPress={() => {
           if (trimmedSeedPhraseLength >= 1) {
-            onClear();
+            handleClear();
           } else {
-            onPaste();
+            handlePaste();
           }
         }}
       >
