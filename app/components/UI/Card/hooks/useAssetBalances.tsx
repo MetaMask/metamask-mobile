@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
-import { AllowanceState } from '../types';
+import { AllowanceState, CardTokenAllowance } from '../types';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
@@ -14,12 +14,13 @@ import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
-import { SupportedTokenWithChain } from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
+import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 
 export interface AssetBalanceInfo {
+  asset: TokenI | undefined;
   balanceFiat: string;
   balanceFormatted: string;
   rawFiatNumber: number | undefined;
@@ -36,7 +37,7 @@ export interface AssetBalanceInfo {
  * - For non-enabled tokens: shows the user's actual wallet balance from their wallet
  */
 export const useAssetBalances = (
-  tokens: SupportedTokenWithChain[],
+  tokens: CardTokenAllowance[],
 ): Map<string, AssetBalanceInfo> => {
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
@@ -49,25 +50,27 @@ export const useAssetBalances = (
   // Get all assets from wallet for fallback balance lookup
   const walletAssetsMap = useSelector((state: RootState) => {
     const map = new Map<string, TokenI>();
-    tokens.forEach((token) => {
-      if (token?.caipChainId && token?.address) {
-        const isSolana = isSolanaChainId(token.caipChainId);
-        const chainId = isSolana
-          ? token.caipChainId
-          : (safeFormatChainIdToHex(token.caipChainId) as string);
+    tokens
+      .filter((token) => token !== undefined)
+      .forEach((token) => {
+        if (token?.caipChainId && token?.address) {
+          const isSolana = isSolanaChainId(token.caipChainId);
+          const chainId = isSolana
+            ? token.caipChainId
+            : (safeFormatChainIdToHex(token.caipChainId) as string);
 
-        const asset = selectAsset(state, {
-          address: token.address,
-          chainId,
-        });
+          const asset = selectAsset(state, {
+            address: token.address,
+            chainId,
+          });
 
-        if (asset) {
-          // Key should use the same address used for balance lookups
-          const key = `${token.address.toLowerCase()}-${token.caipChainId}`;
-          map.set(key, asset);
+          if (asset) {
+            // Key should use the same address used for balance lookups
+            const key = `${token.address.toLowerCase()}-${token.caipChainId}`;
+            map.set(key, asset);
+          }
         }
-      }
-    });
+      });
     return map;
   });
 
@@ -126,6 +129,7 @@ export const useAssetBalances = (
       }
 
       // Create a unique key for this token
+      // Include walletAddress to distinguish same token on same chain but different wallets
       const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
 
       const isSolana = isSolanaChainId(token.caipChainId);
@@ -290,9 +294,6 @@ export const useAssetBalances = (
           rates?.conversionRate &&
           rates.conversionRate > 0
         ) {
-          // For enabled tokens with availableBalance but no price data,
-          // use deriveBalanceFromAssetMarketDetails to calculate from wallet state
-          // This mimics what useAssetBalance does successfully
           const normalizedBalanceForCalc = balanceToUse.replace(',', '.');
 
           if (walletAsset) {
@@ -382,7 +383,26 @@ export const useAssetBalances = (
       const rawTokenBalance = parseFloat(normalizedBalance);
       const balanceFormatted = `${parseFloat(normalizedBalance).toFixed(6)} ${token.symbol}`;
 
+      // Build asset object compatible with TokenI interface
+      const iconUrl = token.caipChainId
+        ? buildTokenIconUrl(token.caipChainId, token.address ?? '')
+        : undefined;
+
+      const asset: TokenI | undefined = token
+        ? ({
+            ...token,
+            image: iconUrl,
+            logo: iconUrl,
+            isETH: false,
+            aggregators: [],
+            balance: balanceToUse,
+            balanceFiat,
+            chainId: assetChainId,
+          } as TokenI)
+        : undefined;
+
       map.set(tokenKey, {
+        asset,
         balanceFiat,
         balanceFormatted,
         rawFiatNumber,

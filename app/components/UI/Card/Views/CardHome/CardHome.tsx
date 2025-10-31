@@ -30,7 +30,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { AllowanceState, CardStatus, CardType, CardWarning } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
@@ -67,6 +66,7 @@ import useLoadCardData from '../../hooks/useLoadCardData';
 import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
+import { useAssetBalances } from '../../hooks/useAssetBalances';
 
 /**
  * CardHome Component
@@ -116,8 +116,19 @@ const CardHome = () => {
     externalWalletDetailsData,
   } = useLoadCardData();
 
-  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance, asset } =
-    useAssetBalance(priorityToken);
+  const assetBalancesMap = useAssetBalances(
+    priorityToken ? [priorityToken] : [],
+  );
+  const assetBalance = assetBalancesMap.get(
+    `${priorityToken?.address?.toLowerCase()}-${priorityToken?.caipChainId}-${priorityToken?.walletAddress?.toLowerCase()}`,
+  );
+  const {
+    asset,
+    balanceFiat,
+    balanceFormatted,
+    rawFiatNumber,
+    rawTokenBalance,
+  } = assetBalance ?? {};
 
   const { provisionCard, isLoading: isLoadingProvisionCard } =
     useCardProvision();
@@ -149,11 +160,11 @@ const CardHome = () => {
 
   const balanceAmount = useMemo(() => {
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
-      return mainBalance;
+      return balanceFormatted;
     }
 
     return balanceFiat;
-  }, [balanceFiat, mainBalance]);
+  }, [balanceFiat, balanceFormatted]);
 
   const renderAddFundsBottomSheet = useCallback(
     () => (
@@ -194,10 +205,10 @@ const CardHome = () => {
       return;
     }
 
-    const hasValidMainBalance =
-      mainBalance !== undefined &&
-      mainBalance !== TOKEN_BALANCE_LOADING &&
-      mainBalance !== TOKEN_BALANCE_LOADING_UPPERCASE;
+    const hasValidTokenBalance =
+      balanceFormatted !== undefined &&
+      balanceFormatted !== TOKEN_BALANCE_LOADING &&
+      balanceFormatted !== TOKEN_BALANCE_LOADING_UPPERCASE;
 
     const hasValidFiatBalance =
       balanceFiat !== undefined &&
@@ -206,7 +217,7 @@ const CardHome = () => {
       balanceFiat !== TOKEN_RATE_UNDEFINED;
 
     const isLoaded =
-      !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
+      !!priorityToken && (hasValidTokenBalance || hasValidFiatBalance);
 
     if (isLoaded) {
       // Set flag immediately to prevent race conditions
@@ -230,7 +241,7 @@ const CardHome = () => {
     }
   }, [
     priorityToken,
-    mainBalance,
+    balanceFormatted,
     balanceFiat,
     rawTokenBalance,
     rawFiatNumber,
