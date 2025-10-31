@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, TouchableOpacity } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -28,15 +28,6 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {
-        showWatchlistOnly: true,
-      },
-    });
-  }, [navigation]);
-
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
@@ -57,29 +48,40 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     [handleMarketPress],
   );
 
-  // Don't show section if no watchlist markets and not loading
-  if (!isLoading && markets.length === 0) {
-    return null;
-  }
-
-  return (
-    <View style={styles.container}>
+  // Header component
+  const SectionHeader = useCallback(
+    () => (
       <View style={styles.header}>
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.home.watchlist')}
         </Text>
-        {!isLoading && markets.length > 0 && (
-          <TouchableOpacity onPress={handleViewAll}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.home.see_all')}
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
+    ),
+    [styles.header],
+  );
 
-      {isLoading ? (
-        <PerpsRowSkeleton count={3} />
-      ) : (
+  // Show skeleton during initial load
+  if (isLoading) {
+    return (
+      <View style={styles.section}>
+        <SectionHeader />
+        <View style={styles.contentContainer}>
+          <PerpsRowSkeleton count={3} />
+        </View>
+      </View>
+    );
+  }
+
+  // Hide section entirely when no markets
+  if (markets.length === 0) {
+    return null;
+  }
+
+  // Render market list
+  return (
+    <View style={styles.section}>
+      <SectionHeader />
+      <View style={styles.contentContainer}>
         <FlatList
           data={markets}
           renderItem={renderMarket}
@@ -88,7 +90,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
           scrollEnabled={false}
           contentContainerStyle={styles.listContent}
         />
-      )}
+      </View>
     </View>
   );
 };

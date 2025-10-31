@@ -111,6 +111,10 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       [buttonConfigProps, buttonConfigDefault],
     );
 
+    // Content keys that render their own header (with icon)
+    const hasCustomHeader =
+      contentKey === 'market_hours' || contentKey === 'after_hours_trading';
+
     // Only render when visible and title is defined
     if (!isVisible || !title) return null;
 
@@ -121,14 +125,16 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         onClose={onClose}
         testID={testID}
       >
-        <BottomSheetHeader>
-          <Text
-            variant={TextVariant.HeadingMD}
-            testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
-          >
-            {title}
-          </Text>
-        </BottomSheetHeader>
+        {!hasCustomHeader && (
+          <BottomSheetHeader>
+            <Text
+              variant={TextVariant.HeadingMD}
+              testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+            >
+              {title}
+            </Text>
+          </BottomSheetHeader>
+        )}
         <View style={styles.contentContainer}>{renderContent()}</View>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}

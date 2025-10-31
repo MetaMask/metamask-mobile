@@ -371,6 +371,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Auto-discovery mode: Show all available DEXs
     if (this.enabledDexs.length === 0) {
+      // TESTNET: Limit auto-discovery to main DEX only due to unstable HIP-3 DEXs
+      if (this.clientService.isTestnetMode()) {
+        DevLogger.log(
+          'HyperLiquidProvider: Testnet auto-discovery limited to main DEX',
+          {
+            reason: 'Many testnet HIP-3 DEXs are experimental/unstable',
+            availableHip3DexCount: availableHip3Dexs.length,
+          },
+        );
+        this.cachedValidatedDexs = [null]; // Main DEX only
+        return this.cachedValidatedDexs;
+      }
+
+      // MAINNET: Show all available DEXs (more stable, curated)
       DevLogger.log(
         'HyperLiquidProvider: Auto-discovery mode - all DEXs enabled',
         {

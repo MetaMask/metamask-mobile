@@ -16,6 +16,7 @@ interface UsePerpsOrderValidationParams {
   assetPrice: number;
   availableBalance: number;
   marginRequired: string;
+  existingPositionLeverage?: number;
 }
 
 interface ValidationResult {
@@ -45,6 +46,7 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
+    existingPositionLeverage,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -95,6 +97,7 @@ export function usePerpsOrderValidation(
         price: orderForm.limitPrice,
         leverage: orderForm.leverage,
         currentPrice: assetPrice,
+        existingPositionLeverage,
       };
 
       // Get protocol-specific validation
@@ -150,6 +153,7 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
+    existingPositionLeverage,
     validateOrder,
   ]);
 

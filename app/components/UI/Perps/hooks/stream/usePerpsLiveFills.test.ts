@@ -72,7 +72,7 @@ describe('usePerpsLiveFills', () => {
     const { result } = renderHook(() => usePerpsLiveFills());
 
     // Initially empty
-    expect(result.current).toEqual([]);
+    expect(result.current).toEqual({ fills: [], isInitialLoading: true });
 
     // Simulate fills update
     const fills: OrderFill[] = [
@@ -85,7 +85,7 @@ describe('usePerpsLiveFills', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(fills);
+      expect(result.current.fills).toEqual(fills);
     });
   });
 
@@ -145,7 +145,7 @@ describe('usePerpsLiveFills', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current.fills).toEqual([]);
     });
   });
 
@@ -164,7 +164,7 @@ describe('usePerpsLiveFills', () => {
     });
 
     // Should not crash and fills should remain empty
-    expect(result.current).toEqual([]);
+    expect(result.current.fills).toEqual([]);
 
     // Send undefined update
     act(() => {
@@ -172,7 +172,7 @@ describe('usePerpsLiveFills', () => {
     });
 
     // Should still not crash
-    expect(result.current).toEqual([]);
+    expect(result.current.fills).toEqual([]);
 
     // Send valid update to ensure it still works
     const validFills: OrderFill[] = [mockFill];
@@ -182,7 +182,7 @@ describe('usePerpsLiveFills', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(validFills);
+      expect(result.current.fills).toEqual(validFills);
     });
   });
 
@@ -202,7 +202,7 @@ describe('usePerpsLiveFills', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(firstFills);
+      expect(result.current.fills).toEqual(firstFills);
     });
 
     // Second update with different fills
@@ -216,8 +216,8 @@ describe('usePerpsLiveFills', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(secondFills);
-      expect(result.current).not.toContain(mockFill);
+      expect(result.current.fills).toEqual(secondFills);
+      expect(result.current.fills).not.toContain(mockFill);
     });
   });
 
@@ -242,8 +242,8 @@ describe('usePerpsLiveFills', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(fills);
-      expect(result.current).toHaveLength(3);
+      expect(result.current.fills).toEqual(fills);
+      expect(result.current.fills).toHaveLength(3);
     });
   });
 
@@ -267,8 +267,8 @@ describe('usePerpsLiveFills', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(fills);
-      const symbols = result.current.map((f) => f.symbol);
+      expect(result.current.fills).toEqual(fills);
+      const symbols = result.current.fills.map((f) => f.symbol);
       expect(symbols).toContain('BTC-PERP');
       expect(symbols).toContain('ETH-PERP');
       expect(symbols).toContain('SOL-PERP');

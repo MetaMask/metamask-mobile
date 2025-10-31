@@ -51,8 +51,8 @@ export type OrderType = 'market' | 'limit';
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
-// Market type filter including 'all' option for UI filtering
-export type MarketTypeFilter = MarketType | 'all';
+// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
+export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -450,13 +450,18 @@ export interface PerpsControllerConfig {
    * HIP-3 equity perps master switch passed from client
    * Controls whether HIP-3 (builder-deployed) DEXs are enabled
    */
-  equityEnabled?: boolean;
+  fallbackEquityEnabled?: boolean;
   /**
    * HIP-3 DEX whitelist passed from client
    * Empty array = auto-discover all DEXs, non-empty = whitelist specific DEXs
-   * Only applies when equityEnabled === true
    */
-  enabledDexs?: string[];
+  fallbackEnabledDexs?: string[];
+
+  /**
+   * Semantic versioning used in PerpsController to determine if the client is compatible with the feature flags
+   * E.g. "1.0.0"
+   */
+  clientVersion: string;
 }
 
 export interface PriceUpdate {

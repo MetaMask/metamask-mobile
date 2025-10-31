@@ -14,16 +14,14 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       backgroundColor: theme.colors.background.default,
     },
-    sortContainer: {
+    sortScrollView: {
       flex: 1,
+      maxWidth: '100%',
     },
-    watchlistButton: {
+    sortContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: 8,
       paddingVertical: 6,
-      marginLeft: 8,
     },
   });
 };

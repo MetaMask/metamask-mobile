@@ -15,12 +15,8 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsMarketData } from '../../controllers/types';
-import {
-  getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
-import PerpsBadge from '../PerpsBadge';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
@@ -44,14 +40,12 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const badgeType = getMarketBadgeType(market);
-
   return (
     <View style={styles.container} testID={testID}>
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
-            iconName={IconName.Arrow2Left}
+            iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
@@ -89,12 +83,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
             throttleMs={1000}
           />
-          {badgeType && (
-            <PerpsBadge
-              type={badgeType}
-              testID={`${PerpsMarketHeaderSelectorsIDs.CONTAINER}-badge`}
-            />
-          )}
         </View>
       </View>
 

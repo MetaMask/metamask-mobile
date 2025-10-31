@@ -29,6 +29,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: -12, // Compensate for padding to maintain visual alignment
       marginRight: -12,
     },
+    backButton: {
+      padding: 8,
+      marginRight: 8,
+    },
     headerTitle: {
       textAlign: 'left',
     },
@@ -49,6 +53,14 @@ const styleSheet = (params: { theme: Theme }) => {
     listContainerWithTabBar: {
       flex: 1,
     },
+    tabsContainer: {
+      flex: 1,
+      paddingTop: 12,
+    },
+    tabScrollView: {
+      flex: 1,
+    },
+    tabContentContainer: {},
     tabBarContainer: {
       position: 'absolute',
       bottom: 0,
@@ -134,11 +146,8 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     searchContainer: {
-      marginHorizontal: 16,
-      marginTop: 16,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 12,
+      paddingTop: 16,
+      paddingHorizontal: 16,
     },
     searchInputContainer: {
       flexDirection: 'row',

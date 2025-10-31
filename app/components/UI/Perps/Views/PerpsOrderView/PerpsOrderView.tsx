@@ -85,11 +85,7 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
-import {
-  usePerpsLiveAccount,
-  usePerpsLivePrices,
-  usePerpsLivePositions,
-} from '../../hooks/stream';
+import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
@@ -190,40 +186,26 @@ const PerpsOrderViewContentBase: React.FC = () => {
     maxPossibleAmount,
   } = usePerpsOrderContext();
 
-  // Get live positions to sync leverage from existing position
-  const { positions, isInitialLoading: isLoadingPositions } =
-    usePerpsLivePositions();
-
-  // Track if we've already synced leverage from existing position
-  const hasSyncedLeverageRef = useRef(false);
-
-  // Effect to update leverage from existing position after positions load
-  useEffect(() => {
-    // Only update if:
-    // 1. Positions have loaded
-    // 2. We haven't already synced (to avoid overwriting user changes)
-    // 3. Current leverage is the default (3) - meaning no explicit leverage was provided
-    if (
-      !isLoadingPositions &&
-      !hasSyncedLeverageRef.current &&
-      orderForm.leverage === PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE
-    ) {
-      const existingPosition = positions.find(
-        (position) => position.coin === orderForm.asset,
-      );
-
-      if (existingPosition?.leverage?.value) {
-        setLeverage(existingPosition.leverage.value);
-        hasSyncedLeverageRef.current = true;
-      }
-    }
-  }, [
-    isLoadingPositions,
-    positions,
-    orderForm.asset,
-    orderForm.leverage,
-    setLeverage,
-  ]);
+  /**
+   * PROTOCOL CONSTRAINT: Existing position leverage
+   *
+   * HyperLiquid protocol requirement: when adding to an existing position,
+   * the new order's leverage MUST be >= the existing position's leverage.
+   * If not met, the order will fail.
+   *
+   * This is SEPARATE from user preference (saved trade configuration):
+   * - User preference (saved config): Default for NEW positions (no existing position)
+   * - Protocol constraint: Required minimum for EXISTING positions
+   *
+   * Priority chain for leverage selection (enforced in usePerpsOrderForm):
+   * 1. Navigation param (explicit user intent via route)
+   * 2. Existing position leverage (protocol requirement - synced via hook effect)
+   * 3. Saved trade config (user preference - from controller state)
+   * 4. Default 3x (fallback)
+   *
+   * Note: Positions load asynchronously via WebSocket. usePerpsOrderForm handles
+   * updating leverage after positions load to prevent protocol violations.
+   */
 
   // Market data hook - now uses orderForm.asset from context
   const {
@@ -546,6 +528,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.limitPrice,
   ]);
 
+  // Get existing position leverage for validation (protocol constraint)
+  // Note: This is the same value used for initial form state, but needed here for validation
+  const existingPositionLeverageForValidation =
+    existingPosition?.leverage?.value;
+
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
     orderForm,
@@ -553,6 +540,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     assetPrice: assetData.price,
     availableBalance,
     marginRequired: marginRequired || '0',
+    existingPositionLeverage: existingPositionLeverageForValidation,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)

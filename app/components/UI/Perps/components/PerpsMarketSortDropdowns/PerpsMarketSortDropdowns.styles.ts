@@ -23,16 +23,8 @@ export const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       gap: 4,
     },
-    dropdownButtonActive: {
-      backgroundColor: theme.colors.primary.muted,
-    },
     dropdownButtonPressed: {
       opacity: 0.7,
-    },
-    dropdownText: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: theme.colors.text.alternative,
     },
     dropdownTextActive: {
       color: theme.colors.primary.default,
