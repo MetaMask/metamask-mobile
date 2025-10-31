@@ -541,6 +541,7 @@ export function usePerpsOrderFees({
           orderType,
           isMaker,
           amount,
+          coin,
         });
 
         if (!isComponentMounted) return;
@@ -605,6 +606,7 @@ export function usePerpsOrderFees({
     orderType,
     isMaker,
     amount,
+    coin,
     calculateFees,
     applyFeeDiscount,
     handlePointsEstimation,
