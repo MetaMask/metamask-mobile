@@ -43,8 +43,15 @@ abstract class StreamChannel<T> {
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
   protected wsConnectionStartTime: number | null = null;
+  // Flag to pause emission during operations (keeps WebSocket alive)
+  protected isPaused = false;
 
   protected notifySubscribers(updates: T) {
+    // Block emission if paused (WebSocket continues receiving updates)
+    if (this.isPaused) {
+      return;
+    }
+
     this.subscribers.forEach((subscriber) => {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
@@ -125,6 +132,23 @@ abstract class StreamChannel<T> {
     }
     this.accountAddress = null;
     this.wsConnectionStartTime = null;
+  }
+
+  /**
+   * Pause emission of updates to subscribers
+   * WebSocket connection stays alive and continues receiving data
+   * Used during batch operations to prevent UI re-renders from stale data
+   */
+  public pause(): void {
+    this.isPaused = true;
+  }
+
+  /**
+   * Resume emission of updates to subscribers
+   * Subscribers will receive the next update from the WebSocket
+   */
+  public resume(): void {
+    this.isPaused = false;
   }
 
   protected getCachedData(): T | null {
@@ -815,10 +839,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
 
-  protected async connect() {
-    // Wait for connection to complete if in progress
-    while (PerpsConnectionManager.isCurrentlyConnecting()) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+  protected connect() {
+    // Check if connection manager is still connecting - retry later if so
+    if (PerpsConnectionManager.isCurrentlyConnecting()) {
+      setTimeout(() => this.connect(), 200);
+      return;
     }
 
     // Get current provider config to detect changes
