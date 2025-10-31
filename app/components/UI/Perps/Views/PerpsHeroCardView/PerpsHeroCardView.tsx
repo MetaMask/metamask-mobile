@@ -343,11 +343,11 @@ const PerpsHeroCardView: React.FC = () => {
           ? strings('perps.pnl_hero_card.share_message_with_referral_code', {
               asset: data.asset,
               code: rewardsReferralCode,
-              link: rewardsReferralCode
-                ? buildReferralUrl(rewardsReferralCode)
-                : '',
+              link: buildReferralUrl(rewardsReferralCode),
             })
-          : strings('perps.pnl_hero_card.share_message_without_referral_code');
+          : strings('perps.pnl_hero_card.share_message_without_referral_code', {
+              asset: data.asset,
+            });
 
         result = await Share.open({
           failOnCancel: false,
