@@ -3708,35 +3708,6 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeRate).toBe(0.0013); // 0.03% maker + 0.1% MetaMask fee
         expect(result.feeAmount).toBe(130); // 100000 * 0.0013
       });
-      describe('placeholder methods for future implementation', () => {
-        it('has getUserVolume method returning 0', async () => {
-          // Access private method for testing
-          interface ProviderWithPrivateMethods {
-            getUserVolume(): Promise<number>;
-            getUserStaking(): Promise<number>;
-          }
-          const testableProvider =
-            provider as unknown as ProviderWithPrivateMethods;
-          const getUserVolume = testableProvider.getUserVolume;
-          expect(getUserVolume).toBeDefined();
-          const volume = await getUserVolume.call(provider);
-          expect(volume).toBe(0);
-        });
-
-        it('has getUserStaking method returning 0', async () => {
-          // Access private method for testing
-          interface ProviderWithPrivateMethods {
-            getUserVolume(): Promise<number>;
-            getUserStaking(): Promise<number>;
-          }
-          const testableProvider =
-            provider as unknown as ProviderWithPrivateMethods;
-          const getUserStaking = testableProvider.getUserStaking;
-          expect(getUserStaking).toBeDefined();
-          const staking = await getUserStaking.call(provider);
-          expect(staking).toBe(0);
-        });
-      });
     });
 
     describe('fee discount functionality', () => {
