@@ -513,7 +513,6 @@ export class Engine {
       PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
-      RatesController: ratesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
@@ -696,10 +695,6 @@ export class Engine {
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    this.context.RatesController.start();
-    ///: END:ONLY_INCLUDE_IF
   }
 
   configureControllersOnNetworkChange() {
@@ -1297,7 +1292,6 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      RatesController,
       ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
@@ -1356,7 +1350,6 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      RatesController,
       ///: END:ONLY_INCLUDE_IF
     };
   },
