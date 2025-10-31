@@ -21,7 +21,6 @@ const hasSharedFilesChanges = isTrue(process.env.SHARED);
 const hasIgnoreFiles = process.env.IGNORE_FILES || '';
 const catchAllFiles = process.env.CATCH_ALL_FILES || '';
 const shouldSkipE2E = isTrue(process.env.SHOULD_SKIP_E2E);
-const shouldForceE2E = isTrue(process.env.SHOULD_FORCE_E2E);
 const githubEventName = process.env.GITHUB_EVENT_NAME;
 
 function writeOutputs({ message, willBuildAndroid, willBuildIos, changedFiles }) {
@@ -63,17 +62,6 @@ async function main() {
       message: 'Skipping E2E builds',
       willBuildAndroid: false,
       willBuildIos: false,
-      changedFiles: '',
-    });
-    return;
-  }
-
-  // Force e2e builds (for testing)
-  if (shouldForceE2E) {
-    writeOutputs({
-      message: 'Building both platforms (forced via [force-e2e] tag or force-e2e label)',
-      willBuildAndroid: true,
-      willBuildIos: true,
       changedFiles: '',
     });
     return;
