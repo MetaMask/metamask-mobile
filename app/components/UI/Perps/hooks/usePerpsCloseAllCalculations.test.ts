@@ -278,6 +278,7 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: (0.5 * 52000).toString(), // Uses current price, not entry price
+        coin: 'BTC',
       });
       expect(result.current.totalFees).toBe(286);
     });
@@ -306,6 +307,7 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: (0.5 * 50000).toString(), // Uses entry price as fallback
+        coin: 'BTC',
       });
     });
 
@@ -715,6 +717,7 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: '0',
+        coin: 'BTC',
       });
     });
 
@@ -741,6 +744,7 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: (0.5 * 51000).toString(), // Uses absolute value
+        coin: 'BTC',
       });
     });
 
