@@ -5291,6 +5291,7 @@
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
+    "supply": "Supply",
     "deposit": "Deposit",
     "approve": "Approve",
     "approval": "Approval",
