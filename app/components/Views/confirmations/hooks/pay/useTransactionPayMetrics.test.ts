@@ -16,9 +16,15 @@ import { act } from '@testing-library/react-native';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
-import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayQuote,
+  TransactionPayStrategy,
+} from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
-import { useTransactionPayQuotes } from './useTransactionPayData';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from './useTransactionPayData';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./useAutomaticTransactionPayToken');
@@ -45,6 +51,7 @@ const QUOTE_MOCK = {
     fiat: '0.6',
     usd: '0.5',
   },
+  strategy: TransactionPayStrategy.Bridge,
 } as TransactionPayQuote<Json>;
 
 function runHook({ type }: { type?: TransactionType } = {}) {
@@ -68,6 +75,7 @@ describe('useTransactionPayMetrics', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
   const useAutomaticTransactionPayTokenMock = jest.mocked(
     useAutomaticTransactionPayToken,
@@ -257,6 +265,34 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_payment_token_list_size: 5,
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
+  it('includes quote metrics', async () => {
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        sourceNetwork: { usd: '1.5', fiat: '1.6' },
+        targetNetwork: { usd: '2.5', fiat: '2.6' },
+        provider: { usd: '0.5', fiat: '0.6' },
+      },
+    } as ReturnType<typeof useTransactionPayTotals>);
+
+    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+    runHook();
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_network_fee_usd: '4',
+          mm_pay_provider_fee_usd: '0.5',
+          mm_pay_strategy: 'mm_swaps_bridge',
         }),
         sensitiveProperties: {},
       },
