@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Dimensions, Animated , Linking } from 'react-native';
+import { Dimensions, Animated, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
