@@ -231,13 +231,13 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.getAllPersistedState.mockRejectedValue(storageError);
 
       const testMigrationList = {
-        105: (state: unknown) => state, // Migration > 104 triggers inflation logic
+        104: (state: unknown) => state, // Migration > 103 triggers inflation logic
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act & Assert
-      await expect(asyncMigrations['105'](initialState)).rejects.toThrow(
+      await expect(asyncMigrations['104'](initialState)).rejects.toThrow(
         'Critical: Failed to load controller data for migration. Cannot continue safely as migrations may corrupt data without complete state. App will restart to attempt recovery. Error: Error: Storage access failed'
       );
 
@@ -252,13 +252,13 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
 
       const testMigrationList = {
-        105: (state: unknown) => ({ ...(state as object), test: 'passed' }),
+        104: (state: unknown) => ({ ...(state as object), test: 'passed' }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act
-      const result = await asyncMigrations['105'](initialState);
+      const result = await asyncMigrations['104'](initialState);
 
       // Assert
       expect((result as Record<string, unknown>).test).toEqual('passed');
@@ -297,13 +297,13 @@ describe('Critical Error Handling', () => {
       });
 
       const testMigrationList = {
-        105: (state: unknown) => state, // This will trigger deflation after migration
+        104: (state: unknown) => state, // This will trigger deflation after migration
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act & Assert
-      await expect(asyncMigrations['105'](stateWithControllers)).rejects.toThrow(
+      await expect(asyncMigrations['104'](stateWithControllers)).rejects.toThrow(
         "Critical: Migration failed for controller 'TestController'. Cannot continue with partial migration as this would corrupt user data. App will restart to attempt recovery. Error: Error: Disk full"
       );
 
@@ -337,13 +337,13 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.setItem.mockResolvedValue();
 
       const testMigrationList = {
-        105: (state: unknown) => ({ ...(state as object), migrated: true }),
+        104: (state: unknown) => ({ ...(state as object), migrated: true }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act
-      const result = await asyncMigrations['105'](stateWithControllers) as Record<string, unknown>;
+      const result = await asyncMigrations['104'](stateWithControllers) as Record<string, unknown>;
 
       // Assert
       expect(result.engine).toBeUndefined(); // Engine slice should be stripped
@@ -375,13 +375,13 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.setItem.mockRejectedValue(catastrophicError);
 
       const testMigrationList = {
-        105: (state: unknown) => state,
+        104: (state: unknown) => state,
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act & Assert
-      await expect(asyncMigrations['105'](stateWithControllers)).rejects.toThrow(
+      await expect(asyncMigrations['104'](stateWithControllers)).rejects.toThrow(
         'Critical: Migration failed for controller \'TestController\'. Cannot continue with partial migration as this would corrupt user data. App will restart to attempt recovery. Error: Error: File system corrupted'
       );
 
@@ -393,19 +393,19 @@ describe('Critical Error Handling', () => {
   });
 
   describe('Migration flow integration', () => {
-    it('should not trigger inflation/deflation for migrations <= 104', async () => {
+    it('should not trigger inflation/deflation for migrations <= 103', async () => {
       // Arrange
       const testMigrationList = {
-        104: (state: unknown) => ({ ...(state as object), test: 'migration104' }),
+        103: (state: unknown) => ({ ...(state as object), test: 'migration103' }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act
-      const result = await asyncMigrations['104'](initialState);
+      const result = await asyncMigrations['103'](initialState);
 
       // Assert
-      expect((result as Record<string, unknown>).test).toEqual('migration104');
+      expect((result as Record<string, unknown>).test).toEqual('migration103');
       expect(mockedControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
       expect(mockedControllerStorage.setItem).not.toHaveBeenCalled();
     });
@@ -424,7 +424,6 @@ describe('Critical Error Handling', () => {
       const testMigrationList = {
         103: (state: unknown) => ({ ...(state as object), step103: true }),
         104: (state: unknown) => ({ ...(state as object), step104: true }),
-        105: (state: unknown) => ({ ...(state as object), step105: true }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
@@ -432,15 +431,13 @@ describe('Critical Error Handling', () => {
       // Act - Run migrations in sequence
       let state = stateWithoutControllers;
       state = await asyncMigrations['103'](state) as PersistedState;
-      state = await asyncMigrations['104'](state) as PersistedState;
-      const finalState = await asyncMigrations['105'](state);
+      const finalState = await asyncMigrations['104'](state);
 
       // Assert
       expect((finalState as Record<string, unknown>).step103).toBe(true);
       expect((finalState as Record<string, unknown>).step104).toBe(true);
-      expect((finalState as Record<string, unknown>).step105).toBe(true);
       
-      // Inflation should only be called once for migration 105
+      // Inflation should only be called once for migration 104
       expect(mockedControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
       // SetItem should not be called since there are no controllers to deflate
       expect(mockedControllerStorage.setItem).not.toHaveBeenCalled();
