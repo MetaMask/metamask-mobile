@@ -6573,15 +6573,15 @@
       "link_account_unknown_error": "发生未知错误"
     },
     "optout": {
-      "title": "退出奖励计划",
+      "title": "注销奖励计划账户",
       "description": "此操作将从奖励计划中移除您的账户，并清空您的积分与进度记录。此操作无法撤销。",
-      "confirm": "退出",
+      "confirm": "注销",
       "modal": {
         "confirmation_title": "您确定吗？",
         "confirmation_description": "此操作将清除您所有的进度，且无法撤销。若您日后重新加入奖励计划，将从 0 开始累积。",
         "cancel": "取消",
         "confirm": "确认",
-        "error_message": "退出奖励计划失败。请重试。",
+        "error_message": "注销奖励计划账户失败。请重试。",
         "processing": "处理中..."
       }
     },

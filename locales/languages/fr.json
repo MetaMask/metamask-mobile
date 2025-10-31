@@ -6573,9 +6573,9 @@
       "link_account_unknown_error": "Une erreur inconnue s’est produite"
     },
     "optout": {
-      "title": "Se désinscrire de Rewards",
-      "description": "Cela supprimera vos comptes du programme « Rewards », et effacera vos points et votre progression. Vous ne pourrez pas annuler cette action.",
-      "confirm": "Se désinscrire",
+      "title": "Supprimer la progression Rewards",
+      "description": "Cette action retirera vos comptes du programme Rewards et effacera vos points ainsi que votre progression. Cette action est irréversible.",
+      "confirm": "Supprimer",
       "modal": {
         "confirmation_title": "En êtes-vous sûr(e) ?",
         "confirmation_description": "Cette opération supprimera toute votre progression et ne pourra pas être annulée. Si vous rejoignez le programme « Rewards » ultérieurement, vous repartirez de zéro.",

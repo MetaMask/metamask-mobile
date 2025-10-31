@@ -6573,9 +6573,9 @@
       "link_account_unknown_error": "Nagkaroon ng hindi kilalang error"
     },
     "optout": {
-      "title": "Opt out ng mga Reward",
-      "description": "Aalisin nito ang iyong mga account mula sa programa ng mga Reward at buburahin ang iyong mga point at progreso. Hindi mo na ito maibabalik.",
-      "confirm": "Mag-opt out",
+      "title": "Umalis sa Rewards program",
+      "description": "Ang aksyong ito ay aalis sa iyong account mula sa Rewards program at buburahin ang lahat ng iyong puntos at progreso. Hindi na ito maaaring ibalik.",
+      "confirm": "Permanenteng Tanggalin",
       "modal": {
         "confirmation_title": "Sigurado ka ba?",
         "confirmation_description": "Aalisin nito ang lahat ng iyong progreso at hindi na ito maibabalik. Kung muli kang sasali sa programa ng mga Reward sa hinaharap, magsisimula ka muli sa 0.",

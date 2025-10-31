@@ -6558,7 +6558,7 @@
       "step4_legal_disclaimer_4": "conozca más"
     },
     "settings": {
-      "title": "Configuración de recompensas",
+      "title": "Configuración de Recompensas",
       "subtitle": "Cuentas",
       "description": "Agrega varias cuentas para combinar tus puntos y desbloquear recompensas más rápido.",
       "tab_linked_accounts": "({{count}}) agregada",
@@ -6573,9 +6573,9 @@
       "link_account_unknown_error": "Ocurrió un error desconocido"
     },
     "optout": {
-      "title": "Excluirse del programa de Recompensas",
-      "description": "Esto eliminará tus cuentas del programa de Recompensas y borrará tus puntos y progreso. No podrás deshacer esta acción.",
-      "confirm": "Excluirse",
+      "title": "Eliminar del programa de Recompensas",
+      "description": "Esta acción eliminará tus cuentas del programa de Recompensas y borrará tus puntos y progreso. No podrás deshacer esta acción.",
+      "confirm": "Eliminar",
       "modal": {
         "confirmation_title": "¿Estás seguro?",
         "confirmation_description": "Esto eliminará todo tu progreso y no se podrá revertir. Si te reincorporas al programa de Recompensas más adelante, comenzarás desde cero.",
