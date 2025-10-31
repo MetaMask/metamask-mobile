@@ -123,12 +123,11 @@ export class CardSDK {
     };
   }
 
-  private async getEthersProvider() {
+  private getEthersProvider() {
     // Default RPC URL for LINEA mainnet
     const provider = new ethers.providers.JsonRpcProvider(
       LINEA_DEFAULT_RPC_URL,
     );
-    await provider.ready;
 
     return provider;
   }
@@ -143,7 +142,7 @@ export class CardSDK {
       );
     }
 
-    const ethersProvider = await this.getEthersProvider();
+    const ethersProvider = this.getEthersProvider();
 
     return new ethers.Contract(
       balanceScannerAddress,
@@ -2197,7 +2196,7 @@ export class CardSDK {
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
-    const ethersProvider = await this.getEthersProvider();
+    const ethersProvider = this.getEthersProvider();
 
     const logsPerToken = await Promise.all(
       nonZeroBalanceTokensAddresses.map((tokenAddress) =>

@@ -15,6 +15,7 @@ import {
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   clearCacheData,
+  selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
@@ -62,27 +63,7 @@ import { truncateAddress } from '../../util/truncateAddress';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import Logger from '../../../../../util/Logger';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
-
-export interface SupportedTokenWithChain {
-  address: string;
-  symbol: string;
-  name: string;
-  decimals: number;
-  enabled: boolean;
-  caipChainId: CaipChainId;
-  chainName: string;
-  walletAddress?: string; // The user's wallet address holding this token
-  balance?: string;
-  balanceFiat?: string;
-  image?: string;
-  logo?: string;
-  allowanceState: AllowanceState;
-  allowance?: string;
-  delegationContract?: string;
-  priority?: number; // Lower number = higher priority (1 is highest)
-  availableBalance?: string; // Available balance from API for enabled tokens
-  stagingTokenAddress?: string;
-}
+import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
 export interface AssetSelectionBottomSheetProps {
   setOpenAssetSelectionBottomSheet: (open: boolean) => void;
@@ -104,7 +85,7 @@ export interface AssetSelectionBottomSheetProps {
   navigateToCardHomeOnPriorityToken?: boolean;
   // Selection only mode: just call onTokenSelect and close, don't handle priority/navigation
   selectionOnly?: boolean;
-  onTokenSelect?: (token: SupportedTokenWithChain) => void;
+  onTokenSelect?: (token: CardTokenAllowance) => void;
   // Hide Solana assets completely (used in SpendingLimit since Solana delegation is not supported)
   hideSolanaAssets?: boolean;
 }
@@ -129,6 +110,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const userCardLocation = useSelector(selectUserCardLocation);
 
   // Get supported tokens from the card SDK to display in the bottom sheet.
   const cardSupportedTokens = useMemo(
@@ -136,68 +118,42 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     [sdk],
   );
 
-  // Helper function to check if two chain IDs represent the same Solana chain
-  const isSameSolanaChain = useCallback(
-    (chainId1: CaipChainId, chainId2: CaipChainId): boolean => {
-      const isSolana1 =
-        chainId1 === SolScope.Mainnet || chainId1?.startsWith('solana:');
-      const isSolana2 =
-        chainId2 === SolScope.Mainnet || chainId2?.startsWith('solana:');
-      return isSolana1 && isSolana2;
-    },
-    [],
-  );
-
-  // Helper function to check if two chain IDs represent the same Linea chain
-  // This handles both 'linea' and 'linea-us' which may have the same or different chain IDs
-  const isSameLineaChain = useCallback(
-    (chainId1: CaipChainId, chainId2: CaipChainId): boolean => {
-      // Extract the numeric chain ID from CAIP format (e.g., "eip155:59144" -> "59144")
-      const getNumericChainId = (caipChainId: CaipChainId): string | null => {
-        if (caipChainId?.startsWith('eip155:')) {
-          return caipChainId.split(':')[1];
-        }
-        return null;
-      };
-
-      const chainNum1 = getNumericChainId(chainId1);
-      const chainNum2 = getNumericChainId(chainId2);
-
-      // If both are Linea chain IDs (59144 for mainnet, 59141 for Sepolia, 59140 for Goerli)
-      const lineaChainIds = ['59144', '59141', '59140'];
-      const isLinea1 = chainNum1 && lineaChainIds.includes(chainNum1);
-      const isLinea2 = chainNum2 && lineaChainIds.includes(chainNum2);
-
-      // If both are Linea chains and have the same chain ID, they're the same
-      return Boolean(isLinea1 && isLinea2 && chainNum1 === chainNum2);
-    },
-    [],
-  );
-
   // Map user's actual wallets/tokens to display format + add supported tokens from delegation settings
   // This preserves duplicates (same token on same chain but different wallet addresses)
-  const supportedTokens = useMemo<SupportedTokenWithChain[]>(() => {
+  const supportedTokens = useMemo<CardTokenAllowance[]>(() => {
     if (!sdk) return [];
 
-    // Start with user's actual wallet tokens (if any)
-    const userTokens: SupportedTokenWithChain[] = (tokensWithAllowances || [])
-      .map((userToken) => {
-        // Determine chain name based on CAIP chain ID - only allow supported chains
-        const isSolana =
-          userToken.caipChainId === SolScope.Mainnet ||
-          userToken.caipChainId?.startsWith('solana:');
+    // Determine which Linea chain IDs are valid for this user's location
+    const validLineaChainIds = new Set<string>();
+    if (delegationSettings?.networks) {
+      for (const network of delegationSettings.networks) {
+        const isLineaNetwork =
+          network.network === 'linea' || network.network === 'linea-us';
+        if (!isLineaNetwork) continue;
 
-        let chainName = 'Unknown'; // Default to Unknown for unsupported chains
-        if (isSolana) {
-          chainName = 'Solana';
-        } else if (
-          userToken.caipChainId?.includes(':59144') || // Linea Mainnet
-          userToken.caipChainId?.includes(':59141') || // Linea Sepolia
-          userToken.caipChainId?.includes(':59140') // Linea Goerli
-        ) {
-          chainName = 'Linea';
+        // Filter networks based on user location
+        const shouldIncludeNetwork =
+          (userCardLocation === 'us' && network.network === 'linea-us') ||
+          (userCardLocation !== 'us' && network.network === 'linea');
+
+        if (shouldIncludeNetwork) {
+          // Extract numeric chain ID
+          const chainIdStr = network.chainId;
+          let numericChainId: number;
+          if (chainIdStr.startsWith('0x')) {
+            numericChainId = parseInt(chainIdStr, 16);
+          } else {
+            numericChainId = parseInt(chainIdStr, 10);
+          }
+          validLineaChainIds.add(`eip155:${numericChainId}`);
         }
-        // Do not default other EIP155 chains to anything - they stay "Unknown" and get filtered out
+      }
+    }
+
+    // Start with user's actual wallet tokens (if any)
+    const userTokens: CardTokenAllowance[] = (tokensWithAllowances || [])
+      .map((userToken) => {
+        const chainName = mapCaipChainIdToChainName(userToken.caipChainId);
 
         // Build token icon URL
         const iconUrl = buildTokenIconUrl(
@@ -246,17 +202,31 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           return false;
         }
 
-        // Don't filter out Solana tokens by enabled state here - we want to show all
-        // delegation settings tokens so users can enable them
+        // For Linea tokens, filter based on user location
+        const isLineaToken = token.chainName.toLowerCase() === 'linea';
+        if (isLineaToken) {
+          // Only show if this chain ID is valid for user's location
+          // If validLineaChainIds is empty, don't filter (show all Linea tokens)
+          if (
+            validLineaChainIds.size > 0 &&
+            !validLineaChainIds.has(token.caipChainId)
+          ) {
+            return false;
+          }
+        }
 
         return true;
       });
 
     // Add supported tokens from delegation settings that user doesn't have in wallet
-    const supportedFromSettings: SupportedTokenWithChain[] = [];
+    const supportedFromSettings: CardTokenAllowance[] = [];
 
     if (delegationSettings?.networks) {
       for (const network of delegationSettings.networks) {
+        // network.network is the network name from the delegation settings.
+        // It can be 'linea', 'linea-us', 'solana', etc.
+        // Filter based on userCardLocation: show only linea-us for US users, linea for non-US users
+
         // Only process supported networks
         const networkLower = network.network?.toLowerCase();
         if (!networkLower || !SUPPORTED_ASSET_NETWORKS.includes(networkLower)) {
@@ -269,18 +239,17 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           continue;
         }
 
-        // Map network to display name
-        let chainName: string;
-        if (network.network === 'solana') {
-          chainName = 'Solana';
-        } else if (
-          network.network === 'linea' ||
-          network.network === 'linea-us'
-        ) {
-          chainName = 'Linea';
-        } else {
-          // Unsupported network, skip
-          continue;
+        // Filter Linea networks based on user location
+        const isLineaNetwork =
+          network.network === 'linea' || network.network === 'linea-us';
+        if (isLineaNetwork) {
+          const shouldIncludeNetwork =
+            (userCardLocation === 'us' && network.network === 'linea-us') ||
+            (userCardLocation !== 'us' && network.network === 'linea');
+
+          if (!shouldIncludeNetwork) {
+            continue;
+          }
         }
 
         // Map chain ID to CAIP format
@@ -298,15 +267,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           } else {
             // Already decimal format
             numericChainId = parseInt(chainIdStr, 10);
-          }
-
-          // Filter out testnet chains to avoid showing duplicate-looking tokens
-          // 59144 = Linea Mainnet (keep)
-          // 59141 = Linea Sepolia (skip)
-          // 59140 = Linea Goerli (skip)
-          const testnetChainIds = [59141, 59140];
-          if (testnetChainIds.includes(numericChainId)) {
-            continue;
           }
 
           caipChainId = `eip155:${numericChainId}` as CaipChainId;
@@ -330,13 +290,10 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             // Determine chain match based on network type
             let chainMatch: boolean;
             if (isSolana) {
-              chainMatch = isSameSolanaChain(
-                userToken.caipChainId,
-                caipChainId,
-              );
+              chainMatch = userToken.caipChainId === caipChainId;
             } else {
               // For Linea, use special comparison to handle 'linea' and 'linea-us'
-              chainMatch = isSameLineaChain(userToken.caipChainId, caipChainId);
+              chainMatch = userToken.caipChainId === caipChainId;
             }
 
             return addressMatch && chainMatch;
@@ -352,13 +309,10 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             // Determine chain match based on network type
             let chainMatch: boolean;
             if (isSolana) {
-              chainMatch = isSameSolanaChain(
-                userToken.caipChainId,
-                caipChainId,
-              );
+              chainMatch = userToken.caipChainId === caipChainId;
             } else {
               // For Linea, use special comparison to handle 'linea' and 'linea-us'
-              chainMatch = isSameLineaChain(userToken.caipChainId, caipChainId);
+              chainMatch = userToken.caipChainId === caipChainId;
             }
 
             return symbolMatch && chainMatch;
@@ -371,20 +325,15 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
               if (!settingsToken.address) return false;
               const addressMatch =
                 settingsToken.address.toLowerCase() === tokenAddressLower;
+              // The delegation settings returns the chain id in the decimal format.
 
               // Determine chain match based on network type
               let chainMatch: boolean;
               if (isSolana) {
-                chainMatch = isSameSolanaChain(
-                  settingsToken.caipChainId,
-                  caipChainId,
-                );
+                chainMatch = settingsToken.caipChainId === caipChainId;
               } else {
                 // For Linea, use special comparison to handle 'linea' and 'linea-us'
-                chainMatch = isSameLineaChain(
-                  settingsToken.caipChainId,
-                  caipChainId,
-                );
+                chainMatch = settingsToken.caipChainId === caipChainId;
               }
 
               return addressMatch && chainMatch;
@@ -395,13 +344,13 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           // 1. User already has this exact token (same address + chain)
           // 2. Token already exists in settings from previous network config
           // 3. User already has a token with same symbol on same chain (avoid showing multiple USDC contracts)
-          // 4. For Solana tokens from delegation settings: don't show them (Solana delegation not supported)
-          //    Users can only see/enable Solana tokens they already have in their wallet
+          // 4. For Solana tokens from delegation settings: only show if user already has them enabled
+          //    Don't show not-enabled Solana tokens from delegation settings
           if (
             existsInUserTokens ||
             existsInSettings ||
             userHasSameSymbolOnChain ||
-            isSolana
+            isSolana // Solana tokens from delegation settings should not appear (user must have them in wallet first)
           ) {
             continue;
           }
@@ -419,21 +368,13 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
               ? cardSupportedToken?.address
               : tokenConfig.address;
 
-          const iconUrl = buildTokenIconUrl(caipChainId, tokenAddress);
-
           supportedFromSettings.push({
             address: tokenAddress,
             symbol: tokenConfig.symbol.toUpperCase(),
             name: tokenConfig.symbol.toUpperCase(),
             decimals: tokenConfig.decimals,
-            enabled: false, // Not enabled since user doesn't have it
             caipChainId,
-            chainName,
             walletAddress: undefined, // No wallet address since user doesn't have this token
-            balance: '0',
-            balanceFiat: '$0.00 USD',
-            image: iconUrl,
-            logo: iconUrl,
             allowanceState: AllowanceState.NotEnabled,
             allowance: '0',
             delegationContract: network.delegationContract,
@@ -487,9 +428,16 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       if (aIsPriority) return -1;
       if (bIsPriority) return 1;
 
-      // Sort enabled tokens before disabled tokens
-      if (a.enabled && !b.enabled) return -1;
-      if (!a.enabled && b.enabled) return 1;
+      if (
+        a.allowanceState === AllowanceState.Enabled &&
+        b.allowanceState !== AllowanceState.Enabled
+      )
+        return -1;
+      if (
+        a.allowanceState !== AllowanceState.Enabled &&
+        b.allowanceState === AllowanceState.Enabled
+      )
+        return 1;
 
       return 0;
     });
@@ -499,30 +447,28 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     sdk,
     hideSolanaAssets,
     delegationSettings,
-    isSameSolanaChain,
-    isSameLineaChain,
     cardSupportedTokens,
+    userCardLocation,
   ]);
 
   // Get balances for all tokens (including those from delegation settings)
   const assetBalances = useAssetBalances(supportedTokens);
 
   // Merge balance data into supportedTokens
-  const supportedTokensWithBalances = useMemo(
+  const supportedTokensWithBalances: (CardTokenAllowance & {
+    balance: string;
+    balanceFiat: string;
+  })[] = useMemo(
     () =>
       supportedTokens.map((token) => {
         const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
         const balanceInfo = assetBalances.get(tokenKey);
 
-        if (balanceInfo) {
-          return {
-            ...token,
-            balance: balanceInfo.rawTokenBalance?.toFixed(6) || '0',
-            balanceFiat: balanceInfo.balanceFiat || '$0.00',
-          };
-        }
-
-        return token;
+        return {
+          ...token,
+          balance: balanceInfo?.rawTokenBalance?.toFixed(6) || '0',
+          balanceFiat: balanceInfo?.balanceFiat || '$0.00',
+        };
       }),
     [supportedTokens, assetBalances],
   );
@@ -557,7 +503,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   }, [toastRef, theme]);
 
   const updatePriority = useCallback(
-    async (token: SupportedTokenWithChain) => {
+    async (token: CardTokenAllowance) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
@@ -631,7 +577,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           name: token.name,
           allowanceState: AllowanceState.Enabled,
           allowance: token.allowance || '0',
-          availableBalance: token.balance || '0',
+          availableBalance: token.availableBalance || '0',
           walletAddress: selectedWallet.walletAddress,
           caipChainId: token.caipChainId,
           delegationContract: token.delegationContract,
@@ -666,7 +612,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   );
 
   const isPriorityToken = useCallback(
-    (token: SupportedTokenWithChain) =>
+    (token: CardTokenAllowance) =>
       cardExternalWalletDetails?.priorityWalletDetail &&
       cardExternalWalletDetails.priorityWalletDetail.address?.toLowerCase() ===
         token.address?.toLowerCase() &&
@@ -678,7 +624,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   );
 
   const handleTokenPress = useCallback(
-    async (token: SupportedTokenWithChain) => {
+    async (token: CardTokenAllowance) => {
       // Selection only mode: just call the callback and close
       if (selectionOnly && onTokenSelect) {
         onTokenSelect(token);
@@ -701,7 +647,10 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           // Just close the bottom sheet
           setOpenAssetSelectionBottomSheet(false);
         }
-      } else if (token.enabled && isAuthenticated) {
+      } else if (
+        token.allowanceState === AllowanceState.Enabled &&
+        isAuthenticated
+      ) {
         // Token is already delegated, update priority directly
         await updatePriority(token);
       } else {
@@ -711,6 +660,10 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
             flow: 'manage',
             selectedToken: token,
+            priorityToken: cardExternalWalletDetails?.priorityWalletDetail,
+            allTokens: tokensWithAllowances,
+            delegationSettings,
+            externalWalletDetailsData: cardExternalWalletDetails,
           });
         });
       }
@@ -725,6 +678,9 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       navigation,
       setOpenAssetSelectionBottomSheet,
       updatePriority,
+      cardExternalWalletDetails,
+      tokensWithAllowances,
+      delegationSettings,
     ],
   );
 
@@ -848,7 +804,12 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
                       >
                         <AvatarToken
                           size={AvatarSize.Md}
-                          imageSource={{ uri: item.image || item.logo }}
+                          imageSource={{
+                            uri: buildTokenIconUrl(
+                              item.caipChainId,
+                              item.address || '',
+                            ),
+                          }}
                         />
                       </BadgeWrapper>
                       <Box
@@ -859,7 +820,8 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
                           variant={TextVariant.BodyMD}
                           style={tw.style('font-semibold')}
                         >
-                          {item.symbol} on {item.chainName}
+                          {item.symbol} on{' '}
+                          {mapCaipChainIdToChainName(item.caipChainId)}
                         </Text>
                         <Text
                           variant={TextVariant.BodySM}

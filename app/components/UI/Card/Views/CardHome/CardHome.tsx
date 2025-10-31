@@ -55,6 +55,7 @@ import {
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   setUserCardLocation,
+  clearAllCache,
 } from '../../../../../core/redux/slices/card';
 import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
@@ -65,6 +66,7 @@ import Logger from '../../../../../util/Logger';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { CardActions } from '../../util/metrics';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 /**
  * CardHome Component
@@ -278,11 +280,26 @@ const CardHome = () => {
     );
 
     if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'enable' });
+      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'enable',
+        priorityToken,
+        allTokens,
+        delegationSettings,
+        externalWalletDetailsData,
+      });
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    priorityToken,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  ]);
 
   const logoutAction = useCallback(() => {
     Alert.alert(
@@ -443,6 +460,9 @@ const CardHome = () => {
         dispatch(setAuthenticatedPriorityToken(null));
         dispatch(setAuthenticatedPriorityTokenLastFetched(null));
         dispatch(setUserCardLocation(null));
+
+        // Clear all cached data
+        dispatch(clearAllCache());
 
         // Redirect to welcome screen for re-authentication
         navigation.navigate(Routes.CARD.WELCOME);
@@ -618,21 +638,22 @@ const CardHome = () => {
             styles.shouldBeHidden,
         ]}
       >
-        {isBaanxLoginEnabled && (
-          <ManageCardListItem
-            title={strings(
-              'card.card_home.manage_card_options.manage_spending_limit',
-            )}
-            description={strings(
-              priorityToken?.allowanceState === AllowanceState.Enabled
-                ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-                : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-            )}
-            rightIcon={IconName.ArrowRight}
-            onPress={manageSpendingLimitAction}
-            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-          />
-        )}
+        {isBaanxLoginEnabled &&
+          !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.manage_spending_limit',
+              )}
+              description={strings(
+                priorityToken?.allowanceState === AllowanceState.Enabled
+                  ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+                  : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={manageSpendingLimitAction}
+              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+            />
+          )}
 
         <ManageCardListItem
           title={strings('card.card_home.manage_card_options.manage_card')}
