@@ -57,6 +57,7 @@ import {
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
+  formatCloseAmountUSD,
 } from '../../utils/positionCalculations';
 import { createStyles } from './PerpsClosePositionView.styles';
 import {
@@ -139,7 +140,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     return {
       closeAmount: tokenAmount.toString(),
-      calculatedUSDString: usdValue.toFixed(2),
+      calculatedUSDString: formatCloseAmountUSD(usdValue),
     };
   }, [closePercentage, absSize, effectivePrice]);
 
@@ -277,7 +278,7 @@ const PerpsClosePositionView: React.FC = () => {
   useEffect(() => {
     if (!isAmountInitializedRef.current && absSize > 0 && effectivePrice > 0) {
       const initialUSDAmount = absSize * effectivePrice;
-      setCloseAmountUSDString(initialUSDAmount.toFixed(2));
+      setCloseAmountUSDString(formatCloseAmountUSD(initialUSDAmount));
       isAmountInitializedRef.current = true;
     }
   }, [absSize, effectivePrice]);
@@ -413,7 +414,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     // Update USD input to match calculated value for keypad display consistency
     const newUSDAmount = (newPercentage / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(newUSDAmount.toFixed(2));
+    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
   const handleMaxPress = () => {
@@ -422,7 +423,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     // Update USD input to match calculated value for keypad display consistency
     const newUSDAmount = absSize * effectivePrice;
-    setCloseAmountUSDString(newUSDAmount.toFixed(2));
+    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
   const handleDonePress = () => {
@@ -436,7 +437,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     // Update USD input to match calculated value for keypad display consistency
     const newUSDAmount = (value / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(newUSDAmount.toFixed(2));
+    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
   // Hide provider-level limit price required error on this UI
