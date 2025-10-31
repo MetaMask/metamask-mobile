@@ -16,8 +16,7 @@ export const selectIsStakeableToken = createSelector(
     if (asset.isETH) return true;
 
     const isTronNative =
-      asset.ticker === 'TRX' &&
-      asset.chainId?.startsWith('tron:');
+      asset.ticker === 'TRX' && asset.chainId?.startsWith('tron:');
 
     if (isTronNative && trxStakingEnabled) {
       return true;

@@ -56,7 +56,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-  
+
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTronNative =
@@ -82,7 +82,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           token: asset,
         },
       });
-      
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
           .addProperties({
@@ -204,7 +204,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     }
     ///: END:ONLY_INCLUDE_IF
   };
-  
+
   if (
     areEarnExperiencesDisabled ||
     (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0') ||

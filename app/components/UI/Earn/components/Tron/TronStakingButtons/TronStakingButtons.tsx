@@ -2,7 +2,9 @@ import React from 'react';
 import { View, ViewProps } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Button, { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../../reducers';
@@ -15,11 +17,16 @@ import { trace, TraceName } from '../../../../../../util/trace';
 
 interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
-  showUnstake?: boolean;           // show Unstake button
-  hasStakedPositions?: boolean;    // toggles Stake vs Stake more label
+  showUnstake?: boolean;
+  hasStakedPositions?: boolean;
 }
 
-const TronStakingButtons = ({ style, asset, showUnstake = false, hasStakedPositions = false }: TronStakingButtonsProps) => {
+const TronStakingButtons = ({
+  style,
+  asset,
+  showUnstake = false,
+  hasStakedPositions = false,
+}: TronStakingButtonsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -28,28 +35,28 @@ const TronStakingButtons = ({ style, asset, showUnstake = false, hasStakedPositi
   const hasTrxToUnstake = useSelector((_state: RootState) => false);
 
   const isStakedTrx =
-  asset?.isStaked || asset?.symbol === 'sTRX' || asset?.ticker === 'sTRX';
+    asset?.isStaked || asset?.symbol === 'sTRX' || asset?.ticker === 'sTRX';
 
-const baseAssetForStake = React.useMemo(
-  () =>
-    !isStakedTrx
-      ? asset
-      : // prefer nativeAsset if present; otherwise synthesize TRX view
-        (asset as TokenI).nativeAsset ?? {
-          ...asset,
-          name: 'Tron',
-          symbol: 'TRX',
-          ticker: 'TRX',
-          isStaked: false,
-        },
-  [asset, isStakedTrx],
-);
+  const baseAssetForStake = React.useMemo(
+    () =>
+      !isStakedTrx
+        ? asset
+        : // we prefer nativeAsset if present; otherwise synthesize TRX view
+          ((asset as TokenI).nativeAsset ?? {
+            ...asset,
+            name: 'Tron',
+            symbol: 'TRX',
+            ticker: 'TRX',
+            isStaked: false,
+          }),
+    [asset, isStakedTrx],
+  );
 
   const onStakePress = () => {
     trace({ name: TraceName.EarnDepositScreen });
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
-      params: { token: baseAssetForStake }, // TRX
+      params: { token: baseAssetForStake },
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
@@ -66,13 +73,13 @@ const baseAssetForStake = React.useMemo(
     trace({ name: TraceName.EarnWithdrawScreen });
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
-      params: { token: asset }, // sTRX
+      params: { token: asset },
     });
   };
 
   return (
-<View style={[styles.balanceButtonsContainer, { marginTop: 16 }]}>
-        {showUnstake ? (
+    <View style={[styles.balanceButtonsContainer, { marginTop: 16 }]}>
+      {showUnstake ? (
         <Button
           testID={'unstake-button'}
           style={styles.balanceActionButton}
@@ -86,7 +93,9 @@ const baseAssetForStake = React.useMemo(
         style={styles.balanceActionButton}
         variant={ButtonVariants.Secondary}
         label={
-          hasStakedPositions ? strings('stake.stake_more') : strings('stake.stake')
+          hasStakedPositions
+            ? strings('stake.stake_more')
+            : strings('stake.stake')
         }
         onPress={onStakePress}
       />

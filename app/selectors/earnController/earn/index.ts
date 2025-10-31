@@ -191,10 +191,10 @@ const selectEarnTokens = createDeepEqualSelector(
         token.chainId?.startsWith('tron:') &&
         token.ticker === 'TRX';
 
-        const isStakingToken =
+      const isStakingToken =
         (token.isETH && !token.isStaked && isStakingSupportedChain) ||
         (isTrxStakingEnabled && isTronNative && !token.isStaked);
-        const isStakingOutputToken =
+      const isStakingOutputToken =
         token.isETH && token.isStaked && isStakingSupportedChain;
 
       const isEarnToken = isStakingToken || isLendingToken;
@@ -273,11 +273,10 @@ const selectEarnTokens = createDeepEqualSelector(
       // TODO: we could add direct validator staking as an additional earn experience
 
       if (isStakingToken || isStakingOutputToken) {
-        const aprForExperience =
-          token.isETH ?
-          pooledStakingVaultAprForChain :
-          // TODO: Comeback after we have a TRX APR value
-          '0';
+        const aprForExperience = token.isETH
+          ? pooledStakingVaultAprForChain
+          : // TODO: Comeback after we have a TRX APR value
+            '0';
         experiences.push({
           type: EARN_EXPERIENCES.POOLED_STAKING,
           apr: aprForExperience,
@@ -291,7 +290,6 @@ const selectEarnTokens = createDeepEqualSelector(
           ),
           vault: pooledStakingVaultForChain,
         });
-
       }
       // }
 

@@ -28,12 +28,13 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const isStakeableToken = useSelector((state: RootState) =>
     selectIsStakeableToken(state, asset),
   );
-  
+
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
   const isTron = asset?.chainId?.startsWith('tron:');
-  const isStakedTrxAsset = isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
+  const isStakedTrxAsset =
+    isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
 
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
   const hasStakedTrxPositions = React.useMemo(
@@ -62,7 +63,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
     return null;
   }
   ///: END:ONLY_INCLUDE_IF
-  
+
   // EVM staking: only when stakeable and not a staked output token
   if (isStakeableToken && !asset.isStaked) {
     return <StakingBalance asset={asset} />;

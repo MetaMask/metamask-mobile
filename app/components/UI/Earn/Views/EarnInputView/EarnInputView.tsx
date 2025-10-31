@@ -119,7 +119,7 @@ const EarnInputView = () => {
   // otherwise, use the contract exchange rate or 0 if undefined
   const exchangeRate = token.isETH
     ? 1
-    : contractExchangeRates?.[token.address as Hex]?.price ?? 0;
+    : (contractExchangeRates?.[token.address as Hex]?.price ?? 0);
 
   // other hooks
   const { styles, theme } = useStyles(styleSheet, {});
@@ -132,7 +132,7 @@ const EarnInputView = () => {
   const isTronNative =
     token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
   ///: END:ONLY_INCLUDE_IF
-  
+
   const earnTokenFromMap = getEarnToken(token);
 
   const earnToken = React.useMemo(() => {
@@ -155,12 +155,14 @@ const EarnInputView = () => {
     ///: END:ONLY_INCLUDE_IF
 
     return undefined;
-  }, [earnTokenFromMap,
+  }, [
+    earnTokenFromMap,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTrxStakingEnabled,
     isTronNative,
     ///: END:ONLY_INCLUDE_IF
-    token]);
+    token,
+  ]);
 
   const networkClientId = useSelector(selectNetworkClientId);
   const {

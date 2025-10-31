@@ -159,11 +159,7 @@ export const TokenListItemBip44 = React.memo(
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [
-      asset,
-      earnToken,
-      isStablecoinLendingEnabled,
-    ]);
+    }, [asset, earnToken, isStablecoinLendingEnabled]);
 
     if (!asset || !chainId) {
       return null;

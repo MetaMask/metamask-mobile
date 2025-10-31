@@ -1,19 +1,30 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
-import Text, { TextVariant, TextColor } from '../../../../../../component-library/components/Texts/Text';
-import Button, { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
 
 interface TronStakingCtaProps extends Pick<ViewProps, 'style'> {
-  aprText?: string; // e.g. "4.2%"
+  aprText?: string;
   onLearnMore?: () => void;
 }
 
-const TronStakingCta = ({ style, aprText, onLearnMore }: TronStakingCtaProps) => {
+const TronStakingCta = ({
+  style,
+  aprText,
+  onLearnMore,
+}: TronStakingCtaProps) => {
   return (
     <View style={style}>
       <Text variant={TextVariant.HeadingMD}>{strings('stake.earn')}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
+      <View
+        style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}
+      >
         <Text>{strings('stake.stake_your_trx_cta.base')} </Text>
         {aprText ? (
           <>

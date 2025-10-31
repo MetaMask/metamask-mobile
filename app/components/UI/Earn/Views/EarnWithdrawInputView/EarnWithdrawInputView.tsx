@@ -103,17 +103,19 @@ const EarnWithdrawInputView = () => {
     }
     ///: END:ONLY_INCLUDE_IF
     return undefined;
-  }, [earnTokenFromMap,
+  }, [
+    earnTokenFromMap,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTrxStakingEnabled,
     isTronAsset,
     ///: END:ONLY_INCLUDE_IF
-    token]);
+    token,
+  ]);
 
   const receiptTokenToUse: EarnTokenDetails | undefined = receiptToken
     ? (receiptToken as EarnTokenDetails)
     : (earnToken as EarnTokenDetails);
-  
+
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
