@@ -18,11 +18,7 @@ import Text, {
 import { strings } from '../../../../../../locales/i18n';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
-import {
-  CaipChainId,
-  CaipAssetType,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { CaipChainId, parseCaipAssetType } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
@@ -47,19 +43,11 @@ import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { BridgeToken } from '../../types';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
+import { usePopularTokens, PopularToken } from '../../hooks/usePopularTokens';
 import { createStyles } from './BridgeTokenSelector.styles';
 
 export interface BridgeTokenSelectorRouteParams {
   type: 'source' | 'dest';
-}
-
-interface PopularToken {
-  assetId: CaipAssetType;
-  chainId: CaipChainId;
-  decimals: number;
-  image: string;
-  name: string;
-  symbol: string;
 }
 
 interface SearchTokensResponse {
@@ -78,9 +66,8 @@ export const BridgeTokenSelector: React.FC = () => {
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
-  const [popularTokens, setPopularTokens] = useState<BridgeToken[]>([]);
   const [searchResults, setSearchResults] = useState<BridgeToken[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchString, setSearchString] = useState<string>('');
   const hasSearchedOnce = useRef(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
@@ -129,6 +116,14 @@ export const BridgeTokenSelector: React.FC = () => {
     return JSON.stringify(assetIds);
   }, [tokensWithBalance]);
 
+  // Fetch popular tokens
+  const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
+    {
+      chainIds: displayChainIds,
+      excludeAssetIds: assetsWithBalanceAssetIds,
+    },
+  );
+
   // Filter local tokens with balance based on search query
   const filteredTokensWithBalance = useMemo(() => {
     if (!searchString.trim()) {
@@ -143,38 +138,6 @@ export const BridgeTokenSelector: React.FC = () => {
         token.address.toLowerCase().includes(searchLower),
     );
   }, [tokensWithBalance, searchString]);
-
-  useEffect(() => {
-    const fetchPopularTokens = async () => {
-      setIsLoading(true);
-
-      const excludeAssetIds = JSON.parse(assetsWithBalanceAssetIds);
-      const response = await fetch(
-        'https://bridge.dev-api.cx.metamask.io/getTokens/popular',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            chainIds: displayChainIds,
-            excludeAssetIds,
-          }),
-        },
-      );
-      const popularAssets: PopularToken[] = await response.json();
-      // Convert PopularToken to BridgeToken format for display
-      const popularBridgeTokens: BridgeToken[] = popularAssets.map((asset) => ({
-        ...asset,
-        address: parseCaipAssetType(asset.assetId).assetReference,
-      }));
-
-      setPopularTokens(popularBridgeTokens);
-      setIsLoading(false);
-    };
-
-    fetchPopularTokens();
-  }, [selectedChainId, displayChainIds, assetsWithBalanceAssetIds]);
 
   // Function to search tokens via API
   const searchTokens = useCallback(
@@ -195,7 +158,7 @@ export const BridgeTokenSelector: React.FC = () => {
       if (isPagination) {
         setIsLoadingMore(true);
       } else {
-        setIsLoading(true);
+        setIsSearchLoading(true);
         currentSearchQuery.current = query.trim();
       }
 
@@ -271,7 +234,7 @@ export const BridgeTokenSelector: React.FC = () => {
         if (isPagination) {
           setIsLoadingMore(false);
         } else {
-          setIsLoading(false);
+          setIsSearchLoading(false);
         }
       }
     },
@@ -296,6 +259,7 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const displayData = useMemo(() => {
+    const isLoading = isPopularTokensLoading || isSearchLoading;
     if (isLoading) {
       // Show 8 skeleton items while loading
       return Array(8).fill(null);
@@ -311,7 +275,8 @@ export const BridgeTokenSelector: React.FC = () => {
     // Default: show tokens with balance and popular tokens
     return [...tokensWithBalance, ...popularTokens];
   }, [
-    isLoading,
+    isPopularTokensLoading,
+    isSearchLoading,
     searchString,
     filteredTokensWithBalance,
     searchResults,
@@ -413,14 +378,20 @@ export const BridgeTokenSelector: React.FC = () => {
     // 4. We have already searched once
     if (
       searchString.trim() &&
-      !isLoading &&
+      !isSearchLoading &&
       !isLoadingMore &&
       searchCursor &&
       hasSearchedOnce.current
     ) {
       searchTokens(searchString, searchCursor);
     }
-  }, [searchString, isLoading, isLoadingMore, searchCursor, searchTokens]);
+  }, [
+    searchString,
+    isSearchLoading,
+    isLoadingMore,
+    searchCursor,
+    searchTokens,
+  ]);
 
   // Render footer for pagination loading indicator
   const renderFooter = useCallback(() => {
