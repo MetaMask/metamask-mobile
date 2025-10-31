@@ -45,6 +45,15 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingVertical: 8,
       // No horizontal padding - TabsList provides its own
     },
+    // Open interest cap warning banner
+    oiCapBanner: {
+      backgroundColor: theme.colors.warning.muted,
+      borderRadius: 8,
+      padding: 12,
+      marginHorizontal: 16,
+      marginVertical: 8,
+      gap: 4,
+    },
     // Fixed actions footer - positioned at bottom of screen
     actionsFooter: {
       backgroundColor: theme.colors.background.default,

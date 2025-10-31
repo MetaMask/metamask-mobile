@@ -41,6 +41,7 @@ import type {
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
+import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
@@ -315,6 +316,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
+  // Check if market is at open interest cap (prevents new orders)
+  const { isAtCap: isAtOICap, isLoading: isLoadingOICap } = usePerpsOICap(
+    market?.symbol,
+  );
+
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
     traceName: TraceName.PerpsPositionDetailsView,
@@ -556,6 +562,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [hasZeroBalance, isLoadingPosition],
   );
 
+  // Disable trading buttons when market is at OI cap
+  const canTrade = useMemo(
+    () => !isAtOICap && !isLoadingOICap,
+    [isAtOICap, isLoadingOICap],
+  );
+
   // Define navigation items for the card
   const navigationItems: NavigationItem[] = useMemo(
     () => [
@@ -670,6 +682,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
           />
 
+          {/* Open Interest Cap Warning */}
+          {isAtOICap && !isLoadingOICap && (
+            <View style={styles.oiCapBanner}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Warning}>
+                ⚠️ {strings('perps.market.oi_cap_warning')}
+              </Text>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+                {strings('perps.market.oi_cap_description')}
+              </Text>
+            </View>
+          )}
+
           {/* Market Tabs Section */}
           <View style={styles.tabsSection}>
             <PerpsMarketTabs
@@ -737,6 +761,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   onPress={handleLongPress}
                   isFullWidth
                   size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={!canTrade}
                   testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
                 >
                   {strings('perps.market.long')}
@@ -749,6 +774,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   onPress={handleShortPress}
                   isFullWidth
                   size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={!canTrade}
                   testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
                 >
                   {strings('perps.market.short')}
