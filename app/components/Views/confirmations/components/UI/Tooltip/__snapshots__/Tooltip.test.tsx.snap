@@ -35,6 +35,5 @@ exports[`Tooltip should match snapshot 1`] = `
       width={16}
     />
   </TouchableOpacity>
-  <View />
 </View>
 `;

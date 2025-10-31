@@ -1,24 +1,95 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworkDetails renders correctly 1`] = `
-<View>
-  <Modal
-    animationType="none"
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeThreshold={100}
+  transparent={true}
+  visible={true}
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "backgroundColor": "black",
+        "bottom": 0,
+        "height": 1334,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 750,
+      }
+    }
+  />
+  <View
+    collapsable={false}
     deviceHeight={null}
     deviceWidth={null}
-    hardwareAccelerated={false}
     hideModalContentWhileAnimating={false}
     onBackdropPress={[Function]}
     onModalHide={[Function]}
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
-    onRequestClose={[Function]}
     panResponderThreshold={4}
+    pointerEvents="box-none"
     scrollHorizontal={false}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
     statusBarTranslucent={false}
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "flex-end",
+        "margin": 0,
+        "transform": [
+          {
+            "translateY": 1334,
+          },
+        ],
+      }
+    }
     supportedOrientations={
       [
         "portrait",
@@ -26,244 +97,188 @@ exports[`NetworkDetails renders correctly 1`] = `
       ]
     }
     swipeThreshold={100}
-    transparent={true}
-    visible={true}
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
       style={
         {
-          "backgroundColor": "black",
-          "bottom": 0,
-          "height": 1334,
-          "left": 0,
-          "opacity": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-          "width": 750,
+          "backgroundColor": "#ffffff",
+          "borderRadius": 10,
+          "maxHeight": "80%",
+          "padding": 4,
+          "paddingTop": 4,
         }
       }
-    />
-    <View
-      collapsable={false}
-      deviceHeight={null}
-      deviceWidth={null}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      panResponderThreshold={4}
-      pointerEvents="box-none"
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      style={
-        {
-          "flex": 1,
-          "justifyContent": "flex-end",
-          "margin": 0,
-          "transform": [
-            {
-              "translateY": 1334,
-            },
-          ],
-        }
-      }
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeThreshold={100}
     >
-      <View
-        style={
-          {
-            "backgroundColor": "#ffffff",
-            "borderRadius": 10,
-            "maxHeight": "80%",
-            "padding": 4,
-            "paddingTop": 4,
+      <View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "padding": 4,
+            }
           }
-        }
-      >
-        <View>
+        >
           <View
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "padding": 4,
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 2,
+                "height": 4,
+                "width": 40,
               }
             }
+          />
+        </View>
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "maxHeight": "85%",
+              "paddingBottom": 20,
+              "paddingHorizontal": 0,
+            }
+          }
+        >
+          <View
+            testID="approve-network-modal"
           >
             <View
               style={
-                {
-                  "backgroundColor": "#b7bbc866",
-                  "borderRadius": 2,
-                  "height": 4,
-                  "width": 40,
-                }
+                [
+                  {
+                    "backgroundColor": "#ffffff",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "padding": 16,
+                  },
+                  false,
+                ]
               }
-            />
-          </View>
-          <View
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "maxHeight": "85%",
-                "paddingBottom": 20,
-                "paddingHorizontal": 0,
-              }
-            }
-          >
-            <View
-              testID="approve-network-modal"
+              testID="header"
             >
               <View
                 style={
-                  [
-                    {
-                      "backgroundColor": "#ffffff",
-                      "flexDirection": "row",
-                      "gap": 16,
-                      "padding": 16,
-                    },
-                    false,
-                  ]
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
                 }
-                testID="header"
               >
-                <View
+                <Text
+                  accessibilityRole="text"
                   style={
                     {
-                      "alignItems": "center",
-                      "flex": 1,
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 18,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
                   }
                 >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist Bold",
-                        "fontSize": 18,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    Add Test Network
-                  </Text>
-                </View>
+                  Add Test Network
+                </Text>
               </View>
-              <RCTScrollView
-                collapsable={false}
-                handlerTag={2}
-                handlerType="NativeViewGestureHandler"
-                onGestureHandlerEvent={[Function]}
-                onGestureHandlerStateChange={[Function]}
-                style={
-                  {
-                    "backgroundColor": "#ffffff",
-                    "paddingHorizontal": 16,
-                  }
+            </View>
+            <RCTScrollView
+              collapsable={false}
+              handlerTag={2}
+              handlerType="NativeViewGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "paddingHorizontal": 16,
                 }
-              >
-                <View>
-                  <TouchableOpacity
-                    disabled={true}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "alignSelf": "center",
-                        "backgroundColor": "#f3f5f9",
-                        "borderRadius": 16,
-                        "flexDirection": "row",
-                        "height": 32,
-                        "marginBottom": 16,
-                        "paddingHorizontal": 8,
-                      }
+              }
+            >
+              <View>
+                <TouchableOpacity
+                  disabled={true}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "center",
+                      "backgroundColor": "#f3f5f9",
+                      "borderRadius": 16,
+                      "flexDirection": "row",
+                      "height": 32,
+                      "marginBottom": 16,
+                      "paddingHorizontal": 8,
                     }
+                  }
+                >
+                  <View
+                    style={null}
                   >
                     <View
-                      style={null}
+                      accessibilityLabel="Test Network"
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 4,
+                          "height": 16,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "width": 16,
+                        }
+                      }
+                      testID="network-avatar-picker"
                     >
-                      <View
-                        accessibilityLabel="Test Network"
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
                         style={
                           {
-                            "alignItems": "center",
-                            "backgroundColor": "#ffffff",
-                            "borderRadius": 4,
                             "height": 16,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
                             "width": 16,
                           }
                         }
-                        testID="network-avatar-picker"
-                      >
-                        <Image
-                          onError={[Function]}
-                          resizeMode="contain"
-                          source={1}
-                          style={
-                            {
-                              "height": 16,
-                              "width": 16,
-                            }
-                          }
-                          testID="network-avatar-image"
-                        />
-                      </View>
+                        testID="network-avatar-image"
+                      />
                     </View>
-                    <Text
-                      accessibilityRole="text"
-                      numberOfLines={1}
-                      style={
-                        {
-                          "color": "#121314",
-                          "flexShrink": 1,
-                          "fontFamily": "Geist Regular",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "marginHorizontal": 8,
-                        }
-                      }
-                      testID="open-networks-text"
-                    >
-                      Test Network
-                    </Text>
-                  </TouchableOpacity>
+                  </View>
                   <Text
                     accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#121314",
+                        "flexShrink": 1,
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                        "marginHorizontal": 8,
+                      }
+                    }
+                    testID="open-networks-text"
+                  >
+                    Test Network
+                  </Text>
+                </TouchableOpacity>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  MetaMask doesn’t verify custom networks, so only approve networks you trust.
+                   
+                  <Text
+                    accessibilityRole="text"
+                    onPress={[Function]}
                     style={
                       {
                         "color": "#121314",
@@ -271,15 +286,50 @@ exports[`NetworkDetails renders correctly 1`] = `
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
-                        "textAlign": "center",
                       }
                     }
                   >
-                    MetaMask doesn’t verify custom networks, so only approve networks you trust.
-                     
+                    Learn more about network security risks and scams.
+                  </Text>
+                </Text>
+                <RCTScrollView
+                  collapsable={false}
+                  handlerTag={1}
+                  handlerType="NativeViewGestureHandler"
+                  nestedScrollEnabled={true}
+                  onGestureHandlerEvent={[Function]}
+                  onGestureHandlerStateChange={[Function]}
+                  onLayout={[Function]}
+                  style={
+                    [
+                      {
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 10,
+                        "borderWidth": 1,
+                        "marginVertical": 16,
+                        "padding": 16,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  <View>
                     <Text
                       accessibilityRole="text"
-                      onPress={[Function]}
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Currency symbol
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
                       style={
                         {
                           "color": "#121314",
@@ -287,34 +337,21 @@ exports[`NetworkDetails renders correctly 1`] = `
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
+                          "marginBottom": 8,
                         }
                       }
                     >
-                      Learn more about network security risks and scams.
+                      TEST
                     </Text>
-                  </Text>
-                  <RCTScrollView
-                    collapsable={false}
-                    handlerTag={1}
-                    handlerType="NativeViewGestureHandler"
-                    nestedScrollEnabled={true}
-                    onGestureHandlerEvent={[Function]}
-                    onGestureHandlerStateChange={[Function]}
-                    onLayout={[Function]}
-                    style={
-                      [
+                    <View
+                      style={
                         {
-                          "borderColor": "#b7bbc8",
-                          "borderRadius": 10,
-                          "borderWidth": 1,
-                          "marginVertical": 16,
-                          "padding": 16,
-                        },
-                        undefined,
-                      ]
-                    }
-                  >
-                    <View>
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 8,
+                        }
+                      }
+                    >
                       <Text
                         accessibilityRole="text"
                         style={
@@ -327,224 +364,185 @@ exports[`NetworkDetails renders correctly 1`] = `
                           }
                         }
                       >
-                        Currency symbol
+                        Network RPC URL
                       </Text>
+                    </View>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "marginBottom": 8,
+                        }
+                      }
+                    >
+                      https://localhost:8545
+                    </Text>
+                    <TouchableOpacity
+                      activeOpacity={0.5}
+                      onPress={[Function]}
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "height": 24,
+                          "justifyContent": "center",
+                        }
+                      }
+                      testID="accordionheader"
+                    >
                       <Text
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#4459ff",
                             "fontFamily": "Geist Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "marginBottom": 8,
                           }
                         }
+                        testID="accordionheader-title"
                       >
-                        TEST
+                        View details
                       </Text>
                       <View
                         style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "gap": 8,
-                          }
+                          [
+                            {
+                              "marginLeft": 4,
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "rotate": "0deg",
+                                },
+                              ],
+                            },
+                          ]
                         }
+                        testID="accordionheader-arrow-icon-animation"
                       >
-                        <Text
-                          accessibilityRole="text"
+                        <SvgMock
+                          color="#4459ff"
+                          fill="currentColor"
+                          height={16}
+                          name="ArrowDown"
                           style={
                             {
-                              "color": "#121314",
-                              "fontFamily": "Geist Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
+                              "height": 16,
+                              "width": 16,
                             }
                           }
-                        >
-                          Network RPC URL
-                        </Text>
+                          testID="accordionheader-arrow-icon"
+                          width={16}
+                        />
                       </View>
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#121314",
-                            "fontFamily": "Geist Regular",
-                            "fontSize": 16,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                            "marginBottom": 8,
-                          }
-                        }
-                      >
-                        https://localhost:8545
-                      </Text>
-                      <TouchableOpacity
-                        activeOpacity={0.5}
-                        onPress={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "height": 24,
-                            "justifyContent": "center",
-                          }
-                        }
-                        testID="accordionheader"
-                      >
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
-                          }
-                          testID="accordionheader-title"
-                        >
-                          View details
-                        </Text>
-                        <View
-                          style={
-                            [
-                              {
-                                "marginLeft": 4,
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "rotate": "0deg",
-                                  },
-                                ],
-                              },
-                            ]
-                          }
-                          testID="accordionheader-arrow-icon-animation"
-                        >
-                          <SvgMock
-                            color="#4459ff"
-                            fill="currentColor"
-                            height={16}
-                            name="ArrowDown"
-                            style={
-                              {
-                                "height": 16,
-                                "width": 16,
-                              }
-                            }
-                            testID="accordionheader-arrow-icon"
-                            width={16}
-                          />
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                  </RCTScrollView>
-                </View>
-              </RCTScrollView>
-              <View
+                    </TouchableOpacity>
+                  </View>
+                </RCTScrollView>
+              </View>
+            </RCTScrollView>
+            <View
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "flexDirection": "row",
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 4,
+                }
+              }
+              testID="bottomsheetfooter"
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                onPress={[Function]}
+                onPressIn={[Function]}
+                onPressOut={[Function]}
                 style={
                   {
-                    "backgroundColor": "#ffffff",
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "transparent",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "flex": 1,
                     "flexDirection": "row",
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 4,
+                    "height": 48,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "paddingHorizontal": 16,
                   }
                 }
-                testID="bottomsheetfooter"
+                testID="approve-network-cancel-button"
               >
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={1}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <Text
+                  accessibilityRole="text"
                   style={
                     {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "transparent",
-                      "borderRadius": 12,
-                      "borderWidth": 1,
-                      "flex": 1,
-                      "flexDirection": "row",
-                      "height": 48,
-                      "justifyContent": "center",
-                      "overflow": "hidden",
-                      "paddingHorizontal": 16,
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
                   }
-                  testID="approve-network-cancel-button"
                 >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={1}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                onPress={[Function]}
+                onPressIn={[Function]}
+                onPressOut={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "backgroundColor": "#121314",
+                    "borderRadius": 12,
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "marginLeft": 16,
+                    "marginTop": 0,
+                    "overflow": "hidden",
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="approve-network-approve-button"
+              >
+                <Text
+                  accessibilityRole="text"
                   style={
                     {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#121314",
-                      "borderRadius": 12,
-                      "flex": 1,
-                      "flexDirection": "row",
-                      "height": 48,
-                      "justifyContent": "center",
-                      "marginLeft": 16,
-                      "marginTop": 0,
-                      "overflow": "hidden",
-                      "paddingHorizontal": 16,
+                      "color": "#ffffff",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
                   }
-                  testID="approve-network-approve-button"
                 >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#ffffff",
-                        "fontFamily": "Geist Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    Confirm
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                  Confirm
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </View>
     </View>
-  </Modal>
-</View>
+  </View>
+</Modal>
 `;

@@ -673,6 +673,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -726,6 +727,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   activeOpacity={1}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
