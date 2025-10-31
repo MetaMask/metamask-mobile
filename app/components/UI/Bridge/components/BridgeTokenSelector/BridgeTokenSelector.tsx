@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,6 +18,8 @@ import {
   selectBridgeFeatureFlags,
   selectSourceToken,
   selectDestToken,
+  setSourceToken,
+  setDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import {
@@ -60,6 +62,7 @@ const convertAPITokensToBridgeTokens = (
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -101,12 +104,16 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const tokensWithBalance = useTokensWithBalance({ chainIds: chainIdsToFetch });
   const filteredTokensWithBalance = useMemo(() => {
+    const filteredTokens = tokensWithBalance.filter(
+      (token) => token.balance && parseFloat(token.balance) > 0,
+    );
+
     if (!searchString.trim()) {
-      return tokensWithBalance;
+      return filteredTokens;
     }
 
     const searchLower = searchString.toLowerCase();
-    return tokensWithBalance.filter(
+    return filteredTokens.filter(
       (token) =>
         token.name?.toLowerCase().includes(searchLower) ||
         token.symbol.toLowerCase().includes(searchLower) ||
@@ -152,17 +159,37 @@ export const BridgeTokenSelector: React.FC = () => {
       return Array(8).fill(null);
     }
 
-    // If we have a search query, show search results
+    let tokensToDisplay: BridgeToken[] = [];
     if (searchString.trim()) {
+      // If we have a search query, show search results
       const convertedSearchResults =
         convertAPITokensToBridgeTokens(searchResults);
-      return [...filteredTokensWithBalance, ...convertedSearchResults];
+      tokensToDisplay = [
+        ...filteredTokensWithBalance,
+        ...convertedSearchResults,
+      ];
+    } else {
+      // Default: show tokens with balance and popular tokens
+      const convertedPopularTokens =
+        convertAPITokensToBridgeTokens(popularTokens);
+      tokensToDisplay = [
+        ...filteredTokensWithBalance,
+        ...convertedPopularTokens,
+      ];
     }
 
-    // Default: show tokens with balance and popular tokens
-    const convertedPopularTokens =
-      convertAPITokensToBridgeTokens(popularTokens);
-    return [...filteredTokensWithBalance, ...convertedPopularTokens];
+    // Filter to avoid matching source and destination tokens
+    const tokenToExclude =
+      route.params?.type === 'source' ? destToken : sourceToken;
+    const filteredTokensToDisplay = tokensToDisplay.filter(
+      (token) =>
+        !(
+          token?.address === tokenToExclude?.address &&
+          token?.chainId === tokenToExclude?.chainId
+        ),
+    );
+
+    return filteredTokensToDisplay;
   }, [
     isPopularTokensLoading,
     isSearchLoading,
@@ -170,6 +197,9 @@ export const BridgeTokenSelector: React.FC = () => {
     filteredTokensWithBalance,
     searchResults,
     popularTokens,
+    route.params?.type,
+    sourceToken,
+    destToken,
   ]);
 
   const handleClose = () => {
@@ -188,10 +218,18 @@ export const BridgeTokenSelector: React.FC = () => {
     debouncedSearch(text);
   };
 
-  const handleTokenPress = useCallback(() => {
-    // TODO: Implement token selection - dispatch to Redux and navigate back
-    navigation.goBack();
-  }, [navigation]);
+  const handleTokenPress = useCallback(
+    (token: BridgeToken) => {
+      // TODO: Implement token selection - dispatch to Redux and navigate back
+      dispatch(
+        route.params?.type === 'source'
+          ? setSourceToken(token)
+          : setDestToken(token),
+      );
+      navigation.goBack();
+    },
+    [navigation, dispatch, route.params?.type],
+  );
 
   const renderToken = useCallback(
     ({ item }: { item: BridgeToken | null }) => {
