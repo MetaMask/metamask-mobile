@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { View, FlatList } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   selectChainId,
   selectIsAllNetworks,
@@ -41,7 +40,6 @@ export interface DeFiPositionsListProps {
 
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   const { styles } = useStyles(styleSheet, undefined);
-  const tw = useTailwind();
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const currentChainId = useSelector(selectChainId) as Hex;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
@@ -134,16 +132,6 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     }
   }
 
-  if (formattedDeFiPositions.length === 0) {
-    // No positions found for the current account
-    return (
-      <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
-        <DeFiPositionsControlBar />
-        <DefiEmptyState style={tw.style('mx-auto')} />
-      </View>
-    );
-  }
-
   return (
     <View
       style={styles.wrapper}
@@ -164,7 +152,8 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
         keyExtractor={(protocolChainAggregate) =>
           `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
         }
-        scrollEnabled={false}
+        scrollEnabled
+        ListEmptyComponent={<DefiEmptyState twClassName="mx-auto mt-4" />}
       />
     </View>
   );

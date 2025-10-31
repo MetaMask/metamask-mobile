@@ -8,20 +8,20 @@ import {
   DummyQuotesNoApproval,
   DummyQuotesWithApproval,
 } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
-import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { selectSourceWalletAddress } from '../../../selectors/bridge';
 
 let mockSubmitTx: jest.Mock<
   Promise<TransactionMeta>,
-  [QuoteResponse & QuoteMetadata, boolean]
+  [string, QuoteResponse & QuoteMetadata, boolean]
 >;
 
 jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<
     Promise<TransactionMeta>,
-    [QuoteResponse & QuoteMetadata, boolean]
+    [string, QuoteResponse & QuoteMetadata, boolean]
   >();
   return {
     context: {
@@ -72,6 +72,18 @@ jest.mock('../../../selectors/networkController', () => {
     })),
   };
 });
+
+jest.mock('../../../selectors/smartTransactionsController', () => ({
+  ...jest.requireActual('../../../selectors/smartTransactionsController'),
+  selectShouldUseSmartTransaction: jest.fn(() => true),
+}));
+
+jest.mock('../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../selectors/bridge'),
+  selectSourceWalletAddress: jest.fn(
+    () => '0x1234567890123456789012345678901234567890',
+  ),
+}));
 
 const mockStore = configureMockStore();
 
@@ -143,8 +155,12 @@ describe('useSubmitBridgeTx', () => {
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
-      mockQuoteResponse,
-      expect.any(Boolean),
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: undefined,
+      },
+      true,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -184,8 +200,12 @@ describe('useSubmitBridgeTx', () => {
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
-      mockQuoteResponse,
-      expect.any(Boolean),
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: mockQuoteResponse.approval ?? undefined,
+      },
+      true,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -262,5 +282,25 @@ describe('useSubmitBridgeTx', () => {
         quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
       }),
     ).rejects.toThrow('Serialization failed');
+  });
+
+  it('should throw error when wallet address is not set', async () => {
+    // Make the mocked selector return undefined for this test
+    jest.mocked(selectSourceWalletAddress).mockReturnValueOnce(undefined);
+
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
+
+    await expect(
+      result.current.submitBridgeTx({
+        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      }),
+    ).rejects.toThrow('Wallet address is not set');
   });
 });

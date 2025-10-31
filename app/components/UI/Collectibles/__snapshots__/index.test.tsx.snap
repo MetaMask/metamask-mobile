@@ -98,8 +98,7 @@ exports[`Collectibles should render correctly collectibles 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",

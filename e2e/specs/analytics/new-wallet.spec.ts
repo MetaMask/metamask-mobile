@@ -5,7 +5,7 @@ import { CreateNewWallet } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { getEventsPayloads, onboardingEvents } from './helpers';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 

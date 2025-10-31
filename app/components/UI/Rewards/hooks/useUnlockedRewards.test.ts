@@ -41,6 +41,7 @@ jest.mock('../../../../selectors/rewards', () => ({
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectSeasonId: jest.fn(),
+  selectCurrentTier: jest.fn(),
 }));
 
 // Mock the useInvalidateByRewardEvents hook
@@ -81,7 +82,7 @@ describe('useUnlockedRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-    // Mock useSelector calls in order: first call is seasonId, second is subscriptionId
+    // Mock useSelector calls in order: first call is seasonId, second is subscriptionId, third is currentTier
     let callCount = 0;
     mockUseSelector.mockImplementation(() => {
       callCount++;
@@ -90,6 +91,9 @@ describe('useUnlockedRewards', () => {
       }
       if (callCount === 2) {
         return 'test-subscription-id'; // selectRewardsSubscriptionId
+      }
+      if (callCount === 3) {
+        return { pointsNeeded: 100 }; // selectCurrentTier
       }
       return null;
     });
@@ -114,6 +118,9 @@ describe('useUnlockedRewards', () => {
       if (callCount === 2) {
         return 'test-subscription-id'; // selectRewardsSubscriptionId
       }
+      if (callCount === 3) {
+        return { pointsNeeded: 100 }; // selectCurrentTier
+      }
       return null;
     });
 
@@ -134,6 +141,9 @@ describe('useUnlockedRewards', () => {
       }
       if (callCount === 2) {
         return null; // selectRewardsSubscriptionId - missing
+      }
+      if (callCount === 3) {
+        return { pointsNeeded: 100 }; // selectCurrentTier
       }
       return null;
     });
@@ -255,6 +265,9 @@ describe('useUnlockedRewards', () => {
       if (callCount === 2) {
         return customSubscriptionId; // selectRewardsSubscriptionId
       }
+      if (callCount === 3) {
+        return { pointsNeeded: 100 }; // selectCurrentTier
+      }
       return null;
     });
 
@@ -281,6 +294,81 @@ describe('useUnlockedRewards', () => {
       }
       if (callCount === 2) {
         return null; // selectRewardsSubscriptionId - missing
+      }
+      if (callCount === 3) {
+        return { pointsNeeded: 100 }; // selectCurrentTier
+      }
+      return null;
+    });
+
+    renderHook(() => useUnlockedRewards());
+
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards(null));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('should skip fetch when currentTier is null', () => {
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return 'test-season-id'; // selectSeasonId
+      }
+      if (callCount === 2) {
+        return 'test-subscription-id'; // selectRewardsSubscriptionId
+      }
+      if (callCount === 3) {
+        return null; // selectCurrentTier - missing
+      }
+      return null;
+    });
+
+    renderHook(() => useUnlockedRewards());
+
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards(null));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('should skip fetch when currentTier.pointsNeeded is missing', () => {
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return 'test-season-id'; // selectSeasonId
+      }
+      if (callCount === 2) {
+        return 'test-subscription-id'; // selectRewardsSubscriptionId
+      }
+      if (callCount === 3) {
+        return {}; // selectCurrentTier - missing pointsNeeded
+      }
+      return null;
+    });
+
+    renderHook(() => useUnlockedRewards());
+
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards(null));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('should skip fetch when currentTier.pointsNeeded is 0', () => {
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return 'test-season-id'; // selectSeasonId
+      }
+      if (callCount === 2) {
+        return 'test-subscription-id'; // selectRewardsSubscriptionId
+      }
+      if (callCount === 3) {
+        return { pointsNeeded: 0 }; // selectCurrentTier - base tier
       }
       return null;
     });

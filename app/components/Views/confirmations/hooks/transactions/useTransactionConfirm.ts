@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-
+import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
@@ -12,6 +12,7 @@ import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
 import {
   BatchTransaction,
+  TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
@@ -22,8 +23,18 @@ import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/use
 import { TransactionBridgeQuote } from '../../utils/bridge';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
+import { type TxData } from '@metamask/bridge-controller';
+import { hasTransactionType } from '../../utils/transaction';
+import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 
 const log = createProjectLogger('transaction-confirm');
+
+export const GO_BACK_TYPES = [
+  TransactionType.predictClaim,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
@@ -31,6 +42,7 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMetadata = useTransactionMetadataRequest();
+  const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, id: transactionId, type } = transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
@@ -50,7 +62,8 @@ export function useTransactionConfirm() {
     selectTransactionBridgeQuotesById(state, transactionId ?? ''),
   );
 
-  const waitForResult = !shouldUseSmartTransaction && !quotes?.length;
+  const waitForResult =
+    !shouldUseSmartTransaction && !quotes?.length && !selectedGasFeeToken;
 
   const hasSameChainQuote =
     quotes?.length &&
@@ -59,6 +72,40 @@ export function useTransactionConfirm() {
   const batchTransactions = useMemo(
     () => (hasSameChainQuote ? getQuoteBatchTransactions(quotes) : undefined),
     [hasSameChainQuote, quotes],
+  );
+
+  const handleSmartTransaction = useCallback(
+    (updatedMetadata: TransactionMeta) => {
+      if (!selectedGasFeeToken) {
+        return;
+      }
+
+      updatedMetadata.batchTransactions = [
+        ...(updatedMetadata.batchTransactions ?? []),
+        selectedGasFeeToken.transferTransaction,
+      ];
+      updatedMetadata.txParams.gas = selectedGasFeeToken.gas;
+      updatedMetadata.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
+      updatedMetadata.txParams.maxPriorityFeePerGas =
+        selectedGasFeeToken.maxPriorityFeePerGas;
+    },
+    [selectedGasFeeToken],
+  );
+
+  const { value: chainSupportsSendBundle } = useAsyncResult(
+    async () => (chainId ? isSendBundleSupported(chainId) : false),
+    [chainId],
+  );
+
+  const handleGasless7702 = useCallback(
+    (updatedMetadata: TransactionMeta) => {
+      if (!selectedGasFeeToken) {
+        return;
+      }
+
+      updatedMetadata.isExternalSign = true;
+    },
+    [selectedGasFeeToken],
   );
 
   const onConfirm = useCallback(async () => {
@@ -79,6 +126,12 @@ export function useTransactionConfirm() {
       updatedMetadata.batchTransactionsOptions = {};
     }
 
+    if (shouldUseSmartTransaction && chainSupportsSendBundle) {
+      handleSmartTransaction(updatedMetadata);
+    } else if (selectedGasFeeToken) {
+      handleGasless7702(updatedMetadata);
+    }
+
     try {
       await onRequestConfirm(
         {
@@ -95,9 +148,12 @@ export function useTransactionConfirm() {
 
     if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
-    } else if (isFullScreenConfirmation) {
+    } else if (
+      isFullScreenConfirmation &&
+      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+    ) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -113,13 +169,19 @@ export function useTransactionConfirm() {
   }, [
     batchTransactions,
     bridgeFeeFiat,
+    chainSupportsSendBundle,
     chainId,
     dispatch,
+    handleGasless7702,
+    handleSmartTransaction,
     isFullScreenConfirmation,
     navigation,
     networkFeeFiat,
     onRequestConfirm,
-    payToken,
+    payToken?.address,
+    payToken?.chainId,
+    selectedGasFeeToken,
+    shouldUseSmartTransaction,
     totalFiat,
     transactionMetadata,
     tryEnableEvmNetwork,
@@ -144,7 +206,7 @@ function getQuoteBatchTransactions(
     }
 
     result.push({
-      ...getQuoteBatchTransaction(quote.trade),
+      ...getQuoteBatchTransaction(quote.trade as TxData),
       type: TransactionType.swap,
     });
 
@@ -152,9 +214,7 @@ function getQuoteBatchTransactions(
   });
 }
 
-function getQuoteBatchTransaction(
-  transaction: TransactionBridgeQuote['trade'],
-): BatchTransaction {
+function getQuoteBatchTransaction(transaction: TxData): BatchTransaction {
   const data = transaction.data as Hex;
   const gas = transaction.gasLimit ? toHex(transaction.gasLimit) : undefined;
   const to = transaction.to as Hex;

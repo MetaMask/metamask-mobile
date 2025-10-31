@@ -57,6 +57,11 @@ export const SNAPS_DERIVATION_PATHS: SnapsDerivationPath[] = [
     name: 'Solana',
   },
   {
+    path: ['m', `44'`, `195'`],
+    curve: 'secp256k1',
+    name: 'Tron',
+  },
+  {
     path: ['m', `44'`, `2'`],
     curve: 'secp256k1',
     name: 'Litecoin',

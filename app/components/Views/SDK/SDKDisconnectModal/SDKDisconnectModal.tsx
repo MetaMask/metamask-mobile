@@ -24,7 +24,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
-import { toHex } from '@metamask/controller-utils';
 import { RootState } from '../../../../reducers';
 
 const createStyles = (
@@ -87,54 +86,46 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   }, [channelId, account]);
 
   const onConfirm = async () => {
-    if (account && channelId) {
-      removePermittedAccounts(channelId, [toHex(account)]);
-    } else if (!account && channelId) {
-      SDKConnect.getInstance().removeChannel({
-        channelId,
-        sendTerminate: true,
-      });
-    }
-
-    DevLogger.log(
-      `OnConfirm: accountsLength=${accountsLength} channelId: ${channelId}, account: ${account}`,
-    );
-    if (account && accountsLength && accountsLength <= 1 && channelId) {
-      SDKConnect.getInstance().removeChannel({
-        channelId,
-        sendTerminate: true,
-      });
-    } else if (!account && !channelId) {
-      SDKConnect.getInstance().removeAll();
-    }
-
-    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
-  };
-
-  const onConfirmV2 = async () => {
     try {
-      // Case: Disconnect a single account from a V2 session.
-      // This is a pure permission management action.
-      if (account && channelId) {
-        removePermittedAccounts(channelId, [toHex(account)]);
+      const isGlobalDisconnect = !account && !channelId; // Disconnect all sessions.
+      const isSessionDisconnect = !account && channelId; // Disconnect a specific session.
+      const isAccountDisconnect = account && channelId; // Disconnect a specific account under a session.
+
+      if (isGlobalDisconnect) {
+        // Disconnect all V1 sessions.
+        SDKConnect.getInstance().removeAll();
+        // Disconnect all V2 sessions.
+        const v2ConnectionIds = Object.keys(v2Connections || {});
+        const promises = v2ConnectionIds.map((connId) =>
+          SDKConnectV2.disconnect(connId),
+        );
+        await Promise.all(promises);
+      } else if (isSessionDisconnect) {
+        if (isV2) {
+          await SDKConnectV2.disconnect(channelId as string);
+        } else {
+          SDKConnect.getInstance().removeChannel({
+            channelId: channelId as string,
+            sendTerminate: true,
+          });
+        }
+      } else if (isAccountDisconnect) {
+        // This is a pure permission management action.
+        removePermittedAccounts(channelId as string, [account]);
         // If it's the last account, escalate to a full session termination.
         if (accountsLength && accountsLength <= 1) {
-          await SDKConnectV2.disconnect(channelId);
-        }
-      }
-      // Case: Disconnect an entire dApp V2 session.
-      else if (!account && channelId) {
-        await SDKConnectV2.disconnect(channelId);
-      }
-      // Case: Global disconnect all from V2 context.
-      else if (!account && !channelId) {
-        const v2ConnectionIds = Object.keys(v2Connections || {});
-        for (const connId of v2ConnectionIds) {
-          await SDKConnectV2.disconnect(connId);
+          if (isV2) {
+            await SDKConnectV2.disconnect(channelId as string);
+          } else {
+            SDKConnect.getInstance().removeChannel({
+              channelId: channelId as string,
+              sendTerminate: true,
+            });
+          }
         }
       }
     } catch (error) {
-      DevLogger.log('Failed to perform V2 disconnect action', error);
+      DevLogger.log('Failed to perform disconnect action', error);
     } finally {
       navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
     }
@@ -157,7 +148,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
           label={strings('sdk_disconnect_modal.disconnect_confirm')}
           style={styles.btn}
           variant={ButtonVariants.Primary}
-          onPress={isV2 ? onConfirmV2 : onConfirm}
+          onPress={onConfirm}
         />
         <Button
           label={strings('sdk_disconnect_modal.cancel')}

@@ -67,6 +67,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
         "currentCurrency": "usd",
       },
+      "DelegationController": {
+        "delegations": {},
+      },
       "EarnController": {
         "lastUpdated": 0,
         "lending": {
@@ -367,7 +370,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "tron": {
             "tron:2494104990": false,
             "tron:3448148188": false,
-            "tron:728126428": false,
+            "tron:728126428": true,
           },
         },
       },
@@ -444,6 +447,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "0x61": true,
           "0x64": true,
           "0x89": true,
+          "0x8f": true,
           "0xa": true,
           "0xa869": true,
           "0xa86a": true,
@@ -496,11 +500,15 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+      },
+      "SamplePetnamesController": {
+        "namesByChainIdAndAddress": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": true,
@@ -745,6 +753,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "currentCurrency": "usd",
       },
+      "DelegationController": {
+        "delegations": {},
+      },
       "EarnController": {
         "lastUpdated": 0,
         "lending": {
@@ -1045,7 +1056,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "tron": {
             "tron:2494104990": false,
             "tron:3448148188": false,
-            "tron:728126428": false,
+            "tron:728126428": true,
           },
         },
       },
@@ -1122,6 +1133,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "0x61": true,
           "0x64": true,
           "0x89": true,
+          "0x8f": true,
           "0xa": true,
           "0xa869": true,
           "0xa86a": true,
@@ -1174,11 +1186,15 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+      },
+      "SamplePetnamesController": {
+        "namesByChainIdAndAddress": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": false,

@@ -25,7 +25,15 @@ import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
-    { children, initialActiveIndex = 0, onChangeTab, testID, ...boxProps },
+    {
+      children,
+      initialActiveIndex = 0,
+      onChangeTab,
+      testID,
+      tabsBarProps,
+      tabsListContentTwClassName,
+      ...boxProps
+    },
     ref,
   ) => {
     const tw = useTailwind();
@@ -234,9 +242,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         // Update activeIndex immediately for TabsBar animation
         setActiveIndex(tabIndex);
 
-        // Ensure the tab is loaded - small delay to let animation start first
+        // Ensure the tab is loaded
         if (!loadedTabs.has(tabIndex)) {
-          // In tests, update synchronously to avoid act() warnings
+          // Synchronous updates for tests
           if (process.env.JEST_WORKER_ID) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           } else {
@@ -246,11 +254,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             loadTabTimeout.current = setTimeout(() => {
               setLoadedTabs((prev) => new Set(prev).add(tabIndex));
               loadTabTimeout.current = null;
-            }, 10); // Small delay to let underline animation start
+            }, 10); // Brief delay for smooth loading
           }
         }
 
-        // Set programmatic scroll flag AFTER state update
+        // Mark as programmatic scroll
         isProgrammaticScroll.current = true;
 
         // Scroll to the content index, not the tab index
@@ -269,7 +277,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           });
         }
 
-        // Reset programmatic scroll flag after animation
+        // Reset programmatic scroll flag
         if (programmaticScrollTimeout.current) {
           clearTimeout(programmaticScrollTimeout.current);
         }
@@ -337,7 +345,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     }, []);
 
     const handleScrollEnd = useCallback(() => {
-      // Reset scrolling flag after a short delay
+      // Reset scrolling flag
       scrollTimeout.current = setTimeout(() => {
         isScrolling.current = false;
       }, 150);
@@ -378,7 +386,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           }
 
-          // Set programmatic scroll flag AFTER state update
+          // Mark as programmatic scroll
           isProgrammaticScroll.current = true;
 
           if (scrollViewRef.current && containerWidth > 0) {
@@ -396,7 +404,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             });
           }
 
-          // Reset programmatic scroll flag after animation
+          // Reset programmatic scroll flag
           if (goToTabTimeout.current) {
             clearTimeout(goToTabTimeout.current);
           }
@@ -417,20 +425,21 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ],
     );
 
-    const tabBarProps = useMemo(
+    const tabBarPropsComputed = useMemo(
       () => ({
         tabs,
         activeIndex,
         onTabPress: handleTabPress,
         testID: testID ? `${testID}-bar` : undefined,
+        ...tabsBarProps,
       }),
-      [tabs, activeIndex, handleTabPress, testID],
+      [tabs, activeIndex, handleTabPress, testID, tabsBarProps],
     );
 
     return (
       <Box twClassName="flex-1" testID={testID} {...boxProps}>
         {/* Render TabsBar */}
-        <TabsBar {...tabBarProps} />
+        <TabsBar {...tabBarPropsComputed} />
 
         {/* Horizontal ScrollView for tab contents */}
         <ScrollView
@@ -453,7 +462,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           {enabledTabs.map((enabledTab) => (
             <Box
               key={enabledTab.key}
-              style={tw.style('flex-1', { width: containerWidth })}
+              style={tw.style(
+                `flex-1 px-4 ${tabsListContentTwClassName || ''}`,
+                {
+                  width: containerWidth,
+                },
+              )}
             >
               {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
                 ? enabledTab.content

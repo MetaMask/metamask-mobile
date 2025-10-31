@@ -97,11 +97,6 @@ const GetStarted: React.FC = () => {
             },
           ],
         });
-      } else {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
-        });
       }
     }
   }, [getStarted, isNetworkRampSupported, navigation, selectedRegion]);

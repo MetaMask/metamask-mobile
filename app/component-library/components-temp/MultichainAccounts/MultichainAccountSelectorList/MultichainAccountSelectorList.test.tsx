@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 import '@shopify/flash-list/jestSetup';
 import {
   AccountGroupObject,
@@ -20,14 +20,7 @@ import {
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
-import { ReactTestInstance } from 'react-test-renderer';
-
-// Mock the new hook to avoid dependencies
-jest.mock('../../../../components/UI/Assets/hooks', () => ({
-  useAssetsUpdateAllAccountBalances: jest.fn(() => ({
-    updateBalances: jest.fn(),
-  })),
-}));
+import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -188,7 +181,7 @@ describe('MultichainAccountSelectorList', () => {
     expect(getByText('Ledger')).toBeTruthy();
   });
 
-  it('shows the correct account as selected', () => {
+  it('shows the correct account as selected', async () => {
     const account1 = createMockAccountGroup(
       'keyring:wallet1/group1',
       'Account 1',
@@ -206,20 +199,75 @@ describe('MultichainAccountSelectorList', () => {
       account1,
       account2,
     ]);
-    const { getAllByTestId } = renderComponentWithMockState(
-      [wallet1],
-      internalAccounts,
-      [],
-    );
 
-    const accountCells = getAllByTestId('multichain-account-cell-container');
+    const { getAllByTestId, rerender, queryByText } =
+      renderComponentWithMockState([wallet1], internalAccounts, [account2]);
+
+    await waitFor(() => {
+      expect(getAllByTestId(AccountCellIds.CONTAINER)).toHaveLength(2);
+    });
+
+    const accountCells = getAllByTestId(AccountCellIds.CONTAINER);
+
     const account1Cell = accountCells.find((cell) =>
       within(cell).queryByText('Account 1'),
     );
-    expect(account1Cell).toBeTruthy();
-    fireEvent.press(account1Cell as ReactTestInstance);
+    const account2Cell = accountCells.find((cell) =>
+      within(cell).queryByText('Account 2'),
+    );
 
-    expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
+    expect(account1Cell).toBeTruthy();
+    expect(account2Cell).toBeTruthy();
+
+    const account1Text = queryByText('Account 1');
+    const account1TouchableParent = account1Text?.parent?.parent;
+
+    if (account1TouchableParent) {
+      await act(async () => {
+        fireEvent.press(account1TouchableParent);
+      });
+    }
+
+    await waitFor(() => {
+      expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
+    });
+
+    mockOnSelectAccount.mockClear();
+
+    const account2Text = queryByText('Account 2');
+    const account2TouchableParent = account2Text?.parent?.parent;
+
+    if (account2TouchableParent) {
+      await act(async () => {
+        fireEvent.press(account2TouchableParent);
+      });
+    }
+
+    await waitFor(() => {
+      expect(mockOnSelectAccount).toHaveBeenCalledWith(account2);
+    });
+
+    await act(async () => {
+      rerender(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account2]}
+          showCheckbox
+        />,
+      );
+    });
+
+    await waitFor(() => {
+      const account2Checkbox = getAllByTestId(
+        `account-list-cell-checkbox-${account2.id}`,
+      );
+      expect(account2Checkbox).toHaveLength(1);
+
+      const account1Checkbox = getAllByTestId(
+        `account-list-cell-checkbox-${account1.id}`,
+      );
+      expect(account1Checkbox).toHaveLength(1);
+    });
   });
 
   describe('Search functionality', () => {
@@ -557,7 +605,7 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText('My Account')).toBeFalsy();
           expect(queryByText('Test Account')).toBeTruthy();
         },
-        { timeout: 500 },
+        { timeout: 1000 }, // Increased timeout for debounced search
       );
     });
 
@@ -677,7 +725,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Verify the component renders correctly with AccountListFooter
       expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Create account')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('handles multiple wallets with AccountListFooter', () => {
@@ -709,8 +757,8 @@ describe('MultichainAccountSelectorList', () => {
         { state: createMockState([wallet1, wallet2], internalAccounts) },
       );
 
-      // Should have multiple "Create account" buttons (one per wallet)
-      const createAccountButtons = getAllByText('Create account');
+      // Should have multiple "Add account" buttons (one per wallet)
+      const createAccountButtons = getAllByText('Add account');
       expect(createAccountButtons.length).toBe(2);
     });
 
@@ -735,7 +783,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Verify the component renders correctly
       expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Create account')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('positions the list so the first selected account is initially visible', () => {
@@ -766,7 +814,7 @@ describe('MultichainAccountSelectorList', () => {
 
       expect(queryByText('Account 2')).toBeTruthy();
     });
-    it('renders a far selected account in the initial viewport when provided as initial selection', () => {
+    it('renders a far selected account in the initial viewport when provided as initial selection', async () => {
       // Create many accounts so the selected one is far enough to require initialScrollIndex
       const total = 60;
       const accounts = Array.from({ length: total }, (_, i) =>
@@ -786,7 +834,14 @@ describe('MultichainAccountSelectorList', () => {
         { state: createMockState([wallet1], internalAccounts) },
       );
 
-      // Without initialScrollIndex, this would not be visible initially
+      // Wait for requestAnimationFrame to execute the scroll
+      await act(async () => {
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => resolve(undefined)),
+        );
+      });
+
+      // After scroll, the selected account should be visible
       expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
       expect(queryByText('Account 1')).toBeFalsy();
     });

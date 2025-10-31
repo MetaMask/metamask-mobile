@@ -17,7 +17,11 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { OrderType } from '../../controllers/types';
-import { formatPercentage, formatPrice } from '../../utils/formatUtils';
+import {
+  formatPercentage,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import { createStyles } from './PerpsOrderHeader.styles';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -71,12 +75,23 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     }
 
     try {
-      return formatPrice(price);
+      return formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
     } catch {
-      // Fallback if formatPrice throws
+      // Fallback if formatPerpsFiat throws
       return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
   }, [price]);
+
+  const formattedChange = useMemo(() => {
+    if (!price || price <= 0 || !Number.isFinite(price)) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+    try {
+      return formatPercentage(priceChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+  }, [priceChange, price]);
 
   return (
     <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
@@ -108,7 +123,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
               variant={TextVariant.BodyMD}
               color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
             >
-              {formatPercentage(priceChange)}
+              {formattedChange}
             </Text>
           )}
         </View>

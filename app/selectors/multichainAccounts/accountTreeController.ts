@@ -245,7 +245,23 @@ export const selectWalletByAccount = createSelector(
       if (!wallets) return null;
 
       const walletId = accountToWalletMap[accountId];
-      return walletId ? wallets[walletId] ?? null : null;
+      return walletId ? (wallets[walletId] ?? null) : null;
+    },
+);
+
+/**
+ * Get a wallet status.
+ *
+ * @param walletId - The wallet ID.
+ * @returns The wallet status is wallet has been found, null otherwise.
+ */
+export const selectWalletStatus = createSelector(
+  [selectWalletsMap],
+  (wallets) =>
+    (walletId: AccountWalletId): AccountWalletObject['status'] | null => {
+      if (!wallets) return null;
+
+      return wallets[walletId]?.status ?? null;
     },
 );
 

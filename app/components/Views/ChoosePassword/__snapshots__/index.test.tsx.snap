@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ChoosePassword render matches snapshot 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
   style={
     {
       "backgroundColor": "#ffffff",
@@ -218,11 +226,12 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "color": "#121314",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "height": 46,
                       "letterSpacing": 0,
+                      "lineHeight": 20,
                       "opacity": 1,
-                      "paddingVertical": 0,
+                      "paddingVertical": 2,
+                      "textAlignVertical": "center",
                     }
                   }
                   submitBehavior="submit"
@@ -368,11 +377,12 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "color": "#121314",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "height": 46,
                       "letterSpacing": 0,
+                      "lineHeight": 20,
                       "opacity": 1,
-                      "paddingVertical": 0,
+                      "paddingVertical": 2,
+                      "textAlignVertical": "center",
                     }
                   }
                   testID="create-password-second-input-field"
@@ -537,6 +547,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessible={true}
               activeOpacity={1}
               disabled={true}
+              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
@@ -575,5 +586,5 @@ exports[`ChoosePassword render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

@@ -1,16 +1,14 @@
 import { Hex } from '@metamask/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import { isENS, isValidHexAddress } from '../../../../../util/address';
-import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import { isBtcMainnetAddress } from '../../../../../core/Multichain/utils';
 import {
-  shouldSkipValidation,
   validateHexAddress,
   validateSolanaAddress,
+  validateBitcoinAddress,
 } from '../../utils/send-address-validations';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -24,32 +22,24 @@ interface ValidationResult {
 }
 
 export const useToAddressValidation = () => {
-  const internalAccounts = useSelector(selectInternalAccounts);
-  const addressBook = useSelector(selectAddressBook);
-  const { chainId, to } = useSendContext();
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { asset, chainId, to } = useSendContext();
+  const { isEvmSendType, isSolanaSendType, isBitcoinSendType } = useSendType();
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
   const prevAddressValidated = useRef<string>();
   const unmountedRef = useRef(false);
 
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       unmountedRef.current = true;
-    }, []);
+    },
+    [],
+  );
 
   const validateToAddress = useCallback(
     async (toAddress?: string) => {
-      if (
-        !toAddress ||
-        !chainId ||
-        shouldSkipValidation({
-          toAddress,
-          chainId,
-          addressBook,
-          internalAccounts,
-        })
-      ) {
+      if (!toAddress || !chainId) {
         return {};
       }
 
@@ -57,11 +47,19 @@ export const useToAddressValidation = () => {
         isEvmSendType &&
         isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
       ) {
-        return await validateHexAddress(toAddress, chainId as Hex);
+        return await validateHexAddress(
+          toAddress,
+          chainId as Hex,
+          asset?.address,
+        );
       }
 
       if (isSolanaSendType && isSolanaAddress(toAddress)) {
         return validateSolanaAddress(toAddress);
+      }
+
+      if (isBitcoinSendType && isBtcMainnetAddress(toAddress)) {
+        return validateBitcoinAddress(toAddress);
       }
 
       if (isENS(toAddress)) {
@@ -73,11 +71,11 @@ export const useToAddressValidation = () => {
       };
     },
     [
-      addressBook,
+      asset,
       chainId,
-      internalAccounts,
       isEvmSendType,
       isSolanaSendType,
+      isBitcoinSendType,
       validateName,
     ],
   );

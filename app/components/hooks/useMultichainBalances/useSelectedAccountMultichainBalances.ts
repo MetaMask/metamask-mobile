@@ -91,7 +91,7 @@ const useSelectedAccountMultichainBalances =
     const isPortfolioEnabled = isPortfolioViewEnabled();
 
     const selectedAccountMultichainBalance = useMemo(() => {
-      if (selectedInternalAccount) {
+      if (selectedInternalAccount && isOriginalNativeEvmTokenSymbol !== null) {
         const accountBalanceData = getAccountBalanceData(
           selectedInternalAccount,
           currentCurrency,
@@ -116,7 +116,7 @@ const useSelectedAccountMultichainBalances =
           shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
             chainId as SupportedCaipChainId,
           ),
-          isPortfolioVieEnabled: isPortfolioEnabled,
+          isPortfolioViewEnabled: isPortfolioEnabled,
           aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
           isLoadingAccount:
             accountBalanceData.totalNativeTokenBalance === undefined,

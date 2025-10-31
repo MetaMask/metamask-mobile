@@ -6,15 +6,13 @@ import {
   AmountInputType,
   useSendMetricsContext,
 } from '../../../context/send-context/send-metrics-context';
-import { useSendContext } from '../../../context/send-context';
-import { useSendType } from '../useSendType';
 
 export const useAmountSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { chainId } = useSendContext();
-  const { isEvmSendType } = useSendType();
   const {
     accountType,
+    chainId,
+    chainIdCaip,
     amountInputMethod,
     amountInputType,
     setAmountInputMethod,
@@ -44,18 +42,18 @@ export const useAmountSelectionMetrics = () => {
           account_type: accountType,
           input_method: amountInputMethod,
           input_type: amountInputType,
-          chain_id: isEvmSendType ? chainId : undefined,
-          chain_id_caip: isEvmSendType ? undefined : chainId,
+          chain_id: chainId,
+          chain_id_caip: chainIdCaip,
         })
         .build(),
     );
   }, [
     accountType,
+    chainId,
+    chainIdCaip,
     amountInputMethod,
     amountInputType,
-    chainId,
     createEventBuilder,
-    isEvmSendType,
     trackEvent,
   ]);
 

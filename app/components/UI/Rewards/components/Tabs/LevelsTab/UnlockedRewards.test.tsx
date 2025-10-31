@@ -14,8 +14,10 @@ import {
   selectUnlockedRewards,
   selectUnlockedRewardError,
   selectSeasonStartDate,
+  selectCurrentTier,
 } from '../../../../../../reducers/rewards/selectors';
 import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
+import { SkeletonProps } from '../../../../../../component-library/components/Skeleton';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -35,6 +37,7 @@ jest.mock('../../../../../../reducers/rewards/selectors', () => ({
   selectUnlockedRewards: jest.fn(),
   selectUnlockedRewardError: jest.fn(),
   selectSeasonStartDate: jest.fn(),
+  selectCurrentTier: jest.fn(),
 }));
 
 // Mock theme
@@ -83,6 +86,21 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 // Mock RewardItem
 jest.mock('./RewardItem', () => jest.fn(() => null));
+
+// Mock Skeleton
+jest.mock('../../../../../../component-library/components/Skeleton', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    Skeleton: ({ style, ...props }: SkeletonProps) =>
+      ReactActual.createElement(View, {
+        testID: 'skeleton',
+        style,
+        ...props,
+      }),
+  };
+});
 
 // Mock the useUnlockedRewards hook
 jest.mock('../../../hooks/useUnlockedRewards', () => ({
@@ -164,6 +182,18 @@ const mockUnlockedRewardUnclaimed: RewardDto = {
   claimStatus: RewardClaimStatus.UNCLAIMED,
 };
 
+const mockCurrentTier = {
+  id: 'silver',
+  name: 'Silver',
+  pointsNeeded: 1000,
+  image: {
+    lightModeUrl: 'light-url',
+    darkModeUrl: 'dark-url',
+  },
+  levelNumber: '2',
+  rewards: [],
+};
+
 describe('UnlockedRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -180,12 +210,14 @@ describe('UnlockedRewards', () => {
     error = false,
     seasonStartDate = new Date('2024-01-01'),
     seasonReward = mockSeasonReward,
+    currentTier = mockCurrentTier,
   }: {
     loading?: boolean;
     rewards?: RewardDto[] | null;
     error?: boolean;
     seasonStartDate?: Date | null;
     seasonReward?: SeasonRewardDto | undefined;
+    currentTier?: typeof mockCurrentTier | null;
   }) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewardLoading) {
@@ -199,6 +231,9 @@ describe('UnlockedRewards', () => {
       }
       if (selector === selectSeasonStartDate) {
         return seasonStartDate;
+      }
+      if (selector === selectCurrentTier) {
+        return currentTier;
       }
       if (typeof selector === 'function') {
         return seasonReward;
@@ -260,6 +295,55 @@ describe('UnlockedRewards', () => {
       const { queryByTestId } = render(<UnlockedRewards />);
 
       // Should not render the component when rewards is empty array
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS)).toBeNull();
+    });
+
+    it('should render skeleton when loading and currentTier has pointsNeeded', () => {
+      setupMocks({
+        loading: true,
+        rewards: null,
+        currentTier: mockCurrentTier,
+      });
+      const { getByText } = render(<UnlockedRewards />);
+
+      // Should show section header
+      expect(getByText('Unlocked rewards')).toBeTruthy();
+    });
+
+    it('should render skeleton when rewards is null, not loading, no error, and currentTier has pointsNeeded', () => {
+      setupMocks({
+        loading: false,
+        rewards: null,
+        error: false,
+        currentTier: mockCurrentTier,
+      });
+      const { getByText, getByTestId } = render(<UnlockedRewards />);
+
+      // Should show section header
+      expect(getByText('Unlocked rewards')).toBeTruthy();
+      // Should show skeleton
+      expect(getByTestId('skeleton')).toBeTruthy();
+    });
+
+    it('should not render when currentTier is null', () => {
+      setupMocks({
+        rewards: [mockUnlockedReward],
+        currentTier: null,
+      });
+      const { queryByTestId } = render(<UnlockedRewards />);
+
+      // Should not render the component when currentTier is null
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS)).toBeNull();
+    });
+
+    it('should not render when currentTier has no pointsNeeded', () => {
+      setupMocks({
+        rewards: [mockUnlockedReward],
+        currentTier: { ...mockCurrentTier, pointsNeeded: 0 },
+      });
+      const { queryByTestId } = render(<UnlockedRewards />);
+
+      // Should not render the component when currentTier has no pointsNeeded
       expect(queryByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS)).toBeNull();
     });
   });

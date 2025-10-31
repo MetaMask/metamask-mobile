@@ -55,9 +55,8 @@ describe(
           smartContracts: [ERC_20_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc20Address = await contractRegistry?.getContractAddress(
-            ERC_20_CONTRACT,
-          );
+          const erc20Address =
+            await contractRegistry?.getContractAddress(ERC_20_CONTRACT);
 
           await loginToApp();
 

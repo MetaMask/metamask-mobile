@@ -1,7 +1,7 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
   artifacts: {
-    rootDir: "./artifacts",
+    rootDir: "./e2e/artifacts",
     plugins: {
       screenshot: {
         shouldTakeAutomaticSnapshots: true,
@@ -17,17 +17,17 @@ module.exports = {
       },
     },
   },
-  
   testRunner: {
     args: {
       $0: 'jest',
       config: 'e2e/jest.e2e.config.js',
     },
+    detached: true,
     jest: {
       setupTimeout: 220000,
       teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
     },
-    retries: 1,
+    retries: process.env.CI ? 1 : 0,
   },
   configurations: {
     'ios.sim.apiSpecs': {
@@ -39,38 +39,34 @@ module.exports = {
         },
       },
     },
-    'ios.sim.debug': {
-      device: 'ios.simulator',
-      app: 'ios.debug',
-    },
-    'ios.sim.main.release': {
-      device: 'ios.simulator',
-      app: 'ios.main.release',
-    },
-    'ios.sim.flask.release': {
-      device: 'ios.simulator',
-      app: 'ios.flask.release',
-    },
-    'ios.github_ci.main.release': {
-      device: 'ios.github_ci.simulator',
-      app: 'ios.debug',
-    },
-    'android.emu.debug': {
+    'android.emu.main': {
       device: 'android.emulator',
       app: 'android.debug',
     },
-    'android.emu.release': {
-      device: 'android.bitrise.emulator',
-      app: 'android.release',
+    'android.emu.flask': {
+      device: 'android.emulator',
+      app: 'android.flask.debug',
     },
-    'android.github_ci.release': {
+    'ios.sim.main': {
+      device: 'ios.simulator',
+      app: 'ios.debug',
+    },
+    'ios.sim.flask': {
+      device: 'ios.simulator',
+      app: 'ios.flask.debug',
+    },
+    'android.emu.main.ci': {
       device: 'android.github_ci.emulator',
       app: 'android.release',
     },
-    'android.emu.flask.release': {
-      device: 'android.bitrise.emulator',
+    'android.emu.flask.ci': {
+      device: 'android.github_ci.emulator',
       app: 'android.flask.release',
     },
+    'ios.sim.main.ci': {
+      device: 'ios.simulator',
+      app: 'ios.debug',
+    }
   },
   devices: {
     'ios.simulator': {
@@ -79,12 +75,20 @@ module.exports = {
         type: 'iPhone 15 Pro',
       },
     },
-    'ios.github_ci.simulator': {
-      type: 'ios.simulator',
+    'android.emulator': {
+      type: 'android.emulator',
       device: {
-        type: 'iPhone 16 Pro',
-        os: 'iOS 18.6',
+        avdName: 'Pixel_5_Pro_API_34',
       },
+    },
+    'android.github_ci.emulator': {
+      type: 'android.emulator',
+      device: {
+        avdName: 'emulator',
+      },
+      bootArgs: '-skin 1080x2340 -memory 12288 -cores 8 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 8192 -no-snapshot-save -no-snapshot-load -cache-size 2048 -accel on -wipe-data -read-only',      
+      forceAdbInstall: true,
+      gpuMode: 'swiftshader_indirect',
     },
     'android.bitrise.emulator': {
       type: 'android.emulator',
@@ -94,23 +98,7 @@ module.exports = {
       // optimized for Bitrise CI runners
       bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
       forceAdbInstall: true,
-    },
-    'android.github_ci.emulator': {
-      type: 'android.emulator',
-      device: {
-        avdName: 'emulator',
-      },
-      // optimized for GitHub Actions CI runners
-      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -accel on -wipe-data -read-only',
-      forceAdbInstall: true,
-      gpuMode: 'swiftshader_indirect',
-    },
-    'android.emulator': {
-      type: 'android.emulator',
-      device: {
-        avdName: 'Pixel_5_Pro_API_34',
-      },
-    },
+    }
   },
   apps: {
     'ios.debug': {
@@ -125,6 +113,12 @@ module.exports = {
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: `yarn build:ios:main:e2e`,
     },
+    'ios.flask.debug': {
+      type: 'ios.app',
+      binaryPath:
+        'ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app',
+      build: 'yarn start:ios:e2e:flask',
+    },
     'ios.flask.release': {
       type: 'ios.app',
       binaryPath:
@@ -136,6 +130,12 @@ module.exports = {
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
       testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
       build: 'yarn start:android:e2e',
+    },
+    'android.flask.debug': {
+      type: 'android.apk',
+      binaryPath: 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
+      testBinaryPath: 'android/app/build/outputs/apk/androidTest/flask/debug/app-flask-debug-androidTest.apk',
+      build: 'yarn start:android:e2e:flask',
     },
     'android.release': {
       type: 'android.apk',

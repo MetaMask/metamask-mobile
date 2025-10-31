@@ -44,7 +44,6 @@ import {
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import {
-  convertEnglishWordlistIndicesToCodepoints,
   convertMnemonicToWordlistIndices,
   uint8ArrayToMnemonic,
 } from '../../util/mnemonic';
@@ -306,9 +305,8 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
@@ -438,9 +436,8 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
@@ -786,61 +783,67 @@ class AuthenticationService {
       throw new Error('No root SRP found');
     }
 
+    const allErrors: Error[] = [];
     for (const secret of otherSecrets) {
-      // import SRP secret
-      // Get the SRP hash, and find the hash in the local state
-      const secretDataHash =
-        SeedlessOnboardingController.getSecretDataBackupState(
-          secret.data,
-          secret.type,
-        );
-
-      if (!secretDataHash) {
-        // If SRP is not in the local state, import it to the vault
-
-        // import private key secret
-        if (secret.type === SecretType.PrivateKey) {
-          await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
-            shouldCreateSocialBackup: false,
-            shouldSelectAccount: false,
-          });
-          continue;
-        } else if (secret.type === SecretType.Mnemonic) {
-          // convert the seed phrase to a mnemonic (string)
-          const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
+      try {
+        // import SRP secret
+        // Get the SRP hash, and find the hash in the local state
+        const secretDataHash =
+          SeedlessOnboardingController.getSecretDataBackupState(
             secret.data,
-            wordlist,
-          );
-          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
-
-          // import the new mnemonic to the current vault
-          const keyringMetadata = await this.importSeedlessMnemonicToVault(
-            mnemonicToRestore,
-          );
-
-          // discover multichain accounts from imported srp
-          if (isMultichainAccountsState2Enabled()) {
-            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
-          } else {
-            this.addMultichainAccounts([keyringMetadata]);
-          }
-        } else {
-          Logger.error(
-            new Error('SeedlessOnboardingController: Unknown secret type'),
             secret.type,
           );
+
+        if (!secretDataHash) {
+          // If SRP is not in the local state, import it to the vault
+
+          // import private key secret
+          if (secret.type === SecretType.PrivateKey) {
+            await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
+              shouldCreateSocialBackup: false,
+              shouldSelectAccount: false,
+            });
+            continue;
+          } else if (secret.type === SecretType.Mnemonic) {
+            // convert the seed phrase to a mnemonic (string)
+            const encodedSrp = uint8ArrayToMnemonic(secret.data, wordlist);
+            const mnemonicToRestore = encodedSrp;
+
+            // import the new mnemonic to the current vault
+            const keyringMetadata =
+              await this.importSeedlessMnemonicToVault(mnemonicToRestore);
+
+            // discover multichain accounts from imported srp
+            if (isMultichainAccountsState2Enabled()) {
+              // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+              this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
+            } else {
+              this.addMultichainAccounts([keyringMetadata]);
+            }
+          } else {
+            Logger.error(
+              new Error('SeedlessOnboardingController: Unknown secret type'),
+              secret.type,
+            );
+          }
         }
+      } catch (error) {
+        allErrors.push(error as Error);
+        Logger.error(error as Error, 'Seedless - syncSeedPhrases error');
       }
+    }
+    if (allErrors.length > 0) {
+      // throw first error
+      throw allErrors[0];
     }
   };
 
   importSeedlessMnemonicToVault = async (
     mnemonic: string,
   ): Promise<KeyringMetadata> => {
-    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
-      ReduxService.store.getState(),
-    );
+    const isSeedlessOnboardingFlow =
+      Engine.context.SeedlessOnboardingController.state.vault != null;
+
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
@@ -991,9 +994,8 @@ class AuthenticationService {
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
-          password,
-        );
+        allSRPs =
+          await SeedlessOnboardingController.fetchAllSecretData(password);
         fetchSrpsSuccess = true;
       } catch (error) {
         const errorMessage =

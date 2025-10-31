@@ -1,4 +1,4 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import { ConfirmationRowComponentIDs,ConfirmationFooterSelectorIDs } from '../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { expect as appwrightExpect } from 'appwright';
 

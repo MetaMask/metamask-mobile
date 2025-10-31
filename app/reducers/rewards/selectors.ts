@@ -49,6 +49,9 @@ export const selectSeasonTiers = (state: RootState) =>
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
 
+export const selectOnboardingReferralCode = (state: RootState) =>
+  state.rewards.onboardingReferralCode;
+
 export const selectGeoLocation = (state: RootState) =>
   state.rewards.geoLocation;
 
@@ -100,3 +103,6 @@ export const selectSeasonRewardById =
     (state.rewards.seasonTiers || [])
       .flatMap((tier) => tier.rewards)
       ?.find((reward) => reward.id === rewardId);
+
+export const selectPointsEvents = (state: RootState) =>
+  state.rewards.pointsEvents;

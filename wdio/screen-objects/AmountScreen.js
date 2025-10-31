@@ -1,8 +1,8 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 import {
   AMOUNT_ERROR,
   AMOUNT_SCREEN,
@@ -10,10 +10,7 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
 
-class AmountScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class AmountScreen {
 
   get device() {
     return this._device;
@@ -21,7 +18,7 @@ class AmountScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get amountInputField() {
@@ -48,7 +45,7 @@ class AmountScreen extends AppwrightGestures {
     if (!this._device) {
       return Selectors.getElementByPlatform(NEXT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByText(this._device, 'Continue');
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Continue');
     }
   }
   // Helper method to split amount into digits
@@ -60,28 +57,49 @@ class AmountScreen extends AppwrightGestures {
     });
   }
 
+  async tapNumberKey(digit) {
+    console.log(`tapNumberKey called with digit: "${digit}"`);
+    
+    try {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        console.log(`Android: Looking for button with content-desc='${digit}'`);
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+        console.log(`Android: Found element, checking visibility`);
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
+        console.log(`Android: Element visible, tapping`);
+        await AppwrightGestures.tap(numberKey);
+        console.log(`Android: Successfully tapped digit: ${digit}`);
+      }
+      else {
+        console.log(`iOS: Looking for button with name="${digit}"`);
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        console.log(`iOS: Found element, checking visibility`);
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
+        console.log('iOS: Tapping number key:', digit);
+        await AppwrightGestures.tap(numberKey);
+        console.log(`iOS: Successfully tapped digit: ${digit}`);
+      }
+    } catch (error) {
+      console.error(`Error in tapNumberKey for digit "${digit}":`, error);
+      throw error;
+    }
+  }
+
   async enterAmount(text) {
     if (!this._device) {
       await Gestures.waitAndTap(this.amountInputField);
       await Gestures.typeText(this.amountInputField, text);
     } else {
-      // Split amount into digits
-    const digits = this.splitAmountIntoDigits(text);
-    console.log('Amount digits:', digits);
-    for (const digit of digits) {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-        await numberKey.waitFor('visible',{ timeout: 30000 });
-        await this.tap(numberKey);
+        console.log('Direct input failed, falling back to digit tapping');
+        // Fallback to digit tapping if direct input fails
+        const digits = this.splitAmountIntoDigits(text);
+        for (const digit of digits) {
+          console.log('Tapping digit:', digit);
+          await this.tapNumberKey(digit);
+        }
       }
-      else {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await numberKey.waitFor('visible', { timeout: 30000 });
-        await this.tap(numberKey); 
-      }
-    }
-    }
   }
+
 
   async isTokenCorrect(token) {
     expect(this.confirmAmount).toHaveText(token);
@@ -98,7 +116,7 @@ class AmountScreen extends AppwrightGestures {
   }
 
   async tapOnNextButton() {
-    await this.tap(this.nextButton);
+    await AppwrightGestures.tap(this.nextButton);
   }
 
   async isVisible() {
@@ -107,7 +125,7 @@ class AmountScreen extends AppwrightGestures {
       await element.waitForDisplayed();
     } else {
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, '25%');
-      await expect(element).toBeVisible();
+      await appwrightExpect(element).toBeVisible();
     }
   }
 }

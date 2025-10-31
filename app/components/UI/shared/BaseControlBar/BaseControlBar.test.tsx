@@ -278,9 +278,9 @@ describe('BaseControlBar', () => {
         mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       });
 
-      it('should show "All Networks" when multiple networks are enabled', () => {
+      it('should show "Popular Networks" when multiple networks are enabled', () => {
         const { getByText } = renderComponent();
-        expect(getByText('wallet.all_networks')).toBeTruthy();
+        expect(getByText('wallet.popular_networks')).toBeTruthy();
       });
 
       it('should show current network name when only one network is enabled', () => {
@@ -665,7 +665,7 @@ describe('BaseControlBar', () => {
 
       const { getByText } = renderComponent();
 
-      expect(getByText('wallet.all_networks')).toBeTruthy();
+      expect(getByText('wallet.popular_networks')).toBeTruthy();
     });
 
     it('should call strings function for fallback text', () => {

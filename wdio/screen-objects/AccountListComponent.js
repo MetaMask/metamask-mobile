@@ -3,14 +3,11 @@ import Selectors from '../helpers/Selectors';
 import {
   AccountListBottomSheetSelectorsIDs,
 } from '../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect } from 'appwright';
 
-class AccountListComponent extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class AccountListComponent {
 
   get device() {
     return this._device;
@@ -18,7 +15,7 @@ class AccountListComponent extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get accountListContainer() {
@@ -33,16 +30,25 @@ class AccountListComponent extends AppwrightGestures {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT);
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Add account');
     }
+  }
+
+  get addWalletButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'account-list-add-account-button');
   }
 
   async tapCreateAccountButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
-      await this.tap(this.addAccountButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
+  }
+
+  async tapOnAddWalletButton() {
+    const element = await this.addWalletButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async isComponentDisplayed() {
@@ -66,8 +72,8 @@ class AccountListComponent extends AppwrightGestures {
 
   async tapOnAccountByName(name) {
     let account = await AppwrightSelectors.getElementByText(this.device, name);
-    await this.scrollIntoView(account); // Use inherited method with retry logic
-    await this.tap(account); // Tap after scrolling into view
+    await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
+    await AppwrightGestures.tap(account); // Tap after scrolling into view
   }
 }
 

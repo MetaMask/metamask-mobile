@@ -4,7 +4,7 @@ import  {
   BrowserViewSelectorsIDs,
 } from '../../../e2e/selectors/Browser/BrowserView.selectors';
 import { expect } from 'appwright';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 
 
 class BrowserScreen {

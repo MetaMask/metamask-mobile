@@ -1,7 +1,15 @@
 import React, { createContext, useContext } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import PerpsConnectionManager from '../services/PerpsConnectionManager';
 import type {
   PriceUpdate,
@@ -12,6 +20,7 @@ import type {
   PerpsMarketData,
 } from '../controllers/types';
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 
@@ -32,8 +41,17 @@ abstract class StreamChannel<T> {
   protected wsSubscription: (() => void) | null = null;
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
+  // Track WebSocket connection timing for first data measurement
+  protected wsConnectionStartTime: number | null = null;
+  // Flag to pause emission during operations (keeps WebSocket alive)
+  protected isPaused = false;
 
   protected notifySubscribers(updates: T) {
+    // Block emission if paused (WebSocket continues receiving updates)
+    if (this.isPaused) {
+      return;
+    }
+
     this.subscribers.forEach((subscriber) => {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
@@ -113,6 +131,24 @@ abstract class StreamChannel<T> {
       this.wsSubscription = null;
     }
     this.accountAddress = null;
+    this.wsConnectionStartTime = null;
+  }
+
+  /**
+   * Pause emission of updates to subscribers
+   * WebSocket connection stays alive and continues receiving data
+   * Used during batch operations to prevent UI re-renders from stale data
+   */
+  public pause(): void {
+    this.isPaused = true;
+  }
+
+  /**
+   * Resume emission of updates to subscribers
+   * Subscribers will receive the next update from the WebSocket
+   */
+  public resume(): void {
+    this.isPaused = false;
   }
 
   protected getCachedData(): T | null {
@@ -128,6 +164,7 @@ abstract class StreamChannel<T> {
 
     // Reset account context immediately
     this.accountAddress = null;
+    this.wsConnectionStartTime = null;
 
     // Clear the cache
     this.cache.clear();
@@ -190,7 +227,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
-      symbols: allSymbols, // Subscribe to specific symbols
+      symbols: allSymbols,
+      includeOrderBook: true, // include bid/ask data from L2 book
       callback: (updates: PriceUpdate[]) => {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
@@ -297,6 +335,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       // Subscribe to all market prices
       this.prewarmUnsubscribe = controller.subscribeToPrices({
         symbols: this.allMarketSymbols,
+        includeOrderBook: true, // include bid/ask data from L2 book
         callback: (updates: PriceUpdate[]) => {
           // Update cache and build price map
           const priceMap: Record<string, PriceUpdate> = {};
@@ -331,7 +370,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         this.cleanupPrewarm();
       };
     } catch (error) {
-      DevLogger.log('PriceStreamChannel: Failed to prewarm prices', error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'PriceStreamChannel.prewarm',
+      });
       // Return no-op cleanup function
       return () => {
         // No-op
@@ -354,6 +395,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 // Specific channel for orders
 class OrderStreamChannel extends StreamChannel<Order[]> {
   private prewarmUnsubscribe?: () => void;
+  private firstDataTraceId?: string;
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -366,6 +408,17 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
       );
       return;
     }
+
+    // Start trace for first data measurement (before subscription)
+    this.firstDataTraceId = uuidv4();
+    trace({
+      name: TraceName.PerpsWebSocketFirstOrders,
+      id: this.firstDataTraceId,
+      op: TraceOperation.PerpsOperation,
+    });
+
+    // Track WebSocket connection start time for duration calculation
+    this.wsConnectionStartTime = performance.now();
 
     // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
@@ -381,6 +434,33 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
           return;
         }
         this.accountAddress = currentAccount;
+
+        // Track first order data from WebSocket (only once per connection)
+        if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+          const firstDataDuration =
+            performance.now() - this.wsConnectionStartTime;
+
+          // Log WebSocket performance measurement
+          DevLogger.log(
+            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First order data received`,
+            {
+              duration: `${firstDataDuration.toFixed(0)}ms`,
+            },
+          );
+
+          // End trace with accurate duration
+          endTrace({
+            name: TraceName.PerpsWebSocketFirstOrders,
+            id: this.firstDataTraceId,
+            data: {
+              success: true,
+              duration: firstDataDuration,
+            },
+          });
+
+          this.wsConnectionStartTime = null;
+          this.firstDataTraceId = undefined;
+        }
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
@@ -434,9 +514,15 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     }
   }
 
+  public disconnect() {
+    this.firstDataTraceId = undefined;
+    super.disconnect();
+  }
+
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
+    this.firstDataTraceId = undefined;
     // Call parent clearCache
     super.clearCache();
   }
@@ -445,6 +531,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
 // Specific channel for positions
 class PositionStreamChannel extends StreamChannel<Position[]> {
   private prewarmUnsubscribe?: () => void;
+  private firstDataTraceId?: string;
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -457,6 +544,17 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       );
       return;
     }
+
+    // Start trace for first data measurement (before subscription)
+    this.firstDataTraceId = uuidv4();
+    trace({
+      name: TraceName.PerpsWebSocketFirstPositions,
+      id: this.firstDataTraceId,
+      op: TraceOperation.PerpsOperation,
+    });
+
+    // Track WebSocket connection start time for duration calculation
+    this.wsConnectionStartTime = performance.now();
 
     // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
@@ -475,6 +573,34 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
           return;
         }
         this.accountAddress = currentAccount;
+
+        // Track first position data from WebSocket (only once per connection)
+        if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+          const firstDataDuration =
+            performance.now() - this.wsConnectionStartTime;
+
+          // Log WebSocket performance measurement
+          DevLogger.log(
+            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First position data received`,
+            {
+              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
+              duration: `${firstDataDuration.toFixed(0)}ms`,
+            },
+          );
+
+          // End trace with accurate duration
+          endTrace({
+            name: TraceName.PerpsWebSocketFirstPositions,
+            id: this.firstDataTraceId,
+            data: {
+              success: true,
+              duration: firstDataDuration,
+            },
+          });
+
+          this.wsConnectionStartTime = null;
+          this.firstDataTraceId = undefined;
+        }
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
@@ -518,9 +644,15 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     };
   }
 
+  public disconnect() {
+    this.firstDataTraceId = undefined;
+    super.disconnect();
+  }
+
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
+    this.firstDataTraceId = undefined;
     // Call parent clearCache
     super.clearCache();
   }
@@ -564,6 +696,7 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 // Specific channel for account state
 class AccountStreamChannel extends StreamChannel<AccountState | null> {
   private prewarmUnsubscribe?: () => void;
+  private firstDataTraceId?: string;
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -576,6 +709,17 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       );
       return;
     }
+
+    // Start trace for first data measurement (before subscription)
+    this.firstDataTraceId = uuidv4();
+    trace({
+      name: TraceName.PerpsWebSocketFirstAccount,
+      id: this.firstDataTraceId,
+      op: TraceOperation.PerpsOperation,
+    });
+
+    // Track WebSocket connection start time for duration calculation
+    this.wsConnectionStartTime = performance.now();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState) => {
@@ -594,6 +738,33 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
         }
         this.accountAddress = currentAccount;
 
+        // Track first account data from WebSocket (only once per connection)
+        if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+          const firstDataDuration =
+            performance.now() - this.wsConnectionStartTime;
+
+          // Log WebSocket performance measurement
+          DevLogger.log(
+            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First account data received`,
+            {
+              duration: `${firstDataDuration.toFixed(0)}ms`,
+            },
+          );
+
+          // End trace with accurate duration
+          endTrace({
+            name: TraceName.PerpsWebSocketFirstAccount,
+            id: this.firstDataTraceId,
+            data: {
+              success: true,
+              duration: firstDataDuration,
+            },
+          });
+
+          this.wsConnectionStartTime = null;
+          this.firstDataTraceId = undefined;
+        }
+
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);
@@ -610,9 +781,15 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     return null;
   }
 
+  public disconnect() {
+    this.firstDataTraceId = undefined;
+    super.disconnect();
+  }
+
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
+    this.firstDataTraceId = undefined;
     // Call parent clearCache
     super.clearCache();
   }
@@ -661,10 +838,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
 
-  protected async connect() {
-    // Wait for connection to complete if in progress
-    while (PerpsConnectionManager.isCurrentlyConnecting()) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+  protected connect() {
+    // Check if connection manager is still connecting - retry later if so
+    if (PerpsConnectionManager.isCurrentlyConnecting()) {
+      setTimeout(() => this.connect(), 200);
+      return;
     }
 
     // Fetch if cache is stale or empty
@@ -732,10 +910,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         });
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
-        DevLogger.log('PerpsStreamManager: Failed to fetch market data', {
-          error,
-          fetchTimeMs: fetchTime,
-        });
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context: 'PerpsStreamManager.fetchMarketData',
+            fetchTimeMs: fetchTime,
+          },
+        );
         // Keep existing cache if fetch fails
         const existing = this.cache.get('markets');
         if (existing) {
@@ -778,7 +959,9 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
     this.fetchMarketData().catch((error) => {
-      DevLogger.log('PerpsStreamManager: Failed to prewarm market data', error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'MarketDataChannel.prewarm',
+      });
     });
 
     // No cleanup needed for REST data

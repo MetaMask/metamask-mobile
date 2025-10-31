@@ -18,10 +18,13 @@ import {
   selectSeasonEndDate,
   selectSeasonTiers,
   selectOnboardingActiveStep,
+  selectOnboardingReferralCode,
   selectGeoLocation,
   selectOptinAllowedForGeo,
   selectOptinAllowedForGeoLoading,
+  selectOptinAllowedForGeoError,
   selectReferralDetailsLoading,
+  selectReferralDetailsError,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
@@ -32,11 +35,13 @@ import {
   selectUnlockedRewardLoading,
   selectUnlockedRewardError,
   selectSeasonRewardById,
+  selectPointsEvents,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
+  PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -54,7 +59,7 @@ describe('Rewards selectors', () => {
   // Helper function to create mock root state
   const createMockRootState = (
     rewardsState: Partial<RewardsState>,
-  ): RootState => ({ rewards: rewardsState } as RootState);
+  ): RootState => ({ rewards: rewardsState }) as RootState;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -578,6 +583,58 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectOnboardingReferralCode', () => {
+    it('returns null when onboarding referral code is not set', () => {
+      const mockState = { rewards: { onboardingReferralCode: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBeNull();
+    });
+
+    it('returns onboarding referral code when set', () => {
+      const mockState = { rewards: { onboardingReferralCode: 'ONBOARD123' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBe('ONBOARD123');
+    });
+
+    it('returns empty string when onboarding referral code is empty', () => {
+      const mockState = { rewards: { onboardingReferralCode: '' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBe('');
+    });
+
+    it('handles state changes correctly', () => {
+      const mockState = { rewards: { onboardingReferralCode: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBeNull();
+
+      // Simulate state change: update onboardingReferralCode to a string
+      const updatedState = {
+        rewards: { onboardingReferralCode: 'UPDATED456' },
+      };
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(updatedState),
+      );
+      rerender();
+      expect(result.current).toBe('UPDATED456');
+    });
+  });
+
   describe('selectGeoLocation', () => {
     it('returns null when geo location is not set', () => {
       const mockState = { rewards: { geoLocation: null } };
@@ -640,6 +697,48 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectOptinAllowedForGeoError', () => {
+    it('returns false when there is no geo error', () => {
+      const mockState = { rewards: { optinAllowedForGeoError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOptinAllowedForGeoError),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a geo error', () => {
+      const mockState = { rewards: { optinAllowedForGeoError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOptinAllowedForGeoError),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { optinAllowedForGeoError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectOptinAllowedForGeoError),
+      );
+      expect(result.current).toBe(false);
+
+      mockState = { rewards: { optinAllowedForGeoError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      mockState = { rewards: { optinAllowedForGeoError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+  });
+
   describe('selectReferralDetailsLoading', () => {
     it('returns false when referral details are not loading', () => {
       const mockState = { rewards: { referralDetailsLoading: false } };
@@ -659,6 +758,48 @@ describe('Rewards selectors', () => {
         useSelector(selectReferralDetailsLoading),
       );
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectReferralDetailsError', () => {
+    it('returns false when there is no referral details error', () => {
+      const mockState = { rewards: { referralDetailsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectReferralDetailsError),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a referral details error', () => {
+      const mockState = { rewards: { referralDetailsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectReferralDetailsError),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { referralDetailsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectReferralDetailsError),
+      );
+      expect(result.current).toBe(false);
+
+      mockState = { rewards: { referralDetailsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      mockState = { rewards: { referralDetailsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
     });
   });
 
@@ -740,7 +881,7 @@ describe('Rewards selectors', () => {
 
     it('returns single account configuration when set', () => {
       const mockAccountConfig: AccountOptInBannerInfoStatus = {
-        caipAccountId: 'eip155:1:0x123456789abcdef',
+        accountGroupId: 'keyring:wallet1/1',
         hide: true,
       };
       const mockState = {
@@ -753,24 +894,22 @@ describe('Rewards selectors', () => {
       );
       expect(result.current).toEqual([mockAccountConfig]);
       expect(result.current).toHaveLength(1);
-      expect(result.current?.[0]?.caipAccountId).toBe(
-        'eip155:1:0x123456789abcdef',
-      );
+      expect(result.current?.[0]?.accountGroupId).toBe('keyring:wallet1/1');
       expect(result.current?.[0]?.hide).toBe(true);
     });
 
     it('returns multiple account configurations when set', () => {
       const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x123456789abcdef',
+          accountGroupId: 'keyring:wallet1/1',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0xabcdef123456789',
+          accountGroupId: 'keyring:wallet1/2',
           hide: false,
         },
         {
-          caipAccountId: 'eip155:137:0x987654321fedcba',
+          accountGroupId: 'keyring:wallet2/1',
           hide: true,
         },
       ];
@@ -792,15 +931,15 @@ describe('Rewards selectors', () => {
     it('handles mixed hide states correctly', () => {
       const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x111111111111111',
+          accountGroupId: 'keyring:wallet1/1',
           hide: false,
         },
         {
-          caipAccountId: 'eip155:1:0x222222222222222',
+          accountGroupId: 'keyring:wallet1/2',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0x333333333333333',
+          accountGroupId: 'keyring:wallet1/3',
           hide: false,
         },
       ];
@@ -834,7 +973,7 @@ describe('Rewards selectors', () => {
       // Change state to have account configs
       const newAccountConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x444444444444444',
+          accountGroupId: 'keyring:wallet1/4',
           hide: true,
         },
       ];
@@ -850,19 +989,19 @@ describe('Rewards selectors', () => {
     it('preserves account configuration order', () => {
       const orderedConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0xaaa',
+          accountGroupId: 'keyring:wallet1/1',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0xbbb',
+          accountGroupId: 'keyring:wallet1/2',
           hide: false,
         },
         {
-          caipAccountId: 'eip155:1:0xccc',
+          accountGroupId: 'keyring:wallet1/3',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0xddd',
+          accountGroupId: 'keyring:wallet1/4',
           hide: false,
         },
       ];
@@ -875,28 +1014,28 @@ describe('Rewards selectors', () => {
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
       );
       expect(result.current).toEqual(orderedConfigs);
-      expect(result.current?.[0]?.caipAccountId).toBe('eip155:1:0xaaa');
-      expect(result.current?.[1]?.caipAccountId).toBe('eip155:1:0xbbb');
-      expect(result.current?.[2]?.caipAccountId).toBe('eip155:1:0xccc');
-      expect(result.current?.[3]?.caipAccountId).toBe('eip155:1:0xddd');
+      expect(result.current?.[0]?.accountGroupId).toBe('keyring:wallet1/1');
+      expect(result.current?.[1]?.accountGroupId).toBe('keyring:wallet1/2');
+      expect(result.current?.[2]?.accountGroupId).toBe('keyring:wallet1/3');
+      expect(result.current?.[3]?.accountGroupId).toBe('keyring:wallet1/4');
     });
 
-    it('handles different CAIP account ID formats correctly', () => {
+    it('handles different account group ID formats correctly', () => {
       const differentFormatConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x123456789abcdef', // Ethereum mainnet
+          accountGroupId: 'keyring:wallet1/ethereum', // Ethereum wallet
           hide: true,
         },
         {
-          caipAccountId: 'eip155:137:0xabcdef123456789', // Polygon
+          accountGroupId: 'keyring:wallet2/polygon', // Polygon wallet
           hide: false,
         },
         {
-          caipAccountId: 'eip155:56:0x987654321fedcba', // BSC
+          accountGroupId: 'keyring:wallet3/bsc', // BSC wallet
           hide: true,
         },
         {
-          caipAccountId: 'eip155:42161:0x555666777888999', // Arbitrum
+          accountGroupId: 'keyring:wallet4/arbitrum', // Arbitrum wallet
           hide: false,
         },
       ];
@@ -912,7 +1051,7 @@ describe('Rewards selectors', () => {
       expect(result.current).toHaveLength(4);
       expect(
         result.current?.every((config) =>
-          config.caipAccountId.startsWith('eip155:'),
+          config.accountGroupId.startsWith('keyring:'),
         ),
       ).toBe(true);
     });
@@ -1249,11 +1388,11 @@ describe('Rewards selectors', () => {
       it('returns account configurations when set', () => {
         const accountConfigs: AccountOptInBannerInfoStatus[] = [
           {
-            caipAccountId: 'eip155:1:0x123456789abcdef',
+            accountGroupId: 'keyring:wallet1/1',
             hide: true,
           },
           {
-            caipAccountId: 'eip155:1:0xabcdef123456789',
+            accountGroupId: 'keyring:wallet1/2',
             hide: false,
           },
         ];
@@ -1270,7 +1409,7 @@ describe('Rewards selectors', () => {
 
       it('preserves account configuration references', () => {
         const accountConfig: AccountOptInBannerInfoStatus = {
-          caipAccountId: 'eip155:1:0x987654321fedcba',
+          accountGroupId: 'keyring:wallet1/3',
           hide: true,
         };
         const state = createMockRootState({
@@ -1289,7 +1428,9 @@ describe('Rewards selectors', () => {
         const largeAccountConfigs: AccountOptInBannerInfoStatus[] = Array.from(
           { length: 50 },
           (_, i) => ({
-            caipAccountId: `eip155:1:0x${i.toString().padStart(40, '0')}`,
+            accountGroupId: `keyring:wallet${Math.floor(i / 10) + 1}/${
+              (i % 10) + 1
+            }`,
             hide: i % 2 === 0,
           }),
         );
@@ -1625,11 +1766,11 @@ describe('Rewards selectors', () => {
         hideUnlinkedAccountsBanner: true,
         hideCurrentAccountNotOptedInBanner: [
           {
-            caipAccountId: 'eip155:1:0x123456789abcdef',
+            accountGroupId: 'keyring:wallet1/1',
             hide: true,
           },
           {
-            caipAccountId: 'eip155:137:0xabcdef123456789',
+            accountGroupId: 'keyring:wallet2/1',
             hide: false,
           },
         ],
@@ -1679,16 +1820,16 @@ describe('Rewards selectors', () => {
         ).toHaveLength(2);
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
-            .caipAccountId,
-        ).toBe('eip155:1:0x123456789abcdef');
+            .accountGroupId,
+        ).toBe('keyring:wallet1/1');
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
             .hide,
         ).toBe(true);
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
-            .caipAccountId,
-        ).toBe('eip155:137:0xabcdef123456789');
+            .accountGroupId,
+        ).toBe('keyring:wallet2/1');
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
             .hide,
@@ -2049,6 +2190,160 @@ describe('Rewards selectors', () => {
       rerender();
       expect(result.current).toBeDefined();
       expect(result.current?.id).toBe('reward-1');
+    });
+  });
+
+  describe('selectPointsEvents', () => {
+    it('returns null when points events is null', () => {
+      const mockState = { rewards: { pointsEvents: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns empty array when points events is empty', () => {
+      const mockState = { rewards: { pointsEvents: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toEqual([]);
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('returns points events array when available', () => {
+      const mockPointsEvents: PointsEventDto[] = [
+        {
+          id: 'event-1',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+              type: 'eip155:1/slip44:0',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+            },
+            txHash:
+              '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          },
+        },
+        {
+          id: 'event-2',
+          type: 'REFERRAL',
+          timestamp: new Date('2024-01-02T00:00:00Z'),
+          value: 50,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+          payload: null,
+        },
+      ];
+      const mockState = { rewards: { pointsEvents: mockPointsEvents } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toEqual(mockPointsEvents);
+      expect(result.current).toHaveLength(2);
+      expect(result.current?.[0]?.id).toBe('event-1');
+      expect(result.current?.[0]?.type).toBe('SWAP');
+      expect(result.current?.[1]?.type).toBe('REFERRAL');
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: { pointsEvents: null as PointsEventDto[] | null },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectPointsEvents),
+      );
+      expect(result.current).toBeNull();
+
+      // Change state to have points events
+      const newEvents: PointsEventDto[] = [
+        {
+          id: 'new-event',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 150,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              decimals: 8,
+              type: 'eip155:1/slip44:0',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              name: 'Ethereum',
+              decimals: 18,
+              symbol: 'ETH',
+              type: 'eip155:1/slip44:60',
+            },
+          },
+        },
+      ];
+      mockState = { rewards: { pointsEvents: newEvents } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newEvents);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.id).toBe('new-event');
+    });
+
+    it('returns same reference for same input', () => {
+      const events: PointsEventDto[] = [
+        {
+          id: 'event-1',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+          },
+        },
+      ];
+      const state = createMockRootState({ pointsEvents: events });
+
+      const result1 = selectPointsEvents(state);
+      const result2 = selectPointsEvents(state);
+
+      expect(result1).toBe(result2); // Same reference
+      expect(result1).toEqual(result2); // Same value
     });
   });
 });

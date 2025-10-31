@@ -16,7 +16,7 @@ class TabBarComponent {
   }
 
   get tabBarActionButton(): DetoxElement {
-    return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
+    return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
   get tabBarSettingButton(): DetoxElement {
@@ -25,6 +25,10 @@ class TabBarComponent {
 
   get tabBarActivityButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
+  }
+
+  get tabBarRewardsButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
   async tapBrowser(): Promise<void> {
@@ -55,7 +59,7 @@ class TabBarComponent {
 
   async tapActions(): Promise<void> {
     await Gestures.waitAndTap(this.tabBarActionButton, {
-      elemDescription: 'Tab Bar - Actions Button',
+      elemDescription: 'Tab Bar - Trade Button',
     });
   }
 
@@ -85,6 +89,20 @@ class TabBarComponent {
       {
         timeout: 10000,
         description: 'Tap Activity Button',
+      },
+    );
+  }
+
+  async tapRewards(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabBarRewardsButton, {
+          delay: 2500,
+        });
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Rewards Button',
       },
     );
   }

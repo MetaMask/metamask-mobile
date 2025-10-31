@@ -1,17 +1,17 @@
+import { captureException } from '@sentry/react-native';
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import type { OrderParams, OrderResult, Position } from '../controllers/types';
-import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import performance from 'react-native-performance';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { setMeasurement, captureException } from '@sentry/react-native';
+import { TraceName, TraceOperation } from '../../../../util/trace';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../constants/eventNames';
+import type { OrderParams, OrderResult, Position } from '../controllers/types';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { usePerpsMeasurement } from './usePerpsMeasurement';
+import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -40,30 +40,29 @@ export function usePerpsOrderExecution(
   const [lastResult, setLastResult] = useState<OrderResult>();
   const [error, setError] = useState<string>();
 
+  // Track order submission toast with unified measurement hook
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsOrderSubmissionToast,
+    op: TraceOperation.PerpsOrderSubmission,
+    startConditions: [isPlacing], // Start when placing begins
+    endConditions: [!!lastResult || !!error], // End when we have result or error
+    resetConditions: [!isPlacing], // Reset when not placing
+  });
+
   const placeOrder = useCallback(
     async (orderParams: OrderParams) => {
       try {
         setIsPlacing(true);
         setError(undefined);
+        setLastResult(undefined);
 
         DevLogger.log(
           'usePerpsOrderExecution: Placing order',
           JSON.stringify(orderParams, null, 2),
         );
 
-        // Track order submission toast timing
-        const orderSubmissionStart = performance.now();
-
         const result = await controllerPlaceOrder(orderParams);
         setLastResult(result);
-
-        // Measure order submission toast loaded
-        const submissionDuration = performance.now() - orderSubmissionStart;
-        setMeasurement(
-          PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
-          submissionDuration,
-          'millisecond',
-        );
 
         if (result.success) {
           DevLogger.log(
@@ -72,19 +71,21 @@ export function usePerpsOrderExecution(
           );
 
           // Check if order was partially filled
-          const orderSize = parseFloat(orderParams.size.toString());
+          const orderSize = Number.parseFloat(orderParams.size.toString());
           const filledSize = result.filledSize
-            ? parseFloat(result.filledSize)
+            ? Number.parseFloat(result.filledSize)
             : orderSize;
           const isPartiallyFilled = filledSize > 0 && filledSize < orderSize;
 
           if (isPartiallyFilled) {
             // Track partially filled event
-            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED, {
+            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
+              [PerpsEventProperties.STATUS]:
+                PerpsEventValues.STATUS.PARTIALLY_FILLED,
               [PerpsEventProperties.ASSET]: orderParams.coin,
               [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-                ? 'Long'
-                : 'Short',
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
               [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
               [PerpsEventProperties.ORDER_SIZE]: orderSize,
               [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
@@ -92,9 +93,6 @@ export function usePerpsOrderExecution(
               [PerpsEventProperties.REMAINING_AMOUNT]: orderSize - filledSize,
             });
           }
-
-          // Track order confirmation timing
-          const orderConfirmationStart = performance.now();
 
           // Try to fetch the newly created position
           try {
@@ -104,15 +102,6 @@ export function usePerpsOrderExecution(
             const fetchedPositions = await getPositions();
             const newPosition = fetchedPositions.find(
               (p) => p.coin === orderParams.coin,
-            );
-
-            // Measure order confirmation toast loaded
-            const confirmationDuration =
-              performance.now() - orderConfirmationStart;
-            setMeasurement(
-              PerpsMeasurementName.ORDER_CONFIRMATION_TOAST_LOADED,
-              confirmationDuration,
-              'millisecond',
             );
 
             if (newPosition) {
@@ -143,7 +132,8 @@ export function usePerpsOrderExecution(
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
           // Track order failure with specific event
-          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
+          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
             [PerpsEventProperties.ASSET]: orderParams.coin,
             [PerpsEventProperties.DIRECTION]: orderParams.isBuy
               ? PerpsEventValues.DIRECTION.LONG
@@ -185,7 +175,8 @@ export function usePerpsOrderExecution(
         });
 
         // Track exception with specific event
-        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
+        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
           [PerpsEventProperties.ASSET]: orderParams.coin,
           [PerpsEventProperties.DIRECTION]: orderParams.isBuy
             ? PerpsEventValues.DIRECTION.LONG

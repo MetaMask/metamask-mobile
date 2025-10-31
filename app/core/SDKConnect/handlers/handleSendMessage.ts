@@ -5,6 +5,7 @@ import { Connection } from '../Connection';
 import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
+import Routes from '../../../constants/navigation/Routes';
 
 export const handleSendMessage = async ({
   msg,
@@ -78,6 +79,16 @@ export const handleSendMessage = async ({
     connection.remote.sendMessage(msg).catch((err) => {
       Logger.log(err, `Connection::sendMessage failed to send`);
     });
+
+    if (method) {
+      connection.trigger = 'resume';
+      connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        method,
+        origin: connection.originatorInfo?.url,
+        hideReturnToApp: connection.hideReturnToApp,
+      });
+    }
   } catch (err) {
     Logger.log(
       err,

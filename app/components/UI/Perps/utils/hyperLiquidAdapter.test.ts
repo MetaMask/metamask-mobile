@@ -15,13 +15,13 @@ import {
 } from './hyperLiquidAdapter';
 import type { OrderParams } from '../controllers/types';
 import type {
-  PerpsClearinghouseState,
   AssetPosition,
-  SpotClearinghouseState,
-} from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
-import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
-import type { FrontendOrder } from '@deeeed/hyperliquid-node20/esm/src/types/info/orders';
-import { SpotBalance } from '@deeeed/hyperliquid-node20';
+  SpotBalance,
+  ClearinghouseStateResponse,
+  SpotClearinghouseStateResponse,
+  PerpsUniverse,
+  FrontendOrder,
+} from '../types/hyperliquid-types';
 
 // Mock the isHexString utility
 jest.mock('@metamask/utils', () => ({
@@ -56,8 +56,8 @@ describe('hyperLiquidAdapter', () => {
         p: '0', // market order price
         s: '0.1', // size
         r: false, // not reduce only
-        t: { limit: { tif: 'Ioc' } }, // market order type
-        c: null, // no client order ID
+        t: { limit: { tif: 'FrontendMarket' } }, // market order type
+        c: undefined, // no client order ID
       });
     });
 
@@ -110,7 +110,7 @@ describe('hyperLiquidAdapter', () => {
 
       const result = adaptOrderToSDK(order, coinToAssetId);
 
-      expect(result.c).toBeNull();
+      expect(result.c).toBeUndefined();
     });
 
     it('should throw error for unknown coin', () => {
@@ -122,7 +122,7 @@ describe('hyperLiquidAdapter', () => {
       };
 
       expect(() => adaptOrderToSDK(order, coinToAssetId)).toThrow(
-        'Unknown asset: UNKNOWN',
+        'Asset UNKNOWN not found in asset mapping',
       );
     });
   });
@@ -612,7 +612,7 @@ describe('hyperLiquidAdapter', () => {
 
   describe('adaptAccountStateFromSDK', () => {
     it('should convert account state with perps only', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '1000.50',
           totalMarginUsed: '300.25',
@@ -668,16 +668,15 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '700.25',
-        totalBalance: '1000.5', // Perps only
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
         returnOnEquity: '8.0', // Calculated from weighted return and margin
-        totalValue: '1000.50',
+        totalBalance: '1000.5', // Perps only (no spot balance provided)
       });
     });
 
     it('should convert account state with spot and perps', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '500.0',
           totalMarginUsed: '150.0',
@@ -701,7 +700,7 @@ describe('hyperLiquidAdapter', () => {
         ],
       };
 
-      const spotState: SpotClearinghouseState = {
+      const spotState: SpotClearinghouseStateResponse = {
         balances: [
           { total: '200.0' },
           { total: '300.5' },
@@ -712,16 +711,15 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '350.0',
-        totalBalance: '1000.5', // 500.0 + 200.0 + 300.5
         marginUsed: '150.0',
         unrealizedPnl: '100',
         returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
-        totalValue: '500.0',
+        totalBalance: '1000.5', // Spot (200.0 + 300.5 = 500.5) + Perps (500.0) = 1000.5
       });
     });
 
     it('should handle missing spot balances', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '1000.0',
           totalMarginUsed: '200.0',
@@ -740,7 +738,7 @@ describe('hyperLiquidAdapter', () => {
         assetPositions: [],
       };
 
-      const spotState: SpotClearinghouseState = {
+      const spotState: SpotClearinghouseStateResponse = {
         balances: [
           { total: undefined },
           {} as SpotBalance, // no total field
@@ -751,16 +749,15 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '800.0',
-        totalBalance: '1000', // Spot balances default to 0
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0.0',
-        totalValue: '1000.0',
+        totalBalance: '1000', // Perps only (spot balances array is empty)
       });
     });
 
     it('should handle empty asset positions', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '1000.0',
           totalMarginUsed: '0',
@@ -793,7 +790,10 @@ describe('hyperLiquidAdapter', () => {
         { name: 'SOL', szDecimals: 3, maxLeverage: 20, marginTableId: 3 },
       ];
 
-      const result = buildAssetMapping(metaUniverse);
+      const result = buildAssetMapping({
+        metaUniverse,
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.get('BTC')).toBe(0);
       expect(result.coinToAssetId.get('ETH')).toBe(1);
@@ -805,7 +805,10 @@ describe('hyperLiquidAdapter', () => {
     });
 
     it('should handle empty universe', () => {
-      const result = buildAssetMapping([]);
+      const result = buildAssetMapping({
+        metaUniverse: [],
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.size).toBe(0);
       expect(result.assetIdToCoin.size).toBe(0);

@@ -12,6 +12,7 @@ import { toHex } from '@metamask/controller-utils';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 import { useInsufficientBalanceAlert } from '../../../../hooks/alerts/useInsufficientBalanceAlert';
+import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
@@ -31,6 +32,8 @@ jest.mock('../../../../../../../core/Engine', () => ({
 jest.mock('../../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/alerts/useInsufficientBalanceAlert');
+jest.mock('../../../../../../hooks/useHideFiatForTestnet');
+jest.mock('../../../../hooks/tokens/useTokenWithBalance');
 
 const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   amount: toHex(10000),
@@ -63,6 +66,7 @@ describe('GasFeesDetailsRow', () => {
   const mockUseInsufficientBalanceAlert = jest.mocked(
     useInsufficientBalanceAlert,
   );
+  const mockUseHideFiatForTestnet = jest.mocked(useHideFiatForTestnet);
 
   beforeEach(() => {
     useConfirmationMetricEventsMock.mockReturnValue({
@@ -74,6 +78,7 @@ describe('GasFeesDetailsRow', () => {
       isSmartTransaction: false,
     });
     mockUseInsufficientBalanceAlert.mockReturnValue([]);
+    mockUseHideFiatForTestnet.mockReturnValue(false);
   });
 
   it('contains required text', async () => {
@@ -188,5 +193,83 @@ describe('GasFeesDetailsRow', () => {
 
     expect(getByText('USDC')).toBeDefined();
     expect(getByText('$0.34')).toBeDefined();
+  });
+
+  it('shows native amount when is a testnet', async () => {
+    mockUseHideFiatForTestnet.mockReturnValue(true);
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
+      NETWORKS_CHAIN_ID.SEPOLIA;
+
+    const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
+      state: clonedStakingDepositConfirmationState,
+    });
+
+    expect(getByText('0.0001')).toBeDefined();
+    expect(getByText('ETH')).toBeDefined();
+  });
+
+  it(`shows 'Paid by MetaMask' when gas is sponsored`, async () => {
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
+    const { getByText, queryByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      {
+        state: clonedStakingDepositConfirmationState,
+      },
+    );
+
+    expect(getByText('Paid by MetaMask')).toBeDefined();
+    expect(queryByText('ETH')).toBeNull();
+  });
+
+  it('does not show MetaMask fee info when metaMaskFee is 0x0', () => {
+    const mockToken = {
+      ...GAS_FEE_TOKEN_MOCK,
+      metaMaskFee: '0x0',
+      metamaskFeeFiat: '$0.12',
+    };
+
+    mockUseSelectedGasFeeToken.mockReturnValue(
+      mockToken as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+    );
+
+    const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
+      state: stakingDepositConfirmationState,
+    });
+
+    expect(queryByText('MetaMask fee: $0.12')).toBeNull();
+  });
+
+  it('shows MetaMask fee info when metaMaskFee is higher than 0x0', () => {
+    const mockToken = {
+      ...GAS_FEE_TOKEN_MOCK,
+      metaMaskFee: '0x2',
+      metamaskFeeFiat: '$0.25',
+    };
+
+    mockUseSelectedGasFeeToken.mockReturnValue(
+      mockToken as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+    );
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      {
+        state: stakingDepositConfirmationState,
+      },
+    );
+
+    fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+
+    expect(mockTrackTooltipClickedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tooltip: TOOLTIP_TYPES.NETWORK_FEE,
+      }),
+    );
+    expect(getByText('Includes $0.25 fee')).toBeDefined();
   });
 });

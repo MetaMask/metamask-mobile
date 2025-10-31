@@ -2,48 +2,32 @@ import {
   selectSourceToken,
   setSourceAmount,
   setSourceToken,
+  selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { BridgeToken } from '../../types';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
-import { CaipChainId, Hex } from '@metamask/utils';
 import {
-  getNativeAssetForChainId,
-  isSolanaChainId,
+  isNonEvmChainId,
   formatChainIdToCaip,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import { constants } from 'ethers';
-import { SolScope } from '@metamask/keyring-api';
 import usePrevious from '../../../../hooks/usePrevious';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
 import { useEffect } from 'react';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
 
-export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
-  const nativeAsset = getNativeAssetForChainId(chainId);
-
-  // getNativeAssetForChainId returns zero address for Solana, we need the assetId to get balances properly for native SOL
-  const address = isSolanaChainId(chainId)
-    ? nativeAsset.assetId
-    : nativeAsset.address;
-
-  const nativeSourceTokenFormatted: BridgeToken = {
-    address,
-    name: nativeAsset.name ?? '',
-    symbol: nativeAsset.symbol,
-    image: 'iconUrl' in nativeAsset ? nativeAsset.iconUrl || '' : '',
-    decimals: nativeAsset.decimals,
-    chainId,
-  };
-
-  return nativeSourceTokenFormatted;
-};
-
+/**
+ *
+ * @param initialSourceToken The initial source token to set, e.g. coming in from Asset Details page or a deeplink
+ * @param initialSourceAmount The initial source amount to set, e.g. coming in from a deeplink
+ */
 export const useInitialSourceToken = (
   initialSourceToken?: BridgeToken,
   initialSourceAmount?: string,
@@ -69,14 +53,21 @@ export const useInitialSourceToken = (
     selectedChainId: selectedEvmChainId,
     selectedNetworkName: selectedEvmNetworkName,
   });
+  const bip44DefaultPair = useSelector(selectBip44DefaultPair);
 
   const chainId = isEvmNetworkSelected
     ? selectedEvmChainId
     : selectedNonEvmNetworkChainId;
 
   useEffect(() => {
-    // Will default to the native token of the current chain if no token is provided
+    // If no initial source token is provided,
+    // set the source token to the bip44 default pair (preferred) or the native token of the current chain
     if (!initialSourceToken && !sourceToken) {
+      if (bip44DefaultPair) {
+        dispatch(setSourceToken(bip44DefaultPair.sourceAsset));
+        return;
+      }
+
       dispatch(setSourceToken(getNativeSourceToken(chainId)));
       return;
     }
@@ -106,8 +97,8 @@ export const useInitialSourceToken = (
       const currentCaipChainId = formatChainIdToCaip(chainId);
 
       if (sourceCaipChainId !== currentCaipChainId) {
-        if (sourceCaipChainId === SolScope.Mainnet) {
-          onNonEvmNetworkChange(SolScope.Mainnet);
+        if (isNonEvmChainId(sourceCaipChainId)) {
+          onNonEvmNetworkChange(sourceCaipChainId);
           return;
         }
 
@@ -125,5 +116,6 @@ export const useInitialSourceToken = (
     dispatch,
     initialSourceAmount,
     prevInitialSourceToken,
+    bip44DefaultPair,
   ]);
 };

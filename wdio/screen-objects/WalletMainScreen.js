@@ -7,14 +7,11 @@ import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
-class WalletMainScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class WalletMainScreen {
 
   get device() {
     return this._device;
@@ -22,7 +19,6 @@ class WalletMainScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
   }
 
   get ImportToken() {
@@ -76,7 +72,7 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, 'token-network-filter');
+      return AppwrightSelectors.getElementByID(this._device, 'tokens-network-filter');
     }
   }
 
@@ -159,10 +155,17 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
-
-      await tokenName.tap();
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        let tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`); // for some reason by Id does not work sometimeselse {
+        await tokenName.tap();
+      } else { // if ios, click on any token that is visible
+        const anyToken = await AppwrightSelectors.getElementByXpath(this._device, `//*[@name="token-list"]//XCUIElementTypeOther[1]`);
+        await AppwrightGestures.tap(anyToken);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
+
+    
   }
 
   async isTokenVisible(token) {
@@ -171,7 +174,7 @@ class WalletMainScreen extends AppwrightGestures {
       const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
       await tokenName.isVisible();
     } else {
-      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+      const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
       await tokenName.isVisible();
     }
   }
@@ -180,14 +183,14 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await this.tap(this.accountIcon); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountIcon); // Use static tapElement method with retry logic
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await this.tap(this.swapButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -196,7 +199,7 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await this.tap(this.networkInNavBar); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.networkInNavBar); // Use static tapElement method with retry logic
     }
   }
 
@@ -237,8 +240,7 @@ class WalletMainScreen extends AppwrightGestures {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await element.waitFor('visible',{ timeout: 10000 });
-      await appwrightExpect(element).toBeVisible();
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
   }
 
@@ -265,7 +267,7 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await this.tap(this.accountActionsButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountActionsButton); // Use static tapElement method with retry logic
     }
   }
 

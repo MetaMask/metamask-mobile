@@ -22,7 +22,6 @@ export const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: theme.colors.background.default,
-      paddingTop: 12,
     },
     button: {
       width: '100%',
@@ -35,11 +34,11 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     arrowCircle: {
       position: 'absolute',
-      top: -16,
+      top: -22,
       backgroundColor: theme.colors.background.alternative,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -54,7 +53,8 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingTop: 1,
     },
     quoteContainer: {
-      paddingHorizontal: 24,
+      flex: 1,
+      justifyContent: 'flex-end',
     },
     keypadContainer: {
       flex: 1,
@@ -69,7 +69,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     dynamicContent: {
       flex: 1,
-      paddingBottom: 12,
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {
@@ -84,6 +83,9 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     disclaimerText: {
       textAlign: 'center',
+    },
+    destTokenArea: {
+      marginTop: 16,
     },
   });
 };

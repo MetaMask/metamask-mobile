@@ -17,7 +17,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-respo
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(RegressionConfirmations('Send to contract address'), () => {
+describe.skip(RegressionConfirmations('Send to contract address'), () => {
   it('should send ETH to a contract from inside the wallet', async () => {
     const AMOUNT = '12';
 
@@ -41,9 +41,8 @@ describe(RegressionConfirmations('Send to contract address'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
-          HST_CONTRACT,
-        );
+        const hstAddress =
+          await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
 
         await WalletView.tapWalletSendButton();

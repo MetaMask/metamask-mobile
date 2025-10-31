@@ -21,7 +21,6 @@ export const defaultMockAccountState: AccountState = {
   marginUsed: '500.00',
   unrealizedPnl: '25.50',
   returnOnEquity: '5.0',
-  totalValue: '1525.50',
 };
 
 /**

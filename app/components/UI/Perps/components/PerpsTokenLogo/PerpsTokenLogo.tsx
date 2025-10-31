@@ -7,7 +7,12 @@ import Avatar, {
 import { useTheme } from '../../../../../util/theme';
 import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
 import { Image } from 'expo-image';
-import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
+import { getAssetIconUrl } from '../../utils/marketUtils';
+import {
+  ASSETS_REQUIRING_LIGHT_BG,
+  ASSETS_REQUIRING_DARK_BG,
+  K_PREFIX_ASSETS,
+} from './PerpsAssetBgConfig';
 
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
@@ -16,7 +21,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   testID,
   recyclingKey,
 }) => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -26,19 +31,36 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
     setHasError(false);
   }, [symbol]);
 
+  // Memoize the background checks to prevent recalculation
+  const { needsLightBg, needsDarkBg } = useMemo(() => {
+    const upperSymbol = symbol?.toUpperCase();
+    return {
+      needsLightBg: ASSETS_REQUIRING_LIGHT_BG.has(upperSymbol),
+      needsDarkBg: ASSETS_REQUIRING_DARK_BG.has(upperSymbol),
+    };
+  }, [symbol]);
+
   const containerStyle: ViewStyle = useMemo(
     () => ({
       width: size,
       height: size,
       borderRadius: size / 2,
-      backgroundColor: colors.background.default,
+      backgroundColor: (() => {
+        if (themeAppearance === 'dark' && needsLightBg) {
+          return 'white'; // White in dark mode
+        }
+        if (themeAppearance === 'light' && needsDarkBg) {
+          return colors.icon.default; // Black in light mode
+        }
+        return colors.background.default;
+      })(),
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       overflow: 'hidden' as const,
       borderWidth: 1,
       borderColor: colors.border.muted,
     }),
-    [size, colors],
+    [size, colors, themeAppearance, needsLightBg, needsDarkBg],
   );
 
   const loadingContainerStyle: ViewStyle = useMemo(
@@ -63,8 +85,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   // SVG URL - expo-image handles SVG rendering properly
   const imageUri = useMemo(() => {
     if (!symbol) return null;
-    const upperSymbol = symbol.toUpperCase();
-    return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${upperSymbol}.svg`;
+    return getAssetIconUrl(symbol, K_PREFIX_ASSETS);
   }, [symbol]);
 
   const handleLoadStart = () => {
@@ -91,8 +112,8 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
           size === 32
             ? AvatarSize.Md
             : size === 40
-            ? AvatarSize.Lg
-            : AvatarSize.Md
+              ? AvatarSize.Lg
+              : AvatarSize.Md
         }
         style={style}
         testID={testID}

@@ -13,6 +13,7 @@ describe(FlaskBuildTests('Snap RPC Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();

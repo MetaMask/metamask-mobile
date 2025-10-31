@@ -13,16 +13,16 @@ jest.mock('react-native-device-info', () => ({
   getTotalMemorySync: jest.fn(() => 4000000000),
 }));
 
-jest.mock(
-  '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
-  () => ({
-    isUnifiedSwapsEnvVarEnabled: jest.fn(() => false),
-  }),
-);
-
 // Mock components BEFORE importing the main component
 jest.mock('../AssetDetails/AssetDetailsActions', () =>
   jest.fn((_props) => null),
+);
+
+// Mock NFT auto detection modal hook to prevent interference with navigation tests
+jest.mock('../../hooks/useCheckNftAutoDetectionModal', () =>
+  jest.fn(() => {
+    // Hook implementation mocked to prevent modal interference
+  }),
 );
 
 // Mock PerpsTabView
@@ -34,7 +34,15 @@ jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
+  validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
+
+jest.mock(
+  '../../../selectors/featureFlagController//multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = true;
@@ -78,7 +86,6 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -238,6 +245,11 @@ const mockInitialState = {
   metamask: {
     isDataCollectionForMarketingEnabled: true,
   },
+  rewards: {
+    candidateSubscriptionId: null,
+    hideUnlinkedAccountsBanner: false,
+    seasonStatusError: null,
+  },
   multichain: {
     dismissedBanners: [], // Added missing property
   },
@@ -274,6 +286,9 @@ const mockInitialState = {
             ],
           },
         },
+      },
+      RewardsController: {
+        activeAccount: null,
       },
       PreferencesController: {
         selectedAddress: MOCK_ADDRESS,
@@ -512,48 +527,6 @@ describe('Wallet', () => {
       mockTabsListComponent.mockClear();
     });
 
-    it('should pass displayBridgeButton as true when isUnifiedSwapsEnabled is false', () => {
-      const stateWithUnifiedSwapsDisabled = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                bridgeConfigV2: {
-                  chains: {
-                    'eip155:1': {
-                      isUnifiedUIEnabled: false,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // Mock the unified swaps env var as false
-      jest.mocked(isUnifiedSwapsEnvVarEnabled).mockReturnValue(false);
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) =>
-          callback(stateWithUnifiedSwapsDisabled),
-        );
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      // Check that AssetDetailsActions was called with displayBridgeButton: true
-      expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
-        expect.objectContaining({
-          displayBridgeButton: true,
-        }),
-      );
-    });
-
     it('should pass all required props to AssetDetailsActions', () => {
       jest
         .mocked(useSelector)
@@ -569,15 +542,11 @@ describe('Wallet', () => {
         expect.objectContaining({
           displayBuyButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
-          displayBridgeButton: expect.any(Boolean),
-          chainId: expect.any(String),
-          goToBridge: expect.any(Function),
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
           buyButtonActionID: 'wallet-buy-button',
           swapButtonActionID: 'wallet-swap-button',
-          bridgeButtonActionID: 'wallet-bridge-button',
           sendButtonActionID: 'wallet-send-button',
           receiveButtonActionID: 'wallet-receive-button',
         }),
@@ -598,43 +567,109 @@ describe('Wallet', () => {
     });
 
     it('should handle onReceive callback correctly', () => {
+      // Arrange - Create mock state with required data for onReceive
+      const mockStateWithReceiveData = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...mockInitialState.engine.backgroundState.AccountsController,
+              internalAccounts: {
+                accounts: {
+                  'account-id-1': {
+                    address: '0x123456789',
+                    id: 'account-id-1',
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: 'account-id-1',
+              },
+            },
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: 'group-id-123',
+              },
+            },
+            NetworkController: {
+              ...mockInitialState.engine.backgroundState.NetworkController,
+              providerConfig: {
+                nickname: 'Ethereum Mainnet',
+                chainId: '0x1',
+              },
+            },
+          },
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(mockStateWithReceiveData));
+
+      // Act
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
-
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // Check that navigate was called with QR_TAB_SWITCHER
-      // QRTabSwitcherScreens.Receive is enum value 1, not string 'Receive'
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
-        initialScreen: 1, // QRTabSwitcherScreens.Receive
-      });
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+        {
+          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+          params: expect.objectContaining({
+            address: expect.any(String),
+            networkName: expect.any(String),
+            chainId: expect.any(String),
+            groupId: expect.any(String),
+          }),
+        },
+      );
     });
 
     it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {
-      // Patch the selector to return true for isMultichainAccountsState2Enabled
+      // Arrange - Create mock state with state2 enabled and required data
+      const mockStateWithState2 = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: 'group-id-123',
+              },
+            },
+          },
+        },
+      };
+
       jest.mocked(useSelector).mockImplementation((callback) => {
-        const state = {
-          ...mockInitialState,
-          isMultichainAccountsState2Enabled: true,
-        };
-        return callback(state);
+        const selectorString = callback.toString();
+        // Override specific selectors for state2 test
+        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
+          return true;
+        }
+        if (selectorString.includes('selectSelectedAccountGroupId')) {
+          return 'group-id-123'; // Ensure this returns the group ID
+        }
+        return callback(mockStateWithState2);
       });
 
+      // Act
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
-
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // You need to know what createAddressListNavigationDetails returns.
-      // For example, if it returns [route, params], check those:
-      // expect(mockNavigate).toHaveBeenCalledWith(route, params);
-
-      // If it spreads an array, you can check the call arguments:
-      expect(mockNavigate.mock.calls[0][0]).toBeDefined();
-      expect(mockNavigate.mock.calls[0][1]).toBeDefined();
-      // Optionally, check for groupId or title in params if needed
+      // Assert - createAddressListNavigationDetails spreads an array [route, params]
+      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockNavigate.mock.calls[0]).toBeDefined();
+      // Verify it was called with address list navigation (state2 behavior)
+      const [route, params] = mockNavigate.mock.calls[0];
+      expect(route).toBeDefined();
+      expect(params).toBeDefined();
     });
 
     it('should handle onSend callback correctly with native currency', async () => {
@@ -695,14 +730,6 @@ describe('Wallet', () => {
       const passedProps = mockAssetDetailsActions.mock.calls[0][0];
       expect(passedProps.onBuy).toBeUndefined();
       expect(passedProps.buyButtonActionID).toBeDefined();
-    });
-
-    it('should handle goToBridge callback correctly', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      const goToBridge = mockAssetDetailsActions.mock.calls[0][0].goToBridge;
-      expect(typeof goToBridge).toBe('function');
     });
 
     it('should handle goToSwaps callback correctly', () => {
@@ -957,10 +984,13 @@ describe('Wallet', () => {
             ...mockInitialState.engine.backgroundState
               .NetworkEnablementController,
             enabledNetworkMap: {
-              eip155: enabledNetworks.reduce((acc, network) => {
-                acc[network] = true;
-                return acc;
-              }, {} as Record<string, boolean>),
+              eip155: enabledNetworks.reduce(
+                (acc, network) => {
+                  acc[network] = true;
+                  return acc;
+                },
+                {} as Record<string, boolean>,
+              ),
             },
           },
         },

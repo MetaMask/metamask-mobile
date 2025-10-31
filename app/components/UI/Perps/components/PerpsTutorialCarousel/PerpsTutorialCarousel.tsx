@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, TouchableOpacity, View, useColorScheme } from 'react-native';
+import {
+  Image,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+  ScrollView,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,6 +38,7 @@ import {
   usePerpsNetworkManagement,
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
@@ -44,7 +51,7 @@ import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
-import { createFontScaleHandler } from '../../utils/textUtils';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   SHORT_LONG = '01_Short_Long',
@@ -77,7 +84,8 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
             width: '100%',
-            flex: 1,
+            height: 350,
+            marginTop: 'auto',
           }}
           resizeMode="contain"
           testID={PerpsTutorialSelectorsIDs.CHARACTER_IMAGE}
@@ -134,12 +142,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
 
-  // Font scaling state
-  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
-  const [descriptionFontSize, setDescriptionFontSize] = useState<number | null>(
-    null,
-  );
-  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
     typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
@@ -172,34 +174,6 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
-    titleFontSize,
-    descriptionFontSize,
-    subtitleFontSize,
-  });
-
-  // Create font scale handlers with height constraints for 160px headerSection
-  const handleTitleLayout = createFontScaleHandler({
-    maxHeight: 60,
-    currentFontSize: styles.title.fontSize || 24,
-    setter: setTitleFontSize,
-    minFontSize: 20,
-    currentValue: titleFontSize,
-  });
-
-  const handleDescriptionLayout = createFontScaleHandler({
-    maxHeight: 50,
-    currentFontSize: styles.description.fontSize || 16,
-    setter: setDescriptionFontSize,
-    minFontSize: 16,
-    currentValue: descriptionFontSize,
-  });
-
-  const handleSubtitleLayout = createFontScaleHandler({
-    maxHeight: 40,
-    currentFontSize: styles.subtitle.fontSize || 16,
-    setter: setSubtitleFontSize,
-    minFontSize: 16,
-    currentValue: subtitleFontSize,
   });
 
   const PerpsOnboardingAnimation = useMemo(
@@ -208,16 +182,28 @@ const PerpsTutorialCarousel: React.FC = () => {
     [isDarkMode],
   );
 
-  // Track tutorial viewed on mount
+  // Track tutorial screen viewed on mount
   useEffect(() => {
     if (!hasTrackedViewed.current) {
-      track(MetaMetricsEvents.PERPS_TUTORIAL_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.TUTORIAL,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
       });
       hasTrackedViewed.current = true;
     }
   }, [track]);
+
+  // Initialize connection in background while user views tutorial
+  useEffect(() => {
+    PerpsConnectionManager.connect().catch((error) => {
+      DevLogger.log(
+        'Background connection initialization during tutorial:',
+        error,
+      );
+    });
+  }, []);
 
   // Cleanup timeouts on unmount
   useEffect(
@@ -246,7 +232,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Only track if tab actually changed (user swipe)
       if (newTab !== previousTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
           [PerpsEventProperties.PREVIOUS_SCREEN]:
             tutorialScreens[previousTab]?.id || 'unknown',
           [PerpsEventProperties.CURRENT_SCREEN]:
@@ -264,7 +252,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track tutorial started when user moves to second screen
       if (newTab === 1 && !hasTrackedStarted.current) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
@@ -276,7 +266,7 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const navigateToMarketsList = useCallback(() => {
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKETS,
+      screen: Routes.PERPS.PERPS_HOME,
     });
   }, []);
 
@@ -294,7 +284,9 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isLastScreen) {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
-      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
@@ -331,7 +323,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track carousel navigation via continue button (immediate, no debounce needed for button clicks)
       if (nextTab !== currentTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
           [PerpsEventProperties.PREVIOUS_SCREEN]:
             tutorialScreens[currentTab]?.id || 'unknown',
           [PerpsEventProperties.CURRENT_SCREEN]:
@@ -349,7 +343,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track tutorial started on first continue
       if (currentTab === 0 && !hasTrackedStarted.current) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
@@ -373,7 +369,9 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isLastScreen) {
       // Track tutorial completed when skipping from last screen
       const completionDuration = Date.now() - tutorialStartTime.current;
-      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
@@ -435,66 +433,72 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <>
-              <View key={screen.id} style={styles.screenContainer}>
-                {/* Header Section - Fixed height for text content */}
-                <View style={styles.headerSection}>
-                  <Text
-                    variant={TextVariant.HeadingLG}
-                    color={TextColor.Default}
-                    style={styles.title}
-                    onLayout={handleTitleLayout}
-                  >
-                    {screen.title}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.description}
-                    onLayout={handleDescriptionLayout}
-                  >
-                    {screen.description}
-                  </Text>
-                  {screen.subtitle && (
+            <View key={screen.id} style={styles.fullScreenContainer}>
+              <ScrollView
+                style={styles.scrollableContent}
+                contentContainerStyle={styles.scrollContentContainer}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.screenContainer}>
+                  {/* Header Section - Now flexible height */}
+                  <View>
+                    <Text
+                      variant={TextVariant.HeadingLG}
+                      color={TextColor.Default}
+                      style={styles.title}
+                    >
+                      {screen.title}
+                    </Text>
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
-                      style={styles.subtitle}
-                      onLayout={handleSubtitleLayout}
+                      style={styles.description}
                     >
-                      {screen.subtitle}
+                      {screen.description}
                     </Text>
-                  )}
-                </View>
+                    {screen.subtitle && (
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                        style={styles.subtitle}
+                      >
+                        {screen.subtitle}
+                      </Text>
+                    )}
+                  </View>
 
-                {/* Content Section */}
-                <View style={styles.contentSection}>
-                  {screen?.content && screen.content}
+                  {/* Content Section */}
+                  {screen?.content && (
+                    <View style={styles.contentSection}>{screen.content}</View>
+                  )}
+
                   {screen?.riveArtboardName && (
-                    <Rive
-                      key={screen.id}
-                      style={styles.animation}
-                      artboardName={screen.riveArtboardName}
-                      source={PerpsOnboardingAnimation}
-                      fit={Fit.FitWidth}
-                      alignment={Alignment.Center}
-                      autoplay
-                    />
+                    <View style={styles.animationContainer}>
+                      <Rive
+                        key={screen.id}
+                        style={styles.animation}
+                        artboardName={screen.riveArtboardName}
+                        source={PerpsOnboardingAnimation}
+                        fit={Fit.FitWidth}
+                        alignment={Alignment.Center}
+                        autoplay
+                      />
+                    </View>
                   )}
                 </View>
-              </View>
-              <View style={styles.footerTextContainer}>
                 {screen.footerText && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles.footerText}
-                  >
-                    {screen.footerText}
-                  </Text>
+                  <View style={styles.footerTextContainer}>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                      style={styles.footerText}
+                    >
+                      {screen.footerText}
+                    </Text>
+                  </View>
                 )}
-              </View>
-            </>
+              </ScrollView>
+            </View>
           ))}
         </ScrollableTabView>
       </View>

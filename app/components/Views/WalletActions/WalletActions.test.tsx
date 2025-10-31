@@ -1,8 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
-import { selectChainId } from '../../../selectors/networkController';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -131,17 +129,11 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
-  selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
-  selectIsSwapsLive: jest.fn().mockReturnValue(true),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn().mockReturnValue([]),
-}));
-
-jest.mock('../../../components/UI/Swaps/utils', () => ({
-  isSwapsAllowed: jest.fn().mockReturnValue(true),
 }));
 
 const mockGoToSwaps = jest.fn();
@@ -330,39 +322,8 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
   });
-  it('should not show the swap button if the chain does not allow swaps', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
-
-    const mockState: DeepPartial<RootState> = {
-      swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
-              id: 'sepolia',
-              nickname: 'Sepolia',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    };
-
-    const { queryByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockState,
-    });
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeNull();
-  });
 
   it('should call the goToSwaps function when the Swap button is pressed', async () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
@@ -485,6 +446,9 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Perps', {
       screen: 'PerpsMarketListView',
+      params: {
+        source: 'main_action_button',
+      },
     });
   });
 
@@ -512,9 +476,7 @@ describe('WalletActions', () => {
     // closeBottomSheetAndNavigate wraps navigation in a callback
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsTutorial',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('PerpsTutorial');
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
@@ -533,7 +495,7 @@ describe('WalletActions', () => {
     ).toBeDefined();
   });
 
-  it('should call the onPredict function when the Predict button is pressed', () => {
+  it('should call the onPredict function when the Predict button is pressed', async () => {
     (
       selectPredictEnabledFlag as jest.MockedFunction<
         typeof selectPredictEnabledFlag
@@ -548,14 +510,12 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
-      screen: 'WalletTabStackFlow',
-      params: {
-        screen: 'Predict',
-        params: {
-          screen: 'PredictMarketList',
-        },
-      },
+    // Wait for the bottom sheet close callback to execute
+    // closeBottomSheetAndNavigate wraps navigation in a callback
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+      screen: 'PredictMarketList',
     });
   });
 
@@ -581,7 +541,6 @@ describe('WalletActions', () => {
       >
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
 
     // Import and mock selectIsSwapsEnabled to return false when can't sign
     const { selectIsSwapsEnabled } = jest.requireMock(

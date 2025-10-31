@@ -6,6 +6,7 @@ import {
 } from '@metamask/assets-controllers';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
+import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { TokenI } from '../../components/UI/Tokens/types';
@@ -22,6 +23,10 @@ import {
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { selectAccountsByChainId } from '../accountTrackerController';
+import {
+  TRON_RESOURCE_SYMBOLS_SET,
+  TronResourceSymbol,
+} from '../../core/Multichain/constants';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -98,8 +103,10 @@ const selectStakedAssets = createDeepEqualSelector(
     currencyRates,
     currentCurrency,
   ) => {
-    const stakedAssets = Object.entries(accountsByChainId).flatMap(
-      ([chainId, chainAccounts]) =>
+    const stakedAssets = Object.entries(accountsByChainId)
+      // Only include mainnet and hoodi
+      .filter(([chainId, _]) => chainId === '0x1' || chainId === '0x88bb0')
+      .flatMap(([chainId, chainAccounts]) =>
         Object.entries(chainAccounts)
           .filter(
             ([_, accountInformation]) =>
@@ -132,8 +139,12 @@ const selectStakedAssets = createDeepEqualSelector(
                 internalAccount.address === address.toLowerCase(),
             );
 
+            if (!account) {
+              return undefined;
+            }
+
             const stakedAsset = {
-              type: account?.type,
+              accountType: account.type,
               assetId: nativeToken.address,
               isNative: true,
               isStaked: true,
@@ -141,7 +152,7 @@ const selectStakedAssets = createDeepEqualSelector(
               image: '',
               name: 'Staked Ethereum',
               symbol: nativeToken.symbol,
-              accountId: account?.id,
+              accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
               balance: fromWei(stakedBalance),
@@ -157,11 +168,12 @@ const selectStakedAssets = createDeepEqualSelector(
 
             return {
               chainId,
-              accountId: account?.id as string,
+              accountId: account.id,
               stakedAsset,
             };
-          }),
-    );
+          })
+          .filter((item): item is NonNullable<typeof item> => Boolean(item)),
+      );
 
     return stakedAssets;
   },
@@ -187,7 +199,19 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+      .flatMap(([_, chainAssets]) => chainAssets)
+      .filter((asset) => {
+        // We need to filter out Tron resources from this list
+        if (
+          asset.chainId?.includes('tron:') &&
+          TRON_RESOURCE_SYMBOLS_SET.has(
+            asset.symbol?.toLowerCase() as TronResourceSymbol,
+          )
+        ) {
+          return false;
+        }
+        return true;
+      });
 
     const stakedAssetsArray = [];
     for (const asset of assets) {
@@ -238,7 +262,8 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   },
 );
 
-export const selectAsset = createDeepEqualSelector(
+// TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
+export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
@@ -247,9 +272,17 @@ export const selectAsset = createDeepEqualSelector(
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params,
+    ) => params.address,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params.chainId,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params.isStaked,
   ],
-  (assets, stakedAssets, tokensChainsCache, { address, chainId, isStaked }) => {
+  (assets, stakedAssets, tokensChainsCache, address, chainId, isStaked) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
@@ -301,16 +334,37 @@ function assetToToken(
         })
       : undefined,
     logo:
-      asset.type.startsWith('eip155') && asset.isNative
+      asset.accountType.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
         : asset.image,
     isETH:
-      asset.type.startsWith('eip155') &&
+      asset.accountType.startsWith('eip155') &&
       asset.isNative &&
       asset.symbol === 'ETH',
     isStaked: asset.isStaked || false,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
+    accountType: asset.accountType,
   };
 }
+
+// This is used to select Tron resources (Energy & Bandwidth)
+export const selectTronResourcesBySelectedAccountGroup =
+  createDeepEqualSelector(
+    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
+    (bip44Assets, enabledNetworks) => {
+      const assets = Object.entries(bip44Assets)
+        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
+        .flatMap(([_, chainAssets]) => chainAssets)
+        .filter(
+          (asset) =>
+            asset.chainId?.includes('tron:') &&
+            TRON_RESOURCE_SYMBOLS_SET.has(
+              asset.symbol?.toLowerCase() as TronResourceSymbol,
+            ),
+        );
+
+      return assets;
+    },
+  );

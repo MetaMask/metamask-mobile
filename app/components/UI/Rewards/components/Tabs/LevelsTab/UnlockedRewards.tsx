@@ -7,6 +7,7 @@ import {
   selectUnlockedRewards,
   selectUnlockedRewardError,
   selectSeasonStartDate,
+  selectCurrentTier,
 } from '../../../../../../reducers/rewards/selectors';
 import { RewardDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -50,7 +51,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   isLoading,
 }) => (
   <Box>
-    <Box twClassName="flex-row items-center gap-2 items-center">
+    <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.unlocked_rewards.title')}
       </Text>
@@ -71,6 +72,7 @@ const UnlockedRewards: React.FC = () => {
   const isLoading = useSelector(selectUnlockedRewardLoading);
   const hasError = useSelector(selectUnlockedRewardError);
   const seasonStartDate = useSelector(selectSeasonStartDate);
+  const currentTier = useSelector(selectCurrentTier);
   const tw = useTailwind();
 
   const { fetchUnlockedRewards } = useUnlockedRewards();
@@ -79,7 +81,8 @@ const UnlockedRewards: React.FC = () => {
     const shouldShowSkeleton =
       (isLoading || unlockedRewards === null) &&
       !unlockedRewards?.length &&
-      !hasError;
+      !hasError &&
+      !!currentTier?.pointsNeeded;
 
     if (shouldShowSkeleton) {
       return <Skeleton style={tw.style('h-32 bg-rounded')} />;
@@ -101,14 +104,17 @@ const UnlockedRewards: React.FC = () => {
 
     return <></>;
   };
-  if (unlockedRewards && !unlockedRewards?.length) {
+  if (
+    (unlockedRewards && !unlockedRewards?.length) ||
+    !currentTier?.pointsNeeded
+  ) {
     // Not pending and empty, for unlocked rewards we don't show anything
     return null;
   }
 
   return (
     <Box
-      twClassName="py-4 gap-4"
+      twClassName="pt-2 pb-6 px-4 gap-4"
       testID={REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS}
     >
       {/* Always show section header */}

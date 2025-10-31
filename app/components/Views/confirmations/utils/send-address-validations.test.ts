@@ -1,95 +1,27 @@
-import { AddressBookControllerState } from '@metamask/address-book-controller';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-
-import Engine from '../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as ConfusablesUtils from '../../../../util/confusables';
 import {
   getConfusableCharacterInfo,
-  shouldSkipValidation,
   validateHexAddress,
   validateSolanaAddress,
 } from './send-address-validations';
+import { memoizedGetTokenStandardAndDetails, TokenDetailsERC20 } from './token';
+
+jest.mock('./token', () => ({
+  memoizedGetTokenStandardAndDetails: jest.fn().mockResolvedValue(undefined),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    AssetsContractController: {
-      getERC721AssetSymbol: Promise.resolve(undefined),
-    },
     NetworkController: {
       findNetworkClientIdByChainId: () => 'mainnet',
     },
   },
 }));
 
-interface ShouldSkipValidationArgs {
-  toAddress?: string;
-  chainId?: string;
-  addressBook: AddressBookControllerState['addressBook'];
-  internalAccounts: InternalAccount[];
-}
-
-describe('shouldSkipValidation', () => {
-  it('returns true if to address is not defined', () => {
-    expect(
-      shouldSkipValidation({
-        toAddress: undefined,
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(true);
-    expect(
-      shouldSkipValidation({
-        toAddress: null,
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(true);
-    expect(
-      shouldSkipValidation({
-        toAddress: '',
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(true);
-  });
-  it('returns true if to address is present in address book', () => {
-    expect(
-      shouldSkipValidation({
-        toAddress: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
-        chainId: '0x1',
-        addressBook: {},
-        internalAccounts: [],
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(false);
-    expect(
-      shouldSkipValidation({
-        toAddress: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
-        chainId: '0x1',
-        addressBook: {
-          '0x1': {
-            '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477': {},
-          },
-        },
-        internalAccounts: [],
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(true);
-  });
-  it('returns true if to address is an internal account', () => {
-    expect(
-      shouldSkipValidation({
-        toAddress: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
-        chainId: '0x1',
-        addressBook: {},
-        internalAccounts: [],
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(false);
-    expect(
-      shouldSkipValidation({
-        toAddress: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
-        chainId: '0x1',
-        addressBook: {},
-        internalAccounts: [
-          { address: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477' },
-        ],
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(true);
-  });
-});
+const mockMemoizedGetTokenStandardAndDetails = jest.mocked(
+  memoizedGetTokenStandardAndDetails,
+);
 
 describe('validateHexAddress', () => {
   it('returns error if address is burn address', async () => {
@@ -118,16 +50,29 @@ describe('validateHexAddress', () => {
       ),
     ).toStrictEqual({});
   });
+  it('return error if address is contract address of asset', async () => {
+    expect(
+      await validateHexAddress(
+        '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+        '0x1',
+        '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+      ),
+    ).toStrictEqual({
+      error:
+        "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
+    });
+  });
   it('returns warning if address is contract address', async () => {
-    Engine.context.AssetsContractController.getERC721AssetSymbol = () =>
-      Promise.resolve('ABC');
+    mockMemoizedGetTokenStandardAndDetails.mockResolvedValue({
+      standard: 'ERC20',
+    } as unknown as TokenDetailsERC20);
     expect(
       await validateHexAddress(
         '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
         '0x1',
       ),
     ).toStrictEqual({
-      warning:
+      error:
         'This address is a token contract address. If you send tokens to this address, you will lose them.',
     });
   });

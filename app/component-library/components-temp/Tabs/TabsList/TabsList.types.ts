@@ -4,6 +4,9 @@ import React from 'react';
 // External dependencies.
 import { BoxProps } from '@metamask/design-system-react-native';
 
+// Internal dependencies.
+import { TabsBarProps } from '../TabsBar/TabsBar.types';
+
 /**
  * Individual tab item data interface
  */
@@ -43,6 +46,14 @@ export interface TabsListProps extends BoxProps {
     i: number;
     ref: React.ReactNode;
   }) => void;
+  /**
+   * Props to pass to the TabsBar component (excluding tabs, activeIndex, and onTabPress which are managed internally)
+   */
+  tabsBarProps?: Omit<TabsBarProps, 'tabs' | 'activeIndex' | 'onTabPress'>;
+  /**
+   * Tailwind CSS classes to apply to the tab content containers
+   */
+  tabsListContentTwClassName?: string;
 }
 
 /**

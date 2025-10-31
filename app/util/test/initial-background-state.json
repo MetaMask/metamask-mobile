@@ -58,6 +58,9 @@
       }
     }
   },
+  "DelegationController": {
+    "delegations": {}
+  },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
@@ -197,7 +200,7 @@
       "tron": {
         "tron:2494104990": false,
         "tron:3448148188": false,
-        "tron:728126428": false
+        "tron:728126428": true
       }
     }
   },
@@ -207,7 +210,9 @@
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0,
-    "urlScanCache": {}
+    "tokenScanCache": {},
+    "urlScanCache": {},
+    "whitelistPaths": {}
   },
   "PreferencesController": {
     "featureFlags": {},
@@ -235,6 +240,7 @@
       "0xa869": true,
       "0xaa37dc": true,
       "0x89": true,
+      "0x8f": true,
       "0x13881": true,
       "0xa86a": true,
       "0xfa": true,
@@ -247,7 +253,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x8f": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -635,10 +642,14 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
+  },
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEvents": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -646,11 +657,10 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "activeOrders": {},
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "notifications": [],
-    "positions": []
+    "pendingDeposits": {},
+    "isOnboarded": {}
   }
 }

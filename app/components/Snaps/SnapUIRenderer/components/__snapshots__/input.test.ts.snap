@@ -131,11 +131,12 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="testInput-snap-ui-input"
@@ -287,11 +288,12 @@ exports[`SnapUIInput renders with initial value 1`] = `
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="testInput-snap-ui-input"

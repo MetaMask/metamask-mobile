@@ -15,7 +15,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
-
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -33,6 +32,7 @@ import {
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -41,6 +41,9 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
+import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
+
+export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -164,6 +167,10 @@ export const TokenListItemBip44 = React.memo(
       return null;
     }
 
+    const label = asset.accountType
+      ? ACCOUNT_TYPE_LABELS[asset.accountType]
+      : undefined;
+
     return (
       <AssetElement
         onPress={onItemPress}
@@ -207,6 +214,7 @@ export const TokenListItemBip44 = React.memo(
               </View>
             )}
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
+            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
           <View style={styles.percentageChange}>
             {

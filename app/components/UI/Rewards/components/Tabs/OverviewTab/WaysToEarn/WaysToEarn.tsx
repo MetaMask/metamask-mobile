@@ -13,6 +13,7 @@ import {
   IconSize,
   IconColor,
   ButtonVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -26,12 +27,19 @@ import {
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
+import { selectRewardsCardSpendFeatureFlags } from '../../../../../../../selectors/featureFlagController/rewards';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../../../utils';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
   PERPS = 'perps',
   REFERRALS = 'referrals',
   LOYALTY = 'loyalty',
+  CARD = 'card',
 }
 
 interface WayToEarn {
@@ -65,6 +73,12 @@ const waysToEarn: WayToEarn[] = [
     title: strings('rewards.ways_to_earn.loyalty.title'),
     description: strings('rewards.ways_to_earn.loyalty.description'),
     icon: IconName.Gift,
+  },
+  {
+    type: WayToEarnType.CARD,
+    title: strings('rewards.ways_to_earn.card.title'),
+    description: strings('rewards.ways_to_earn.card.description'),
+    icon: IconName.Card,
   },
 ];
 
@@ -144,6 +158,21 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.loyalty.sheet.cta_label'),
       };
+    case WayToEarnType.CARD:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.card.sheet.title')}
+            points={strings('rewards.ways_to_earn.card.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.card.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.card.sheet.cta_label'),
+      };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
   }
@@ -152,6 +181,8 @@ const getBottomSheetData = (type: WayToEarnType) => {
 export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -160,21 +191,23 @@ export const WaysToEarn = () => {
   });
 
   const goToPerps = useCallback(() => {
-    let params: Record<string, string> | null = null;
     if (isFirstTimePerpsUser) {
-      params = {
-        screen: Routes.PERPS.TUTORIAL,
-      };
+      navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
-      params = {
-        screen: Routes.PERPS.MARKETS,
-      };
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+      });
     }
-
-    navigation.navigate(Routes.PERPS.ROOT, params);
   }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED)
+        .addProperties({
+          ways_to_earn_type: type,
+        })
+        .build(),
+    );
     navigation.goBack(); // Close the modal first
     switch (type) {
       case WayToEarnType.SWAPS:
@@ -186,14 +219,26 @@ export const WaysToEarn = () => {
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
+      case WayToEarnType.CARD:
+        navigation.navigate(Routes.CARD.ROOT);
+        break;
     }
   };
 
   const handleEarningWayPress = (wayToEarn: WayToEarn) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+          ways_to_earn_type: wayToEarn.type,
+        })
+        .build(),
+    );
     switch (wayToEarn.type) {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
-      case WayToEarnType.PERPS: {
+      case WayToEarnType.PERPS:
+      case WayToEarnType.CARD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
         );
@@ -213,14 +258,15 @@ export const WaysToEarn = () => {
         });
         break;
       }
-      case WayToEarnType.REFERRALS:
-        navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
+      case WayToEarnType.REFERRALS: {
+        navigation.navigate(Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL);
         break;
+      }
     }
   };
 
   return (
-    <Box twClassName="py-4">
+    <Box twClassName="p-4">
       <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
         {strings('rewards.ways_to_earn.title')}
       </Text>
@@ -228,13 +274,17 @@ export const WaysToEarn = () => {
       <Box twClassName="rounded-xl bg-muted">
         <FlatList
           horizontal={false}
-          data={waysToEarn}
+          data={
+            isCardSpendEnabled
+              ? waysToEarn
+              : waysToEarn.filter((way) => way.type !== WayToEarnType.CARD)
+          }
           keyExtractor={(wayToEarn) => wayToEarn.title}
           ItemSeparatorComponent={Separator}
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
             <ButtonBase
-              twClassName="h-auto px-4 py-4 bg-inherit"
+              twClassName="h-auto px-4 py-3 bg-inherit"
               onPress={() => handleEarningWayPress(wayToEarn)}
             >
               <Box
@@ -251,19 +301,21 @@ export const WaysToEarn = () => {
                 </Box>
 
                 <Box>
-                  <Text variant={TextVariant.SectionHeading}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
                     {wayToEarn.title}
                   </Text>
                   <Text
                     variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                   >
                     {wayToEarn.description}
                   </Text>
                 </Box>
               </Box>
-
-              <Icon name={IconName.ArrowRight} size={IconSize.Md} />
             </ButtonBase>
           )}
         />

@@ -171,6 +171,8 @@ remapMainDevEnvVariables() {
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
 	# Only dev environment uses the dev DSN, this is for the Sentry project test-metamask-mobile
   	remapEnvVariable "MM_SENTRY_DSN_DEV" "MM_SENTRY_DSN"
+
+		remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_DEV" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 remapEnvVariableQA() {
@@ -185,6 +187,9 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
+
 }
 
 # Mapping for Main env variables in the e2e environment
@@ -200,6 +205,8 @@ remapMainE2EEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Main env variables in the test environment
@@ -215,6 +222,8 @@ remapMainTestEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Main env variables in the production environment
@@ -230,6 +239,8 @@ remapMainProdEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Flask env variables in the production environment
@@ -245,6 +256,8 @@ remapFlaskProdEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Flask env variables in the test environment
@@ -260,6 +273,8 @@ remapFlaskTestEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Flask env variables in the e2e environment
@@ -275,6 +290,8 @@ remapFlaskE2EEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Main env variables in the beta environment
@@ -290,6 +307,8 @@ remapMainBetaEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Main env variables in the release candidate environment
@@ -305,6 +324,8 @@ remapMainReleaseCandidateEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 # Mapping for Main env variables in the experimental environment
@@ -321,6 +342,8 @@ remapMainExperimentalEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
 prebuild_ios(){
@@ -345,7 +368,23 @@ prebuild_ios(){
   fi
 }
 
+installICULibraries(){
+	# Install ICU libraries for Hermes
+	echo "Installing ICU libraries for Hermes..."
+	
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# macOS - use Homebrew
+		brew install icu4c
+	else
+		# Linux (GitHub CI uses Ubuntu) - use apt-get
+		sudo apt-get update && sudo apt-get install -y libicu-dev
+	fi
+}
+
 prebuild_android(){
+	# Install ICU libraries if on Linux
+	installICULibraries
+	
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
@@ -416,19 +455,19 @@ buildAndroidFlaskLocal(){
 # Builds and installs the Main iOS app for local development
 buildIosMainLocal(){
 	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device "$IOS_SIMULATOR"
 }
 
 # Builds and installs the Flask iOS app for local development
 buildIosFlaskLocal(){
 	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device "$IOS_SIMULATOR"
 }
 
 # Builds and installs the QA iOS app for local development
 buildIosQALocal(){
   	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device "$IOS_SIMULATOR"
 }
 
 buildIosSimulatorE2E(){
@@ -604,6 +643,8 @@ buildAndroid() {
 		buildAndroidReleaseE2E
   	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
+	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+		buildAndroidFlaskDev
 	else
 		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized."
 		exit 1
@@ -738,7 +779,7 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "dev" ]; then
 		remapMainDevEnvVariables
 	fi
-elif [ "$MODE" == "flask" ]; then
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebugE2E" ]; then
 	# TODO: Map environment variables based on environment
 	if [ "$ENVIRONMENT" == "production" ]; then
 		remapFlaskProdEnvVariables
@@ -800,4 +841,3 @@ elif [ "$PLATFORM" == "android" ]; then
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
 fi
-	

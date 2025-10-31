@@ -7,7 +7,7 @@ const styleSheet = () =>
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 24,
-      paddingVertical: 48,
+      paddingVertical: 24,
     },
     emptyStateIcon: {
       marginBottom: 16,
@@ -20,8 +20,8 @@ const styleSheet = () =>
       textAlign: 'center',
       marginBottom: 24,
     },
-    exploreMarketsButton: {
-      width: '100%',
+    emptyStateButton: {
+      alignSelf: 'center',
     },
   });
 

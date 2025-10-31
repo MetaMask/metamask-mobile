@@ -66,7 +66,9 @@ export function getIsMetaMaskInfuraEndpointUrl(
   infuraProjectId: string,
 ): boolean {
   return new RegExp(
-    `^https://[^.]+\\.infura\\.io/v3/${escapeRegExp(infuraProjectId)}$`,
+    `^https://[^.]+\\.infura\\.io/v3/(?:\\{infuraProjectId\\}|${escapeRegExp(
+      infuraProjectId,
+    )})$`,
     'u',
   ).test(endpointUrl);
 }

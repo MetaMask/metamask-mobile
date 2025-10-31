@@ -38,7 +38,6 @@ describe(
         {
           fixture: new FixtureBuilder()
             .withImportedAccountKeyringController()
-            .ensureMultichainIntroModalSuppressed()
             .build(),
           restartDevice: true,
           testSpecificMock,

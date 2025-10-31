@@ -24,7 +24,6 @@ interface MockRefreshControlProps {
   tintColor?: string;
 }
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useFocusEffect: jest.fn(),
@@ -224,9 +223,10 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total Unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
-        expect(screen.getByText('$10,000.00')).toBeOnTheScreen(); // totalBalance
-        expect(screen.getByText('$4,700.00')).toBeOnTheScreen(); // availableBalance
-        expect(screen.getByText('$5,300.00')).toBeOnTheScreen(); // marginUsed
+        // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
+        expect(screen.getByText('$10,000')).toBeOnTheScreen(); // totalBalance
+        expect(screen.getByText('$4,700')).toBeOnTheScreen(); // availableBalance
+        expect(screen.getByText('$5,300')).toBeOnTheScreen(); // marginUsed
         expect(screen.getByText('+$75.50')).toBeOnTheScreen(); // total PnL
       });
     });
@@ -240,10 +240,8 @@ describe('PerpsPositionsView', () => {
         const section = screen.getByTestId('perps-positions-section');
         expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
         expect(within(section).getByText('2 positions')).toBeOnTheScreen();
-        expect(within(section).getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
-        expect(
-          within(section).getByText(/0\.5000[\s\S]*BTC/),
-        ).toBeOnTheScreen();
+        expect(within(section).getByText(/1\.5[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(within(section).getByText(/0\.5[\s\S]*BTC/)).toBeOnTheScreen();
       });
     });
 
@@ -335,7 +333,7 @@ describe('PerpsPositionsView', () => {
 
       // Wait for component to load - look for ETH position text
       await waitFor(() => {
-        expect(screen.getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(screen.getByText(/1\.5[\s\S]*ETH/)).toBeOnTheScreen();
       });
 
       fireEvent.press(screen.getByTestId('back-button'));
@@ -413,10 +411,10 @@ describe('PerpsPositionsView', () => {
       // Assert
       await waitFor(() => {
         // Use flexible regex patterns that account for whitespace and line breaks
-        const ethPositions = screen.getAllByText(/1\.50[\s\S]*ETH/);
+        const ethPositions = screen.getAllByText(/1\.5[\s\S]*ETH/);
         expect(ethPositions).toHaveLength(1);
 
-        const btcPositions = screen.getAllByText(/0\.5000[\s\S]*BTC/);
+        const btcPositions = screen.getAllByText(/0\.5[\s\S]*BTC/);
         expect(btcPositions).toHaveLength(1);
 
         expect(screen.getByText(/-\$75\.25/)).toBeOnTheScreen();
@@ -439,8 +437,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        // Look for the position size text that contains "1.50 ETH"
-        const ethPositions = screen.getAllByText(/1\.50\s+ETH/);
+        // Look for the position size text that contains "1.5 ETH" (trailing zero removed)
+        const ethPositions = screen.getAllByText(/1\.5\s+ETH/);
         expect(ethPositions).toHaveLength(2);
       });
     });

@@ -43,6 +43,20 @@ import {
 } from '../../Tokens/constants';
 import { useRWAToken } from '../hooks/useRWAToken';
 import { BridgeToken } from '../types';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
+import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
+import { useSelector } from 'react-redux';
+import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
+import { strings } from '../../../../../locales/i18n';
+import TagBase, {
+  TagShape,
+  TagSeverity,
+} from '../../../../component-library/base-components/TagBase';
+import Tag from '../../../../component-library/components/Tags/Tag';
+import { RootState } from '../../../../reducers';
+import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 
 const createStyles = ({
   theme,
@@ -156,6 +170,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const balance = shouldShowBalance ? fiatValue : undefined;
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
 
+  const label = token.accountType
+    ? ACCOUNT_TYPE_LABELS[token.accountType]
+    : undefined;
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -215,8 +233,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
+              gap={4}
             >
               <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+              {label && <Tag label={label} />}
               {isNoFeeAsset && (
                 <TagBase
                   shape={TagShape.Rectangle}
@@ -241,20 +261,25 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           </Box>
 
           {/* Token balance and fiat value */}
-          <Box style={styles.balance}>
+          <Box style={styles.balance} gap={4}>
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{balance}</Text>
+                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{secondaryBalance}</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {secondaryBalance}
+                </Text>
               )
             ) : null}
           </Box>

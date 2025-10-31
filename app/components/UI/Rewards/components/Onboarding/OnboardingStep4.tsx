@@ -23,30 +23,39 @@ import TextField, {
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
+import { selectOnboardingReferralCode } from '../../../../../reducers/rewards/selectors';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 import {
   REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
   REWARDS_ONBOARD_TERMS_URL,
 } from './constants';
-import RewardsErrorBanner from '../RewardsErrorBanner';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
   const navigation = useNavigation();
   const { optin, optinError, optinLoading } = useOptin();
+
   const {
     referralCode,
     setReferralCode: handleReferralCodeChange,
     isValidating: isValidatingReferralCode,
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
-  } = useValidateReferralCode();
+  } = useValidateReferralCode(
+    onboardingReferralCode
+      ? onboardingReferralCode.trim().toUpperCase()
+      : undefined,
+  );
+
+  const isPrefilledReferral = Boolean(onboardingReferralCode);
 
   const handleNext = useCallback(() => {
-    optin({ referralCode });
-  }, [optin, referralCode]);
+    optin({ referralCode, isPrefilled: isPrefilledReferral });
+  }, [optin, referralCode, isPrefilledReferral]);
 
   const renderIcon = () => {
     if (isValidatingReferralCode) {
@@ -92,7 +101,7 @@ const OnboardingStep4: React.FC = () => {
         <Image
           source={step4Img}
           testID="step-4-image"
-          style={tw.style('w-30 h-30')}
+          style={tw.style('w-32 h-32')}
         />
       </Box>
 

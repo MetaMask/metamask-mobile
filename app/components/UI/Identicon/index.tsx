@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { memo } from 'react';
-import { Image, ImageStyle } from 'react-native';
+import { Image, ImageStyle, StyleProp } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 import { useTheme } from '../../../util/theme';
 import { useSelector } from 'react-redux';
@@ -24,7 +24,7 @@ interface IdenticonProps {
   /**
    * Custom style to apply to image
    */
-  customStyle?: ImageStyle;
+  customStyle?: StyleProp<ImageStyle>;
   /**
    * True if render is happening without fade in
    */

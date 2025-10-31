@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { AxiosError } from 'axios';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -283,9 +283,11 @@ describe('BankDetails Component', () => {
     const mockLoggerError = jest.spyOn(Logger, 'error');
     render(BankDetails);
 
-    screen
-      .getByTestId('bank-details-refresh-control-scrollview')
-      .props.refreshControl.props.onRefresh();
+    await act(async () => {
+      await screen
+        .getByTestId('bank-details-refresh-control-scrollview')
+        .props.refreshControl.props.onRefresh();
+    });
 
     await waitFor(() => {
       expect(mockLoggerError).toHaveBeenCalled();
@@ -347,6 +349,65 @@ describe('BankDetails Component', () => {
         destination: 'BankDetails',
       },
     });
+  });
+
+  it('does not call confirmPayment when order has no payment method', async () => {
+    const orderWithoutPaymentMethod = {
+      ...mockOrderData,
+      data: {
+        ...mockOrderData.data,
+        paymentMethod: undefined,
+      },
+    };
+
+    const mockUseSelector = jest.requireMock('react-redux').useSelector;
+    mockUseSelector.mockImplementation(() => orderWithoutPaymentMethod);
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+
+    render(BankDetails);
+
+    fireEvent.press(screen.getByTestId('main-action-button'));
+
+    await waitFor(() => {
+      expect(mockConfirmPayment).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Payment method not found or empty'),
+        'BankDetails: handleBankTransferSent',
+      );
+    });
+    mockUseSelector.mockImplementation(() => mockOrderData);
+  });
+
+  it('does not call confirmPayment when order has payment method id', async () => {
+    const orderWithoutPaymentMethod = {
+      ...mockOrderData,
+      data: {
+        ...mockOrderData.data,
+        paymentMethod: {
+          ...mockOrderData.data.paymentMethod,
+          id: undefined,
+        },
+      },
+    };
+
+    const mockUseSelector = jest.requireMock('react-redux').useSelector;
+    mockUseSelector.mockImplementation(() => orderWithoutPaymentMethod);
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+
+    render(BankDetails);
+
+    fireEvent.press(screen.getByTestId('main-action-button'));
+
+    await waitFor(() => {
+      expect(mockConfirmPayment).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Payment method not found or empty'),
+        'BankDetails: handleBankTransferSent',
+      );
+    });
+    mockUseSelector.mockImplementation(() => mockOrderData);
   });
 
   describe('401 Error Handling', () => {
@@ -443,9 +504,11 @@ describe('BankDetails Component', () => {
 
       render(BankDetails);
 
-      screen
-        .getByTestId('bank-details-refresh-control-scrollview')
-        .props.refreshControl.props.onRefresh();
+      await act(async () => {
+        await screen
+          .getByTestId('bank-details-refresh-control-scrollview')
+          .props.refreshControl.props.onRefresh();
+      });
 
       await waitFor(() => {
         expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
@@ -469,9 +532,11 @@ describe('BankDetails Component', () => {
       const mockLoggerError = jest.spyOn(Logger, 'error');
       render(BankDetails);
 
-      screen
-        .getByTestId('bank-details-refresh-control-scrollview')
-        .props.refreshControl.props.onRefresh();
+      await act(async () => {
+        await screen
+          .getByTestId('bank-details-refresh-control-scrollview')
+          .props.refreshControl.props.onRefresh();
+      });
 
       await waitFor(() => {
         expect(mockLoggerError).toHaveBeenCalledWith(

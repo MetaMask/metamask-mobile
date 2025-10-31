@@ -9,14 +9,8 @@ import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import {
-  wait,
-  waitForCondition,
-  waitForKeychainUnlocked,
-} from '../utils/wait.util';
+import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
-import Routes from '../../../constants/navigation/Routes';
-import { METHODS_TO_DELAY } from '../SDKConnectConstants';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -30,6 +24,7 @@ const handleDeeplink = async ({
   protocolVersion,
   otherPublicKey,
   context,
+  hideReturnToApp,
 }: {
   sdkConnect: SDKConnect;
   channelId: string;
@@ -40,6 +35,7 @@ const handleDeeplink = async ({
   protocolVersion: number;
   otherPublicKey: string;
   context: string;
+  hideReturnToApp?: boolean;
 }) => {
   if (!sdkConnect.hasInitialized()) {
     DevLogger.log(
@@ -190,6 +186,7 @@ const handleDeeplink = async ({
         protocolVersion,
         trigger,
         otherPublicKey,
+        hideReturnToApp,
       });
 
       connection = sdkConnect.getConnected()[channelId];
@@ -225,22 +222,9 @@ const handleDeeplink = async ({
       }
     }
 
-    // Add delay to display UI feedback before redirecting
-    if (message?.method && METHODS_TO_DELAY[message.method]) {
-      await wait(1200);
-    }
-
     DevLogger.log(
       `[handleSendMessage] method=${message?.method} trigger=${connection.trigger} origin=${connection.origin} id=${message?.id} goBack()`,
     );
-
-    // const isPostNetworkSwitch = method === RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN
-    connection.trigger = 'resume';
-    connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
-      method: message?.method,
-      origin: connection.originatorInfo?.url,
-    });
   } catch (error) {
     Logger.error(error as Error, 'Failed to connect to channel');
   }

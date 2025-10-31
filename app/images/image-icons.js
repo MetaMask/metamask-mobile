@@ -17,15 +17,18 @@ import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import BTC_TESTNET from './bitcoin-testnet-logo.png';
 import BTC_MUTINYNET from './bitcoin-mutinynet-logo.png';
 import BTC_SIGNET from './bitcoin-signet-logo.svg';
+///: END:ONLY_INCLUDE_IF
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import HL from './HL_symbol_mint_green.png';
 import XRPLEVM_TOKEN from './xrp-logo.png';
 import SEI from './sei.png';
 import MONAD_TESTNET from './monad-testnet-logo.png';
+import MONAD_MAINNET from './monad-mainnet-logo.png';
 import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
@@ -44,6 +47,13 @@ import XDC from './xdc.png';
 import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
 import AAVE from './aave-token-round.png';
 import HEMI from './hemi.png';
+import LUKSO from './lukso.png';
+import INJECTIVE from './injective.png';
+import PLASMA from './plasma-native.png';
+import CRONOS from './cronos.png';
+/// BEGIN:ONLY_INCLUDE_IF(tron)
+import TRON from './tron.png';
+/// END:ONLY_INCLUDE_IF
 
 export default {
   PALM,
@@ -68,14 +78,20 @@ export default {
   SOLANA_DEVNET,
   FOX_LOGO,
   BTC,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  TRON,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
   'BTC-SIGNET': BTC_SIGNET,
+  ///: END:ONLY_INCLUDE_IF
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRP: XRPLEVM_TOKEN,
   SEI,
   'MONAD-TESTNET': MONAD_TESTNET,
+  MON: MONAD_MAINNET,
   MATCHAIN,
   FLOW,
   LENS,
@@ -94,4 +110,8 @@ export default {
   XDC,
   'MEGAETH-MAINNET': MEGAETH_MAINNET,
   HEMI,
+  LYX: LUKSO,
+  INJ: INJECTIVE,
+  XPL: PLASMA,
+  CRO: CRONOS,
 };

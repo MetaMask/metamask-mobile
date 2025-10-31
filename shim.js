@@ -1,6 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
-import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
@@ -11,6 +10,14 @@ import {
   testConfig,
 } from './app/util/test/utils.js';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
+
+import { getPublicKey } from '@metamask/native-utils';
+
+// polyfill getPublicKey with much faster C++ implementation
+// IMPORTANT: This patching works only if @noble/curves version in root package.json is same as @noble/curves version in package.json of @scure/bip32.
+// eslint-disable-next-line import/no-commonjs, import/no-extraneous-dependencies
+const secp256k1_1 = require('@noble/curves/secp256k1');
+secp256k1_1.secp256k1.getPublicKey = getPublicKey;
 
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
@@ -46,14 +53,6 @@ if (isTest) {
     : FIXTURE_SERVER_PORT;
 }
 
-if (!global.btoa) {
-  global.btoa = encode;
-}
-
-if (!global.atob) {
-  global.atob = decode;
-}
-
 // Fix for https://github.com/facebook/react-native/issues/5667
 if (typeof global.self === 'undefined') {
   global.self = global;
@@ -74,6 +73,9 @@ if (typeof process === 'undefined') {
   }
 }
 
+// Use faster Buffer implementation for React Native
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+
 // Polyfill crypto after process is polyfilled
 const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
 
@@ -86,7 +88,6 @@ global.crypto = {
 };
 
 process.browser = false;
-if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // EventTarget polyfills for Hyperliquid SDK WebSocket support
 if (

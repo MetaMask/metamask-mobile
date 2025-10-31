@@ -5,12 +5,12 @@ import BannerAlert from '../../../../../../component-library/components/Banners/
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { createErrorDetailsModalNavigationDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './TruncatedError.styles';
+import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button';
 
 interface TruncatedErrorProps {
   error: string;
@@ -28,7 +28,10 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   const handleTextLayout = useCallback(
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
       const { lines } = event.nativeEvent;
-      setIsTruncated(lines.length > maxLines);
+      setIsTruncated(
+        lines.length === maxLines &&
+          lines[lines.length - 1].text.length > lines[0].text.length,
+      );
     },
     [maxLines],
   );
@@ -43,27 +46,24 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
     <View style={styles.container}>
       <BannerAlert
         description={
-          <View style={styles.textContainer}>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.errorText}
-              numberOfLines={maxLines}
-              ellipsizeMode="tail"
-              onTextLayout={handleTextLayout}
-            >
-              {error}
-            </Text>
-            {isTruncated && (
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Primary}
-                style={styles.seeMoreText}
-                onPress={handleSeeMore}
-              >
-                {strings('deposit.errors.see_more')}
-              </Text>
-            )}
-          </View>
+          <Text
+            variant={TextVariant.BodySM}
+            numberOfLines={maxLines}
+            ellipsizeMode="tail"
+            onTextLayout={handleTextLayout}
+          >
+            {error}
+          </Text>
+        }
+        actionButtonProps={
+          isTruncated
+            ? {
+                variant: ButtonVariants.Link,
+                label: strings('deposit.errors.see_more'),
+                labelTextVariant: TextVariant.BodySM,
+                onPress: handleSeeMore,
+              }
+            : undefined
         }
         severity={BannerAlertSeverity.Error}
       />

@@ -1,7 +1,9 @@
 import { Side } from '../../types';
+import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
+  eventId: string;
   icon: string;
   title: string;
   slug: string;
@@ -18,6 +20,7 @@ export interface PolymarketPosition {
   negativeRisk: boolean;
   endDate: string;
   asset: string;
+  realizedPnl: number;
 }
 
 export enum UtilsSide {
@@ -96,10 +99,14 @@ export type SignedOrder = (OrderData & { salt: string }) & {
   signature: string;
 };
 
-export type ClobOrderObject = Omit<SignedOrder, 'side' | 'salt'> & {
-  side: Side;
-  salt: number;
-};
+export interface ClobOrderObject {
+  order: Omit<SignedOrder, 'side' | 'salt'> & {
+    side: Side;
+    salt: number;
+  };
+  owner: string;
+  orderType: OrderType;
+}
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ClobHeaders = {
   POLY_ADDRESS: string;
@@ -112,13 +119,7 @@ export type ClobHeaders = {
 export interface PolymarketOffchainTradeParams {
   clobOrder: ClobOrderObject;
   headers: ClobHeaders;
-}
-
-export interface OrderArtifactsParams {
-  outcomeTokenId: string;
-  outcomeId: string;
-  side: Side;
-  size: number;
+  feeAuthorization?: SafeFeeAuthorization;
 }
 
 // Polymarket API response types
@@ -136,14 +137,18 @@ export interface PolymarketApiMarket {
   outcomes: string;
   outcomePrices: string;
   closed: boolean;
+  active: boolean;
+  resolvedBy: string;
   orderPriceMinTickSize: number;
+  events?: PolymarketApiEvent[];
+  umaResolutionStatus: string;
 }
 
 export interface PolymarketApiSeries {
   recurrence: string;
 }
 
-export interface PolymarketTag {
+export interface PolymarketApiTag {
   id: string;
   label: string;
   slug: string;
@@ -162,9 +167,27 @@ export interface PolymarketApiEvent {
   title: string;
   description: string;
   icon: string;
+  endDate?: string;
   closed: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
+  tags: PolymarketApiTag[];
+  liquidity: number;
+  volume: number;
+}
+
+export interface PolymarketApiActivity {
+  type: 'TRADE' | 'REDEEM';
+  side: 'BUY' | 'SELL' | '';
+  price: number;
+  usdcSize: number;
+  timestamp: number;
+  transactionHash: string;
+  conditionId: string;
+  outcomeIndex: number;
+  title: string;
+  outcome?: 'Yes' | 'No' | '';
+  icon: string;
 }
 
 export interface PolymarketApiEventsResponse {
@@ -301,4 +324,16 @@ export interface ClobOrderParams {
 export interface OrderSummary {
   price: string;
   size: string;
+}
+
+export interface OrderBook {
+  market: string;
+  asset_id: string;
+  hash: string;
+  timestamp: string;
+  asks: OrderSummary[]; // descending by price
+  bids: OrderSummary[]; // ascending by price
+  min_order_size: string;
+  tick_size: string;
+  neg_risk: boolean;
 }

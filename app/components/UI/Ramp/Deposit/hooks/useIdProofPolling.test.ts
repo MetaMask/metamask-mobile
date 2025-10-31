@@ -68,6 +68,7 @@ describe('useIdProofPolling', () => {
       setSelectedPaymentMethod: jest.fn(),
       selectedCryptoCurrency: MOCK_USDC_TOKEN,
       setSelectedCryptoCurrency: jest.fn(),
+      selectedWalletAddress: '0x1234567890123456789012345678901234567890',
     });
   });
 

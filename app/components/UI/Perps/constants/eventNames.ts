@@ -12,6 +12,7 @@ export const PerpsEventProperties = {
   ASSET: 'asset',
   DIRECTION: 'direction',
   SOURCE: 'source',
+  TAB_NAME: 'tab_name',
 
   // Trade properties
   LEVERAGE: 'leverage',
@@ -19,6 +20,7 @@ export const PerpsEventProperties = {
   ORDER_SIZE: 'order_size',
   MARGIN_USED: 'margin_used',
   ORDER_TYPE: 'order_type', // lowercase per dashboard
+  ORDER_TIMESTAMP: 'order_timestamp',
   LIMIT_PRICE: 'limit_price',
   FEES: 'fees',
   FEE: 'fee',
@@ -73,6 +75,7 @@ export const PerpsEventProperties = {
   // Other properties
   INPUT_METHOD: 'input_method', // camelCase per requirements
   ACTION_TYPE: 'action_type',
+  SETTING_TYPE: 'setting_type',
   FAILURE_REASON: 'failure_reason',
   WARNING_TYPE: 'warning_type',
   WARNING_MESSAGE: 'warning_message',
@@ -90,6 +93,13 @@ export const PerpsEventProperties = {
   SCREEN_POSITION: 'screen_position',
   TOTAL_SCREENS: 'total_screens',
   NAVIGATION_METHOD: 'navigation_method',
+  STATUS: 'status',
+  SCREEN_TYPE: 'screen_type',
+  SCREEN_NAME: 'screen_name',
+  ACTION: 'action',
+  RETRY_ATTEMPTS: 'retry_attempts',
+  SHOW_BACK_BUTTON: 'show_back_button',
+  ATTEMPT_NUMBER: 'attempt_number',
 } as const;
 
 /**
@@ -129,6 +139,7 @@ export const PerpsEventValues = {
     PERP_MARKET: 'perp_market',
     PERP_MARKET_SEARCH: 'perp_market_search',
     POSITION_SCREEN: 'position_screen',
+    TP_SL_VIEW: 'tp_sl_view',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -145,11 +156,22 @@ export const PerpsEventValues = {
     TAP: 'tap',
     ZOOM: 'zoom',
     SLIDE: 'slide',
-    CANDLE_PERIOD_CHANGE: 'candle_period_change',
+    SEARCH_CLICKED: 'search_clicked',
+    ORDER_TYPE_VIEWED: 'order_type_viewed',
+    ORDER_TYPE_SELECTED: 'order_type_selected',
+    SETTING_CHANGED: 'setting_changed',
+    TUTORIAL_STARTED: 'tutorial_started',
+    TUTORIAL_COMPLETED: 'tutorial_completed',
+    TUTORIAL_NAVIGATION: 'tutorial_navigation',
+    CANDLE_PERIOD_VIEWED: 'candle_period_viewed',
+    CANDLE_PERIOD_CHANGED: 'candle_period_changed',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
     SKIP: 'skip',
+    STOP_LOSS_SET: 'stop_loss_set',
+    TAKE_PROFIT_SET: 'take_profit_set',
+    ADL_LEARN_MORE: 'adl_learn_more',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'position_liquidated',
@@ -165,5 +187,46 @@ export const PerpsEventValues = {
     SWIPE: 'swipe',
     CONTINUE_BUTTON: 'continue_button',
     PROGRESS_DOT: 'progress_dot',
+  },
+  STATUS: {
+    VIEWED: 'viewed',
+    STARTED: 'started',
+    COMPLETED: 'completed',
+    INITIATED: 'initiated',
+    SUBMITTED: 'submitted',
+    EXECUTED: 'executed',
+    PARTIALLY_FILLED: 'partially_filled',
+    FAILED: 'failed',
+  },
+  SCREEN_TYPE: {
+    MARKETS: 'markets',
+    ASSET_DETAILS: 'asset_details',
+    TRADING: 'trading',
+    HOMESCREEN: 'homescreen',
+    POSITION_CLOSE: 'position_close',
+    LEVERAGE: 'leverage',
+    TUTORIAL: 'tutorial',
+    WITHDRAWAL: 'withdrawal',
+    TP_SL: 'tp_sl',
+    DEPOSIT_INPUT: 'deposit_input',
+    DEPOSIT_REVIEW: 'deposit_review',
+    CLOSE_ALL_POSITIONS: 'close_all_positions',
+    CANCEL_ALL_ORDERS: 'cancel_all_orders',
+  },
+  SETTING_TYPE: {
+    LEVERAGE: 'leverage',
+  },
+  SCREEN_NAME: {
+    CONNECTION_ERROR: 'connection_error',
+    PERPS_ACTIVITY_HISTORY: 'perps_activity_history',
+  },
+  ACTION: {
+    CONNECTION_RETRY: 'connection_retry',
+  },
+  PERPS_HISTORY_TABS: {
+    TRADES: 'trades',
+    ORDERS: 'orders',
+    FUNDING: 'funding',
+    DEPOSITS: 'deposits',
   },
 } as const;

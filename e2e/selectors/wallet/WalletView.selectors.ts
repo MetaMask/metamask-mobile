@@ -26,7 +26,7 @@ export const WalletViewSelectorsIDs = {
   TOKENS_CONTAINER: 'tokens',
   TOKENS_CONTAINER_LIST: 'token-list',
   ACCOUNT_OVERVIEW: 'account-overview',
-  ACCOUNT_ACTIONS: 'main-wallet-account-actions',
+  ACCOUNT_ACTIONS: 'multichain-account-cell-menu',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
   EYE_SLASH_ICON: 'balance-container',
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
@@ -96,6 +96,8 @@ export const WalletViewSelectorsText = {
   PERMISSIONS_SUMMARY_TAB: 'Permissions',
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
   DEFI_TAB: enContent.wallet.defi,
+  PREDICTIONS_TAB: enContent.wallet.predict,
+  AVAILABLE_BALANCE: enContent.predict.available_balance,
   DEFI_EMPTY_STATE_DESCRIPTION:
     enContent.defi_positions.empty_state.description,
   DEFI_EMPTY_STATE_EXPLORE_BUTTON:

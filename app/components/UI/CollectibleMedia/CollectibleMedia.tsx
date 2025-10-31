@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
 import { getNftImage } from '../../../util/get-nft-image';
+import RemoteImageBadgeWrapper from '../../Base/RemoteImage/RemoteImageBadgeWrapper';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -126,27 +127,35 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           )}
         </View>
       ) : (
-        <View
-          style={[
-            styles.textContainer,
-            style,
-            tiny && styles.tinyImage,
-            small && styles.smallImage,
-            big && styles.bigImage,
-            cover && styles.cover,
-          ]}
-          testID="fallback-nft-with-token-id"
+        <RemoteImageBadgeWrapper
+          chainId={collectible.chainId}
+          isFullRatio={isFullRatio}
         >
-          <Text
-            big={big}
-            small={tiny ?? small}
-            style={tiny ? styles.textWrapperIcon : styles.textWrapper}
+          <View
+            style={[
+              styles.textContainer,
+              style,
+              tiny && styles.tinyImage,
+              small && styles.smallImage,
+              big && styles.bigImage,
+              cover && styles.cover,
+            ]}
+            testID="fallback-nft-with-token-id"
           >
-            {collectible.tokenId
-              ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
-              : ''}
-          </Text>
-        </View>
+            <Text
+              big={big}
+              small={tiny ?? small}
+              style={{
+                ...styles.textWrapper,
+                ...(tiny ? styles.textWrapperIcon : {}),
+              }}
+            >
+              {collectible.tokenId
+                ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
+                : ''}
+            </Text>
+          </View>
+        </RemoteImageBadgeWrapper>
       ),
     [
       styles,
@@ -156,6 +165,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
       small,
       tiny,
       collectible,
+      isFullRatio,
       onPressColectible,
       pressNft,
     ],
@@ -182,7 +192,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
         return (
           <RemoteImage
             fadeIn
-            resizeMode={'contain'}
+            contentFit={'contain'}
             source={{ uri: sourceUri }}
             style={[
               styles.image,

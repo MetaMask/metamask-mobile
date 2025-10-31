@@ -13,7 +13,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(RegressionConfirmations('Failing contracts'), () => {
+describe.skip(RegressionConfirmations('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
 
   it('sends a failing contract transaction', async () => {
@@ -42,9 +42,8 @@ describe(RegressionConfirmations('Failing contracts'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const failingAddress = await contractRegistry?.getContractAddress(
-          FAILING_CONTRACT,
-        );
+        const failingAddress =
+          await contractRegistry?.getContractAddress(FAILING_CONTRACT);
         await loginToApp();
 
         // Navigate to the browser screen

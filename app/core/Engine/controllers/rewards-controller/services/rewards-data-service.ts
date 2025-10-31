@@ -1,17 +1,12 @@
-import type { RestrictedMessenger } from '@metamask/base-controller';
+import type { Messenger } from '@metamask/messenger';
 import { getVersion } from 'react-native-device-info';
-import AppConstants from '../../../../AppConstants';
 import type {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
   GetPerpsDiscountDto,
   PerpsDiscountData,
-  LoginDto,
-  SeasonStatusDto,
-  GenerateChallengeDto,
-  ChallengeResponseDto,
-  SubscriptionReferralDetailsDto,
+  SubscriptionSeasonReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
   MobileLoginDto,
@@ -22,6 +17,11 @@ import type {
   PointsBoostEnvelopeDto,
   RewardDto,
   ClaimRewardDto,
+  GetPointsEventsLastUpdatedDto,
+  MobileOptinDto,
+  DiscoverSeasonsDto,
+  SeasonMetadataDto,
+  SeasonStateDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -38,6 +38,26 @@ export class InvalidTimestampError extends Error {
     super(message);
     this.name = 'InvalidTimestampError';
     this.timestamp = timestamp;
+  }
+}
+
+/**
+ * Custom error for authorization failures
+ */
+export class AuthorizationFailedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthorizationFailedError';
+  }
+}
+
+/**
+ * Custom error for account already registered (409 conflict)
+ */
+export class AccountAlreadyRegisteredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AccountAlreadyRegisteredError';
   }
 }
 
@@ -64,6 +84,11 @@ export interface RewardsDataServiceGetPointsEventsAction {
   handler: RewardsDataService['getPointsEvents'];
 }
 
+export interface RewardsDataServiceGetPointsEventsLastUpdatedAction {
+  type: `${typeof SERVICE_NAME}:getPointsEventsLastUpdated`;
+  handler: RewardsDataService['getPointsEventsLastUpdated'];
+}
+
 export interface RewardsDataServiceEstimatePointsAction {
   type: `${typeof SERVICE_NAME}:estimatePoints`;
   handler: RewardsDataService['estimatePoints'];
@@ -73,19 +98,14 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
-export interface RewardsDataServiceOptinAction {
-  type: `${typeof SERVICE_NAME}:optin`;
-  handler: RewardsDataService['optin'];
+export interface RewardsDataServiceMobileOptinAction {
+  type: `${typeof SERVICE_NAME}:mobileOptin`;
+  handler: RewardsDataService['mobileOptin'];
 }
 
 export interface RewardsDataServiceLogoutAction {
   type: `${typeof SERVICE_NAME}:logout`;
   handler: RewardsDataService['logout'];
-}
-
-export interface RewardsDataServiceGenerateChallengeAction {
-  type: `${typeof SERVICE_NAME}:generateChallenge`;
-  handler: RewardsDataService['generateChallenge'];
 }
 
 export interface RewardsDataServiceGetSeasonStatusAction {
@@ -138,16 +158,26 @@ export interface RewardsDataServiceClaimRewardAction {
   handler: RewardsDataService['claimReward'];
 }
 
+export interface RewardsDataServiceGetDiscoverSeasonsAction {
+  type: `${typeof SERVICE_NAME}:getDiscoverSeasons`;
+  handler: RewardsDataService['getDiscoverSeasons'];
+}
+
+export interface RewardsDataServiceGetSeasonMetadataAction {
+  type: `${typeof SERVICE_NAME}:getSeasonMetadata`;
+  handler: RewardsDataService['getSeasonMetadata'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
+  | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
-  | RewardsDataServiceOptinAction
+  | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceGenerateChallengeAction
   | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
@@ -155,20 +185,24 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
   | RewardsDataServiceGetUnlockedRewardsAction
-  | RewardsDataServiceClaimRewardAction;
+  | RewardsDataServiceClaimRewardAction
+  | RewardsDataServiceGetDiscoverSeasonsAction
+  | RewardsDataServiceGetSeasonMetadataAction;
 
-export type RewardsDataServiceMessenger = RestrictedMessenger<
+export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
   RewardsDataServiceActions,
-  never,
-  never['type'],
-  never['type']
+  never
 >;
 
 /**
  * Data service for rewards API endpoints
  */
 export class RewardsDataService {
+  readonly name: typeof SERVICE_NAME = SERVICE_NAME;
+
+  readonly state: null = null;
+
   readonly #messenger: RewardsDataServiceMessenger;
 
   readonly #fetch: typeof fetch;
@@ -205,6 +239,10 @@ export class RewardsDataService {
       this.getPointsEvents.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPointsEventsLastUpdated`,
+      this.getPointsEventsLastUpdated.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
       this.estimatePoints.bind(this),
     );
@@ -213,16 +251,12 @@ export class RewardsDataService {
       this.getPerpsDiscount.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:optin`,
-      this.optin.bind(this),
+      `${SERVICE_NAME}:mobileOptin`,
+      this.mobileOptin.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:logout`,
       this.logout.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:generateChallenge`,
-      this.generateChallenge.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonStatus`,
@@ -263,6 +297,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:claimReward`,
       this.claimReward.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getDiscoverSeasons`,
+      this.getDiscoverSeasons.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSeasonMetadata`,
+      this.getSeasonMetadata.bind(this),
     );
   }
 
@@ -354,6 +396,27 @@ export class RewardsDataService {
   }
 
   /**
+   * Check if the error response is a 409 conflict with "already registered" message
+   * and throw AccountAlreadyRegisteredError if so.
+   * @param response - The HTTP response object
+   * @param errorData - The parsed error data from the response
+   * @private
+   */
+  private checkForAccountAlreadyRegisteredError(
+    response: Response,
+    errorData: { message?: string },
+  ): void {
+    if (
+      response.status === 409 &&
+      errorData?.message?.toLowerCase().includes('already registered')
+    ) {
+      throw new AccountAlreadyRegisteredError(
+        errorData.message || 'Account is already registered',
+      );
+    }
+  }
+
+  /**
    * Perform login via signature for the current account.
    * @param body - The login request body containing account, timestamp, and signature.
    * @returns The login response DTO.
@@ -380,6 +443,9 @@ export class RewardsDataService {
           Math.floor(Number(errorData.serverTimestamp) / 1000),
         );
       }
+
+      this.checkForAccountAlreadyRegisteredError(response, errorData);
+
       throw new Error(`Login failed: ${response.status}`);
     }
 
@@ -412,6 +478,27 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PaginatedPointsEventsDto;
+  }
+
+  async getPointsEventsLastUpdated(
+    params: GetPointsEventsLastUpdatedDto,
+  ): Promise<Date | null> {
+    const { seasonId, subscriptionId } = params;
+    const response = await this.makeRequest(
+      `/seasons/${seasonId}/points-events/last-updated`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get points events last update failed: ${response.status}`,
+      );
+    }
+    const result = await response.json();
+    return result?.lastUpdated ? new Date(result.lastUpdated) : null;
   }
 
   /**
@@ -483,36 +570,30 @@ export class RewardsDataService {
   }
 
   /**
-   * Generate a challenge for authentication.
-   * @param body - The challenge request body containing the address.
-   * @returns The challenge response DTO.
-   */
-  async generateChallenge(
-    body: GenerateChallengeDto,
-  ): Promise<ChallengeResponseDto> {
-    const response = await this.makeRequest('/auth/challenge/generate', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      throw new Error(`Generate challenge failed: ${response.status}`);
-    }
-
-    return (await response.json()) as ChallengeResponseDto;
-  }
-
-  /**
-   * Perform optin (login) via challenge and signature.
-   * @param body - The login request body containing challengeId, signature, and optional referralCode.
+   * Perform optin via signature for the current account.
+   * @param body - The login request body containing account, timestamp, signature and referral code.
    * @returns The login response DTO.
    */
-  async optin(body: LoginDto): Promise<LoginResponseDto> {
-    const response = await this.makeRequest('/auth/login', {
+  async mobileOptin(body: MobileOptinDto): Promise<LoginResponseDto> {
+    const response = await this.makeRequest('/auth/mobile-optin', {
       method: 'POST',
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+      Logger.log('RewardsDataService: mobileOptin errorData', errorData);
+
+      if (errorData?.message?.includes('Invalid timestamp')) {
+        // Retry signing with a new timestamp
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
+        );
+      }
+
+      this.checkForAccountAlreadyRegisteredError(response, errorData);
+
       throw new Error(`Optin failed: ${response.status}`);
     }
 
@@ -539,17 +620,17 @@ export class RewardsDataService {
   }
 
   /**
-   * Get season status for a specific season.
-   * @param seasonId - The ID of the season to get status for.
+   * Get season state for a specific season.
+   * @param seasonId - The ID of the season to get state for.
    * @param subscriptionId - The subscription ID for authentication.
-   * @returns The season status DTO.
+   * @returns The season state DTO.
    */
   async getSeasonStatus(
     seasonId: string,
     subscriptionId: string,
-  ): Promise<SeasonStatusDto> {
+  ): Promise<SeasonStateDto> {
     const response = await this.makeRequest(
-      `/seasons/${seasonId}/status`,
+      `/seasons/${seasonId}/state`,
       {
         method: 'GET',
       },
@@ -557,37 +638,38 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get season status failed: ${response.status}`);
+      const errorData = await response.json();
+      if (errorData?.message?.includes('Rewards authorization failed')) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+
+      throw new Error(`Get season state failed: ${response.status}`);
     }
 
     const data = await response.json();
 
     // Convert date strings to Date objects
-    if (data.balance?.updatedAt) {
-      data.balance.updatedAt = new Date(data.balance.updatedAt);
-    }
-    if (data.season) {
-      if (data.season.startDate) {
-        data.season.startDate = new Date(data.season.startDate);
-      }
-      if (data.season.endDate) {
-        data.season.endDate = new Date(data.season.endDate);
-      }
+    if (data.updatedAt) {
+      data.updatedAt = new Date(data.updatedAt);
     }
 
-    return data as SeasonStatusDto;
+    return data as SeasonStateDto;
   }
 
   /**
-   * Get referral details for a specific subscription.
+   * Get referral details for a specific subscription and season.
+   * @param seasonId - The season ID to get referral details for.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The referral details DTO.
    */
   async getReferralDetails(
+    seasonId: string,
     subscriptionId: string,
-  ): Promise<SubscriptionReferralDetailsDto> {
+  ): Promise<SubscriptionSeasonReferralDetailsDto> {
     const response = await this.makeRequest(
-      '/subscriptions/referral-details',
+      `/seasons/${seasonId}/referral-details`,
       {
         method: 'GET',
       },
@@ -598,7 +680,7 @@ export class RewardsDataService {
       throw new Error(`Get referral details failed: ${response.status}`);
     }
 
-    return (await response.json()) as SubscriptionReferralDetailsDto;
+    return (await response.json()) as SubscriptionSeasonReferralDetailsDto;
   }
 
   /**
@@ -610,8 +692,7 @@ export class RewardsDataService {
     let location = 'UNKNOWN';
 
     try {
-      const environment = AppConstants.IS_DEV ? 'DEV' : 'PROD';
-      const response = await successfulFetch(GEOLOCATION_URLS[environment]);
+      const response = await successfulFetch(GEOLOCATION_URLS.PROD);
 
       if (!response.ok) {
         return location;
@@ -676,6 +757,9 @@ export class RewardsDataService {
           Math.floor(Number(errorData.serverTimestamp) / 1000),
         );
       }
+
+      this.checkForAccountAlreadyRegisteredError(response, errorData);
+
       throw new Error(
         `Mobile join failed: ${response.status} ${errorData?.message || ''}`,
       );
@@ -805,5 +889,73 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(`Failed to claim reward: ${response.status}`);
     }
+  }
+
+  /**
+   * Get discover seasons information (current and next season).
+   * @returns The discover seasons DTO with current and next season information.
+   */
+  async getDiscoverSeasons(): Promise<DiscoverSeasonsDto> {
+    const response = await this.makeRequest('/public/seasons/status', {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Get discover seasons failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Convert date strings to Date objects for current season
+    if (data.current) {
+      if (data.current.startDate) {
+        data.current.startDate = new Date(data.current.startDate);
+      }
+      if (data.current.endDate) {
+        data.current.endDate = new Date(data.current.endDate);
+      }
+    }
+
+    // Convert date strings to Date objects for next season
+    if (data.next) {
+      if (data.next.startDate) {
+        data.next.startDate = new Date(data.next.startDate);
+      }
+      if (data.next.endDate) {
+        data.next.endDate = new Date(data.next.endDate);
+      }
+    }
+
+    return data as DiscoverSeasonsDto;
+  }
+
+  /**
+   * Get season metadata for a specific season.
+   * @param seasonId - The ID of the season to get metadata for.
+   * @returns The season metadata DTO.
+   */
+  async getSeasonMetadata(seasonId: string): Promise<SeasonMetadataDto> {
+    const response = await this.makeRequest(
+      `/public/seasons/${seasonId}/meta`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get season metadata failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Convert date strings to Date objects
+    if (data.startDate) {
+      data.startDate = new Date(data.startDate);
+    }
+    if (data.endDate) {
+      data.endDate = new Date(data.endDate);
+    }
+
+    return data as SeasonMetadataDto;
   }
 }

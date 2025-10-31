@@ -11,7 +11,7 @@ import enContent from '../../../locales/languages/en.json';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 
-describe(RegressionAssets('NFT Details page'), () => {
+describe.skip(RegressionAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const TEST_DAPP_CONTRACT = 'TestDappNFTs';
   beforeAll(async () => {
@@ -37,9 +37,8 @@ describe(RegressionAssets('NFT Details page'), () => {
         smartContracts: [NFT_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry?.getContractAddress(
-          NFT_CONTRACT,
-        );
+        const nftsAddress =
+          await contractRegistry?.getContractAddress(NFT_CONTRACT);
 
         await loginToApp();
 

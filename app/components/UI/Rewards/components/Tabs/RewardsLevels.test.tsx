@@ -25,7 +25,7 @@ jest.mock('./LevelsTab/UpcomingRewards', () => ({
     return React.createElement(
       View,
       { testID: 'upcoming-rewards' },
-      React.createElement(Text, null, 'Upcoming Rewards'),
+      React.createElement(Text, null, 'Locked Rewards'),
     );
   },
 }));

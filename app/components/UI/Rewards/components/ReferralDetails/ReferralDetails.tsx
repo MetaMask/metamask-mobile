@@ -13,18 +13,24 @@ import {
   selectReferralCount,
   selectReferralDetailsError,
   selectReferralDetailsLoading,
-  selectSeasonStatusLoading,
   selectSeasonStatusError,
   selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../utils';
 
-const ReferralDetails: React.FC = () => {
+interface ReferralDetailsProps {
+  showInfoSection?: boolean;
+}
+
+const ReferralDetails: React.FC<ReferralDetailsProps> = ({
+  showInfoSection = true,
+}) => {
   const referralCode = useSelector(selectReferralCode);
   const refereeCount = useSelector(selectReferralCount);
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
-  const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
   const seasonStatusError = useSelector(selectSeasonStatusError);
   const seasonStartDate = useSelector(selectSeasonStartDate);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
@@ -32,19 +38,42 @@ const ReferralDetails: React.FC = () => {
 
   const { fetchReferralDetails } = useReferralDetails();
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const handleCopyCode = async () => {
     if (referralCode) {
       Clipboard.setString(referralCode);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+          .addProperties({
+            button_type: RewardsMetricsButtons.COPY_REFERRAL_CODE,
+          })
+          .build(),
+      );
     }
   };
 
   const handleCopyLink = async (link: string) => {
     if (link) {
       Clipboard.setString(link);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+          .addProperties({
+            button_type: RewardsMetricsButtons.COPY_REFERRAL_LINK,
+          })
+          .build(),
+      );
     }
   };
 
   const handleShareLink = async (link: string) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.SHARE_REFERRAL_LINK,
+        })
+        .build(),
+    );
     await Share.open({
       message: `${strings('rewards.referral.actions.share_referral_subject')}`,
       url: link,
@@ -64,7 +93,7 @@ const ReferralDetails: React.FC = () => {
 
   return (
     <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
-      <ReferralInfoSection />
+      {showInfoSection && <ReferralInfoSection />}
 
       {!referralDetailsLoading && referralDetailsError && !referralCode ? (
         <RewardsErrorBanner
@@ -82,7 +111,7 @@ const ReferralDetails: React.FC = () => {
           <ReferralStatsSection
             earnedPointsFromReferees={balanceRefereePortion}
             refereeCount={refereeCount}
-            earnedPointsFromRefereesLoading={seasonStatusLoading}
+            earnedPointsFromRefereesLoading={referralDetailsLoading}
             refereeCountLoading={referralDetailsLoading}
             refereeCountError={referralDetailsError}
           />

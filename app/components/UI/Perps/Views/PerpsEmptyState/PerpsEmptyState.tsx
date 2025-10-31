@@ -11,12 +11,10 @@ import emptyStatePerpsLight from '../../../../../images/empty-state-perps-light.
 import emptyStatePerpsDark from '../../../../../images/empty-state-perps-dark.png';
 
 export interface PerpsEmptyStateProps extends TabEmptyStateProps {
-  onStartTrading: () => void;
   testID?: string;
 }
 
 export const PerpsEmptyState: React.FC<PerpsEmptyStateProps> = ({
-  onStartTrading,
   testID,
   ...props
 }) => {
@@ -36,7 +34,6 @@ export const PerpsEmptyState: React.FC<PerpsEmptyStateProps> = ({
       }
       description={strings('perps.position.list.first_time_description')}
       actionButtonText={strings('perps.position.list.start_trading')}
-      onAction={onStartTrading}
       testID={testID}
       {...props}
     />

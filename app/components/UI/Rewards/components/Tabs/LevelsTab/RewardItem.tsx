@@ -17,6 +17,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
 import { useSelector } from 'react-redux';
@@ -60,7 +61,11 @@ const RewardItem: React.FC<RewardItemProps> = ({
   const shortDescription = useMemo(() => {
     if (isLocked) {
       return (
-        <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-text-alternative"
+        >
           {seasonReward.shortDescription}
         </Text>
       );
@@ -78,6 +83,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
               {strings('rewards.unlocked_rewards.expired')}
@@ -96,9 +102,10 @@ const RewardItem: React.FC<RewardItemProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-warning-default"
             >
-              {timeRemaining} left
+              {timeRemaining} {strings('rewards.unlocked_rewards.time_left')}
             </Text>
           </Box>
         );
@@ -117,6 +124,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
               {strings('rewards.unlocked_rewards.claimed_label')}
@@ -126,14 +134,22 @@ const RewardItem: React.FC<RewardItemProps> = ({
       }
       // Keep subtext for rewards that do not requires claim
       return (
-        <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-text-alternative"
+        >
           {seasonReward.shortUnlockedDescription}
         </Text>
       );
     }
 
     return (
-      <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        twClassName="text-text-alternative"
+      >
         {seasonReward.shortUnlockedDescription}
       </Text>
     );
@@ -195,6 +211,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
       showInput: rewardInputAction,
       inputPlaceholder: rewardInputPlaceholder,
       rewardId: reward?.id,
+      seasonRewardId: seasonReward.id,
       rewardType: seasonReward.rewardType,
       isLocked,
       hasClaimed,
@@ -204,6 +221,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
     seasonReward.name,
     seasonReward.iconName,
     seasonReward.rewardType,
+    seasonReward.id,
     longDescription,
     rewardClaimUrl,
     rewardInputAction,
@@ -236,6 +254,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
         <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             twClassName="text-text-default mb-1"
             testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
           >

@@ -29,6 +29,14 @@ import Logger from '../../../../../../app/util/Logger';
 import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useDepositUser } from './useDepositUser';
+
+class LimitExceededError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'LimitExceededError';
+  }
+}
 
 export const useDepositRouting = () => {
   const navigation = useNavigation();
@@ -41,6 +49,7 @@ export const useDepositRouting = () => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
+  const { fetchUserDetails } = useDepositUser();
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',
@@ -50,12 +59,6 @@ export const useDepositRouting = () => {
 
   const [, getAdditionalRequirements] = useDepositSdkMethod({
     method: 'getAdditionalRequirements',
-    onMount: false,
-    throws: true,
-  });
-
-  const [, fetchUserDetails] = useDepositSdkMethod({
-    method: 'getUserDetails',
     onMount: false,
     throws: true,
   });
@@ -90,6 +93,12 @@ export const useDepositRouting = () => {
     throws: true,
   });
 
+  const [, getUserLimits] = useDepositSdkMethod({
+    method: 'getUserLimits',
+    onMount: false,
+    throws: true,
+  });
+
   const popToBuildQuote = useCallback(() => {
     navigation.dispatch((state) => {
       const buildQuoteIndex = state.routes.findIndex(
@@ -107,6 +116,72 @@ export const useDepositRouting = () => {
       };
     });
   }, [navigation]);
+
+  const checkUserLimits = useCallback(
+    async (quote: BuyQuote, kycType: string) => {
+      try {
+        const userLimits = await getUserLimits(
+          selectedRegion?.currency || '',
+          selectedPaymentMethod?.id || '',
+          kycType,
+        );
+
+        if (!userLimits?.remaining) {
+          return;
+        }
+
+        const { remaining } = userLimits;
+        const dailyLimit = remaining['1'];
+        const monthlyLimit = remaining['30'];
+        const yearlyLimit = remaining['365'];
+
+        if (
+          dailyLimit === undefined ||
+          monthlyLimit === undefined ||
+          yearlyLimit === undefined
+        ) {
+          return;
+        }
+
+        const depositAmount = quote.fiatAmount;
+        const currency = selectedRegion?.currency || '';
+
+        if (depositAmount > dailyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'daily',
+              remaining: `${dailyLimit} ${currency}`,
+            }),
+          );
+        }
+
+        if (depositAmount > monthlyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'monthly',
+              remaining: `${monthlyLimit} ${currency}`,
+            }),
+          );
+        }
+
+        if (depositAmount > yearlyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'yearly',
+              remaining: `${yearlyLimit} ${currency}`,
+            }),
+          );
+        }
+      } catch (error) {
+        if (error instanceof LimitExceededError) {
+          throw error;
+        }
+
+        Logger.error(error as Error, 'Failed to check user limits');
+      }
+    },
+    [getUserLimits, selectedRegion?.currency, selectedPaymentMethod?.id],
+  );
 
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote }: { quote: BuyQuote }) => {
@@ -349,8 +424,14 @@ export const useDepositRouting = () => {
                 throw new Error('Missing user details');
               }
 
+              await checkUserLimits(quote, requirements.kycType);
+
               if (selectedPaymentMethod?.isManualBankTransfer) {
-                const order = await createOrder(quote, selectedWalletAddress);
+                const order = await createOrder(
+                  quote,
+                  selectedWalletAddress,
+                  selectedPaymentMethod.id,
+                );
 
                 if (!order) {
                   throw new Error('Missing order');
@@ -451,6 +532,11 @@ export const useDepositRouting = () => {
             return;
           }
 
+          case 'SUBMITTED': {
+            navigateToKycProcessingCallback({ quote });
+            return;
+          }
+
           default:
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
@@ -472,6 +558,7 @@ export const useDepositRouting = () => {
       fetchUserDetails,
       selectedRegion?.isoCode,
       selectedPaymentMethod?.isManualBankTransfer,
+      selectedPaymentMethod?.id,
       handleNewOrder,
       navigateToBankDetailsCallback,
       navigateToWebviewModalCallback,
@@ -484,6 +571,7 @@ export const useDepositRouting = () => {
       createOrder,
       requestOtt,
       generatePaymentUrl,
+      checkUserLimits,
       selectedWalletAddress,
       themeAppearance,
       colors,

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -8,6 +8,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
@@ -21,6 +22,7 @@ import {
 import {
   SeasonTierDto,
   SeasonRewardDto,
+  ThemeImage,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
@@ -30,17 +32,21 @@ import RewardItem from './RewardItem';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import RewardsImageModal from '../../RewardsImageModal';
+import fallbackTierImage from '../../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
   isExpanded: boolean;
   onToggle: () => void;
+  onImagePress: (image?: ThemeImage) => void;
 }
 
 const TierAccordion: React.FC<TierAccordionProps> = ({
   tier,
   isExpanded,
   onToggle,
+  onImagePress,
 }) => {
   const tw = useTailwind();
   const { themeAppearance, brandColors } = useTheme();
@@ -75,32 +81,39 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
       >
         {/* Tier Image */}
         <Box twClassName="mr-4" testID={REWARDS_VIEW_SELECTORS.TIER_IMAGE}>
-          {tier.image ? (
-            <RewardsThemeImageComponent
-              themeImage={tier.image}
-              style={tw.style('h-12 w-12')}
-            />
-          ) : (
-            <Box
-              twClassName={`h-12 w-12 rounded-full bg-[${
-                themeAppearance === AppThemeKey.light
-                  ? brandColors.grey100
-                  : brandColors.grey700
-              }] items-center justify-center`}
-            >
-              <Icon
-                name={IconName.Star}
-                size={IconSize.Md}
-                twClassName="text-icon-muted"
+          <TouchableOpacity
+            onPress={() => onImagePress(tier.image)}
+            activeOpacity={0.7}
+            disabled={!tier.image}
+          >
+            {tier.image ? (
+              <RewardsThemeImageComponent
+                themeImage={tier.image}
+                style={tw.style('h-12 w-12')}
               />
-            </Box>
-          )}
+            ) : (
+              <Box
+                twClassName={`h-12 w-12 rounded-full bg-[${
+                  themeAppearance === AppThemeKey.light
+                    ? brandColors.grey100
+                    : brandColors.grey700
+                }] items-center justify-center`}
+              >
+                <Icon
+                  name={IconName.Star}
+                  size={IconSize.Md}
+                  twClassName="text-icon-muted"
+                />
+              </Box>
+            )}
+          </TouchableOpacity>
         </Box>
 
         {/* Tier Info */}
         <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             twClassName="text-text-default"
             testID={REWARDS_VIEW_SELECTORS.TIER_NAME}
           >
@@ -117,6 +130,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
               {strings('rewards.upcoming_rewards.points_needed', {
@@ -171,7 +185,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   isLoading,
 }) => (
   <Box>
-    <Box twClassName="flex-row items-center gap-2 items-center">
+    <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.upcoming_rewards.title')}
       </Text>
@@ -213,6 +227,12 @@ const UpcomingRewards: React.FC = () => {
     () => new Set(upcomingTiers.map((tier) => tier.id)),
   );
 
+  // Modal state for expanded image
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<ThemeImage | undefined>(
+    undefined,
+  );
+
   const handleTierToggle = (tierId: string) => {
     setExpandedTiers((prev) => {
       const newSet = new Set(prev);
@@ -223,6 +243,18 @@ const UpcomingRewards: React.FC = () => {
       }
       return newSet;
     });
+  };
+
+  const handleImagePress = (image?: ThemeImage) => {
+    if (image) {
+      setSelectedImage(image);
+      setIsImageExpanded(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsImageExpanded(false);
+    setSelectedImage(undefined);
   };
 
   const totalUpcomingRewardsCount = useMemo(
@@ -262,6 +294,7 @@ const UpcomingRewards: React.FC = () => {
               tier={tier}
               isExpanded={expandedTiers.has(tier.id)}
               onToggle={() => handleTierToggle(tier.id)}
+              onImagePress={handleImagePress}
             />
           ))}
         </Box>
@@ -272,7 +305,7 @@ const UpcomingRewards: React.FC = () => {
   };
 
   return (
-    <Box twClassName="py-4 gap-4">
+    <Box twClassName="pt-2 pb-4 px-4 gap-4">
       {/* Always show section header */}
       <SectionHeader
         count={totalUpcomingRewardsCount}
@@ -290,6 +323,14 @@ const UpcomingRewards: React.FC = () => {
       )}
 
       {renderMainContent()}
+
+      {/* Full-screen image modal */}
+      <RewardsImageModal
+        visible={isImageExpanded}
+        onClose={handleCloseModal}
+        themeImage={selectedImage}
+        fallbackImage={fallbackTierImage}
+      />
     </Box>
   );
 };

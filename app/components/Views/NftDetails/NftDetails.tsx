@@ -3,6 +3,7 @@ import {
   NativeSyntheticEvent,
   SafeAreaView,
   TextLayoutEventData,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
@@ -13,7 +14,7 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NftDetails.styles';
 import Routes from '../../../constants/navigation/Routes';
 import { NftDetailsParams } from './NftDetails.types';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import StyledButton from '../../../components/UI/StyledButton';
 import NftDetailsBox from './NftDetailsBox';
 import NftDetailsInformationRow from './NftDetailsInformationRow';
@@ -102,7 +103,7 @@ const NftDetails = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
+      createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
         .addProperties({
           chain_id: getDecimalChainId(chainId),
         })
