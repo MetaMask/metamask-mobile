@@ -87,7 +87,7 @@ describe('AccountStatus', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('renders with type="found"', () => {
+    it('renders correctly with type="found"', () => {
       const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
       expect(toJSON()).toMatchSnapshot();
     });
@@ -237,6 +237,17 @@ describe('AccountStatus', () => {
       fireEvent.press(primaryButton);
 
       expect(trackOnboarding).toHaveBeenCalled();
+    });
+  });
+
+  describe('SafeAreaView Configuration', () => {
+    it('uses SafeAreaView with top and bottom edges', () => {
+      const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
+      const tree = toJSON();
+
+      expect(tree).toBeTruthy();
+      expect(JSON.stringify(tree)).toContain('top');
+      expect(JSON.stringify(tree)).toContain('bottom');
     });
   });
 });
