@@ -322,7 +322,7 @@ describe('rewriteBreadcrumb', () => {
   });
 });
 
-describe.only('rewriteReport', () => {
+describe('rewriteReport', () => {
   const mockStore = jest.mocked(store);
   const mockExtractEthJsErrorMessage = jest.mocked(extractEthJsErrorMessage);
 

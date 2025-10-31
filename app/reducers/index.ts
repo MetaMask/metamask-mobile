@@ -69,7 +69,6 @@ export type StateFromReducer<reducer> =
 // We need to use a `type` as `interface`s are not compatible with our `Json` type.
 interface RootState {
   legalNotices: LegalNoticesState;
-  /*
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
@@ -140,7 +139,6 @@ interface RootState {
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
-  */
 }
 
 const baseReducers = {

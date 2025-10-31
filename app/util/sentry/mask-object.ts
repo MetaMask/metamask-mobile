@@ -234,7 +234,19 @@ function validatePlainObjectMask(
 }
 
 /**
- * Masks a plain object.
+ * Masks a root plain object.
+ *
+ * @param plainObject - The object to mask.
+ * @param mask - The mask to apply to the object.
+ * @returns The masked object.
+ */
+function maskPlainObject(
+  plainObject: MaskablePlainObject,
+  mask: StrictPlainObjectMask,
+): MaskedStrictPlainObject;
+
+/**
+ * Masks a non-root plain object.
  *
  * @param plainObject - The object to mask.
  * @param mask - The mask to apply to the object.
@@ -243,7 +255,12 @@ function validatePlainObjectMask(
 function maskPlainObject(
   plainObject: MaskablePlainObject,
   mask: PlainObjectMask,
-): MaskedPlainObject {
+): MaskedPlainObject;
+
+function maskPlainObject(
+  plainObject: MaskablePlainObject,
+  mask: PlainObjectMask | StrictPlainObjectMask,
+): MaskedPlainObject | StrictPlainObjectMask {
   if (mask === true) {
     // Don't mask any properties in the object
     return plainObject;
@@ -280,7 +297,7 @@ function maskPlainObject(
  * @throws If mask is not a boolean, a plain object, or undefined.
  */
 function maskValue(value: MaskableValue, mask: Mask): MaskedValue {
-  if (value === null || value === undefined) {
+  if (value === undefined) {
     // There is no value to mask, so use it as-is
     return value;
   }
@@ -288,10 +305,10 @@ function maskValue(value: MaskableValue, mask: Mask): MaskedValue {
   if (
     typeof value === 'string' ||
     typeof value === 'number' ||
-    typeof value === 'boolean'
+    typeof value === 'boolean' ||
+    value === null
   ) {
     if (!(typeof mask === 'boolean' || mask === undefined)) {
-      console.log('value', value, 'mask', mask);
       throw new Error(
         'The mask for a primitive must be a boolean or undefined',
       );

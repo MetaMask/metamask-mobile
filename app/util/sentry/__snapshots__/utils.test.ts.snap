@@ -86,7 +86,7 @@ exports[`rewriteReport masks initial root state fixture 1`] = `
         "addressBook": "object",
       },
       "ApprovalController": {
-        "approvalFlows": "object",
+        "approvalFlows": "array",
         "pendingApprovalCount": "number",
         "pendingApprovals": "object",
       },
@@ -109,19 +109,19 @@ exports[`rewriteReport masks initial root state fixture 1`] = `
       },
       "KeyringController": {
         "isUnlocked": true,
-        "keyrings": {
-          "0": {
-            "accounts": {
-              "0": "string",
-              "1": "string",
-            },
+        "keyrings": [
+          {
+            "accounts": [
+              "string",
+              "string",
+            ],
             "type": "HD Key Tree",
           },
-          "1": {
-            "accounts": {},
+          {
+            "accounts": [],
             "type": "QR Hardware Wallet Device",
           },
-        },
+        ],
         "vault": "string",
       },
       "LoggingController": {
@@ -142,25 +142,25 @@ exports[`rewriteReport masks initial root state fixture 1`] = `
       "NftController": {
         "allNftContracts": "object",
         "allNfts": "object",
-        "ignoredNfts": "object",
+        "ignoredNfts": "array",
       },
       "NotificationServicesController": {
-        "isUpdatingMetamaskNotificationsAccount": {
-          "0": "string",
-          "1": "string",
-        },
-        "metamaskNotificationsList": {
-          "0": "object",
-        },
-        "metamaskNotificationsReadList": {
-          "0": "string",
-          "1": "string",
-        },
-        "subscriptionAccountsSeen": {
-          "0": "string",
-        },
+        "isUpdatingMetamaskNotificationsAccount": [
+          "string",
+          "string",
+        ],
+        "metamaskNotificationsList": [
+          "object",
+        ],
+        "metamaskNotificationsReadList": [
+          "string",
+          "string",
+        ],
+        "subscriptionAccountsSeen": [
+          "string",
+        ],
       },
-      "PermissionController": {},
+      "PermissionController": undefined,
       "PreferencesController": {
         "displayNftMedia": true,
         "featureFlags": {},
