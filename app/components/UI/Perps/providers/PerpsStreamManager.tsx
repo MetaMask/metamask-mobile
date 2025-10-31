@@ -70,7 +70,6 @@ abstract class StreamChannel<T> {
       // Store pending update
       subscriber.pendingUpdate = updates;
 
-      // CRITICAL FIX: Clear existing timer before creating new one
       // This prevents timer accumulation and memory leaks, especially on Android devices
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
@@ -133,7 +132,6 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
-    // CRITICAL FIX: Clear all pending timers before disconnecting
     // This prevents orphaned timers from continuing to run after disconnect
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {
@@ -174,7 +172,6 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
-    // CRITICAL FIX: Clear all timers BEFORE disconnecting
     // This ensures no timers are orphaned during the disconnect/reconnect cycle
     this.subscribers.forEach((subscriber) => {
       // Clear any pending updates and timers

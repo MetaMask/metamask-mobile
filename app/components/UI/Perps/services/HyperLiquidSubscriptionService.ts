@@ -1230,8 +1230,6 @@ export class HyperLiquidSubscriptionService {
         // Initialize cache if needed
         this.cachedPriceData ??= new Map<string, PriceUpdate>();
 
-        // OPTIMIZATION: Only process symbols that have active subscribers
-        // This reduces processing from 200-300 symbols to typically 5-20
         const subscribedSymbols = new Set<string>();
 
         // Collect all symbols that have subscribers
@@ -1244,7 +1242,6 @@ export class HyperLiquidSubscriptionService {
         // Track if any subscribed symbol was updated
         let hasUpdates = false;
 
-        // OPTIMIZATION: Use for...in to avoid Object.entries() array allocation
         // Only process symbols that are actually subscribed to
         for (const symbol in data.mids) {
           // Skip if nobody is subscribed to this symbol
@@ -1255,7 +1252,7 @@ export class HyperLiquidSubscriptionService {
           const price = data.mids[symbol].toString();
           const cachedPrice = this.cachedPriceData.get(symbol);
 
-          // OPTIMIZATION: Skip if price hasn't changed
+          // Skip if price hasn't changed
           if (cachedPrice && cachedPrice.price === price) {
             continue;
           }
