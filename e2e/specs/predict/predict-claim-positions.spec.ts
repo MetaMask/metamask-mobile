@@ -54,7 +54,7 @@ describe(SmokeTrade('Predictions'), () => {
         // Set up post-claim mocks before tapping claim button
 
         await WalletView.tapClaimButton();
-        // Set up mocks to remove claimed positions after tapping claim confirm button
+        // Set up mocks to remove claimed positions after tapping claim button
         await POLYMARKET_POST_CLAIM_MOCKS(mockServer);
         await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
 

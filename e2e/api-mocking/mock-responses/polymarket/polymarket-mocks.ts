@@ -1115,6 +1115,36 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (
 };
 
 /**
+ * Removes claimed positions from redeemable positions (resolved markets)
+ * After claiming, redeemable positions should be removed so the UI updates correctly
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  // Override redeemable positions (resolved markets) to return empty array after claiming
+  // This removes all resolved market positions so the UI updates correctly
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
+            url,
+          ) &&
+          url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(1000) // Higher priority to override the original redeemable positions mock
+    .thenCallback(() => ({
+      // Return empty array - all resolved market positions are removed after claiming
+      statusCode: 200,
+      json: [],
+    }));
+};
+
+/**
  * Post-cash-out mock that removes the cashed out position from positions endpoint
  * and adds a SELL transaction to the activity endpoint
  * This simulates the real-world behavior where after cashing out, the position is no longer in your current positions
