@@ -28,6 +28,7 @@ import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 import { useAsyncResult as useAsyncResultHook } from '../../../../hooks/useAsyncResult';
 import { act } from '@testing-library/react-hooks';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,6 +43,7 @@ jest.mock('../../../../../actions/transaction');
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../hooks/useNetworkEnablement/useNetworkEnablement');
 jest.mock('../gas/useGasFeeToken');
+jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/useAsyncResult', () => ({
   useAsyncResult: jest.fn(),
 }));
@@ -115,6 +117,7 @@ describe('useTransactionConfirm', () => {
   const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
   const useAsyncResultMock = jest.mocked(useAsyncResultHook);
+  const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
 
   const isRemoveGlobalNetworkSelectorEnabledMock = jest.mocked(
     isRemoveGlobalNetworkSelectorEnabled,
@@ -131,6 +134,10 @@ describe('useTransactionConfirm', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     useAsyncResultMock.mockReturnValue({ pending: false, value: false });
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: true,
+      isSupported: true,
+    });
 
     useApprovalRequestMock.mockReturnValue({
       onConfirm: onApprovalConfirm,

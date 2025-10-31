@@ -33,6 +33,7 @@ import {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
 import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
+import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 
 const PaidByMetaMask = () => (
   <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
@@ -203,14 +204,20 @@ const GasFeesDetailsRow = ({
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const gasFeeToken = useSelectedGasFeeToken();
   const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
+  const {
+    userFeeLevel: isUserFeeLevelExists,
+    isGasFeeSponsored: doesSentinelAllowSponsorship,
+  } = transactionMetadata ?? {};
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
   );
   const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
 
-  const isUserFeeLevelExists = transactionMetadata?.userFeeLevel;
-  const isGasFeeSponsored = transactionMetadata?.isGasFeeSponsored;
+  // This prevents the gas fee row from showing as sponsored if stx is disabled
+  // by the user and 7702 is not supported in the chain.
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({

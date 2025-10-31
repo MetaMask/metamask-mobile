@@ -12,6 +12,7 @@ import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
@@ -44,6 +45,7 @@ jest.mock('../../../../../reducers/transaction', () => ({
   selectTransactionState: jest.fn(),
 }));
 jest.mock('../../context/confirmation-context');
+jest.mock('../gas/useIsGaslessSupported');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -56,6 +58,8 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+  const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
+
   const mockChainId = '0x1';
   const mockFromAddress = '0x123';
   const mockNativeCurrency = 'ETH';
@@ -72,6 +76,10 @@ describe('useInsufficientBalanceAlert', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: false,
+      isSupported: false,
+    });
     mockUseAccountNativeBalance.mockReturnValue({
       balanceWeiInHex: '0x8', // 8 wei
     } as unknown as ReturnType<typeof useAccountNativeBalance>);
