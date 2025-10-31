@@ -49,6 +49,9 @@ import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import { zeroAddress } from 'ethereumjs-util';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -258,11 +261,17 @@ export const TokenInputArea = forwardRef<
           }`
         : undefined;
 
-    const isNativeAsset = isNativeAddress(token?.address);
+    // Polygon native token address can be 0x0000000000000000000000000000000000001010
+    // so we need to use the zero address for the token address
+    const tokenAddress =
+      token?.chainId === CHAIN_IDS.POLYGON &&
+      token?.address === POLYGON_NATIVE_TOKEN
+        ? zeroAddress()
+        : token?.address;
+
+    const isNativeAsset = isNativeAddress(tokenAddress);
     const formattedAddress =
-      token?.address && !isNativeAsset
-        ? formatAddress(token?.address)
-        : undefined;
+      tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
     const subtitle =
       tokenType === TokenInputAreaType.Source
