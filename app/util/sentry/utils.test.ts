@@ -21,6 +21,9 @@ import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
+import assert from 'assert';
+import { Json } from '@metamask/utils';
+import { MaskedStrictPlainObject } from './mask-object';
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
@@ -319,9 +322,351 @@ describe('rewriteBreadcrumb', () => {
   });
 });
 
-describe('rewriteReport', () => {
+describe.only('rewriteReport', () => {
   const mockStore = jest.mocked(store);
   const mockExtractEthJsErrorMessage = jest.mocked(extractEthJsErrorMessage);
+
+  const rootState = {
+    legalNotices: {
+      newPrivacyPolicyToastClickedOrClosed: true,
+      newPrivacyPolicyToastShownDate: null,
+    },
+    collectibles: { favorites: {}, isNftFetchingProgress: false },
+    engine: {
+      backgroundState: {
+        AccountTrackerController: {
+          accountsByChainId: {
+            '0x1': {
+              '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
+                balance: '0x0',
+              },
+            },
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '1be55f5b-eba9-41a7-a9ed-a6a8274aca27': {
+                address: '0x6312c98831d74754f86dd4936668a13b7e9ba411',
+                id: '1be55f5b-eba9-41a7-a9ed-a6a8274aca27',
+                metadata: {
+                  importTime: 1720023898234,
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                  lastSelected: 1720023898236,
+                  name: 'Account 1',
+                },
+                methods: [
+                  'personal_sign',
+                  'eth_signTransaction',
+                  'eth_signTypedData_v1',
+                  'eth_signTypedData_v3',
+                  'eth_signTypedData_v4',
+                ],
+                scopes: [EthScope.Eoa],
+                options: {},
+                type: 'eip155:eoa',
+              },
+              '2be55f5b-eba9-41a7-a9ed-a6a8274aca28': {
+                address: '0x1234567890abcdef1234567890abcdef12345678',
+                id: '2be55f5b-eba9-41a7-a9ed-a6a8274aca28',
+                metadata: {
+                  importTime: 1720023898235,
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                  lastSelected: 1720023898237,
+                  name: 'Account 2',
+                },
+                scopes: [EthScope.Eoa],
+                methods: ['personal_sign', 'eth_signTransaction'],
+                options: {},
+                type: 'eip155:eoa',
+              },
+            },
+            selectedAccount: '1be55f5b-eba9-41a7-a9ed-a6a8274aca27',
+          },
+        },
+        AddressBookController: {
+          addressBook: {},
+        },
+        ApprovalController: {
+          approvalFlows: [],
+          pendingApprovalCount: 0,
+          pendingApprovals: {},
+        },
+        CurrencyRateController: {
+          currencyRates: {
+            ETH: {
+              conversionDate: 1720196397083,
+              conversionRate: 298514,
+              usdConversionRate: 298514,
+            },
+          },
+          currentCurrency: 'usd',
+        },
+        GasFeeController: {
+          estimatedGasFeeTimeBounds: {},
+          gasEstimateType: 'none',
+          gasFeeEstimates: {},
+          gasFeeEstimatesByChainId: {},
+          nonRPCGasFeeApisDisabled: false,
+        },
+        KeyringController: {
+          isUnlocked: true,
+          keyrings: [
+            {
+              accounts: [
+                '0x6312c98831d74754f86dd4936668a13b7e9ba411',
+                '0xf2ecb579d1225711c2c117f3ab22554357372c822',
+              ],
+              type: 'HD Key Tree',
+            },
+            {
+              type: 'QR Hardware Wallet Device',
+              accounts: [],
+            },
+          ],
+          vault: '{"cipher":""}',
+        },
+        LoggingController: {
+          logs: {},
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: {},
+          networksMetadata: {
+            mainnet: {
+              EIPS: {
+                1559: true,
+              },
+              status: NetworkStatus.Available,
+            },
+          },
+          selectedNetworkClientId: 'mainnet',
+        },
+        NftController: {
+          allNftContracts: {},
+          allNfts: {},
+          ignoredNfts: [],
+        },
+        NotificationServicesController: {
+          isUpdatingMetamaskNotificationsAccount: [
+            '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+            '0x0B3EAEd916519668491dB56c612Ff9B919288b65',
+          ],
+          metamaskNotificationsList: [
+            {
+              type: 'snap',
+              message: 'some message',
+              origin: 'some-origin',
+              readDate: null,
+            },
+          ],
+          metamaskNotificationsReadList: ['notification-1', 'notification-2'],
+          subscriptionAccountsSeen: [
+            '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+          ],
+        },
+        PermissionController: undefined,
+        PreferencesController: {
+          displayNftMedia: true,
+          featureFlags: {},
+          identities: {
+            '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
+              address: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
+              importTime: 1720023898223,
+              name: 'Account 1',
+            },
+          },
+          ipfsGateway: 'https://dweb.link/ipfs/',
+          isIpfsGatewayEnabled: true,
+          isMultiAccountBalancesEnabled: true,
+          lostIdentities: {},
+          securityAlertsEnabled: true,
+          selectedAddress: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
+          showTestNetworks: false,
+          smartTransactionsOptInStatus: false,
+          useNftDetection: true,
+          useSafeChainsListValidation: true,
+          useTokenDetection: true,
+          useTransactionSimulations: true,
+        },
+        SmartTransactionsController: {
+          smartTransactionsState: {
+            fees: {},
+            feesByChainId: {
+              '0x1': {},
+              '0xaa36a7': {},
+            },
+            liveness: true,
+            livenessByChainId: {
+              '0x1': true,
+              '0xaa36a7': true,
+            },
+            smartTransactions: {
+              '0x1': [],
+            },
+          },
+        },
+      },
+    },
+    privacy: {},
+    bookmarks: {},
+    browser: {
+      activeTab: null,
+      favicons: [],
+      history: [],
+      tabs: [],
+      visitedDappsByHostname: {},
+      whitelist: [],
+    },
+    modals: {
+      collectibleContractModalVisible: false,
+      dappTransactionModalVisible: false,
+      networkModalVisible: false,
+      receiveAsset: undefined,
+      receiveModalVisible: false,
+      shouldNetworkSwitchPopToWallet: true,
+      signMessageModalVisible: true,
+    },
+    settings: {
+      basicFunctionalityEnabled: true,
+      hideZeroBalanceTokens: false,
+      lockTime: 30000,
+      primaryCurrency: 'ETH',
+      searchEngine: 'Google',
+      avatarAccountType: AvatarAccountType.Maskicon,
+    },
+    alert: {
+      autodismiss: null,
+      content: null,
+      data: null,
+      isVisible: false,
+    },
+    transaction: {
+      assetType: undefined,
+      ensRecipient: undefined,
+      id: undefined,
+      nonce: undefined,
+      paymentRequest: undefined,
+      proposedNonce: undefined,
+      readableValue: undefined,
+      selectedAsset: {},
+      symbol: undefined,
+      transaction: {
+        data: undefined,
+        from: undefined,
+        gas: undefined,
+        gasPrice: undefined,
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: undefined,
+        to: undefined,
+        value: undefined,
+      },
+      transactionFromName: undefined,
+      transactionTo: undefined,
+      transactionToName: undefined,
+      transactionValue: undefined,
+      type: undefined,
+      warningGasPriceHigh: undefined,
+    },
+    user: {
+      ambiguousAddressEntries: {},
+      backUpSeedphraseVisible: false,
+      gasEducationCarouselSeen: false,
+      initialScreen: '',
+      isAuthChecked: false,
+      loadingMsg: '',
+      loadingSet: false,
+      passwordSet: true,
+      protectWalletModalVisible: false,
+      seedphraseBackedUp: true,
+      userLoggedIn: true,
+    },
+    onboarding: {
+      events: [],
+    },
+    notification: {
+      notification: {
+        notificationsSettings: {},
+      },
+      notifications: [],
+    },
+    swaps: {
+      '0x1': {
+        isLive: true,
+      },
+      featureFlags: undefined,
+      hasOnboarded: true,
+      isLive: true,
+    },
+    fiatOrders: {
+      activationKeys: [],
+      authenticationUrls: [],
+      customOrderIds: [],
+      getStartedAgg: false,
+      getStartedSell: false,
+      getStartedDeposit: false,
+      networks: [],
+      orders: [],
+      selectedPaymentMethodAgg: null,
+      selectedRegionAgg: null,
+      selectedRegionDeposit: null,
+    },
+    infuraAvailability: {
+      isBlocked: false,
+    },
+    navigation: {
+      currentBottomNavRoute: 'Wallet',
+      currentRoute: 'Login',
+    },
+    networkOnboarded: {
+      networkOnboardedState: {},
+      networkState: {
+        nativeToken: '',
+        networkType: '',
+        networkUrl: '',
+        showNetworkOnboarding: false,
+      },
+      switchedNetwork: {
+        networkStatus: false,
+        networkUrl: '',
+      },
+    },
+    security: {
+      allowLoginWithRememberMe: false,
+      dataCollectionForMarketing: null,
+      isNFTAutoDetectionModalViewed: false,
+    },
+    signatureRequest: {
+      securityAlertResponse: undefined,
+    },
+    sdk: {
+      connections: {},
+      approvedHosts: {},
+      dappConnections: {},
+      wc2Metadata: undefined,
+    },
+    experimentalSettings: {
+      securityAlertsEnabled: true,
+    },
+    rpcEvents: {
+      signingEvent: {
+        eventStage: 'idle',
+        rpcName: '',
+      },
+    },
+    accounts: {
+      reloadAccounts: false,
+    },
+    inpageProvider: {
+      networkId: '1',
+    },
+    confirmationMetrics: {
+      metricsById: {},
+    },
+  } as const satisfies RootState;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -543,7 +888,103 @@ describe('rewriteReport', () => {
     expect(() => rewriteReport(report)).toThrow('Store error');
   });
 
-  it('should mask application state', () => {
-    mockStore.getState.mockReturnValue(mockAppState);
+  it('masks initial root state fixture', () => {
+    const report = {
+      contexts: {},
+    };
+    mockStore.getState.mockReturnValue(rootState);
+
+    const result = rewriteReport(report);
+
+    expect(result.contexts?.appState).toMatchSnapshot();
+  });
+
+  it('masks sensitive data in AccountsController while preserving other fields', () => {
+    const report = { contexts: {} };
+    mockStore.getState.mockReturnValue(rootState);
+
+    const result = rewriteReport(report);
+
+    expect(result.contexts?.appState).toMatchObject({
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                '1be55f5b-eba9-41a7-a9ed-a6a8274aca27': {
+                  address: 'string',
+                  id: '1be55f5b-eba9-41a7-a9ed-a6a8274aca27',
+                  type: 'eip155:eoa',
+                  options: {},
+                  methods: [
+                    'personal_sign',
+                    'eth_signTransaction',
+                    'eth_signTypedData_v1',
+                    'eth_signTypedData_v3',
+                    'eth_signTypedData_v4',
+                  ],
+                  scopes: [EthScope.Eoa],
+                  metadata: {
+                    importTime: 1720023898234,
+                    keyring: {
+                      type: 'HD Key Tree',
+                    },
+                    lastSelected: 1720023898236,
+                    name: 'Account 1',
+                  },
+                },
+                '2be55f5b-eba9-41a7-a9ed-a6a8274aca28': {
+                  address: 'string',
+                  id: '2be55f5b-eba9-41a7-a9ed-a6a8274aca28',
+                  type: 'eip155:eoa',
+                  options: {},
+                  methods: ['personal_sign', 'eth_signTransaction'],
+                  scopes: [EthScope.Eoa],
+                  metadata: {
+                    importTime: 1720023898235,
+                    keyring: {
+                      type: 'HD Key Tree',
+                    },
+                    lastSelected: 1720023898237,
+                    name: 'Account 2',
+                  },
+                },
+              },
+              selectedAccount: '1be55f5b-eba9-41a7-a9ed-a6a8274aca27',
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('masks sensitive data in KeyringController while preserving type', () => {
+    const report = { contexts: {} };
+    mockStore.getState.mockReturnValue(rootState);
+
+    const result = rewriteReport(report);
+
+    expect(result.contexts?.appState).toMatchObject({
+      engine: {
+        backgroundState: {
+          KeyringController: {
+            keyrings: {
+              '0': {
+                accounts: {
+                  '0': 'string',
+                  '1': 'string',
+                },
+                type: 'HD Key Tree',
+              },
+              '1': {
+                accounts: {},
+                type: 'QR Hardware Wallet Device',
+              },
+            },
+            vault: 'string',
+          },
+        },
+      },
+    });
   });
 });

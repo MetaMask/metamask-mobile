@@ -67,8 +67,7 @@ export type StateFromReducer<reducer> =
 // to this type. Once that is complete, we can automatically generate this type
 // using the `StateFromReducersMapObject` type from redux.
 // We need to use a `type` as `interface`s are not compatible with our `Json` type.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type RootState = {
+interface RootState {
   legalNotices: LegalNoticesState;
   /*
   // TODO: Replace "any" with type
@@ -142,7 +141,7 @@ type RootState = {
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
   */
-};
+}
 
 const baseReducers = {
   legalNotices: legalNoticesReducer,
