@@ -363,6 +363,20 @@ remapMainExperimentalEnvVariables() {
 }
 
 prebuild_ios(){
+	# Update current SEMVER with environment variable
+	# Read current version from package.json and strip any existing suffix
+	PACKAGE_JSON_FILE=package.json
+	CURRENT_SEMVER=$(jq -r '.version' $PACKAGE_JSON_FILE)
+	# Strip any existing pre-release suffix (e.g., 7.59.0-dev -> 7.59.0)
+	BASE_VERSION=$(echo "$CURRENT_SEMVER" | sed 's/-.*$//')
+	# For production, use base version without suffix
+	# For all other environments, append environment suffix to CFBundleVersion for identification
+	# Note: CFBundleShortVersionString always uses base version (Apple requirement)
+	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+		./scripts/set-semvar-version.sh $BASE_VERSION
+	else
+		./scripts/set-semvar-version.sh $BASE_VERSION-$METAMASK_ENVIRONMENT
+	fi
 	# Generate xcconfig files for CircleCI
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "" > ios/debug.xcconfig
@@ -398,6 +412,19 @@ installICULibraries(){
 }
 
 prebuild_android(){
+	# Update current SEMVER with environment variable
+	# Read current version from package.json and strip any existing suffix
+	PACKAGE_JSON_FILE=package.json
+	CURRENT_SEMVER=$(jq -r '.version' $PACKAGE_JSON_FILE)
+	# Strip any existing pre-release suffix (e.g., 7.59.0-dev -> 7.59.0)
+	BASE_VERSION=$(echo "$CURRENT_SEMVER" | sed 's/-.*$//')
+	# Android is more flexible than iOS and can handle version suffixes
+	# Use clean version for production, add suffix for other environments
+	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+		./scripts/set-semvar-version.sh $BASE_VERSION
+	else
+		./scripts/set-semvar-version.sh $BASE_VERSION-$METAMASK_ENVIRONMENT
+	fi
 	# Install ICU libraries if on Linux
 	installICULibraries
 	
