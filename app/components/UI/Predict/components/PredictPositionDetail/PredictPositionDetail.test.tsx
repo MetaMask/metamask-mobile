@@ -112,7 +112,8 @@ const baseMarket: PredictMarket = {
   image: 'https://example.com/market.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [
     {
       id: 'outcome-1',
