@@ -564,8 +564,8 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Filter the errors and only show minimum $10 error */}
         {filteredErrors.length > 0 && (
           <View style={styles.validationSection}>
-            {filteredErrors.map((error) => (
-              <View key={error} style={styles.errorMessage}>
+            {filteredErrors.map((error, index) => (
+              <View key={`error-${index}`} style={styles.errorMessage}>
                 <Icon
                   name={IconName.Danger}
                   size={IconSize.Sm}
