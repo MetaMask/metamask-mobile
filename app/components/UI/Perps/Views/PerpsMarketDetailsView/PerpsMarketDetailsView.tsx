@@ -317,7 +317,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoadingHistory, refreshCandleData } =
+  const { candleData, isLoadingHistory, refreshCandleData, hasHistoricalData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
       selectedDuration: TimeDuration.YEAR_TO_DATE,
@@ -636,34 +636,36 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            <TradingViewChart
-              ref={chartRef}
-              candleData={candleData}
-              height={350}
-              visibleCandleCount={visibleCandleCount}
-              tpslLines={
-                existingPosition
-                  ? {
-                      entryPrice: existingPosition.entryPrice,
-                      takeProfitPrice:
-                        selectedOrderTPSL.takeProfitPrice ||
-                        existingPosition.takeProfitPrice,
-                      stopLossPrice:
-                        selectedOrderTPSL.stopLossPrice ||
-                        existingPosition.stopLossPrice,
-                      liquidationPrice:
-                        existingPosition.liquidationPrice || undefined,
-                    }
-                  : selectedOrderTPSL.takeProfitPrice ||
-                      selectedOrderTPSL.stopLossPrice
+            {hasHistoricalData ? (
+              <TradingViewChart
+                ref={chartRef}
+                candleData={candleData}
+                height={350}
+                visibleCandleCount={visibleCandleCount}
+                tpslLines={
+                  existingPosition
                     ? {
-                        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
-                        stopLossPrice: selectedOrderTPSL.stopLossPrice,
+                        entryPrice: existingPosition.entryPrice,
+                        takeProfitPrice:
+                          selectedOrderTPSL.takeProfitPrice ||
+                          existingPosition.takeProfitPrice,
+                        stopLossPrice:
+                          selectedOrderTPSL.stopLossPrice ||
+                          existingPosition.stopLossPrice,
+                        liquidationPrice:
+                          existingPosition.liquidationPrice || undefined,
                       }
-                    : undefined
-              }
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-            />
+                    : selectedOrderTPSL.takeProfitPrice ||
+                        selectedOrderTPSL.stopLossPrice
+                      ? {
+                          takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+                          stopLossPrice: selectedOrderTPSL.stopLossPrice,
+                        }
+                      : undefined
+                }
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+              />
+            ) : null}
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
