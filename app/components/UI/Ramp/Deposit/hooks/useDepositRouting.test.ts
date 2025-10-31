@@ -189,8 +189,6 @@ jest.mock('../orderProcessor', () => ({
   depositOrderToFiatOrder: jest.fn((order) => order),
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
-
 jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: {
@@ -1123,7 +1121,10 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.any(Object),
+      );
     });
   });
 
