@@ -984,10 +984,13 @@ describe('Wallet', () => {
             ...mockInitialState.engine.backgroundState
               .NetworkEnablementController,
             enabledNetworkMap: {
-              eip155: enabledNetworks.reduce((acc, network) => {
-                acc[network] = true;
-                return acc;
-              }, {} as Record<string, boolean>),
+              eip155: enabledNetworks.reduce(
+                (acc, network) => {
+                  acc[network] = true;
+                  return acc;
+                },
+                {} as Record<string, boolean>,
+              ),
             },
           },
         },

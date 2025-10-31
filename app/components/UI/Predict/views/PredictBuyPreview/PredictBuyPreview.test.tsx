@@ -36,11 +36,16 @@ jest.mock('@react-navigation/native', () => ({
 // Mock usePredictPlaceOrder hook
 const mockPlaceOrder = jest.fn();
 let mockLoadingState = false;
+let mockPlaceOrderResult: { success: boolean; response?: unknown } | null =
+  null;
+let mockPlaceOrderError: string | undefined;
 
 jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   usePredictPlaceOrder: () => ({
     placeOrder: mockPlaceOrder,
     isLoading: mockLoadingState,
+    result: mockPlaceOrderResult,
+    error: mockPlaceOrderError,
   }),
 }));
 
@@ -217,7 +222,8 @@ const mockMarket: PredictMarket = {
   status: 'open',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recurrence: 'none' as any,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: ['blockchain', 'cryptocurrency'],
   outcomes: [
     {
       id: 'outcome-456',
@@ -300,6 +306,8 @@ describe('PredictBuyPreview', () => {
     // Reset mock values to defaults
     mockExpectedAmount = 120;
     mockLoadingState = false;
+    mockPlaceOrderResult = null;
+    mockPlaceOrderError = undefined;
     mockBalance = 1000;
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
@@ -437,12 +445,22 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
+      // Enter valid amount (minimum $1)
+      act(() => {
+        capturedOnChange?.({
+          value: '50',
+          valueAsNumber: 50,
+        });
+      });
+
       // Press done to show place bet button
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
       const placeBetButton = getByText('Yes · 50¢');
-      fireEvent.press(placeBetButton);
+      await act(async () => {
+        fireEvent.press(placeBetButton);
+      });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         providerId: 'polymarket',
@@ -456,6 +474,7 @@ describe('PredictBuyPreview', () => {
           marketId: 'market-123',
           marketTitle: 'Will Bitcoin reach $150,000?',
           marketCategory: 'crypto',
+          marketTags: expect.any(Array),
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
           transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
           liquidity: 1000000,
@@ -466,24 +485,30 @@ describe('PredictBuyPreview', () => {
     });
 
     it('navigates to market list after successful bet placement', async () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
 
-      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
+      const { getByText, rerender } = renderWithProvider(
+        <PredictBuyPreview />,
+        {
+          state: initialState,
+        },
+      );
 
       // Press done to show place bet button
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
       const placeBetButton = getByText('Yes · 50¢');
-      fireEvent.press(placeBetButton);
 
-      // Wait for the timeout in onPlaceBet
       await act(async () => {
-        jest.advanceTimersByTime(1000);
+        fireEvent.press(placeBetButton);
       });
+
+      // Rerender to trigger useEffect with result
+      rerender(<PredictBuyPreview />);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
@@ -636,7 +661,7 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('Bitcoin Price ·')).toBeOnTheScreen();
+      expect(getByText('Bitcoin Price')).toBeOnTheScreen();
       expect(getByText('Yes at 50¢')).toBeOnTheScreen();
     });
 
@@ -887,15 +912,25 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('error handling', () => {
-    it('handles navigation dispatch errors gracefully', () => {
-      const mockResult = { success: true, txMeta: { id: 'test' } };
-      mockPlaceOrder.mockReturnValue(mockResult);
-      mockDispatch.mockImplementation(() => {
-        throw new Error('Navigation error');
-      });
+    it('calls dispatch when result is successful', async () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
 
-      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
+      const { getByText, rerender } = renderWithProvider(
+        <PredictBuyPreview />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Enter valid amount (minimum $1)
+      act(() => {
+        capturedOnChange?.({
+          value: '50',
+          valueAsNumber: 50,
+        });
       });
 
       // Press done to show place bet button
@@ -904,15 +939,17 @@ describe('PredictBuyPreview', () => {
 
       const placeBetButton = getByText('Yes · 50¢');
 
-      // The dispatch now throws and is not caught, so expect the error
-      expect(() => {
+      await act(async () => {
         fireEvent.press(placeBetButton);
-      }).toThrow('Navigation error');
+      });
 
-      // PlaceOrder should still be called before dispatch throws
+      // PlaceOrder is called when button is pressed
       expect(mockPlaceOrder).toHaveBeenCalled();
 
-      // Dispatch should have been attempted
+      // Rerender to trigger useEffect with result
+      rerender(<PredictBuyPreview />);
+
+      // Dispatch is called via useEffect when result is successful
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
@@ -1851,18 +1888,20 @@ describe('PredictBuyPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('user flow: enter valid amount with sufficient funds, can place bet successfully', () => {
+    it('user flow: enter valid amount with sufficient funds, can place bet successfully', async () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
-      // Reset mockDispatch to not throw
-      mockDispatch.mockClear();
-      mockDispatch.mockImplementation(() => {
-        // No-op
-      });
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
 
-      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
+      const { getByText, rerender } = renderWithProvider(
+        <PredictBuyPreview />,
+        {
+          state: initialState,
+        },
+      );
 
       // Enter valid amount
       act(() => {
@@ -1877,9 +1916,16 @@ describe('PredictBuyPreview', () => {
 
       // Click place bet
       const placeBetButton = getByText('Yes · 50¢');
-      fireEvent.press(placeBetButton);
+
+      await act(async () => {
+        fireEvent.press(placeBetButton);
+      });
 
       expect(mockPlaceOrder).toHaveBeenCalled();
+
+      // Rerender to trigger useEffect with result
+      rerender(<PredictBuyPreview />);
+
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });

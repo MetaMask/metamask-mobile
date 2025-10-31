@@ -72,7 +72,7 @@ describe('usePerpsLiveOrders', () => {
     const { result } = renderHook(() => usePerpsLiveOrders());
 
     // Initially empty
-    expect(result.current).toEqual([]);
+    expect(result.current).toEqual({ orders: [], isInitialLoading: true });
 
     // Simulate orders update
     const orders: Order[] = [
@@ -85,7 +85,7 @@ describe('usePerpsLiveOrders', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(orders);
+      expect(result.current.orders).toEqual(orders);
     });
   });
 
@@ -145,7 +145,7 @@ describe('usePerpsLiveOrders', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current.orders).toEqual([]);
     });
   });
 
@@ -164,7 +164,7 @@ describe('usePerpsLiveOrders', () => {
     });
 
     // Should not crash and orders should remain empty
-    expect(result.current).toEqual([]);
+    expect(result.current.orders).toEqual([]);
 
     // Send undefined update
     act(() => {
@@ -172,7 +172,7 @@ describe('usePerpsLiveOrders', () => {
     });
 
     // Should still not crash
-    expect(result.current).toEqual([]);
+    expect(result.current.orders).toEqual([]);
 
     // Send valid update to ensure it still works
     const validOrders: Order[] = [mockOrder];
@@ -182,7 +182,7 @@ describe('usePerpsLiveOrders', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(validOrders);
+      expect(result.current.orders).toEqual(validOrders);
     });
   });
 
@@ -202,7 +202,7 @@ describe('usePerpsLiveOrders', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(firstOrders);
+      expect(result.current.orders).toEqual(firstOrders);
     });
 
     // Second update with different orders
@@ -216,8 +216,8 @@ describe('usePerpsLiveOrders', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(secondOrders);
-      expect(result.current).not.toContain(mockOrder);
+      expect(result.current.orders).toEqual(secondOrders);
+      expect(result.current.orders).not.toContain(mockOrder);
     });
   });
 });

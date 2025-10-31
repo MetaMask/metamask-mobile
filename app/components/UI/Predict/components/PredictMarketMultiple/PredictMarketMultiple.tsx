@@ -132,7 +132,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   const totalVolumeDisplay = formatVolume(totalVolume);
 
   const truncateLabel = (label: string): string =>
-    label.length > 3 ? `${label.substring(0, 3)}.` : label;
+    label.length > 3 ? `${label.substring(0, 3)}` : label;
 
   return (
     <TouchableOpacity
@@ -142,6 +142,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
+            entryPoint,
           },
         });
       }}
@@ -211,11 +212,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Button
                     variant={ButtonVariants.Secondary}
                     size={ButtonSize.Md}
-                    width={ButtonWidthTypes.Full}
                     label={
                       <Text
                         style={tw.style('font-medium')}
                         color={TextColor.Success}
+                        numberOfLines={1}
+                        ellipsizeMode="clip"
                       >
                         {truncateLabel(outcomeLabels[0])}
                       </Text>
@@ -231,6 +233,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                       <Text
                         style={tw.style('font-medium')}
                         color={TextColor.Error}
+                        numberOfLines={1}
+                        ellipsizeMode="clip"
                       >
                         {truncateLabel(outcomeLabels[1])}
                       </Text>

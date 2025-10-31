@@ -12,26 +12,51 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import ResourceRing from './ResourceRing';
+import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 
 const TronEnergyBandwidthDetail = () => {
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
 
-  const energy = tronResources.find((a) => a.symbol.toLowerCase() === 'energy');
-  const bandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'bandwidth',
-  );
-  const maxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'max-energy',
-  );
-  const maxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'max-bandwidth',
-  );
-  const strxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-energy',
-  );
-  const strxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
-  );
+  const {
+    energy,
+    bandwidth,
+    maxEnergy,
+    maxBandwidth,
+    strxEnergy,
+    strxBandwidth,
+  } = React.useMemo(() => {
+    let energy, bandwidth, maxEnergy, maxBandwidth, strxEnergy, strxBandwidth;
+    for (const asset of tronResources) {
+      switch (asset.symbol.toLowerCase()) {
+        case TRON_RESOURCE.ENERGY:
+          energy = asset;
+          break;
+        case TRON_RESOURCE.BANDWIDTH:
+          bandwidth = asset;
+          break;
+        case TRON_RESOURCE.MAX_ENERGY:
+          maxEnergy = asset;
+          break;
+        case TRON_RESOURCE.MAX_BANDWIDTH:
+          maxBandwidth = asset;
+          break;
+        case TRON_RESOURCE.STRX_ENERGY:
+          strxEnergy = asset;
+          break;
+        case TRON_RESOURCE.STRX_BANDWIDTH:
+          strxBandwidth = asset;
+          break;
+      }
+    }
+    return {
+      energy,
+      bandwidth,
+      maxEnergy,
+      maxBandwidth,
+      strxEnergy,
+      strxBandwidth,
+    };
+  }, [tronResources]);
 
   const parseNum = (v?: string | number) =>
     typeof v === 'number' ? v : parseFloat(String(v ?? '0').replace(/,/g, ''));

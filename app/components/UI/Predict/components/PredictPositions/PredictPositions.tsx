@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
 } from 'react';
@@ -13,9 +14,11 @@ import { ActivityIndicator, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictNewButton from '../PredictNewButton';
 import PredictPosition from '../PredictPosition/PredictPosition';
 import PredictPositionEmpty from '../PredictPositionEmpty';
@@ -26,11 +29,22 @@ export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
 }
 
-const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
+interface PredictPositionsProps {
+  isVisible?: boolean;
+  /**
+   * Callback when an error occurs during positions fetch
+   */
+  onError?: (error: string | null) => void;
+}
+
+const PredictPositions = forwardRef<
+  PredictPositionsHandle,
+  PredictPositionsProps
+>(({ isVisible, onError }, ref) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { positions, isRefreshing, loadPositions, isLoading } =
+  const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,
       refreshOnFocus: true,
@@ -38,12 +52,19 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   const {
     positions: claimablePositions,
     loadPositions: loadClaimablePositions,
+    error: claimableError,
   } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
     refreshOnFocus: true,
   });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
+
+  // Notify parent of errors while keeping state isolated
+  useEffect(() => {
+    const combinedError = error || claimableError;
+    onError?.(combinedError);
+  }, [error, claimableError, onError]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
@@ -54,6 +75,15 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     },
   }));
 
+  // Track position viewed when tab becomes visible
+  useEffect(() => {
+    if (isVisible && !isLoading) {
+      Engine.context.PredictController.trackPositionViewed({
+        openPositionsCount: positions.length,
+      });
+    }
+  }, [isVisible, isLoading, positions.length]);
+
   const renderPosition = useCallback(
     ({ item }: { item: PredictPositionType }) => (
       <PredictPosition
@@ -63,6 +93,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
               headerShown: false,
             },
           });
@@ -81,6 +112,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
               headerShown: false,
             },
           });
@@ -120,7 +152,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
         removeClippedSubviews
         decelerationRate={0}
         ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
-        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
+        ListFooterComponent={isTrulyEmpty ? null : <PredictNewButton />}
       />
       {claimablePositions.length > 0 && (
         <>
