@@ -71,6 +71,7 @@ import type {
   ClosePositionsParams,
   ClosePositionsResult,
   EditOrderParams,
+  FeeCalculationParams,
   FeeCalculationResult,
   Funding,
   GetAccountStateParams,
@@ -3683,11 +3684,9 @@ export class PerpsController extends BaseController<
    * Calculate trading fees for the active provider
    * Each provider implements its own fee structure
    */
-  async calculateFees(params: {
-    orderType: 'market' | 'limit';
-    isMaker?: boolean;
-    amount?: string;
-  }): Promise<FeeCalculationResult> {
+  async calculateFees(
+    params: FeeCalculationParams,
+  ): Promise<FeeCalculationResult> {
     const provider = this.getActiveProvider();
     return provider.calculateFees(params);
   }

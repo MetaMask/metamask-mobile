@@ -20,6 +20,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 /**
  * PerpsCard Component
@@ -33,8 +34,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   onPress,
   testID,
   source,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Determine which type of data we have
@@ -120,7 +122,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           {symbol && (
             <PerpsTokenLogo
               symbol={symbol}
-              size={40}
+              size={iconSize}
               style={styles.assetIcon}
             />
           )}
