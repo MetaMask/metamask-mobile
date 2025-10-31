@@ -4,6 +4,7 @@ import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FIXTURE_SERVER_PORT,
+  COMMAND_QUEUE_SERVER_PORT,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -51,6 +52,9 @@ if (isTest) {
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FIXTURE_SERVER_PORT;
+  testConfig.commandQueueServerPort = raw?.commandQueueServerPort
+    ? raw.commandQueueServerPort
+    : COMMAND_QUEUE_SERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -176,6 +180,25 @@ if (enableApiCallLogs || isTest) {
                 typeof url === 'string' &&
                 (url.startsWith('http://') || url.startsWith('https://'))
               ) {
+                // Bypass proxy for local command queue server (uses adb reverse on Android)
+                try {
+                  const parsed = new URL(url);
+                  const isLocalHost =
+                    parsed.hostname === 'localhost' ||
+                    parsed.hostname === '127.0.0.1';
+                  const isCommandQueue =
+                    isLocalHost &&
+                    parsed.port ===
+                      String(
+                        testConfig.commandQueueServerPort ||
+                          COMMAND_QUEUE_SERVER_PORT,
+                      );
+                  if (isCommandQueue) {
+                    return originalOpen.call(this, method, url, ...openArgs);
+                  }
+                } catch (e) {
+                  // ignore URL parse errors and continue to proxy
+                }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
                   !url.includes('/proxy')

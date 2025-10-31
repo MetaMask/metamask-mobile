@@ -1,6 +1,7 @@
 export const flushPromises = () => new Promise(setImmediate);
 
 export const FIXTURE_SERVER_PORT = 12345;
+export const COMMAND_QUEUE_SERVER_PORT = 2446;
 
 // E2E test configuration required in app
 export const testConfig = {};
@@ -31,5 +32,7 @@ export const isE2E =
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
+export const getCommandQueueServerPortInApp = () =>
+  testConfig.commandQueueServerPort ?? COMMAND_QUEUE_SERVER_PORT;
 
 export const isRc = process.env.METAMASK_ENVIRONMENT === 'rc';

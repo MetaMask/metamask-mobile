@@ -54,6 +54,9 @@ export const PerpsPositionCardSelectorsIDs = {
     'position-card-tpsl-count-warning-tooltip-view-orders',
   TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
     'position-card-tpsl-count-warning-tooltip-got-it',
+  POSITION_TAB: 'undefined-tab-0',
+  NOTIFICATION_TOOLTIP_TURN_ON_BUTTON:
+    'perps-position-card-notification-tooltip-turn-on-button',
 };
 
 // ========================================
@@ -292,6 +295,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-geo-block-bottom-sheet-tooltip',
+  CLOSE_ORDER_BUTTON: 'perps-market-details-close-order-button',
 };
 
 // ========================================
@@ -458,9 +462,9 @@ export const PerpsMarketTabsSelectorsIDs = {
 
   // Tab bar and tabs
   TAB_BAR: 'perps-market-tabs-tab-bar',
-  POSITION_TAB: 'perps-market-tabs-position-tab',
-  ORDERS_TAB: 'perps-market-tabs-orders-tab',
-  STATISTICS_TAB: 'perps-market-tabs-statistics-tab',
+  POSITION_TAB: 'perps-market-tabs-tab-bar-position-tab',
+  ORDERS_TAB: 'perps-market-tabs-tab-bar-orders-tab',
+  STATISTICS_TAB: 'perps-market-tabs-tab-bar-statistics-tab',
 
   // Tab content areas
   TAB_CONTENT: 'perps-market-tabs-tab-content',
