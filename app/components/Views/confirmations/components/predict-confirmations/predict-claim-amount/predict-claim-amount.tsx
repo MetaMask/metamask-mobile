@@ -16,11 +16,20 @@ import {
   formatPrice,
 } from '../../../../../UI/Predict/utils/format';
 import styleSheet from './predict-claim-amount.styles';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
 export function PredictClaimAmount() {
   const { styles } = useStyles(styleSheet, {});
-  const winningsFiat = useSelector(selectPredictWinFiat);
-  const winningsPnl = useSelector(selectPredictWinPnl);
+
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+
+  const winningsFiat = useSelector(
+    selectPredictWinFiat({ address: selectedAddress }),
+  );
+  const winningsPnl = useSelector(
+    selectPredictWinPnl({ address: selectedAddress }),
+  );
 
   if (!(winningsFiat && winningsPnl)) {
     return null;

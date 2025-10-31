@@ -7,6 +7,7 @@ import { usePredictTrading } from './usePredictTrading';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectPredictClaimablePositionsByAddress } from '../selectors/predictController';
 
 interface UsePredictPositionsOptions {
   /**
@@ -72,8 +73,13 @@ export function usePredictPositions(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
+  const selectedInternalAccountAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+
+  const claimablePositions = useSelector(
+    selectPredictClaimablePositionsByAddress({
+      address: selectedInternalAccountAddress,
+    }),
   );
 
   const loadPositions = useCallback(
@@ -196,7 +202,10 @@ export function usePredictPositions(
   }, [autoRefreshTimeout]);
 
   return {
-    positions,
+    // Get claimable positions from controller state if claimable is true.
+    // This will ensure that we can refresh claimable positions when the user
+    // performs a claim operation.
+    positions: claimable ? claimablePositions : positions,
     isLoading,
     isRefreshing,
     error,
