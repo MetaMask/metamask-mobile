@@ -1144,7 +1144,7 @@ export class PerpsController extends BaseController<
    * The do-while loop ensures that the final provider configuration always reflects
    * the most recent HIP-3 feature flags (remote values trump fallback via source tracking).
    */
-  private async initializeProviders(): Promise<void> {
+  async initializeProviders(): Promise<void> {
     // If already initializing, queue a re-initialization to run after
     if (this.isReinitializing) {
       DevLogger.log(

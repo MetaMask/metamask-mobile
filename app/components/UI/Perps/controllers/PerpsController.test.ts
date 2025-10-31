@@ -8,6 +8,7 @@
 import {
   PerpsController,
   getDefaultPerpsControllerState,
+  PerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import {
@@ -131,6 +132,21 @@ const createMockMessenger = (mockCall: jest.Mock, mockSubscribe?: jest.Mock) =>
       registerInitialEventPayload: jest.fn(),
     }),
   }) as any;
+
+/**
+ * Helper to update controller state in tests
+ * This provides type-safe access to the protected update method
+ */
+type ControllerWithUpdate = PerpsController & {
+  update: (callback: (state: PerpsControllerState) => void) => void;
+};
+
+const updateControllerState = (
+  controller: PerpsController,
+  callback: (state: PerpsControllerState) => void,
+): void => {
+  (controller as ControllerWithUpdate).update(callback);
+};
 
 describe('PerpsController', () => {
   let controller: PerpsController;
@@ -2284,8 +2300,15 @@ describe('PerpsController', () => {
   describe('deposit operations', () => {
     it('clears deposit result from state', () => {
       // Arrange - Set a deposit result
-      controller.update((state: any) => {
-        state.lastDepositResult = { success: true, txHash: '0xabc' };
+      updateControllerState(controller, (state) => {
+        state.lastDepositResult = {
+          success: true,
+          txHash: '0xabc',
+          amount: '100',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          error: '',
+        };
       });
 
       // Act
@@ -2299,8 +2322,15 @@ describe('PerpsController', () => {
   describe('withdrawal operations', () => {
     it('clears withdraw result from state', () => {
       // Arrange - Set a withdraw result
-      controller.update((state: any) => {
-        state.lastWithdrawResult = { success: true, txHash: '0xdef' };
+      updateControllerState(controller, (state) => {
+        state.lastWithdrawResult = {
+          success: true,
+          txHash: '0xdef',
+          amount: '50',
+          asset: 'USDC',
+          timestamp: Date.now(),
+          error: '',
+        };
       });
 
       // Act
@@ -2367,7 +2397,7 @@ describe('PerpsController', () => {
     it('marks tutorial as completed for current network', () => {
       // Arrange
       const currentNetwork = controller.state.isTestnet ? 'testnet' : 'mainnet';
-      controller.update((state: any) => {
+      updateControllerState(controller, (state) => {
         state.isFirstTimeUser[currentNetwork] = true;
       });
 
