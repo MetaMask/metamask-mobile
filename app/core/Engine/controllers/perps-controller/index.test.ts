@@ -10,6 +10,10 @@ import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.59.0'),
+}));
+
 jest.mock('../../../../components/UI/Perps/controllers', () => {
   const actualPerpsController = jest.requireActual(
     '../../../../components/UI/Perps/controllers',
