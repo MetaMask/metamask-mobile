@@ -1,7 +1,13 @@
 import { IUseMetricsHook } from './useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetrics } from '../../../core/Analytics';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+  JsonMap,
+} from '../../../core/Analytics/MetaMetrics.types';
+import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 
 /**
  * Hook to use MetaMetrics
@@ -78,8 +84,23 @@ import { useMemo } from 'react';
  *   createEventBuilder,
  * } = useMetrics();
  */
-const useMetrics = (): IUseMetricsHook =>
-  useMemo(
+const useMetrics = (): IUseMetricsHook => {
+  const { getFeatureFlagSnapshots } = useFeatureFlagOverride();
+  const generateGenericProperties = useCallback((): JsonMap => {
+    const featureFlagProps = getFeatureFlagSnapshots();
+    return {
+      ...(featureFlagProps as JsonMap),
+      // add other generic properties here
+    };
+  }, [getFeatureFlagSnapshots]);
+  const createEventBuilder = useCallback(
+    (event: IMetaMetricsEvent | ITrackingEvent) =>
+      MetricsEventBuilder.createEventBuilder(event).addProperties(
+        generateGenericProperties(),
+      ),
+    [generateGenericProperties],
+  );
+  const metrics = useMemo(
     () => ({
       trackEvent: MetaMetrics.getInstance().trackEvent,
       enable: MetaMetrics.getInstance().enable,
@@ -92,10 +113,12 @@ const useMetrics = (): IUseMetricsHook =>
       isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
       isEnabled: MetaMetrics.getInstance().isEnabled,
       getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder,
       enableSocialLogin: MetaMetrics.getInstance().enableSocialLogin,
     }),
-    [],
+    [createEventBuilder],
   );
+  return metrics;
+};
 
 export default useMetrics;

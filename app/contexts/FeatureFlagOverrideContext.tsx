@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 import {
   FeatureFlagInfo,
+  FeatureFlagInfoSnapshot,
   getFeatureFlagDescription,
   getFeatureFlagType,
   isMinimumRequiredVersionSupported,
@@ -28,6 +29,7 @@ export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
   getFeatureFlag: (key: string) => unknown;
+  getFeatureFlagSnapshots: () => { relatedFlags?: FeatureFlagInfoSnapshot[] };
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
@@ -58,12 +60,25 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
+  const [featureFlagSnapshots, setFeatureFlagSnapshots] = useState<
+    FeatureFlagInfoSnapshot[]
+  >([]);
 
   const setOverride = useCallback((key: string, value: unknown) => {
     setOverrides((prev) => ({
       ...prev,
       [key]: value,
     }));
+  }, []);
+
+  const takeSnapshot = useCallback((featureFlagInfo: FeatureFlagInfo) => {
+    setFeatureFlagSnapshots((prev) => [
+      ...prev,
+      {
+        timestamp: Date.now(),
+        ...featureFlagInfo,
+      },
+    ]);
   }, []);
 
   const removeOverride = useCallback((key: string) => {
@@ -143,6 +158,10 @@ export const FeatureFlagOverrideProvider: React.FC<
     a.key.localeCompare(b.key),
   );
 
+  const getFeatureFlagSnapshots = useCallback(() => ({
+      relatedFlags: featureFlagSnapshots,
+    }), [featureFlagSnapshots]);
+
   const validateMinimumVersion = useCallback(
     (flagKey: string, flagValue: MinimumVersionFlagValue) => {
       if (
@@ -177,6 +196,7 @@ export const FeatureFlagOverrideProvider: React.FC<
     if (!flag) {
       return undefined;
     }
+    takeSnapshot(flag);
 
     if (flag.type === 'boolean with minimumVersion') {
       return validateMinimumVersion(
@@ -197,6 +217,7 @@ export const FeatureFlagOverrideProvider: React.FC<
     featureFlags,
     originalFlags: rawFeatureFlags,
     getFeatureFlag,
+    getFeatureFlagSnapshots,
     featureFlagsList,
     overrides,
     setOverride,
