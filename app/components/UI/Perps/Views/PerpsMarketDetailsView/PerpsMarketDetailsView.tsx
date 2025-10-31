@@ -91,6 +91,8 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import Engine from '../../../../../core/Engine';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -665,7 +667,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 }
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
               />
-            ) : null}
+            ) : (
+              <Skeleton
+                height={350}
+                width="100%"
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+              />
+            )}
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
