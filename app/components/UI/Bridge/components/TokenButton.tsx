@@ -51,7 +51,8 @@ const createStyles = (params: StylesParams) => {
     },
     tokenSymbol: {
       color: theme.colors.text.default,
-      fontSize: 24,
+      fontSize: theme.typography.sHeadingLG.fontSize,
+      fontWeight: 500,
     },
     networkBadge: {
       borderColor: theme.colors.background.muted,
@@ -91,7 +92,7 @@ export const TokenButton: React.FC<TokenProps> = ({
           <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
         </BadgeWrapper>
 
-        <Text style={styles.tokenSymbol} variant={TextVariant.BodyMDMedium}>
+        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
           {symbol}
         </Text>
       </Box>
