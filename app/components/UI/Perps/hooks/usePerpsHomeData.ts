@@ -82,12 +82,14 @@ export const usePerpsHomeData = ({
     });
 
   // Fetch markets data for trending section (markets don't need real-time updates)
+  // Volume filtering is handled at the data layer in usePerpsMarkets
   const {
     markets: allMarkets,
     isLoading: isMarketsLoading,
     refresh: refreshMarkets,
   } = usePerpsMarkets({
     skipInitialFetch: false,
+    showZeroVolume: __DEV__,
   });
 
   // Get watchlist symbols from Redux

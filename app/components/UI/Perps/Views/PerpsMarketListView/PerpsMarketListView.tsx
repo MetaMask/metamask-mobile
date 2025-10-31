@@ -99,7 +99,7 @@ const PerpsMarketListView = ({
     enablePolling: false,
     showWatchlistOnly,
     defaultMarketTypeFilter,
-    showZeroVolume: true, // Show $0.00 volume markets in list view
+    showZeroVolume: __DEV__, // Only show $0.00 volume markets in development
   });
 
   // Destructure search state for easier access
