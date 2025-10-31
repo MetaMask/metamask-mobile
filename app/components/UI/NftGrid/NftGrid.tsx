@@ -138,15 +138,6 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     setIsAddNFTEnabled(true);
   }, [navigation, trackEvent, createEventBuilder]);
 
-  const additionalButtons = (
-    <ButtonIcon
-      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-      size={ButtonIconSizes.Lg}
-      onPress={goToAddCollectible}
-      iconName={IconName.Add}
-    />
-  );
-
   const handleViewAllNfts = useCallback(() => {
     navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
   }, [navigation]);
@@ -176,8 +167,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         testID={RefreshTestId}
         decelerationRate="fast"
         refreshControl={<NftGridRefreshControl />}
-        contentContainerStyle={isFullView ? tw`px-4` : undefined}
-        scrollEnabled
+        contentContainerStyle={tw`px-4`}
       />
     );
 
@@ -187,7 +177,14 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
         useEvmSelectionLogic={false}
         customWrapper={'outer'}
-        additionalButtons={additionalButtons}
+        additionalButtons={
+          <ButtonIcon
+            testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+            size={ButtonIconSizes.Lg}
+            onPress={goToAddCollectible}
+            iconName={IconName.Add}
+          />
+        }
         hideSort
         style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
       />
