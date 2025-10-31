@@ -464,7 +464,7 @@ describe('Perps Feature Flag Selectors', () => {
 
   describe('selectPerpsEquityEnabledFlag', () => {
     it('returns false by default when local flag is not set', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = undefined;
+      process.env.MM_PERPS_HIP3_ENABLED = undefined;
       const stateWithEmptyFlags = {
         engine: {
           backgroundState: {
@@ -480,7 +480,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('returns true when local flag is true and remote flag not present', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'true';
+      process.env.MM_PERPS_HIP3_ENABLED = 'true';
       const stateWithEmptyFlags = {
         engine: {
           backgroundState: {
@@ -496,7 +496,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('returns true when remote flag is valid and enabled', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'false';
+      process.env.MM_PERPS_HIP3_ENABLED = 'false';
       const stateWithRemoteFlag = {
         engine: {
           backgroundState: {
@@ -517,7 +517,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is valid but disabled', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'true';
+      process.env.MM_PERPS_HIP3_ENABLED = 'true';
       const stateWithRemoteFlag = {
         engine: {
           backgroundState: {
@@ -538,7 +538,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('falls back to local flag when remote flag is invalid', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'true';
+      process.env.MM_PERPS_HIP3_ENABLED = 'true';
       const stateWithInvalidFlag = {
         engine: {
           backgroundState: {

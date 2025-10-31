@@ -592,7 +592,6 @@ export interface PerpsControllerOptions {
 }
 
 type FeatureFlagSource = 'remote' | 'fallback';
-
 interface VersionGatedFeatureFlag {
   enabled: boolean;
   minimumVersion: string;
@@ -662,33 +661,33 @@ export class PerpsController extends BaseController<
       clientConfig,
     );
 
-    // Controller Configuration
     this.setClientVersion(clientConfig?.clientVersion ?? '0.0.0');
 
-    // Immediately set the fallback HIP-3 enabled flag since RemoteFeatureFlagController is empty by default and takes a moment to populate.
+    /**
+     * Immediately set the fallback flags.
+     * The RemoteFeatureFlagController state may be empty by default (no persisted cached flag) and takes a moment to populate.
+     */
     this.setHIP3EnabledFlag(
       clientConfig?.fallbackEquityEnabled ?? false,
       'fallback',
     );
 
-    // Immediately set the fallback DEX list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setEnabledHIP3Dexs(
       clientConfig?.fallbackEnabledDexs ?? [],
       'fallback',
     );
 
-    // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
       clientConfig?.fallbackBlockedRegions ?? [],
       'fallback',
     );
 
     /**
-     * Immediately read current state to catch any flags already loaded
-     * This is necessary to avoid race conditions where the RemoteFeatureFlagController fetches flags
+     * Immediately read current state to catch any flags already loaded from RemoteFeatureFlagController's persisted cache.
+     * This is necessary to avoid race conditions where the RemoteFeatureFlagController fetches flags and emits the stateChange event
      * before the PerpsController initializes its RemoteFeatureFlagController subscription.
      *
-     * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
+     * We still subscribe in case the RemoteFeatureFlagController is not yet populated and emits the stateChange event later.
      */
     try {
       const currentRemoteFeatureFlagState = this.messenger.call(
@@ -725,7 +724,7 @@ export class PerpsController extends BaseController<
 
     this.providers = new Map();
 
-    this.performInitialization().catch((error) => {
+    this.initializeProviders().catch((error) => {
       Logger.error(ensureError(error), this.getErrorContext('constructor'));
     });
   }
@@ -762,7 +761,7 @@ export class PerpsController extends BaseController<
    * @returns true if the remote flag is valid and the client version is greater than or equal to the minimum version.
    * Returns undefined if the remote flag is not valid
    */
-  private validatedVersionGatedFeatureFlag = (
+  private readonly validatedVersionGatedFeatureFlag = (
     remoteFlag: VersionGatedFeatureFlag | undefined,
   ) => {
     if (
@@ -797,10 +796,7 @@ export class PerpsController extends BaseController<
     }
 
     // true or false = valid remote flag -> always update (remote trumps fallback)
-    this.setHIP3EnabledFlag(
-      perpsEquityEnabledFeatureFlag?.enabled ?? false,
-      'remote',
-    );
+    this.setHIP3EnabledFlag(remoteFlagValidationResult, 'remote');
   }
 
   private refreshEnabledHIP3DexsOnFeatureFlagChange(
@@ -860,7 +856,7 @@ export class PerpsController extends BaseController<
         },
       );
 
-      this.performInitialization().catch((error) => {
+      this.initializeProviders().catch((error) => {
         console.error(
           'PerpsController: Error performing initialization',
           error,
@@ -878,6 +874,10 @@ export class PerpsController extends BaseController<
       return;
     }
 
+    /**
+     * Client version is used to determine if the client is compatible with the remote feature flags.
+     * It prevents enabled remote flags from being used on older versions of the client.
+     */
     this.clientVersion = version;
   }
 
@@ -1129,16 +1129,7 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Initialize the PerpsController providers
-   * Must be called before using any other methods
-   * Delegates to performInitialization() which handles concurrency via queue
-   */
-  async initializeProviders(): Promise<void> {
-    return this.performInitialization();
-  }
-
-  /**
-   * Actual initialization implementation with queue-based concurrency control
+   * Provider initialization with queue-based concurrency control
    *
    * This method prevents concurrent initializations while ensuring feature flag updates
    * are never dropped. If called while already initializing, it queues a re-initialization
@@ -1147,7 +1138,7 @@ export class PerpsController extends BaseController<
    * The do-while loop ensures that the final provider configuration always reflects
    * the most recent HIP-3 feature flags (remote values trump fallback via source tracking).
    */
-  private async performInitialization(): Promise<void> {
+  private async initializeProviders(): Promise<void> {
     // If already initializing, queue a re-initialization to run after
     if (this.isReinitializing) {
       DevLogger.log(
@@ -3766,7 +3757,7 @@ export class PerpsController extends BaseController<
 
       // Reset initialization state and reinitialize provider with new testnet setting
       this.isInitialized = false;
-      await this.performInitialization();
+      await this.initializeProviders();
 
       DevLogger.log('PerpsController: Network toggle completed', {
         newNetwork,
