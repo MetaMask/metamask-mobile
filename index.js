@@ -8,6 +8,9 @@ import 'react-native-gesture-handler';
 // why-did-you-render must run as early as possible (after gesture-handler) in dev
 import './wdyr';
 
+// Required for EAS Updates to resolve assets (.riv, .png, etc.) from OTA bundles
+import 'expo-asset';
+
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
