@@ -413,7 +413,7 @@ export async function withFixtures(
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
-          commandQueueServerPort: `${getCommandQueueServerPort()}`,
+          commandQueueServerPort: `${commandQueueServer.getServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
           mockServerPort: `${mockServerPort}`,
           ...(launchArgs || {}),

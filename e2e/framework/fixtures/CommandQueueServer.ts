@@ -86,11 +86,30 @@ class CommandQueueServer implements Resource {
           '❌ Failed to start command queue server on port',
           this._serverPort,
         );
-        throw new Error('Failed to start command queue server');
+        reject(new Error('Failed to start command queue server'));
+        return;
       }
-      this._server.once('error', reject);
-      this._server.once('listening', resolve);
-      this._serverStatus = ServerStatus.STARTED;
+      const onListening = () => {
+        this._serverStatus = ServerStatus.STARTED;
+        resolve();
+      };
+      const onError = (err: Error) => {
+        logger.error(
+          '❌ Failed to start command queue server on port',
+          this._serverPort,
+          err,
+        );
+        this._serverStatus = ServerStatus.STOPPED;
+        try {
+          this._server?.close();
+        } catch (e) {
+          // ignore cleanup errors
+        }
+        this._server = undefined;
+        reject(err);
+      };
+      this._server.once('error', onError);
+      this._server.once('listening', onListening);
     });
   }
   // Stop the fixture server
