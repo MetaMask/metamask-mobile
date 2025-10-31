@@ -39,7 +39,7 @@ export const TokensEmptyState: React.FC<TokensEmptyStateProps> = ({
           style={tw.style('w-[72px] h-[72px]')}
         />
       }
-      description="Nothing to see yet. Why not browse tokens or make a trade?"
+      description={strings('wallet.tokens_empty_description')}
       actionButtonText={strings('wallet.show_tokens_without_balance')}
       actionButtonProps={{
         onPress: handleLink,
