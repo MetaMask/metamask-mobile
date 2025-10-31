@@ -6519,9 +6519,9 @@
       "link_account_unknown_error": "Terjadi kesalahan tidak dikenal"
     },
     "optout": {
-      "title": "Keluar dari Reward",
+      "title": "Hapus dari program Reward",
       "description": "Tindakan ini akan menghapus akun Anda dari program Reward dan menghapus poin serta progres Anda. Tindakan ini tidak dapat dibatalkan.",
-      "confirm": "Keluar",
+      "confirm": "Hapus",
       "modal": {
         "confirmation_title": "Anda yakin?",
         "confirmation_description": "Tindakan ini akan menghapus semua progres Anda dan tidak dapat dibatalkan. Jika bergabung kembali dengan program Reward nanti, Anda akan memulai dari 0.",
