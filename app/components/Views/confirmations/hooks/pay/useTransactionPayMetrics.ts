@@ -11,7 +11,12 @@ import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
-import { useTransactionPayQuotes } from './useTransactionPayData';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from './useTransactionPayData';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
+import { BigNumber } from 'bignumber.js';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -20,6 +25,7 @@ export function useTransactionPayMetrics() {
   const { amountPrecise } = useTokenAmount();
   const automaticPayToken = useRef<BridgeToken>();
   const quotes = useTransactionPayQuotes();
+  const totals = useTransactionPayTotals();
 
   const { count: availableTokenCount } = useAutomaticTransactionPayToken({
     countOnly: true,
@@ -74,6 +80,26 @@ export function useTransactionPayMetrics() {
 
   if (nonGasQuote) {
     properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
+  }
+
+  const strategy = quotes?.[0]?.strategy;
+
+  if (strategy === TransactionPayStrategy.Bridge) {
+    properties.mm_pay_strategy = 'mm_swaps_bridge';
+  }
+
+  if (strategy === TransactionPayStrategy.Relay) {
+    properties.mm_pay_strategy = 'relay';
+  }
+
+  if (totals) {
+    properties.mm_pay_network_fee_usd = new BigNumber(
+      totals.fees.sourceNetwork.usd,
+    )
+      .plus(totals.fees.targetNetwork.usd)
+      .toString(10);
+
+    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
   }
 
   const params = useDeepMemo(
