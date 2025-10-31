@@ -6,7 +6,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  HOME_SCREEN_CONFIG,
+} from '../../constants/perpsConfig';
 import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
@@ -26,7 +29,13 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsMarketRowItem.styles';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 
-const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
+const PerpsMarketRowItem = ({
+  market,
+  onPress,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  displayMetric = 'volume',
+  showBadge = true,
+}: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   // Subscribe to live prices for just this symbol
@@ -89,9 +98,12 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = '$0.00';
+        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
       }
-    } else if (!market.volume || market.volume === '$0') {
+    } else if (
+      !market.volume ||
+      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
+    ) {
       // Fallback: ensure volume field always has a value
       updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
@@ -102,6 +114,30 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const handlePress = () => {
     onPress?.(displayMarket);
   };
+
+  // Helper to get display value based on selected metric
+  const getDisplayValue = useMemo(() => {
+    switch (displayMetric) {
+      case 'priceChange':
+        return displayMarket.change24hPercent;
+      case 'openInterest':
+        return (
+          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        );
+      case 'fundingRate':
+        // Format funding rate as percentage (e.g., 0.0001 → 0.0100%)
+        if (
+          displayMarket.fundingRate !== undefined &&
+          displayMarket.fundingRate !== null
+        ) {
+          return `${(displayMarket.fundingRate * 100).toFixed(4)}%`;
+        }
+        return '0.0000%';
+      case 'volume':
+      default:
+        return displayMarket.volume;
+    }
+  }, [displayMetric, displayMarket]);
 
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
@@ -117,7 +153,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
         <View style={styles.perpIcon}>
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
-            size={32}
+            size={iconSize}
             recyclingKey={displayMarket.symbol}
             testID={getPerpsMarketRowItemSelector.tokenLogo(
               displayMarket.symbol,
@@ -134,9 +170,9 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
           </View>
           <View style={styles.secondRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {displayMarket.volume}
+              {getDisplayValue}
             </Text>
-            {badgeType && (
+            {showBadge && badgeType && (
               <PerpsBadge
                 type={badgeType}
                 testID={getPerpsMarketRowItemSelector.badge(
