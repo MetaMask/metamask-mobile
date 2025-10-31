@@ -823,12 +823,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           browserCallBack: (url: string) => {
             // If the deeplink handler wants to navigate to a different URL in the browser
             if (url && webviewRef.current) {
-              webviewRef.current?.injectJavaScript(`
+              webviewRef.current.injectJavaScript(`
                 window.location.href = '${sanitizeUrlInput(url)}';
                 true;  // Required for iOS
               `);
             }
           },
+        }).catch((error) => {
+          Logger.error(
+            error,
+            'BrowserTab: Failed to handle internal deeplink in browser',
+          );
         });
         return false; // Stop the webview from loading this URL
       }
