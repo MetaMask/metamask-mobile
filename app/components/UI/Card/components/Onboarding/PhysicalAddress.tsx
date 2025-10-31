@@ -633,7 +633,6 @@ const PhysicalAddress = () => {
                   {strings(
                     'card.card_onboarding.physical_address.privacy_policy_1',
                   )}
-
                   <Text
                     variant={TextVariant.BodyMd}
                     twClassName="text-primary-default underline"
@@ -642,10 +641,6 @@ const PhysicalAddress = () => {
                       'card.card_onboarding.physical_address.privacy_policy_2',
                     )}
                   </Text>
-
-                  {strings(
-                    'card.card_onboarding.physical_address.privacy_policy_3',
-                  )}
                 </Text>
               </TouchableOpacity>
             }
