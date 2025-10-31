@@ -13,6 +13,7 @@ export enum PROTOCOLS {
 }
 
 export enum ACTIONS {
+  RAMP = 'ramp',
   ENABLE_CARD_BUTTON = 'enable-card-button',
   DAPP = 'dapp',
   SEND = 'send',
