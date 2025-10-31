@@ -155,21 +155,21 @@ const SpendingLimit = ({
   });
 
   useEffect(() => {
-    // For 'enable' flow, use the token passed from AssetSelectionBottomSheet
+    // For 'enable' flow with a token passed from AssetSelectionBottomSheet
     if (flow === 'enable' && selectedTokenFromRoute) {
       setSelectedToken(selectedTokenFromRoute);
       return;
     }
 
-    // For 'manage' flow, determine the best token to pre-select
-    if (flow === 'manage' && !selectedToken) {
+    // For both flows, pre-select the priority token if no token is selected yet
+    if (!selectedToken && priorityToken) {
       // Check if priority token is Solana
       const isPriorityTokenSolana =
         priorityToken?.caipChainId === SolScope.Mainnet ||
         priorityToken?.caipChainId?.startsWith('solana:');
 
-      // If priority token exists and is NOT Solana, use it
-      if (priorityToken && !isPriorityTokenSolana) {
+      // Only pre-select if it's NOT Solana (Solana delegation is not supported)
+      if (!isPriorityTokenSolana) {
         setSelectedToken({
           address: priorityToken.address ?? '',
           symbol: priorityToken.symbol ?? '',
@@ -589,7 +589,6 @@ const SpendingLimit = ({
         <AssetSelectionBottomSheet
           sheetRef={assetSelectionSheetRef}
           setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
-          priorityToken={priorityToken}
           tokensWithAllowances={allTokens}
           delegationSettings={delegationSettings}
           cardExternalWalletDetails={externalWalletDetailsData}

@@ -7,7 +7,7 @@ import {
   selectShowFiatInTestnets,
 } from '../../../../selectors/settings';
 import { TOKEN_RATE_UNDEFINED } from '../../Tokens/constants';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { isTestNet } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { CardTokenAllowance } from '../types';
@@ -23,13 +23,11 @@ import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { selectSingleTokenPriceMarketData } from '../../../../selectors/tokenRatesController';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import Engine from '../../../../core/Engine';
-import {
-  addCurrencySymbol,
-  balanceToFiatNumber,
-} from '../../../../util/number';
+import { balanceToFiatNumber } from '../../../../util/number';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { createSelector } from 'reselect';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
+import { formatWithThreshold } from '../../../../util/assets';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -162,7 +160,15 @@ export const useAssetBalance = (
             );
             derivedBalance = {
               balance: token.availableBalance,
-              balanceFiat: addCurrencySymbol(balanceFiatCalculation, 'usd'),
+              balanceFiat: formatWithThreshold(
+                balanceFiatCalculation,
+                0.01,
+                I18n.locale,
+                {
+                  style: 'currency',
+                  currency: currentCurrency?.toUpperCase() || 'USD',
+                },
+              ),
               balanceValueFormatted: `${token.availableBalance} ${asset.symbol}`,
             };
           } else {
@@ -179,8 +185,26 @@ export const useAssetBalance = (
             exchangeRates || {},
             {},
             conversionRate || 0,
-            currentCurrency || '',
+            currentCurrency?.toLowerCase() || 'usd',
           );
+
+          // Format the fiat value with proper currency symbol (supports BRL and all currencies)
+          if (
+            derivedBalance.balanceFiat &&
+            derivedBalance.balanceFiat !== 'tokenRateUndefined' &&
+            derivedBalance.balanceFiat !== 'tokenBalanceLoading' &&
+            derivedBalance.balanceFiatCalculation !== undefined
+          ) {
+            derivedBalance.balanceFiat = formatWithThreshold(
+              derivedBalance.balanceFiatCalculation,
+              0.01,
+              I18n.locale,
+              {
+                style: 'currency',
+                currency: currentCurrency?.toUpperCase() || 'USD',
+              },
+            );
+          }
         }
 
         return {

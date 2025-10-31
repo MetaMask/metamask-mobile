@@ -8,17 +8,16 @@ import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import Engine from '../../../../core/Engine';
-import {
-  addCurrencySymbol,
-  balanceToFiatNumber,
-} from '../../../../util/number';
+import { balanceToFiatNumber } from '../../../../util/number';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
-import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { SupportedTokenWithChain } from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { formatWithThreshold } from '../../../../util/assets';
+import I18n from '../../../../../locales/i18n';
+import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 
 export interface AssetBalanceInfo {
   balanceFiat: string;
@@ -46,8 +45,6 @@ export const useAssetBalances = (
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
-
-  const currentCurrency = useSelector(selectCurrentCurrency);
 
   // Get all assets from wallet for fallback balance lookup
   const walletAssetsMap = useSelector((state: RootState) => {
@@ -80,25 +77,44 @@ export const useAssetBalances = (
       string,
       { conversionRate: number; marketData: MarketDataDetails }
     >();
+
     tokens.forEach((token) => {
       if (token?.caipChainId && !isSolanaChainId(token.caipChainId)) {
         const chainId = safeFormatChainIdToHex(token.caipChainId) as Hex;
-        const conversionRate =
-          state.engine.backgroundState.CurrencyRateController.currencyRates[
-            chainId
-          ]?.conversionRate || 0;
+
+        // Get network configuration to find the native currency symbol
+        const networkConfig =
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[chainId];
+        const nativeCurrency = networkConfig?.nativeCurrency;
+
+        // Use native currency symbol (e.g., "ETH") to look up conversion rate
+        // The conversionRate property already converts to the user's selected currency
+        const currencyRateEntry = nativeCurrency
+          ? state.engine.backgroundState.CurrencyRateController.currencyRates[
+              nativeCurrency
+            ]
+          : undefined;
+
+        const conversionRate = currencyRateEntry?.conversionRate;
+
         const marketData =
           TokenRatesController?.state?.marketData?.[chainId]?.[
             token.address?.toLowerCase() as Hex
           ];
-        map.set(`${chainId}-${token.address?.toLowerCase()}`, {
-          conversionRate,
-          marketData,
-        });
+
+        if (conversionRate !== undefined && conversionRate !== null) {
+          map.set(`${chainId}-${token.address?.toLowerCase()}`, {
+            conversionRate,
+            marketData,
+          });
+        }
       }
     });
     return map;
   });
+
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   // Create a map of asset balances
   const balancesMap = useMemo<Map<string, AssetBalanceInfo>>(() => {
@@ -139,6 +155,9 @@ export const useAssetBalances = (
       // - For enabled tokens: use availableBalance (min of remaining allowance and actual balance)
       // - For non-enabled tokens: use actual wallet balance
       let balanceToUse: string;
+      let balanceSource: 'availableBalance' | 'filteredToken' | 'walletAsset' =
+        'availableBalance';
+
       if (
         token.allowanceState === AllowanceState.Enabled ||
         token.allowanceState === AllowanceState.Limited
@@ -146,16 +165,29 @@ export const useAssetBalances = (
         // Token is enabled/delegated - use availableBalance
         // availableBalance is the minimum of remaining allowance and wallet balance
         // This is the correct spendable amount for card transactions
-        balanceToUse =
-          token.availableBalance ||
-          filteredToken?.balance ||
-          walletAsset?.balance ||
-          '0';
-      } else {
+        if (token.availableBalance) {
+          balanceToUse = token.availableBalance;
+          balanceSource = 'availableBalance';
+        } else if (filteredToken?.balance) {
+          balanceToUse = filteredToken.balance;
+          balanceSource = 'filteredToken';
+        } else if (walletAsset?.balance) {
+          balanceToUse = walletAsset.balance;
+          balanceSource = 'walletAsset';
+        } else {
+          balanceToUse = '0';
+        }
+      } else if (filteredToken?.balance) {
         // Token is not enabled - use actual wallet balance from tokensWithBalance
         // For non-enabled tokens, availableBalance is 0 even if user has balance
         // (because availableBalance = min(balance, allowance) and allowance is 0)
-        balanceToUse = filteredToken?.balance || walletAsset?.balance || '0';
+        balanceToUse = filteredToken.balance;
+        balanceSource = 'filteredToken';
+      } else if (walletAsset?.balance) {
+        balanceToUse = walletAsset.balance;
+        balanceSource = 'walletAsset';
+      } else {
+        balanceToUse = '0';
       }
 
       // Calculate fiat value
@@ -164,6 +196,7 @@ export const useAssetBalances = (
 
       if (isSolana) {
         // Solana token - use multichain assets rates controller
+        // The conversion rate from MultichainAssetsRatesController is already in the user's selected currency
         const conversionRates =
           MultichainAssetsRatesController?.state?.conversionRates;
         const assetConversionRate =
@@ -174,6 +207,8 @@ export const useAssetBalances = (
         if (assetConversionRate) {
           // Normalize balance for fiat calculation (replace comma with period)
           const normalizedBalanceForFiat = balanceToUse.replace(',', '.');
+          // balanceToFiatNumber: balance × rate × exchangeRate
+          // For Solana, rate is already in user's currency, so exchangeRate = 1
           const balanceFiatCalculation = Number(
             balanceToFiatNumber(
               normalizedBalanceForFiat,
@@ -181,57 +216,163 @@ export const useAssetBalances = (
               1,
             ),
           );
-          balanceFiat = addCurrencySymbol(balanceFiatCalculation, 'usd');
+          // Use formatWithThreshold for proper currency formatting (supports BRL and all currencies)
+          balanceFiat = formatWithThreshold(
+            balanceFiatCalculation,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            },
+          );
           rawFiatNumber = balanceFiatCalculation;
         } else {
           // No conversion rate available - show balance with symbol
           balanceFiat = `${balanceToUse} ${token.symbol}`;
         }
       } else {
-        // EVM token - use exchange rates and market data
+        // EVM token - calculate from market data or use pre-calculated balance
         const chainId = assetChainId as Hex;
         const ratesKey = `${chainId}-${token.address?.toLowerCase()}`;
         const rates = exchangeRatesMap.get(ratesKey);
 
-        if (rates?.conversionRate && rates?.marketData) {
-          // Create a mock asset to use deriveBalanceFromAssetMarketDetails
-          // Normalize balance for calculations (replace comma with period)
+        if (
+          rates?.conversionRate &&
+          rates.conversionRate > 0 &&
+          rates.marketData?.price
+        ) {
+          // Primary: Calculate fiat value from market data
+          // This is always the most accurate for the actual balance we're showing
           const normalizedBalanceForEvm = balanceToUse.replace(',', '.');
-          const mockAsset: TokenI = {
-            address: token.address ?? '',
-            symbol: token.symbol ?? '',
-            decimals: token.decimals ?? 0,
-            balance: normalizedBalanceForEvm,
-            chainId,
-            image: '',
-            logo: '',
-            name: token.name ?? '',
-            isETH: false,
-            aggregators: [],
-          };
+          const tokenPrice = rates.marketData.price;
 
-          const derivedBalance = deriveBalanceFromAssetMarketDetails(
-            mockAsset,
-            {
-              [token.address?.toLowerCase() as Hex]: rates.marketData,
-            },
-            {},
-            rates.conversionRate,
-            currentCurrency || '',
+          // Formula: tokenBalance × tokenPriceInNativeCurrency × nativeCurrencyToUserCurrencyRate
+          const balanceFiatCalculation = Number(
+            balanceToFiatNumber(
+              normalizedBalanceForEvm,
+              rates.conversionRate,
+              tokenPrice,
+            ),
           );
 
-          balanceFiat = derivedBalance.balanceFiat || '';
-          rawFiatNumber = derivedBalance.balanceFiatCalculation;
-        } else if (filteredToken?.balanceFiat) {
-          // Fallback to pre-calculated balance from tokensWithBalance
+          // Use formatWithThreshold for proper currency formatting (supports BRL and all currencies)
+          balanceFiat = formatWithThreshold(
+            balanceFiatCalculation,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            },
+          );
+          rawFiatNumber = balanceFiatCalculation;
+        } else if (
+          balanceSource === 'filteredToken' &&
+          filteredToken?.balanceFiat
+        ) {
+          // Use filteredToken's fiat since that's where we got the balance
           balanceFiat = filteredToken.balanceFiat;
           rawFiatNumber = parseFloat(
             filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
           );
+        } else if (
+          balanceSource === 'walletAsset' &&
+          walletAsset?.balanceFiat
+        ) {
+          // Use walletAsset's fiat since that's where we got the balance
+          balanceFiat = walletAsset.balanceFiat;
+          rawFiatNumber = parseFloat(
+            walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
+          );
+        } else if (
+          balanceSource === 'availableBalance' &&
+          rates?.conversionRate &&
+          rates.conversionRate > 0
+        ) {
+          // For enabled tokens with availableBalance but no price data,
+          // use deriveBalanceFromAssetMarketDetails to calculate from wallet state
+          // This mimics what useAssetBalance does successfully
+          const normalizedBalanceForCalc = balanceToUse.replace(',', '.');
+
+          if (walletAsset) {
+            // Create a mock asset with the availableBalance to calculate fiat
+            const mockAsset: TokenI = {
+              ...walletAsset,
+              balance: normalizedBalanceForCalc,
+              balanceFiat: undefined, // Force recalculation
+            };
+
+            // Use TokenRatesController's full market data for this chain
+            const allMarketDataForChain =
+              TokenRatesController?.state?.marketData?.[chainId] || {};
+
+            const derivedBalance = deriveBalanceFromAssetMarketDetails(
+              mockAsset,
+              allMarketDataForChain,
+              {},
+              rates.conversionRate,
+              currentCurrency?.toLowerCase() || 'usd',
+            );
+
+            if (
+              derivedBalance.balanceFiat &&
+              derivedBalance.balanceFiat !== 'tokenRateUndefined' &&
+              derivedBalance.balanceFiat !== 'tokenBalanceLoading' &&
+              derivedBalance.balanceFiatCalculation !== undefined
+            ) {
+              // Use formatWithThreshold to properly format with BRL symbol
+              balanceFiat = formatWithThreshold(
+                derivedBalance.balanceFiatCalculation,
+                0.01,
+                I18n.locale,
+                {
+                  style: 'currency',
+                  currency: currentCurrency?.toUpperCase() || 'USD',
+                },
+              );
+              rawFiatNumber = derivedBalance.balanceFiatCalculation;
+            } else {
+              balanceFiat = `${balanceToUse} ${token.symbol}`;
+            }
+          } else {
+            balanceFiat = `${balanceToUse} ${token.symbol}`;
+          }
+        } else if (
+          balanceSource === 'availableBalance' &&
+          walletAsset?.balanceFiat &&
+          walletAsset?.balance
+        ) {
+          // Fallback: For enabled tokens, calculate proportional fiat from wallet asset
+          const walletBalanceNum = parseFloat(
+            (walletAsset.balance || '0').replace(/[^0-9.]/g, ''),
+          );
+          const balanceToUseNum = parseFloat(balanceToUse.replace(',', '.'));
+          const walletBalanceFiatNum = parseFloat(
+            walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
+          );
+
+          if (walletBalanceNum > 0 && balanceToUseNum > 0) {
+            // Calculate proportional fiat value
+            const proportionalFiat =
+              (balanceToUseNum / walletBalanceNum) * walletBalanceFiatNum;
+
+            balanceFiat = formatWithThreshold(
+              proportionalFiat,
+              0.01,
+              I18n.locale,
+              {
+                style: 'currency',
+                currency: currentCurrency?.toUpperCase() || 'USD',
+              },
+            );
+            rawFiatNumber = proportionalFiat;
+          } else {
+            balanceFiat = `${balanceToUse} ${token.symbol}`;
+          }
         } else {
-          // No rates available - show simple USD format
-          const normalizedBalanceForFallback = balanceToUse.replace(',', '.');
-          balanceFiat = `$${parseFloat(normalizedBalanceForFallback || '0').toFixed(2)}`;
+          // Last resort: show balance with token symbol
+          balanceFiat = `${balanceToUse} ${token.symbol}`;
         }
       }
 
@@ -254,6 +395,7 @@ export const useAssetBalances = (
     tokens,
     tokensWithBalance,
     MultichainAssetsRatesController?.state?.conversionRates,
+    TokenRatesController?.state?.marketData,
     exchangeRatesMap,
     currentCurrency,
     walletAssetsMap,

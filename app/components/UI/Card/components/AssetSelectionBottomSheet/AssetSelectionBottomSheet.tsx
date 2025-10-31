@@ -706,9 +706,10 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
         await updatePriority(token);
       } else {
         // Token is not delegated, navigate to Spending Limit screen to enable it
+        // Use 'manage' flow to maintain "Change token and network" context
         closeBottomSheetAndNavigate(() => {
           navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-            flow: 'enable',
+            flow: 'manage',
             selectedToken: token,
           });
         });

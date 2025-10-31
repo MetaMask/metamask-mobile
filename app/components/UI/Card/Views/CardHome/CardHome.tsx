@@ -278,7 +278,7 @@ const CardHome = () => {
     );
 
     if (isAuthenticated) {
-      navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'manage' });
+      navigation.navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'enable' });
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
