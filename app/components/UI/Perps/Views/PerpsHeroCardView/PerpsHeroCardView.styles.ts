@@ -134,19 +134,6 @@ const styleSheet = (params: {
       paddingTop: 16,
       gap: 4,
     },
-    progressDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: darkTheme.colors.background.muted,
-      flexDirection: 'row',
-    },
-    progressDotActive: {
-      width: 23,
-      height: 12,
-      borderRadius: 9,
-      backgroundColor: darkTheme.colors.text.default,
-    },
     referralCodeTagContainer: {
       position: 'absolute',
       bottom: 60,
@@ -164,6 +151,19 @@ const styleSheet = (params: {
       position: 'absolute',
       bottom: 20,
       left: 20,
+    },
+    progressDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: theme.colors.icon.muted,
+      flexDirection: 'row',
+    },
+    progressDotActive: {
+      width: 23,
+      height: 12,
+      borderRadius: 9,
+      backgroundColor: theme.colors.icon.default,
     },
     footerButtonContainer: {
       padding: 16,
