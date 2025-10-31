@@ -56,7 +56,7 @@ const PredictFeed = () => {
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
       edges={['left', 'right']}
     >
-      <View style={tw.style('flex-1 px-6')}>
+      <View style={tw.style('flex-1')}>
         <View
           style={[
             tw.style('z-10'),
