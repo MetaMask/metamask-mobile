@@ -82,6 +82,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
       | 'forex'
       | 'all'
       | 'stocks_and_commodities';
+    fromHome?: boolean;
   };
 
   PerpsMarketDetails: {
