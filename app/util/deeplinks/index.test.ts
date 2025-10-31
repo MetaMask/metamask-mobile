@@ -21,19 +21,31 @@ describe('deeplinks utils', () => {
 
     it('should identify MetaMask universal links', () => {
       expect(isInternalDeepLink('https://link.metamask.io/swap')).toBe(true);
-      expect(isInternalDeepLink('https://link.metamask.io/buy-crypto')).toBe(true);
-      expect(isInternalDeepLink('https://link.metamask.io/dapp/uniswap.org')).toBe(true);
+      expect(isInternalDeepLink('https://link.metamask.io/buy-crypto')).toBe(
+        true,
+      );
+      expect(
+        isInternalDeepLink('https://link.metamask.io/dapp/uniswap.org'),
+      ).toBe(true);
     });
 
     it('should identify MetaMask test universal links', () => {
-      expect(isInternalDeepLink('https://link-test.metamask.io/swap')).toBe(true);
-      expect(isInternalDeepLink('https://link-test.metamask.io/send')).toBe(true);
+      expect(isInternalDeepLink('https://link-test.metamask.io/swap')).toBe(
+        true,
+      );
+      expect(isInternalDeepLink('https://link-test.metamask.io/send')).toBe(
+        true,
+      );
     });
 
     it('should identify MetaMask branch links', () => {
       expect(isInternalDeepLink('https://metamask.app.link/swap')).toBe(true);
-      expect(isInternalDeepLink('https://metamask.test-app.link/home')).toBe(true);
-      expect(isInternalDeepLink('https://metamask-alternate.app.link/buy')).toBe(true);
+      expect(isInternalDeepLink('https://metamask.test-app.link/home')).toBe(
+        true,
+      );
+      expect(
+        isInternalDeepLink('https://metamask-alternate.app.link/buy'),
+      ).toBe(true);
     });
 
     it('should NOT identify external URLs as internal', () => {
@@ -50,18 +62,26 @@ describe('deeplinks utils', () => {
       expect(isInternalDeepLink('https://wc.example.com')).toBe(false);
     });
 
-    it('should handle edge cases gracefully', () => {
+    it('handles edge cases gracefully', () => {
       expect(isInternalDeepLink('')).toBe(false);
-      expect(isInternalDeepLink(null as any)).toBe(false);
-      expect(isInternalDeepLink(undefined as any)).toBe(false);
+      expect(isInternalDeepLink(null)).toBe(false);
+      expect(isInternalDeepLink(undefined)).toBe(false);
       expect(isInternalDeepLink('not-a-valid-url')).toBe(false);
       expect(isInternalDeepLink('metamask://')).toBe(true); // Still a valid MetaMask scheme
     });
 
     it('should handle URLs with query parameters and fragments', () => {
-      expect(isInternalDeepLink('https://link.metamask.io/swap?chainId=1&token=0x...')).toBe(true);
-      expect(isInternalDeepLink('metamask://connect?channelId=123#fragment')).toBe(true);
-      expect(isInternalDeepLink('https://google.com?metamask=true')).toBe(false);
+      expect(
+        isInternalDeepLink(
+          'https://link.metamask.io/swap?chainId=1&token=0x...',
+        ),
+      ).toBe(true);
+      expect(
+        isInternalDeepLink('metamask://connect?channelId=123#fragment'),
+      ).toBe(true);
+      expect(isInternalDeepLink('https://google.com?metamask=true')).toBe(
+        false,
+      );
     });
 
     it('should respect AppConstants configuration', () => {

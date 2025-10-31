@@ -794,7 +794,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }: {
       url: string;
     }) => {
-      console.log('onShouldStartLoadWithRequest', urlToLoad);
       webStates.current[urlToLoad] = {
         ...webStates.current[urlToLoad],
         requested: true,
@@ -824,7 +823,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           browserCallBack: (url: string) => {
             // If the deeplink handler wants to navigate to a different URL in the browser
             if (url && webviewRef.current) {
-              webviewRef.current.loadRequest({ uri: url });
+              webviewRef.current?.injectJavaScript(`
+                window.location.href = '${sanitizeUrlInput(url)}';
+                true;  // Required for iOS
+              `);
             }
           },
         });
