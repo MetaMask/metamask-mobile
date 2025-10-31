@@ -224,7 +224,7 @@ export interface PredictProvider {
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
-  confirmClaim?(params: { positions: PredictPosition[], signer: Signer }): void;
+  confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   // Eligibility (Geo-Blocking)
   isEligible(): Promise<boolean>;
