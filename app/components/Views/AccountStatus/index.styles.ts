@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? androidPaddingTopWithStatusBar : 40,
+    paddingTop: Platform.OS === 'android' ? androidPaddingTopWithStatusBar : 24,
   },
   content: {
     flex: 1,
