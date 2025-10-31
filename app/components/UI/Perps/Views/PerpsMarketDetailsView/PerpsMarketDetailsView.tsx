@@ -469,7 +469,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   );
 
   // Simplified styles - no complex calculations needed
-  const { styles, theme } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles, {});
 
   if (!market) {
     return (
@@ -514,11 +514,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           showsVerticalScrollIndicator={false}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme.colors.icon.default}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
           {/* TradingView Chart Section */}
