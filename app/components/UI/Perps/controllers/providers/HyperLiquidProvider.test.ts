@@ -3261,6 +3261,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
@@ -3272,6 +3273,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'limit',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
@@ -3283,6 +3285,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'limit',
           isMaker: true,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00115); // 0.015% maker + 0.1% MetaMask fee
@@ -3294,6 +3297,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '0',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3304,6 +3308,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.calculateFees({
           orderType: 'market',
           isMaker: false,
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3331,6 +3336,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should use dynamically calculated rate: 0.045% * (1 - 0.04 - 0.05) = 0.045% * 0.91 = 0.04095%
@@ -3345,6 +3351,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result2.feeRate).toBeCloseTo(0.0014095, 6); // Includes MetaMask fee
@@ -3369,6 +3376,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should use base rates on failure
@@ -3381,6 +3389,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: 'invalid',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
@@ -3392,6 +3401,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result).toHaveProperty('feeRate');
@@ -3404,6 +3414,7 @@ describe('HyperLiquidProvider', () => {
         const result = provider.calculateFees({
           orderType: 'market',
           isMaker: false,
+          coin: 'BTC',
         });
 
         expect(result).toBeInstanceOf(Promise);
@@ -3431,6 +3442,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         expect(result.feeRate).toBeCloseTo(0.001432, 6); // 0.045% * (1 - 0.04) + 0.1% MetaMask
@@ -3457,6 +3469,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should fall back to base rates due to validation failure
@@ -3484,6 +3497,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should fall back to base rates due to validation failure
@@ -3513,6 +3527,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: true, // This should be ignored for market orders
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should use taker rate even though isMaker is true
@@ -3541,6 +3556,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should apply only referral discount: 0.045% * (1 - 0.04) = 0.0432%
@@ -3569,6 +3585,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should apply only staking discount: 0.045% * (1 - 0.10) = 0.0405%
@@ -3597,6 +3614,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Combined discounts would be 55%, but capped at 40%
@@ -3626,6 +3644,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'limit',
           isMaker: true,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should apply discounts to maker rate: 0.015% * (1 - 0.04 - 0.05) = 0.01365%
@@ -3654,6 +3673,7 @@ describe('HyperLiquidProvider', () => {
           orderType: 'market',
           isMaker: false,
           amount: '100000',
+          coin: 'BTC',
         });
 
         // Should use base rates without discounts
@@ -3661,34 +3681,32 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(145);
       });
 
-      describe('placeholder methods for future implementation', () => {
-        it('should have getUserVolume method returning 0', async () => {
-          // Access private method for testing
-          interface ProviderWithPrivateMethods {
-            getUserVolume(): Promise<number>;
-            getUserStaking(): Promise<number>;
-          }
-          const testableProvider =
-            provider as unknown as ProviderWithPrivateMethods;
-          const getUserVolume = testableProvider.getUserVolume;
-          expect(getUserVolume).toBeDefined();
-          const volume = await getUserVolume.call(provider);
-          expect(volume).toBe(0);
+      it('should apply 2× fee multiplier for HIP-3 assets', async () => {
+        // HIP-3 asset (dex:SYMBOL format)
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+          coin: 'xyz:TSLA', // HIP-3 asset
         });
 
-        it('should have getUserStaking method returning 0', async () => {
-          // Access private method for testing
-          interface ProviderWithPrivateMethods {
-            getUserVolume(): Promise<number>;
-            getUserStaking(): Promise<number>;
-          }
-          const testableProvider =
-            provider as unknown as ProviderWithPrivateMethods;
-          const getUserStaking = testableProvider.getUserStaking;
-          expect(getUserStaking).toBeDefined();
-          const staking = await getUserStaking.call(provider);
-          expect(staking).toBe(0);
+        // HIP-3 should have 2× base fees: 0.045% * 2 = 0.09% + 0.1% MetaMask = 0.19%
+        expect(result.feeRate).toBe(0.0019); // 0.09% taker + 0.1% MetaMask fee
+        expect(result.feeAmount).toBe(190); // 100000 * 0.0019
+      });
+
+      it('should apply 2× fee multiplier for HIP-3 maker orders', async () => {
+        // HIP-3 asset (dex:SYMBOL format)
+        const result = await provider.calculateFees({
+          orderType: 'limit',
+          isMaker: true,
+          amount: '100000',
+          coin: 'abc:SPX', // HIP-3 asset
         });
+
+        // HIP-3 should have 2× base fees: 0.015% * 2 = 0.03% + 0.1% MetaMask = 0.13%
+        expect(result.feeRate).toBe(0.0013); // 0.03% maker + 0.1% MetaMask fee
+        expect(result.feeAmount).toBe(130); // 100000 * 0.0013
       });
     });
 
@@ -3800,6 +3818,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
+            coin: 'BTC',
           });
 
           // Assert
@@ -3819,6 +3838,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'limit',
             isMaker: true,
             amount: '100000',
+            coin: 'BTC',
           });
 
           // Assert
@@ -3838,6 +3858,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
+            coin: 'BTC',
           });
 
           // Assert
@@ -3856,6 +3877,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
+            coin: 'BTC',
           });
 
           // Assert
@@ -3873,6 +3895,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'limit',
             isMaker: true,
             amount: '100000',
+            coin: 'BTC',
           });
 
           // Assert
@@ -3908,6 +3931,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
+            coin: 'BTC',
           });
 
           // Assert
@@ -3927,6 +3951,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
+            coin: 'BTC',
           });
           expect(result.feeRate).toBeCloseTo(0.0012, 5); // 0.045% + (0.1% * 0.75)
 
@@ -3938,6 +3963,7 @@ describe('HyperLiquidProvider', () => {
             orderType: 'market',
             isMaker: false,
             amount: '100000',
+            coin: 'BTC',
           });
           expect(result.feeRate).toBe(0.00145); // Back to full fees
         });
@@ -4869,7 +4895,7 @@ describe('HyperLiquidProvider', () => {
       // Method should complete without error
     });
 
-    it('should handle private method getUserVolume edge case', async () => {
+    it('should handle isFeeCacheValid with non-existent address', async () => {
       // Access private method for edge case testing
       interface ProviderWithPrivateMethods {
         isFeeCacheValid(userAddress: string): boolean;
