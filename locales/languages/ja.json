@@ -8,7 +8,7 @@
       "increment": "Increment Redux Counter"
     },
     "pet_name": {
-      "list_count_text": "Pet Names on this network",
+      "list_count_text": "Pet Names on this network",f
       "add_pet_name_button": "Add Pet Name",
       "address": "アドレス",
       "address_placeholder": "0x...",
@@ -6519,9 +6519,9 @@
       "link_account_unknown_error": "不明なエラーが発生しました"
     },
     "optout": {
-      "title": "リワードプログラムを退会する",
-      "description": "この操作を行うと、リワードプログラムからアカウントが削除され、すべてのポイントと進行状況が失われます。この操作は元に戻せません。",
-      "confirm": "退会する",
+      "title": "リワードの進行状況を削除",
+      "description": "この操作を行うと、アカウントがリワードプログラムから削除され、すべてのポイントと進行状況が失われます。この操作は元に戻せません。",
+      "confirm": "削除",
       "modal": {
         "confirmation_title": "よろしいですか？",
         "confirmation_description": "これにより、進行状況はすべて削除され、元には戻せません。リワードプログラムに後で再び参加した場合は、最初から始めることになります。",
