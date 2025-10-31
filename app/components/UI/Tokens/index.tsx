@@ -264,50 +264,6 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  // Estimated height of a single token item in the TokenList.
-  // This value (64) matches the height defined in the TokenList item component's style.
-  // If the token item design changes, update this value accordingly.
-  const estimatedTokenItemHeight = 64;
-
-  const calculatedListHeight = useMemo(() => {
-    if (!isHomepageRedesignV1Enabled || isFullView) return undefined;
-
-    const displayTokenCount = maxItems
-      ? Math.min(renderedTokenKeys.length, maxItems)
-      : renderedTokenKeys.length;
-    const contentHeight = displayTokenCount * estimatedTokenItemHeight;
-    const footerHeight =
-      maxItems && renderedTokenKeys.length > maxItems ? 92 : 16;
-
-    return contentHeight + footerHeight;
-  }, [
-    isHomepageRedesignV1Enabled,
-    isFullView,
-    maxItems,
-    renderedTokenKeys.length,
-    estimatedTokenItemHeight,
-  ]);
-
-  const flashListProps = useMemo(() => {
-    if (isFullView) {
-      return {
-        contentContainerStyle: tw`px-4`,
-        scrollEnabled: true,
-      };
-    }
-
-    if (isHomepageRedesignV1Enabled) {
-      return {
-        scrollEnabled: false,
-        estimatedItemSize: estimatedTokenItemHeight,
-      };
-    }
-
-    return {
-      scrollEnabled: true,
-    };
-  }, [isFullView, isHomepageRedesignV1Enabled, tw, estimatedTokenItemHeight]);
-
   return (
     <Box
       twClassName={
@@ -336,36 +292,19 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           {isTokensLoading && progressiveTokens.length === 0 && (
             <Loader size="large" />
           )}
-          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) &&
-            (calculatedListHeight ? (
-              <Box style={{ height: calculatedListHeight }}>
-                <TokenList
-                  tokenKeys={
-                    isTokensLoading ? progressiveTokens : renderedTokenKeys
-                  }
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  showRemoveMenu={showRemoveMenu}
-                  setShowScamWarningModal={handleScamWarningModal}
-                  flashListProps={flashListProps}
-                  maxItems={maxItems}
-                  isFullView={isFullView}
-                />
-              </Box>
-            ) : (
-              <TokenList
-                tokenKeys={
-                  isTokensLoading ? progressiveTokens : renderedTokenKeys
-                }
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                showRemoveMenu={showRemoveMenu}
-                setShowScamWarningModal={handleScamWarningModal}
-                flashListProps={flashListProps}
-                maxItems={maxItems}
-                isFullView={isFullView}
-              />
-            ))}
+          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
+            <TokenList
+              tokenKeys={
+                isTokensLoading ? progressiveTokens : renderedTokenKeys
+              }
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              showRemoveMenu={showRemoveMenu}
+              setShowScamWarningModal={handleScamWarningModal}
+              maxItems={maxItems}
+              isFullView={isFullView}
+            />
+          )}
         </>
       )}
       {showScamWarningModal && (
