@@ -22,6 +22,7 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
+  formatAddressToAssetId,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -357,12 +358,30 @@ export const selectEnabledDestChains = createSelector(
 // Combined selectors for related state
 export const selectSourceToken = createSelector(
   selectBridgeState,
-  (bridgeState) => bridgeState.sourceToken,
+  (bridgeState) =>
+    bridgeState.sourceToken
+      ? {
+          ...bridgeState.sourceToken,
+          assetId: formatAddressToAssetId(
+            bridgeState.sourceToken.address,
+            bridgeState.sourceToken.chainId,
+          ),
+        }
+      : undefined,
 );
 
 export const selectDestToken = createSelector(
   selectBridgeState,
-  (bridgeState) => bridgeState.destToken,
+  (bridgeState) =>
+    bridgeState.destToken
+      ? {
+          ...bridgeState.destToken,
+          assetId: formatAddressToAssetId(
+            bridgeState.destToken.address,
+            bridgeState.destToken.chainId,
+          ),
+        }
+      : undefined,
 );
 
 export const selectSelectedSourceChainIds = createSelector(
