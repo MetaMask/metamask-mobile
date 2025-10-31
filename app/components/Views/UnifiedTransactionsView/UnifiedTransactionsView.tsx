@@ -359,7 +359,7 @@ const UnifiedTransactionsView = ({
   ]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
-  const firstBlockExplorer = useBlockExplorer(
+  const popularListBlockExplorer = useBlockExplorer(
     hasEvmChainsEnabled ? enabledEVMChainIds[0] : undefined,
   );
 
@@ -384,20 +384,19 @@ const UnifiedTransactionsView = ({
   }, [enabledEVMChainIds, evmNetworkConfigurationsByChainId]);
 
   const blockExplorerUrl = useMemo(() => {
-    // TODO: We should make sure configBlockExplorerUrl contains all blockexplorer needed
-    // This workaround was added to fix the issue, but it's not a good solution to have to different
-    // sources of truth for block explorer urls.
+    // configBlockExplorerUrl contains block explorer urls only for networks added by default after fresh install
+    // other networks should use PopularList, which is used by useBlockExplorer hook
     if (configBlockExplorerUrl) {
       return configBlockExplorerUrl;
     }
     return hasEvmChainsEnabled
-      ? firstBlockExplorer.getBlockExplorerUrl(
+      ? popularListBlockExplorer.getBlockExplorerUrl(
           selectedAccountGroupEvmAddress,
         ) || undefined
       : undefined;
   }, [
     configBlockExplorerUrl,
-    firstBlockExplorer,
+    popularListBlockExplorer,
     selectedAccountGroupEvmAddress,
     hasEvmChainsEnabled,
   ]);
@@ -429,7 +428,7 @@ const UnifiedTransactionsView = ({
     } else {
       url = blockExplorerUrl;
       title = hasEvmChainsEnabled
-        ? firstBlockExplorer.getBlockExplorerName(enabledEVMChainIds[0])
+        ? popularListBlockExplorer.getBlockExplorerName(enabledEVMChainIds[0])
         : undefined;
     }
 
@@ -445,7 +444,7 @@ const UnifiedTransactionsView = ({
     providerType,
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
-    firstBlockExplorer,
+    popularListBlockExplorer,
     enabledEVMChainIds,
     configBlockExplorerUrl,
     hasEvmChainsEnabled,

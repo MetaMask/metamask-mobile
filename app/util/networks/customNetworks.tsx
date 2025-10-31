@@ -106,7 +106,7 @@ export const PopularList = [
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'PALM',
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.palm.io',
+      blockExplorerUrl: 'https://palm.chainlens.com',
       imageUrl: 'PALM',
       imageSource: require('../../images/palm.png'),
     },
