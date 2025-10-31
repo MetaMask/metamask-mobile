@@ -134,29 +134,8 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   describe('Navigation Handling', () => {
-    it('navigates to market list with showWatchlistOnly parameter', () => {
-      const { root } = render(<PerpsWatchlistMarkets markets={mockMarkets} />);
-
-      // Find TouchableOpacity that navigates to See all (second one in header)
-      const touchables = root.findAllByType(
-        jest.requireActual('react-native').TouchableOpacity,
-      );
-      // Header has one TouchableOpacity for "See all"
-      const seeAllButton = touchables.find(
-        (t) => t.props.onPress !== undefined && t.parent?.parent !== null,
-      );
-
-      if (seeAllButton) {
-        fireEvent.press(seeAllButton);
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_LIST,
-          params: {
-            showWatchlistOnly: true,
-          },
-        });
-      }
-    });
+    // Note: "See all" button was removed from PerpsWatchlistMarkets
+    // Navigation to watchlist is now handled elsewhere
 
     it('navigates to market details when market row is pressed', () => {
       render(<PerpsWatchlistMarkets markets={mockMarkets} />);
