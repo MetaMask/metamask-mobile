@@ -78,6 +78,7 @@ const formatCachedTokenListControllerTokens = (
       name: token.name,
       image: getTokenIconUrl(tokenAddress, chainId) || token.iconUrl || '',
       decimals: token.decimals,
+      aggregators: token.aggregators,
       chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
       accountType: getAccountType(caipChainId),
     };
@@ -202,6 +203,7 @@ export const useTopTokens = ({
         name: bridgeAsset.name,
         image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
+        aggregators: bridgeAsset.aggregators,
         chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
         accountType: getAccountType(caipChainId),
       };
