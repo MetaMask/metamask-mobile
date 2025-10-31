@@ -19,6 +19,7 @@ export default function useSubmitBridgeTx() {
   }: {
     quoteResponse: CowSwapQuoteResponse & QuoteMetadata;
   }) => {
+    let txResult: any;
     // check quoteResponse is intent transaction
     if (quoteResponse.quote.intent) {
       // Get the SignatureControllerMessenger
@@ -27,19 +28,19 @@ export default function useSubmitBridgeTx() {
         selectedAccountAddress,
       );
       return txResult;
+    } else {
+      if (!walletAddress) {
+        throw new Error('Wallet address is not set');
+      }
+      txResult = await Engine.context.BridgeStatusController.submitTx(
+        walletAddress,
+        {
+          ...quoteResponse,
+          approval: quoteResponse.approval ?? undefined,
+        },
+        stxEnabled,
+      );
     }
-
-    if (!walletAddress) {
-      throw new Error('Wallet address is not set');
-    }
-    const txResult = await Engine.context.BridgeStatusController.submitTx(
-      walletAddress,
-      {
-        ...quoteResponse,
-        approval: quoteResponse.approval ?? undefined,
-      },
-      stxEnabled,
-    );
 
     return txResult;
   };
