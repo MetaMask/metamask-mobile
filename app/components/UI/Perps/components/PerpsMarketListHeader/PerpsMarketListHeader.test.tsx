@@ -12,8 +12,83 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {
       'perps.title': 'Perps',
+      'perps.search_by_token_symbol': 'Search by token symbol',
+      'perps.cancel': 'Cancel',
     };
     return translations[key] || key;
+  }),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View, Text: RNText } = jest.requireActual('react-native');
+  return {
+    Box: View,
+    Text: RNText,
+    BoxFlexDirection: { Row: 'row' },
+    BoxAlignItems: { Center: 'center' },
+  };
+});
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
+}));
+
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      text: {
+        muted: '#999',
+        default: '#000',
+      },
+    },
+  }),
+}));
+
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+    IconName: {
+      Search: 'Search',
+      ArrowLeft: 'ArrowLeft',
+      CircleX: 'CircleX',
+    },
+    IconSize: { Sm: 'sm', Lg: 'lg', Md: 'md' },
+    IconColor: { Default: 'Default', Alternative: 'Alternative' },
+  };
+});
+
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: Text,
+    TextVariant: {
+      BodyMD: 'BodyMD',
+      HeadingLG: 'HeadingLG',
+      HeadingMD: 'HeadingMD',
+    },
+    TextColor: {
+      Default: 'Default',
+    },
+  };
+});
+
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: () => ({
+    styles: {
+      header: {},
+      headerContainerWrapper: {},
+      backButton: {},
+      headerTitle: {},
+      headerTitleContainer: {},
+      titleButtonsRightContainer: {},
+      searchButton: {},
+      searchBarContainer: {},
+    },
   }),
 }));
 
@@ -68,7 +143,7 @@ describe('PerpsMarketListHeader', () => {
       expect(searchButton).toBeTruthy();
     });
 
-    it('renders close icon when search is visible', () => {
+    it('renders Cancel button when search is visible', () => {
       const { getByTestId } = render(
         <PerpsMarketListHeader
           isSearchVisible
@@ -77,8 +152,8 @@ describe('PerpsMarketListHeader', () => {
         />,
       );
 
-      const searchButton = getByTestId('market-list-header-search-toggle');
-      expect(searchButton).toBeTruthy();
+      const cancelButton = getByTestId('market-list-header-search-close');
+      expect(cancelButton).toBeTruthy();
     });
   });
 

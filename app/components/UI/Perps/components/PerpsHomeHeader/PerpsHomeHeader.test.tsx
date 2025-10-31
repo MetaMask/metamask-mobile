@@ -11,6 +11,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {
       'perps.title': 'Perps',
+      'perps.search_by_token_symbol': 'Search by token symbol',
+      'perps.cancel': 'Cancel',
     };
     return translations[key] || key;
   }),
@@ -29,10 +31,79 @@ jest.mock(
         onPress: () => void;
         testID?: string;
       }) => <TouchableOpacity testID={testID} onPress={onPress} />,
-      ButtonIconSizes: { Md: 'md' },
+      ButtonIconSizes: { Md: 'md', Sm: 'sm' },
     };
   },
 );
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View, Text: RNText } = jest.requireActual('react-native');
+  return {
+    Box: View,
+    Text: RNText,
+    BoxFlexDirection: { Row: 'row' },
+    BoxAlignItems: { Center: 'center' },
+  };
+});
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
+}));
+
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      text: {
+        muted: '#999',
+        default: '#000',
+      },
+    },
+  }),
+}));
+
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+    IconName: {
+      Search: 'Search',
+      ArrowLeft: 'ArrowLeft',
+      CircleX: 'CircleX',
+    },
+    IconSize: { Sm: 'sm', Lg: 'lg', Md: 'md' },
+    IconColor: { Default: 'Default', Alternative: 'Alternative' },
+  };
+});
+
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: Text,
+    TextVariant: {
+      BodyMD: 'BodyMD',
+      HeadingLG: 'HeadingLG',
+    },
+    TextColor: {
+      Default: 'Default',
+    },
+  };
+});
+
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: () => ({
+    styles: {
+      header: {},
+      headerContainerWrapper: {},
+      headerTitle: {},
+      searchButton: {},
+      searchBarContainer: {},
+    },
+  }),
+}));
 
 describe('PerpsHomeHeader', () => {
   const mockGoBack = jest.fn();
@@ -155,7 +226,7 @@ describe('PerpsHomeHeader', () => {
       // Icon component would render IconName.Search
     });
 
-    it('renders Close icon when isSearchVisible is true', () => {
+    it('renders Cancel button when isSearchVisible is true', () => {
       const { getByTestId } = render(
         <PerpsHomeHeader
           isSearchVisible
@@ -164,8 +235,8 @@ describe('PerpsHomeHeader', () => {
         />,
       );
 
-      const searchButton = getByTestId('home-header-search-toggle');
-      expect(searchButton).toBeTruthy();
+      const cancelButton = getByTestId('home-header-search-close');
+      expect(cancelButton).toBeTruthy();
       // Icon component would render IconName.Close
     });
   });

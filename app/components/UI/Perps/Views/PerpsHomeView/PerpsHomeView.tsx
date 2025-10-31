@@ -192,7 +192,7 @@ const PerpsHomeView = () => {
         onSearchClear={() => setSearchQuery('')}
         onBack={handleBackPress}
         onSearchToggle={handleSearchToggle}
-        testID={PerpsHomeViewSelectorsIDs.BACK_BUTTON}
+        testID="perps-home"
       />
 
       {/* Main Content - ScrollView with all carousels */}
