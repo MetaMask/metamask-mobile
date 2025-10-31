@@ -60,7 +60,7 @@ describe(
     afterAll(async (): Promise<void> => {
       await fixtureServer.stop();
       if (mockServerInstance?.isStarted()) await mockServerInstance.stop();
-      if (localNode) await localNode.quit();
+      if (localNode) await localNode.stop();
     });
 
     beforeEach(async (): Promise<void> => {

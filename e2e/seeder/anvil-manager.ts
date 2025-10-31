@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
-import { AnvilNodeOptions, ServerStatus , Resource } from '../framework/types';
+import { AnvilNodeOptions, ServerStatus, Resource } from '../framework/types';
 import { createLogger } from '../framework/logger';
 
 const logger = createLogger({
@@ -302,16 +302,18 @@ class AnvilManager implements Resource {
    * @throws {Error} If server fails to stop
    */
   async stop(): Promise<void> {
-    if (!this.server) {
+    if (this.serverStatus !== ServerStatus.STARTED) {
       logger.debug('Anvil server not running in this instance.');
+      this.serverStatus = ServerStatus.STOPPED;
       return;
     }
 
     try {
       const port = this.serverPort || AnvilPort();
       logger.debug(`Stopping Anvil server on port ${port}...`);
-      await this.server.stop();
+      await this.server?.stop();
       logger.debug(`Anvil server stopped on port ${port}`);
+      this.serverStatus = ServerStatus.STOPPED;
     } catch (e) {
       logger.error(`Error stopping server: ${e}`);
       throw e;
