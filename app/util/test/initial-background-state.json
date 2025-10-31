@@ -44,10 +44,6 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "PPOMController": {
-    "storageMetadata": [],
-    "versionInfo": []
-  },
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
