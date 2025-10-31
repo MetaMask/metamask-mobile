@@ -36,7 +36,7 @@ export interface CoreLinkParams {
   account?: string; // Format: "address@chainId"
 
   // UI control params
-  hr?: boolean; // Hide Return to App button
+  hr?: string; // Hide Return to App button
 
   // Action-specific paths (populated by normalizer)
   rampPath?: string;
@@ -49,6 +49,7 @@ export interface CoreLinkParams {
   onboardingPath?: string;
   createAccountPath?: string;
   depositCashPath?: string;
+  perpsMarketsPath?: string;
 
   // Additional dynamic params
   [key: string]: string | boolean | undefined;

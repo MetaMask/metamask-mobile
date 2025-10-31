@@ -3,7 +3,6 @@
  *
  * Converts various deep link formats into a standardized CoreUniversalLink format
  */
-import qs from 'qs';
 import { PROTOCOLS, ACTIONS } from '../../constants/deeplinks';
 import AppConstants from '../AppConstants';
 import {
@@ -22,6 +21,7 @@ export class CoreLinkNormalizer {
     keyof CoreLinkParams
   > = {
     [ACTIONS.RAMP]: 'rampPath',
+    [ACTIONS.PERPS]: 'perpsPath',
     [ACTIONS.SWAP]: 'swapPath',
     [ACTIONS.DAPP]: 'dappPath',
     [ACTIONS.SEND]: 'sendPath',
@@ -30,7 +30,6 @@ export class CoreLinkNormalizer {
     [ACTIONS.ONBOARDING]: 'onboardingPath',
     [ACTIONS.CREATE_ACCOUNT]: 'createAccountPath',
     [ACTIONS.DEPOSIT]: 'depositCashPath',
-    [ACTIONS.PERPS]: 'perpsPath',
   };
 
   /**
@@ -200,17 +199,6 @@ export class CoreLinkNormalizer {
       ...this.getActionSpecificParams(action, actionPath),
     };
 
-    // Convert hr parameter
-    if ('hr' in params && params.hr !== undefined) {
-      if (typeof params.hr === 'string') {
-        params.hr = params.hr === '1' || params.hr === 'true';
-      } else if (typeof params.hr === 'boolean') {
-        // Already a boolean, keep as is
-      } else {
-        params.hr = false;
-      }
-    }
-
     // Clean up message parameter
     if (params.message) {
       params.message = encodeURIComponent(params.message);
@@ -309,22 +297,23 @@ export class CoreLinkNormalizer {
 
     Object.entries(params).forEach(([key, value]) => {
       if (
+        // exclude action-specific paths and empty values
         !pathKeys.includes(key) &&
         value !== null &&
         value !== undefined &&
         value !== ''
       ) {
-        if (key === 'hr' && typeof value === 'boolean') {
-          filteredParams[key] = value ? '1' : '0';
-        } else {
-          filteredParams[key] = String(value);
-        }
+        filteredParams[key] = String(value);
       }
     });
 
-    return Object.keys(filteredParams).length > 0
-      ? qs.stringify(filteredParams)
-      : '';
+    // Use native URLSearchParams instead of qs
+    if (Object.keys(filteredParams).length === 0) {
+      return '';
+    }
+
+    const searchParams = new URLSearchParams(filteredParams);
+    return searchParams.toString();
   }
 
   private static isSupportedAction(action: string): boolean {

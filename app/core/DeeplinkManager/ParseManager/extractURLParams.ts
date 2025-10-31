@@ -24,7 +24,7 @@ export interface DeeplinkUrlParams {
   utm_term?: string;
   utm_content?: string;
   account?: string; // This is the format => "address@chainId"
-  hr: boolean; // Hide Return to App
+  hr: string; // Hide Return to App
 }
 
 function extractURLParams(url: string) {
