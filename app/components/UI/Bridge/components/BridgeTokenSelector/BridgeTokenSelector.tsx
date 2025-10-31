@@ -63,12 +63,12 @@ export const BridgeTokenSelector: React.FC = () => {
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
   );
+
+  // Initialize selectedChainId with the chain id of the selected token
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const selectedToken =
     route.params?.type === 'source' ? sourceToken : destToken;
-
-  // Initialize selectedChainId with the initial chain id
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(
@@ -77,8 +77,8 @@ export const BridgeTokenSelector: React.FC = () => {
       : undefined,
   );
 
-  // Chain IDs to display in the token selector
-  const displayChainIds = useMemo(() => {
+  // Chain IDs to fetch tokens for
+  const chainIdsToFetch = useMemo(() => {
     if (!bridgeFeatureFlags.chainRanking) {
       return [];
     }
@@ -92,20 +92,34 @@ export const BridgeTokenSelector: React.FC = () => {
     return bridgeFeatureFlags.chainRanking.map((chain) => chain.chainId);
   }, [selectedChainId, bridgeFeatureFlags]);
 
-  const tokensWithBalance = useTokensWithBalance({ chainIds: displayChainIds });
-  // List of assetIds for assets with balance to be excluded from the popular tokens query
+  const tokensWithBalance = useTokensWithBalance({ chainIds: chainIdsToFetch });
+  const filteredTokensWithBalance = useMemo(() => {
+    if (!searchString.trim()) {
+      return tokensWithBalance;
+    }
+
+    const searchLower = searchString.toLowerCase();
+    return tokensWithBalance.filter(
+      (token) =>
+        token.name?.toLowerCase().includes(searchLower) ||
+        token.symbol.toLowerCase().includes(searchLower) ||
+        token.address.toLowerCase().includes(searchLower),
+    );
+  }, [tokensWithBalance, searchString]);
+
+  // List of assetIds for assets with balance to be excluded from the tokens queries
   // Stringified to avoid triggering the useEffect when only balances change
   const assetsWithBalanceAssetIds = useMemo(() => {
-    const assetIds = tokensWithBalance.map((token) =>
+    const assetIds = filteredTokensWithBalance.map((token) =>
       formatAddressToAssetId(token.address, token.chainId),
     );
     return JSON.stringify(assetIds);
-  }, [tokensWithBalance]);
+  }, [filteredTokensWithBalance]);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
     {
-      chainIds: displayChainIds,
+      chainIds: chainIdsToFetch,
       excludeAssetIds: assetsWithBalanceAssetIds,
     },
   );
@@ -120,24 +134,9 @@ export const BridgeTokenSelector: React.FC = () => {
     debouncedSearch,
     resetSearch,
   } = useSearchTokens({
-    chainIds: displayChainIds,
+    chainIds: chainIdsToFetch,
     excludeAssetIds: assetsWithBalanceAssetIds,
   });
-
-  // Filter local tokens with balance based on search query
-  const filteredTokensWithBalance = useMemo(() => {
-    if (!searchString.trim()) {
-      return tokensWithBalance;
-    }
-
-    const searchLower = searchString.toLowerCase();
-    return tokensWithBalance.filter(
-      (token) =>
-        token.name?.toLowerCase().includes(searchLower) ||
-        token.symbol.toLowerCase().includes(searchLower) ||
-        token.address.toLowerCase().includes(searchLower),
-    );
-  }, [tokensWithBalance, searchString]);
 
   const displayData = useMemo(() => {
     const isLoading = isPopularTokensLoading || isSearchLoading;
@@ -156,14 +155,13 @@ export const BridgeTokenSelector: React.FC = () => {
     // Default: show tokens with balance and popular tokens
     const convertedPopularTokens =
       convertAPITokensToBridgeTokens(popularTokens);
-    return [...tokensWithBalance, ...convertedPopularTokens];
+    return [...filteredTokensWithBalance, ...convertedPopularTokens];
   }, [
     isPopularTokensLoading,
     isSearchLoading,
     searchString,
     filteredTokensWithBalance,
     searchResults,
-    tokensWithBalance,
     popularTokens,
   ]);
 
