@@ -9,7 +9,16 @@ import {
   ServerStatus,
   TestSpecificMock,
 } from '../framework/index';
+import {
+  findMatchingPostEvent,
+  processPostRequestBody,
+} from './helpers/mockHelpers';
+import { getLocalHost } from '../framework/fixtures/FixtureUtils';
 
+const logger = createLogger({
+  name: 'MockServer',
+  level: LogLevel.INFO,
+});
 interface LiveRequest {
   url: string;
   method: string;
@@ -19,11 +28,6 @@ interface LiveRequest {
 export interface InternalMockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
 }
-
-const logger = createLogger({
-  name: 'MockServer',
-  level: LogLevel.INFO,
-});
 
 const isUrlAllowed = (url: string): boolean => {
   try {
@@ -112,7 +116,7 @@ export default class MockServerE2E implements Resource {
   }
 
   get getServerUrl(): string {
-    return `http://localhost:${this._serverPort}`;
+    return `http://${getLocalHost()}:${this._serverPort}`;
   }
 
   get server(): InternalMockServer {
@@ -123,8 +127,8 @@ export default class MockServerE2E implements Resource {
   }
 
   async start(): Promise<void> {
-    if (this._server) {
-      logger.info('Mock server already started');
+    if (this._serverStatus === ServerStatus.STARTED) {
+      logger.debug('Mock server already started');
       return;
     }
 
@@ -142,8 +146,8 @@ export default class MockServerE2E implements Resource {
       );
     }
 
-    logger.info(
-      `Mockttp server running at http://localhost:${this._serverPort}`,
+    logger.debug(
+      `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
     );
 
     await mockServer
@@ -209,7 +213,7 @@ export default class MockServerE2E implements Resource {
         let matchingEvent: MockApiEndpoint | undefined;
         if (candidateEvents.length > 0) {
           if (method === 'POST') {
-            matchingEvent = this._findMatchingPostEvent(
+            matchingEvent = findMatchingPostEvent(
               candidateEvents,
               requestBodyJson,
             );
@@ -223,7 +227,7 @@ export default class MockServerE2E implements Resource {
           logger.info(`Response status: ${matchingEvent.responseCode}`);
           logger.debug('Response:', matchingEvent.response);
           if (method === 'POST' && matchingEvent.requestBody) {
-            const result = this._processPostRequestBody(
+            const result = processPostRequestBody(
               requestBodyText,
               matchingEvent.requestBody,
               { ignoreFields: matchingEvent.ignoreFields || [] },
@@ -322,10 +326,7 @@ export default class MockServerE2E implements Resource {
 
   validateLiveRequests(): void {
     const mockServer = this._server;
-    if (
-      !mockServer?._liveRequests ||
-      mockServer._liveRequests.length === 0
-    ) {
+    if (!mockServer?._liveRequests || mockServer._liveRequests.length === 0) {
       return;
     }
 
@@ -352,52 +353,6 @@ export default class MockServerE2E implements Resource {
       "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.";
     logger.error(message);
     throw new Error(message);
-  }
-
-  private _findMatchingPostEvent(
-    candidates: MockApiEndpoint[],
-    requestBodyJson: unknown,
-  ): MockApiEndpoint | undefined {
-    for (const event of candidates) {
-      if (!event.requestBody) {
-        return event;
-      }
-      const result = this._processPostRequestBody(
-        typeof requestBodyJson === 'string' ? requestBodyJson : undefined,
-        event.requestBody,
-        { ignoreFields: event.ignoreFields || [] },
-      );
-      if (result.matches) {
-        return event;
-      }
-    }
-    return undefined;
-  }
-
-  private _processPostRequestBody(
-    requestBodyText: string | undefined,
-    expectedBody: unknown,
-    options: { ignoreFields: string[] },
-  ): { matches: boolean; error?: string; requestBodyJson?: unknown } {
-    try {
-      if (!requestBodyText) {
-        return { matches: false, error: 'Missing request body' };
-      }
-      const requestBodyJson = JSON.parse(requestBodyText);
-      const sanitizedReceived = this._sanitizeJson(
-        requestBodyJson,
-        options.ignoreFields,
-      );
-      const sanitizedExpected = this._sanitizeJson(
-        expectedBody,
-        options.ignoreFields,
-      );
-      const matches =
-        JSON.stringify(sanitizedReceived) === JSON.stringify(sanitizedExpected);
-      return { matches, requestBodyJson };
-    } catch (e) {
-      return { matches: false, error: 'Invalid JSON in request body' };
-    }
   }
 
   private _sanitizeJson(value: unknown, ignoreFields: string[]): unknown {

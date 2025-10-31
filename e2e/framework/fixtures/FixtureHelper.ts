@@ -224,7 +224,7 @@ async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
   );
   for (const node of localNodes) {
     if (node) {
-      await node.quit();
+      await node.stop();
     }
   }
 }
@@ -288,7 +288,7 @@ export const createMockAPIServer = async (
     port: mockServerPort,
     testSpecificMock,
   });
-  mockServerInstance.start();
+  await mockServerInstance.start();
   const mockServer = mockServerInstance.server;
 
   if (testSpecificMock) {

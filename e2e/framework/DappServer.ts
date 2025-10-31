@@ -4,6 +4,7 @@ import http from 'http';
 import serveHandler from 'serve-handler';
 import { getLocalHost } from './fixtures/FixtureUtils';
 import { DappVariants } from './Constants';
+import path from 'path';
 
 const logger = createLogger({
   name: 'DappServer',
@@ -64,7 +65,7 @@ export default class DappServer implements Resource {
       return;
     }
 
-    return new Promise((resolve, _) => {
+    return new Promise((resolve, reject) => {
       this._server = http.createServer(
         async (
           request: http.IncomingMessage,
@@ -74,6 +75,18 @@ export default class DappServer implements Resource {
             response.statusCode = 404;
             response.end('Not Found');
             return;
+          }
+
+          if (request.url.startsWith('/node_modules/')) {
+            request.url = request.url.substr(14);
+            const nodeModulesDir = path.resolve(
+              __dirname,
+              '../../node_modules',
+            );
+            return serveHandler(request, response, {
+              directoryListing: false,
+              public: nodeModulesDir,
+            });
           }
 
           // Handle test-dapp-multichain URLs by removing the prefix
@@ -88,6 +101,17 @@ export default class DappServer implements Resource {
           });
         },
       );
+
+      this._server.once('error', (error) => {
+        logger.error(
+          `Failed to start dapp server ${this.dappVariant} on port ${this._serverPort}: ${String(
+            error,
+          )}`,
+        );
+        this._serverStatus = ServerStatus.STOPPED;
+        reject(error);
+      });
+
       this._server.listen(this._serverPort, () => {
         this._serverStatus = ServerStatus.STARTED;
         logger.debug(

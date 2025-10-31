@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
-import { AnvilNodeOptions } from '../framework/types';
+import { AnvilNodeOptions, ServerStatus , Resource } from '../framework/types';
 import { createLogger } from '../framework/logger';
 
 const logger = createLogger({
@@ -73,18 +73,11 @@ export const defaultOptions = {
  * Manages an Anvil Ethereum development server instance
  * @class
  */
-class AnvilManager {
+class AnvilManager implements Resource {
   private server: AnvilType | undefined;
   private serverPort: number | undefined;
   private anvilBinary: string | undefined;
-
-  /**
-   * Check if the Anvil server is running
-   * @returns {boolean} True if the server is running, false otherwise
-   */
-  isRunning(): boolean {
-    return this.server !== undefined;
-  }
+  serverStatus: ServerStatus = ServerStatus.STOPPED;
 
   // Using shared port utilities from FixtureUtils
 
@@ -190,6 +183,7 @@ class AnvilManager {
 
       await this.server.start();
       logger.debug(`Server started successfully on port ${port}`);
+      this.serverStatus = ServerStatus.STARTED;
     } catch (error) {
       logger.error(`Failed to start server on port ${port}:`, error);
 
@@ -228,6 +222,7 @@ class AnvilManager {
 
       this.server = undefined;
       this.serverPort = undefined;
+      this.serverStatus = ServerStatus.STOPPED;
       throw error;
     }
   }
@@ -306,7 +301,7 @@ class AnvilManager {
    * @throws {Error} If server is not running
    * @throws {Error} If server fails to stop
    */
-  async quit(): Promise<void> {
+  async stop(): Promise<void> {
     if (!this.server) {
       logger.debug('Anvil server not running in this instance.');
       return;
@@ -324,6 +319,22 @@ class AnvilManager {
       this.server = undefined;
       this.serverPort = undefined;
     }
+  }
+
+  /**
+   * Check if the Anvil server is running
+   * @returns {boolean} True if the server is running, false otherwise
+   */
+  isStarted(): boolean {
+    return this.serverStatus === ServerStatus.STARTED;
+  }
+
+  getServerPort(): number {
+    return this.serverPort ?? 0;
+  }
+
+  getServerStatus(): ServerStatus {
+    return this.serverStatus;
   }
 }
 export { AnvilManager };
