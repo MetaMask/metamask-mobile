@@ -404,11 +404,20 @@ jobs:
               exit 1
             fi
             
-            # Find the APK artifact - matches metamask-main-rc-[number].apk
-            WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq '[.data[] | select(.title | endswith(".apk") and (.title | test("metamask-main-rc-[0-9]+\\.apk")))] | .[0]')
+            # Debug: Show all artifact titles for troubleshooting
+            echo "All artifact titles:"
+            echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
             
-            if [[ -n "$WITH_SRP_APK_ARTIFACT" && "$WITH_SRP_APK_ARTIFACT" != "null" ]]; then
-              WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug // empty')
+            # Find the APK artifact - matches metamask-main-rc-[number].apk
+            # Pattern matches reference script: filter by artifact_type if available, then by title pattern
+            # Note: Without -r flag, this returns JSON object which we can parse again
+            WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq '.data[] | 
+              select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
+              select(.title | endswith(".apk")) | 
+              select(.title | test("metamask-main-rc-[0-9]+\\.apk"))')
+            
+            if [[ -n "$WITH_SRP_APK_ARTIFACT" && "$WITH_SRP_APK_ARTIFACT" != "null" && "$WITH_SRP_APK_ARTIFACT" != "" ]]; then
+              WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug')
               
               if [[ -z "$WITH_SRP_APK_SLUG" || "$WITH_SRP_APK_SLUG" == "null" ]]; then
                 echo "Error: Failed to extract APK slug from artifact"
@@ -506,11 +515,20 @@ jobs:
               exit 1
             fi
             
-            # Find the APK artifact - matches metamask-main-rc-[number].apk
-            WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq '[.data[] | select(.title | endswith(".apk") and (.title | test("metamask-main-rc-[0-9]+\\.apk")))] | .[0]')
+            # Debug: Show all artifact titles for troubleshooting
+            echo "All artifact titles:"
+            echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
             
-            if [[ -n "$WITHOUT_SRP_APK_ARTIFACT" && "$WITHOUT_SRP_APK_ARTIFACT" != "null" ]]; then
-              WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug // empty')
+            # Find the APK artifact - matches metamask-main-rc-[number].apk
+            # Pattern matches reference script: filter by artifact_type if available, then by title pattern
+            # Note: Without -r flag, this returns JSON object which we can parse again
+            WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq '.data[] | 
+              select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
+              select(.title | endswith(".apk")) | 
+              select(.title | test("metamask-main-rc-[0-9]+\\.apk"))')
+            
+            if [[ -n "$WITHOUT_SRP_APK_ARTIFACT" && "$WITHOUT_SRP_APK_ARTIFACT" != "null" && "$WITHOUT_SRP_APK_ARTIFACT" != "" ]]; then
+              WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug')
               
               if [[ -z "$WITHOUT_SRP_APK_SLUG" || "$WITHOUT_SRP_APK_SLUG" == "null" ]]; then
                 echo "Error: Failed to extract APK slug from artifact"
