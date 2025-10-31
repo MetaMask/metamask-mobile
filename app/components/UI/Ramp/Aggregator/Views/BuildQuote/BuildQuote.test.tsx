@@ -195,6 +195,7 @@ const mockUseLimitsInitialValues: Partial<ReturnType<typeof useLimits>> = {
     feeFixedRate: 1,
     quickAmounts: [100, 500, 1000],
   },
+  isFetching: false,
   isAmountBelowMinimum: jest
     .fn()
     .mockImplementation((amount) => amount < MIN_LIMIT),
