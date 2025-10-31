@@ -3520,9 +3520,6 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
-      PORTFOLIO_VIEW: true
-    - opts:
-        is_expand: false
       MM_PER_DAPP_SELECTED_NETWORK: false
     - opts:
         is_expand: false
