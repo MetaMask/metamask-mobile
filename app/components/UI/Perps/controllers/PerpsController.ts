@@ -254,7 +254,7 @@ export type PerpsControllerState = {
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
-  isTestnet: __DEV__, // Default to testnet in dev
+  isTestnet: false, // Default to mainnet
   connectionStatus: 'disconnected',
   accountState: null,
   positions: [],
