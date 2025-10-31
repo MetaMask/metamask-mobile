@@ -194,6 +194,7 @@ exports[`Login renders matching snapshot 1`] = `
             }
           />
           <View
+            pointerEvents="box-none"
             style={
               {
                 "alignItems": "center",
@@ -521,6 +522,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             }
           />
           <View
+            pointerEvents="box-none"
             style={
               {
                 "alignItems": "center",
