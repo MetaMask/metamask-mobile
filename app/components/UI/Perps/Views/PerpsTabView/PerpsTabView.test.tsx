@@ -90,15 +90,14 @@ jest.mock('../../hooks', () => ({
 
 // Mock stream hooks separately since they're imported from different path
 jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveOrders: jest.fn(() => []),
+  usePerpsLiveOrders: jest.fn(() => ({ orders: [] })),
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
       availableBalance: '1000.00',
-      totalBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',
-      totalValue: '1000.00',
+      totalBalance: '1000.00',
     },
     isInitialLoading: false,
   })),
@@ -247,7 +246,7 @@ describe('PerpsTabView', () => {
       isInitialLoading: false,
     });
 
-    mockUsePerpsLiveOrders.mockReturnValue([]);
+    mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
     mockUsePerpsTrading.mockReturnValue({
       getAccountState: jest.fn(),
@@ -415,7 +414,7 @@ describe('PerpsTabView', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
         params: { source: 'position_tab' },
       });
     });
@@ -427,10 +426,12 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([
-        { orderId: '123', symbol: 'ETH', size: '1.0', orderType: 'limit' },
-        { orderId: '456', symbol: 'BTC', size: '0.5', orderType: 'market' },
-      ]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [
+          { orderId: '123', symbol: 'ETH', size: '1.0', orderType: 'limit' },
+          { orderId: '456', symbol: 'BTC', size: '0.5', orderType: 'market' },
+        ],
+      });
 
       // When the view is rendered
       render(<PerpsTabView />);
@@ -455,7 +456,7 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
       // When the view is rendered
       render(<PerpsTabView />);
@@ -481,7 +482,7 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
       // When the view is rendered
       render(<PerpsTabView />);
@@ -503,9 +504,11 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([
-        { orderId: '123', symbol: 'ETH', size: '1.0', orderType: 'limit' },
-      ]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [
+          { orderId: '123', symbol: 'ETH', size: '1.0', orderType: 'limit' },
+        ],
+      });
 
       // When the view is rendered
       render(<PerpsTabView />);
@@ -559,7 +562,7 @@ describe('PerpsTabView', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
         params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
       });
     });
@@ -575,7 +578,7 @@ describe('PerpsTabView', () => {
         loadPositions: jest.fn(),
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
       // Act - Render component
       render(<PerpsTabView />);
@@ -591,7 +594,7 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
       render(<PerpsTabView />);
 
@@ -605,9 +608,9 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([
-        { orderId: '123', symbol: 'ETH', size: '1.0' },
-      ]);
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [{ orderId: '123', symbol: 'ETH', size: '1.0' }],
+      });
 
       render(<PerpsTabView />);
 
@@ -621,7 +624,7 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
       render(<PerpsTabView />);
 

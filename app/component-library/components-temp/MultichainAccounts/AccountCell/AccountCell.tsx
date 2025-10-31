@@ -29,7 +29,7 @@ import {
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { formatAddress } from '../../../../util/address';
+import { renderShortAddress } from '../../../../util/address';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
@@ -90,10 +90,7 @@ const AccountCell = ({
     const internalAccountFromAccountGroupForChainId =
       getInternalAccountByAccountGroupAndScope(caipChainId, accountGroup.id);
     networkAccountAddress = internalAccountFromAccountGroupForChainId?.address
-      ? formatAddress(
-          internalAccountFromAccountGroupForChainId.address,
-          'short',
-        )
+      ? renderShortAddress(internalAccountFromAccountGroupForChainId.address, 4)
       : undefined;
     networkImageSource = getNetworkImageSource({ chainId });
   }

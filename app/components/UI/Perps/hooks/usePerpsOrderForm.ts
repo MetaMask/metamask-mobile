@@ -1,16 +1,16 @@
+import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import type { OrderFormState } from '../types';
-import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
-import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
+import type { OrderFormState } from '../types/perps-types';
 import {
   findOptimalAmount,
   getMaxAllowedAmount as getMaxAllowedAmountUtils,
 } from '../utils/orderCalculations';
+import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { debounce } from 'lodash';
+import { usePerpsNetwork } from './usePerpsNetwork';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -63,7 +63,7 @@ export function usePerpsOrderForm(
   const { marketData } = usePerpsMarketData(initialAsset);
 
   // Get available balance from live account data
-  const availableBalance = parseFloat(
+  const availableBalance = Number.parseFloat(
     account?.availableBalance?.toString() || '0',
   );
 
@@ -85,9 +85,8 @@ export function usePerpsOrderForm(
 
     const tempMaxAmount = getMaxAllowedAmountUtils({
       availableBalance,
-      assetPrice: parseFloat(currentPrice.price),
-      assetSzDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      assetPrice: Number.parseFloat(currentPrice.price),
+      assetSzDecimals: marketData?.szDecimals ?? 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
@@ -97,9 +96,8 @@ export function usePerpsOrderForm(
         (tempMaxAmount < defaultAmount
           ? tempMaxAmount.toString()
           : defaultAmount.toString()),
-      price: parseFloat(currentPrice.price),
-      szDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      price: Number.parseFloat(currentPrice.price),
+      szDecimals: marketData?.szDecimals ?? 6,
       maxAllowedAmount: tempMaxAmount,
       minAllowedAmount: defaultAmount,
     });
@@ -114,7 +112,7 @@ export function usePerpsOrderForm(
 
   // Calculate initial balance percentage
   const initialMarginRequired =
-    parseFloat(initialAmountValue) / defaultLeverage;
+    Number.parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
     availableBalance > 0
       ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
@@ -138,9 +136,8 @@ export function usePerpsOrderForm(
     () =>
       getMaxAllowedAmountUtils({
         availableBalance,
-        assetPrice: parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals:
-          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+        assetPrice: Number.parseFloat(currentPrice?.price) || 0,
+        assetSzDecimals: marketData?.szDecimals ?? 6,
         leverage: orderForm.leverage, // Use current leverage instead of default
       }),
     [
@@ -155,7 +152,7 @@ export function usePerpsOrderForm(
   const optimizeOrderAmount = useMemo(() => {
     const optimizeFunction = (price: number, szDecimals?: number) => {
       setOrderForm((prev) => {
-        if (!prev.amount || parseFloat(prev.amount) === 0) {
+        if (!prev.amount || Number.parseFloat(prev.amount) === 0) {
           return prev;
         }
 
@@ -167,7 +164,7 @@ export function usePerpsOrderForm(
           minAllowedAmount: defaultAmount,
         });
 
-        const optimizedAmountNum = parseFloat(optimizedAmount);
+        const optimizedAmountNum = Number.parseFloat(optimizedAmount);
 
         // Only update if the optimized amount is different
         if (

@@ -25,6 +25,7 @@ import { toChecksumAddress } from '../../../../../util/address';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { EthScope } from '@metamask/keyring-api';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
+import { getTokenIconUrl } from '../../utils';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -219,7 +220,11 @@ export const useTokensWithBalance: ({
           decimals: token.decimals,
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
           chainId: token.chainId as Hex | CaipChainId,
-          image: token.image,
+          image:
+            getTokenIconUrl(
+              token.address,
+              token.chainId as Hex | CaipChainId,
+            ) || token.image,
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,

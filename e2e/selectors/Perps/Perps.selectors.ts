@@ -126,6 +126,8 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
   tokenLogo: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
+  badge: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
 };
 
 // ========================================
@@ -199,15 +201,15 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 };
 
 // ========================================
-// PERPS TPSL BOTTOM SHEET SELECTORS
+// PERPS TPSL VIEW SELECTORS
 // ========================================
 
-export const PerpsTPSLBottomSheetSelectorsIDs = {
+export const PerpsTPSLViewSelectorsIDs = {
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
   SET_BUTTON: 'bottomsheetfooter-button',
 } as const;
 
-export const getPerpsTPSLBottomSheetSelector = {
+export const getPerpsTPSLViewSelector = {
   takeProfitPercentageButton: (percentage: number) =>
     `perps-tpsl-take-profit-percentage-button-${percentage}`,
   stopLossPercentageButton: (percentage: number) =>
@@ -473,6 +475,9 @@ export const PerpsMarketTabsSelectorsIDs = {
 
   // Statistics-only view
   STATISTICS_ONLY_TITLE: 'perps-market-tabs-statistics-only-title',
+
+  // Activity link
+  ACTIVITY_LINK: 'perps-market-tabs-activity-link',
 
   // Loading states
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',

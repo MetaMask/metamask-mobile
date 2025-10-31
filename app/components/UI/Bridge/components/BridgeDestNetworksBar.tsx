@@ -47,10 +47,13 @@ const createStyles = (params: { theme: Theme }) => {
   return StyleSheet.create({
     networksButton: {
       borderColor: theme.colors.border.muted,
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 10,
     },
     selectedNetworkIcon: {
-      borderColor: theme.colors.primary.muted,
-      backgroundColor: theme.colors.primary.muted,
+      borderColor: theme.colors.border.muted,
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 10,
     },
     scrollView: {
       flexGrow: 0,
@@ -58,7 +61,7 @@ const createStyles = (params: { theme: Theme }) => {
     contentContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: 10,
       paddingHorizontal: 4,
     },
   });
@@ -83,6 +86,7 @@ const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [POLYGON_CHAIN_ID]: 8,
   [ZKSYNC_ERA_CHAIN_ID]: 10,
   [NETWORKS_CHAIN_ID.SEI]: 11,
+  [NETWORKS_CHAIN_ID.MONAD]: 12,
 };
 
 const ShortChainNames: Record<Hex | CaipChainId, string> = {
@@ -137,7 +141,7 @@ export const BridgeDestNetworksBar = () => {
               <Box
                 flexDirection={FlexDirection.Row}
                 alignItems={AlignItems.center}
-                gap={4}
+                gap={8}
               >
                 {selectedDestChainId === chain.chainId ? (
                   <AvatarNetwork

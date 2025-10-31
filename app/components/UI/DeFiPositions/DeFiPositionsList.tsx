@@ -132,16 +132,6 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     }
   }
 
-  if (formattedDeFiPositions.length === 0) {
-    // No positions found for the current account
-    return (
-      <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
-        <DeFiPositionsControlBar />
-        <DefiEmptyState twClassName="mx-auto mt-4" />
-      </View>
-    );
-  }
-
   return (
     <View
       style={styles.wrapper}
@@ -163,6 +153,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
           `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
         }
         scrollEnabled
+        ListEmptyComponent={<DefiEmptyState twClassName="mx-auto mt-4" />}
       />
     </View>
   );

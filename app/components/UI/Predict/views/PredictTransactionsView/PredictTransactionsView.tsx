@@ -1,81 +1,111 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import PredictActivity, {
-  PredictActivityType,
-  type PredictActivityItem,
-} from '../../components/PredictActivity/PredictActivity';
+import PredictActivity from '../../components/PredictActivity/PredictActivity';
+import { PredictActivityType, type PredictActivityItem } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
 import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import { PredictEventValues } from '../../constants/eventNames';
 
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
+  isVisible?: boolean;
 }
 
-const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = () => {
+const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
+  isVisible,
+}) => {
   const tw = useTailwind();
   const { activity, isLoading } = usePredictActivity({});
 
-  const items: PredictActivityItem[] = useMemo(() => activity.map((entry) => {
-      const e = entry.entry;
+  // Track activity list viewed when tab becomes visible
+  useEffect(() => {
+    if (isVisible && !isLoading) {
+      Engine.context.PredictController.trackActivityViewed({
+        activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+      });
+    }
+  }, [isVisible, isLoading]);
 
-      switch (e.type) {
-        case 'buy': {
-          const amountUsd = e.amount;
-          const priceCents = formatCents(e.price ?? 0);
-          const outcome = entry.outcome;
+  const items: PredictActivityItem[] = useMemo(
+    () =>
+      activity.map((activityEntry) => {
+        const e = activityEntry.entry;
 
-          return {
-            id: entry.id,
-            type: PredictActivityType.BUY,
-            marketTitle: entry.title,
-            detail: strings('predict.transactions.buy_detail', {
+        switch (e.type) {
+          case 'buy': {
+            const amountUsd = e.amount;
+            const priceCents = formatCents(e.price ?? 0);
+            const outcome = activityEntry.outcome;
+
+            return {
+              id: activityEntry.id,
+              type: PredictActivityType.BUY,
+              marketTitle: activityEntry.title ?? '',
+              detail: strings('predict.transactions.buy_detail', {
+                amountUsd,
+                outcome,
+                priceCents,
+              }),
               amountUsd,
+              icon: activityEntry.icon,
               outcome,
-              priceCents,
-            }),
-            amountUsd,
-            icon: entry.icon,
-          } as PredictActivityItem;
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
+          }
+          case 'sell': {
+            const amountUsd = e.amount;
+            const priceCents = formatCents(e.price ?? 0);
+            return {
+              id: activityEntry.id,
+              type: PredictActivityType.SELL,
+              marketTitle: activityEntry.title ?? '',
+              detail: strings('predict.transactions.sell_detail', {
+                priceCents,
+              }),
+              amountUsd,
+              icon: activityEntry.icon,
+              outcome: activityEntry.outcome,
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
+          }
+          case 'claimWinnings': {
+            const amountUsd = e.amount;
+            return {
+              id: activityEntry.id,
+              type: PredictActivityType.CLAIM,
+              marketTitle: activityEntry.title ?? '',
+              detail: strings('predict.transactions.claim_detail'),
+              amountUsd,
+              icon: activityEntry.icon,
+              outcome: activityEntry.outcome,
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
+          }
+          default: {
+            return {
+              id: activityEntry.id,
+              type: PredictActivityType.CLAIM,
+              marketTitle: activityEntry.title ?? '',
+              detail: strings('predict.transactions.claim_detail'),
+              amountUsd: 0,
+              icon: activityEntry.icon,
+              outcome: activityEntry.outcome,
+              providerId: activityEntry.providerId,
+              entry: e,
+            };
+          }
         }
-        case 'sell': {
-          const amountUsd = e.amount;
-          const priceCents = formatCents(e.price ?? 0);
-          return {
-            id: entry.id,
-            type: PredictActivityType.SELL,
-            marketTitle: entry.title,
-            detail: strings('predict.transactions.sell_detail', { priceCents }),
-            amountUsd,
-            icon: entry.icon,
-          } as PredictActivityItem;
-        }
-        case 'claimWinnings': {
-          const amountUsd = e.amount;
-          return {
-            id: entry.id,
-            type: PredictActivityType.CLAIM,
-            marketTitle: entry.title,
-            detail: strings('predict.transactions.claim_detail'),
-            amountUsd,
-            icon: entry.icon,
-          } as PredictActivityItem;
-        }
-        default: {
-          return {
-            id: entry.id,
-            type: PredictActivityType.CLAIM,
-            marketTitle: entry.title,
-            detail: strings('predict.transactions.claim_detail'),
-            amountUsd: 0,
-            icon: entry.icon,
-          } as PredictActivityItem;
-        }
-      }
-    }), [activity]);
+      }),
+    [activity],
+  );
 
   return (
     <Box twClassName="flex-1">

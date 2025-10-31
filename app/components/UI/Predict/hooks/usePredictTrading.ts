@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import {
-  CalculateBetAmountsParams,
-  CalculateCashOutAmountsParams,
   GetBalanceParams,
   GetPositionsParams,
+  OrderPreview,
   PlaceOrderParams,
+  PrepareWithdrawParams,
+  PrepareDepositParams,
+  PreviewOrderParams,
 } from '../providers/types';
 import { ClaimParams } from '../types';
 
@@ -17,7 +19,7 @@ export function usePredictTrading() {
 
   const claim = useCallback(async (claimParams: ClaimParams) => {
     const controller = Engine.context.PredictController;
-    return controller.claim(claimParams);
+    return controller.claimWithConfirmation(claimParams);
   }, []);
 
   const placeOrder = useCallback(async (params: PlaceOrderParams) => {
@@ -25,18 +27,10 @@ export function usePredictTrading() {
     return controller.placeOrder(params);
   }, []);
 
-  const calculateBetAmounts = useCallback(
-    async (params: CalculateBetAmountsParams) => {
+  const previewOrder = useCallback(
+    async (params: PreviewOrderParams): Promise<OrderPreview> => {
       const controller = Engine.context.PredictController;
-      return controller.calculateBetAmounts(params);
-    },
-    [],
-  );
-
-  const calculateCashOutAmounts = useCallback(
-    async (params: CalculateCashOutAmountsParams) => {
-      const controller = Engine.context.PredictController;
-      return controller.calculateCashOutAmounts(params);
+      return controller.previewOrder(params);
     },
     [],
   );
@@ -46,12 +40,23 @@ export function usePredictTrading() {
     return controller.getBalance(params);
   }, []);
 
+  const prepareWithdraw = useCallback(async (params: PrepareWithdrawParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.prepareWithdraw(params);
+  }, []);
+
+  const deposit = useCallback(async (params: PrepareDepositParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.depositWithConfirmation(params);
+  }, []);
+
   return {
     getPositions,
     placeOrder,
     claim,
-    calculateBetAmounts,
-    calculateCashOutAmounts,
     getBalance,
+    previewOrder,
+    prepareWithdraw,
+    deposit,
   };
 }

@@ -1,6 +1,8 @@
 import { ControllerInitFunction, EngineState } from '../types';
-import { AccountTrackerController } from '@metamask/assets-controllers';
-import { AccountTrackerControllerMessenger } from '../messengers/account-tracker-controller-messenger';
+import {
+  AccountTrackerController,
+  AccountTrackerControllerMessenger,
+} from '@metamask/assets-controllers';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 

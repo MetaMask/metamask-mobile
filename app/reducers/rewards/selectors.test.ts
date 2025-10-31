@@ -18,10 +18,13 @@ import {
   selectSeasonEndDate,
   selectSeasonTiers,
   selectOnboardingActiveStep,
+  selectOnboardingReferralCode,
   selectGeoLocation,
   selectOptinAllowedForGeo,
   selectOptinAllowedForGeoLoading,
+  selectOptinAllowedForGeoError,
   selectReferralDetailsLoading,
+  selectReferralDetailsError,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
@@ -56,7 +59,7 @@ describe('Rewards selectors', () => {
   // Helper function to create mock root state
   const createMockRootState = (
     rewardsState: Partial<RewardsState>,
-  ): RootState => ({ rewards: rewardsState } as RootState);
+  ): RootState => ({ rewards: rewardsState }) as RootState;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -580,6 +583,58 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectOnboardingReferralCode', () => {
+    it('returns null when onboarding referral code is not set', () => {
+      const mockState = { rewards: { onboardingReferralCode: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBeNull();
+    });
+
+    it('returns onboarding referral code when set', () => {
+      const mockState = { rewards: { onboardingReferralCode: 'ONBOARD123' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBe('ONBOARD123');
+    });
+
+    it('returns empty string when onboarding referral code is empty', () => {
+      const mockState = { rewards: { onboardingReferralCode: '' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBe('');
+    });
+
+    it('handles state changes correctly', () => {
+      const mockState = { rewards: { onboardingReferralCode: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectOnboardingReferralCode),
+      );
+      expect(result.current).toBeNull();
+
+      // Simulate state change: update onboardingReferralCode to a string
+      const updatedState = {
+        rewards: { onboardingReferralCode: 'UPDATED456' },
+      };
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(updatedState),
+      );
+      rerender();
+      expect(result.current).toBe('UPDATED456');
+    });
+  });
+
   describe('selectGeoLocation', () => {
     it('returns null when geo location is not set', () => {
       const mockState = { rewards: { geoLocation: null } };
@@ -642,6 +697,48 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectOptinAllowedForGeoError', () => {
+    it('returns false when there is no geo error', () => {
+      const mockState = { rewards: { optinAllowedForGeoError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOptinAllowedForGeoError),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a geo error', () => {
+      const mockState = { rewards: { optinAllowedForGeoError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectOptinAllowedForGeoError),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { optinAllowedForGeoError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectOptinAllowedForGeoError),
+      );
+      expect(result.current).toBe(false);
+
+      mockState = { rewards: { optinAllowedForGeoError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      mockState = { rewards: { optinAllowedForGeoError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+  });
+
   describe('selectReferralDetailsLoading', () => {
     it('returns false when referral details are not loading', () => {
       const mockState = { rewards: { referralDetailsLoading: false } };
@@ -661,6 +758,48 @@ describe('Rewards selectors', () => {
         useSelector(selectReferralDetailsLoading),
       );
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectReferralDetailsError', () => {
+    it('returns false when there is no referral details error', () => {
+      const mockState = { rewards: { referralDetailsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectReferralDetailsError),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a referral details error', () => {
+      const mockState = { rewards: { referralDetailsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectReferralDetailsError),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { referralDetailsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectReferralDetailsError),
+      );
+      expect(result.current).toBe(false);
+
+      mockState = { rewards: { referralDetailsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      mockState = { rewards: { referralDetailsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
     });
   });
 

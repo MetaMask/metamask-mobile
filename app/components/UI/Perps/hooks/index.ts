@@ -6,6 +6,10 @@ export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 export { usePerpsWithdrawStatus } from './usePerpsWithdrawStatus';
+export { usePerpsWithdrawProgress } from './usePerpsWithdrawProgress';
+
+// View-level composite hooks (combining multiple hooks for specific views)
+export { usePerpsNavigation } from './usePerpsNavigation';
 
 // Connection management hooks
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
@@ -54,6 +58,9 @@ export { default as usePerpsToasts } from './usePerpsToasts';
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
+export { useWithdrawalRequests } from './useWithdrawalRequests';
+export { useDepositRequests } from './useDepositRequests';
+export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';

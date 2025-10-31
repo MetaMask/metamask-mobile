@@ -18,71 +18,71 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   });
 
   describe('environment-specific URL mapping', () => {
-    it('should return DEV URL for e2e environment', () => {
+    it('returns DEV URL for e2e environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('e2e');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
     });
 
-    it('should return DEV URL for exp environment', () => {
+    it('returns UAT URL for exp environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('exp');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.UAT);
     });
 
-    it('should return DEV URL for rc environment', () => {
+    it('returns PRD URL for rc environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('rc');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return DEV URL for pre-release environment', () => {
+    it('returns UAT URL for pre-release environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('pre-release');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.UAT);
     });
 
-    it('should return PRD URL for production environment', () => {
+    it('returns PRD URL for production environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('production');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return PRD URL for beta environment', () => {
+    it('returns UAT URL for beta environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('beta');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.UAT);
     });
 
-    it('should return DEV URL for dev environment', () => {
+    it('returns DEV URL for dev environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('dev');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
     });
 
-    it('should return DEV URL for local environment', () => {
+    it('returns DEV URL for local environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('local');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
     });
   });
 
   describe('default and edge cases', () => {
-    it('should return PRD URL for undefined environment', () => {
+    it('returns PRD URL for undefined environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv(undefined);
       expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return PRD URL for unknown environment', () => {
+    it('returns PRD URL for unknown environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('unknown-env');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return PRD URL for empty string environment', () => {
+    it('returns PRD URL for empty string environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return PRD URL for null environment', () => {
+    it('returns PRD URL for null environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv(
         null as unknown as string,
       );
       expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return PRD URL for numeric environment', () => {
+    it('returns PRD URL for numeric environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv(
         123 as unknown as string,
       );
@@ -91,13 +91,13 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   });
 
   describe('case sensitivity', () => {
-    it('should handle exact case matching for environments', () => {
+    it('returns default PRD URL for uppercase PRODUCTION environment', () => {
       // Test exact case matching (the function should be case-sensitive)
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('PRODUCTION');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD); // Should fall to default
     });
 
-    it('should handle mixed case environments as unknown', () => {
+    it('returns default PRD URL for mixed case Beta environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('Beta');
       expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD); // Should fall to default
     });
@@ -106,17 +106,17 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   describe('comprehensive environment mapping', () => {
     const environmentMappings = [
       { env: 'e2e', expectedUrl: 'DEV' },
-      { env: 'exp', expectedUrl: 'DEV' },
-      { env: 'rc', expectedUrl: 'DEV' },
-      { env: 'pre-release', expectedUrl: 'DEV' },
+      { env: 'exp', expectedUrl: 'UAT' },
+      { env: 'rc', expectedUrl: 'PRD' },
+      { env: 'pre-release', expectedUrl: 'UAT' },
       { env: 'production', expectedUrl: 'PRD' },
-      { env: 'beta', expectedUrl: 'PRD' },
+      { env: 'beta', expectedUrl: 'UAT' },
       { env: 'dev', expectedUrl: 'DEV' },
       { env: 'local', expectedUrl: 'DEV' },
     ];
 
     it.each(environmentMappings)(
-      'should return $expectedUrl URL for $env environment',
+      'returns $expectedUrl URL for $env environment',
       ({ env, expectedUrl }) => {
         const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv(env);
         expect(result).toBe(
@@ -129,7 +129,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   });
 
   describe('function behavior validation', () => {
-    it('should be a pure function - same input produces same output', () => {
+    it('produces same output for same input (pure function)', () => {
       const env = 'production';
       const result1 = getDefaultBaanxApiBaseUrlForMetaMaskEnv(env);
       const result2 = getDefaultBaanxApiBaseUrlForMetaMaskEnv(env);
@@ -138,7 +138,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       expect(result1).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should not modify the input parameter', () => {
+    it('does not modify the input parameter', () => {
       const originalEnv = 'production';
       const envCopy = originalEnv;
 
@@ -147,7 +147,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       expect(envCopy).toBe(originalEnv);
     });
 
-    it('should return a string value for all inputs', () => {
+    it('returns a non-empty string for all inputs', () => {
       const testCases: (string | undefined | null)[] = [
         'production',
         'dev',
@@ -168,7 +168,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   });
 
   describe('integration with AppConstants', () => {
-    it('should access the correct AppConstants properties', () => {
+    it('accesses the correct AppConstants properties', () => {
       getDefaultBaanxApiBaseUrlForMetaMaskEnv('dev');
 
       // Verify that the function accesses the BAANX_API_URL object
@@ -178,7 +178,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       );
     });
 
-    it('should handle AppConstants structure correctly', () => {
+    it('uses AppConstants structure with all required properties', () => {
       // Verify the expected structure exists
       expect(mockAppConstants.BAANX_API_URL).toHaveProperty('DEV');
       expect(mockAppConstants.BAANX_API_URL).toHaveProperty('UAT');

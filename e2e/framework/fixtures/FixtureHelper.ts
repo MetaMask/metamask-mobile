@@ -11,8 +11,9 @@ import {
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
+  getCommandQueueServerPort,
 } from './FixtureUtils';
-import Utilities from '../../utils/Utilities';
+import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
 import {
   startMockServer,
@@ -41,10 +42,34 @@ import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
 import { type Mockttp } from 'mockttp';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import CommandQueueServer from './CommandQueueServer';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
+
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
+const COMMAND_QUEUE_SERVER_URL = `http://localhost:${getCommandQueueServerPort()}/queue.json`;
+
+// checks if server has already been started
+const isFixtureServerStarted = async () => {
+  try {
+    const response = await axios.get(FIXTURE_SERVER_URL);
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+};
+
+// checks if command queue server has already been started
+const isCommandQueueServerStarted = async () => {
+  try {
+    const response = await axios.get(COMMAND_QUEUE_SERVER_URL);
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+};
 
 /**
  * Handles the dapps by starting the servers and listening to the ports.
@@ -310,6 +335,27 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
+// Start the command queue server
+export const startCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
+) => {
+  if (await isCommandQueueServerStarted()) {
+    logger.debug('The command queue server has already been started');
+    return;
+  }
+
+  await commandQueueServer.start();
+  logger.debug('The command queue server is started');
+};
+
+// Stop the command queue server
+export const stopCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
+) => {
+  await commandQueueServer.stop();
+  logger.debug('The command queue server is stopped');
+};
+
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
@@ -380,14 +426,14 @@ export async function withFixtures(
     permissions = {},
     endTestfn,
     skipReactNativeReload = false,
+    useCommandQueueServer = false,
   } = options;
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  const { mockServer, mockServerPort } = await createMockAPIServer(
-    testSpecificMock,
-  );
+  const { mockServer, mockServerPort } =
+    await createMockAPIServer(testSpecificMock);
 
   // Handle local nodes
   let localNodes;
@@ -398,6 +444,7 @@ export async function withFixtures(
 
   const dappServer: http.Server[] = [];
   const fixtureServer = new FixtureServer();
+  const commandQueueServer = new CommandQueueServer();
 
   let testError: Error | null = null;
 
@@ -431,8 +478,13 @@ export async function withFixtures(
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
+
+    if (useCommandQueueServer) {
+      await startCommandQueueServer(commandQueueServer);
+    }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
+
     if (restartDevice) {
       await TestHelpers.launchApp({
         delete: true,
@@ -447,7 +499,12 @@ export async function withFixtures(
       });
     }
 
-    await testSuite({ contractRegistry, mockServer, localNodes });
+    await testSuite({
+      contractRegistry,
+      mockServer,
+      localNodes,
+      commandQueueServer,
+    });
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
@@ -498,6 +555,18 @@ export async function withFixtures(
     } catch (cleanupError) {
       logger.error('Error during fixture server cleanup:', cleanupError);
       cleanupErrors.push(cleanupError as Error);
+    }
+
+    if (useCommandQueueServer) {
+      try {
+        await stopCommandQueueServer(commandQueueServer);
+      } catch (cleanupError) {
+        logger.error(
+          'Error during command queue server cleanup:',
+          cleanupError,
+        );
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (!skipReactNativeReload) {

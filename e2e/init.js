@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import Utilities from './utils/Utilities';
+import Utilities from './framework/Utilities';
 
 const originalIt = global.it;
 

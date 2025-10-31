@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
-import { withCardSDK } from '../sdk';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
@@ -18,6 +17,14 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
+import OnboardingNavigator from './OnboardingNavigator';
+import {
+  selectIsAuthenticatedCard,
+  selectIsCardholder,
+} from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
+import { withCardSDK } from '../sdk';
 
 const Stack = createStackNavigator();
 
@@ -76,23 +83,80 @@ export const cardAuthenticationNavigationOptions = ({
   headerRight: () => <View />,
 });
 
-const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
-    <Stack.Screen
-      name={Routes.CARD.HOME}
-      component={CardHome}
-      options={cardDefaultNavigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.CARD.WELCOME}
-      component={CardWelcome}
-      options={cardDefaultNavigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.CARD.AUTHENTICATION}
-      component={CardAuthentication}
-      options={cardAuthenticationNavigationOptions}
-    />
-  </Stack.Navigator>
-);
+export const cardSpendingLimitNavigationOptions = ({
+  navigation,
+  route,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+  route: { params?: { flow?: 'manage' | 'enable' } };
+}): StackNavigationOptions => {
+  const flow = route.params?.flow || 'manage';
+  const titleKey =
+    flow === 'enable'
+      ? 'card.card_spending_limit.title_enable_token'
+      : 'card.card_spending_limit.title_change_token';
+
+  return {
+    headerLeft: () => (
+      <ButtonIcon
+        style={headerStyle.icon}
+        size={ButtonIconSizes.Md}
+        iconName={IconName.ArrowLeft}
+        onPress={() => navigation.goBack()}
+      />
+    ),
+    headerTitle: () => (
+      <Text
+        variant={TextVariant.HeadingSM}
+        style={headerStyle.title}
+        testID={'spending-limit-title'}
+      >
+        {strings(titleKey)}
+      </Text>
+    ),
+    headerRight: () => <View />,
+  };
+};
+
+const CardRoutes = () => {
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isCardholder = useSelector(selectIsCardholder);
+
+  const initialRouteName = useMemo(
+    () =>
+      isAuthenticated || isCardholder ? Routes.CARD.HOME : Routes.CARD.WELCOME,
+    [isAuthenticated, isCardholder],
+  );
+
+  return (
+    <Stack.Navigator initialRouteName={initialRouteName} headerMode="screen">
+      <Stack.Screen
+        name={Routes.CARD.HOME}
+        component={CardHome}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.WELCOME}
+        component={CardWelcome}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.AUTHENTICATION}
+        component={CardAuthentication}
+        options={cardAuthenticationNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.SPENDING_LIMIT}
+        component={SpendingLimit}
+        options={cardSpendingLimitNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.ROOT}
+        component={OnboardingNavigator}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
+
 export default withCardSDK(CardRoutes);
