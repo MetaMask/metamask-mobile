@@ -1525,6 +1525,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -3106,6 +3107,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -4687,6 +4689,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -6268,6 +6271,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -7909,6 +7913,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -9535,6 +9540,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -10995,6 +11001,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
