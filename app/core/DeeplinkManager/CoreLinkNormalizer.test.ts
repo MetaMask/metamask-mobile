@@ -188,7 +188,7 @@ describe('CoreLinkNormalizer', () => {
 
       const result = CoreLinkNormalizer.normalize(url, source);
 
-      expect(result.params.message).toBe('Hello%20World');
+      expect(result.params.message).toBe('Hello+World');
     });
 
     it('filters out null and empty parameters', () => {
