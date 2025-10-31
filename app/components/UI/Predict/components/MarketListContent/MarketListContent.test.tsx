@@ -53,7 +53,8 @@ const mockPredictMarket: PredictMarket = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [
     {
       id: 'outcome-1',
@@ -87,7 +88,8 @@ const mockPredictMarketMultiple: PredictMarket = {
   image: 'https://example.com/crypto.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [
     {
       id: 'outcome-3',

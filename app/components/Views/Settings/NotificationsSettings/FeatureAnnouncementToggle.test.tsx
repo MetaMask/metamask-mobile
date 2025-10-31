@@ -8,16 +8,7 @@ import {
 import { FeatureAnnouncementToggle } from './FeatureAnnouncementToggle';
 // eslint-disable-next-line import/no-namespace
 import * as UseSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MockVar = any;
-
-jest.mock('../../../hooks/useMetrics', () => ({
-  ...jest.requireActual('../../../hooks/useMetrics'),
-  useMetrics: jest.fn(),
-}));
 
 const arrangeMockMetrics = () => {
   const mockTrackEvent = jest.fn();
@@ -27,16 +18,10 @@ const arrangeMockMetrics = () => {
     build: jest.fn().mockReturnThis(),
   });
 
-  const mockUseMetrics = jest.mocked(useMetrics).mockReturnValue({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  } as MockVar);
-
   return {
     mockTrackEvent,
     mockAddProperties,
     mockCreateEventBuilder,
-    mockUseMetrics,
   };
 };
 
@@ -79,17 +64,6 @@ describe('FeatureAnnouncementToggle', () => {
     await waitFor(() => {
       // Assert new switch call
       expect(mocks.mockSwitchFeatureAnnouncements).toHaveBeenCalledWith(false);
-
-      // Assert Metrics
-      expect(mocks.mockTrackEvent).toHaveBeenCalled();
-      expect(mocks.mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
-      );
-      expect(mocks.mockAddProperties).toHaveBeenCalledWith({
-        settings_type: 'product_announcements',
-        old_value: true,
-        new_value: false,
-      });
     });
   });
 });

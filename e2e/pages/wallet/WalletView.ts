@@ -452,6 +452,10 @@ class WalletView {
     return Matchers.getElementByID(PredictTabViewSelectorsIDs.SCROLL_VIEW);
   }
 
+  get availableBalanceLabel(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
+  }
+
   async tapOnDeFiTab(): Promise<void> {
     await Gestures.waitAndTap(this.defiTab, {
       elemDescription: 'DeFi Tab',
@@ -483,6 +487,13 @@ class WalletView {
       elemDescription: `tapping Predictions Position: ${positionName}`,
     });
   }
+
+  async tapOnAvailableBalance(): Promise<void> {
+    await Gestures.waitAndTap(this.availableBalanceLabel, {
+      elemDescription: 'tap available balance to expand balance card',
+    });
+  }
+
   async tapClaimButton(): Promise<void> {
     const elem = Matchers.getElementByID(
       PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,

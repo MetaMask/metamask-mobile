@@ -1,7 +1,11 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsTransactionsView from './PerpsTransactionsView';
-import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import {
+  usePerpsConnection,
+  usePerpsTransactionHistory,
+  usePerpsEventTracking,
+} from '../../hooks';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import renderWithProvider, {
@@ -25,6 +29,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTransactionHistory: jest.fn(),
+  usePerpsEventTracking: jest.fn(),
 }));
 
 // Mock the asset metadata hook to avoid network calls
@@ -109,6 +114,8 @@ describe('PerpsTransactionsView', () => {
     usePerpsTransactionHistory as jest.MockedFunction<
       typeof usePerpsTransactionHistory
     >;
+  const mockUsePerpsEventTracking =
+    usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -130,6 +137,10 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
+    });
+
+    mockUsePerpsEventTracking.mockReturnValue({
+      track: jest.fn(),
     });
   });
 

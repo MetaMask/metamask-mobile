@@ -430,7 +430,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const makerAddress =
         this.#accountStateByAddress.get(signer.address)?.address ??
-        (await this.getAccountState({ ownerAddress: signer.address })).address;
+        computeProxyAddress(signer.address);
 
       if (!makerAddress) {
         throw new Error('Maker address not found');
