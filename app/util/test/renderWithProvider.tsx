@@ -16,6 +16,7 @@ import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
+import { FeatureFlagOverrideProvider } from '../../contexts/FeatureFlagOverrideContext';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
@@ -46,7 +47,9 @@ export default function renderWithProvider(
 
   const InnerProvider = ({ children }: { children: React.ReactElement }) => (
     <Provider store={store}>
-      <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
+      <ThemeContext.Provider value={theme}>
+        <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
+      </ThemeContext.Provider>
     </Provider>
   );
 
@@ -98,7 +101,9 @@ export function renderHookWithProvider<Result, Props>(
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
   const Providers = ({ children }: { children: React.ReactElement }) => (
-    <Provider store={store}>{children}</Provider>
+    <Provider store={store}>
+      <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
+    </Provider>
   );
 
   return {
