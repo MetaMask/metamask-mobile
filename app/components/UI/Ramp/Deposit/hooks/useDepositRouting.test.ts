@@ -57,7 +57,14 @@ const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockReset = jest.fn();
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => ({
+  __esModule: true,
+  default:
+    () =>
+    (...args: unknown[]) =>
+      mockTrackEvent(...args),
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+}));
 
 const verifyPopToBuildQuoteCalled = () => {
   expect(mockDispatch).toHaveBeenCalledWith(expect.any(Function));
@@ -189,7 +196,14 @@ jest.mock('../orderProcessor', () => ({
   depositOrderToFiatOrder: jest.fn((order) => order),
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => ({
+  __esModule: true,
+  default:
+    () =>
+    (...args: unknown[]) =>
+      mockTrackEvent(...args),
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+}));
 
 jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
@@ -1123,7 +1137,14 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_USER_DETAILS_FETCHED',
+        expect.any(Object),
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_KYC_STARTED',
+        expect.any(Object),
+      );
     });
   });
 

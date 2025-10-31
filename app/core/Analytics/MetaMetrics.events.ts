@@ -282,6 +282,7 @@ enum EVENT_NAME {
   RAMPS_KYC_APPLICATION_FAILED = 'Ramps KYC Application Failed',
   RAMPS_KYC_APPLICATION_APPROVED = 'Ramps KYC Application Approved',
   RAMPS_PAYMENT_METHOD_ADDED = 'Ramps Payment Method Added',
+  RAMPS_USER_DETAILS_FETCHED = 'Ramps User Details Fetched',
 
   ACCOUNTS = 'Accounts',
   DAPP_VIEW = 'Dapp View',
@@ -956,6 +957,9 @@ const events = {
   ),
   RAMPS_PAYMENT_METHOD_ADDED: generateOpt(
     EVENT_NAME.RAMPS_PAYMENT_METHOD_ADDED,
+  ),
+  RAMPS_USER_DETAILS_FETCHED: generateOpt(
+    EVENT_NAME.RAMPS_USER_DETAILS_FETCHED,
   ),
 
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(

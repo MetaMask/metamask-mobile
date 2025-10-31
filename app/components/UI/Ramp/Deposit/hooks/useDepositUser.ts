@@ -3,9 +3,22 @@ import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 import type { AxiosError } from 'axios';
 import Logger from '../../../../../util/Logger';
+import { trackEvent } from '../../hooks/useAnalytics';
 
-export function useDepositUser() {
+export interface UseDepositUserConfig {
+  screenLocation?: string;
+  shouldTrackFetch?: boolean;
+  fetchOnMount?: boolean;
+}
+
+export function useDepositUser(config?: UseDepositUserConfig) {
+  const {
+    screenLocation = '',
+    shouldTrackFetch = false,
+    fetchOnMount = false,
+  } = config || {};
   const { isAuthenticated, logoutFromProvider } = useDepositSDK();
+  const { selectedRegion } = useDepositSDK();
 
   const [{ data: userDetails, error, isFetching }, fetchUserDetails] =
     useDepositSdkMethod({
@@ -16,6 +29,14 @@ export function useDepositUser() {
 
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
+      if (shouldTrackFetch) {
+        trackEvent('RAMPS_USER_DETAILS_FETCHED', {
+          logged_in: isAuthenticated,
+          region:
+            userDetails?.address?.countryCode || selectedRegion?.isoCode || '',
+          location: screenLocation,
+        });
+      }
       const result = await fetchUserDetails();
       return result;
     } catch (error) {
@@ -26,10 +47,24 @@ export function useDepositUser() {
         throw error;
       }
     }
-  }, [fetchUserDetails, logoutFromProvider]);
+  }, [
+    fetchUserDetails,
+    logoutFromProvider,
+    shouldTrackFetch,
+    isAuthenticated,
+    userDetails,
+    selectedRegion,
+    screenLocation,
+  ]);
 
   useEffect(() => {
-    if (isAuthenticated && !userDetails && !isFetching && !error) {
+    if (
+      fetchOnMount &&
+      isAuthenticated &&
+      !userDetails &&
+      !isFetching &&
+      !error
+    ) {
       fetchUserDetailsCallback();
     }
   }, [
@@ -38,6 +73,7 @@ export function useDepositUser() {
     fetchUserDetailsCallback,
     isFetching,
     error,
+    fetchOnMount,
   ]);
 
   return {
