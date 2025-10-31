@@ -364,6 +364,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleUseOtherMethod = () => {
+    if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
+        account_type: 'social',
+      });
+    }
     navigation.goBack();
     OAuthService.resetOauthState();
   };
