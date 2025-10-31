@@ -127,8 +127,6 @@ const EarnInputView = () => {
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
 
-
-  // TODO: Comeback and check this to add code fences
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const [resourceType, setResourceType] = useState<ResourceType>('energy');
   const isTronNative =
@@ -139,7 +137,8 @@ const EarnInputView = () => {
 
   const earnToken = React.useMemo(() => {
     if (earnTokenFromMap) return earnTokenFromMap;
-    // Fallback for TRX when not yet present in the earn map
+
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTrxStakingEnabled && isTronNative) {
       return {
         ...token,
@@ -153,9 +152,16 @@ const EarnInputView = () => {
         },
       } as EarnTokenDetails;
     }
+    ///: END:ONLY_INCLUDE_IF
+
     return undefined;
-  }, [earnTokenFromMap, isTrxStakingEnabled, isTronNative, token]);
-  // end TODO
+  }, [earnTokenFromMap,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTrxStakingEnabled,
+    isTronNative,
+    ///: END:ONLY_INCLUDE_IF
+    token]);
+
   const networkClientId = useSelector(selectNetworkClientId);
   const {
     isFiat,

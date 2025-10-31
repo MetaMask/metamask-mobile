@@ -382,7 +382,7 @@ export const TokenListItem = React.memo(
       if (!asset) {
         return null;
       }
-// TODO: Comeback and check this
+
       const isStakeable = useSelector((state: RootState) =>
         selectIsStakeableToken(state, asset as TokenI),
       );
@@ -401,7 +401,7 @@ export const TokenListItem = React.memo(
       earnToken,
       isStablecoinLendingEnabled,
     ]);
-// end TODO
+
     if (!asset || !chainId) {
       return null;
     }

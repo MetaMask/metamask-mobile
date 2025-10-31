@@ -34,9 +34,9 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
-
+///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-
+///: END:ONLY_INCLUDE_IF
 interface StakeButtonProps {
   asset: TokenI;
 }
@@ -56,11 +56,12 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-// TODO: Comeback and check this
-
+  
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTronNative =
     asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -72,6 +73,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const handleStakeRedirect = async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled) {
       trace({ name: TraceName.EarnDepositScreen });
       navigation.navigate('StakeScreens', {
@@ -96,7 +98,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       );
       return;
     }
-// end TODO
+    ///: END:ONLY_INCLUDE_IF
+
     if (!isStakingSupportedChain) {
       await Engine.context.MultichainNetworkController.setActiveNetwork(
         'mainnet',
@@ -194,13 +197,12 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
-  // TODO: Comeback and check this
-
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     // Fallback for TRX (stake flag on) when no earnToken metadata is present yet
     if (isTronNative && isTrxStakingEnabled) {
       return handleStakeRedirect();
     }
-  // end TODO
+    ///: END:ONLY_INCLUDE_IF
   };
   
   if (

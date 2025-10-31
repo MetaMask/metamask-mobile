@@ -60,26 +60,33 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
-
+///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-
+  ///: END:ONLY_INCLUDE_IF
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
   const { getPairedEarnTokens, getEarnToken } = useEarnTokens();
   const { outputToken: receiptToken } = getPairedEarnTokens(token);
-// TODO: Comeback and check this
+
   const earnTokenFromMap = getEarnToken(token);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTronAsset = token.chainId?.startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
 
   const earnToken = React.useMemo(() => {
     if (earnTokenFromMap) return earnTokenFromMap;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTrxStakingEnabled && isTronAsset) {
       return {
         ...token,
@@ -94,13 +101,19 @@ const EarnWithdrawInputView = () => {
         },
       } as EarnTokenDetails;
     }
+    ///: END:ONLY_INCLUDE_IF
     return undefined;
-  }, [earnTokenFromMap, isTrxStakingEnabled, isTronAsset, token]);
+  }, [earnTokenFromMap,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTrxStakingEnabled,
+    isTronAsset,
+    ///: END:ONLY_INCLUDE_IF
+    token]);
 
   const receiptTokenToUse: EarnTokenDetails | undefined = receiptToken
     ? (receiptToken as EarnTokenDetails)
     : (earnToken as EarnTokenDetails);
-  // end TODO
+  
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -150,7 +163,7 @@ const EarnWithdrawInputView = () => {
     handleKeypadChange,
     earnBalanceValue,
   } = useEarnWithdrawInput({
-    earnToken: receiptTokenToUse,
+    earnToken: receiptTokenToUse as EarnTokenDetails,
     conversionRate,
     exchangeRate,
   });

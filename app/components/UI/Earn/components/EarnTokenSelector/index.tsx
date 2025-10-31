@@ -46,7 +46,6 @@ const EarnTokenSelector = ({
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
 
-  // TODO: Comeback and check this
   const tokenToRender = (earnToken || outputToken || someEarnToken) as
     | EarnTokenDetails
     | TokenI
@@ -58,7 +57,7 @@ const EarnTokenSelector = ({
     Number.isFinite(aprNumber) && aprNumber > 0
       ? aprNumber.toFixed(1)
       : undefined;
-  // end TODO
+
   const handlePress = () => {
     trace({ name: TraceName.EarnTokenList });
 

@@ -145,7 +145,6 @@ export const TokenListItemBip44 = React.memo(
       if (!asset) {
         return null;
       }
-// TODO: Comeback and check this
 
       const isStakeable = useSelector((state: RootState) =>
         selectIsStakeableToken(state, asset as TokenI),
@@ -165,7 +164,7 @@ export const TokenListItemBip44 = React.memo(
       earnToken,
       isStablecoinLendingEnabled,
     ]);
-// end TODO
+
     if (!asset || !chainId) {
       return null;
     }

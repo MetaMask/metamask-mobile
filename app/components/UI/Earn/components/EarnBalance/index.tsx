@@ -19,45 +19,38 @@ export interface EarnBalanceProps {
 
 // Single entry-point for all Earn asset balances
 const EarnBalance = ({ asset }: EarnBalanceProps) => {
-  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isLendingToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, asset),
   );
   const isReceiptToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnOutputToken(state, asset),
   );
-// TODO: Comeback and check this
   const isStakeableToken = useSelector((state: RootState) =>
     selectIsStakeableToken(state, asset),
   );
+  
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
-  // TRON detection
   const isTron = asset?.chainId?.startsWith('tron:');
   const isStakedTrxAsset = isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
   const hasStakedTrxPositions = React.useMemo(
     () => hasStakedTrxPositionsUtil(tronResources),
     [tronResources],
   );
 
-  // TRON rendering rules:
-  // - If viewing sTRX (isStakedTrxAsset) OR user has any staked TRX (hasStakedTrxPositions),
-  //   show buttons with Stake more + Unstake, without CTA.
-  // - Otherwise (native TRX with no staked), show CTA + Stake button set.
-  // TRON rendering rules
   if (isTron && isTrxStakingEnabled) {
-    if (isStakedTrxAsset) {
+    if (isStakedTrxAsset && hasStakedTrxPositions) {
       // sTRX row: show Unstake + Stake more
       return (
         <TronStakingButtons asset={asset} showUnstake hasStakedPositions />
       );
     }
 
-    // TRX native row
     if (!hasStakedTrxPositions) {
-      // No sTRX yet: show CTA + single Stake button
+      // TRX native row: show CTA + single Stake button
       return (
         <>
           <TronStakingCta />
@@ -66,12 +59,9 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
       );
     }
 
-    // Already have sTRX: no buttons/CTA on TRX row
     return null;
   }
   ///: END:ONLY_INCLUDE_IF
-
-  // end TODO
   
   // EVM staking: only when stakeable and not a staked output token
   if (isStakeableToken && !asset.isStaked) {

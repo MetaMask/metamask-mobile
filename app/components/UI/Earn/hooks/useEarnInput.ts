@@ -55,7 +55,6 @@ const useEarnInputHandlers = ({
     exchangeRate,
   });
 
-  // TODO: Comeback and check this
   const {
     estimatedEarnGasFeeWei: estimatedGasFeeWei,
     isLoadingEarnGasFee,
