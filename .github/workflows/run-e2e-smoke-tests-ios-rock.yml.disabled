@@ -1,0 +1,248 @@
+name: iOS E2E Smoke Tests (Rock CLI)
+
+on:
+  workflow_dispatch:
+    inputs:
+      changed_files:
+        description: 'Changed files'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # Build job using Rock CLI
+  build-ios-app:
+    name: 'Build iOS App with Rock CLI'
+    uses: ./.github/workflows/build-ios-e2e-rock.yml
+    secrets: inherit
+
+  # Example test job using Rainbow's artifact pattern
+  confirmations-redesigned-ios-smoke:
+    name: 'Confirmations Smoke Test (Shard ${{ matrix.split }})'
+    needs: build-ios-app
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    strategy:
+      fail-fast: false
+      matrix:
+        split: [1, 2, 3]
+    concurrency:
+      group: ${{ github.workflow }}-ios-confirmations-${{ github.ref }}-shard-${{ matrix.split }}
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      SPLIT_NUMBER: ${{ matrix.split }}
+      TOTAL_SPLITS: 3
+      TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
+      PLATFORM: ios
+      GITHUB_CI: 'true'
+      
+      # Feature flags
+      RAMP_INTERNAL_BUILD: 'true'
+      BRIDGE_USE_DEV_APIS: 'true'
+      MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+      
+      # Secrets
+      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+      FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+      MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
+      SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+      SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+      SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Setup iOS environment
+      - name: Setup iOS environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        with:
+          platform: ios
+          setup-simulator: true
+
+      # Download and unpack the Rock CLI artifact (Rainbow pattern)
+      - name: Download and unpack iOS app from Rock CLI
+        run: |
+          echo "📥 Downloading artifact ID: ${{ needs.build-ios-app.outputs.artifact-id }}"
+          
+          # Download artifact using GitHub API
+          curl -L \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -o artifact.zip \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ needs.build-ios-app.outputs.artifact-id }}/zip"
+          
+          # Unpack artifact
+          unzip artifact.zip -d downloaded-artifacts
+          ls -la downloaded-artifacts
+          
+          # Find and extract the .tar.gz archive
+          APP_ARCHIVE_PATH=$(find downloaded-artifacts -name "*.tar.gz" -print -quit)
+          echo "📦 Found archive: $APP_ARCHIVE_PATH"
+          
+          tar -xzf "$APP_ARCHIVE_PATH" -C downloaded-artifacts
+          
+          # Find the .app bundle
+          APP_PATH=$(find downloaded-artifacts -name "*.app" -type d | head -n 1)
+          echo "📱 Found app: $APP_PATH"
+          
+          # Move to expected location for Detox
+          mkdir -p ios/build/Build/Products/Release-iphonesimulator/
+          cp -R "$APP_PATH" ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          
+          echo "✅ iOS app ready at: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+
+      # Boot simulator using futureware-tech action (Rainbow pattern)
+      - name: Boot iOS simulator
+        uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd
+        id: simulator
+        with:
+          model: "iPhone 16"
+
+      - name: Ensure simulator is fully booted
+        run: |
+          echo "⏳ Waiting for simulator to be fully booted..."
+          timeout=0
+          while [[ "$(xcrun simctl list | grep "${{ steps.simulator.outputs.udid }}" | grep -o 'Booted')" != "Booted" ]]; do
+            sleep 5
+            timeout=$((timeout+5))
+            echo "Still waiting... ($timeout seconds)"
+            if [ $timeout -ge 120 ]; then
+              echo "❌ Timed out waiting for simulator"
+              exit 1
+            fi
+          done
+          echo "✅ Simulator is ready (UDID: ${{ steps.simulator.outputs.udid }})"
+
+      # Install Foundry for smart contract testing
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@82dee4ba654bd2146511f85f0d013af94670c4de
+        with:
+          version: stable
+
+      # Run E2E tests with Detox
+      - name: Run E2E tests
+        timeout-minutes: 25
+        run: |
+          echo "🧪 Running Confirmations Smoke Tests"
+          echo "Split: ${{ matrix.split }} of ${{ env.TOTAL_SPLITS }}"
+          echo "Test Suite: ${{ env.TEST_SUITE_TAG }}"
+          
+          # Run the existing E2E test splitting script
+          node .github/scripts/e2e-split-tags-shards.mjs
+        env:
+          JOB_NAME: confirmations-redesigned-ios-smoke-${{ matrix.split }}
+          RUN_ID: ${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          DEVICE_UDID: ${{ steps.simulator.outputs.udid }}
+
+      # Merge test reports
+      - name: Merge Detox JUnit reports
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -d "e2e/reports" ]; then
+            echo "📊 Merging JUnit reports..."
+            npx junit-merge --dir e2e/reports --out e2e/reports/merged-junit.xml || true
+          fi
+
+      # Upload test artifacts
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-confirmations-${{ matrix.split }}
+          path: |
+            e2e/reports/
+            e2e/screenshots/
+            e2e/videos/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # Additional test suites can follow the same pattern
+  trade-ios-smoke:
+    name: 'Trade Smoke Test'
+    needs: build-ios-app
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    timeout-minutes: 30
+    env:
+      TEST_SUITE_TAG: 'SmokeTrade'
+      PLATFORM: ios
+      GITHUB_CI: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      BRIDGE_USE_DEV_APIS: 'true'
+      MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+      FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+      MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup iOS environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        with:
+          platform: ios
+          setup-simulator: true
+
+      # Same artifact download pattern
+      - name: Download and unpack iOS app from Rock CLI
+        run: |
+          curl -L \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -o artifact.zip \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ needs.build-ios-app.outputs.artifact-id }}/zip"
+          
+          unzip artifact.zip -d downloaded-artifacts
+          APP_ARCHIVE_PATH=$(find downloaded-artifacts -name "*.tar.gz" -print -quit)
+          tar -xzf "$APP_ARCHIVE_PATH" -C downloaded-artifacts
+          APP_PATH=$(find downloaded-artifacts -name "*.app" -type d | head -n 1)
+          
+          mkdir -p ios/build/Build/Products/Release-iphonesimulator/
+          cp -R "$APP_PATH" ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          
+          echo "✅ iOS app ready"
+
+      - name: Boot iOS simulator
+        uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd
+        id: simulator
+        with:
+          model: "iPhone 16"
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@82dee4ba654bd2146511f85f0d013af94670c4de
+        with:
+          version: stable
+
+      - name: Run E2E tests
+        timeout-minutes: 25
+        run: |
+          echo "🧪 Running Trade Smoke Tests"
+          node .github/scripts/e2e-split-tags-shards.mjs
+        env:
+          JOB_NAME: trade-ios-smoke-1
+          RUN_ID: ${{ github.run_id }}
+          DEVICE_UDID: ${{ steps.simulator.outputs.udid }}
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-trade
+          path: |
+            e2e/reports/
+            e2e/screenshots/
+            e2e/videos/
+          retention-days: 7
+          if-no-files-found: ignore
+
