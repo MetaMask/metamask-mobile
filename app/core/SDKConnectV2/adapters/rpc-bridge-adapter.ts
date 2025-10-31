@@ -9,6 +9,8 @@ import { ConnectionInfo } from '../types/connection-info';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
 import { whenStoreReady } from '../utils/when-store-ready';
+import { MESSAGE_TYPE } from '../../createTracingMiddleware';
+import { JsonRpcRequest } from '@metamask/utils';
 
 export class RPCBridgeAdapter
   extends EventEmitter
@@ -94,8 +96,21 @@ export class RPCBridgeAdapter
 
     while (this.queue.length > 0) {
       const request = this.queue.shift();
+
+      const multichainMethods = [
+        MESSAGE_TYPE.WALLET_CREATE_SESSION,
+        MESSAGE_TYPE.WALLET_INVOKE_METHOD,
+        MESSAGE_TYPE.WALLET_GET_SESSION,
+        MESSAGE_TYPE.WALLET_REVOKE_SESSION,
+      ];
+      const provider = !multichainMethods.includes(
+        (request as JsonRpcRequest).method,
+      )
+        ? 'metamask-provider'
+        : 'metamask-multichain-provider';
+
       this.client.onMessage({
-        name: 'metamask-multichain-provider',
+        name: provider,
         data: request,
       });
     }
