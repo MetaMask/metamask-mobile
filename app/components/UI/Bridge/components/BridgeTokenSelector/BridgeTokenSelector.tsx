@@ -115,7 +115,6 @@ export const BridgeTokenSelector: React.FC = () => {
     searchResults,
     isSearchLoading,
     isLoadingMore,
-    hasSearchedOnce,
     searchCursor,
     searchTokens,
     debouncedSearch,
@@ -151,9 +150,7 @@ export const BridgeTokenSelector: React.FC = () => {
     if (searchString.trim()) {
       const convertedSearchResults =
         convertAPITokensToBridgeTokens(searchResults);
-      return hasSearchedOnce
-        ? [...filteredTokensWithBalance, ...convertedSearchResults]
-        : filteredTokensWithBalance;
+      return [...filteredTokensWithBalance, ...convertedSearchResults];
     }
 
     // Default: show tokens with balance and popular tokens
@@ -168,7 +165,6 @@ export const BridgeTokenSelector: React.FC = () => {
     searchResults,
     tokensWithBalance,
     popularTokens,
-    hasSearchedOnce,
   ]);
 
   const handleClose = () => {
@@ -264,8 +260,7 @@ export const BridgeTokenSelector: React.FC = () => {
       searchString.trim() &&
       !isSearchLoading &&
       !isLoadingMore &&
-      searchCursor &&
-      hasSearchedOnce
+      searchCursor
     ) {
       searchTokens(searchString, searchCursor);
     }
@@ -275,7 +270,6 @@ export const BridgeTokenSelector: React.FC = () => {
     isLoadingMore,
     searchCursor,
     searchTokens,
-    hasSearchedOnce,
   ]);
 
   // Render footer for pagination loading indicator

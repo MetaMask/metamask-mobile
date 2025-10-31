@@ -22,7 +22,6 @@ interface UseSearchTokensResult {
   searchResults: PopularToken[];
   isSearchLoading: boolean;
   isLoadingMore: boolean;
-  hasSearchedOnce: boolean;
   searchCursor: string | undefined;
   searchTokens: (query: string, cursor?: string) => Promise<void>;
   debouncedSearch: ReturnType<typeof debounce>;
@@ -42,12 +41,10 @@ export const useSearchTokens = ({
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const hasSearchedOnceRef = useRef(false);
   const currentSearchQueryRef = useRef<string>('');
 
   const resetSearch = useCallback(() => {
     setSearchResults([]);
-    hasSearchedOnceRef.current = false;
     setSearchCursor(undefined);
     currentSearchQueryRef.current = '';
   }, []);
@@ -121,8 +118,6 @@ export const useSearchTokens = ({
         } else {
           setSearchResults(searchData.data);
         }
-
-        hasSearchedOnceRef.current = true;
       } catch (error) {
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
@@ -130,7 +125,6 @@ export const useSearchTokens = ({
           setSearchResults([]);
           setSearchCursor(undefined);
         }
-        hasSearchedOnceRef.current = true;
       } finally {
         if (isPagination) {
           setIsLoadingMore(false);
@@ -163,7 +157,6 @@ export const useSearchTokens = ({
     searchResults,
     isSearchLoading,
     isLoadingMore,
-    hasSearchedOnce: hasSearchedOnceRef.current,
     searchCursor,
     searchTokens,
     debouncedSearch,
