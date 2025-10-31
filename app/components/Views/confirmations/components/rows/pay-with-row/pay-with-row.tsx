@@ -1,11 +1,9 @@
-import React, { ReactNode, useCallback } from 'react';
+import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { TouchableOpacity } from 'react-native';
-import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
-import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   AlignItems,
@@ -28,36 +26,39 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { totalFiat } = useTransactionRequiredFiat({ log: true });
+  const { formatFiat } = useTransactionPayFiat();
 
   const {
     txParams: { from },
   } = useTransactionMetadataRequest() ?? { txParams: {} };
-
-  useTransactionBridgeQuotes();
 
   const canEdit = !isHardwareAccount(from ?? '');
 
   const handleClick = useCallback(() => {
     if (!canEdit) return;
 
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      minimumFiatBalance: totalFiat,
-    });
-  }, [canEdit, navigation, totalFiat]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+  }, [canEdit, navigation]);
+
+  const balanceHumanFormatted = useMemo(
+    () =>
+      formatAmount(I18n.locale, new BigNumber(payToken?.balanceHuman ?? '0')),
+    [payToken?.balanceHuman],
+  );
+
+  const balanceUsdFormatted = useMemo(
+    () => formatFiat(new BigNumber(payToken?.balanceFiat ?? '0')),
+    [formatFiat, payToken?.balanceFiat],
+  );
 
   if (!payToken) {
     return <PayWithRowSkeleton />;
   }
-
-  const tokenBalance = formatAmount(
-    I18n.locale,
-    new BigNumber(payToken.balance ?? '0'),
-  );
 
   return (
     <TouchableOpacity onPress={handleClick} disabled={!canEdit}>
@@ -85,7 +86,7 @@ export function PayWithRow() {
         }
         rightPrimary={
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {payToken.balanceFiat}
+            {balanceUsdFormatted}
           </Text>
         }
         rightAlternate={
@@ -93,7 +94,7 @@ export function PayWithRow() {
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {tokenBalance} {payToken.symbol}
+            {balanceHumanFormatted} {payToken.symbol}
           </Text>
         }
       />

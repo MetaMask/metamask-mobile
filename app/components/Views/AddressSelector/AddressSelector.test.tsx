@@ -132,6 +132,11 @@ describe('AccountSelector', () => {
 
     expect(networkNames).toEqual([
       MAINNET_DISPLAY_NAME,
+      'BSC Mainnet',
+      'Sei Mainnet',
+      'Polygon Mainnet',
+      'Optimism Mainnet',
+      'Arbitrum One',
       LINEA_MAINNET_DISPLAY_NAME,
       BASE_DISPLAY_NAME,
     ]);

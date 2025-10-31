@@ -4,6 +4,11 @@ import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
 import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
+import {
+  TransactionPayBridgeQuote,
+  TransactionPayQuote,
+  TransactionPayStrategy,
+} from '@metamask/transaction-pay-controller';
 
 const COPY_METRICS = [
   'mm_pay',
@@ -69,9 +74,8 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     )
   ) {
     const quotes =
-      getState().confirmationMetrics.transactionBridgeQuotesById[
-        parentTransaction.id
-      ] ?? [];
+      getState().engine.backgroundState.TransactionPayController
+        .transactionData[parentTransaction.id]?.quotes ?? [];
 
     const quoteTransactionIds = relatedTransactionIds.filter((id) =>
       allTransactions.some(
@@ -86,11 +90,16 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
     const quote = quotes[quoteIndex];
 
-    if (quote) {
-      properties.mm_pay_quotes_attempts = quote.metrics?.attempts;
-      properties.mm_pay_quotes_buffer_size = quote.metrics?.buffer;
-      properties.mm_pay_quotes_latency = quote.metrics?.latency;
-      properties.mm_pay_bridge_provider = quote.quote.bridgeId;
+    if (quote?.strategy === TransactionPayStrategy.Bridge) {
+      const bridgeQuote =
+        quote as TransactionPayQuote<TransactionPayBridgeQuote>;
+
+      const metrics = bridgeQuote.original.metrics;
+
+      properties.mm_pay_quotes_attempts = metrics?.attempts;
+      properties.mm_pay_quotes_buffer_size = metrics?.buffer;
+      properties.mm_pay_quotes_latency = metrics?.latency;
+      properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
     }
 
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {

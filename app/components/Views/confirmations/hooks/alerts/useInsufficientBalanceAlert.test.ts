@@ -83,7 +83,7 @@ describe('useInsufficientBalanceAlert', () => {
     } as unknown as ReturnType<typeof selectNetworkConfigurations>);
     mockUseTransactionPayToken.mockReturnValue({
       payToken: undefined,
-      setPayToken: noop,
+      setPayToken: noop as never,
     });
 
     (strings as jest.Mock).mockImplementation((key, params) => {
@@ -207,7 +207,7 @@ describe('useInsufficientBalanceAlert', () => {
 
   it('returns empty array if pay token selected', () => {
     mockUseTransactionPayToken.mockReturnValue({
-      setPayToken: noop,
+      setPayToken: noop as never,
       payToken: {} as never,
     });
 

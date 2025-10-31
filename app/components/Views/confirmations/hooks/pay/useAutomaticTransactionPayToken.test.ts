@@ -3,19 +3,21 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
+import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
-jest.mock('./useTransactionRequiredFiat');
-jest.mock('./useTransactionRequiredTokens');
 jest.mock('../../../../../util/address');
+jest.mock('../../../../../selectors/transactionPayController');
+jest.mock('./useTransactionPayData');
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -62,9 +64,8 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
   const selectEnabledSourceChainsMock = jest.mocked(selectEnabledSourceChains);
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
-
-  const useTransactionRequiredTokensMock = jest.mocked(
-    useTransactionRequiredTokens,
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
   );
 
   const setPayTokenMock: jest.MockedFn<
@@ -81,11 +82,11 @@ describe('useAutomaticTransactionPayToken', () => {
       setPayToken: setPayTokenMock,
     });
 
-    useTransactionRequiredTokensMock.mockReturnValue([
+    useTransactionPayRequiredTokensMock.mockReturnValue([
       {
-        address: TOKEN_ADDRESS_1_MOCK,
-      },
-    ] as unknown as ReturnType<typeof useTransactionRequiredTokens>);
+        address: TOKEN_ADDRESS_1_MOCK as Hex,
+      } as TransactionPayRequiredToken,
+    ]);
 
     isHardwareAccountMock.mockReturnValue(false);
   });
@@ -122,7 +123,7 @@ describe('useAutomaticTransactionPayToken', () => {
       {
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: REQUIRED_BALANCE_MOCK - 1,
+        tokenFiatAmount: 0,
       },
       {
         address: TOKEN_ADDRESS_2_MOCK,
@@ -159,12 +160,12 @@ describe('useAutomaticTransactionPayToken', () => {
       {
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: REQUIRED_BALANCE_MOCK - 1,
+        tokenFiatAmount: 0,
       },
       {
         address: TOKEN_ADDRESS_2_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: REQUIRED_BALANCE_MOCK - 2,
+        tokenFiatAmount: 0,
       },
       {
         address: TOKEN_ADDRESS_1_MOCK,
@@ -179,7 +180,7 @@ describe('useAutomaticTransactionPayToken', () => {
       {
         address: NATIVE_TOKEN_ADDRESS,
         chainId: CHAIN_ID_1_MOCK,
-        tokenFiatAmount: 1,
+        tokenFiatAmount: 0,
       },
       {
         address: NATIVE_TOKEN_ADDRESS,
@@ -242,7 +243,7 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     ] as unknown as ReturnType<typeof useTokensWithBalance>);
 
-    useTransactionRequiredTokensMock.mockReturnValue([]);
+    useTransactionPayRequiredTokensMock.mockReturnValue([]);
 
     runHook();
 
@@ -335,7 +336,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('returns number of tokens with sufficient balance', () => {
+  it('returns number of tokens with balance', () => {
     useTokensWithBalanceMock.mockReturnValue([
       {
         address: TOKEN_ADDRESS_1_MOCK,
@@ -371,7 +372,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     const { result } = runHook();
 
-    expect(result.current.count).toBe(2);
+    expect(result.current.count).toBe(6);
   });
 
   it('selected nothing if disabled', () => {

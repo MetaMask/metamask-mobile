@@ -184,7 +184,11 @@ function isFilteredByMetaMaskPay(
   tx: TransactionMeta,
   allTransactions: TransactionMeta[],
 ): boolean {
-  const { batchId, id: transactionId } = tx;
+  const { batchId, id: transactionId, isIntentComplete } = tx;
+
+  if (isIntentComplete) {
+    return false;
+  }
 
   const requiredTransactionIds = allTransactions
     ?.map((t) => t.requiredTransactionIds ?? [])
