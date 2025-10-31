@@ -16,15 +16,15 @@ import {
   NativeEventSubscription,
 } from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
-import Logger from '../../../util/Logger';
+import Logger from '../../util/Logger';
 import EventEmitter from 'eventemitter2';
 
 /**
- * AppStateAPI monitors app state and emits events.
+ * AppStateService monitors app state and emits events.
  * Uses EventEmitter pattern for clean separation of concerns.
  */
-class AppStateAPIImplementation extends EventEmitter {
-  private static instance: AppStateAPIImplementation;
+class AppStateServiceImplementation extends EventEmitter {
+  private static instance: AppStateServiceImplementation;
 
   // Current app state
   private currentAppState: AppStateStatus = AppState.currentState;
@@ -49,11 +49,12 @@ class AppStateAPIImplementation extends EventEmitter {
   /**
    * Get singleton instance
    */
-  public static getInstance(): AppStateAPIImplementation {
-    if (!AppStateAPIImplementation.instance) {
-      AppStateAPIImplementation.instance = new AppStateAPIImplementation();
+  public static getInstance(): AppStateServiceImplementation {
+    if (!AppStateServiceImplementation.instance) {
+      AppStateServiceImplementation.instance =
+        new AppStateServiceImplementation();
     }
-    return AppStateAPIImplementation.instance;
+    return AppStateServiceImplementation.instance;
   }
 
   // ==========================================================================
@@ -257,10 +258,10 @@ class AppStateAPIImplementation extends EventEmitter {
 }
 
 // Export singleton instance
-export const AppStateAPI = AppStateAPIImplementation.getInstance();
+export const AppStateService = AppStateServiceImplementation.getInstance();
 
 // Export class for testing
-export { AppStateAPIImplementation };
+export { AppStateServiceImplementation };
 
 // Export types
 export type { AppStateStatus };

@@ -1,4 +1,4 @@
-import { AppStateAPIImplementation } from './AppStateAPI';
+import { AppStateServiceImplementation } from './AppStateService';
 import { AppState } from 'react-native';
 
 // Mock dependencies
@@ -25,7 +25,7 @@ jest.mock('../../../util/Logger', () => ({
 }));
 
 describe('AppStateAPI', () => {
-  let api: AppStateAPIImplementation;
+  let api: AppStateServiceImplementation;
   let mockAddEventListener: jest.Mock;
   let mockRemove: jest.Mock;
 
@@ -33,7 +33,7 @@ describe('AppStateAPI', () => {
     jest.clearAllMocks();
 
     // Get the singleton instance
-    api = AppStateAPIImplementation.getInstance();
+    api = AppStateServiceImplementation.getInstance();
 
     // Clear any existing listeners and state
     api.removeAllListeners();
