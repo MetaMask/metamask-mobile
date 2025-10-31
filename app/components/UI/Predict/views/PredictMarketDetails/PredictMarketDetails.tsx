@@ -886,7 +886,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 </Box>
                 {isResolvedExpanded &&
                   closedOutcomes.map((outcome) => (
-                    <Box twClassName="pt-2">
+                    <Box key={outcome.id} twClassName="pt-2">
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         justifyContent={BoxJustifyContent.Between}
