@@ -10,6 +10,9 @@ const styleSheet = () =>
     balanceActionButton: {
       flex: 1,
     },
+    topMargin: {
+      marginTop: 16,
+    },
   });
 
 export default styleSheet;

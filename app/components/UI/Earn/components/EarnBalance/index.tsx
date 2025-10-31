@@ -6,9 +6,9 @@ import StakingBalance from '../../../Stake/components/StakingBalance/StakingBala
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronStakingButtons from '../Tron/TronStakingButtons';
 import TronStakingCta from '../Tron/TronStakingButtons/TronStakingCta';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { hasStakedTrxPositions as hasStakedTrxPositionsUtil } from '../../utils/tron';

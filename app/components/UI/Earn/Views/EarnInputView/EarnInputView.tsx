@@ -160,8 +160,8 @@ const EarnInputView = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTrxStakingEnabled,
     isTronNative,
-    ///: END:ONLY_INCLUDE_IF
     token,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   const networkClientId = useSelector(selectNetworkClientId);

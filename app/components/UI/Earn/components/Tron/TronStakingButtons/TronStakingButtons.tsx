@@ -1,13 +1,11 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { RootState } from '../../../../../../reducers';
 import { TokenI } from '../../../../Tokens/types';
 import styleSheet from './TronStakingButtons.styles';
 import { strings } from '../../../../../../../locales/i18n';
@@ -22,7 +20,6 @@ interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
 }
 
 const TronStakingButtons = ({
-  style,
   asset,
   showUnstake = false,
   hasStakedPositions = false,
@@ -30,9 +27,6 @@ const TronStakingButtons = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  // Optional future wiring for TRX staked state
-  const hasTrxToUnstake = useSelector((_state: RootState) => false);
 
   const isStakedTrx =
     asset?.isStaked || asset?.symbol === 'sTRX' || asset?.ticker === 'sTRX';
@@ -78,7 +72,7 @@ const TronStakingButtons = ({
   };
 
   return (
-    <View style={[styles.balanceButtonsContainer, { marginTop: 16 }]}>
+    <View style={styles.balanceButtonsContainer}>
       {showUnstake ? (
         <Button
           testID={'unstake-button'}
