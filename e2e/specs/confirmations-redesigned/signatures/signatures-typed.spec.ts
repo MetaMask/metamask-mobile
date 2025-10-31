@@ -8,12 +8,17 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import {
+  buildPermissions,
+  AnvilPort,
+} from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const SIGNATURE_LIST = [
   {
@@ -68,12 +73,28 @@ describe(SmokeConfirmationsRedesigned('Typed Signature Requests'), () => {
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(['0x539']),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
         },

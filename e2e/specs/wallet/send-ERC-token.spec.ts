@@ -16,6 +16,9 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { Mockttp } from 'mockttp';
+import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -28,12 +31,28 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
   it('should send erc token successfully', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withNetworkEnabledMap({
-            eip155: { '0x539': true },
-          })
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .build();
+        },
         restartDevice: true,
         smartContracts: [SMART_CONTRACTS.HST],
         testSpecificMock: async (mockServer: Mockttp) => {

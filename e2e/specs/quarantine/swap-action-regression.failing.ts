@@ -1,5 +1,5 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNodeType } from '../../framework/types';
+import { LocalNode, LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
@@ -11,6 +11,8 @@ import {
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
@@ -20,10 +22,26 @@ describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork('0x1')
-          .withDisabledSmartTransactions()
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withDisabledSmartTransactions()
+            .build();
+        },
         localNodeOptions: [
           {
             type: LocalNodeType.anvil,

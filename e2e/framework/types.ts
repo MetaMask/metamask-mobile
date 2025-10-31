@@ -213,7 +213,7 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
 
 /**
  * The options for the withFixtures function.
- * @param {FixtureBuilder} fixture - The state of the fixture to load.
+ * @param {FixtureBuilder | ((ctx: { localNodes?: LocalNode[] }) => FixtureBuilder | Promise<FixtureBuilder>)} fixture - The state of the fixture to load or a function that returns a fixture builder.
  * @param {boolean} [restartDevice=false] - If true, restarts the app to apply the loaded fixture.
  * @param {string[]} [smartContracts] - The smart contracts to load for test. These will be deployed on the different {localNodeOptions}
  * @param {LocalNodeOptionsInput} [localNodeOptions] - The local node options to use for the test.
@@ -226,7 +226,11 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
  * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
  */
 export interface WithFixturesOptions {
-  fixture: FixtureBuilder;
+  fixture:
+    | FixtureBuilder
+    | ((ctx: {
+        localNodes?: LocalNode[];
+      }) => FixtureBuilder | Promise<FixtureBuilder>);
   restartDevice?: boolean;
   smartContracts?: string[];
   disableLocalNodes?: boolean;
