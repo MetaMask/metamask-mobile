@@ -21,7 +21,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 40,
       }
     }
   >
@@ -208,7 +208,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 40,
       }
     }
   >
@@ -395,7 +395,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 40,
       }
     }
   >
@@ -582,7 +582,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 40,
       }
     }
   >
@@ -769,7 +769,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 40,
       }
     }
   >
@@ -956,7 +956,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 40,
       }
     }
   >
