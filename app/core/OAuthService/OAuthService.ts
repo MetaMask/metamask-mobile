@@ -8,6 +8,7 @@ import {
   AuthResponse,
   OAuthUserInfo,
   OAuthLoginResultType,
+  LoginHandlerResult,
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import {
@@ -154,14 +155,23 @@ export class OAuthService {
     this.#dispatchLogin();
 
     try {
-      let result, data, handleCodeFlowResult;
+      let result: LoginHandlerResult,
+        data: AuthResponse,
+        handleCodeFlowResult: HandleOAuthLoginResult;
       let providerLoginSuccess = false;
       try {
         trace({
           name: TraceName.OnboardingOAuthProviderLogin,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        result = await loginHandler.login();
+        const loginResult = await loginHandler.login();
+        if (!loginResult) {
+          throw new OAuthError(
+            'Login handler return empty result',
+            OAuthErrorType.LoginError,
+          );
+        }
+        result = loginResult;
         providerLoginSuccess = true;
       } catch (error) {
         const errorMessage =

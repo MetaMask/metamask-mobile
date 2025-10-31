@@ -1,12 +1,23 @@
 import { Platform } from 'react-native';
 import { AuthConnection } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
+import type {
+  RefreshJWTToken,
+  RenewRefreshToken,
+  RevokeRefreshToken,
+} from '@metamask/seedless-onboarding-controller/dist/types.d.cts';
 
 export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
 export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
 export const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
 
-class AuthTokenHandler {
+interface AuthTokenHandlerInterface {
+  refreshJWTToken: RefreshJWTToken;
+  renewRefreshToken: RenewRefreshToken;
+  revokeRefreshToken: RevokeRefreshToken;
+}
+
+class AuthTokenHandler implements AuthTokenHandlerInterface {
   async refreshJWTToken(params: {
     connection: AuthConnection;
     refreshToken: string;
