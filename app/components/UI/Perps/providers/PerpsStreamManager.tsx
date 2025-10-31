@@ -70,16 +70,21 @@ abstract class StreamChannel<T> {
       // Store pending update
       subscriber.pendingUpdate = updates;
 
-      // Only set timer if one isn't already running
-      if (!subscriber.timer) {
-        subscriber.timer = setTimeout(() => {
-          if (subscriber.pendingUpdate) {
-            subscriber.callback(subscriber.pendingUpdate);
-            subscriber.pendingUpdate = undefined;
-            subscriber.timer = undefined;
-          }
-        }, subscriber.throttleMs);
+      // CRITICAL FIX: Clear existing timer before creating new one
+      // This prevents timer accumulation and memory leaks, especially on Android devices
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
       }
+
+      // Create new timer
+      subscriber.timer = setTimeout(() => {
+        if (subscriber.pendingUpdate) {
+          subscriber.callback(subscriber.pendingUpdate);
+          subscriber.pendingUpdate = undefined;
+        }
+        subscriber.timer = undefined;
+      }, subscriber.throttleMs);
     });
   }
 
@@ -107,10 +112,12 @@ abstract class StreamChannel<T> {
     // Ensure WebSocket connected
     this.connect();
 
+    // Return unsubscribe function
     return () => {
       const sub = this.subscribers.get(id);
       if (sub?.timer) {
         clearTimeout(sub.timer);
+        sub.timer = undefined;
       }
       this.subscribers.delete(id);
 
@@ -126,6 +133,16 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
+    // CRITICAL FIX: Clear all pending timers before disconnecting
+    // This prevents orphaned timers from continuing to run after disconnect
+    this.subscribers.forEach((subscriber) => {
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
+
     if (this.wsSubscription) {
       this.wsSubscription();
       this.wsSubscription = null;
@@ -157,6 +174,17 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
+    // CRITICAL FIX: Clear all timers BEFORE disconnecting
+    // This ensures no timers are orphaned during the disconnect/reconnect cycle
+    this.subscribers.forEach((subscriber) => {
+      // Clear any pending updates and timers
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
+
     // Disconnect the old WebSocket subscription to stop receiving old account data
     if (this.wsSubscription) {
       this.disconnect();
@@ -172,12 +200,6 @@ abstract class StreamChannel<T> {
     // Notify subscribers with cleared data to trigger loading state
     // Using getClearedData() ensures type safety while maintaining loading semantics
     this.subscribers.forEach((subscriber) => {
-      // Clear any pending updates and timers
-      if (subscriber.timer) {
-        clearTimeout(subscriber.timer);
-        subscriber.timer = undefined;
-      }
-      subscriber.pendingUpdate = undefined;
       // Send cleared data to indicate "no data yet" (loading state)
       subscriber.callback(this.getClearedData());
     });
