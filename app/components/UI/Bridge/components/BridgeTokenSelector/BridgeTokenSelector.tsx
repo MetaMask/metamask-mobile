@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
@@ -26,7 +25,6 @@ import {
 } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
-import { Theme } from '../../../../../util/theme/models';
 import {
   selectBridgeFeatureFlags,
   selectSourceToken,
@@ -49,6 +47,7 @@ import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { BridgeToken } from '../../types';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
+import { createStyles } from './BridgeTokenSelector.styles';
 
 export interface BridgeTokenSelectorRouteParams {
   type: 'source' | 'dest';
@@ -72,30 +71,6 @@ interface SearchTokensResponse {
     endCursor?: string;
   };
 }
-
-const createStyles = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return StyleSheet.create({
-    tokensList: {
-      marginTop: 10,
-    },
-    tokensListContainer: {
-      flex: 1,
-    },
-    buttonContainer: {
-      paddingHorizontal: 8,
-    },
-    searchInput: {
-      marginVertical: 12,
-      borderRadius: 12,
-      borderWidth: 0,
-      backgroundColor: theme.colors.background.section,
-    },
-    tokenItem: {
-      paddingVertical: 8,
-    },
-  });
-};
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
