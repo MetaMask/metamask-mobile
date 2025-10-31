@@ -97,7 +97,7 @@ describe('hyperLiquidOrderBookProcessor', () => {
       const data: L2BookResponse = {
         coin: 'BTC',
         time: Date.now(),
-        levels: undefined as unknown as L2BookResponse['levels'],
+        levels: [[], []], // Empty bid/ask arrays
       };
 
       const params: ProcessL2BookDataParams = {

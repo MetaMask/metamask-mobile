@@ -765,6 +765,10 @@ export interface IPerpsProvider {
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
+  subscribeToOICaps(params: {
+    accountId?: CaipAccountId; // Optional: defaults to selected account
+    callback: (caps: string[]) => void;
+  }): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;
