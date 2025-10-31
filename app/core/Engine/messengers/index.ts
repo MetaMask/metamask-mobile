@@ -122,6 +122,7 @@ import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
 } from './multichain-router-messenger';
+import { getRampsControllerMessenger } from './ramps-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -395,6 +396,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  RampsController: {
+    getMessenger: getRampsControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

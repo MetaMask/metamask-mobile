@@ -144,7 +144,13 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
             ? [...queryParams, abortController]
             : queryParams;
           // @ts-expect-error spreading params error
-          const response = (await sdk[method](...methodParams)) as Awaited<
+          const response = (await (Engine.controllerMessenger as unknown as {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            call: (action: string, ...args: any[]) => Promise<unknown>;
+          }).call(
+            `RampsController:deposit${String(method).charAt(0).toUpperCase() + String(method).slice(1)}`,
+            ...methodParams,
+          )) as Awaited<
             ReturnType<NativeRampsSdk[T]>
           >;
           setData(response);
