@@ -8,7 +8,7 @@
       "increment": "Increment Redux Counter"
     },
     "pet_name": {
-      "list_count_text": "Pet Names on this network",f
+      "list_count_text": "Pet Names on this network",
       "add_pet_name_button": "Add Pet Name",
       "address": "アドレス",
       "address_placeholder": "0x...",
