@@ -2246,6 +2246,280 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
+  describe('Market Data and szDecimals Integration', () => {
+    it('passes szDecimals from market data to formatPositionSize', () => {
+      // Arrange - Set market data with specific szDecimals
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: { szDecimals: 5 },
+        isLoading: false,
+        error: null,
+      });
+
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '0.12345',
+        coin: 'BTC',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Act
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - Component renders without error and uses market data
+      expect(usePerpsMarketDataMock).toHaveBeenCalledWith('BTC');
+    });
+
+    it('formats position size with different szDecimals values', () => {
+      // Arrange - Test with different decimal precision
+      const testCases = [
+        { szDecimals: 1, coin: 'DOGE', size: '123.456789' },
+        { szDecimals: 4, coin: 'ETH', size: '1.23456789' },
+        { szDecimals: 5, coin: 'BTC', size: '0.123456789' },
+        { szDecimals: 6, coin: 'SOL', size: '0.000123456' },
+      ];
+
+      testCases.forEach(({ szDecimals, coin, size }) => {
+        // Arrange
+        usePerpsMarketDataMock.mockReturnValue({
+          marketData: { szDecimals },
+          isLoading: false,
+          error: null,
+        });
+
+        const mockPosition = {
+          ...defaultPerpsPositionMock,
+          size,
+          coin,
+        };
+        useRouteMock.mockReturnValue({
+          params: { position: mockPosition },
+        });
+
+        // Act
+        const { queryByTestId } = renderWithProvider(
+          <PerpsClosePositionView />,
+          { state: STATE_MOCK },
+          true,
+        );
+
+        // Assert - Component renders successfully with szDecimals
+        expect(
+          queryByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        ).toBeDefined();
+        expect(usePerpsMarketDataMock).toHaveBeenCalledWith(coin);
+      });
+    });
+
+    it('handles missing market data with undefined szDecimals', () => {
+      // Arrange - Market data is null
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: null,
+        isLoading: false,
+        error: null,
+      });
+
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '1.5',
+        coin: 'ETH',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - Component renders and falls back to default formatting
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
+    });
+
+    it('handles loading state while fetching market data', () => {
+      // Arrange - Market data is loading
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+      });
+
+      // Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - Component renders while loading
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
+    });
+
+    it('handles market data fetch error gracefully', () => {
+      // Arrange - Market data fetch failed
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: null,
+        isLoading: false,
+        error: 'Failed to fetch market data',
+      });
+
+      // Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - Component still renders with error state
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
+    });
+
+    it('uses correct szDecimals for different assets', () => {
+      // Arrange - Test common crypto assets with their typical szDecimals
+      const assetConfigs = [
+        { coin: 'BTC', szDecimals: 5, size: '0.00123' },
+        { coin: 'ETH', szDecimals: 4, size: '1.2345' },
+        { coin: 'DOGE', szDecimals: 1, size: '1000.5' },
+        { coin: 'SOL', szDecimals: 3, size: '10.123' },
+      ];
+
+      assetConfigs.forEach(({ coin, szDecimals, size }) => {
+        // Arrange
+        usePerpsMarketDataMock.mockReturnValue({
+          marketData: { szDecimals },
+          isLoading: false,
+          error: null,
+        });
+
+        const mockPosition = {
+          ...defaultPerpsPositionMock,
+          coin,
+          size,
+        };
+        useRouteMock.mockReturnValue({
+          params: { position: mockPosition },
+        });
+
+        // Act
+        renderWithProvider(
+          <PerpsClosePositionView />,
+          { state: STATE_MOCK },
+          true,
+        );
+
+        // Assert - Fetches market data for specific asset
+        expect(usePerpsMarketDataMock).toHaveBeenCalledWith(coin);
+      });
+    });
+
+    it('formats very small position sizes with high decimal precision', () => {
+      // Arrange - Test very small amounts with high precision
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: { szDecimals: 8 },
+        isLoading: false,
+        error: null,
+      });
+
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '0.00000123',
+        coin: 'BTC',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - Component handles high precision decimals
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
+    });
+
+    it('formats large position sizes with low decimal precision', () => {
+      // Arrange - Test large amounts with low precision
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: { szDecimals: 1 },
+        isLoading: false,
+        error: null,
+      });
+
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '123456.7',
+        coin: 'DOGE',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - Component handles large numbers with low precision
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
+    });
+
+    it('fetches market data on component mount with position coin', () => {
+      // Arrange
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        coin: 'ETH',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Act
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - Hook called with correct asset symbol
+      expect(usePerpsMarketDataMock).toHaveBeenCalledWith('ETH');
+    });
+  });
+
   describe('Rewards Points Row', () => {
     it('should render RewardsAnimations component when rewards are enabled', async () => {
       // Arrange

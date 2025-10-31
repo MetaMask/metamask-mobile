@@ -7,7 +7,13 @@ const logger = createLogger({
   name: 'CommandQueueServer',
 });
 
-interface CommandQueueItem {
+/**
+ * The command queue item to add to the command queue server
+ *
+ * @param type - The type of command to add to the command queue
+ * @param args - The arguments to add to the command queue
+ */
+export interface CommandQueueItem {
   type: CommandType;
   args: Record<string, unknown>;
 }
@@ -36,6 +42,12 @@ class CommandQueueServer implements Resource {
         this._queue.length = 0;
         ctx.body = {
           queue: newQueue,
+        };
+      }
+
+      if (this._isDebugRequest(ctx)) {
+        ctx.body = {
+          queue: this._queue,
         };
       }
     });
@@ -111,6 +123,10 @@ class CommandQueueServer implements Resource {
 
   private _isQueueRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/queue.json';
+  }
+
+  private _isDebugRequest(ctx: Context) {
+    return ctx.method === 'GET' && ctx.path === '/debug.json';
   }
 }
 
