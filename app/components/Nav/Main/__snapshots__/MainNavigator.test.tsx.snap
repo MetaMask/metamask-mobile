@@ -58,6 +58,15 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="ConfirmAddAsset"
+    options={
+      {
+        "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="Asset"
   />
   <Screen
