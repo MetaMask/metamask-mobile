@@ -107,20 +107,26 @@ function registerE2EPerpsDeepLinkHandler(): void {
           if (path === 'push-price') {
             const price = params.get('price') || '';
             DevLogger.log('[E2E Bridge] push-price', symbol, price);
-            service.mockPushPrice(symbol, price);
+            if (service && typeof service.mockPushPrice === 'function') {
+              service.mockPushPrice(symbol, price);
+            }
             return;
           }
 
           if (path === 'mock-deposit') {
             const amount = params.get('amount') || '';
             DevLogger.log('[E2E Bridge] mock-deposit', amount);
-            service.mockDepositUSD(amount);
+            if (service && typeof service.mockDepositUSD === 'function') {
+              service.mockDepositUSD(amount);
+            }
             return;
           }
 
           if (path === 'force-liquidation') {
             DevLogger.log('[E2E Bridge] force-liquidation', symbol);
-            service.mockForceLiquidation(symbol);
+            if (service && typeof service.mockForceLiquidation === 'function') {
+              service.mockForceLiquidation(symbol);
+            }
             return;
           }
         } catch (e) {

@@ -42,7 +42,7 @@ export class E2EControllerOverrides {
   // Mock order placement
   async placeOrder(params: OrderParams): Promise<OrderResult> {
     console.log('E2E Mock: Intercepted placeOrder:', params.coin);
-    const result = await this.mockService.mockPlaceOrder(params);
+    const result = this.mockService.mockPlaceOrder(params);
 
     // Update Redux state to reflect the new position/balance
     const mockAccount = this.mockService.getMockAccountState();
@@ -108,7 +108,7 @@ export class E2EControllerOverrides {
 
   // Mock funding history
   async getFunding(): Promise<Funding[]> {
-    const funding = await this.mockService.mockGetFunding();
+    const funding = this.mockService.mockGetFunding();
     return funding;
   }
 
@@ -137,10 +137,7 @@ export class E2EControllerOverrides {
       orderType: params.orderType,
     });
 
-    const result = await this.mockService.mockClosePosition(
-      params.coin,
-      params.size,
-    );
+    const result = this.mockService.mockClosePosition(params.coin, params.size);
 
     // Update Redux state to reflect the position closure
     const mockAccount = this.mockService.getMockAccountState();
@@ -163,7 +160,7 @@ export class E2EControllerOverrides {
     orderId: string;
     coin: string;
   }): Promise<OrderResult> {
-    const result = await this.mockService.mockCancelOrder(params.orderId);
+    const result = this.mockService.mockCancelOrder(params.orderId);
     return result;
   }
 
@@ -171,7 +168,7 @@ export class E2EControllerOverrides {
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
-    const result = await this.mockService.mockUpdatePositionTPSL(params);
+    const result = this.mockService.mockUpdatePositionTPSL(params);
     // Refresh Redux positions after TP/SL changes
     const mockPositions = this.mockService.getMockPositions();
     (this.controller as ControllerWithUpdate).update(

@@ -218,7 +218,7 @@ export class PerpsE2EMockService {
   }
 
   // Mock successful order placement
-  public async mockPlaceOrder(params: OrderParams): Promise<OrderResult> {
+  public mockPlaceOrder(params: OrderParams): OrderResult {
     const orderId = `mock_order_${this.orderIdCounter++}`;
 
     // If this is a limit order, add to open orders and do not create a position yet
@@ -323,7 +323,7 @@ export class PerpsE2EMockService {
   }
 
   // Mock withdrawal (reserved for upcoming tests)
-  public async mockWithdraw(params: WithdrawParams): Promise<WithdrawResult> {
+  public mockWithdraw(params: WithdrawParams): WithdrawResult {
     const withdrawAmount = parseFloat(params.amount);
     const currentBalance = parseFloat(this.mockAccount.availableBalance);
 
@@ -603,7 +603,7 @@ export class PerpsE2EMockService {
   }
 
   // Mock funding endpoint (reserved for upcoming tests)
-  public async mockGetFunding(): Promise<Funding[]> {
+  public mockGetFunding(): Funding[] {
     return [
       {
         symbol: 'BTC',
@@ -615,7 +615,7 @@ export class PerpsE2EMockService {
   }
 
   /** Cancel an open order by id and push a canceled state into historical orders */
-  public async mockCancelOrder(orderId: string): Promise<OrderResult> {
+  public mockCancelOrder(orderId: string): OrderResult {
     const idx = this.mockOrders.findIndex((o) => o.orderId === orderId);
     if (idx === -1) {
       return { success: false, error: 'Order not found' };
@@ -642,9 +642,7 @@ export class PerpsE2EMockService {
    * Mock update of Take Profit / Stop Loss settings. This creates trigger orders
    * so that Activity > Perps → Orders shows TP/SL entries as open orders.
    */
-  public async mockUpdatePositionTPSL(
-    params: UpdatePositionTPSLParams,
-  ): Promise<OrderResult> {
+  public mockUpdatePositionTPSL(params: UpdatePositionTPSLParams): OrderResult {
     const position = this.mockPositions.find((p) => p.coin === params.coin);
     if (!position) {
       return { success: false, error: 'Position not found' };
