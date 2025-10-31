@@ -375,17 +375,48 @@ jobs:
           # Download with-SRP APK
           if [ -n "$WITH_SRP_BUILD_ID" ]; then
             echo "Downloading with-SRP APK..."
-            WITH_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            echo "Build ID: $WITH_SRP_BUILD_ID"
+            echo "App ID: $BITRISE_APP_ID"
+            
+            WITH_SRP_ARTIFACTS=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -H "Authorization: $BITRISE_API_TOKEN" \
               "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts")
+            
+            # Extract HTTP status code
+            HTTP_STATUS=$(echo "$WITH_SRP_ARTIFACTS" | grep "HTTP_STATUS:" | cut -d: -f2)
+            WITH_SRP_ARTIFACTS=$(echo "$WITH_SRP_ARTIFACTS" | sed '/HTTP_STATUS:/d')
+            
+            echo "HTTP Status: $HTTP_STATUS"
+            
+            # Validate JSON response
+            if ! echo "$WITH_SRP_ARTIFACTS" | jq empty 2>/dev/null; then
+              echo "Error: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
+              echo "Response (first 500 chars): ${WITH_SRP_ARTIFACTS:0:500}"
+              exit 1
+            fi
             
             # Find the APK artifact - matches metamask-main-rc-[number].apk
             WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq '[.data[] | select(.title | endswith(".apk") and (.title | test("metamask-main-rc-[0-9]+\\.apk")))] | .[0]')
             
             if [[ -n "$WITH_SRP_APK_ARTIFACT" && "$WITH_SRP_APK_ARTIFACT" != "null" ]]; then
-              WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug')
-              WITH_SRP_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts/$WITH_SRP_APK_SLUG" | \
-                jq -r '.data.expiring_download_url')
+              WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug // empty')
+              
+              if [[ -z "$WITH_SRP_APK_SLUG" || "$WITH_SRP_APK_SLUG" == "null" ]]; then
+                echo "Error: Failed to extract APK slug from artifact"
+                echo "Artifact: $WITH_SRP_APK_ARTIFACT"
+                exit 1
+              fi
+              
+              WITH_SRP_DOWNLOAD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts/$WITH_SRP_APK_SLUG")
+              
+              # Validate JSON response
+              if ! echo "$WITH_SRP_DOWNLOAD_RESPONSE" | jq empty 2>/dev/null; then
+                echo "Error: Invalid JSON response from Bitrise API for download URL"
+                echo "Response: $WITH_SRP_DOWNLOAD_RESPONSE"
+                exit 1
+              fi
+              
+              WITH_SRP_DOWNLOAD_URL=$(echo "$WITH_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
               
               if [[ -n "$WITH_SRP_DOWNLOAD_URL" && "$WITH_SRP_DOWNLOAD_URL" != "null" ]]; then
                 echo "Downloading with-SRP APK..."
@@ -424,17 +455,48 @@ jobs:
           # Download without-SRP APK
           if [ -n "$WITHOUT_SRP_BUILD_ID" ]; then
             echo "Downloading without-SRP APK..."
-            WITHOUT_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            echo "Build ID: $WITHOUT_SRP_BUILD_ID"
+            echo "App ID: $BITRISE_APP_ID"
+            
+            WITHOUT_SRP_ARTIFACTS=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -H "Authorization: $BITRISE_API_TOKEN" \
               "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts")
+            
+            # Extract HTTP status code
+            HTTP_STATUS=$(echo "$WITHOUT_SRP_ARTIFACTS" | grep "HTTP_STATUS:" | cut -d: -f2)
+            WITHOUT_SRP_ARTIFACTS=$(echo "$WITHOUT_SRP_ARTIFACTS" | sed '/HTTP_STATUS:/d')
+            
+            echo "HTTP Status: $HTTP_STATUS"
+            
+            # Validate JSON response
+            if ! echo "$WITHOUT_SRP_ARTIFACTS" | jq empty 2>/dev/null; then
+              echo "Error: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
+              echo "Response (first 500 chars): ${WITHOUT_SRP_ARTIFACTS:0:500}"
+              exit 1
+            fi
             
             # Find the APK artifact - matches metamask-main-rc-[number].apk
             WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq '[.data[] | select(.title | endswith(".apk") and (.title | test("metamask-main-rc-[0-9]+\\.apk")))] | .[0]')
             
             if [[ -n "$WITHOUT_SRP_APK_ARTIFACT" && "$WITHOUT_SRP_APK_ARTIFACT" != "null" ]]; then
-              WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug')
-              WITHOUT_SRP_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts/$WITHOUT_SRP_APK_SLUG" | \
-                jq -r '.data.expiring_download_url')
+              WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug // empty')
+              
+              if [[ -z "$WITHOUT_SRP_APK_SLUG" || "$WITHOUT_SRP_APK_SLUG" == "null" ]]; then
+                echo "Error: Failed to extract APK slug from artifact"
+                echo "Artifact: $WITHOUT_SRP_APK_ARTIFACT"
+                exit 1
+              fi
+              
+              WITHOUT_SRP_DOWNLOAD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts/$WITHOUT_SRP_APK_SLUG")
+              
+              # Validate JSON response
+              if ! echo "$WITHOUT_SRP_DOWNLOAD_RESPONSE" | jq empty 2>/dev/null; then
+                echo "Error: Invalid JSON response from Bitrise API for download URL"
+                echo "Response: $WITHOUT_SRP_DOWNLOAD_RESPONSE"
+                exit 1
+              fi
+              
+              WITHOUT_SRP_DOWNLOAD_URL=$(echo "$WITHOUT_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
               
               if [[ -n "$WITHOUT_SRP_DOWNLOAD_URL" && "$WITHOUT_SRP_DOWNLOAD_URL" != "null" ]]; then
                 echo "Downloading without-SRP APK..."
