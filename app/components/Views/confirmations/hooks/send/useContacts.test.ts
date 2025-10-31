@@ -313,21 +313,32 @@ describe('useContacts', () => {
       );
     });
 
-    it('filters addresses correctly for Solana when addresses have different lengths', () => {
-      mockUseSendType.mockReturnValue({
-        isEvmSendType: false,
-        isSolanaSendType: true,
-        isEvmNativeSendType: false,
-        isNonEvmSendType: false,
-        isNonEvmNativeSendType: false,
+    it('filters out zero address burn address', () => {
+      const burnAddressBook = {
+        '1': {
+          contact1: mockEvmContact1,
+          burnContact: {
+            name: 'Burn Address',
+            address: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      };
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAddressBook) {
+          return burnAddressBook;
+        }
+        return {};
       });
 
       const { result } = renderHook(() => useContacts());
 
       expect(result.current).toHaveLength(1);
-      expect(result.current[0].address).toBe(
-        'Sol12345678901234567890123456789012345678901234567890',
-      );
+      expect(result.current[0].address).toBe(mockEvmContact1.address);
+      expect(
+        result.current.find(
+          (c) => c.address === '0x0000000000000000000000000000000000000000',
+        ),
+      ).toBeUndefined();
     });
   });
 });

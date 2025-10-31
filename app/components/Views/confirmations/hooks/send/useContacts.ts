@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { type RecipientType } from '../../components/UI/recipient';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../utils/send-address-validations';
 import { useSendType } from './useSendType';
 
 export const useContacts = () => {
@@ -26,11 +27,11 @@ export const useContacts = () => {
     });
 
     return flattenedContacts.filter((contact) => {
-      // We cannot use isEvmAccountType and isSolanaAccount here because we are not using the internal accounts
-      // Potentially we may want to have manual validation for the contacts
       if (isEvmSendType) {
         return (
-          contact.address.startsWith('0x') && contact.address.length === 42
+          contact.address.startsWith('0x') &&
+          contact.address.length === 42 &&
+          !LOWER_CASED_BURN_ADDRESSES.includes(contact.address.toLowerCase())
         );
       }
       if (isSolanaSendType) {

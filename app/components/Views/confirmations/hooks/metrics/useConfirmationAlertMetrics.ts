@@ -108,6 +108,7 @@ function getAlertNames(alerts: Alert[]): string[] {
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',
   [AlertKeys.Blockaid]: 'blockaid',
+  [AlertKeys.BurnAddress]: 'burn_address',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
