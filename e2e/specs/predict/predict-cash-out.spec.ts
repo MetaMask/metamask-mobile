@@ -66,6 +66,7 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectTextDisplayed(positionDetails.initialBalance);
 
         await WalletView.tapOnPredictionsPosition(positionDetails.name);
+        await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
@@ -75,7 +76,6 @@ describe(SmokePredictions('Predictions'), () => {
         await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
 
         await PredictDetailsPage.tapCashOutButton();
-
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(
@@ -83,6 +83,7 @@ describe(SmokePredictions('Predictions'), () => {
         );
 
         await PredictCashOutPage.tapCashOutButton();
+        await device.enableSynchronization();
 
         await PredictDetailsPage.tapBackButton();
         await TabBarComponent.tapActivity();
