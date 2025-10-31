@@ -656,6 +656,7 @@ describe('useBridgeQuoteData', () => {
 
     expect(mockValidateBridgeTx).toHaveBeenCalledWith({
       quoteResponse: mockQuote,
+      signal: expect.any(AbortSignal),
     });
   });
 
