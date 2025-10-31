@@ -3,7 +3,9 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager, BackHandler, Alert } from 'react-native';
+import { InteractionManager, BackHandler, Alert, Image } from 'react-native';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import FOX_LOGO from '../../../images/branding/fox.png';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
@@ -25,6 +27,9 @@ import {
   TRUE,
 } from '../../../constants/storage';
 import { useMetrics } from '../../hooks/useMetrics';
+import styleSheet from './styles';
+import { colors as importedColors } from '../../../styles/common';
+import { Theme } from '../../../util/theme/models';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -73,13 +78,16 @@ jest.mock('../../../util/password', () => ({
   passwordRequirementsMet: jest.fn(),
 }));
 
-// Mock react-native with Keyboard
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Keyboard: {
-    dismiss: jest.fn(),
-  },
-}));
+// Mock react-native Keyboard
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Keyboard: {
+      dismiss: jest.fn(),
+    },
+  };
+});
 
 // Mock StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -125,6 +133,67 @@ jest.mock('../../../util/authentication', () => ({
 
 jest.mock('../../../core/BackupVault', () => ({
   getVaultFromBackup: jest.fn(),
+}));
+
+// Mock animation components
+jest.mock('../Onboarding/OnboardingAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+
+  return ({
+    children,
+    startOnboardingAnimation,
+    setStartFoxAnimation,
+  }: {
+    children: React.ReactNode;
+    startOnboardingAnimation: boolean;
+    setStartFoxAnimation: (value: boolean) => void;
+  }) => {
+    // Use synchronous execution
+    if (startOnboardingAnimation && setStartFoxAnimation) {
+      // Call immediately and synchronously
+      setStartFoxAnimation(true);
+    }
+
+    return React.createElement(
+      View,
+      { testID: 'onboarding-animation-mock' },
+      children,
+    );
+  };
+});
+
+jest.mock('../Onboarding/FoxAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View, Text } = require('react-native');
+
+  return () =>
+    React.createElement(
+      View,
+      { testID: 'fox-animation-mock' },
+      React.createElement(Text, null, 'Fox Animation Mock'),
+    );
+});
+
+// Mock Rive animations
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: () => null,
+  Fit: { Contain: 'contain' },
+  Alignment: { Center: 'center' },
+}));
+
+// Mock safe area context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('../../../util/validators', () => ({
@@ -1277,7 +1346,190 @@ describe('Login', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('Login Styles', () => {
+    it('should return correct textField background color for light theme', () => {
+      // Arrange
+      const mockTheme = {
+        colors: {
+          background: { default: '#FFFFFF' },
+          text: { default: '#000000', alternative: '#666666' },
+          border: { default: '#E5E5E5' },
+          error: { default: '#FF0000' },
+          icon: { default: '#000000' },
+        },
+        themeAppearance: 'light',
+        typography: {},
+        shadows: {},
+        brandColors: {},
+      } as unknown as Theme;
+
+      // Act
+      const styles = styleSheet({ theme: mockTheme });
+
+      // Assert
+      expect(styles.textField.backgroundColor).toBe(
+        importedColors.gettingStartedPageBackgroundColorLightMode,
+      );
+    });
+
+    it('should return correct textField background color for dark theme', () => {
+      // Arrange
+      const mockDarkTheme = {
+        colors: {
+          background: { default: '#000000' },
+          text: { default: '#FFFFFF', alternative: '#CCCCCC' },
+          border: { default: '#333333' },
+          error: { default: '#FF6B6B' },
+          icon: { default: '#FFFFFF' },
+        },
+        themeAppearance: 'dark',
+        typography: {},
+        shadows: {},
+        brandColors: {},
+      } as unknown as Theme;
+
+      // Act
+      const styles = styleSheet({ theme: mockDarkTheme });
+
+      // Assert
+      expect(styles.textField.backgroundColor).toBe(
+        importedColors.gettingStartedTextColor,
+      );
+    });
+  });
+
+  describe('Conditional Rendering Based on OAuth Status', () => {
+    describe('Regular Login', () => {
+      beforeEach(() => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
+      });
+
+      it('renders animations and hides OAuth-specific elements', () => {
+        // Arrange & Act
+        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
+          <Login />,
+        );
+
+        // Assert - Animations are rendered
+        expect(getByTestId('onboarding-animation-mock')).toBeDefined();
+        expect(getByTestId('fox-animation-mock')).toBeDefined();
+
+        // Assert - Regular login elements
+        expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeDefined();
+
+        // Assert - OAuth elements are hidden
+        expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
+        expect(
+          queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+        ).toBeNull();
+
+        // Assert - Static images are not rendered
+        const images = UNSAFE_root.findAllByType(Image);
+        const hasMetaMaskLogo = images.some(
+          (img) => img.props.source === METAMASK_NAME,
+        );
+        const hasStaticFox = images.some(
+          (img) => img.props.source === FOX_LOGO,
+        );
+        expect(hasMetaMaskLogo).toBe(false);
+        expect(hasStaticFox).toBe(false);
+      });
+
+      it('starts onboarding animation after delay', () => {
+        // Arrange
+        jest.useFakeTimers();
+        const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+        // Act
+        renderWithProvider(<Login />);
+
+        // Assert
+        expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+
+        setTimeoutSpy.mockRestore();
+        jest.useRealTimers();
+      });
+    });
+
+    describe('OAuth Rehydration', () => {
+      beforeEach(() => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: true,
+          },
+        });
+      });
+
+      it('renders static UI and hides animations', () => {
+        // Arrange & Act
+        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
+          <Login />,
+        );
+
+        // Assert - Animations are hidden
+        expect(queryByTestId('onboarding-animation-mock')).toBeNull();
+        expect(queryByTestId('fox-animation-mock')).toBeNull();
+
+        // Assert - OAuth-specific elements are rendered
+        expect(getByTestId(LoginViewSelectors.TITLE_ID)).toBeDefined();
+        expect(getByTestId(LoginViewSelectors.TITLE_ID).props.children).toBe(
+          strings('login.title'),
+        );
+        expect(
+          getByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+        ).toBeDefined();
+
+        // Assert - Regular login elements are hidden
+        expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
+
+        // Assert - Static images are rendered
+        const images = UNSAFE_root.findAllByType(Image);
+        const hasMetaMaskLogo = images.some(
+          (img) => img.props.source === METAMASK_NAME,
+        );
+        const hasStaticFox = images.some(
+          (img) => img.props.source === FOX_LOGO,
+        );
+        expect(hasMetaMaskLogo).toBe(true);
+        expect(hasStaticFox).toBe(true);
+      });
+    });
+
+    describe('Common Elements', () => {
+      it.each([
+        ['regular login', false],
+        ['OAuth rehydration', true],
+      ])(
+        'renders core login elements for %s',
+        (_description, oauthLoginSuccess) => {
+          // Arrange
+          mockRoute.mockReturnValue({
+            params: {
+              locked: false,
+              oauthLoginSuccess,
+            },
+          });
+
+          // Act
+          const { getByTestId } = renderWithProvider(<Login />);
+
+          // Assert
+          expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
+          expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
+          expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
+        },
+      );
+    });
+  });
 });
+
 // it('should navigate back and reset OAuth state when using other methods', async () => {
 //   mockRoute.mockReturnValue({
 //     params: {
