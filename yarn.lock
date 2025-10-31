@@ -7923,9 +7923,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/multichain-account-service@npm:2.0.0"
+"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@2.0.0-preview-8c66598b":
+  version: 2.0.0-preview-8c66598b
+  resolution: "@metamask-previews/multichain-account-service@npm:2.0.0-preview-8c66598b"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -7948,7 +7948,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/40e84247ca763b508b0a7db654b5b36f8062126f9323beefc56b938fe85b1cced452f474e3a9a9154a5b8dd6e00945bc4ba8a1f1a54cf09631266abdd30e1334
+  checksum: 10/d441f378ebe8a550d85a6156f50d0edc6c842ad7b5bd757a55139fb8fe4c0799533d9ab8ce41e25ef49f92b388ca89e436054a0faaeda08fed8d558579bbad21
   languageName: node
   linkType: hard
 
@@ -34328,7 +34328,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.3.1"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.2.1"
-    "@metamask/multichain-account-service": "npm:^2.0.0"
+    "@metamask/multichain-account-service": "npm:@metamask-previews/multichain-account-service@2.0.0-preview-8c66598b"
     "@metamask/multichain-api-client": "npm:^0.7.0"
     "@metamask/multichain-api-middleware": "npm:1.2.4"
     "@metamask/multichain-network-controller": "npm:^2.0.0"
