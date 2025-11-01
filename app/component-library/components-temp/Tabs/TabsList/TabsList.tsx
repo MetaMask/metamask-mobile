@@ -193,7 +193,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             'worklet';
             const { translationX, velocityX } = gestureEvent;
 
-            if (Math.abs(translationX) > 80 || Math.abs(velocityX) > 800) {
+            // Match ScrollView paging behavior with lower thresholds for natural feel
+            if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 500) {
               if (translationX > 0) {
                 runOnJS(goToPreviousTab)();
               } else if (translationX < 0) {
