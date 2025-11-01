@@ -444,6 +444,11 @@ class WalletView {
       WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
     );
   }
+  get claimButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
+    );
+  }
 
   get defiPositionDetailsContainer(): DetoxElement {
     return Matchers.getElementByID(
@@ -502,10 +507,7 @@ class WalletView {
   }
 
   async tapClaimButton(): Promise<void> {
-    const elem = Matchers.getElementByID(
-      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
-    );
-    await Gestures.waitAndTap(elem, {
+    await Gestures.waitAndTap(this.claimButton, {
       elemDescription: 'Claim Button',
     });
   }

@@ -63,8 +63,6 @@ describe(SmokeTrade('Predictions'), () => {
           WalletView.PredictionsTabContainer,
         );
 
-        // Set up post-claim mocks before tapping claim button
-
         await WalletView.tapClaimButton();
         // Set up mocks to remove claimed positions after tapping claim button
         await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
@@ -77,16 +75,6 @@ describe(SmokeTrade('Predictions'), () => {
 
         await Assertions.expectElementToBeVisible(WalletView.container);
 
-        // await TabBarComponent.tapActivity();
-
-        // await ActivitiesView.tapOnPredictionsTab();
-
-        // await ActivitiesView.tapCashedOutPosition('Bears vs. Commanders');
-        // await Assertions.expectElementToBeVisible(
-        //   PredictActivityDetails.container,
-        // );
-        // await PredictActivityDetails.tapBackButton();
-        // await TabBarComponent.tapWallet();
         // await Assertions.expectTextDisplayed('$48.16');
 
         // Verify that all resolved market positions (including winning positions) are not visible after claiming
@@ -97,6 +85,7 @@ describe(SmokeTrade('Predictions'), () => {
             description: `Resolved market position "${position.title}" should not be visible`,
           });
         }
+        await Assertions.expectElementToNotBeVisible(WalletView.claimButton);
       },
     );
   });
