@@ -446,6 +446,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.message ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
       ) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
+        }
         setError(strings('login.invalid_password'));
         return;
       } else if (
@@ -517,6 +524,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
         account_type: 'social',
         failed_attempts: rehydrationFailedAttempts,
+        error_type: 'incorrect_password',
       });
     }
 
