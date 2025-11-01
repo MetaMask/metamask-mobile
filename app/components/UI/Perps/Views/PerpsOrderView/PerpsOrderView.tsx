@@ -51,6 +51,7 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -88,6 +89,7 @@ import {
 import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -219,6 +221,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
     asset: orderForm.asset || '',
     loadOnMount: true,
   });
+
+  // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
+  const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -1219,6 +1224,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
           )}
 
+          {/* OI Cap Warning - Only shows when market is at capacity */}
+          <PerpsOICapWarning symbol={orderForm.asset} variant="inline" />
+
           <ButtonSemantic
             severity={
               orderForm.direction === 'long'
@@ -1231,7 +1239,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
             isDisabled={
               !orderValidation.isValid ||
               isPlacingOrder ||
-              doesStopLossRiskLiquidation
+              doesStopLossRiskLiquidation ||
+              isAtOICap
             }
             isLoading={isPlacingOrder}
             testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}

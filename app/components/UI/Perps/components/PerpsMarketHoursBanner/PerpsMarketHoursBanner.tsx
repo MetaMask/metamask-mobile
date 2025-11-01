@@ -69,44 +69,40 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
 
   return (
     <Box style={styles.container} testID={testID}>
-      <Box
-        style={styles.banner}
-        backgroundColor={BoxBackgroundColor.BackgroundMuted}
-      >
+      <Pressable onPress={onInfoPress} testID={`${testID}-pressable`}>
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
+          style={styles.banner}
+          backgroundColor={BoxBackgroundColor.BackgroundMuted}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            style={styles.contentRow}
+            justifyContent={BoxJustifyContent.Between}
           >
-            <Icon name={IconName.Clock} size={IconSize.Lg} />
-            <Box style={styles.textContainer}>
-              <Text variant={TextVariant.BodyMd}>{titleText}</Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {subtitleText}
-              </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              style={styles.contentRow}
+            >
+              <Icon name={IconName.Clock} size={IconSize.Lg} />
+              <Box style={styles.textContainer}>
+                <Text variant={TextVariant.BodyMd}>{titleText}</Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {subtitleText}
+                </Text>
+              </Box>
             </Box>
-          </Box>
-          <Pressable
-            onPress={onInfoPress}
-            testID={`${testID}-info-button`}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
             <Icon
               name={IconName.Info}
               size={IconSize.Md}
               color={IconColor.IconAlternative}
             />
-          </Pressable>
+          </Box>
         </Box>
-      </Box>
+      </Pressable>
     </Box>
   );
 };

@@ -99,6 +99,13 @@ export class HyperLiquidSubscriptionService {
   private cachedAccount: AccountState | null = null; // Aggregated account
   private ordersCacheInitialized = false; // Track if orders cache has received WebSocket data
   private positionsCacheInitialized = false; // Track if positions cache has received WebSocket data
+
+  // OI Cap tracking (from webData2.perpsAtOpenInterestCap)
+  private readonly oiCapSubscribers = new Set<(caps: string[]) => void>();
+  private cachedOICaps: string[] = [];
+  private cachedOICapsHash = '';
+  private oiCapsCacheInitialized = false;
+
   // Global price data cache
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
@@ -587,7 +594,7 @@ export class HyperLiquidSubscriptionService {
         ]);
 
         if (perpsMeta?.universe && assetCtxs?.[1]) {
-          // Cache funding rates directly from assetCtxs
+          // Cache funding rates directly from assetCtxs and meta
           perpsMeta.universe.forEach((asset, index) => {
             const assetCtx = assetCtxs[1][index];
             if (assetCtx && 'funding' in assetCtx) {
@@ -772,6 +779,27 @@ export class HyperLiquidSubscriptionService {
             data.spotState,
           );
 
+          // Extract OI caps from webData2 (only available on main DEX, dexName === '')
+          // perpsAtOpenInterestCap is an array of asset symbols that are at capacity
+          if (dexName === '') {
+            const oiCaps = data.perpsAtOpenInterestCap || [];
+            const oiCapsHash = JSON.stringify(oiCaps.sort());
+
+            if (oiCapsHash !== this.cachedOICapsHash) {
+              this.cachedOICaps = oiCaps;
+              this.cachedOICapsHash = oiCapsHash;
+              this.oiCapsCacheInitialized = true;
+
+              DevLogger.log('OI Caps Updated', {
+                oiCaps,
+                count: oiCaps.length,
+              });
+
+              // Notify all subscribers
+              this.oiCapSubscribers.forEach((callback) => callback(oiCaps));
+            }
+          }
+
           // Store per-DEX data in caches
           this.dexPositionsCache.set(dexName, positionsWithTPSL);
           this.dexOrdersCache.set(dexName, orders);
@@ -940,6 +968,46 @@ export class HyperLiquidSubscriptionService {
       this.positionSubscriberCount--;
       this.cleanupSharedWebData2Subscription();
     };
+  }
+
+  /**
+   * Subscribe to open interest cap updates
+   * OI caps are extracted from webData2 subscription (zero additional overhead)
+   */
+  public subscribeToOICaps(params: {
+    callback: (caps: string[]) => void;
+    accountId?: CaipAccountId;
+  }): () => void {
+    const { callback, accountId } = params;
+
+    // Create subscription
+    const unsubscribe = this.createSubscription(
+      this.oiCapSubscribers,
+      callback,
+    );
+
+    // Immediately provide cached data if available
+    if (this.cachedOICaps) {
+      callback(this.cachedOICaps);
+    }
+
+    // Ensure webData2 subscription is active (OI caps come from webData2)
+    this.ensureSharedWebData2Subscription(accountId).catch((error) => {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOICaps'),
+      );
+    });
+
+    return unsubscribe;
+  }
+
+  /**
+   * Check if OI caps cache has been initialized
+   * Useful for preventing UI flashing before first data arrives
+   */
+  public isOICapsCacheInitialized(): boolean {
+    return this.oiCapsCacheInitialized;
   }
 
   /**

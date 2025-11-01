@@ -4102,6 +4102,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Subscribe to open interest cap updates
+   * Zero additional overhead - data extracted from existing webData2 subscription
+   */
+  subscribeToOICaps(params: {
+    accountId?: CaipAccountId;
+    callback: (caps: string[]) => void;
+  }): () => void {
+    return this.subscriptionService.subscribeToOICaps(params);
+  }
+
+  /**
    * Configure live data settings
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {

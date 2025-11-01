@@ -15,7 +15,11 @@ import {
   TransactionParams,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import {
+  parseCaipAssetId,
+  type CaipAccountId,
+  type Hex,
+} from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
@@ -3655,6 +3659,31 @@ export class PerpsController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('subscribeToAccount', {
+          accountId: params.accountId,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
+   * Subscribe to open interest cap updates
+   * Zero additional network overhead - data comes from existing webData2 subscription
+   */
+  subscribeToOICaps(params: {
+    accountId?: CaipAccountId;
+    callback: (caps: string[]) => void;
+  }): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOICaps(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOICaps', {
           accountId: params.accountId,
         }),
       );
