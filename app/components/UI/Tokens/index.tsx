@@ -29,14 +29,15 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
+import TokenListSkeleton from './TokenList/TokenListSkeleton';
 import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import Loader from '../../../component-library/components-temp/Loader';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import { TokensEmptyState } from '../TokensEmptyState';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -80,14 +81,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   );
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
-  const [isTokensLoading, setIsTokensLoading] = useState(true);
-  const [renderedTokenKeys, setRenderedTokenKeys] = useState<
-    typeof sortedTokenKeys
-  >([]);
-  const [progressiveTokens, setProgressiveTokens] = useState<
-    typeof sortedTokenKeys
-  >([]);
-  const lastTokenDataRef = useRef<typeof sortedTokenKeys>();
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
   // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
   const isMultichainAccountsState2Enabled = useSelector(
@@ -105,74 +99,14 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     ),
   );
 
-  // High-performance async rendering with progressive loading
+  // Mark as loaded once we have data (even if empty)
   useEffect(() => {
-    // Debounce rapid data changes
-    if (
-      JSON.stringify(sortedTokenKeys) ===
-      JSON.stringify(lastTokenDataRef.current)
-    ) {
-      return;
-    }
-    lastTokenDataRef.current = sortedTokenKeys;
-
-    if (sortedTokenKeys?.length) {
-      setIsTokensLoading(true);
-      setProgressiveTokens([]);
-
-      // Use InteractionManager for better performance than setTimeout
+    if (!hasInitialLoad && sortedTokenKeys) {
       InteractionManager.runAfterInteractions(() => {
-        const CHUNK_SIZE = 20; // Process 20 tokens at a time
-        const chunks: (typeof sortedTokenKeys)[] = [];
-
-        for (let i = 0; i < sortedTokenKeys.length; i += CHUNK_SIZE) {
-          chunks.push(sortedTokenKeys.slice(i, i + CHUNK_SIZE));
-        }
-
-        // Progressive loading for better perceived performance
-        let currentChunkIndex = 0;
-        let accumulatedTokens: typeof sortedTokenKeys = [];
-
-        const processChunk = () => {
-          if (currentChunkIndex < chunks.length) {
-            accumulatedTokens = [
-              ...accumulatedTokens,
-              ...chunks[currentChunkIndex],
-            ];
-            setProgressiveTokens([...accumulatedTokens]);
-            currentChunkIndex++;
-
-            // Process next chunk after allowing UI to update
-            requestAnimationFrame(() => {
-              if (currentChunkIndex < chunks.length) {
-                setTimeout(processChunk, 0);
-              } else {
-                // All chunks processed
-                const tokenMap = new Map();
-                accumulatedTokens.forEach((item) => {
-                  const staked = item.isStaked ? 'staked' : 'unstaked';
-                  const key = `${item.address}-${item.chainId}-${staked}`;
-                  tokenMap.set(key, item);
-                });
-                const deduped = Array.from(tokenMap.values());
-                setRenderedTokenKeys(deduped);
-                setIsTokensLoading(false);
-              }
-            });
-          }
-        };
-
-        processChunk();
+        setHasInitialLoad(true);
       });
-
-      return;
     }
-
-    // No tokens to render
-    setRenderedTokenKeys([]);
-    setProgressiveTokens([]);
-    setIsTokensLoading(false);
-  }, [sortedTokenKeys]);
+  }, [sortedTokenKeys, hasInitialLoad]);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
@@ -264,50 +198,6 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  // Estimated height of a single token item in the TokenList.
-  // This value (64) matches the height defined in the TokenList item component's style.
-  // If the token item design changes, update this value accordingly.
-  const estimatedTokenItemHeight = 64;
-
-  const calculatedListHeight = useMemo(() => {
-    if (!isHomepageRedesignV1Enabled || isFullView) return undefined;
-
-    const displayTokenCount = maxItems
-      ? Math.min(renderedTokenKeys.length, maxItems)
-      : renderedTokenKeys.length;
-    const contentHeight = displayTokenCount * estimatedTokenItemHeight;
-    const footerHeight =
-      maxItems && renderedTokenKeys.length > maxItems ? 92 : 16;
-
-    return contentHeight + footerHeight;
-  }, [
-    isHomepageRedesignV1Enabled,
-    isFullView,
-    maxItems,
-    renderedTokenKeys.length,
-    estimatedTokenItemHeight,
-  ]);
-
-  const flashListProps = useMemo(() => {
-    if (isFullView) {
-      return {
-        contentContainerStyle: tw`px-4`,
-        scrollEnabled: true,
-      };
-    }
-
-    if (isHomepageRedesignV1Enabled) {
-      return {
-        scrollEnabled: false,
-        estimatedItemSize: estimatedTokenItemHeight,
-      };
-    }
-
-    return {
-      scrollEnabled: true,
-    };
-  }, [isFullView, isHomepageRedesignV1Enabled, tw, estimatedTokenItemHeight]);
-
   return (
     <Box
       twClassName={
@@ -321,52 +211,24 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         goToAddToken={goToAddToken}
         style={isFullView ? tw`px-4 pb-4` : undefined}
       />
-      {!isTokensLoading &&
-      renderedTokenKeys.length === 0 &&
-      progressiveTokens.length === 0 ? (
-        <Box
-          twClassName={
-            isHomepageRedesignV1Enabled && !isFullView
-              ? 'bg-default'
-              : 'flex-1 bg-default'
-          }
+      {!hasInitialLoad ? (
+        <Box twClassName={isFullView ? 'px-4' : undefined}>
+          <TokenListSkeleton />
+        </Box>
+      ) : sortedTokenKeys.length > 0 ? (
+        <TokenList
+          tokenKeys={sortedTokenKeys}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          setShowScamWarningModal={handleScamWarningModal}
+          maxItems={maxItems}
+          isFullView={isFullView}
         />
       ) : (
-        <>
-          {isTokensLoading && progressiveTokens.length === 0 && (
-            <Loader size="large" />
-          )}
-          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) &&
-            (calculatedListHeight ? (
-              <Box style={{ height: calculatedListHeight }}>
-                <TokenList
-                  tokenKeys={
-                    isTokensLoading ? progressiveTokens : renderedTokenKeys
-                  }
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  showRemoveMenu={showRemoveMenu}
-                  setShowScamWarningModal={handleScamWarningModal}
-                  flashListProps={flashListProps}
-                  maxItems={maxItems}
-                  isFullView={isFullView}
-                />
-              </Box>
-            ) : (
-              <TokenList
-                tokenKeys={
-                  isTokensLoading ? progressiveTokens : renderedTokenKeys
-                }
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                showRemoveMenu={showRemoveMenu}
-                setShowScamWarningModal={handleScamWarningModal}
-                flashListProps={flashListProps}
-                maxItems={maxItems}
-                isFullView={isFullView}
-              />
-            ))}
-        </>
+        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+          <TokensEmptyState />
+        </Box>
       )}
       {showScamWarningModal && (
         <ScamWarningModal
