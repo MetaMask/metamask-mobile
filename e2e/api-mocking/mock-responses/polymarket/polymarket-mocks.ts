@@ -7,7 +7,7 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../helpers/mockHelpers';
 import {
   POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-  POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE,
+  POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from './polymarket-positions-response';
 import {
@@ -276,12 +276,13 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Combine resolved markets with winning positions if includeWinnings is true
-      const resolvedMarkets =
-        POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE.map((position) => ({
+      // Combine lost positions with winning positions if includeWinnings is true
+      const resolvedMarkets = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.map(
+        (position) => ({
           ...position,
           proxyWallet: userAddress,
-        }));
+        }),
+      );
 
       let resolvedPositions = resolvedMarkets;
       if (includeWinnings) {
@@ -402,11 +403,12 @@ export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      const dynamicResponse =
-        POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE.map((position) => ({
+      const dynamicResponse = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.map(
+        (position) => ({
           ...position,
           proxyWallet: userAddress,
-        }));
+        }),
+      );
 
       return {
         statusCode: 200,
