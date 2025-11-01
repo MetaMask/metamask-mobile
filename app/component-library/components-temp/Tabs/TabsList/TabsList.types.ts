@@ -54,12 +54,6 @@ export interface TabsListProps extends BoxProps {
    * Tailwind CSS classes to apply to the tab content containers
    */
   tabsListContentTwClassName?: string;
-  /**
-   * Enable auto-height mode where each tab's content dictates its own height
-   * When false (default), tabs use flex-1 to fill available space
-   * When true, tabs measure their content height and adjust the container accordingly
-   */
-  autoHeight?: boolean;
 }
 
 /**
