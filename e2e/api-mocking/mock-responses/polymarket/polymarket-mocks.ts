@@ -8,7 +8,7 @@ import { setupMockRequest } from '../../helpers/mockHelpers';
 import {
   POLYMARKET_CURRENT_POSITIONS_RESPONSE,
   POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE,
-  createPositionsWithWinnings,
+  POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from './polymarket-positions-response';
 import {
   POLYMARKET_EVENT_DETAILS_BLUE_JAYS_MARINERS_RESPONSE,
@@ -208,11 +208,13 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
  * Mock for Polymarket positions API with controllable winning positions
  * Returns positions data for user with optional winning positions
  * This mock will trigger the CLAIM button
+ * Winning positions (redeemable=true) should be in resolved markets, not current positions
  */
 export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
   mockServer: Mockttp,
   includeWinnings: boolean = false,
 ) => {
+  // Mock for current positions (redeemable=false) - never include winning positions here
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -221,7 +223,8 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         url &&
           /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
             url,
-          ),
+          ) &&
+          !url.includes('redeemable=true'),
       );
     })
     .asPriority(999)
@@ -234,13 +237,10 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const eventIdMatch = url?.match(/eventId=([0-9]+)/);
       const eventId = eventIdMatch ? eventIdMatch[1] : null;
 
-      // Use the new function to control whether to include winning positions
-      const positionsData = createPositionsWithWinnings(includeWinnings);
-
-      // Filter positions by eventId if provided
-      let filteredPositions = positionsData;
+      // Current positions should never include winning positions
+      let filteredPositions = POLYMARKET_CURRENT_POSITIONS_RESPONSE;
       if (eventId) {
-        filteredPositions = positionsData.filter(
+        filteredPositions = POLYMARKET_CURRENT_POSITIONS_RESPONSE.filter(
           (position) => position.eventId === eventId,
         );
       }
@@ -254,6 +254,49 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       return {
         statusCode: 200,
         json: dynamicResponse,
+      };
+    });
+
+  // Mock for resolved markets (redeemable=true) - add winning positions here if includeWinnings is true
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
+            url,
+          ) &&
+          url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(999)
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Combine resolved markets with winning positions if includeWinnings is true
+      const resolvedMarkets =
+        POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE.map((position) => ({
+          ...position,
+          proxyWallet: userAddress,
+        }));
+
+      let resolvedPositions = resolvedMarkets;
+      if (includeWinnings) {
+        const winningPositions = POLYMARKET_WINNING_POSITIONS_RESPONSE.map(
+          (position) => ({
+            ...position,
+            proxyWallet: userAddress,
+          }),
+        );
+        resolvedPositions = [...resolvedMarkets, ...winningPositions];
+      }
+
+      return {
+        statusCode: 200,
+        json: resolvedPositions,
       };
     });
 };
@@ -1122,8 +1165,8 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (
 export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
   mockServer: Mockttp,
 ) => {
-  // Override redeemable positions (resolved markets) to return empty array after claiming
-  // This removes all resolved market positions so the UI updates correctly
+  // Override redeemable positions (resolved markets) to remove winning positions after claiming
+  // This removes all resolved market positions (including winning positions) so the UI updates correctly
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -1138,7 +1181,7 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
     })
     .asPriority(1000) // Higher priority to override the original redeemable positions mock
     .thenCallback(() => ({
-      // Return empty array - all resolved market positions are removed after claiming
+      // Return empty array - all resolved market positions (including winning positions) are removed after claiming
       statusCode: 200,
       json: [],
     }));
