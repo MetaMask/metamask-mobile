@@ -5,7 +5,7 @@ import {
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
-  getPredictPositionSelector,
+  PredictPositionSelectorsIDs,
 } from '../../selectors/Predict/Predict.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -163,7 +163,14 @@ class WalletView {
   }
   getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
     return Matchers.getElementByID(
-      getPredictPositionSelector.currentPositionCard,
+      PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
+      index,
+    );
+  }
+
+  getPredictResolvedPositionCardByIndex(index: number = 0): DetoxElement {
+    return Matchers.getElementByID(
+      PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD,
       index,
     );
   }
