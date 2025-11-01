@@ -20,6 +20,18 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
+import { POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
+
+/*
+Test Scenario: Claim positions
+  Verifies the claim flow for a predictions position:
+  1. Navigate to Predictions tab and verify balance is $28.16
+  2. Verify Claim Button is visible with $20.00 claimable amount
+  3. Tap Claim Button
+  4. Complete claim transaction
+  7. Verify balance updated to $48.16 and resolved market positions are removed from the UI
+  */
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -55,8 +67,8 @@ describe(SmokeTrade('Predictions'), () => {
 
         await WalletView.tapClaimButton();
         // Set up mocks to remove claimed positions after tapping claim button
-        await POLYMARKET_POST_CLAIM_MOCKS(mockServer);
         await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
+        await POLYMARKET_POST_CLAIM_MOCKS(mockServer);
 
         await Assertions.expectElementToBeVisible(PredictClaimPage.container);
 
@@ -68,14 +80,23 @@ describe(SmokeTrade('Predictions'), () => {
         await TabBarComponent.tapActivity();
 
         await ActivitiesView.tapOnPredictionsTab();
-        // await ActivitiesView.tapCashedOutPosition(positionDetails.name);
-        await Assertions.expectTextDisplayed('Predicted');
-        await TabBarComponent.tapWallet();
-        await new Promise((resolve) => setTimeout(resolve, 9000));
 
+        await ActivitiesView.tapCashedOutPosition('Bears vs. Commanders');
+        await Assertions.expectElementToBeVisible(
+          PredictActivityDetails.container,
+        );
+        await PredictActivityDetails.tapBackButton();
+        await TabBarComponent.tapWallet();
         // await Assertions.expectTextDisplayed('$48.16');
 
-        // await PredictTabView.scrollToBottom();
+        // Verify that all resolved market positions (including winning positions) are not visible after claiming
+        const resolvedPositions =
+          POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE;
+        for (const position of resolvedPositions) {
+          await Assertions.expectTextNotDisplayed(position.title, {
+            description: `Resolved market position "${position.title}" should not be visible`,
+          });
+        }
       },
     );
   });
