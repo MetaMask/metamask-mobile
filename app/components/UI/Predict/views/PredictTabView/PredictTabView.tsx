@@ -62,6 +62,21 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
     setHeaderError(error);
   }, []);
 
+  const content = (
+    <>
+      <PredictPositionsHeader
+        ref={predictPositionsHeaderRef}
+        onError={handleHeaderError}
+      />
+      <PredictPositions
+        ref={predictPositionsRef}
+        onError={handlePositionsError}
+        isVisible={isVisible}
+      />
+      <PredictAddFundsSheet />
+    </>
+  );
+
   return (
     <View
       style={tw.style(
@@ -70,10 +85,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
     >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />
+      ) : isHomepageRedesignV1Enabled ? (
+        <View testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}>{content}</View>
       ) : (
         <ScrollView
           testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
-          scrollEnabled={!isHomepageRedesignV1Enabled}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -81,16 +97,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
             />
           }
         >
-          <PredictPositionsHeader
-            ref={predictPositionsHeaderRef}
-            onError={handleHeaderError}
-          />
-          <PredictPositions
-            ref={predictPositionsRef}
-            onError={handlePositionsError}
-            isVisible={isVisible}
-          />
-          <PredictAddFundsSheet />
+          {content}
         </ScrollView>
       )}
     </View>
