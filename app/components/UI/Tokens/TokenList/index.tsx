@@ -162,7 +162,7 @@ const TokenListComponent = ({
             />
           }
           extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
-          contentContainerStyle={tw`px-4`}
+          contentContainerStyle={!isFullView ? undefined : tw`px-4`}
         />
       </Box>
     );

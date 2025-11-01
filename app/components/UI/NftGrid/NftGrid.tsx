@@ -167,7 +167,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         testID={RefreshTestId}
         decelerationRate="fast"
         refreshControl={<NftGridRefreshControl />}
-        contentContainerStyle={tw`px-4`}
+        contentContainerStyle={!isFullView ? undefined : tw`px-4`}
       />
     );
 
