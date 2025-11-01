@@ -13,7 +13,7 @@ const path = require('path');
 const { RUNTIME_VERSION } = require('../ota.config.js');
 
 // Valid environment values
-const VALID_ENVIRONMENTS = ['production', 'beta', 'rc', 'exp', 'test', 'e2e', 'dev'];
+const VALID_ENVIRONMENTS = ['beta', 'rc', 'exp', 'test', 'e2e', 'dev'];
 
 // File paths
 const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
@@ -21,12 +21,6 @@ const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 
 // Configuration map for each environment
 const CONFIG_MAP = {
-  production: {
-    channel: 'production',
-    runtimeVersion: RUNTIME_VERSION,
-    updatesEnabled: false,
-    updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
-  },
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
@@ -37,11 +31,11 @@ const CONFIG_MAP = {
 
 /**
  * Gets the configuration for a given environment
- * @param {string} environment - The METAMASK_ENVIRONMENT value
  * @returns {Object} - The configuration object with channel, runtimeVersion, and updatesEnabled
  */
-function getConfigForEnvironment(environment) {
-  return environment === 'production' ? CONFIG_MAP.production : CONFIG_MAP.rc;
+function getConfigForEnvironment() {
+  // For now, all environments use RC configuration
+  return CONFIG_MAP.rc;
 }
 
 /**
