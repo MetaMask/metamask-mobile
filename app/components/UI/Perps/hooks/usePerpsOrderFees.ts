@@ -5,7 +5,6 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { selectChainId } from '../../../../selectors/networkController';
-import { usePerpsTrading } from './usePerpsTrading';
 
 import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
@@ -19,6 +18,8 @@ import {
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+import { usePerpsTrading } from './usePerpsTrading';
+import { determineMakerStatus } from '../utils/orderUtils';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -82,60 +83,6 @@ interface UsePerpsOrderFeesParams {
   currentAskPrice?: number;
   /** Real bid price from L2 order book */
   currentBidPrice?: number;
-}
-
-/**
- * Determines if a limit order will likely be a maker or taker
- *
- * Logic:
- * 1. Validates price data freshness and market state
- * 2. Market orders are always taker
- * 3. Limit orders that would execute immediately are taker
- * 4. Limit orders that go into order book are maker
- *
- * @param params Order parameters
- * @returns boolean - true if maker, false if taker
- */
-function determineMakerStatus(params: {
-  orderType: 'market' | 'limit';
-  limitPrice?: string;
-  direction: 'long' | 'short';
-  bestAsk?: number;
-  bestBid?: number;
-  coin?: string;
-}): boolean {
-  const { orderType, limitPrice, direction, bestAsk, bestBid, coin } = params;
-  // Market orders are always taker
-  if (orderType === 'market') {
-    return false;
-  }
-
-  // Default to taker when limit price is not specified
-  if (!limitPrice || limitPrice === '') {
-    return false;
-  }
-
-  const limitPriceNum = Number.parseFloat(limitPrice);
-
-  if (Number.isNaN(limitPriceNum) || limitPriceNum <= 0) {
-    return false;
-  }
-
-  if (bestBid !== undefined && bestAsk !== undefined) {
-    if (direction === 'long') {
-      return limitPriceNum < bestAsk;
-    }
-
-    // Short direction
-    return limitPriceNum > bestBid;
-  }
-
-  // Default to taker when no bid/ask data is available
-  DevLogger.log(
-    'Fee Calculation: No bid/ask data available, using conservative taker fee',
-    { coin },
-  );
-  return false;
 }
 
 /**
@@ -244,9 +191,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const feeDiscountStartTime = performance.now();
-        const discountBips = await RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        );
+        const discountBips =
+          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance
@@ -337,9 +283,8 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const pointsEstimationStartTime = performance.now();
-        const result = await RewardsController.estimatePoints(
-          estimatePointsDto,
-        );
+        const result =
+          await RewardsController.estimatePoints(estimatePointsDto);
         const pointsEstimationDuration =
           performance.now() - pointsEstimationStartTime;
 
@@ -596,6 +541,7 @@ export function usePerpsOrderFees({
           orderType,
           isMaker,
           amount,
+          coin,
         });
 
         if (!isComponentMounted) return;
@@ -660,6 +606,7 @@ export function usePerpsOrderFees({
     orderType,
     isMaker,
     amount,
+    coin,
     calculateFees,
     applyFeeDiscount,
     handlePointsEstimation,

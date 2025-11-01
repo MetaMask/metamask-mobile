@@ -1,6 +1,16 @@
-import { calculateFundingCountdown, calculate24hHighLow } from './marketUtils';
+import {
+  calculateFundingCountdown,
+  calculate24hHighLow,
+  getAssetIconUrl,
+} from './marketUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
+
+jest.mock('../constants/hyperLiquidConfig', () => ({
+  HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
+  HIP3_ASSET_ICONS_BASE_URL:
+    'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
+}));
 
 describe('marketUtils', () => {
   describe('calculateFundingCountdown', () => {
@@ -324,6 +334,80 @@ describe('marketUtils', () => {
       };
       const result = calculate24hHighLow(singleCandleData);
       expect(result).toEqual({ high: 120, low: 80 });
+    });
+  });
+
+  describe('getAssetIconUrl', () => {
+    it('returns Hyperliquid URL for regular asset', () => {
+      const symbol = 'BTC';
+
+      const result = getAssetIconUrl(symbol);
+
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/BTC.svg');
+    });
+
+    it('returns GitHub URL for HIP-3 asset with colon replaced by underscore', () => {
+      const symbol = 'xyz:TSLA';
+
+      const result = getAssetIconUrl(symbol);
+
+      expect(result).toBe(
+        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
+      );
+    });
+
+    it('returns GitHub URL for HIP-3 asset with different DEX prefix', () => {
+      const symbol = 'abc:XYZ100';
+
+      const result = getAssetIconUrl(symbol);
+
+      expect(result).toBe(
+        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Aabc_XYZ100.svg',
+      );
+    });
+
+    it('removes k prefix for specified assets', () => {
+      const symbol = 'kBONK';
+      const kPrefixAssets = new Set(['KBONK']);
+
+      const result = getAssetIconUrl(symbol, kPrefixAssets);
+
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/BONK.svg');
+    });
+
+    it('does not remove k prefix for assets not in the set', () => {
+      const symbol = 'kBONK';
+      const kPrefixAssets = new Set(['KPEPE']);
+
+      const result = getAssetIconUrl(symbol, kPrefixAssets);
+
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/KBONK.svg');
+    });
+
+    it('returns empty string for empty symbol', () => {
+      const symbol = '';
+
+      const result = getAssetIconUrl(symbol);
+
+      expect(result).toBe('');
+    });
+
+    it('uppercases lowercase symbols for regular assets', () => {
+      const symbol = 'btc';
+
+      const result = getAssetIconUrl(symbol);
+
+      expect(result).toBe('https://app.hyperliquid.xyz/coins/BTC.svg');
+    });
+
+    it('uppercases lowercase symbols for HIP-3 assets', () => {
+      const symbol = 'xyz:tsla';
+
+      const result = getAssetIconUrl(symbol);
+
+      expect(result).toBe(
+        'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
+      );
     });
   });
 });

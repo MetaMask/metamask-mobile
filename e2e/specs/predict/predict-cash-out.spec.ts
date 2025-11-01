@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
+import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
@@ -10,7 +10,6 @@ import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_CASH_OUT_MOCKS,
-  POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS,
   POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
@@ -47,7 +46,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };
 
-describe(SmokeTrade('Predictions'), () => {
+describe(SmokePredictions('Predictions'), () => {
   it('should cash out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
@@ -66,16 +65,16 @@ describe(SmokeTrade('Predictions'), () => {
         await Assertions.expectTextDisplayed(positionDetails.initialBalance);
 
         await WalletView.tapOnPredictionsPosition(positionDetails.name);
+        await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
         // Set up cash out mocks before tapping cash out
+        // POLYMARKET_POST_CASH_OUT_MOCKS handles both the transaction API and balance refresh
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
-        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
         await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
 
         await PredictDetailsPage.tapCashOutButton();
-
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(
@@ -83,6 +82,7 @@ describe(SmokeTrade('Predictions'), () => {
         );
 
         await PredictCashOutPage.tapCashOutButton();
+        await device.enableSynchronization();
 
         await PredictDetailsPage.tapBackButton();
         await TabBarComponent.tapActivity();

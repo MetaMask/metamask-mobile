@@ -1,44 +1,44 @@
-import { Messenger } from '@metamask/base-controller';
-import { GetAllSnaps, HandleSnapRequest } from '@metamask/snaps-controllers';
-import { GetPermissions } from '@metamask/permission-controller';
-import { AccountsControllerListMultichainAccountsAction } from '@metamask/accounts-controller';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { MultichainRouterMessenger } from '@metamask/snaps-controllers';
 import {
   KeyringControllerAddNewKeyringAction,
   KeyringControllerGetKeyringsByTypeAction,
 } from '@metamask/keyring-controller';
-
-type AllowedActions =
-  | GetAllSnaps
-  | HandleSnapRequest
-  | GetPermissions
-  | AccountsControllerListMultichainAccountsAction;
-
-type AllowedEvents = never;
-
-export type MultichainRouterMessenger = ReturnType<
-  typeof getMultichainRouterMessenger
->;
+import { RootMessenger } from '../types';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * multichain router is allowed to handle.
+ * Get the MultichainRouterMessenger for the MultichainRouter.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The MultichainRouterMessenger.
  */
 export function getMultichainRouterMessenger(
-  messenger: Messenger<AllowedActions, AllowedEvents>,
-) {
-  return messenger.getRestricted({
-    name: 'MultichainRouter',
-    allowedActions: [
+  rootMessenger: RootMessenger,
+): MultichainRouterMessenger {
+  const messenger = new Messenger<
+    'MultichainRouter',
+    MessengerActions<MultichainRouterMessenger>,
+    MessengerEvents<MultichainRouterMessenger>,
+    RootMessenger
+  >({
+    namespace: 'MultichainRouter',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'SnapController:getAll',
       'SnapController:handleRequest',
       'PermissionController:getPermissions',
       'AccountsController:listMultichainAccounts',
     ],
-    allowedEvents: [],
+    events: [],
+    messenger,
   });
+  return messenger;
 }
 
 type AllowedInitializationActions =
@@ -50,21 +50,29 @@ export type MultichainRouterInitMessenger = ReturnType<
 >;
 
 /**
- * Get a messenger restricted to the initialization actions that the
+ * Get the MultichainRouterInitMessenger for the MultichainRouter.
  * multichain router is allowed to handle.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The MultichainRouterInitMessenger.
  */
-export function getMultichainRouterInitMessenger(
-  messenger: Messenger<AllowedInitializationActions, never>,
-) {
-  return messenger.getRestricted({
-    name: 'MultichainRouterInit',
-    allowedActions: [
+export function getMultichainRouterInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'MultichainRouterInit',
+    AllowedInitializationActions,
+    never,
+    RootMessenger
+  >({
+    namespace: 'MultichainRouterInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'KeyringController:addNewKeyring',
       'KeyringController:getKeyringsByType',
     ],
-    allowedEvents: [],
+    events: [],
+    messenger,
   });
+  return messenger;
 }

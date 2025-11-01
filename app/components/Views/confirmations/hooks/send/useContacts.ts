@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { type RecipientType } from '../../components/UI/recipient';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../utils/send-address-validations';
 import { useSendType } from './useSendType';
 
 export const useContacts = () => {
@@ -26,10 +27,11 @@ export const useContacts = () => {
     });
 
     return flattenedContacts.filter((contact) => {
-      // Only possibility to check if the address is EVM compatible because contacts are only EVM compatible as of now
       if (isEvmSendType) {
         return (
-          contact.address.startsWith('0x') && contact.address.length === 42
+          contact.address.startsWith('0x') &&
+          contact.address.length === 42 &&
+          !LOWER_CASED_BURN_ADDRESSES.includes(contact.address.toLowerCase())
         );
       }
       return true;
