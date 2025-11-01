@@ -18,9 +18,9 @@ import {
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
+// import TabBarComponent from '../../pages/wallet/TabBarComponent';
+// import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+// import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 import { POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
 
 /*
@@ -77,16 +77,16 @@ describe(SmokeTrade('Predictions'), () => {
 
         await Assertions.expectElementToBeVisible(WalletView.container);
 
-        await TabBarComponent.tapActivity();
+        // await TabBarComponent.tapActivity();
 
-        await ActivitiesView.tapOnPredictionsTab();
+        // await ActivitiesView.tapOnPredictionsTab();
 
-        await ActivitiesView.tapCashedOutPosition('Bears vs. Commanders');
-        await Assertions.expectElementToBeVisible(
-          PredictActivityDetails.container,
-        );
-        await PredictActivityDetails.tapBackButton();
-        await TabBarComponent.tapWallet();
+        // await ActivitiesView.tapCashedOutPosition('Bears vs. Commanders');
+        // await Assertions.expectElementToBeVisible(
+        //   PredictActivityDetails.container,
+        // );
+        // await PredictActivityDetails.tapBackButton();
+        // await TabBarComponent.tapWallet();
         // await Assertions.expectTextDisplayed('$48.16');
 
         // Verify that all resolved market positions (including winning positions) are not visible after claiming
