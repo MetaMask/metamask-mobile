@@ -14,9 +14,6 @@ import { runOnJS } from 'react-native-reanimated';
 import TabsBar from '../TabsBar';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
-// Timing constant for preloading adjacent tabs
-const ADJACENT_PRELOAD_DELAY = 500;
-
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
     {
@@ -62,6 +59,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [children],
     );
 
+    // Cache only the actively viewed tab (no preloading of adjacent tabs)
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {
         setLoadedTabs((prev) => {
@@ -71,38 +69,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         });
       }
     }, [activeIndex, tabs.length]);
-
-    useEffect(() => {
-      if (activeIndex >= 0) {
-        const preloadTimer = setTimeout(() => {
-          setLoadedTabs((prev) => {
-            const newLoadedTabs = new Set(prev);
-            let hasChanges = false;
-
-            if (activeIndex > 0 && !tabs[activeIndex - 1]?.isDisabled) {
-              if (!newLoadedTabs.has(activeIndex - 1)) {
-                newLoadedTabs.add(activeIndex - 1);
-                hasChanges = true;
-              }
-            }
-
-            if (
-              activeIndex < tabs.length - 1 &&
-              !tabs[activeIndex + 1]?.isDisabled
-            ) {
-              if (!newLoadedTabs.has(activeIndex + 1)) {
-                newLoadedTabs.add(activeIndex + 1);
-                hasChanges = true;
-              }
-            }
-
-            return hasChanges ? newLoadedTabs : prev;
-          });
-        }, ADJACENT_PRELOAD_DELAY);
-
-        return () => clearTimeout(preloadTimer);
-      }
-    }, [activeIndex, tabs]);
 
     useEffect(() => {
       const currentActiveTabKey = tabs[activeIndex]?.key;
