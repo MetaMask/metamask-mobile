@@ -205,7 +205,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
       )}
       {/* View all NFTs button - shown when there are more items than maxItems */}
       {maxItems && allFilteredCollectibles.length > maxItems && (
-        <Box twClassName="pt-5 pb-7">
+        <Box twClassName="pt-3 pb-9">
           <Button
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllNfts}
