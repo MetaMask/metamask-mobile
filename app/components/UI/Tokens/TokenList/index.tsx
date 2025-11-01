@@ -22,7 +22,6 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TokensEmptyState } from '../../TokensEmptyState';
 
 export interface FlashListAssetKey {
   address: string;
@@ -76,12 +75,6 @@ const TokenListComponent = ({
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
   }, [isTokenNetworkFilterEqualCurrentNetwork]);
-
-  const handleLink = () => {
-    navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.ONBOARDING.GENERAL_SETTINGS,
-    });
-  };
 
   const handleViewAllTokens = useCallback(() => {
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
@@ -174,13 +167,7 @@ const TokenListComponent = ({
       </Box>
     );
 
-  return displayTokenKeys?.length ? (
-    tokenList
-  ) : (
-    <Box twClassName={'items-center'}>
-      <TokensEmptyState />
-    </Box>
-  );
+  return tokenList;
 };
 
 export const TokenList = React.memo(TokenListComponent);
