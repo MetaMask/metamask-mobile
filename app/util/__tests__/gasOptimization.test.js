@@ -165,6 +165,33 @@ describe('Gas Optimization Utilities', () => {
 
       expect(result.maxFeePerGas.gte(0)).toBe(true);
       expect(result.maxPriorityFeePerGas.gte(0)).toBe(true);
+      expect(result.potentialSavings.percentageSavings.isFinite()).toBe(true);
+      expect(result.potentialSavings.absoluteSavings.isFinite()).toBe(true);
+    });
+
+    it('should handle zero median gas price in congestion analysis', () => {
+      const networkData = {
+        pendingTransactions: 1000,
+        averageGasPrice: new BigNumber('20'),
+        medianGasPrice: new BigNumber('0')
+      };
+      
+      const result = analyzeNetworkCongestion(networkData);
+      expect(result).toBe(NETWORK_CONGESTION_LEVELS.LOW);
+    });
+
+    it('should handle undefined transaction context gracefully', () => {
+      const result = getGasOptimizationRecommendations();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(0);
+    });
+
+    it('should handle partial transaction context', () => {
+      const result = getGasOptimizationRecommendations({
+        urgency: 'low'
+        // Missing networkConditions and userPreferences
+      });
+      expect(Array.isArray(result)).toBe(true);
     });
 
     it('should handle very large gas prices', () => {

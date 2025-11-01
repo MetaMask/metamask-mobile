@@ -311,7 +311,10 @@ const GasOptimizationSuggestions = ({
           <View style={styles.resultRow}>
             <Text style={styles.resultLabel}>Estimated confirmation:</Text>
             <Text style={styles.resultValue}>
-              {Math.round(optimizationResults.estimatedConfirmationTime / 60)} min
+              {optimizationResults.estimatedConfirmationTime < 60 
+                ? `${optimizationResults.estimatedConfirmationTime}s`
+                : `${Math.round(optimizationResults.estimatedConfirmationTime / 60)} min`
+              }
             </Text>
           </View>
           {optimizationResults.potentialSavings.isOptimized && (

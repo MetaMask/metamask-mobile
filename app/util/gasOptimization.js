@@ -45,9 +45,12 @@ export function analyzeNetworkCongestion(networkData) {
   const { pendingTransactions, averageGasPrice, medianGasPrice } = networkData;
   
   // Calculate gas price volatility indicator
-  const priceVolatility = averageGasPrice.minus(medianGasPrice)
-    .dividedBy(medianGasPrice)
-    .abs();
+  // Handle zero median gas price to prevent division by zero
+  const priceVolatility = medianGasPrice.eq(0) 
+    ? new BigNumber(0)
+    : averageGasPrice.minus(medianGasPrice)
+        .dividedBy(medianGasPrice)
+        .abs();
   
   // Determine congestion level based on pending transactions and price volatility
   if (pendingTransactions > 50000 || priceVolatility.gt(0.5)) {
@@ -170,7 +173,11 @@ function calculatePotentialSavings(baseFee, priorityFee, optimizedFee) {
   // Assume naive approach uses 2x current fees
   const naiveApproachFee = baseFee.plus(priorityFee).multipliedBy(2);
   const savings = naiveApproachFee.minus(optimizedFee);
-  const savingsPercentage = savings.dividedBy(naiveApproachFee).multipliedBy(100);
+  
+  // Handle zero naive approach fee to prevent division by zero
+  const savingsPercentage = naiveApproachFee.eq(0) 
+    ? new BigNumber(0)
+    : savings.dividedBy(naiveApproachFee).multipliedBy(100);
   
   return {
     absoluteSavings: savings.gt(0) ? savings : new BigNumber(0),
@@ -251,12 +258,12 @@ function calculateBatchGasSavings(transactions) {
  * @returns {Object} User-friendly recommendations
  */
 export function getGasOptimizationRecommendations(transactionContext) {
-  const { urgency, transactionType, networkConditions, userPreferences } = transactionContext;
+  const { urgency, transactionType, networkConditions, userPreferences } = transactionContext || {};
   
   const recommendations = [];
   
   // Add urgency-based recommendations
-  if (urgency === 'low' && networkConditions.congestion === NETWORK_CONGESTION_LEVELS.HIGH) {
+  if (urgency === 'low' && networkConditions?.congestion === NETWORK_CONGESTION_LEVELS.HIGH) {
     recommendations.push({
       type: 'timing',
       message: 'Network is congested. Consider waiting 1-2 hours for lower fees.',
@@ -265,7 +272,7 @@ export function getGasOptimizationRecommendations(transactionContext) {
   }
   
   // Add transaction-type specific recommendations
-  if (transactionType === 'token_transfer' && userPreferences.costSensitive) {
+  if (transactionType === 'token_transfer' && userPreferences?.costSensitive) {
     recommendations.push({
       type: 'strategy',
       message: 'Use Economy mode for token transfers to minimize costs.',
