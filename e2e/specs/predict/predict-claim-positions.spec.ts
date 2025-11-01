@@ -45,7 +45,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true); // Include winnings for claim flow
 };
-
+const LOST_POSITION = 'Bears vs. Commanders';
 describe(SmokeTrade('Predictions'), () => {
   it('should claim positions', async () => {
     await withFixtures(
@@ -100,13 +100,13 @@ describe(SmokeTrade('Predictions'), () => {
 
         await ActivitiesView.tapOnPredictionsTab();
 
-        await ActivitiesView.tapPredictPosition('Bears vs. Commanders');
+        await ActivitiesView.tapPredictPosition(LOST_POSITION);
         await Assertions.expectElementToBeVisible(
           PredictActivityDetails.container,
         );
         await PredictActivityDetails.tapBackButton();
         await TabBarComponent.tapWallet();
-        // await Assertions.expectTextDisplayed('$48.16');
+        await Assertions.expectTextDisplayed('$48.16');
       },
     );
   });
