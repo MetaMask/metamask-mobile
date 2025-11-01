@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
+import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
@@ -46,7 +46,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true); // Include winnings for claim flow
 };
 const LOST_POSITION = 'Bears vs. Commanders';
-describe(SmokeTrade('Predictions'), () => {
+describe(SmokePredictions('Predictions'), () => {
   it('should claim positions', async () => {
     await withFixtures(
       {
