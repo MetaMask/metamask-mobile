@@ -521,7 +521,6 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP'],
         callback: expect.any(Function),
-        includeOrderBook: true,
       });
     });
   });
@@ -1135,7 +1134,6 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP', 'ETH-PERP'],
         callback: expect.any(Function),
-        includeOrderBook: true,
       });
     });
   });
@@ -1413,6 +1411,69 @@ describe('PerpsStreamManager', () => {
       // Assert - the new code includes both race condition prevention and error logging
       expect(mockPerpsConnectionManager.isCurrentlyConnecting).toBeDefined();
       expect(mockLogger.error).toBeDefined();
+    });
+  });
+
+  describe('OrderBookStreamChannel', () => {
+    it('subscribes to order books with includeOrderBook flag', () => {
+      const callback = jest.fn();
+
+      testStreamManager.orderBooks.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        includeOrderBook: true,
+        callback: expect.any(Function),
+      });
+    });
+
+    it('filters order books to requested symbols', () => {
+      const callback = jest.fn();
+
+      testStreamManager.orderBooks.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([
+        { coin: 'BTC', bestBid: '50000', bestAsk: '50001' },
+        { coin: 'ETH', bestBid: '3000', bestAsk: '3001' },
+      ]);
+
+      expect(callback).toHaveBeenCalledWith({
+        BTC: { bestBid: '50000', bestAsk: '50001', spread: undefined },
+      });
+    });
+
+    it('does not subscribe when symbols array is empty', () => {
+      const callback = jest.fn();
+
+      testStreamManager.orderBooks.subscribeToSymbols({
+        symbols: [],
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('clears order book cache when clearCache called', () => {
+      const callback = jest.fn();
+
+      testStreamManager.orderBooks.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ coin: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
+
+      testStreamManager.orderBooks.clearCache();
+
+      expect(callback).toHaveBeenCalledWith({});
     });
   });
 });
