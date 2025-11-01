@@ -591,7 +591,7 @@ describe('formatUtils', () => {
   });
 
   describe('formatTimeRemaining', () => {
-    it('should return formatted time with days and hours when hours > 0', () => {
+    it('returns formatted time with days, hours, and minutes when all are positive', () => {
       // Given: 2 days, 5 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 2,
@@ -604,14 +604,14 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('2d 5h');
+      // Then: should return days, hours, and minutes format
+      expect(result).toBe('2d 5h 30m');
       expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledWith(
         endDate.getTime(),
       );
     });
 
-    it('should return formatted time with only minutes when hours = 0 and minutes > 0', () => {
+    it('returns formatted time with only minutes when hours and days are zero', () => {
       // Given: 0 hours, 45 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -628,7 +628,7 @@ describe('formatUtils', () => {
       expect(result).toBe('45m');
     });
 
-    it('should return null when both hours and minutes are 0', () => {
+    it('returns null when days, hours, and minutes are all zero', () => {
       // Given: 0 hours, 0 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -645,7 +645,7 @@ describe('formatUtils', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null when minutes are negative (past date)', () => {
+    it('returns null when time values are negative for past date', () => {
       // Given: negative minutes (past date)
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -662,7 +662,7 @@ describe('formatUtils', () => {
       expect(result).toBeNull();
     });
 
-    it('should handle edge case with 0 days, 1 hour, 0 minutes', () => {
+    it('returns only hours when days and minutes are zero', () => {
       // Given: exactly 1 hour remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -675,11 +675,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('0d 1h');
+      // Then: should return hours format only
+      expect(result).toBe('1h');
     });
 
-    it('should handle large time differences correctly', () => {
+    it('returns days, hours, and minutes for large time differences', () => {
       // Given: 365 days, 23 hours, 59 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 365,
@@ -692,11 +692,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('365d 23h');
+      // Then: should return days, hours, and minutes format
+      expect(result).toBe('365d 23h 59m');
     });
 
-    it('should handle single digit values correctly', () => {
+    it('returns single digit values without padding', () => {
       // Given: 1 day, 1 hour, 1 minute remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 1,
@@ -709,11 +709,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format without padding
-      expect(result).toBe('1d 1h');
+      // Then: should return days, hours, and minutes format without padding
+      expect(result).toBe('1d 1h 1m');
     });
 
-    it('should prioritize hours over minutes when hours > 0', () => {
+    it('returns hours and minutes when days are zero', () => {
       // Given: 0 days, 2 hours, 59 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -726,11 +726,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format (ignoring minutes)
-      expect(result).toBe('0d 2h');
+      // Then: should return hours and minutes format
+      expect(result).toBe('2h 59m');
     });
 
-    it('should handle exactly 1 minute remaining', () => {
+    it('returns exactly 1 minute when only minutes remain', () => {
       // Given: exactly 1 minute remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -747,7 +747,7 @@ describe('formatUtils', () => {
       expect(result).toBe('1m');
     });
 
-    it('should handle zero days with hours correctly', () => {
+    it('returns hours and minutes when days are zero', () => {
       // Given: 0 days, 12 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -760,11 +760,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format with 0 days
-      expect(result).toBe('0d 12h');
+      // Then: should return hours and minutes format
+      expect(result).toBe('12h 30m');
     });
 
-    it('should call getTimeDifferenceFromNow with correct timestamp', () => {
+    it('calls getTimeDifferenceFromNow with correct timestamp', () => {
       // Given: a specific end date
       const endDate = new Date('2024-06-15T10:30:00Z');
       const expectedTimestamp = endDate.getTime();
@@ -783,6 +783,57 @@ describe('formatUtils', () => {
         expectedTimestamp,
       );
       expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns days and minutes when hours are zero', () => {
+      // Given: 3 days, 0 hours, 15 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 3,
+        hours: 0,
+        minutes: 15,
+      });
+
+      const endDate = new Date('2024-01-04T12:15:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and minutes format
+      expect(result).toBe('3d 15m');
+    });
+
+    it('returns only days when hours and minutes are zero', () => {
+      // Given: 5 days, 0 hours, 0 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 5,
+        hours: 0,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-01-06T12:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days format only
+      expect(result).toBe('5d');
+    });
+
+    it('trims trailing space when minutes are zero', () => {
+      // Given: 2 days, 3 hours, 0 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 2,
+        hours: 3,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-12-31T15:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format without trailing space
+      expect(result).toBe('2d 3h');
     });
   });
 

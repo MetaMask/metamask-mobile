@@ -81,7 +81,10 @@ function NetworksFilterSelector({
         style={styles.list}
         data={networks}
         renderItem={({ item: chainId }) => (
-          <ListItemSelect onPress={handleNetworkOnPress(chainId)}>
+          <ListItemSelect
+            shouldEnableAndroidPressIn
+            onPress={handleNetworkOnPress(chainId)}
+          >
             <ListItemColumn>
               <Checkbox
                 isChecked={networkFilter?.includes(chainId) ?? false}

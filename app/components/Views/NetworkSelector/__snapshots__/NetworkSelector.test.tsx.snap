@@ -1462,7 +1462,6 @@ exports[`Network Selector renders correctly 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -4528,7 +4527,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

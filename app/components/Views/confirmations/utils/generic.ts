@@ -1,7 +1,9 @@
+import { Hex } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import { NavigationRoute } from '../../../UI/Carousel/types';
 import { TokenI } from '../../../UI/Tokens/types';
+import { getNativeTokenAddress } from './asset';
 
 export const getHostFromUrl = (url: string) => {
   if (!url) {
@@ -15,8 +17,13 @@ export const getHostFromUrl = (url: string) => {
   return;
 };
 
-export const isNativeToken = (selectedAsset: TokenI) =>
-  selectedAsset.isNative || selectedAsset.isETH;
+export const isNativeToken = (selectedAsset: TokenI) => {
+  const { isNative, isETH, chainId } = selectedAsset;
+  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
+  const isNativeTokenAddress = selectedAsset.address === nativeTokenAddress;
+
+  return isNative || isETH || isNativeTokenAddress;
+};
 
 export function createSmartAccountNavigationDetails(): NavigationRoute {
   if (Engine.context.PreferencesController.state.smartAccountOptIn === true) {

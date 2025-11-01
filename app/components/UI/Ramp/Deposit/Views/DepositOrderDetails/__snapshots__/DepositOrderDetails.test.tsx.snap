@@ -141,7 +141,6 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",

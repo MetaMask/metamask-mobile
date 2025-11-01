@@ -1019,7 +1019,6 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                   loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -1060,7 +1059,6 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                   loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -2342,7 +2340,6 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                   loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",
@@ -2383,7 +2380,6 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                   loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
                                       "alignItems": "center",

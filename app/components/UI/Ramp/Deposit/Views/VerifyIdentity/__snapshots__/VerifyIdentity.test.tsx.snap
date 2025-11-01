@@ -550,7 +550,6 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

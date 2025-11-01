@@ -1498,7 +1498,6 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -2290,7 +2289,6 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -3830,7 +3828,6 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -4622,7 +4619,6 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

@@ -544,7 +544,6 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",

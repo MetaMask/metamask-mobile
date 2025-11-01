@@ -74,6 +74,10 @@
     "perps_hardware_account": {
       "title": "Wallet not supported",
       "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+    },
+    "burn_address": {
+      "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
+      "title": "Sending Assets to Burn Address"
     }
   },
   "blockaid_banner": {

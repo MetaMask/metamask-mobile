@@ -24,7 +24,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -91,7 +90,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -154,7 +152,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -217,7 +214,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -277,7 +273,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -466,7 +461,6 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
-      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",

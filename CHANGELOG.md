@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.57.2]
+
+### Fixed
+- chore(runway): cherry-pick fix:  remove currency rates multichain ([#22022](https://github.com/MetaMask/metamask-mobile/pull/22022))
+- chore(runway): cherry-pick feat: Implement extra validations and alert when sending burn address in EVM transfer transactions ([#22018](https://github.com/MetaMask/metamask-mobile/pull/22018))
+- chore(runway): cherry-pick feat: Accurate opt out translations for rewards cp-7.57.2 ([#22021](https://github.com/MetaMask/metamask-mobile/pull/22021))
+- chore(runway): cherry-pick fix: cp-7.58.0 formatTimeRemaining to correctly display time remaining ([#21868](https://github.com/MetaMask/metamask-mobile/pull/21868))
+
 ## [7.57.1]
 
 ### Fixed
@@ -7639,7 +7647,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.2...HEAD
+[7.57.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.1...v7.57.2
 [7.57.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.0...v7.57.1
 [7.57.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.5...v7.57.0
 [7.56.5]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.4...v7.56.5

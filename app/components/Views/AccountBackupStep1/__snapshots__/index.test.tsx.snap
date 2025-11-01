@@ -172,7 +172,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -210,7 +209,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -423,7 +421,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -461,7 +458,6 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -674,7 +670,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -712,7 +707,6 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -925,7 +919,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -963,7 +956,6 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1176,7 +1168,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1214,7 +1205,6 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",

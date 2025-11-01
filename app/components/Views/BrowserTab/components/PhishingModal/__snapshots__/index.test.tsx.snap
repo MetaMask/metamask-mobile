@@ -321,7 +321,6 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
-          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",

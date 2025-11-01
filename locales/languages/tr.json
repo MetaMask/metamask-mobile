@@ -6166,9 +6166,9 @@
       "link_account_unknown_error": "Bilinmeyen bir hata oluştu"
     },
     "optout": {
-      "title": "Ödüllerden Ayrıl",
-      "description": "Bu işlem hesaplarınızı Ödüller programından kaldırır ve puanlarınızı ve ilerlemenizi siler. Bu işlemi geri alamazsınız.",
-      "confirm": "Ayrıl",
+      "title": "Ödüller Programını Sil",
+      "description": "Bu işlem, hesaplarınızı Ödüller programından kaldırır ve tüm puanlarınızı ile ilerlemenizi siler. Bu işlemi geri alamazsınız.",
+      "confirm": "Sil",
       "modal": {
         "confirmation_title": "Emin misiniz?",
         "confirmation_description": "Bu işlem tüm ilerlemenizi kaldırır ve geri alınamaz. Ödüller programına daha sonra tekrar katılırsanız 0'dan başlayacaksınız.",
