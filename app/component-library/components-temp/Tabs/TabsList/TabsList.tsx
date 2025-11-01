@@ -136,16 +136,22 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     const goToPreviousTab = useCallback(() => {
-      const prevIndex = activeIndex - 1;
-      if (prevIndex >= 0 && !tabs[prevIndex]?.isDisabled) {
-        handleTabPress(prevIndex);
+      // Iterate backwards to find the next enabled tab
+      for (let i = activeIndex - 1; i >= 0; i--) {
+        if (!tabs[i]?.isDisabled) {
+          handleTabPress(i);
+          return;
+        }
       }
     }, [activeIndex, tabs, handleTabPress]);
 
     const goToNextTab = useCallback(() => {
-      const nextIndex = activeIndex + 1;
-      if (nextIndex < tabs.length && !tabs[nextIndex]?.isDisabled) {
-        handleTabPress(nextIndex);
+      // Iterate forwards to find the next enabled tab
+      for (let i = activeIndex + 1; i < tabs.length; i++) {
+        if (!tabs[i]?.isDisabled) {
+          handleTabPress(i);
+          return;
+        }
       }
     }, [activeIndex, tabs, handleTabPress]);
 
