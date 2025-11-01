@@ -134,9 +134,7 @@ describe('addTransactionForDeeplink', () => {
     jest.clearAllMocks();
     mockGetSelectedAccount.mockReturnValue({
       address: FROM_ADDRESS_MOCK,
-    } as ReturnType<
-      typeof Engine.context.AccountsController.getSelectedAccount
-    >);
+    } as ReturnType<typeof Engine.context.AccountsController.getSelectedAccount>);
     mockFindNetworkClientIdByChainId.mockReturnValue('mainnet');
   });
 

@@ -1,44 +1,53 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { AccountTrackerControllerMessenger } from '@metamask/assets-controllers';
-import { RootMessenger } from '../types';
+import { Messenger } from '@metamask/base-controller';
+import type {
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerListAccountsAction,
+  AccountsControllerSelectedAccountChangeEvent,
+  AccountsControllerSelectedEvmAccountChangeEvent,
+} from '@metamask/accounts-controller';
+import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
+import type {
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetStateAction,
+} from '@metamask/network-controller';
+
+type AllowedActions =
+  | AccountsControllerListAccountsAction
+  | PreferencesControllerGetStateAction
+  | AccountsControllerGetSelectedAccountAction
+  | NetworkControllerGetStateAction
+  | NetworkControllerGetNetworkClientByIdAction;
+
+type AllowedEvents =
+  | AccountsControllerSelectedEvmAccountChangeEvent
+  | AccountsControllerSelectedAccountChangeEvent;
+
+export type AccountTrackerControllerMessenger = ReturnType<
+  typeof getAccountTrackerControllerMessenger
+>;
 
 /**
- * Get the AccountTrackerControllerMessenger for the AccountTrackerController.
+ * Get a messenger restricted to the actions and events that the
+ * account tracker controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The AccountTrackerControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getAccountTrackerControllerMessenger(
-  rootMessenger: RootMessenger,
-): AccountTrackerControllerMessenger {
-  const messenger = new Messenger<
-    'AccountTrackerController',
-    MessengerActions<AccountTrackerControllerMessenger>,
-    MessengerEvents<AccountTrackerControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'AccountTrackerController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'AccountTrackerController',
+    allowedActions: [
       'AccountsController:getSelectedAccount',
       'AccountsController:listAccounts',
       'PreferencesController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
     ],
-    events: [
+    allowedEvents: [
       'AccountsController:selectedEvmAccountChange',
       'AccountsController:selectedAccountChange',
-      'TransactionController:transactionConfirmed',
-      'TransactionController:unapprovedTransactionAdded',
     ],
-    messenger,
   });
-  return messenger;
 }

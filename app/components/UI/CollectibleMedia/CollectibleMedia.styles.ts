@@ -51,7 +51,7 @@ const styleSheet = (params: {
     textContainer: {
       alignItems: 'center',
       justifyContent: 'flex-start',
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.alternative,
       borderRadius: 8,
     },
     textWrapper: {

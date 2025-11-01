@@ -53,8 +53,9 @@ const useRegisterPhysicalAddress = (): {
         setIsSuccess(false);
         setError(null);
 
-        const registerAddressResponse =
-          await sdk.registerPhysicalAddress(request);
+        const registerAddressResponse = await sdk.registerPhysicalAddress(
+          request,
+        );
 
         setIsSuccess(true);
 

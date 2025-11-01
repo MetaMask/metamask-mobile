@@ -21,6 +21,8 @@ import Button, {
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -31,8 +33,9 @@ const NFTAutoDetectionModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const chainId = useSelector(selectEvmChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
   const enableNftDetectionAndDismissModal = (value: boolean) => {
     if (value) {
@@ -49,6 +52,22 @@ const NFTAutoDetectionModal = () => {
         }),
       };
       addTraitsToUser(traits);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE)
+          .addProperties({
+            chainId,
+          })
+          .build(),
+      );
+    } else {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE)
+          .addProperties({
+            chainId,
+          })
+          .build(),
+      );
     }
 
     if (sheetRef?.current) {

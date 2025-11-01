@@ -2101,8 +2101,9 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       // Act
-      const result =
-        await Authentication.importSeedlessMnemonicToVault(mnemonic);
+      const result = await Authentication.importSeedlessMnemonicToVault(
+        mnemonic,
+      );
 
       // Assert
       expect(

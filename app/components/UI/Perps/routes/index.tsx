@@ -4,78 +4,51 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
-import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
+import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
-import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
-import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
-import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
-import { HIP3DebugView } from '../Debug';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
 const PerpsModalStack = () => (
-  <PerpsConnectionProvider isFullScreen>
-    <PerpsStreamProvider>
-      <ModalStack.Navigator
-        mode="modal"
-        screenOptions={{
-          headerShown: false,
-          cardStyle: {
-            backgroundColor: 'transparent',
-          },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
-      >
-        <ModalStack.Screen
-          name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
-          component={PerpsQuoteExpiredModal}
-        />
-        <ModalStack.Screen
-          name={Routes.PERPS.MODALS.GTM_MODAL}
-          component={PerpsGTMModal}
-        />
-        <ModalStack.Screen
-          name={Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS}
-          component={PerpsCloseAllPositionsView}
-          options={{
-            title: strings('perps.close_all_modal.title'),
-          }}
-        />
-        <ModalStack.Screen
-          name={Routes.PERPS.MODALS.CANCEL_ALL_ORDERS}
-          component={PerpsCancelAllOrdersView}
-          options={{
-            title: strings('perps.cancel_all_modal.title'),
-          }}
-        />
-      </ModalStack.Navigator>
-    </PerpsStreamProvider>
-  </PerpsConnectionProvider>
+  <ModalStack.Navigator
+    mode="modal"
+    screenOptions={{
+      headerShown: false,
+      cardStyle: {
+        backgroundColor: 'transparent',
+      },
+    }}
+  >
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
+      component={PerpsQuoteExpiredModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.GTM_MODAL}
+      component={PerpsGTMModal}
+    />
+  </ModalStack.Navigator>
 );
 
 const PerpsScreenStack = () => (
   <PerpsConnectionProvider isFullScreen>
     <PerpsStreamProvider>
       <PerpsStreamBridge />
-      <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
+      <Stack.Navigator initialRouteName={Routes.PERPS.TRADING_VIEW}>
         {/* Redirect to wallet perps tab */}
         <Stack.Screen
-          name={Routes.PERPS.PERPS_TAB}
+          name={Routes.PERPS.TRADING_VIEW}
           component={PerpsRedirect}
           options={{
             title: strings('perps.perps_trading'),
@@ -84,28 +57,12 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.PERPS_HOME}
-          component={PerpsHomeView}
+          name={Routes.PERPS.MARKETS}
+          component={PerpsMarketListView}
           options={{
             title: strings('perps.markets.title'),
             headerShown: false,
             animationEnabled: false,
-          }}
-        />
-
-        <Stack.Screen
-          name={Routes.PERPS.MARKET_LIST}
-          component={PerpsMarketListView}
-          options={{
-            title: strings('perps.home.markets'),
-            headerShown: false,
-          }}
-          initialParams={{
-            variant: 'full',
-            title: strings('perps.home.markets'),
-            showBalanceActions: false,
-            showBottomNav: false,
-            defaultSearchVisible: false,
           }}
         />
 
@@ -153,18 +110,6 @@ const PerpsScreenStack = () => (
             headerShown: false,
           }}
         />
-
-        {/* Debug tools - only available in development builds */}
-        {__DEV__ && (
-          <Stack.Screen
-            name={Routes.PERPS.HIP3_DEBUG}
-            component={HIP3DebugView}
-            options={{
-              title: 'HIP-3 Debug Tools',
-              headerShown: true,
-            }}
-          />
-        )}
 
         {/* TP/SL View - Regular screen */}
         <Stack.Screen

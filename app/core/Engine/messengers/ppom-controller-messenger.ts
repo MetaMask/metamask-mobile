@@ -1,34 +1,37 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import type { NetworkControllerGetSelectedNetworkClientAction } from '@metamask/network-controller';
+import { Messenger } from '@metamask/base-controller';
+import type {
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetSelectedNetworkClientAction,
+  NetworkControllerNetworkDidChangeEvent,
+} from '@metamask/network-controller';
 import {
   PreferencesControllerGetStateAction,
   PreferencesControllerStateChangeEvent,
 } from '@metamask/preferences-controller';
-import { RootMessenger } from '../types';
-import { PPOMControllerMessenger } from '@metamask/ppom-validator';
 
+type AllowedActions = NetworkControllerGetNetworkClientByIdAction;
+
+type AllowedEvents = NetworkControllerNetworkDidChangeEvent;
+
+export type PPOMControllerMessenger = ReturnType<
+  typeof getPPOMControllerMessenger
+>;
+
+/**
+ * Get a messenger restricted to the actions and events that the
+ * PPOM controller is allowed to handle.
+ *
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
+ */
 export function getPPOMControllerMessenger(
-  rootMessenger: RootMessenger,
-): PPOMControllerMessenger {
-  const messenger = new Messenger<
-    'PPOMController',
-    MessengerActions<PPOMControllerMessenger>,
-    MessengerEvents<PPOMControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'PPOMController',
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'PPOMController',
+    allowedActions: ['NetworkController:getNetworkClientById'],
+    allowedEvents: ['NetworkController:networkDidChange'],
   });
-  rootMessenger.delegate({
-    actions: ['NetworkController:getNetworkClientById'],
-    events: ['NetworkController:networkDidChange'],
-    messenger,
-  });
-  return messenger;
 }
 
 type AllowedInitializationActions =
@@ -42,30 +45,24 @@ export type PPOMControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the messenger for the PPOM controller initialization. This is scoped to the
- * actions and events that the PPOM controller is allowed to handle during
- * initialization.
+ * Get a messenger restricted to the actions and events that the
+ * PPOM controller initialization is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The PPOMControllerInitMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
-export function getPPOMControllerInitMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
-    'PPOMControllerInit',
+export function getPPOMControllerInitMessenger(
+  messenger: Messenger<
     AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
-    namespace: 'PPOMControllerInit',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+    AllowedInitializationEvents
+  >,
+) {
+  return messenger.getRestricted({
+    name: 'PPOMController',
+    allowedActions: [
       'NetworkController:getSelectedNetworkClient',
       'PreferencesController:getState',
     ],
-    events: ['PreferencesController:stateChange'],
-    messenger,
+    allowedEvents: ['PreferencesController:stateChange'],
   });
-  return messenger;
 }

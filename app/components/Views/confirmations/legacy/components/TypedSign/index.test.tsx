@@ -15,7 +15,6 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../../core/Analytics';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { SigningBottomSheetSelectorsIDs } from '../../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
-import { Reason, ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
 jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
@@ -95,8 +94,8 @@ const initialState = {
       description: '',
       features: [],
       providerRequestsCount: { eth_chainId: 1 },
-      reason: Reason.notApplicable,
-      result_type: ResultType.Benign,
+      reason: '',
+      result_type: 'Benign',
     },
   },
 };
@@ -395,7 +394,7 @@ describe('TypedSign', () => {
         version: 'N/A',
         security_alert_response: 'Benign',
         security_alert_source: undefined,
-        security_alert_reason: Reason.notApplicable,
+        security_alert_reason: '',
         ppom_eth_chainId_count: 1,
       });
     });
@@ -435,7 +434,7 @@ describe('TypedSign', () => {
         signature_type: undefined,
         security_alert_response: 'Benign',
         security_alert_source: undefined,
-        security_alert_reason: Reason.notApplicable,
+        security_alert_reason: '',
         ppom_eth_chainId_count: 1,
       });
     });

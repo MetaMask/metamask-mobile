@@ -33,7 +33,6 @@ import { Image, TouchableOpacity } from 'react-native';
 import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
 import RewardsImageModal from '../RewardsImageModal';
-import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 const SeasonStatus: React.FC = () => {
   const tw = useTailwind();
@@ -149,18 +148,10 @@ const SeasonStatus: React.FC = () => {
 
           {/* Tier name */}
           <Box flexDirection={BoxFlexDirection.Column}>
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-alternative"
-              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL}
-            >
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
               {strings('rewards.level')} {currentTierOrder}
             </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-default"
-              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME}
-            >
+            <Text variant={TextVariant.BodyMd} twClassName="text-default">
               {tierName}
             </Text>
           </Box>
@@ -242,7 +233,6 @@ const SeasonStatus: React.FC = () => {
                 fontWeight: FontWeight.Bold,
                 marginTop: 2,
               })}
-              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS}
             >
               {formatNumber(balanceTotal)}
             </Text>

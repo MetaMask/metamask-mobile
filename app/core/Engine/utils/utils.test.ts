@@ -7,7 +7,7 @@ import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { NetworkController } from '@metamask/network-controller';
 import { merge } from 'lodash';
 
-import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { accountsControllerInit } from '../controllers/accounts-controller';
 import { ApprovalControllerInit } from '../controllers/approval-controller';
 import { createMockControllerInitFunction } from './test-utils';
@@ -20,7 +20,6 @@ import {
 } from '@metamask/permission-controller';
 import { InitModularizedControllersFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/approval-controller');
@@ -44,9 +43,7 @@ describe('initModularizedControllers', () => {
           PermissionController: mockPermissionControllerInit,
         },
         persistedState: {},
-        baseControllerMessenger: new ExtendedMessenger<MockAnyNamespace>({
-          namespace: MOCK_ANY_NAMESPACE,
-        }),
+        baseControllerMessenger: new ExtendedControllerMessenger(),
         codefiTokenApiV2: jest.fn() as unknown as CodefiTokenPricesServiceV2,
         getGlobalChainId: jest.fn(),
         getState: jest.fn(),

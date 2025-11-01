@@ -1,17 +1,14 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
   MultichainRouterInitMessenger,
+  type MultichainRouterMessenger,
 } from '../messengers/multichain-router-messenger';
 import { ControllerInitRequest } from '../types';
 import { multichainRouterInit } from './multichain-router-init';
-import {
-  MultichainRouter,
-  MultichainRouterMessenger,
-} from '@metamask/snaps-controllers';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { MultichainRouter } from '@metamask/snaps-controllers';
 
 jest.mock('@metamask/snaps-controllers');
 
@@ -21,9 +18,7 @@ function getInitRequestMock(): jest.Mocked<
     MultichainRouterInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

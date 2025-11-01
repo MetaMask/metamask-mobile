@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
-///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   AppState,
@@ -81,6 +78,7 @@ import {
   toHex,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
+import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
@@ -102,12 +100,10 @@ import {
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import {
-  RootExtendedMessenger,
+  BaseControllerMessenger,
   EngineState,
   EngineContext,
   StatefulControllers,
-  getRootExtendedMessenger,
-  RootMessenger,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
@@ -174,7 +170,6 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
-import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,7 +191,7 @@ export class Engine {
   /**
    * The global controller messenger.
    */
-  controllerMessenger: RootExtendedMessenger;
+  controllerMessenger: BaseControllerMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -262,7 +257,7 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
-    this.controllerMessenger = getRootExtendedMessenger();
+    this.controllerMessenger = new ExtendedControllerMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -347,9 +342,6 @@ export class Engine {
         RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-        SamplePetnamesController: samplePetnamesControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
@@ -468,6 +460,8 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
+    // Notify Snaps that the app is active when the Engine is initialized.
+    this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
@@ -532,9 +526,6 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: controllersByName.SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -548,26 +539,14 @@ export class Engine {
         delete childControllers[name];
       }
     });
-    const composableControllerMessenger = new Messenger<
-      'ComposableController',
-      never,
-      MessengerEvents<RootMessenger>,
-      RootMessenger
-    >({
-      namespace: 'ComposableController',
-      parent: this.controllerMessenger,
-    });
-
-    this.controllerMessenger.delegate({
-      actions: [],
-      events: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
-      messenger: composableControllerMessenger,
-    });
-
     this.datamodel = new ComposableController<EngineState, StatefulControllers>(
       {
         controllers: childControllers as StatefulControllers,
-        messenger: composableControllerMessenger,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ComposableController',
+          allowedActions: [],
+          allowedEvents: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
+        }),
       },
     );
 
@@ -673,19 +652,12 @@ export class Engine {
         if (state !== 'active' && state !== 'background') {
           return;
         }
-
-        const { isUnlocked } = this.controllerMessenger.call(
-          'KeyringController:getState',
-        );
-
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
-        if (isUnlocked) {
-          return this.controllerMessenger.call(
-            'SnapController:setClientActive',
-            state === 'active',
-          );
-        }
+        return this.controllerMessenger.call(
+          'SnapController:setClientActive',
+          state === 'active',
+        );
       },
     );
     ///: END:ONLY_INCLUDE_IF
@@ -1271,9 +1243,6 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTrackerController,
       AccountTreeController,
@@ -1333,9 +1302,6 @@ export default {
     } = instance.datamodel.state;
 
     return {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTrackerController,
       AccountTreeController,

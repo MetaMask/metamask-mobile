@@ -86,7 +86,6 @@ const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [POLYGON_CHAIN_ID]: 8,
   [ZKSYNC_ERA_CHAIN_ID]: 10,
   [NETWORKS_CHAIN_ID.SEI]: 11,
-  [NETWORKS_CHAIN_ID.MONAD]: 12,
 };
 
 const ShortChainNames: Record<Hex | CaipChainId, string> = {

@@ -1,33 +1,72 @@
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { RootMessenger } from '../types';
-import { SnapKeyringBuilderMessenger } from '../../SnapKeyring/types';
-import { KeyringControllerPersistAllKeyringsAction } from '@metamask/keyring-controller';
+  AcceptRequest,
+  AddApprovalRequest,
+  EndFlow,
+  RejectRequest,
+  ShowError,
+  ShowSuccess,
+  StartFlow,
+} from '@metamask/approval-controller';
+import { MaybeUpdateState, TestOrigin } from '@metamask/phishing-controller';
+import {
+  KeyringControllerGetAccountsAction,
+  KeyringControllerPersistAllKeyringsAction,
+} from '@metamask/keyring-controller';
+import {
+  AccountsControllerGetAccountByAddressAction,
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerListMultichainAccountsAction,
+  AccountsControllerSetAccountNameAction,
+  AccountsControllerSetAccountNameAndSelectAccountAction,
+  AccountsControllerSetSelectedAccountAction,
+} from '@metamask/accounts-controller';
+import {
+  GetSnap,
+  HandleSnapRequest,
+  IsMinimumPlatformVersion,
+} from '@metamask/snaps-controllers';
+
+type AllowedActions =
+  | AcceptRequest
+  | AccountsControllerGetSelectedAccountAction
+  | AccountsControllerGetAccountByAddressAction
+  | AccountsControllerSetAccountNameAction
+  | AccountsControllerSetAccountNameAndSelectAccountAction
+  | AccountsControllerSetSelectedAccountAction
+  | AccountsControllerListMultichainAccountsAction
+  | AddApprovalRequest
+  | EndFlow
+  | GetSnap
+  | HandleSnapRequest
+  | IsMinimumPlatformVersion
+  | KeyringControllerGetAccountsAction
+  | MaybeUpdateState
+  | RejectRequest
+  | StartFlow
+  | ShowSuccess
+  | ShowError
+  | TestOrigin;
+
+type AllowedEvents = never;
+
+export type SnapKeyringBuilderMessenger = ReturnType<
+  typeof getSnapKeyringBuilderMessenger
+>;
 
 /**
- * Get the messenger for the snap keyring builder. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * Snap keyring builder is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The SnapKeyringBuilderMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getSnapKeyringBuilderMessenger(
-  rootMessenger: RootMessenger,
-): SnapKeyringBuilderMessenger {
-  const messenger = new Messenger<
-    'SnapKeyring',
-    MessengerActions<SnapKeyringBuilderMessenger>,
-    MessengerEvents<SnapKeyringBuilderMessenger>,
-    RootMessenger
-  >({
-    namespace: 'SnapKeyring',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'SnapKeyring',
+    allowedActions: [
       'AccountsController:getAccountByAddress',
       'AccountsController:listMultichainAccounts',
       'AccountsController:setAccountName',
@@ -47,10 +86,8 @@ export function getSnapKeyringBuilderMessenger(
       'SnapController:handleRequest',
       'SnapController:isMinimumPlatformVersion',
     ],
-    events: [],
-    messenger,
+    allowedEvents: [],
   });
-  return messenger;
 }
 
 export type AllowedInitializationActions =
@@ -61,28 +98,18 @@ export type SnapKeyringBuilderInitMessenger = ReturnType<
 >;
 
 /**
- * Get the messenger for the snap keyring builder initialization. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * Snap keyring builder needs during initialization.
  *
- * @param rootMessenger - The root messenger.
- * @returns The SnapKeyringBuilderInitMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getSnapKeyringBuilderInitMessenger(
-  rootMessenger: RootMessenger,
+  messenger: Messenger<AllowedInitializationActions, never>,
 ) {
-  const messenger = new Messenger<
-    'SnapKeyringInit',
-    AllowedInitializationActions,
-    never,
-    RootMessenger
-  >({
-    namespace: 'SnapKeyringInit',
-    parent: rootMessenger,
+  return messenger.getRestricted({
+    name: 'SnapKeyringBuilderInit',
+    allowedActions: ['KeyringController:persistAllKeyrings'],
+    allowedEvents: [],
   });
-  rootMessenger.delegate({
-    actions: ['KeyringController:persistAllKeyrings'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

@@ -10,29 +10,31 @@ import {
   TransactionMeta,
   WalletDevice,
   TransactionEnvelopeType,
+  TransactionControllerGetNonceLockAction,
+  TransactionControllerGetTransactionsAction,
+  TransactionControllerConfirmExternalTransactionAction,
+  TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import {
   ClientId,
   SmartTransactionsController,
-  SmartTransactionsControllerMessenger,
-  SmartTransactionsControllerSmartTransactionEvent,
   type SmartTransaction,
 } from '@metamask/smart-transactions-controller';
 
 import {
+  AllowedActions,
+  AllowedEvents,
   SubmitSmartTransactionRequest,
   submitSmartTransactionHook,
   submitBatchSmartTransactionHook,
 } from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerStateChangeEvent,
+} from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 
 interface PendingApprovalsData {
@@ -77,7 +79,7 @@ const createTransactionControllerMock = () =>
     ),
     state: { transactions: [] },
     update: jest.fn(),
-  }) as unknown as jest.Mocked<TransactionController>;
+  } as unknown as jest.Mocked<TransactionController>);
 
 const getDefaultAddAndShowApprovalRequest = () => jest.fn();
 const createApprovalControllerMock = ({
@@ -93,7 +95,7 @@ const createApprovalControllerMock = ({
     },
     addAndShowApprovalRequest,
     updateRequestState: jest.fn(),
-  }) as unknown as jest.Mocked<ApprovalController>;
+  } as unknown as jest.Mocked<ApprovalController>);
 
 const defaultTransactionMeta: TransactionMeta = {
   origin: 'http://localhost',
@@ -126,7 +128,7 @@ type WithRequestCallback<ReturnValue> = ({
   smartTransactionsController,
 }: {
   request: SubmitSmartTransactionRequestMocked;
-  controllerMessenger: RootMessenger;
+  controllerMessenger: SubmitSmartTransactionRequestMocked['controllerMessenger'];
   getFeesSpy: jest.SpyInstance;
   submitSignedTransactionsSpy: jest.SpyInstance;
   smartTransactionsController: SmartTransactionsController;
@@ -135,17 +137,6 @@ type WithRequestCallback<ReturnValue> = ({
 type WithRequestArgs<ReturnValue> =
   | [WithRequestCallback<ReturnValue>]
   | [WithRequestOptions, WithRequestCallback<ReturnValue>];
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<SmartTransactionsControllerMessenger>,
-  MessengerEvents<SmartTransactionsControllerMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
 
 function withRequest<ReturnValue>(
   ...args: WithRequestArgs<ReturnValue>
@@ -156,47 +147,28 @@ function withRequest<ReturnValue>(
     pendingApprovals = [],
     ...options
   } = rest;
-  const rootMessenger = getRootMessenger();
-
-  const smartTransactionControllerMessenger = new Messenger<
-    'SmartTransactionsController',
-    MessengerActions<SmartTransactionsControllerMessenger>,
-    MessengerEvents<SmartTransactionsControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'SmartTransactionsController',
-    parent: rootMessenger,
-  });
-
-  rootMessenger.delegate({
-    actions: [
-      'NetworkController:getNetworkClientById',
-      'TransactionController:getNonceLock',
-      'TransactionController:getTransactions',
-      'TransactionController:confirmExternalTransaction',
-      'TransactionController:updateTransaction',
-    ],
-    events: ['NetworkController:stateChange'],
-    messenger: smartTransactionControllerMessenger,
-  });
-
-  const smartPublishHookMessenger = new Messenger<
-    'SmartPublishHook',
-    never,
-    SmartTransactionsControllerSmartTransactionEvent,
-    RootMessenger
-  >({
-    namespace: 'SmartPublishHook',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [],
-    events: ['SmartTransactionsController:smartTransaction'],
-    messenger: smartPublishHookMessenger,
-  });
+  const messenger = new Messenger<
+    | NetworkControllerGetNetworkClientByIdAction
+    | TransactionControllerGetNonceLockAction
+    | TransactionControllerGetTransactionsAction
+    | TransactionControllerConfirmExternalTransactionAction
+    | TransactionControllerUpdateTransactionAction
+    | AllowedActions,
+    NetworkControllerStateChangeEvent | AllowedEvents
+  >();
 
   const smartTransactionsController = new SmartTransactionsController({
-    messenger: smartTransactionControllerMessenger,
+    messenger: messenger.getRestricted({
+      name: 'SmartTransactionsController',
+      allowedActions: [
+        'NetworkController:getNetworkClientById',
+        'TransactionController:getNonceLock',
+        'TransactionController:getTransactions',
+        'TransactionController:confirmExternalTransaction',
+        'TransactionController:updateTransaction',
+      ],
+      allowedEvents: ['NetworkController:stateChange'],
+    }),
     trackMetaMetricsEvent: jest.fn(),
     getMetaMetricsProps: jest.fn(),
     getFeatureFlags: jest.fn(),
@@ -228,7 +200,7 @@ function withRequest<ReturnValue>(
     },
     smartTransactionsController,
     transactions: [], // Ensure transactions is always an array, not undefined
-    controllerMessenger: smartPublishHookMessenger,
+    controllerMessenger: messenger,
     transactionController: createTransactionControllerMock(),
     shouldUseSmartTransaction: true,
     approvalController: createApprovalControllerMock({
@@ -255,7 +227,7 @@ function withRequest<ReturnValue>(
   };
 
   return fn({
-    controllerMessenger: rootMessenger,
+    controllerMessenger: messenger,
     request,
     getFeesSpy,
     submitSignedTransactionsSpy,

@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import PerpsOrderHeader from './PerpsOrderHeader';
-import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -75,7 +74,7 @@ describe('PerpsOrderHeader', () => {
 
   it('should handle navigation back', () => {
     const { getByTestId } = render(<PerpsOrderHeader {...defaultProps} />);
-    const backButton = getByTestId(PerpsHomeViewSelectorsIDs.BACK_BUTTON);
+    const backButton = getByTestId('back-button');
     fireEvent.press(backButton);
     expect(mockGoBack).toHaveBeenCalled();
   });
@@ -85,7 +84,7 @@ describe('PerpsOrderHeader', () => {
     const { getByTestId } = render(
       <PerpsOrderHeader {...defaultProps} onBack={mockOnBack} />,
     );
-    const backButton = getByTestId(PerpsHomeViewSelectorsIDs.BACK_BUTTON);
+    const backButton = getByTestId('back-button');
     fireEvent.press(backButton);
     expect(mockOnBack).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();

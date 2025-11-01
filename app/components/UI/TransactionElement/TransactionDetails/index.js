@@ -254,8 +254,9 @@ class TransactionDetails extends PureComponent {
       return;
     }
     try {
-      let { l1Fee: multiLayerL1FeeTotal } =
-        await this.fetchTxReceipt(transactionHash);
+      let { l1Fee: multiLayerL1FeeTotal } = await this.fetchTxReceipt(
+        transactionHash,
+      );
       if (!multiLayerL1FeeTotal) {
         multiLayerL1FeeTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
       }
@@ -449,11 +450,11 @@ class TransactionDetails extends PureComponent {
                       this.props.avatarAccountType || AvatarAccountType.Maskicon
                     }
                     accountAddress={updatedTransactionDetails.renderFrom}
-                    size={AvatarSize.Sm}
+                    size={AvatarSize.Md}
                     style={styles.accountAvatar}
                   />
                   <Text
-                    variant={TextVariant.BodySM}
+                    small
                     primary
                     testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                   >
@@ -479,11 +480,11 @@ class TransactionDetails extends PureComponent {
                       this.props.avatarAccountType || AvatarAccountType.Maskicon
                     }
                     accountAddress={updatedTransactionDetails.renderTo}
-                    size={AvatarSize.Sm}
+                    size={AvatarSize.Md}
                     style={styles.accountAvatar}
                   />
                   <Text
-                    variant={TextVariant.BodySM}
+                    small
                     primary
                     testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                   >

@@ -1,22 +1,19 @@
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { getAuthenticationControllerMessenger } from '../../messengers/identity/authentication-controller-messenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import {
+  getAuthenticationControllerMessenger,
+  type AuthenticationControllerMessenger,
+} from '../../messengers/identity/authentication-controller-messenger';
 import { ControllerInitRequest } from '../../types';
 import { authenticationControllerInit } from './authentication-controller-init';
-import {
-  Controller as AuthenticationController,
-  AuthenticationControllerMessenger,
-} from '@metamask/profile-sync-controller/auth';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { Controller as AuthenticationController } from '@metamask/profile-sync-controller/auth';
 
 jest.mock('@metamask/profile-sync-controller/auth');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<AuthenticationControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

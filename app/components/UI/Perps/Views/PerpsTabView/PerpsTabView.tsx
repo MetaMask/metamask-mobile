@@ -14,11 +14,9 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
@@ -28,14 +26,15 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import type { PerpsNavigationParamList } from '../../controllers/types';
+import { TraceName } from '../../../../../util/trace';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
 } from '../../hooks';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
@@ -64,7 +63,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     ],
   });
 
-  const { orders } = usePerpsLiveOrders({
+  const orders = usePerpsLiveOrders({
     hideTpSl: true, // Filter out TP/SL orders
     throttleMs: 1000, // Update orders every second
   });
@@ -92,7 +91,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const handleManageBalancePress = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
+      screen: Routes.PERPS.MARKETS,
       params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
     });
   }, [navigation]);
@@ -104,24 +103,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     } else {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
+        screen: Routes.PERPS.MARKETS,
         params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
       });
     }
   }, [navigation, isFirstTimeUser]);
-
-  // Modal handlers - now using navigation to modal stack
-  const handleCloseAllPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
-    });
-  }, [navigation]);
-
-  const handleCancelAllPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
-    });
-  }, [navigation]);
 
   const renderStartTradeCTA = () => (
     <TouchableOpacity
@@ -156,11 +142,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.order.open_orders')}
           </Text>
-          <TouchableOpacity onPress={handleCancelAllPress}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.home.cancel_all')}
-            </Text>
-          </TouchableOpacity>
         </View>
         <View>
           {orders.map((order) => (
@@ -198,11 +179,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           >
             {strings('perps.position.title')}
           </Text>
-          <TouchableOpacity onPress={handleCloseAllPress}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.home.close_all')}
-            </Text>
-          </TouchableOpacity>
         </View>
         <View>
           {positions.map((position, index) => {

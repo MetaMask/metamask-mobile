@@ -1,31 +1,47 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { RootMessenger } from '../types';
-import { NftDetectionControllerMessenger } from '@metamask/assets-controllers';
+import { Messenger } from '@metamask/base-controller';
+import type { AddApprovalRequest } from '@metamask/approval-controller';
+import type {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetStateAction,
+  NetworkControllerStateChangeEvent,
+} from '@metamask/network-controller';
+import type {
+  PreferencesControllerGetStateAction,
+  PreferencesControllerStateChangeEvent,
+} from '@metamask/preferences-controller';
+import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+
+type AllowedActions =
+  | AddApprovalRequest
+  | NetworkControllerGetStateAction
+  | NetworkControllerGetNetworkClientByIdAction
+  | PreferencesControllerGetStateAction
+  | AccountsControllerGetSelectedAccountAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction;
+
+type AllowedEvents =
+  | PreferencesControllerStateChangeEvent
+  | NetworkControllerStateChangeEvent;
+
+export type NftDetectionControllerMessenger = ReturnType<
+  typeof getNftDetectionControllerMessenger
+>;
+
 /**
- * Get the messenger for the NFT detection controller. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * NFT detection controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The NftDetectionControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getNftDetectionControllerMessenger(
-  rootMessenger: RootMessenger,
-): NftDetectionControllerMessenger {
-  const messenger = new Messenger<
-    'NftDetectionController',
-    MessengerActions<NftDetectionControllerMessenger>,
-    MessengerEvents<NftDetectionControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'NftDetectionController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'NftDetectionController',
+
+    allowedActions: [
       'ApprovalController:addRequest',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
@@ -33,11 +49,9 @@ export function getNftDetectionControllerMessenger(
       'AccountsController:getSelectedAccount',
       'NetworkController:findNetworkClientIdByChainId',
     ],
-    events: [
+    allowedEvents: [
       'NetworkController:stateChange',
       'PreferencesController:stateChange',
     ],
-    messenger,
   });
-  return messenger;
 }

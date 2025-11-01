@@ -8,7 +8,6 @@ import renderWithProvider, {
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { FillType } from '../PerpsTransactionItem/PerpsTransactionItem';
 
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => ({
@@ -79,7 +78,9 @@ const mockTransaction = {
     feeToken: 'USDC',
     action: 'Opened',
     dir: 'long',
-    fillType: FillType.Standard,
+    isLiquidation: false,
+    isTakeProfit: false,
+    isStopLoss: false,
   },
 };
 
@@ -112,10 +113,6 @@ describe('PerpsTransactionDetailAssetHero', () => {
     const customTransaction = {
       ...mockTransaction,
       subtitle: '2.75 BTC',
-      fill: {
-        ...mockTransaction.fill,
-        fillType: FillType.Standard,
-      },
     };
 
     // Act
@@ -137,10 +134,6 @@ describe('PerpsTransactionDetailAssetHero', () => {
     const btcTransaction = {
       ...mockTransaction,
       asset: 'BTC',
-      fill: {
-        ...mockTransaction.fill,
-        fillType: FillType.Standard,
-      },
     };
 
     // Act

@@ -44,8 +44,9 @@ describe.skip(RegressionConfirmations('ERC1155 token'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const erc1155Address =
-          await contractRegistry?.getContractAddress(ERC1155_CONTRACT);
+        const erc1155Address = await contractRegistry?.getContractAddress(
+          ERC1155_CONTRACT,
+        );
         await loginToApp();
 
         // Navigate to the browser screen

@@ -24,10 +24,9 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 8,
-      paddingTop: 16,
     },
     sectionTitle: {
-      // Removed paddingTop - now on parent sectionHeader for consistent alignment
+      paddingTop: 16,
     },
     emptyContainer: {
       padding: 24,
@@ -92,17 +91,6 @@ const styleSheet = (params: { theme: Theme }) => {
     startTradeText: {
       marginLeft: 12,
       flex: 1,
-    },
-    debugButton: {
-      backgroundColor: colors.warning.default,
-      padding: 8,
-      marginHorizontal: 16,
-      marginVertical: 8,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    debugButtonText: {
-      color: colors.text.default,
     },
   });
 };

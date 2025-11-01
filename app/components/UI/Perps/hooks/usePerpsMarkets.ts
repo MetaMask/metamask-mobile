@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsMarketData } from '../controllers/types';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { parseCurrencyString } from '../utils/formatUtils';
 
@@ -48,11 +48,6 @@ export interface UsePerpsMarketsOptions {
    * @default false
    */
   skipInitialFetch?: boolean;
-  /**
-   * Show markets with zero or invalid volume
-   * @default false
-   */
-  showZeroVolume?: boolean;
 }
 
 const multipliers: Record<string, number> = {
@@ -81,18 +76,15 @@ export const parseVolume = (volumeStr: string | undefined): number => {
 
   // Handle special cases
   if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
-  // Special case: '$<1' represents volumes less than $1 (e.g., $0.50, $0.75)
-  // This is a display format from the provider, not a validation constant
-  // We treat it as 0.5 for sorting purposes (small but not zero)
-  if (volumeStr === '$<1') return 0.5;
+  if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
 
   // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
-  const suffixMatch = VOLUME_SUFFIX_REGEX.exec(volumeStr);
+  const suffixMatch = volumeStr.match(VOLUME_SUFFIX_REGEX);
   if (suffixMatch) {
     const [, numberPart, suffix] = suffixMatch;
-    const baseValue = Number.parseFloat(removeCommas(numberPart));
+    const baseValue = parseFloat(removeCommas(numberPart));
 
-    if (Number.isNaN(baseValue)) return -1;
+    if (isNaN(baseValue)) return -1;
 
     return suffix ? baseValue * multipliers[suffix] : baseValue;
   }
@@ -112,7 +104,6 @@ export const usePerpsMarkets = (
     enablePolling = false,
     pollingInterval = 60000, // 1 minute default
     skipInitialFetch = false,
-    showZeroVolume = false,
   } = options;
 
   const streamManager = usePerpsStream();
@@ -121,43 +112,18 @@ export const usePerpsMarkets = (
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to filter and sort markets by volume
+  // Helper function to sort markets by volume
   const sortMarketsByVolume = useCallback(
-    (marketData: PerpsMarketData[]): PerpsMarketDataWithVolumeNumber[] => {
-      // Filter out invalid volume (unless showZeroVolume is true)
-      const filteredData = !showZeroVolume
-        ? marketData.filter((market) => {
-            // Filter out fallback/error values
-            if (
-              market.volume === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY ||
-              market.volume === PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
-            ) {
-              return false;
-            }
-            // Filter out zero and missing values
-            if (
-              !market.volume ||
-              market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY ||
-              market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
-            ) {
-              return false;
-            }
-            return true;
-          })
-        : marketData;
-
-      return (
-        filteredData
-          // pregenerate volumeNumber for sorting to avoid recalculating it on every sort
-          .map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }))
-          .sort((a, b) => {
-            const volumeA = a.volumeNumber;
-            const volumeB = b.volumeNumber;
-            return volumeB - volumeA;
-          })
-      );
-    },
-    [showZeroVolume],
+    (marketData: PerpsMarketData[]): PerpsMarketDataWithVolumeNumber[] =>
+      marketData
+        // pregenerate volumeNumber for sorting to avoid recalculating it on every sort
+        .map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }))
+        .sort((a, b) => {
+          const volumeA = a.volumeNumber;
+          const volumeB = b.volumeNumber;
+          return volumeB - volumeA;
+        }),
+    [],
   );
 
   // Manual refresh function

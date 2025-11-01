@@ -1976,6 +1976,7 @@
     "token_is_needed_to_continue": "Cần {{tokenSymbol}} để tiếp tục",
     "fund_your_wallet": "Nạp tiền vào ví của bạn",
     "get_ready_for_web3": "Get your wallet ready to use web3",
+    "fund_your_wallet_to_get_started": "Nạp tiền vào ví để bắt đầu trong web3",
     "add_funds": "Nạp tiền",
     "next": "Tiếp theo",
     "buy_asset": "Mua {{asset}}",

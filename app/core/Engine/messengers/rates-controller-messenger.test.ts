@@ -1,46 +1,24 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import {
   getRatesControllerMessenger,
   getRatesControllerInitMessenger,
-  RatesControllerInitMessenger,
 } from './rates-controller-messenger';
-import { CurrencyRateMessenger } from '@metamask/assets-controllers';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<CurrencyRateMessenger>
-  | MessengerActions<RatesControllerInitMessenger>,
-  | MessengerEvents<CurrencyRateMessenger>
-  | MessengerEvents<RatesControllerInitMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
 
 describe('getRatesControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
-    const ratesControllerMessenger = getRatesControllerMessenger(rootMessenger);
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
+    const ratesControllerMessenger = getRatesControllerMessenger(messenger);
 
-    expect(ratesControllerMessenger).toBeInstanceOf(Messenger);
+    expect(ratesControllerMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });
 
 describe('getRatesControllerInitMessenger', () => {
-  it('returns a messenger for initialization', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const ratesControllerInitMessenger =
-      getRatesControllerInitMessenger(rootMessenger);
+      getRatesControllerInitMessenger(messenger);
 
-    expect(ratesControllerInitMessenger).toBeInstanceOf(Messenger);
+    expect(ratesControllerInitMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });

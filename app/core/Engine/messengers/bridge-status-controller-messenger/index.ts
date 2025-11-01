@@ -1,31 +1,18 @@
 import { BridgeStatusControllerMessenger } from '@metamask/bridge-status-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { BaseControllerMessenger } from '../../types';
 
 /**
  * Get the BridgeControllerMessenger for the BridgeController.
  *
- * @param rootExtendedMessenger - The base controller messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The BridgeControllerMessenger.
  */
 export function getBridgeStatusControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): BridgeStatusControllerMessenger {
-  const messenger = new Messenger<
-    'BridgeStatusController',
-    MessengerActions<BridgeStatusControllerMessenger>,
-    MessengerEvents<BridgeStatusControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'BridgeStatusController',
-    parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
+  return baseControllerMessenger.getRestricted({
+    name: 'BridgeStatusController',
+    allowedActions: [
       'AccountsController:getAccountByAddress',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
@@ -34,15 +21,15 @@ export function getBridgeStatusControllerMessenger(
       'BridgeController:stopPollingForQuotes',
       'BridgeController:trackUnifiedSwapBridgeEvent',
       'GasFeeController:getState',
+      'AccountsController:getAccountByAddress',
       'SnapController:handleRequest',
       'TransactionController:getState',
       'RemoteFeatureFlagController:getState',
     ],
-    events: [
+    allowedEvents: [
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
+      'MultichainTransactionsController:transactionConfirmed',
     ],
-    messenger,
   });
-  return messenger;
 }

@@ -1,4 +1,4 @@
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { RegressionConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -17,7 +17,7 @@ import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
+describe(RegressionConfirmationsRedesigned('Contract Deployment'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',

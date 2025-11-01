@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  PERFORMANCE_CONFIG,
-  VALIDATION_THRESHOLDS,
-} from '../constants/perpsConfig';
 import type { OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types/perps-types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
+import {
+  VALIDATION_THRESHOLDS,
+  PERFORMANCE_CONFIG,
+} from '../constants/perpsConfig';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
@@ -16,7 +16,6 @@ interface UsePerpsOrderValidationParams {
   assetPrice: number;
   availableBalance: number;
   marginRequired: string;
-  existingPositionLeverage?: number;
 }
 
 interface ValidationResult {
@@ -46,7 +45,6 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
-    existingPositionLeverage,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -77,7 +75,7 @@ export function usePerpsOrderValidation(
     const immediateErrors: string[] = [];
 
     // Balance validation (immediate)
-    const requiredMargin = Number.parseFloat(marginRequired);
+    const requiredMargin = parseFloat(marginRequired);
     if (requiredMargin > availableBalance) {
       immediateErrors.push(
         strings('perps.order.validation.insufficient_balance', {
@@ -97,7 +95,6 @@ export function usePerpsOrderValidation(
         price: orderForm.limitPrice,
         leverage: orderForm.leverage,
         currentPrice: assetPrice,
-        existingPositionLeverage,
       };
 
       // Get protocol-specific validation
@@ -153,7 +150,6 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
-    existingPositionLeverage,
     validateOrder,
   ]);
 

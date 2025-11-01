@@ -160,15 +160,16 @@ jest.mock('../../hooks/useMetrics', () => ({
     isEnabled: jest.fn(() => true),
   })),
   withMetricsAwareness: jest.fn(
-    (Component) => (props: Record<string, unknown>) => (
-      <Component
-        {...props}
-        metrics={{
-          trackEvent: mockMetricsTrackEvent,
-          createEventBuilder: mockMetricsCreateEventBuilder,
-        }}
-      />
-    ),
+    (Component) => (props: Record<string, unknown>) =>
+      (
+        <Component
+          {...props}
+          metrics={{
+            trackEvent: mockMetricsTrackEvent,
+            createEventBuilder: mockMetricsCreateEventBuilder,
+          }}
+        />
+      ),
   ),
   MetaMetricsEvents: {
     ERROR_SCREEN_VIEWED: 'Error Screen Viewed',

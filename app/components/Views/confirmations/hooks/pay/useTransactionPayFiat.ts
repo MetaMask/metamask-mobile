@@ -10,12 +10,9 @@ import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFi
 import { PERPS_CURRENCY } from '../../constants/perps';
 import { useCallback } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { hasTransactionType } from '../../utils/transaction';
-import { PREDICT_CURRENCY } from '../../constants/predict';
 
 export function useTransactionPayFiat() {
-  const transactionMetadata = useTransactionMetadataRequest();
-  const { type } = transactionMetadata ?? {};
+  const { type } = useTransactionMetadataRequest() ?? {};
 
   const fiatRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, CHAIN_IDS.MAINNET),
@@ -26,24 +23,10 @@ export function useTransactionPayFiat() {
   );
 
   const usdMultiplier = usdRate && fiatRate ? usdRate / fiatRate : 1;
+  const multiplier = type === TransactionType.perpsDeposit ? usdMultiplier : 1;
 
-  let currency;
-  let multiplier = 1;
-
-  if (type === TransactionType.perpsDeposit) {
-    currency = PERPS_CURRENCY;
-    multiplier = usdMultiplier;
-  }
-
-  if (
-    hasTransactionType(transactionMetadata, [
-      TransactionType.predictDeposit,
-      TransactionType.predictWithdraw,
-    ])
-  ) {
-    currency = PREDICT_CURRENCY;
-    multiplier = usdMultiplier;
-  }
+  const currency =
+    type === TransactionType.perpsDeposit ? PERPS_CURRENCY : undefined;
 
   const fiatFormatterOriginal = useFiatFormatter({ currency });
 

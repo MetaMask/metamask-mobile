@@ -352,8 +352,9 @@ function Quotes() {
         );
 
         if (buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser) {
-          const { url, orderId: customOrderId } =
-            await buyAction.createWidget(callbackBaseUrl);
+          const { url, orderId: customOrderId } = await buyAction.createWidget(
+            callbackBaseUrl,
+          );
 
           navigation.navigate(
             ...createCheckoutNavDetails({
@@ -471,8 +472,9 @@ function Quotes() {
         } else if (
           buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser
         ) {
-          const { url, orderId: customOrderId } =
-            await buyAction.createWidget(callbackBaseUrl);
+          const { url, orderId: customOrderId } = await buyAction.createWidget(
+            callbackBaseUrl,
+          );
           navigation.navigate(
             ...createCheckoutNavDetails({
               provider: quote.provider,

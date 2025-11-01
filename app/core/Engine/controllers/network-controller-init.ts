@@ -3,9 +3,11 @@ import {
   getDefaultNetworkControllerState,
   NetworkController,
   NetworkState,
-  type NetworkControllerMessenger,
 } from '@metamask/network-controller';
-import { NetworkControllerInitMessenger } from '../messengers/network-controller-messenger';
+import {
+  NetworkControllerInitMessenger,
+  NetworkControllerMessenger,
+} from '../messengers/network-controller-messenger';
 import { ChainId } from '@metamask/controller-utils';
 import { getFailoverUrlsForInfuraNetwork } from '../../../util/networks/customNetworks';
 import { INFURA_PROJECT_ID } from '../../../constants/network';

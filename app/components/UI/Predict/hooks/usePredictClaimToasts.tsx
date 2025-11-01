@@ -2,6 +2,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 import { selectPredictClaimablePositions } from '../selectors/predictController';
 import { PredictPosition, PredictPositionStatus } from '../types';
 import { formatPrice } from '../utils/format';
@@ -62,6 +63,8 @@ export const usePredictClaimToasts = () => {
       retryLabel: strings('predict.claim.toasts.error.try_again'),
       onRetry: claim,
     },
+    clearTransaction: () =>
+      Engine.context.PredictController.clearClaimTransaction(),
     onConfirmed: () => {
       loadPositions({ isRefresh: true }).catch(() => {
         // Ignore errors when refreshing positions

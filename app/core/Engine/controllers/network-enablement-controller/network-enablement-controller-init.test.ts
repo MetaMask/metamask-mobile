@@ -3,14 +3,13 @@ import {
   NetworkEnablementControllerMessenger,
   NetworkEnablementControllerState,
 } from '@metamask/network-enablement-controller';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { networkEnablementControllerInit } from './network-enablement-controller-init';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { ChainId } from '@metamask/controller-utils';
 import { SolScope } from '@metamask/keyring-api';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/network-enablement-controller');
 
@@ -23,9 +22,7 @@ describe('networkEnablementControllerInit', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
+    const baseControllerMessenger = new ExtendedControllerMessenger();
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 

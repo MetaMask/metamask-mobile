@@ -417,8 +417,9 @@ class ResetPassword extends PureComponent {
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled =
-      await StorageWrapper.getItem(PASSCODE_DISABLED);
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+      PASSCODE_DISABLED,
+    );
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE)
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),

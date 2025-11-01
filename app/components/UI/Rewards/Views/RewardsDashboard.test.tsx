@@ -66,6 +66,7 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
   typeof selectActiveTab
@@ -498,12 +499,10 @@ describe('RewardsDashboard', () => {
     type: AccountGroupType.SingleAccount as const,
   };
 
-  const currentSeasonId = '7c9fa360-8d4c-425a-8a3e-7e82e1d82179';
-
   const defaultSelectorValues = {
     activeTab: 'overview' as const,
     subscriptionId: 'test-subscription-id',
-    seasonId: currentSeasonId,
+    seasonId: CURRENT_SEASON_ID,
     hideUnlinkedAccountsBanner: false,
     hideCurrentAccountNotOptedInBannerArray: [],
     selectedAccount: mockSelectedAccount,
@@ -709,7 +708,7 @@ describe('RewardsDashboard', () => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectSeasonId) return CURRENT_SEASON_ID;
         return undefined;
       });
 
@@ -726,12 +725,12 @@ describe('RewardsDashboard', () => {
   describe('button states when not opted in', () => {
     beforeEach(() => {
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
-      mockSelectSeasonId.mockReturnValue(currentSeasonId);
+      mockSelectSeasonId.mockReturnValue(CURRENT_SEASON_ID);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectSeasonId) return CURRENT_SEASON_ID;
         return undefined;
       });
     });
@@ -791,7 +790,7 @@ describe('RewardsDashboard', () => {
         if (selector === selectActiveTab) return 'overview';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectSeasonId) return CURRENT_SEASON_ID;
         return undefined;
       });
 

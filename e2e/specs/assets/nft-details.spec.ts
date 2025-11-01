@@ -37,8 +37,9 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
         smartContracts: [NFT_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const nftsAddress =
-          await contractRegistry?.getContractAddress(NFT_CONTRACT);
+        const nftsAddress = await contractRegistry?.getContractAddress(
+          NFT_CONTRACT,
+        );
 
         await loginToApp();
 

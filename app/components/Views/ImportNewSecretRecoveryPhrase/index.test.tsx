@@ -246,8 +246,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   it('imports valid pasted 12-word SRP', async () => {
-    const { getByTestId } =
-      await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     await act(() => {
       for (const [index, word] of valid24WordMnemonic.split(' ').entries()) {
@@ -270,8 +271,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   it('imports valid pasted 24-word SRP', async () => {
-    const { getByTestId } =
-      await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     await act(() => {
       for (const [index, word] of valid24WordMnemonic.split(' ').entries()) {
@@ -293,8 +295,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
   });
   it('imports valid SRP', async () => {
-    const { getByTestId } =
-      await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
     await fireEvent.press(importButton);
@@ -308,8 +311,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
-    const { getByTestId } =
-      await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
     await fireEvent.press(importButton);
@@ -327,8 +331,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
   it('(state 2) - tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-    const { getByTestId } =
-      await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
     await fireEvent.press(importButton);
@@ -354,8 +359,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   it('displays success toast after successful SRP import', async () => {
-    const { getByTestId } =
-      await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
 
@@ -381,8 +387,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
   describe('errors', () => {
     it('displays single incorrect word', async () => {
-      const { getByText } =
-        await renderSRPImportComponentAndPasteSRP(invalidMnemonic);
+      const { getByText } = await renderSRPImportComponentAndPasteSRP(
+        invalidMnemonic,
+      );
 
       expect(
         getByText(

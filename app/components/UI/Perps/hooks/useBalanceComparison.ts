@@ -22,16 +22,16 @@ export const useBalanceComparison = (
 
   const compareAndUpdateBalance = useCallback(
     (newBalance: string): PulseColor => {
-      const currentBalance = Number.parseFloat(newBalance || '0');
-      const prevBalance = Number.parseFloat(previousBalance || '0');
+      const currentBalance = parseFloat(newBalance || '0');
+      const prevBalance = parseFloat(previousBalance || '0');
 
       let balanceChange: PulseColor = 'same';
 
       // Only compare if we have a previous balance (not initial load)
       if (
         previousBalance !== '' &&
-        !Number.isNaN(prevBalance) &&
-        !Number.isNaN(currentBalance)
+        !isNaN(prevBalance) &&
+        !isNaN(currentBalance)
       ) {
         if (currentBalance > prevBalance) {
           balanceChange = 'increase';

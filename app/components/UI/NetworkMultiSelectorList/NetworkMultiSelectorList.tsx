@@ -33,8 +33,6 @@ import Cell, {
 import { isTestNet } from '../../../util/networks/index.js';
 import Device from '../../../util/device/index.js';
 import { selectChainId } from '../../../selectors/networkController';
-import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
-import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 
 // Internal dependencies.
 import {
@@ -79,7 +77,6 @@ const NetworkMultiSelectList = ({
   selectAllNetworksComponent,
   openModal,
   areAllNetworksSelected,
-  openRpcModal,
   ...props
 }: NetworkMultiSelectorListProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -258,14 +255,7 @@ const NetworkMultiSelectList = ({
       }
 
       const network = item as ProcessedNetwork;
-      const {
-        caipChainId,
-        name,
-        isSelected,
-        networkTypeOrRpcUrl,
-        chainId,
-        hasMultipleRpcs,
-      } = network;
+      const { caipChainId, name, isSelected, networkTypeOrRpcUrl } = network;
 
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
@@ -276,15 +266,7 @@ const NetworkMultiSelectList = ({
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
             title={name}
-            secondaryText={
-              networkTypeOrRpcUrl && hasMultipleRpcs
-                ? hideProtocolFromUrl(hideKeyFromUrl(networkTypeOrRpcUrl))
-                : undefined
-            }
             onPress={() => debouncedSelectNetwork(caipChainId)}
-            onTextClick={() =>
-              openRpcModal && openRpcModal({ chainId, networkName: name })
-            }
             avatarProps={createAvatarProps(network)}
             buttonIcon={IconName.MoreVertical}
             disabled={isDisabled}
@@ -309,7 +291,6 @@ const NetworkMultiSelectList = ({
       createAvatarProps,
       createButtonProps,
       isSelectAllNetworksSection,
-      openRpcModal,
     ],
   );
 

@@ -53,7 +53,6 @@ import {
   OrderBook,
   RoundConfig,
 } from './types';
-import { PREDICT_ERROR_CODES } from '../../constants/errors';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -214,13 +213,7 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
     method: 'GET',
   });
   if (!response.ok) {
-    const responseData = (await response.json()) as { error: string };
-    if (
-      responseData.error === 'No orderbook exists for the requested token id'
-    ) {
-      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
-    }
-    throw new Error(responseData.error);
+    throw new Error('Failed to get order book');
   }
   const responseData = (await response.json()) as OrderBook;
   return responseData;
@@ -301,17 +294,6 @@ export const encodeErc1155Approve = ({
     'function setApprovalForAll(address operator, bool approved)',
   ]).encodeFunctionData('setApprovalForAll', [spender, approved]) as Hex;
 
-export const encodeErc20Transfer = ({
-  to,
-  value,
-}: {
-  to: string;
-  value: bigint | string | number;
-}): Hex =>
-  new Interface([
-    'function transfer(address to, uint256 value)',
-  ]).encodeFunctionData('transfer', [to, value]) as Hex;
-
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
@@ -391,8 +373,7 @@ export const parsePolymarketEvents = (
         : PredictMarketStatus.OPEN,
       recurrence: getRecurrence(event.series),
       endDate: event.endDate,
-      category,
-      tags: event.tags.map((t) => t.label),
+      categories: [category],
       outcomes: event.markets
         .filter((market: PolymarketApiMarket) => market.active !== false)
         .sort((a: PolymarketApiMarket, b: PolymarketApiMarket) => {
@@ -456,8 +437,8 @@ export const parsePolymarketActivity = (
         ? activity.side === 'BUY'
           ? 'buy'
           : activity.side === 'SELL'
-            ? 'sell'
-            : 'claimWinnings'
+          ? 'sell'
+          : 'claimWinnings'
         : 'claimWinnings';
 
     const id =
@@ -1137,14 +1118,14 @@ export const previewOrder = async (
   const { marketId, outcomeId, outcomeTokenId, side, size } = params;
   const book = await getOrderBook({ tokenId: outcomeTokenId });
   if (!book) {
-    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+    throw new Error('no orderbook');
   }
   const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
 
   if (side === Side.BUY) {
     const { asks } = book;
     if (!asks || asks.length === 0) {
-      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+      throw new Error('no order match (buy)');
     }
     const { price: bestPrice, size: shareAmount } = matchBuyOrder({
       asks,
@@ -1178,7 +1159,7 @@ export const previewOrder = async (
   }
   const { bids } = book;
   if (!bids || bids.length === 0) {
-    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
+    throw new Error('no order match (sell)');
   }
   const { price: bestPrice, size: dollarAmount } = matchSellOrder({
     bids,

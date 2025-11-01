@@ -78,7 +78,7 @@ export function useHandleOptInClick(props: {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED)
         .addProperties({
-          action_type: 'completed',
+          action_type: 'activated',
           is_profile_syncing_enabled: isBackupAndSyncEnabled,
         })
         .build(),

@@ -53,12 +53,8 @@ describe('useTransactionPayFiat', () => {
       expect(result.current.formatFiat(1.23)).toBe('£1.23');
     });
 
-    it.each([
-      TransactionType.perpsDeposit,
-      TransactionType.predictDeposit,
-      TransactionType.predictWithdraw,
-    ])('returns formatted fiat value after multiplier if $type', (type) => {
-      const { result } = runHook({ type });
+    it('returns formatted fiat value after multiplier if perps deposit', () => {
+      const { result } = runHook({ type: TransactionType.perpsDeposit });
 
       expect(result.current.formatFiat(1.23)).toBe('$2.46');
     });
@@ -71,12 +67,8 @@ describe('useTransactionPayFiat', () => {
       expect(result.current.convertFiat(1.23)).toBe(1.23);
     });
 
-    it.each([
-      TransactionType.perpsDeposit,
-      TransactionType.predictDeposit,
-      TransactionType.predictWithdraw,
-    ])('returns multiplied value if $type', (type) => {
-      const { result } = runHook({ type });
+    it('returns multiplied value if perps deposit', () => {
+      const { result } = runHook({ type: TransactionType.perpsDeposit });
 
       expect(result.current.convertFiat(1.23)).toBe(2.46);
     });

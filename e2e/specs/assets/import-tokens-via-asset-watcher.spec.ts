@@ -57,8 +57,9 @@ describe(RegressionNetworkAbstractions('Asset Watch:'), () => {
         smartContracts: [ERC20_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const hstAddress =
-          await contractRegistry?.getContractAddress(ERC20_CONTRACT);
+        const hstAddress = await contractRegistry?.getContractAddress(
+          ERC20_CONTRACT,
+        );
         await loginToApp();
 
         // Navigate to the browser screen

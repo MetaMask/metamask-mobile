@@ -1,26 +1,21 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import {
   getRatesControllerInitMessenger,
   getRatesControllerMessenger,
   RatesControllerInitMessenger,
+  type RatesControllerMessenger,
 } from '../messengers/rates-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { ratesControllerInit } from './rates-controller-init';
-import {
-  RatesController,
-  RatesControllerMessenger,
-} from '@metamask/assets-controllers';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { RatesController } from '@metamask/assets-controllers';
 
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<RatesControllerMessenger, RatesControllerInitMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

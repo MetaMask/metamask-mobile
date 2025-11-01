@@ -32,10 +32,9 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
-      CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
@@ -55,7 +54,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@211837de0fe5589cb88bd78bd2fd3237e1e97f48
         with:
           platform: android
           setup-simulator: false
@@ -64,14 +63,16 @@ jobs:
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
-        id: gradle-cache-restore
-        env:
-          GRADLE_CACHE_VERSION: 1
         with:
           path: |
-            ~/_work/.gradle/caches
-            ~/_work/.gradle/wrapper
-          key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            /home/runner/_work/.gradle/caches
+            /home/runner/_work/.gradle/wrapper
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
+            android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -83,7 +84,7 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
+      # # Generate fingerprint AFTER setup but BEFORE any build modifications
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
@@ -114,20 +115,20 @@ jobs:
           fi
 
       - name: Check and restore cached APKs if Fingerprint is found
-        id: apk-cache-restore
+        id: cache-restore
         uses: cirruslabs/cache@v4
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
-            android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-
+            android-apk-${{ inputs.build_type }}-
             android-apk-
 
       - name: Build Android E2E APKs
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' || steps.gradle-cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -178,7 +179,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' && steps.gradle-cache-restore.outputs.cache-hit == 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -229,14 +230,14 @@ jobs:
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' || steps.gradle-cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: cirruslabs/cache@v4
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk

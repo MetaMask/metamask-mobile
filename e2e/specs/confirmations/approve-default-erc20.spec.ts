@@ -47,8 +47,9 @@ describe(RegressionConfirmations('ERC20 tokens'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const hstAddress =
-          await contractRegistry?.getContractAddress(HST_CONTRACT);
+        const hstAddress = await contractRegistry?.getContractAddress(
+          HST_CONTRACT,
+        );
         await loginToApp();
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();

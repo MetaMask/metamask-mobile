@@ -90,7 +90,6 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
                   "borderRadius": 5,
                   "borderWidth": 2,
                   "color": "black",
-                  "fontFamily": "Geist Regular",
                   "padding": 10,
                 }
               }

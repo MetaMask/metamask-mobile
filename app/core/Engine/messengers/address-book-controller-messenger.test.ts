@@ -1,31 +1,12 @@
-import {
-  Messenger,
-  MOCK_ANY_NAMESPACE,
-  type MessengerActions,
-  type MessengerEvents,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import { AddressBookControllerMessenger } from '@metamask/address-book-controller';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<AddressBookControllerMessenger>,
-  MessengerEvents<AddressBookControllerMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
-
 describe('getAddressBookControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const addressBookControllerMessenger =
-      getAddressBookControllerMessenger(rootMessenger);
+      getAddressBookControllerMessenger(messenger);
 
-    expect(addressBookControllerMessenger).toBeInstanceOf(Messenger);
+    expect(addressBookControllerMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });

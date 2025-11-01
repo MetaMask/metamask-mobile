@@ -1,16 +1,11 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { SnapControllerStateChangeEvent } from '../../controllers/snaps';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { BaseControllerMessenger } from '../../types';
 import {
   SnapKeyringAccountAssetListUpdatedEvent,
   SnapKeyringAccountBalancesUpdatedEvent,
   SnapKeyringAccountTransactionsUpdatedEvent,
 } from '../../../SnapKeyring/constants';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
 
 // Export the types
 export * from './types';
@@ -18,28 +13,16 @@ export * from './types';
 /**
  * Get the AccountsControllerMessenger for the AccountsController.
  *
- * @param rootMessenger - The root messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The AccountsControllerMessenger.
  */
 export function getAccountsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): AccountsControllerMessenger {
-  const messenger = new Messenger<
-    'AccountsController',
-    MessengerActions<AccountsControllerMessenger>,
-    MessengerEvents<AccountsControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'AccountsController',
-    parent: rootExtendedMessenger,
-  });
-
-  rootExtendedMessenger.delegate({
-    actions: [
-      'KeyringController:getState',
-      'KeyringController:getKeyringsByType',
-    ],
-    events: [
+  return baseControllerMessenger.getRestricted({
+    name: 'AccountsController',
+    allowedEvents: [
+      'KeyringController:accountRemoved',
       'KeyringController:stateChange',
       SnapControllerStateChangeEvent,
       SnapKeyringAccountAssetListUpdatedEvent,
@@ -47,7 +30,11 @@ export function getAccountsControllerMessenger(
       SnapKeyringAccountTransactionsUpdatedEvent,
       'MultichainNetworkController:networkDidChange',
     ],
-    messenger,
+    allowedActions: [
+      'KeyringController:getState',
+      'KeyringController:getAccounts',
+      'KeyringController:getKeyringsByType',
+      'KeyringController:getKeyringForAccount',
+    ],
   });
-  return messenger;
 }

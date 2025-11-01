@@ -1,43 +1,53 @@
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { RootMessenger } from '../types';
-import { SelectedNetworkControllerMessenger } from '@metamask/selected-network-controller';
+  GetSubjects,
+  HasPermissions,
+  PermissionControllerStateChange,
+} from '@metamask/permission-controller';
+import {
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetSelectedNetworkClientAction,
+  NetworkControllerGetStateAction,
+  NetworkControllerStateChangeEvent,
+} from '@metamask/network-controller';
+
+type AllowedActions =
+  | NetworkControllerGetNetworkClientByIdAction
+  | NetworkControllerGetSelectedNetworkClientAction
+  | NetworkControllerGetStateAction
+  | HasPermissions
+  | GetSubjects;
+
+type AllowedEvents =
+  | NetworkControllerStateChangeEvent
+  | PermissionControllerStateChange;
+
+export type SelectedNetworkControllerMessenger = ReturnType<
+  typeof getSelectedNetworkControllerMessenger
+>;
 
 /**
- * Get the messenger for the selected network controller. This is scoped to the
- * actions and events that the selected network controller is allowed to handle
+ * Get a messenger restricted to the actions and events that the
+ * selected network controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The SelectedNetworkControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getSelectedNetworkControllerMessenger(
-  rootMessenger: RootMessenger,
-): SelectedNetworkControllerMessenger {
-  const messenger = new Messenger<
-    'SelectedNetworkController',
-    MessengerActions<SelectedNetworkControllerMessenger>,
-    MessengerEvents<SelectedNetworkControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'SelectedNetworkController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'SelectedNetworkController',
+    allowedActions: [
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'NetworkController:getSelectedNetworkClient',
       'PermissionController:hasPermissions',
       'PermissionController:getSubjectNames',
     ],
-    events: [
+    allowedEvents: [
       'NetworkController:stateChange',
       'PermissionController:stateChange',
     ],
-    messenger,
   });
-  return messenger;
 }

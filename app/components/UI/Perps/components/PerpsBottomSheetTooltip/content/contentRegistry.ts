@@ -1,7 +1,6 @@
 import FeesTooltipContent from './FeesTooltipContent';
 import TPSLCountWarningTooltipContent from './TPSLCountWarningTooltipContent';
 import WithdrawalFeesTooltipContent from './WithdrawalFeesTooltipContent';
-import MarketHoursContent from './MarketHoursContent';
 import { ContentRegistry } from './types';
 
 /**
@@ -31,6 +30,4 @@ export const tooltipContentRegistry: ContentRegistry = {
   close_position_you_receive: undefined,
   tpsl_count_warning: TPSLCountWarningTooltipContent,
   points: undefined,
-  market_hours: MarketHoursContent,
-  after_hours_trading: MarketHoursContent,
 };

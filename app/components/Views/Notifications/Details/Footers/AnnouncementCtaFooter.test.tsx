@@ -6,8 +6,6 @@ import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/SharedDee
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
-import { createMockFeatureAnnouncementRaw } from '@metamask/notification-services-controller/notification-services/mocks';
-import { processNotification } from '@metamask/notification-services-controller/notification-services';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
@@ -45,7 +43,6 @@ describe('AnnouncementCtaFooter', () => {
           externalLinkUrl: 'https://metamask.io/test',
           externalLinkText: 'Learn More',
         },
-        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -60,7 +57,6 @@ describe('AnnouncementCtaFooter', () => {
           externalLinkUrl: 'https://metamask.io/test',
           externalLinkText: 'Learn More',
         },
-        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -80,7 +76,6 @@ describe('AnnouncementCtaFooter', () => {
           externalLinkUrl: 'https://metamask.io/test',
           externalLinkText: 'Learn More',
         },
-        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -104,7 +99,6 @@ describe('AnnouncementCtaFooter', () => {
           mobileLinkUrl: 'metamask://swap',
           mobileLinkText: 'Try Swap',
         },
-        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);
@@ -119,7 +113,6 @@ describe('AnnouncementCtaFooter', () => {
           mobileLinkUrl: 'metamask://swap',
           mobileLinkText: 'Try Swap',
         },
-        notification: processNotification(createMockFeatureAnnouncementRaw()),
       } as const;
 
       const { getByText } = render(<AnnouncementCtaFooter {...props} />);

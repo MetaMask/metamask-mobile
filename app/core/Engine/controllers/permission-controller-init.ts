@@ -3,9 +3,11 @@ import {
   PermissionController,
   type PermissionSpecificationConstraint,
   type CaveatSpecificationConstraint,
-  type PermissionControllerMessenger,
 } from '@metamask/permission-controller';
-import { PermissionControllerInitMessenger } from '../messengers/permission-controller-messenger';
+import {
+  PermissionControllerInitMessenger,
+  PermissionControllerMessenger,
+} from '../messengers/permission-controller-messenger';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -36,6 +38,8 @@ export const permissionControllerInit: ControllerInitFunction<
   ///: END:ONLY_INCLUDE_IF
 
   const controller = new PermissionController({
+    // @ts-expect-error: The permission controller needs certain actions that
+    // are not declared in the messenger's type.
     messenger: controllerMessenger,
     state: persistedState.PermissionController,
     caveatSpecifications: getCaveatSpecifications({

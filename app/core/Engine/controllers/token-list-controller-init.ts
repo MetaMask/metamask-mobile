@@ -1,9 +1,9 @@
 import { ControllerInitFunction } from '../types';
+import { TokenListController } from '@metamask/assets-controllers';
 import {
-  TokenListController,
-  type TokenListControllerMessenger,
-} from '@metamask/assets-controllers';
-import { TokenListControllerInitMessenger } from '../messengers/token-list-controller-messenger';
+  TokenListControllerInitMessenger,
+  TokenListControllerMessenger,
+} from '../messengers/token-list-controller-messenger';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 
 /**

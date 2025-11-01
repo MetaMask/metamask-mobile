@@ -106,8 +106,9 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition({ onSuccess }));
 
       await act(async () => {
-        const closeResult =
-          await result.current.handleClosePosition(mockPosition);
+        const closeResult = await result.current.handleClosePosition(
+          mockPosition,
+        );
         expect(closeResult).toEqual(successResult);
       });
 
@@ -362,8 +363,9 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        const closeResult =
-          await result.current.handleClosePosition(positionWithTPSL);
+        const closeResult = await result.current.handleClosePosition(
+          positionWithTPSL,
+        );
         expect(closeResult).toEqual(successResult);
       });
 

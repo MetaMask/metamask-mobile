@@ -53,8 +53,9 @@ const usePhoneVerificationSend = (): {
         setIsSuccess(false);
         setError(null);
 
-        const phoneVerificationSendResponse =
-          await sdk.phoneVerificationSend(request);
+        const phoneVerificationSendResponse = await sdk.phoneVerificationSend(
+          request,
+        );
 
         setIsSuccess(true);
 

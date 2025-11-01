@@ -10,6 +10,7 @@ const createStyles = () =>
     },
     skeletonContainer: {
       flexDirection: 'column',
+      alignItems: 'center',
       gap: 4,
     },
   });
