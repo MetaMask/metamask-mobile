@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import type { PriceUpdate } from '../../controllers/types';
 
@@ -28,6 +28,9 @@ export function usePerpsLivePrices(
   const stream = usePerpsStream();
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({});
 
+  // Memoize joined symbols to prevent unnecessary effect re-runs
+  const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
+
   useEffect(() => {
     if (symbols.length === 0) return;
 
@@ -45,8 +48,7 @@ export function usePerpsLivePrices(
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, symbols.join(','), throttleMs]);
+  }, [stream, symbolsKey, symbols, throttleMs]);
 
   return prices;
 }

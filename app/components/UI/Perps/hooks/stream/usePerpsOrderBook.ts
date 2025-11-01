@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 
 /**
@@ -54,6 +54,9 @@ export function usePerpsOrderBook(
     {},
   );
 
+  // Memoize joined symbols to prevent unnecessary effect re-runs
+  const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
+
   useEffect(() => {
     if (symbols.length === 0) return;
 
@@ -70,8 +73,7 @@ export function usePerpsOrderBook(
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, symbols.join(',')]);
+  }, [stream, symbolsKey, symbols]);
 
   return orderBooks;
 }
