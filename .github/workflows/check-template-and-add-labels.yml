@@ -1,5 +1,5 @@
 name: Check template and add labels
-
+tab
 on:
   issues:
     types: [opened, edited, labeled, unlabeled, reopened]
