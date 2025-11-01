@@ -521,7 +521,6 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP'],
         callback: expect.any(Function),
-        includeOrderBook: true,
       });
     });
   });
@@ -1135,7 +1134,6 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP', 'ETH-PERP'],
         callback: expect.any(Function),
-        includeOrderBook: true,
       });
     });
   });

@@ -70,20 +70,19 @@ abstract class StreamChannel<T> {
       // Store pending update
       subscriber.pendingUpdate = updates;
 
-      // This prevents timer accumulation and memory leaks, especially on Android devices
-      if (subscriber.timer) {
-        clearTimeout(subscriber.timer);
-        subscriber.timer = undefined;
+      // Throttle pattern: Only set timer if one isn't already running
+      // This ensures callbacks fire at most once per throttleMs interval
+      // WITHOUT resetting the countdown on every update (which would be debouncing)
+      // The conditional check prevents timer accumulation - no memory leaks
+      if (!subscriber.timer) {
+        subscriber.timer = setTimeout(() => {
+          if (subscriber.pendingUpdate) {
+            subscriber.callback(subscriber.pendingUpdate);
+            subscriber.pendingUpdate = undefined;
+          }
+          subscriber.timer = undefined;
+        }, subscriber.throttleMs);
       }
-
-      // Create new timer
-      subscriber.timer = setTimeout(() => {
-        if (subscriber.pendingUpdate) {
-          subscriber.callback(subscriber.pendingUpdate);
-          subscriber.pendingUpdate = undefined;
-        }
-        subscriber.timer = undefined;
-      }, subscriber.throttleMs);
     });
   }
 
