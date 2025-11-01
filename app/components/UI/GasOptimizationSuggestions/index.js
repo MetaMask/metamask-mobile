@@ -165,6 +165,11 @@ const GasOptimizationSuggestions = ({
   const [optimizationResults, setOptimizationResults] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
 
+  // Extract primitive values from transactionContext to avoid unnecessary re-renders
+  const transactionUrgency = transactionContext?.urgency;
+  const transactionType = transactionContext?.transactionType;
+  const userPreferences = transactionContext?.userPreferences;
+
   useEffect(() => {
     if (networkData) {
       const congestion = analyzeNetworkCongestion(networkData);
@@ -181,12 +186,14 @@ const GasOptimizationSuggestions = ({
       
       // Get user-friendly recommendations
       const recs = getGasOptimizationRecommendations({
-        ...transactionContext,
+        urgency: transactionUrgency,
+        transactionType: transactionType,
+        userPreferences: userPreferences,
         networkConditions: { congestion }
       });
       setRecommendations(recs);
     }
-  }, [networkData, selectedStrategy, currentGasPrice, currentPriorityFee, transactionContext]);
+  }, [networkData, selectedStrategy, currentGasPrice, currentPriorityFee, transactionUrgency, transactionType, userPreferences]);
 
   const getNetworkStatusColor = () => {
     switch (congestionLevel) {
