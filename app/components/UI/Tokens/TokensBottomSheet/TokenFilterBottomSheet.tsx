@@ -22,6 +22,12 @@ import { strings } from '../../../../../locales/i18n';
 import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import NetworkImageComponent from '../../NetworkImages';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 enum FilterOption {
   AllNetworks,
@@ -41,6 +47,12 @@ const TokenFilterBottomSheet = () => {
     () => enableAllNetworksFilter(allNetworks),
     [allNetworks],
   );
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const onFilterControlsBottomSheetPress = (option: FilterOption) => {
     const { PreferencesController } = Engine.context;
@@ -58,6 +70,9 @@ const TokenFilterBottomSheet = () => {
       default:
         break;
     }
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId);
+    }
   };
 
   const isCurrentNetwork = Boolean(
@@ -66,7 +81,7 @@ const TokenFilterBottomSheet = () => {
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
-      <View style={styles.bottomSheetWrapper}>
+      <View>
         <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
           {strings('wallet.filter_by')}
         </Text>

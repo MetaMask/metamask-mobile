@@ -10,6 +10,7 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
+
 export function handleMetaMaskDeeplink({
   instance,
   handled,
@@ -26,6 +27,7 @@ export function handleMetaMaskDeeplink({
   url: string;
 }) {
   handled();
+
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
     DevLogger.log(
       `DeeplinkManager:: metamask launched via android sdk deeplink`,
@@ -43,7 +45,8 @@ export function handleMetaMaskDeeplink({
       SDKConnect.getInstance().state.navigation?.navigate(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+          hideReturnToApp: params.hr,
         },
       );
     } else if (params.channelId) {
@@ -84,6 +87,7 @@ export function handleMetaMaskDeeplink({
           context: 'deeplink_scheme',
           originatorInfo,
           rpc: params.rpc,
+          hideReturnToApp: params.hr,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err) => {
@@ -155,6 +159,12 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
+  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
+    const depositCashPath = url.replace(
+      `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`,
+      '',
+    );
+    instance._handleDepositCash(depositCashPath);
   }
 }
 

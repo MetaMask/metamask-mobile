@@ -34,7 +34,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   getNativeAssetForChainId,
-  isSolanaChainId,
+  isNonEvmChainId,
   StatusTypes,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
@@ -186,7 +186,7 @@ export const BridgeTransactionDetails = (
   const isBridge = !isSwap;
 
   // Create token objects directly from the quote data
-  const sourceChainId = isSolanaChainId(quote.srcChainId)
+  const sourceChainId = isNonEvmChainId(quote.srcChainId)
     ? formatChainIdToCaip(quote.srcChainId)
     : formatChainIdToHex(quote.srcChainId);
 
@@ -204,7 +204,7 @@ export const BridgeTransactionDetails = (
     quote.srcAsset.decimals,
   ).toFixed(5);
 
-  const destinationChainId = isSolanaChainId(quote.destChainId)
+  const destinationChainId = isNonEvmChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
 
@@ -258,6 +258,15 @@ export const BridgeTransactionDetails = (
         : null;
   }
 
+  let status;
+  if (isBridge) {
+    status = bridgeStatus.status;
+  } else if (isSwap) {
+    status = evmTxMeta?.status;
+  } else if (multiChainTx) {
+    status = multiChainTx.status;
+  }
+
   return (
     <ScreenView>
       <Box style={styles.transactionContainer}>
@@ -298,9 +307,7 @@ export const BridgeTransactionDetails = (
               })}
               style={styles.textTransform}
             >
-              {isBridge ? bridgeStatus.status : null}
-              {isSwap ? evmTxMeta?.status : null}
-              {multiChainTx ? multiChainTx.status : null}
+              {status}
             </Text>
           </Box>
         </Box>
@@ -309,7 +316,9 @@ export const BridgeTransactionDetails = (
           estimatedCompletionString && (
             <Box style={styles.detailRow}>
               <Text variant={TextVariant.BodyMDMedium}>
-                {strings('bridge_transaction_details.estimated_completion')}{' '}
+                {strings(
+                  'bridge_transaction_details.estimated_completion',
+                )}{' '}
               </Text>
               <Box
                 flexDirection={FlexDirection.Row}

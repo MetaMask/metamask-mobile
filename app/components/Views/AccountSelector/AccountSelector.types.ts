@@ -1,12 +1,10 @@
-// External dependencies.
-import { UseAccountsParams } from '../../../components/hooks/useAccounts';
-
 /**
  * Enum to track states of the account selector screen.
  */
 export enum AccountSelectorScreens {
   AccountSelector = 'AccountSelector',
   AddAccountActions = 'AddAccountActions',
+  MultichainAddWalletActions = 'MultichainAddWalletActions',
 }
 
 export interface AccountSelectorParams {
@@ -31,18 +29,15 @@ export interface AccountSelectorParams {
    */
   isSelectOnly?: boolean;
   /**
-   * Optional callback that is used to check for a balance requirement. Non-empty string will render the account item non-selectable.
-   * @param balance - The ticker balance of an account in wei and hex string format.
-   */
-  checkBalanceError?: UseAccountsParams['checkBalanceError'];
-  /**
    * Optional boolean to indicate if privacy mode is disabled.
    */
   disablePrivacyMode?: boolean;
   /**
    * Optional navigation screen to indicate if should navigate to add account actions sheet.
    */
-  navigateToAddAccountActions?: AccountSelectorScreens.AddAccountActions;
+  navigateToAddAccountActions?:
+    | AccountSelectorScreens.AddAccountActions
+    | AccountSelectorScreens.MultichainAddWalletActions;
   /**
    * Only show EVM accounts.
    */

@@ -32,6 +32,7 @@ async function connectToChannel({
   origin,
   validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   instance,
+  hideReturnToApp,
 }: ConnectionProps & {
   instance: SDKConnect;
 }) {
@@ -107,6 +108,7 @@ async function connectToChannel({
       rpcQueueManager: instance.state.rpcqueueManager,
       originatorInfo,
       navigation: instance.state.navigation,
+      hideReturnToApp,
       updateOriginatorInfos: instance.updateOriginatorInfos.bind(instance),
       approveHost: instance._approveHost.bind(instance),
       disapprove: instance.disapproveChannel.bind(instance),
@@ -210,7 +212,7 @@ async function connectToChannel({
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         });
         return;
       }
@@ -282,9 +284,11 @@ async function connectToChannel({
         connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
-        DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
+        DevLogger.log(
+          `[handleSendMessage] display RETURN_TO_DAPP_NOTIFICATION`,
+        );
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         });
       }
     }

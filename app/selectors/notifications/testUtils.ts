@@ -7,6 +7,7 @@ export const MOCK_NOTIFICATION_SERVICES_CONTROLLER = {
   isUpdatingMetamaskNotifications: false,
   isFetchingMetamaskNotifications: false,
   isFeatureAnnouncementsEnabled: true,
+  isPerpsNotificationsEnabled: false,
   isUpdatingMetamaskNotificationsAccount: false,
   isCheckingAccountsPresence: false,
   metamaskNotificationsReadList: [],

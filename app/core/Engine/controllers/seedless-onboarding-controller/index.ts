@@ -53,6 +53,7 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
     network: web3AuthNetwork as Web3AuthNetwork,
     passwordOutdatedCacheTTL: 15_000, // 15 seconds
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
+    renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
   });
 

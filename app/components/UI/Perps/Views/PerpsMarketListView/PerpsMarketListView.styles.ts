@@ -15,54 +15,66 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
-      paddingVertical: 8,
-      marginBottom: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
+    },
+    headerTitleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    backButtonWrapper: {
+      padding: 12, // Increases touch target to ~48x48
+      marginLeft: -12, // Compensate for padding to maintain visual alignment
+      marginRight: -12,
+    },
+    backButton: {
+      padding: 8,
+      marginRight: 8,
     },
     headerTitle: {
-      flex: 1,
       textAlign: 'left',
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    titleButtonsRightContainer: {
+      flexDirection: 'row',
     },
     searchButton: {
       padding: 4,
-    },
-    tabContainer: {
-      flexDirection: 'row',
-      borderWidth: 1,
-      marginHorizontal: 16,
-      borderRadius: 12,
-      borderColor: colors.border.muted,
-      padding: 2,
-    },
-    tabButton: {
-      flex: 1,
-      paddingVertical: 17,
-      paddingHorizontal: 16,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    tabButtonActive: {
-      backgroundColor: colors.background.defaultPressed,
-    },
-    tabButtonInactive: {
-      backgroundColor: colors.background.default,
-    },
-    headerSpacer: {
-      width: 24,
-    },
-    closeButton: {
-      padding: 4,
+      marginRight: 4,
     },
     listContainer: {
       flex: 1,
     },
+    listContainerWithTabBar: {
+      flex: 1,
+    },
+    tabsContainer: {
+      flex: 1,
+      paddingTop: 12,
+    },
+    tabScrollView: {
+      flex: 1,
+    },
+    tabContentContainer: {},
+    tabBarContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+
     listHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
       marginBottom: 8,
-      marginTop: 30,
+      marginTop: 12,
     },
     listHeaderLeft: {
       flex: 1,
@@ -82,7 +94,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
     },
     flashListContent: {
-      paddingBottom: 16,
+      paddingBottom: 120, // Increased to account for balance component (~80px) + tab bar + safe area
     },
     skeletonContainer: {
       flexDirection: 'row',
@@ -98,8 +110,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     skeletonAvatar: {
-      width: 40,
-      height: 40,
       borderRadius: 20,
       marginRight: 16,
     },
@@ -112,19 +122,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 6,
     },
     skeletonTokenSymbol: {
-      width: 60,
-      height: 16,
       borderRadius: 4,
       marginRight: 8,
     },
     skeletonLeverage: {
-      width: 30,
-      height: 14,
       borderRadius: 4,
     },
     skeletonVolume: {
-      width: 80,
-      height: 12,
       borderRadius: 4,
     },
     skeletonRightSection: {
@@ -132,26 +136,18 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     skeletonPrice: {
-      width: 90,
-      height: 16,
       borderRadius: 4,
       marginBottom: 6,
     },
     skeletonChange: {
-      width: 70,
-      height: 14,
       borderRadius: 4,
     },
     animatedListContainer: {
       flex: 1,
-      paddingHorizontal: 16,
-      paddingTop: 16,
     },
     searchContainer: {
-      marginHorizontal: 16,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 12,
+      paddingTop: 16,
+      paddingHorizontal: 16,
     },
     searchInputContainer: {
       flexDirection: 'row',
@@ -159,7 +155,8 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.muted,
       borderRadius: 12,
       paddingHorizontal: 16,
-      paddingVertical: 10,
+      paddingVertical: 8,
+      minHeight: 50,
     },
     searchIcon: {
       marginRight: 10,
@@ -169,10 +166,30 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       fontSize: 16,
       color: colors.text.default,
+      includeFontPadding: false, // Android-specific: removes extra font padding
     },
     clearButton: {
       padding: 4,
       marginLeft: 8,
+    },
+    emptyStateContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 48,
+      marginBottom: 120, // Account for tab bar height
+    },
+    emptyStateIcon: {
+      marginBottom: 16,
+    },
+    emptyStateTitle: {
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    emptyStateDescription: {
+      textAlign: 'center',
+      maxWidth: 280,
     },
   });
 };

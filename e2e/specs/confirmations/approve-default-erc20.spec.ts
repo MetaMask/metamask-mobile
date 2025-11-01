@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -11,20 +11,22 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(RegressionConfirmations('ERC20 tokens'), () => {
   it('approve default ERC20 token amount from a dapp', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+      );
     };
 
     await withFixtures(
@@ -45,9 +47,8 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
-          HST_CONTRACT,
-        );
+        const hstAddress =
+          await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();

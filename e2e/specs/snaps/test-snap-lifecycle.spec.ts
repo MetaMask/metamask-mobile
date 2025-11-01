@@ -1,61 +1,54 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../framework/fixtures/FixtureHelper';
-import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort } from '../../fixtures/utils';
-import TestHelpers from '../../helpers';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { FlaskBuildTests } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../viewHelper';
 
-const fixtureServer = new FixtureServer();
+jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-    });
-    await loginToApp();
-  });
+  it('runs the onInstall lifecycle hook when the Snap is installed', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        skipReactNativeReload: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await TestSnaps.navigateToTestSnap();
 
-  afterAll(async () => {
-    await stopFixtureServer(fixtureServer);
-  });
-
-  beforeEach(() => {
-    jest.setTimeout(150_000);
-  });
-
-  it('runs the `onInstall` lifecycle hook when the Snap is installed', async () => {
-    await TabBarComponent.tapBrowser();
-    await TestSnaps.navigateToTestSnap();
-
-    await TestSnaps.installSnap('connectLifeCycleButton');
-
-    await Assertions.checkIfTextIsDisplayed(
-      'The Snap was installed successfully, and the "onInstall" handler was called.',
+        await TestSnaps.installSnap('connectLifeCycleButton');
+        await Assertions.checkIfTextIsDisplayed(
+          'The Snap was installed successfully, and the "onInstall" handler was called.',
+        );
+      },
     );
   });
 
-  it('runs the `onStart` lifecycle hook when the client is started', async () => {
-    await TestHelpers.terminateApp();
+  it('runs the onStart lifecycle hook when the client is started', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withSnapControllerOnStartLifecycleSnap()
+          .build(),
+        restartDevice: true,
+        skipReactNativeReload: true,
+      },
+      async () => {
+        try {
+          await loginToApp();
+        } catch {
+          // The assertions inside may fail due to the ongoing test.
+        }
 
-    await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-    });
-    await loginToApp();
-
-    await Assertions.checkIfTextIsDisplayed(
-      'The client was started successfully, and the "onStart" handler was called.',
+        await Assertions.checkIfTextIsDisplayed(
+          'The client was started successfully, and the "onStart" handler was called.',
+        );
+      },
     );
   });
 });

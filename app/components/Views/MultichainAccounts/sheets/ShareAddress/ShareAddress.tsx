@@ -11,19 +11,16 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { Box } from '../../../../UI/Box/Box';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
-import styleSheet from './ShareAddress.styles';
-import { useStyles } from '../../../../hooks/useStyles';
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import QRAccountDisplay from '../../../QRAccountDisplay';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import QRCode from 'react-native-qrcode-svg';
 import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
 import { getMultichainBlockExplorer } from '../../../../../core/Multichain/networks';
@@ -40,7 +37,7 @@ type ShareAddressRouteProp = RouteProp<RootNavigationParamList, 'ShareAddress'>;
 
 export const ShareAddress = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
@@ -70,46 +67,50 @@ export const ShareAddress = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const viewOnExplorerButtonProps: ButtonProps = {
-    variant: ButtonVariants.Secondary,
-    label: strings(
-      'multichain_accounts.share_address.view_on_explorer_button',
-      {
-        explorer:
-          blockExplorer?.blockExplorerName ??
-          strings('multichain_accounts.share_address.view_on_block_explorer'),
-      },
-    ),
-    size: ButtonSize.Lg,
-    onPress: handleExplorerLinkPress,
-    testID: ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON,
-  };
-
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onBack={handleOnBack}>
         {strings('multichain_accounts.share_address.title')}
       </BottomSheetHeader>
       <Box
-        style={styles.container}
-        flexDirection={FlexDirection.Column}
-        alignItems={AlignItems.center}
+        flexDirection={BoxFlexDirection.Column}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-4 py-6"
       >
-        <QRCode
-          value={formattedAddress}
-          size={200}
-          logo={PNG_MM_LOGO_PATH}
-          logoSize={40}
-        />
-        <QRAccountDisplay
-          accountAddress={formattedAddress}
-          addressContainerStyle={styles.addressContainer}
-        />
+        <Box twClassName="p-6 border border-muted rounded-2xl">
+          <QRCode
+            value={formattedAddress}
+            size={200}
+            logo={PNG_MM_LOGO_PATH}
+            logoSize={32}
+            logoBorderRadius={8}
+          />
+        </Box>
+        <Box twClassName="mt-6 mb-4">
+          <QRAccountDisplay accountAddress={formattedAddress} />
+        </Box>
       </Box>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={[viewOnExplorerButtonProps]}
-      />
+      <Box twClassName="px-4 pb-4">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleExplorerLinkPress}
+          testID={ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON}
+          style={tw.style('mt-1 self-center')}
+        >
+          {strings(
+            'multichain_accounts.share_address.view_on_explorer_button',
+            {
+              explorer:
+                blockExplorer?.blockExplorerName ??
+                strings(
+                  'multichain_accounts.share_address.view_on_block_explorer',
+                ),
+            },
+          )}
+        </Button>
+      </Box>
     </BottomSheet>
   );
 };

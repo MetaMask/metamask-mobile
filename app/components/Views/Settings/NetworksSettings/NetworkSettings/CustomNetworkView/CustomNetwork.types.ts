@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { TabBarProps } from 'react-native-scrollable-tab-view';
+import { TabBarProps } from '@tommasini/react-native-scrollable-tab-view';
 
 export interface Network {
   chainId: string;
@@ -24,6 +24,10 @@ export interface ExtendedNetwork extends Network {
 }
 
 export interface CustomNetworkProps {
+  /**
+   * Show list header
+   */
+  listHeader?: string;
   /**
    * Boolean check to track if Popular network or Custom network form is open
    */
@@ -52,7 +56,7 @@ export interface CustomNetworkProps {
    * Switch tab between popular and custom networks
    */
   // TODO - The name for this type is not accurate. It should be a ref of the ScrollableTabView's tab.
-  switchTab?: TabBarProps;
+  switchTab?: typeof TabBarProps;
   /**
    * should navigation return to wallet after network change
    */
@@ -86,4 +90,12 @@ export interface CustomNetworkProps {
    * Once the previous version is removed, this hideWarningIcons wont have any other use and can be removed.
    */
   hideWarningIcons?: boolean;
+  /**
+   * Allow network switch
+   */
+  allowNetworkSwitch?: boolean;
+  /**
+   * Use compact UI with icons instead of text
+   */
+  compactMode?: boolean;
 }

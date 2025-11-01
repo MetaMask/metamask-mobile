@@ -3,7 +3,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { SmokeTrade } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
@@ -13,7 +13,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
+describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

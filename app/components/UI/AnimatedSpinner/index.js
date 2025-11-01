@@ -8,9 +8,26 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 export const SpinnerSize = {
   MD: 'MD',
   SM: 'SM',
+  XS: 'XS',
 };
 
 const measures = {
+  [SpinnerSize.XS]: {
+    Android: {
+      height: 24.5,
+      width: 24.5,
+    },
+    iOS: {
+      height: 22,
+      width: 22,
+    },
+    static: {
+      borderRadius: 36,
+      width: 18,
+      height: 18,
+      iconSize: 18,
+    },
+  },
   [SpinnerSize.SM]: {
     Android: {
       height: 30.5,

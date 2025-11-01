@@ -8,6 +8,7 @@ import {
   TestSnapResultSelectorWebIDS,
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
+  NativeDropdownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
@@ -17,14 +18,13 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
-import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import { waitForTestSnapsToLoad } from '../../viewHelper';
 import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/2.25.0/';
+  'https://metamask.github.io/snaps/test-snaps/2.28.1/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
@@ -51,6 +51,16 @@ class TestSnaps {
     );
   }
 
+  get footerButton(): DetoxElement {
+    return Matchers.getElementByID(
+      TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
+    );
+  }
+
+  get checkboxElement(): DetoxElement {
+    return Matchers.getElementByID('snap-ui-renderer__checkbox');
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -68,6 +78,20 @@ class TestSnaps {
       const actualText = await webElement.getText();
       await Assertions.checkIfTextMatches(actualText, expectedMessage);
     }, options);
+  }
+
+  async checkInstalledSnaps(
+    expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    return await this.checkResultSpan(
+      'installedSnapResultSpan',
+      expectedMessage,
+      options,
+    );
   }
 
   async checkResultJson(
@@ -117,6 +141,26 @@ class TestSnaps {
     }, options);
   }
 
+  async checkResultSpanNotEmpty(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS[selector],
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      if (!actualText || actualText.trim() === '') {
+        throw new Error(`Result span is empty`);
+      }
+    }, options);
+  }
+
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
@@ -129,9 +173,46 @@ class TestSnaps {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
-    ) as any;
+    );
     await Gestures.scrollToWebViewPort(webElement);
     await Gestures.tapWebElement(webElement);
+  }
+
+  async tapOkButton() {
+    const button = Matchers.getElementByText('OK');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapApproveButton() {
+    const button = Matchers.getElementByText('Approve');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapConfirmButton() {
+    const button = Matchers.getElementByText('Confirm');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapCancelButton() {
+    const button = Matchers.getElementByText('Cancel');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapFooterButton() {
+    await Gestures.waitAndTap(this.footerButton);
+  }
+
+  async tapSubmitButton() {
+    const button = Matchers.getElementByText('Submit');
+    await Gestures.waitAndTap(button);
+  }
+
+  async dismissAlert() {
+    // Matches the native WebView alert on each platform
+    const button = Matchers.getElementByText(
+      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+    );
+    await Gestures.tap(button);
   }
 
   async getOptionValueByText(
@@ -170,6 +251,39 @@ class TestSnaps {
     );
   }
 
+  async fillInput(name: string, text: string) {
+    const input = Matchers.getElementByID(`${name}-snap-ui-input`);
+
+    await Gestures.typeText(input, text, { hideKeyboard: true });
+  }
+
+  async selectInNativeDropdown(
+    selector: keyof typeof NativeDropdownSelectorWebIDS,
+    text: string,
+  ): Promise<void> {
+    const dropdown = Matchers.getElementByID(
+      NativeDropdownSelectorWebIDS[selector],
+    );
+
+    await Gestures.tap(dropdown);
+
+    const selectorItem = element(
+      by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
+    ) as unknown as DetoxElement;
+    await Gestures.tap(selectorItem);
+  }
+
+  async selectRadioButton(text: string) {
+    const radioButton = element(
+      by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
+    ) as unknown as DetoxElement;
+    await Gestures.tap(radioButton);
+  }
+
+  async tapCheckbox() {
+    await Gestures.tap(this.checkboxElement);
+  }
+
   async installSnap(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
@@ -200,7 +314,7 @@ class TestSnaps {
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
     // New gestures currently don't support web elements
-    await LegacyGestures.typeInWebElement(webElement, message);
+    await Gestures.typeInWebElement(webElement, message);
   }
 
   async approveSignRequest() {

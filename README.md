@@ -18,15 +18,36 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
-- [Testing](./docs/readme/testing.md)
+- [E2E Testing](./docs/readme/e2e-testing.md)
 - [Debugging](./docs/readme/debugging.md)
 - [Performance](./docs/readme/performance.md)
-- [API Call Logging for Debugging](./docs/readme/api-logging.md)
+- [Release Build Profiling](./docs/readme/release-build-profiler.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 - [E2E Testing Segment Events](./docs/testing/e2e/segment-events.md)
+- [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)
 
 ## Getting started
+
+### Infura Project Setup
+
+MetaMask Mobile requires an Infura project ID to connect to blockchain networks.
+
+#### Internal Contributors
+
+1. Grab the `.js.env` file from 1Password, ask around for the correct vault. This file contains the `MM_INFURA_PROJECT_ID`.
+
+#### External Contributors
+
+1. Go to [https://developer.metamask.io](https://developer.metamask.io) and create an account
+2. Generate an API key
+3. Add API key to `MM_INFURA_PROJECT_ID` in `.js.env.example`
+4. Rename `.js.env.example` to `.js.env`
+5. Rebuild the app
+
+[!CAUTION]
+
+> Without an Infura project ID, the app cannot connect to blockchain networks.
 
 ### Using Expo (recommended)
 
@@ -34,7 +55,7 @@ Expo is the fastest way to start developing. With the Expo framework, developers
 
 #### Expo Environment Setup
 
-[Install node, yarn and watchman.](./docs/readme/expo-environment.md)
+[Install node, yarn v3 and watchman.](./docs/readme/expo-environment.md)
 
 #### Clone the project
 
@@ -170,3 +191,35 @@ yarn start:ios
 ```bash
 yarn start:android
 ```
+
+## Development Tools
+
+### Git Hooks (Husky)
+
+This project uses [Husky](https://typicode.github.io/husky/) to run pre-commit hooks that automatically format and lint your code before commits. The pre-commit hook runs `lint-staged` which executes:
+
+- **Prettier** - Code formatting for `*.{js,jsx,ts,tsx,json,feature}` files
+- **ESLint** - Linting and auto-fixing for `*.{js,jsx,ts,tsx}` files
+
+#### Disabling Husky Locally
+
+If you need to disable Husky pre-commit hooks temporarily (e.g., for emergency commits or debugging), you have several options:
+
+##### Option 1: Skip hooks for a single commit
+
+```bash
+git commit --no-verify -m "your commit message"
+```
+
+##### Option 2: Bypass hooks with environment variable
+
+```bash
+# Disable for current session
+export HUSKY=0
+git commit -m "your commit message"
+
+# Or disable for a single command
+HUSKY=0 git commit -m "your commit message"
+```
+
+**Note:** While these methods allow you to bypass the pre-commit hooks, remember that the CI/CD pipeline will still run linting checks. It's recommended to fix linting issues before pushing your changes to avoid build failures.

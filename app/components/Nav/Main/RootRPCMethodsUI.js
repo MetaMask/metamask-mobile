@@ -300,20 +300,24 @@ const RootRPCMethodsUI = (props) => {
         Engine.controllerMessenger.subscribeOnceIf(
           'TransactionController:transactionFinished',
           (transactionMeta) => {
-            if (transactionMeta.status === 'submitted') {
-              NotificationManager.watchSubmittedTransaction({
-                ...transactionMeta,
-                assetType: transactionMeta.txParams.assetType,
-              });
-            } else {
-              if (swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(
-                  MetaMetricsEvents.SWAP_FAILED,
-                  transactionMeta,
-                  swapsTransactions,
-                );
+            try {
+              if (transactionMeta.status === 'submitted') {
+                NotificationManager.watchSubmittedTransaction({
+                  ...transactionMeta,
+                  assetType: transactionMeta.txParams.assetType,
+                });
+              } else {
+                if (swapsTransactions[transactionMeta.id]?.analytics) {
+                  trackSwaps(
+                    MetaMetricsEvents.SWAP_FAILED,
+                    transactionMeta,
+                    swapsTransactions,
+                  );
+                }
+                throw transactionMeta.error;
               }
-              throw transactionMeta.error;
+            } catch (error) {
+              console.error(error, 'error while trying to send transaction');
             }
           },
           (transactionMeta) => transactionMeta.id === transactionId,
@@ -322,12 +326,15 @@ const RootRPCMethodsUI = (props) => {
         // Queue txMetaId to listen for confirmation event
         addTransactionMetaIdForListening(transactionMeta.id);
 
-        await KeyringController.resetQRKeyringState();
-
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.txParams.from,
           [ExtendedKeyringTypes.ledger],
         );
+
+        // As the `TransactionController:unapprovedTransactionAdded` event is emitted
+        // before the approval request is added to `ApprovalController`, we need to wait
+        // for the next tick to make sure the approval request is present when auto-approve it
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {

@@ -74,8 +74,8 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 5,
             "overflow": "hidden",

@@ -4,6 +4,8 @@ import {
   BtcScope,
   SolAccountType,
   SolScope,
+  TrxAccountType,
+  TrxScope,
 } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { MultichainBlockExplorerFormatUrls } from './networks';
@@ -18,6 +20,9 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [SolScope.Mainnet]: imageIcons.SOLANA,
   [SolScope.Devnet]: imageIcons.SOLANA,
   [SolScope.Testnet]: imageIcons.SOLANA,
+  [TrxScope.Mainnet]: imageIcons.TRON,
+  [TrxScope.Nile]: imageIcons.TRON,
+  [TrxScope.Shasta]: imageIcons.TRON,
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
@@ -45,19 +50,34 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     transaction: 'https://mutinynet.com/tx/{txId}',
   },
   [SolScope.Mainnet]: {
-    url: 'https://solscan.io',
+    url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}',
     transaction: 'https://solscan.io/tx/{txId}',
   },
   [SolScope.Devnet]: {
-    url: 'https://solscan.io',
+    url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=devnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=devnet',
   },
   [SolScope.Testnet]: {
-    url: 'https://solscan.io',
+    url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=testnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=testnet',
+  },
+  [TrxScope.Mainnet]: {
+    url: 'https://tronscan.org/',
+    address: 'https://tronscan.org/#/address/{address}',
+    transaction: 'https://tronscan.org/#/transaction/{txId}',
+  },
+  [TrxScope.Nile]: {
+    url: 'https://nile.tronscan.org/',
+    address: 'https://nile.tronscan.org/#/address/{address}',
+    transaction: 'https://nile.tronscan.org/#/transaction/{txId}',
+  },
+  [TrxScope.Shasta]: {
+    url: 'https://shasta.tronscan.org/',
+    address: 'https://shasta.tronscan.org/#/address/{address}',
+    transaction: 'https://shasta.tronscan.org/#/transaction/{txId}',
   },
 } as const;
 
@@ -67,6 +87,7 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
   [BtcAccountType.P2tr]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
+  [TrxAccountType.Eoa]: TrxScope.Mainnet,
 } as const;
 
 export const PRICE_API_CURRENCIES = [
@@ -115,3 +136,22 @@ export const PRICE_API_CURRENCIES = [
   'try',
   'zar',
 ];
+
+// Tron resource asset symbols
+export const TRON_RESOURCE = {
+  ENERGY: 'energy',
+  BANDWIDTH: 'bandwidth',
+  MAX_ENERGY: 'max-energy',
+  MAX_BANDWIDTH: 'max-bandwidth',
+  STRX_ENERGY: 'strx-energy',
+  STRX_BANDWIDTH: 'strx-bandwidth',
+} as const;
+
+export type TronResourceSymbol =
+  (typeof TRON_RESOURCE)[keyof typeof TRON_RESOURCE];
+
+export const TRON_RESOURCE_SYMBOLS = Object.values(
+  TRON_RESOURCE,
+) as readonly TronResourceSymbol[];
+export const TRON_RESOURCE_SYMBOLS_SET: ReadonlySet<TronResourceSymbol> =
+  new Set(TRON_RESOURCE_SYMBOLS);

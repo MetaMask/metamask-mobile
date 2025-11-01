@@ -17,7 +17,7 @@ describe('useFavicon', () => {
     const { result } = renderHook(() => useFavicon(origin));
 
     await waitFor(() => {
-      expect(result.current).toEqual({ uri: expectedURL });
+      expect(result.current.faviconURI).toEqual({ uri: expectedURL });
     });
   });
 });

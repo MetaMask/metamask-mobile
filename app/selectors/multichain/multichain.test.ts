@@ -4,8 +4,6 @@ import {
   selectMultichainIsMainnet,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainShouldShowFiat,
-  selectMultichainConversionRate,
-  selectMultichainCoinRates,
   selectMultichainBalances,
   selectMultichainTransactions,
   selectSelectedAccountMultichainNetworkAggregatedBalance,
@@ -33,6 +31,11 @@ const BTC_TESTNET_NATIVE_CURRENCY =
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[BtcScope.Testnet].nativeCurrency;
 const SOL_NATIVE_CURRENCY =
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[SolScope.Mainnet].nativeCurrency;
+
+interface TestTransaction {
+  id: string;
+  timestamp?: number;
+}
 
 function getEvmState(
   chainId?: Hex,
@@ -116,11 +119,6 @@ function getEvmState(
           pendingCurrentCurrency: null,
           pendingNativeCurrency: null,
         },
-        RatesController: {
-          rates: {},
-          fiatCurrency: 'usd',
-          cryptocurrencies: [],
-        },
         MultichainNetworkController: {
           isEvmSelected: true,
           selectedMultichainNetworkChainId: SolScope.Mainnet,
@@ -149,6 +147,7 @@ function getNonEvmState(
   account?: InternalAccount,
   mockBtcRate?: string,
   showFiatOnTestnets: boolean = true,
+  isSolanaTestnetEnabled: boolean = false,
 ): RootState {
   const {
     MOCK_ACCOUNT_BIP122_P2WPKH: mockBtcAccount,
@@ -161,8 +160,8 @@ function getNonEvmState(
     selectedAccount.type === SolAccountType.DataAccount
       ? SolScope.Mainnet
       : selectedAccount.scopes[0] === BtcScope.Testnet
-      ? BtcScope.Testnet
-      : BtcScope.Mainnet;
+        ? BtcScope.Testnet
+        : BtcScope.Mainnet;
 
   const state = {
     ...getEvmState(undefined, 1500, showFiatOnTestnets),
@@ -178,6 +177,11 @@ function getNonEvmState(
           encryptionSalt: '',
           memStore: {
             isUnlocked: true,
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            solanaTestnetsEnabled: isSolanaTestnetEnabled,
           },
         },
         AccountsController: {
@@ -429,45 +433,6 @@ describe('MultichainNonEvm Selectors', () => {
     });
   });
 
-  describe('selectMultichainConversionRate', () => {
-    it('returns EVM conversion rate if account is EVM', () => {
-      const mockEvmConversionRate = 1500;
-      const state = getEvmState(undefined, mockEvmConversionRate);
-
-      expect(selectMultichainConversionRate(state)).toBe(mockEvmConversionRate);
-    });
-
-    it('returns non-EVM conversion rate if account is non-EVM', () => {
-      const mockBtcConversionRate = '45000.00';
-      const state = getNonEvmState(undefined, mockBtcConversionRate);
-
-      expect(selectMultichainConversionRate(state)).toBe(mockBtcConversionRate);
-    });
-
-    it('returns undefined if non-EVM ticker is not found', () => {
-      const state = getNonEvmState();
-
-      expect(selectMultichainConversionRate(state)).toBeUndefined();
-    });
-
-    it('returns Solana conversion rate if account is Solana', () => {
-      const mockSolConversionRate = 100;
-      const state = getNonEvmState(
-        MOCK_SOLANA_ACCOUNT,
-        mockSolConversionRate.toString(),
-      );
-      state.engine.backgroundState.RatesController.rates = {
-        sol: {
-          conversionRate: mockSolConversionRate,
-          conversionDate: new Date().getTime(),
-          usdConversionRate: mockSolConversionRate,
-        },
-      };
-
-      expect(selectMultichainConversionRate(state)).toBe(mockSolConversionRate);
-    });
-  });
-
   describe('selectMultichainBalances and selectMultichainCoinRates', () => {
     it('selectMultichainBalances returns balances from the MultichainBalancesController state', () => {
       const state = getEvmState();
@@ -479,19 +444,6 @@ describe('MultichainNonEvm Selectors', () => {
       state.engine.backgroundState.MultichainBalancesController.balances =
         mockBalances;
       expect(selectMultichainBalances(state)).toEqual(mockBalances);
-    });
-
-    it('selectMultichainCoinRates returns rates from the RatesController state', () => {
-      const state = getEvmState();
-      const mockRates = {
-        eth: {
-          conversionRate: 2000,
-          conversionDate: Date.now(),
-          usdConversionRate: 2000,
-        },
-      };
-      state.engine.backgroundState.RatesController.rates = mockRates;
-      expect(selectMultichainCoinRates(state)).toEqual(mockRates);
     });
   });
 
@@ -522,7 +474,7 @@ describe('MultichainNonEvm Selectors', () => {
 
       state.engine.backgroundState.MultichainTransactionsController = {
         nonEvmTransactions: mockTransactions,
-      };
+      } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController;
 
       expect(selectMultichainTransactions(state)).toEqual(mockTransactions);
     });
@@ -532,7 +484,7 @@ describe('MultichainNonEvm Selectors', () => {
 
       state.engine.backgroundState.MultichainTransactionsController = {
         nonEvmTransactions: {},
-      };
+      } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController;
 
       expect(selectMultichainTransactions(state)).toEqual({});
     });
@@ -671,6 +623,269 @@ describe('MultichainNonEvm Selectors', () => {
         lastUpdated: undefined,
         next: null,
         transactions: [],
+      });
+    });
+
+    it('returns mainnet transactions normally', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
+
+      const mockTransactionData = {
+        transactions: [
+          {
+            id: 'sol-tx-id',
+            timestamp: 1733736433,
+            chain: SolScope.Mainnet,
+            status: 'confirmed' as const,
+            type: 'send' as const,
+            account: MOCK_SOLANA_ACCOUNT.id,
+            from: [],
+            to: [],
+            fees: [],
+            events: [],
+          },
+        ],
+        next: null,
+        lastUpdated: Date.now(),
+      };
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            [SolScope.Mainnet]: mockTransactionData,
+          },
+        };
+
+      expect(selectNonEvmTransactions(state)).toEqual(mockTransactionData);
+    });
+
+    it('blocks devnet transactions when feature flag is disabled', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT, undefined, true, false);
+      state.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        SolScope.Devnet;
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            [SolScope.Devnet]: {
+              transactions: [
+                {
+                  id: 'devnet-tx',
+                  timestamp: 1733736433,
+                  chain: SolScope.Devnet,
+                  status: 'confirmed' as const,
+                  type: 'send' as const,
+                  account: MOCK_SOLANA_ACCOUNT.id,
+                  from: [],
+                  to: [],
+                  fees: [],
+                  events: [],
+                },
+              ],
+              next: null,
+              lastUpdated: Date.now(),
+            },
+          },
+        };
+
+      // Returns empty state when devnet is selected but feature flag is disabled
+      expect(selectNonEvmTransactions(state)).toEqual({
+        lastUpdated: 0,
+        next: null,
+        transactions: [],
+      });
+    });
+
+    it('allows devnet transactions when feature flag is enabled', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT, undefined, true, true);
+      state.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        SolScope.Devnet;
+
+      const mockDevnetData = {
+        transactions: [
+          {
+            id: 'devnet-tx',
+            timestamp: 1733736433,
+            chain: SolScope.Devnet,
+            status: 'confirmed' as const,
+            type: 'send' as const,
+            account: MOCK_SOLANA_ACCOUNT.id,
+            from: [],
+            to: [],
+            fees: [],
+            events: [],
+          },
+        ],
+        next: null,
+        lastUpdated: Date.now(),
+      };
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            [SolScope.Devnet]: mockDevnetData,
+          },
+        };
+
+      expect(selectNonEvmTransactions(state)).toEqual(mockDevnetData);
+    });
+  });
+
+  describe('selectNonEvmTransactionsForSelectedAccountGroup', () => {
+    beforeEach(() => {
+      jest.resetModules();
+      jest.clearAllMocks();
+    });
+
+    it('returns default empty entry when no group accounts are selected', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState();
+
+        expect(selectNonEvmTransactionsForSelectedAccountGroup(state)).toEqual({
+          transactions: [],
+          next: null,
+          lastUpdated: 0,
+        });
+      });
+    });
+
+    it('aggregates and sorts transactions across accounts and chains, using max lastUpdated', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([MOCK_ACCOUNT_BIP122_P2WPKH, MOCK_SOLANA_ACCOUNT]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
+
+        // Arrange transactions for multiple accounts/chains
+        state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+          {
+            [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+              [BtcScope.Mainnet]: {
+                transactions: [
+                  { id: 'btc-1', timestamp: 100 },
+                  { id: 'btc-2', timestamp: 300 },
+                ],
+                next: null,
+                lastUpdated: 1000,
+              },
+            },
+            [MOCK_SOLANA_ACCOUNT.id]: {
+              [SolScope.Mainnet]: {
+                transactions: [{ id: 'sol-1', timestamp: 200 }],
+                next: null,
+                lastUpdated: 1100,
+              },
+            },
+            // Noise: account not in the selected group
+            [MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET.id]: {
+              [BtcScope.Testnet]: {
+                transactions: [{ id: 'tbtc-1', timestamp: 999 }],
+                next: null,
+                lastUpdated: 1200,
+              },
+            },
+          } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
+
+        const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
+
+        expect(result.transactions.map((t: TestTransaction) => t.id)).toEqual([
+          'btc-2',
+          'sol-1',
+          'btc-1',
+        ]);
+        expect(result.lastUpdated).toBe(1100);
+        expect(result.next).toBeNull();
+      });
+    });
+
+    it('supports single-level transaction structure per account', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([MOCK_ACCOUNT_BIP122_P2WPKH]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH);
+
+        // Single-level structure (no chain nesting)
+        state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+          {
+            [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+              transactions: [
+                { id: 'a', timestamp: 1 },
+                { id: 'b', timestamp: 3 },
+                { id: 'c', timestamp: 2 },
+              ],
+              next: null,
+              lastUpdated: 500,
+            },
+          } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
+
+        const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
+
+        expect(result.transactions.map((t: TestTransaction) => t.id)).toEqual([
+          'b',
+          'c',
+          'a',
+        ]);
+        expect(result.lastUpdated).toBe(500);
+        expect(result.next).toBeNull();
+      });
+    });
+
+    it('returns empty transactions with undefined lastUpdated when group accounts have no entries', () => {
+      jest.isolateModules(() => {
+        jest.doMock('@sentry/react-native', () => ({
+          captureException: jest.fn(),
+        }));
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: jest
+            .fn()
+            .mockReturnValue([MOCK_ACCOUNT_BIP122_P2WPKH]),
+        }));
+
+        const { selectNonEvmTransactionsForSelectedAccountGroup } =
+          jest.requireActual('./multichain');
+
+        const state = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH);
+        // No entries for selected account
+        state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+          {} as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
+
+        const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
+
+        expect(result).toEqual({
+          transactions: [],
+          next: null,
+          lastUpdated: 0,
+        });
       });
     });
   });

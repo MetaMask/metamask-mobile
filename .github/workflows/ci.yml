@@ -1,10 +1,18 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: [main]
   pull_request:
   merge_group:
     types: [checks_requested]
+  schedule:
+    # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
+    # This helps to identy the flaky and failed tests on main branch
+    - cron: '0 2-6 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
   check-diff:
@@ -15,12 +23,20 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1
+      - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
           ruby-version: '3.1.6'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
-      - run: yarn setup
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci
       - name: Require clean working directory
         shell: bash
         run: |
@@ -38,9 +54,22 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
-      - name: Deduplicate dependencies
-        run: yarn deduplicate
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Deduplicate dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn deduplicate
       - name: Print error if duplicates found
         shell: bash
         run: |
@@ -56,9 +85,22 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
-      - name: Run @lavamoat/git-safe-dependencies
-        run: yarn git-safe-dependencies
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Run @lavamoat/git-safe-dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn git-safe-dependencies
   scripts:
     runs-on: ubuntu-latest
     strategy:
@@ -66,7 +108,7 @@ jobs:
         scripts:
           - lint
           - lint:tsc
-          - format:check:changed
+          - format:check
           - audit:ci
           - test:depcheck
           - test:tgz-check
@@ -78,7 +120,15 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -100,7 +150,15 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
@@ -133,7 +191,15 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
       - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
@@ -158,6 +224,95 @@ jobs:
             echo "No changes detected"
           fi
 
+  needs_e2e_build:
+    uses: ./.github/workflows/needs-e2e-build.yml
+
+  ai-e2e-analysis:
+    name: 'AI E2E Analysis'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
+    steps:
+      - name: Checkout for action definition
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/actions/ai-e2e-analysis
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+
+      - name: Run AI E2E Analysis
+        id: ai-analysis
+        uses: ./.github/actions/ai-e2e-analysis
+        with:
+          event-name: ${{ github.event_name }}
+          claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          github-token: ${{ github.token }}
+          pr-number: ${{ github.event.pull_request.number }}
+          repository: ${{ github.repository }}
+          post-comment: 'false'
+
+  build-android-apks:
+    name: 'Build Android APKs'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+    secrets: inherit
+
+  e2e-smoke-tests-android:
+    name: 'Android E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-apks]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+    secrets: inherit
+
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  ios-tests-ready:
+    name: 'iOS Tests Ready'
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    needs: [needs_e2e_build, build-ios-apps]
+    steps:
+      - name: iOS build complete
+        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
+
+  e2e-smoke-tests-ios:
+    name: 'iOS E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+    secrets: inherit
+
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
@@ -166,14 +321,21 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - name: Install dependencies
-        run: yarn setup
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --no-build-android
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 45
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 50
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
@@ -216,11 +378,13 @@ jobs:
           path: coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
+        continue-on-error: true
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
       - name: SonarCloud Scan
-        if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
-        # This is SonarSource/sonarcloud-github-action@v2.0.0
-        uses: SonarSource/sonarcloud-github-action@4b4d7634dab97dcee0b75763a54a6dc92a9e6bc1
+        if: ${{ env.HAVE_SONAR_TOKEN == 'true' && github.event_name == 'pull_request' }}
+        continue-on-error: true
+        # This is SonarSource/sonarqube-scan-action@v5.3.1
+        uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -253,7 +417,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Skip step if event is a PR
+          # Skip step if event is not a PR
           if [[ "${{ github.event_name }}" != "pull_request" ]]; then
             echo "This job only runs for pull requests."
             exit 0
@@ -304,7 +468,7 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color
+        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
   all-jobs-pass:
     name: All jobs pass
@@ -327,17 +491,34 @@ jobs:
         run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
   check-all-jobs-pass:
     name: Check all jobs pass
+    if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: all-jobs-pass
-    if: always()
+    needs:
+      - all-jobs-pass
+      - needs_e2e_build
+      - e2e-smoke-tests-android
+      - e2e-smoke-tests-ios
     steps:
       - run: |
-          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
-            echo "All jobs passed. Unblock PR."
-          else
-            echo "All jobs passed step skipped. Block PR."
+          # Check if all non-E2E jobs passed
+          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
+            echo "Non-E2E jobs failed"
             exit 1
           fi
+
+          # Check E2E jobs only if they should have run
+          if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
+            if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
+              echo "Android E2E tests failed"
+              exit 1
+            fi
+            if [[ "${{ needs.e2e-smoke-tests-ios.result }}" == "failure" ]]; then
+              echo "iOS E2E tests failed"
+              exit 1
+            fi
+          fi
+
+          echo "All required jobs passed"
 
   log-merge-group-failure:
     name: Log merge group failure

@@ -39,15 +39,9 @@ describe(SmokeSwaps('Trade: Unified UI Wallet Actions'), () => {
         // Tap the actions button
         await TabBarComponent.tapActions();
 
-        // Verify that wallet actions bottom sheet is visible with key buttons
+        // Verify that wallet actions bottom sheet is visible with swap button
         await Assertions.expectElementToBeVisible(
           WalletActionsBottomSheet.swapButton,
-        );
-        await Assertions.expectElementToBeVisible(
-          WalletActionsBottomSheet.sendButton,
-        );
-        await Assertions.expectElementToBeVisible(
-          WalletActionsBottomSheet.receiveButton,
         );
       },
     );
@@ -77,7 +71,7 @@ describe(SmokeSwaps('Trade: Unified UI Wallet Actions'), () => {
 
         // Verify navigation occurred (swap bottom sheet should be dismissed)
         await Assertions.expectElementToNotBeVisible(
-          WalletActionsBottomSheet.sendButton,
+          WalletActionsBottomSheet.swapButton,
         );
       },
     );

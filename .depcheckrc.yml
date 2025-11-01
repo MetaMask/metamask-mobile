@@ -22,7 +22,21 @@ ignores:
   - 'reflect-metadata'
   # Husky is used for pre-commit hooks
   - 'husky'
+  # Auto changelog tooling used in release scripts
+  - '@metamask/auto-changelog'
+  # Remove this once it's used in the project
+  - 'rive-react-native'
+  # Appwright will be used in a follow up PR. We will remove once PR is ready
+  - 'appwright'
+  # Appium drivers are used by Appwright for mobile automation
+  - 'appium-uiautomator2-driver'
+  - 'appium-xcuitest-driver'
+  # ESBuild is used for AI E2E script compilation
+  - 'esbuild'
+  - 'esbuild-register'
 
+  # Used in scripts/repack for CI optimization
+  - '@expo/repack-app'
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
 
@@ -51,13 +65,12 @@ ignores:
   - 'eslint-plugin-prettier'
   - 'eslint-plugin-react-native'
   - 'execa'
-  - 'fbjs-scripts'
-  - 'improved-yarn-audit'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
   - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
+  - 'prettier-2'
 
   ## Unused devDependencies to investigate
   - '@metamask/swappable-obj-proxy'
@@ -83,7 +96,6 @@ ignores:
   - 'react-native-os'
   - 'react-native-randombytes'
   - 'react-native-swipe-gestures'
-  - 'react-native-tcp'
   - 'socket.io-client'
   - 'stream-browserify'
   - 'url'
@@ -112,3 +124,5 @@ ignores:
   - 'react-native-pager-view'
   # this dependency can probably be removed, needs investigation
   - '@types/react-test-renderer'
+  # runtime for dependecies using Nitro Modules (@metamask/native-utils)
+  - 'react-native-nitro-modules'

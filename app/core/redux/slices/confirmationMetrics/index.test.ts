@@ -9,6 +9,10 @@ import reducer, {
   selectTransactionPayToken,
   setTransactionBridgeQuotes,
   selectTransactionBridgeQuotesById,
+  selectIsTransactionBridgeQuotesLoadingById,
+  setTransactionBridgeQuotesLoading,
+  setTransactionUpdating,
+  selectIsTransactionUpdatingById,
 } from './index';
 import { RootState } from '../../../../reducers';
 import { TransactionBridgeQuote } from '../../../../components/Views/confirmations/utils/bridge';
@@ -184,6 +188,80 @@ describe('confirmationMetrics slice', () => {
       expect(selectTransactionBridgeQuotesById(state, ID_MOCK)).toStrictEqual([
         QUOTE_MOCK,
       ]);
+    });
+  });
+
+  describe('selectTransactionBridgeQuotesLoadingById', () => {
+    it('returns true if set as loading in state', () => {
+      const state = {
+        confirmationMetrics: {
+          isTransactionBridgeQuotesLoadingById: { [ID_MOCK]: true },
+        },
+      } as unknown as RootState;
+
+      expect(selectIsTransactionBridgeQuotesLoadingById(state, ID_MOCK)).toBe(
+        true,
+      );
+    });
+
+    it('returns false if not in state', () => {
+      const state = {
+        confirmationMetrics: {
+          isTransactionBridgeQuotesLoadingById: {},
+        },
+      } as unknown as RootState;
+
+      expect(selectIsTransactionBridgeQuotesLoadingById(state, ID_MOCK)).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('setTransactionBridgeQuotesLoading', () => {
+    it('updates loading state for ID', () => {
+      const action = setTransactionBridgeQuotesLoading({
+        transactionId: ID_MOCK,
+        isLoading: true,
+      });
+
+      const state = reducer(initialState, action);
+
+      expect(state.isTransactionBridgeQuotesLoadingById[ID_MOCK]).toBe(true);
+    });
+  });
+
+  describe('setTransactionUpdating', () => {
+    it('updates updating state for ID', () => {
+      const action = setTransactionUpdating({
+        transactionId: ID_MOCK,
+        isUpdating: true,
+      });
+
+      const state = reducer(initialState, action);
+
+      expect(state.isTransactionUpdating[ID_MOCK]).toBe(true);
+    });
+  });
+
+  describe('selectIsTransactionUpdatingById', () => {
+    it('returns true if set as updating in state', () => {
+      const state = {
+        confirmationMetrics: {
+          isTransactionUpdating: { [ID_MOCK]: true },
+        },
+      } as unknown as RootState;
+
+      expect(selectIsTransactionUpdatingById(state, ID_MOCK)).toBe(true);
+    });
+
+    it('returns false if not in state', () => {
+      const state = {
+        confirmationMetrics: {
+          isTransactionUpdating: {},
+        },
+      } as unknown as RootState;
+
+      expect(selectIsTransactionUpdatingById(state, ID_MOCK)).toBe(false);
     });
   });
 });

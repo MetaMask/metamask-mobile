@@ -4,6 +4,7 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectEvmChainId } from './networkController';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
+import { Hex } from '@metamask/utils';
 
 const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
@@ -30,9 +31,15 @@ export const selectAccountBalanceByChainId = createDeepEqualSelector(
   selectAccountsByChainId,
   selectEvmChainId,
   selectSelectedInternalAccountFormattedAddress,
-  (accountsByChainId, chainId, selectedInternalAccountChecksummedAddress) => {
+  (_state: RootState, chainId?: Hex) => chainId,
+  (
+    accountsByChainId,
+    globalChainId,
+    selectedInternalAccountChecksummedAddress,
+    chainId,
+  ) => {
     const accountsBalance = selectedInternalAccountChecksummedAddress
-      ? accountsByChainId?.[chainId]?.[
+      ? accountsByChainId?.[chainId ?? globalChainId]?.[
           selectedInternalAccountChecksummedAddress
         ]
       : undefined;

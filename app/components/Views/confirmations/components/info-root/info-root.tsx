@@ -19,6 +19,11 @@ import TypedSignV3V4 from '../info/typed-sign-v3v4';
 import Approve from '../info/approve';
 import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
+import { PerpsDepositInfo } from '../info/perps-deposit-info';
+import { PredictDepositInfo } from '../info/predict-deposit-info';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfo } from '../info/predict-claim-info';
+import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -46,6 +51,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.simpleSend:
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
+      case TransactionType.tokenMethodSafeTransferFrom:
         return Transfer;
       case TransactionType.deployContract:
         return ContractDeployment;
@@ -53,6 +59,8 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodSetApprovalForAll:
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
+      case TransactionType.perpsDeposit:
+        return PerpsDepositInfo;
       // Default to contract interaction as generic transaction confirmation
       default:
         return ContractInteraction;
@@ -81,6 +89,27 @@ const Info = ({ route }: InfoProps) => {
 
   if (isSigningQRObject) {
     return <QRInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
+  ) {
+    return <PredictDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
+  ) {
+    return <PredictClaimInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
+  ) {
+    return <PredictWithdrawInfo />;
   }
 
   const { requestData } = approvalRequest ?? {

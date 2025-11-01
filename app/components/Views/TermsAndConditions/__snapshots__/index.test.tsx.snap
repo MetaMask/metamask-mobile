@@ -9,9 +9,8 @@ exports[`TermsAndConditions should render correctly 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 10,
-        "fontWeight": "400",
         "textAlign": "center",
       }
     }

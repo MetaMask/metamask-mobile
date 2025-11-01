@@ -4,25 +4,25 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import { AnvilPort } from '../../fixtures/utils';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { LocalNodeType } from '../../framework';
 import { defaultOptions } from '../../seeder/anvil-manager';
 
-describe(FlaskBuildTests('Network Access Snap Tests'), () => {
-  beforeEach(() => {
-    jest.setTimeout(150000);
-  });
+jest.setTimeout(150_000);
 
+describe(FlaskBuildTests('Network Access Snap Tests'), () => {
   it('can use fetch and WebSockets', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
         localNodeOptions: [
           {
             type: LocalNodeType.anvil,
             options: {
               ...defaultOptions,
+              port: AnvilPort(),
               blockTime: 2,
             },
           },
@@ -30,8 +30,6 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-
-        // Navigate to test snaps URL once for all tests
         await TabBarComponent.tapBrowser();
         await TestSnaps.navigateToTestSnap();
 

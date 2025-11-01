@@ -3,17 +3,14 @@ import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useAccountName } from '../../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
-import { type RootState } from '../../../../../../reducers';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import Icon, {
   IconName,
@@ -21,6 +18,8 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import stylesheet from './AccountSelector.styles';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
 
 interface AccountSelectorProps {
   isEvmOnly?: boolean;
@@ -33,18 +32,10 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const accountName = useAccountName();
+  const accountName = useAccountGroupName();
   const { styles, theme } = useStyles(stylesheet, {});
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
-
-  const selectedFormattedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const openAccountSelector = useCallback(
     () =>
@@ -63,7 +54,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
     >
-      {selectedAddress && selectedFormattedAddress ? (
+      {selectedAddress ? (
         <>
           <Avatar
             variant={AvatarVariant.Account}

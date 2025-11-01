@@ -46,18 +46,8 @@ describe('Options', () => {
     (useSelector as jest.Mock).mockReturnValue([]);
   });
 
-  it('should render non-homepage options correctly', () => {
+  it('should render options correctly', () => {
     const { toJSON } = render(<Options {...mockProps} />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should render homepage options correctly', () => {
-    const homepageProps = {
-      ...mockProps,
-      isHomepage: jest.fn(() => true),
-    };
-
-    const { toJSON } = render(<Options {...homepageProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

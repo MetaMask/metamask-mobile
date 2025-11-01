@@ -151,6 +151,10 @@ const AddNewAccount = ({
   }, [clientType, scope]);
 
   const addAccountTitle = useMemo(() => {
+    if (!clientType) {
+      return strings('account_actions.add_account');
+    }
+
     switch (clientType) {
       case WalletClientType.Bitcoin:
         return strings('account_actions.add_multichain_account', {
@@ -159,6 +163,10 @@ const AddNewAccount = ({
       case WalletClientType.Solana:
         return strings('account_actions.add_multichain_account', {
           networkName: strings('account_actions.headers.solana'),
+        });
+      case WalletClientType.Tron:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.tron'),
         });
       default:
         return strings('account_actions.add_account');

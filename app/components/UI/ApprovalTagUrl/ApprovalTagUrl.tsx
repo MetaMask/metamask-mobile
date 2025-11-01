@@ -56,17 +56,17 @@ const ApprovalTagUrl = ({
     return title;
   }, [currentEnsName, origin, url, isOriginDeepLink]);
 
-  const faviconSource = useFavicon(origin as string) as
-    | { uri: string }
-    | undefined;
+  const { faviconURI: faviconSource } = useFavicon(origin as string) as {
+    faviconURI: { uri?: string };
+  };
 
   const imageSource = faviconSource?.uri
     ? faviconSource
     : sdkDappMetadata?.icon
-    ? { uri: sdkDappMetadata.icon }
-    : {
-        uri: '',
-      };
+      ? { uri: sdkDappMetadata.icon }
+      : {
+          uri: '',
+        };
 
   const showOrigin =
     origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);

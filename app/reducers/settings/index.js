@@ -1,13 +1,18 @@
 import AppConstants from '../../core/AppConstants';
+import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 
 const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
   primaryCurrency: 'ETH',
-  lockTime: -1, // Disabled by default
-  useBlockieIcon: true,
+  lockTime: -1, // Disabled by default,
+  avatarAccountType: AvatarAccountType.Maskicon,
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,
   deepLinkModalDisabled: false,
+  // Perps chart preferences
+  perpsChartPreferences: {
+    preferredCandlePeriod: '15m', // Default to 15 minutes
+  },
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -37,10 +42,10 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         hideZeroBalanceTokens: action.hideZeroBalanceTokens,
       };
-    case 'SET_USE_BLOCKIE_ICON':
+    case 'SET_AVATAR_ACCOUNT_TYPE':
       return {
         ...state,
-        useBlockieIcon: action.useBlockieIcon,
+        avatarAccountType: action.avatarAccountType,
       };
     case 'SET_PRIMARY_CURRENCY':
       return {
@@ -66,6 +71,14 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         deepLinkModalDisabled: action.deepLinkModalDisabled,
+      };
+    case 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD':
+      return {
+        ...state,
+        perpsChartPreferences: {
+          ...state.perpsChartPreferences,
+          preferredCandlePeriod: action.preferredCandlePeriod,
+        },
       };
     default:
       return state;

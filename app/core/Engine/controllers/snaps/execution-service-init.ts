@@ -8,6 +8,7 @@ import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
 import { SnapBridge } from '../../../Snaps';
 import getRpcMethodMiddleware from '../../../RPCMethods/RPCMethodMiddleware';
+import { Duration, inMilliseconds } from '@metamask/utils';
 
 /**
  * Initialize the Snaps execution service.
@@ -49,7 +50,6 @@ export const executionServiceInit: ControllerInitFunction<
           isHomepage: () => false,
           fromHomepage: { current: false },
           toggleUrlModal: () => null,
-          wizardScrollAdjusted: { current: false },
           tabId: false,
           isWalletConnect: true,
           isMMSDK: false,
@@ -68,6 +68,7 @@ export const executionServiceInit: ControllerInitFunction<
       setupSnapProvider,
       createWebView,
       removeWebView,
+      pingTimeout: inMilliseconds(5, Duration.Second),
     }),
   };
 };

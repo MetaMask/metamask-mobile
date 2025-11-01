@@ -19,6 +19,8 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
+import { useNavigation } from '@react-navigation/native';
+import AppConstants from '../../../core/AppConstants';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -57,8 +59,8 @@ const createStyles = (colors: Colors) =>
     socialBtn: {
       borderColor: colors.border.muted,
       borderWidth: 1,
-      color: colors.text.default,
-      backgroundColor: colors.background.default,
+      color: colors.background.default,
+      backgroundColor: colors.text.default,
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -71,10 +73,27 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       columnGap: 8,
     },
+    termsText: {
+      marginTop: 24,
+      alignItems: 'center',
+    },
+    text: {
+      color: colors.text.default,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    link: {
+      color: colors.primary.default,
+    },
+    centeredText: {
+      textAlign: 'center',
+    },
   });
 
 const OnboardingSheet = (props: OnboardingSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const {
     onPressCreate,
     onPressImport,
@@ -109,6 +128,26 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
     }
   };
 
+  const goTo = (url: string, title: string) => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+        title,
+      },
+    });
+  };
+
+  const onPressTermsOfUse = () => {
+    const url = AppConstants.URLS.TERMS_OF_USE_URL;
+    goTo(url, strings('onboarding.terms_of_use'));
+  };
+
+  const onPressPrivacyNotice = () => {
+    const url = AppConstants.URLS.PRIVACY_NOTICE;
+    goTo(url, strings('onboarding.privacy_notice'));
+  };
+
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
 
@@ -118,9 +157,6 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
         style={styles.bottomSheetContainer}
         testID={OnboardingSheetSelectorIDs.CONTAINER_ID}
       >
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('onboarding.bottom_sheet_title')}
-        </Text>
         <View style={styles.buttonWrapper}>
           <Button
             variant={ButtonVariants.Secondary}
@@ -136,7 +172,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
                 />
                 <Text
                   variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  style={{ color: colors.background.default }}
                 >
                   {createWallet
                     ? strings('onboarding.continue_with_google')
@@ -155,23 +191,23 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             label={
               <View style={styles.buttonLabel}>
                 {isDark ? (
-                  <AppleWhiteIcon
-                    fill="currentColor"
-                    width={24}
-                    height={24}
-                    name={'apple-white'}
-                  />
-                ) : (
                   <AppleIcon
                     fill="currentColor"
                     width={24}
                     height={24}
                     name={'apple'}
                   />
+                ) : (
+                  <AppleWhiteIcon
+                    fill="currentColor"
+                    width={24}
+                    height={24}
+                    name={'apple-white'}
+                  />
                 )}
                 <Text
                   variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  style={{ color: colors.background.default }}
                 >
                   {createWallet
                     ? strings('onboarding.continue_with_apple')
@@ -204,6 +240,34 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
           />
+        </View>
+        <View style={styles.termsText}>
+          <Text
+            variant={TextVariant.BodyXSMedium}
+            color={TextColor.Default}
+            style={styles.centeredText}
+          >
+            {strings('onboarding.by_continuing')}{' '}
+            <Text
+              variant={TextVariant.BodyXSMedium}
+              style={styles.link}
+              onPress={onPressTermsOfUse}
+              suppressHighlighting
+              testID="terms-of-use-link"
+            >
+              {strings('onboarding.terms_of_use')}
+            </Text>{' '}
+            {strings('onboarding.and')}{' '}
+            <Text
+              variant={TextVariant.BodyXSMedium}
+              style={styles.link}
+              onPress={onPressPrivacyNotice}
+              suppressHighlighting
+              testID="privacy-notice-link"
+            >
+              {strings('onboarding.privacy_notice')}
+            </Text>
+          </Text>
         </View>
       </View>
     </BottomSheet>

@@ -1,191 +1,232 @@
 import { useSelector } from 'react-redux';
-import { FlashListAssetKey } from '../../Tokens/TokenList';
 import { RootState } from '../../../../reducers';
 import { useMemo } from 'react';
+import { Hex } from '@metamask/utils';
 import {
-  makeSelectAssetByAddressAndChainId,
-  makeSelectNonEvmAssetById,
-} from '../../../../selectors/multichain';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
-import {
-  selectSelectedInternalAccount,
-  selectSelectedInternalAccountAddress,
-} from '../../../../selectors/accountsController';
-import { CaipAssetId, Hex } from '@metamask/utils';
+  selectPrimaryCurrency,
+  selectShowFiatInTestnets,
+} from '../../../../selectors/settings';
+import { TOKEN_RATE_UNDEFINED } from '../../Tokens/constants';
+import { strings } from '../../../../../locales/i18n';
+import { isTestNet } from '../../../../util/networks';
+import { TokenI } from '../../Tokens/types';
+import { CardTokenAllowance } from '../types';
+import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
 import {
   selectCurrencyRateForChainId,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectShowFiatInTestnets } from '../../../../selectors/settings';
+import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { selectSingleTokenPriceMarketData } from '../../../../selectors/tokenRatesController';
-import { selectSingleTokenBalance } from '../../../../selectors/tokenBalancesController';
-import { formatWithThreshold } from '../../../../util/assets';
+import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
+import Engine from '../../../../core/Engine';
 import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_RATE_UNDEFINED,
-} from '../../Tokens/constants';
-import I18n, { strings } from '../../../../../locales/i18n';
-import { isTestNet } from '../../../../util/networks';
-import { TokenI } from '../../Tokens/types';
+  addCurrencySymbol,
+  balanceToFiatNumber,
+} from '../../../../util/number';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { createSelector } from 'reselect';
+import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 
 // This hook retrieves the asset balance and related information for a given token and account.
-const useAssetBalance = (
-  token: FlashListAssetKey | null | undefined,
+export const useAssetBalance = (
+  token: CardTokenAllowance | null | undefined,
 ): {
   asset: TokenI | undefined;
   balanceFiat: string | undefined;
-  mainBalance: string;
-  secondaryBalance: string;
+  mainBalance: string | undefined;
+  secondaryBalance: string | undefined;
+  rawFiatNumber: number | undefined;
+  rawTokenBalance: number | undefined;
 } => {
-  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
+  const { MultichainAssetsRatesController } = Engine.context;
+  const chainIds = [LINEA_CHAIN_ID, SOLANA_MAINNET.chainId];
 
-  const selectEvmAsset = useMemo(
-    () => makeSelectAssetByAddressAndChainId(),
-    [],
-  );
+  const tokensWithBalance = useTokensWithBalance({
+    chainIds,
+  });
 
-  const evmAsset = useSelector((state: RootState) =>
-    token?.chainId
-      ? selectEvmAsset(state, {
-          address: token.address,
-          isStaked: token.isStaked,
-          chainId: token.chainId,
+  let asset = useSelector((state: RootState) =>
+    token && token?.caipChainId
+      ? selectAsset(state, {
+          address: token.address ?? '',
+          chainId: isSolanaChainId(token?.caipChainId ?? '')
+            ? token?.caipChainId
+            : (safeFormatChainIdToHex(token?.caipChainId ?? '') as string),
         })
       : undefined,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const selectNonEvmAsset = useMemo(() => makeSelectNonEvmAssetById(), []);
+  if (!asset && token) {
+    const isSolana = token.caipChainId && isSolanaChainId(token.caipChainId);
 
-  const nonEvmAsset = useSelector((state: RootState) =>
-    token && selectedAccount?.id
-      ? selectNonEvmAsset(state, {
-          accountId: selectedAccount.id,
-          assetId: token.address as CaipAssetId,
-        })
-      : undefined,
+    const assetAddress = isSolana
+      ? `${token.caipChainId}/token:${token.address}`
+      : token.address?.toLowerCase();
+
+    const iconUrl = buildTokenIconUrl(token.caipChainId, token.address ?? '');
+    const filteredToken = tokensWithBalance.find(
+      (t) => t.address === assetAddress && t.chainId === token.caipChainId,
+    );
+
+    // For Solana tokens, keep the CAIP chain ID as-is
+    // For EVM tokens, convert to hex format
+    const assetChainId = isSolana
+      ? token.caipChainId
+      : safeFormatChainIdToHex(token.caipChainId);
+
+    asset = {
+      ...token,
+      image: iconUrl,
+      logo: iconUrl,
+      isETH: false,
+      aggregators: [],
+      balance: filteredToken?.balance ?? '0',
+      balanceFiat: filteredToken?.balanceFiat ?? '0',
+      chainId: assetChainId,
+    } as TokenI;
+  }
+  const chainId = asset?.chainId as Hex;
+
+  const assetBalanceSelector = createSelector(
+    [
+      selectPrimaryCurrency,
+      selectShowFiatInTestnets,
+      (rootState) => selectCurrencyRateForChainId(rootState, chainId),
+      (rootState) =>
+        selectSingleTokenPriceMarketData(
+          rootState,
+          chainId,
+          asset?.address as Hex,
+        ),
+      selectCurrentCurrency,
+    ],
+    (
+      primaryCurrency,
+      showFiatOnTestnets,
+      conversionRate,
+      exchangeRates,
+      currentCurrency,
+    ) => ({
+      primaryCurrency: primaryCurrency ?? 'ETH',
+      showFiatOnTestnets,
+      conversionRate,
+      exchangeRates,
+      currentCurrency,
+    }),
   );
-  ///: END:ONLY_INCLUDE_IF
-
-  let asset = token && isEvmNetworkSelected ? evmAsset : nonEvmAsset;
-
-  const primaryCurrency = useSelector(
-    (state: RootState) => state.settings.primaryCurrency,
-  );
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-
-  // Market data selectors
-  const exchangeRates = useSelector((state: RootState) =>
-    asset?.chainId && asset?.address
-      ? selectSingleTokenPriceMarketData(
-          state,
-          asset.chainId as Hex,
-          asset.address as Hex,
-        )
-      : undefined,
-  );
-
-  // Token balance selectors
-  const tokenBalances = useSelector((state: RootState) =>
-    selectedInternalAccountAddress && asset?.chainId && asset?.address
-      ? selectSingleTokenBalance(
-          state,
-          selectedInternalAccountAddress as Hex,
-          asset.chainId as Hex,
-          asset.address as Hex,
-        )
-      : undefined,
-  );
-
-  const conversionRate = useSelector((state: RootState) =>
-    asset?.chainId
-      ? selectCurrencyRateForChainId(state, asset.chainId as Hex)
-      : undefined,
-  );
-
-  const oneHundredths = 0.01;
-  const oneHundredThousandths = 0.00001;
-
-  const { balanceFiat, balanceValueFormatted } = useMemo(() => {
-    if (!token) {
-      return {
-        balanceFiat: undefined,
-        balanceValueFormatted: '',
-      };
-    }
-
-    if (!asset) {
-      return {
-        balanceFiat: undefined,
-        balanceValueFormatted: '',
-      };
-    }
-
-    return isEvmNetworkSelected && asset
-      ? deriveBalanceFromAssetMarketDetails(
-          asset,
-          exchangeRates || {},
-          tokenBalances || {},
-          conversionRate || 0,
-          currentCurrency || '',
-        )
-      : {
-          balanceFiat: asset?.balanceFiat
-            ? formatWithThreshold(
-                parseFloat(asset.balanceFiat),
-                oneHundredths,
-                I18n.locale,
-                { style: 'currency', currency: currentCurrency },
-              )
-            : TOKEN_BALANCE_LOADING,
-          balanceValueFormatted: asset?.balance
-            ? formatWithThreshold(
-                parseFloat(asset.balance),
-                oneHundredThousandths,
-                I18n.locale,
-                { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-              )
-            : TOKEN_BALANCE_LOADING,
-        };
-  }, [
-    token,
-    isEvmNetworkSelected,
-    asset,
-    exchangeRates,
-    tokenBalances,
+  const assetBalance = useSelector(assetBalanceSelector);
+  const {
+    primaryCurrency,
+    showFiatOnTestnets,
     conversionRate,
+    exchangeRates,
     currentCurrency,
-  ]);
+  } = assetBalance;
 
-  // render balances according to primary currency
+  const { balanceFiat, balanceValueFormatted, rawFiatNumber, rawTokenBalance } =
+    useMemo(() => {
+      if (!asset || !token) {
+        return {
+          balanceFiat: '',
+          balanceValueFormatted: '',
+          rawFiatNumber: undefined,
+          rawTokenBalance: undefined,
+        };
+      }
+
+      if (token.availableBalance) {
+        asset.balance = token.availableBalance;
+        asset.balanceFiat = undefined; // Reset balanceFiat to undefined to fetch a new balanceFiat based on the new balance
+        let derivedBalance;
+
+        if (isSolanaChainId(chainId)) {
+          const conversionRates =
+            MultichainAssetsRatesController?.state?.conversionRates;
+          const assetConversionRate =
+            conversionRates[
+              `${chainId}/token:${asset.address}` as `${string}:${string}/${string}:${string}`
+            ];
+
+          // If the asset conversion rate is found, use it to calculate the balance fiat based on the availableBalance prop.
+          if (assetConversionRate) {
+            const balanceFiatCalculation = Number(
+              balanceToFiatNumber(
+                token.availableBalance,
+                Number(assetConversionRate.rate),
+                1,
+              ),
+            );
+            derivedBalance = {
+              balance: token.availableBalance,
+              balanceFiat: addCurrencySymbol(balanceFiatCalculation, 'usd'),
+              balanceValueFormatted: `${token.availableBalance} ${asset.symbol}`,
+            };
+          } else {
+            // If the asset conversion rate is not found, use the  availableBalance prop + symbol to display the balance.
+            derivedBalance = {
+              balance: token.availableBalance,
+              balanceFiat: `${token.availableBalance} ${asset.symbol}`,
+              balanceValueFormatted: `${token.availableBalance} ${asset.symbol}`,
+            };
+          }
+        } else {
+          derivedBalance = deriveBalanceFromAssetMarketDetails(
+            asset,
+            exchangeRates || {},
+            {},
+            conversionRate || 0,
+            currentCurrency || '',
+          );
+        }
+
+        return {
+          ...derivedBalance,
+          rawTokenBalance: derivedBalance.balance
+            ? parseFloat(String(derivedBalance.balance).replace(/[^0-9.]/g, ''))
+            : undefined,
+          rawFiatNumber: derivedBalance.balanceFiatCalculation,
+        };
+      }
+
+      return {
+        balanceFiat: asset.balanceFiat,
+        balanceValueFormatted: asset.balance,
+        rawFiatNumber: asset.balanceFiat
+          ? parseFloat(asset.balanceFiat)
+          : undefined,
+        rawTokenBalance: asset.balance ? parseFloat(asset.balance) : undefined,
+      };
+    }, [
+      asset,
+      token,
+      chainId,
+      MultichainAssetsRatesController?.state?.conversionRates,
+      currentCurrency,
+      exchangeRates,
+      conversionRate,
+    ]);
+
   let mainBalance;
   let secondaryBalance;
   const shouldNotShowBalanceOnTestnets =
-    isTestNet(asset?.chainId as Hex) && !showFiatOnTestnets;
+    isTestNet(chainId) && !showFiatOnTestnets;
 
-  // Set main and secondary balances based on the primary currency and asset type.
   if (primaryCurrency === 'ETH') {
-    // TECH_DEBT: this should not be primary currency for multichain, not ETH
-    // Default to displaying the formatted balance value and its fiat equivalent.
-    mainBalance = balanceValueFormatted?.toUpperCase();
-    secondaryBalance = balanceFiat?.toUpperCase();
-    // For ETH as a native currency, adjust display based on network safety.
+    mainBalance = balanceValueFormatted;
+    secondaryBalance = balanceFiat;
+
     if (asset?.isETH) {
-      // Main balance always shows the formatted balance value for ETH.
-      mainBalance = balanceValueFormatted?.toUpperCase();
-      // Display fiat value as secondary balance only for original native tokens on safe networks.
+      mainBalance = balanceValueFormatted;
       secondaryBalance = shouldNotShowBalanceOnTestnets
         ? undefined
-        : balanceFiat?.toUpperCase();
+        : balanceFiat;
     }
   } else {
-    secondaryBalance = balanceValueFormatted?.toUpperCase();
+    secondaryBalance = balanceValueFormatted;
     if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
       mainBalance = undefined;
     } else {
@@ -194,14 +235,14 @@ const useAssetBalance = (
     }
   }
 
-  if (evmAsset?.hasBalanceError) {
-    mainBalance = evmAsset.symbol;
-    secondaryBalance = strings('wallet.unable_to_load');
-  }
-
   if (balanceFiat === TOKEN_RATE_UNDEFINED) {
     mainBalance = balanceValueFormatted;
     secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+  }
+
+  if (asset?.hasBalanceError) {
+    mainBalance = asset.symbol;
+    secondaryBalance = strings('wallet.unable_to_load');
   }
 
   asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };
@@ -211,7 +252,7 @@ const useAssetBalance = (
     mainBalance,
     balanceFiat,
     secondaryBalance,
+    rawFiatNumber,
+    rawTokenBalance,
   };
 };
-
-export default useAssetBalance;

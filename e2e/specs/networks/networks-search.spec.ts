@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionNetworkAbstractions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -10,7 +10,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 const SHORT_HAND_NETWORK_TEXT = 'Ava';
 const INVALID_NETWORK_TEXT = 'cccM';
 
-describe(SmokeNetworkAbstractions('Networks Search'), () => {
+describe(RegressionNetworkAbstractions('Networks Search'), () => {
   // These tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';

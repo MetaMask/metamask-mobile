@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
   selectChainId,
   selectIsPopularNetwork,
@@ -30,6 +30,7 @@ import {
   getAggregatedBalance,
   getShouldShowAggregatedPercentage,
 } from './utils';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 /**
  * Hook to manage portfolio balance data across chains.
@@ -43,6 +44,8 @@ const useSelectedAccountMultichainBalances =
     const evmChainId = useSelector(selectEvmChainId);
     const currentCurrency = useSelector(selectCurrentCurrency);
     const allChainIDs = useSelector(getChainIdsToPoll);
+
+    const enabledChains = useSelector(selectEVMEnabledNetworks);
     const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
       selectIsTokenNetworkFilterEqualCurrentNetwork,
     );
@@ -50,10 +53,18 @@ const useSelectedAccountMultichainBalances =
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
+    const shouldAggregateAcrossChains = isRemoveGlobalNetworkSelectorEnabled()
+      ? true
+      : !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork;
+
+    const chainsToAggregateAcross = isRemoveGlobalNetworkSelectorEnabled()
+      ? enabledChains
+      : allChainIDs;
+
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       [selectedInternalAccount as InternalAccount],
-      !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
-      allChainIDs,
+      shouldAggregateAcrossChains,
+      chainsToAggregateAcross,
     );
 
     const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(
@@ -74,10 +85,8 @@ const useSelectedAccountMultichainBalances =
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF
 
-    const isPortfolioEnabled = isPortfolioViewEnabled();
-
     const selectedAccountMultichainBalance = useMemo(() => {
-      if (selectedInternalAccount) {
+      if (selectedInternalAccount && isOriginalNativeEvmTokenSymbol !== null) {
         const accountBalanceData = getAccountBalanceData(
           selectedInternalAccount,
           currentCurrency,
@@ -102,7 +111,7 @@ const useSelectedAccountMultichainBalances =
           shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
             chainId as SupportedCaipChainId,
           ),
-          isPortfolioVieEnabled: isPortfolioEnabled,
+          isPortfolioViewEnabled: true,
           aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
           isLoadingAccount:
             accountBalanceData.totalNativeTokenBalance === undefined,
@@ -114,7 +123,6 @@ const useSelectedAccountMultichainBalances =
       chainId,
       currentCurrency,
       isOriginalNativeEvmTokenSymbol,
-      isPortfolioEnabled,
       totalFiatBalancesCrossEvmChain,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssets,

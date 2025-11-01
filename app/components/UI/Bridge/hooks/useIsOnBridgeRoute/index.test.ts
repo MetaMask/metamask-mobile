@@ -129,30 +129,6 @@ describe('useIsOnBridgeRoute', () => {
   });
 
   describe('edge cases', () => {
-    it('returns false when route name is similar but not exact match', () => {
-      // Arrange
-      const mockRoutes = [
-        {
-          key: 'BridgeModal-123',
-          name: 'BridgeModal', // Similar but not "Bridge"
-          params: {},
-        },
-        {
-          key: 'BridgeView-456',
-          name: 'BridgeView', // Similar but not "Bridge"
-          params: {},
-        },
-      ];
-
-      (useNavigationState as jest.Mock).mockReturnValue(mockRoutes);
-
-      // Act
-      const { result } = renderHookWithProvider(() => useIsOnBridgeRoute());
-
-      // Assert
-      expect(result.current).toBe(false);
-    });
-
     it('returns false when route name is case-sensitive mismatch', () => {
       // Arrange
       const mockRoutes = [

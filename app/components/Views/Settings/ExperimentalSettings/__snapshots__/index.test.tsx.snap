@@ -6,7 +6,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "padding": 24,
+      "padding": 16,
       "paddingBottom": 48,
     }
   }
@@ -52,7 +52,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -112,7 +112,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

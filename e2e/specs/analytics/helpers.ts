@@ -1,5 +1,10 @@
 import { MockedEndpoint, Mockttp, MockttpServer } from 'mockttp';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
+import { createLogger } from '../../framework/logger';
+
+const logger = createLogger({
+  name: 'AnalyticsHelpers',
+});
 
 export interface EventPayload {
   event: string;
@@ -42,15 +47,13 @@ export const getEventsPayloads = async (
 
       if (pendingEndpoints.some((isPending) => isPending)) {
         if (Date.now() - startTime >= timeout) {
-          // eslint-disable-next-line no-console
-          console.warn('Timeout reached while waiting for pending endpoints.');
-          console.warn(
+          logger.warn('Timeout reached while waiting for pending endpoints.');
+          logger.warn(
             'Some of the requests set up in the mock server were not completed.',
           );
           return analyticsEndpoints;
         }
-        // eslint-disable-next-line no-console
-        console.log('Waiting for pending endpoints...');
+        logger.info('Waiting for pending endpoints...');
         await new Promise((resolve) => setTimeout(resolve, timeout / 4));
         return checkPendingEndpoints();
       }

@@ -5,6 +5,7 @@ import {
   UserStorageMockttpControllerEvents,
   AsEnum,
 } from './user-storage/userStorageMockttpController';
+import { USER_STORAGE_GROUPS_FEATURE_KEY } from '@metamask/account-tree-controller';
 
 export interface UserStorageAccount {
   /**
@@ -84,7 +85,7 @@ export const arrangeTestUtils = (
             clearInterval(ids.interval);
             reject(
               new Error(
-                `Timeout waiting for event ${event} to be emitted ${expectedNumber} times`,
+                `Timeout waiting for event ${event} to be emitted ${expectedNumber} times\n Actual: ${counter}`,
               ),
             );
           }, BASE_TIMEOUT);
@@ -107,7 +108,7 @@ export const arrangeTestUtils = (
     new Promise((resolve, reject) => {
       const checkAccounts = () => {
         const accounts = userStorageMockttpController.paths.get(
-          USER_STORAGE_FEATURE_NAMES.accounts,
+          USER_STORAGE_GROUPS_FEATURE_KEY,
         )?.response;
         return accounts?.length === expectedNumber;
       };

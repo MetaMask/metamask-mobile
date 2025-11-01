@@ -12,7 +12,7 @@ import StyledButton from '../../UI/StyledButton';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Text from '../../Base/Text';
@@ -304,7 +304,9 @@ const GasEducationCarousel = ({
             {strings('fiat_on_ramp.gas_education_carousel.step_3.subtitle_1')}
           </Text>
           <Text noMargin style={styles.subtitle}>
-            {strings('fiat_on_ramp.gas_education_carousel.step_3.subtitle_2')}{' '}
+            {strings(
+              'fiat_on_ramp.gas_education_carousel.step_3.subtitle_2',
+            )}{' '}
           </Text>
           <Text noMargin style={styles.subtitle}>
             {strings('fiat_on_ramp.gas_education_carousel.step_3.subtitle_3')}{' '}

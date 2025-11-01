@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { selectChainId } from '../../selectors/networkController';
 import {
   selectAllNftContracts,
@@ -7,6 +8,7 @@ import {
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { compareTokenIds } from '../../util/tokens';
 import { createDeepEqualSelector } from '../../selectors/util';
+import { selectEnabledNetworksByNamespace } from '../../selectors/networkEnablementController';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
@@ -21,12 +23,6 @@ export const collectibleContractsSelector = createSelector(
     allNftContracts[address]?.[chainId] || [],
 );
 
-export const multichainCollectibleContractsSelector = createSelector(
-  selectSelectedInternalAccountAddress,
-  selectAllNftContracts,
-  (address, allNftContracts) => allNftContracts[address] || {},
-);
-
 export const collectiblesSelector = createDeepEqualSelector(
   selectSelectedInternalAccountAddress,
   selectChainId,
@@ -34,11 +30,46 @@ export const collectiblesSelector = createDeepEqualSelector(
   (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
 );
 
-export const multichainCollectiblesSelector = createDeepEqualSelector(
-  selectSelectedInternalAccountAddress,
-  selectAllNfts,
-  (address, allNfts) => allNfts[address] || {},
-);
+export const multichainCollectiblesByEnabledNetworksSelector =
+  createDeepEqualSelector(
+    selectSelectedInternalAccountAddress,
+    selectAllNfts,
+    selectEnabledNetworksByNamespace,
+    (address, allNfts, enabledNetworks) => {
+      const addressNfts = allNfts[address];
+
+      if (!addressNfts || Object.keys(addressNfts).length === 0) {
+        return {};
+      }
+
+      const enabledNetworksForEip155 =
+        enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
+
+      if (
+        !enabledNetworksForEip155 ||
+        Object.keys(enabledNetworksForEip155).length === 0
+      ) {
+        return {};
+      }
+
+      const enabledChainIds = Object.keys(enabledNetworksForEip155).filter(
+        (chainId) => enabledNetworksForEip155[chainId],
+      );
+
+      if (enabledChainIds.length === 0) {
+        return {};
+      }
+
+      const enabledChainIdsSet = new Set(enabledChainIds);
+
+      return Object.keys(addressNfts)
+        .filter((chainId) => enabledChainIdsSet.has(chainId))
+        .reduce((acc, chainId) => {
+          acc[chainId] = addressNfts[chainId];
+          return acc;
+        }, {});
+    },
+  );
 
 export const favoritesCollectiblesSelector = createSelector(
   selectSelectedInternalAccountAddress,

@@ -12,6 +12,71 @@ import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
 import { MetaMetrics } from '../../core/Analytics';
+import {
+  getFeatureFlagAppDistribution,
+  getFeatureFlagAppEnvironment,
+} from '../../core/Engine/controllers/remote-feature-flag-controller/utils';
+
+const getSanitizedSeedlessOnboardingControllerState = () => {
+  const { SeedlessOnboardingController } = Engine.context;
+  const {
+    userId,
+    authConnection,
+    isSeedlessOnboardingUserAuthenticated,
+    passwordOutdatedCache,
+    socialBackupsMetadata,
+    nodeAuthTokens,
+
+    vault,
+    vaultEncryptionKey,
+    vaultEncryptionSalt,
+    encryptedSeedlessEncryptionKey,
+    encryptedKeyringEncryptionKey,
+    metadataAccessToken,
+    accessToken,
+    refreshToken,
+    revokeToken,
+    authPubKey,
+    authConnectionId,
+  } = SeedlessOnboardingController.state ?? {};
+
+  return {
+    userId,
+    authConnection,
+    authConnectionId,
+    isSeedlessOnboardingUserAuthenticated,
+    passwordOutdatedCache,
+    authPubKey,
+
+    socialBackupsMetadata: (socialBackupsMetadata ?? []).map((item) => {
+      const { type, keyringId } = item ?? {};
+      return {
+        keyringId,
+        type,
+      };
+    }),
+
+    // return node index and nodePubKey only
+    nodeAuthTokens: (nodeAuthTokens ?? []).map((item) => {
+      const { nodeIndex, nodePubKey } = item ?? {};
+      return {
+        nodeIndex,
+        nodePubKey,
+      };
+    }),
+
+    // Return Boolean for state availablity of sensitive data
+    vault: Boolean(vault),
+    vaultEncryptionKey: Boolean(vaultEncryptionKey),
+    vaultEncryptionSalt: Boolean(vaultEncryptionSalt),
+    encryptedSeedlessEncryptionKey: Boolean(encryptedSeedlessEncryptionKey),
+    encryptedKeyringEncryptionKey: Boolean(encryptedKeyringEncryptionKey),
+    metadataAccessToken: Boolean(metadataAccessToken),
+    accessToken: Boolean(accessToken),
+    refreshToken: Boolean(refreshToken),
+    revokeToken: Boolean(revokeToken),
+  };
+};
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
@@ -25,6 +90,10 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
+  delete fullState.engine.backgroundState.PredictController;
+
+  // Remove SeedlessController controller data so that encrypted vault and sensitive data is not included in logs
+  delete fullState.engine.backgroundState.SeedlessOnboardingController;
 
   // Remove Keyring controller data  so that encrypted vault is not included in logs
   delete fullState.engine.backgroundState.KeyringController;
@@ -44,6 +113,8 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
           keyrings: KeyringController.state.keyrings,
           isUnlocked: KeyringController.state.isUnlocked,
         },
+        SeedlessOnboardingController:
+          getSanitizedSeedlessOnboardingControllerState(),
       },
     },
   };
@@ -55,6 +126,9 @@ export const downloadStateLogs = async (
   fullState: RootState,
   loggedIn = true,
 ) => {
+  const environment = process.env.METAMASK_ENVIRONMENT;
+  const remoteFeatureFlagEnvironment = getFeatureFlagAppEnvironment();
+  const remoteFeatureFlagDistribution = getFeatureFlagAppDistribution();
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
@@ -74,6 +148,9 @@ export const downloadStateLogs = async (
         appVersion,
         buildNumber,
         metaMetricsId,
+        environment,
+        remoteFeatureFlagEnvironment,
+        remoteFeatureFlagDistribution,
       },
       loggedIn,
     );

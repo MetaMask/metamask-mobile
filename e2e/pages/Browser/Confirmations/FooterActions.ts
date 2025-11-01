@@ -4,26 +4,26 @@ import Gestures from '../../../framework/Gestures';
 
 class FooterActions {
   get confirmButton(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON)
-      : Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    );
   }
 
   get cancelButton(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(ConfirmationFooterSelectorIDs.CANCEL_BUTTON)
-      : Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
   async tapConfirmButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button',
+      delay: 1800,
     });
   }
 
   async tapCancelButton(): Promise<void> {
     await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel button',
+      delay: 1800,
     });
   }
 }

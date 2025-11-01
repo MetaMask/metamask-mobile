@@ -1,18 +1,16 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isSolanaChainId,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { Transaction } from '@metamask/keyring-api';
 import {
   BridgeHistoryItem,
   MAX_ATTEMPTS,
 } from '@metamask/bridge-status-controller';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { strings } from '../../../../../locales/i18n';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { TRANSACTION_TYPES } from '../../../../util/transactions';
 import { calculateTotalGas } from '../../TransactionElement/utils-gas';
 import {
@@ -34,7 +32,17 @@ export const getSwapBridgeTxActivityTitle = (
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
-  const destChainId = isSolanaChainId(quote.destChainId)
+  // Swap
+  const isSwap = quote.srcAsset.chainId === quote.destAsset.chainId;
+  if (isSwap) {
+    return strings('swaps.transaction_label.swap', {
+      sourceToken: quote.srcAsset.symbol,
+      destinationToken: quote.destAsset.symbol,
+    });
+  }
+
+  // Bridge
+  const destChainId = isNonEvmChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
   const destChainName = NETWORK_TO_SHORT_NETWORK_NAME_MAP[destChainId];
@@ -217,19 +225,28 @@ export const decodeSwapsTx = (args: {
   return [transactionElement, transactionDetails];
 };
 
-export const handleUnifiedSwapsTxHistoryItemClick = (
-  navigation: ReturnType<typeof useNavigation>,
-  tx: TransactionMeta,
-  bridgeTxHistoryItem?: BridgeHistoryItem,
-) => {
+export const handleUnifiedSwapsTxHistoryItemClick = ({
+  navigation,
+  evmTxMeta,
+  multiChainTx,
+  bridgeTxHistoryItem,
+}: {
+  navigation: ReturnType<typeof useNavigation>;
+  evmTxMeta?: TransactionMeta;
+  multiChainTx?: Transaction;
+  bridgeTxHistoryItem?: BridgeHistoryItem;
+}) => {
   navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-    evmTxMeta: tx,
+    evmTxMeta,
+    multiChainTx,
   });
 
   // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
-  if (bridgeTxHistoryItem && tx.type === TransactionType.bridge) {
-    const { attempts } = bridgeTxHistoryItem;
-    if (attempts && attempts.counter >= MAX_ATTEMPTS) {
+  if (bridgeTxHistoryItem) {
+    const { quote, attempts } = bridgeTxHistoryItem;
+    const isBridge = quote.srcAsset.chainId !== quote.destAsset.chainId;
+
+    if (isBridge && attempts && attempts.counter >= MAX_ATTEMPTS) {
       Engine.context.BridgeStatusController.restartPollingForFailedAttempts({
         txMetaId: bridgeTxHistoryItem.txMetaId,
       });

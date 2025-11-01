@@ -41,12 +41,43 @@ export function overrideXMLHttpRequest() {
       url.includes(blockedUrl),
     );
 
-  const handleError = () =>
-    Promise.reject(new Error(`Disallowed URL: ${currentUrl}`)).catch(
-      (error) => {
-        console.error(error);
-      },
-    );
+  const handleBlockedRequest = (xhr: XMLHttpRequest) => {
+    const error = new Error(`Disallowed URL: ${currentUrl}`);
+    // Keep existing logging behavior (relied upon by tests)
+    console.error(error);
+
+    // Proactively notify consumers so promises (e.g., fetch) do not hang.
+    try {
+      // Inform listeners that an error occurred
+      const onerror = xhr.onerror;
+      if (typeof onerror === 'function') {
+        // @ts-expect-error - ProgressEvent is not supported by React Native and we don't need it
+        onerror(error);
+      }
+    } catch {
+      // no-op
+    }
+
+    try {
+      // Abort to ensure any consumers listening for abort are notified
+      if (typeof xhr.abort === 'function') {
+        xhr.abort();
+      }
+    } catch {
+      // no-op
+    }
+
+    try {
+      // Fire loadend if present to complete any pending listeners
+      const onloadend = xhr.onloadend;
+      if (typeof onloadend === 'function') {
+        // @ts-expect-error - ProgressEvent is not supported by React Native and we don't need it
+        onloadend();
+      }
+    } catch {
+      // no-op
+    }
+  };
 
   // Override the 'open' method to capture the request URL
   global.XMLHttpRequest.prototype.open = function (
@@ -72,7 +103,7 @@ export function overrideXMLHttpRequest() {
   ) {
     // Check if the current request should be blocked
     if (shouldBlockRequest(currentUrl)) {
-      handleError(); // Trigger an error callback or handle the blocked request as needed
+      handleBlockedRequest(this as XMLHttpRequest); // Trigger error/abort so callers don't hang
       return; // Do not proceed with the request
     }
     // For non-blocked requests, proceed as normal

@@ -1,5 +1,5 @@
 import { initialState } from '../../_mocks_/initialState';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeSourceTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -36,6 +36,7 @@ jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
+    ...jest.requireActual('../../../../../core/Engine').context,
     SwapsController: {
       fetchTopAssetsWithCache: jest.fn().mockReturnValue([
         {
@@ -79,6 +80,7 @@ describe('BridgeSourceTokenSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   it('renders with initial state and displays tokens', async () => {
@@ -112,6 +114,7 @@ describe('BridgeSourceTokenSelector', () => {
   });
 
   it('handles token selection correctly', async () => {
+    // Arrange
     const { getByText } = renderScreen(
       BridgeSourceTokenSelector,
       {
@@ -120,18 +123,27 @@ describe('BridgeSourceTokenSelector', () => {
       { state: initialState },
     );
 
+    // Act - wait for token to appear and press it
     await waitFor(() => {
       const token1Element = getByText('1 TOKEN1');
       fireEvent.press(token1Element);
     });
 
+    // Advance timers to trigger debounced function (wrapped in act to handle state updates)
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
+
+    // Assert - check that actions were called
     expect(setSourceToken).toHaveBeenCalledWith({
+      accountType: undefined,
       address: '0x0000000000000000000000000000000000000001',
       balance: '1.0',
       balanceFiat: '$20000',
       chainId: '0x1',
       decimals: 18,
-      image: 'https://token1.com/logo.png',
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png',
       name: 'Token One',
       symbol: 'TOKEN1',
       tokenFiatAmount: 20000,

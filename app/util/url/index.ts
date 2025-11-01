@@ -33,6 +33,15 @@ export function isBridgeUrl(url: string) {
   }
 }
 
+export const isCardUrl = (url: string) => {
+  try {
+    const currentUrl = new URL(url);
+    return currentUrl.origin === AppConstants.CARD.URL;
+  } catch (error) {
+    return false;
+  }
+};
+
 /**
  * This method does not use the URL library because it does not support punycode encoding in react native.
  * It compares the original hostname to a punycode version of the hostname.
@@ -75,3 +84,15 @@ export const toPunycodeURL = (urlString: string) => {
     return urlString;
   }
 };
+
+export function isSameOrigin(a: string, b: string) {
+  try {
+    const urlA = new URL(a);
+    const urlB = new URL(b);
+
+    return urlA.origin === urlB.origin;
+  } catch (e) {
+    console.warn(e);
+    return false;
+  }
+}

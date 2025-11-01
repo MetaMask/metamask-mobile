@@ -312,7 +312,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RCTSafeAreaView
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -333,14 +333,15 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           }
                         }
                         enableAutomaticScroll={true}
-                        enableOnAndroid={false}
+                        enableOnAndroid={true}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={0}
+                        extraScrollHeight={100}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
-                        keyboardDismissMode="interactive"
+                        keyboardDismissMode="none"
                         keyboardOpeningTime={250}
+                        keyboardShouldPersistTaps="always"
                         keyboardSpace={0}
                         onScroll={[Function]}
                         resetKeyboardSpace={[Function]}
@@ -356,7 +357,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         scrollToEnd={[Function]}
                         scrollToFocusedInput={[Function]}
                         scrollToPosition={[Function]}
-                        showsVerticalScrollIndicator={true}
+                        showsVerticalScrollIndicator={false}
                         style={
                           {
                             "backgroundColor": "#4459ff1a",
@@ -452,9 +453,8 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 32,
-                                      "fontWeight": "400",
                                       "justifyContent": "center",
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
@@ -554,9 +554,8 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                       "borderRadius": 6,
                                       "borderWidth": 0.5,
                                       "color": "#b7bbc8",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "height": 120,
                                       "marginVertical": 16,
                                       "paddingHorizontal": 16,
@@ -671,7 +670,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         </View>
                       </RCTScrollView>
                       <View />
-                    </View>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

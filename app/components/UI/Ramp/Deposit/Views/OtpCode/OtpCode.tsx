@@ -34,9 +34,12 @@ import Button, {
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
+import { trace, TraceName } from '../../../../../../util/trace';
 
 export interface OtpCodeParams {
   email: string;
+  stateToken: string;
+  redirectToRootAfterAuth?: boolean;
 }
 
 export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
@@ -67,9 +70,11 @@ const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
-  const { email } = useParams<OtpCodeParams>();
+  const { email, stateToken, redirectToRootAfterAuth } =
+    useParams<OtpCodeParams>();
   const trackEvent = useAnalytics();
   const { selectedRegion } = useDepositSDK();
+  const [currentStateToken, setCurrentStateToken] = useState(stateToken);
 
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -101,6 +106,7 @@ const OtpCode = () => {
     { method: 'verifyUserOtp', onMount: false, throws: true },
     email,
     value,
+    currentStateToken,
   );
 
   const [, resendOtp] = useDepositSdkMethod(
@@ -140,7 +146,13 @@ const OtpCode = () => {
       }
       setResetAttemptCount((prev) => prev + 1);
       setResendButtonState('cooldown');
-      await resendOtp();
+      const resendResponse = await resendOtp();
+
+      if (!resendResponse?.stateToken) {
+        throw new Error('State token is required for OTP verification');
+      }
+
+      setCurrentStateToken(resendResponse.stateToken);
       trackEvent('RAMPS_OTP_RESENT', {
         ramp_type: 'DEPOSIT',
         region: selectedRegion?.isoCode || '',
@@ -155,6 +167,7 @@ const OtpCode = () => {
     resetAttemptCount,
     selectedRegion?.isoCode,
     trackEvent,
+    setCurrentStateToken,
   ]);
 
   const handleContactSupport = useCallback(() => {
@@ -167,6 +180,14 @@ const OtpCode = () => {
         setIsLoading(true);
         setError(null);
 
+        if (!currentStateToken) {
+          throw new Error('State token is required for OTP verification');
+        }
+
+        trace({
+          name: TraceName.DepositInputOtp,
+        });
+
         const response = await submitCode();
 
         if (!response) {
@@ -178,11 +199,15 @@ const OtpCode = () => {
           region: selectedRegion?.isoCode || '',
         });
 
-        navigation.navigate(
-          ...createBuildQuoteNavDetails({
-            shouldRouteImmediately: true,
-          }),
-        );
+        if (redirectToRootAfterAuth) {
+          navigation.navigate(Routes.DEPOSIT.ROOT);
+        } else {
+          navigation.navigate(
+            ...createBuildQuoteNavDetails({
+              shouldRouteImmediately: true,
+            }),
+          );
+        }
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',
@@ -207,8 +232,10 @@ const OtpCode = () => {
     setAuthToken,
     submitCode,
     value.length,
+    currentStateToken,
     selectedRegion?.isoCode,
     trackEvent,
+    redirectToRootAfterAuth,
   ]);
 
   const handleValueChange = useCallback((text: string) => {

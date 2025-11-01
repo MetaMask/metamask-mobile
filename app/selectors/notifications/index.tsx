@@ -86,25 +86,23 @@ export const getNotificationsList = createDeepEqualSelector(
 );
 
 export const getMetamaskNotificationsUnreadCount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: INotification) => !notification.isRead).length,
+  getNotificationsList,
+  (metamaskNotificationsList) =>
+    (metamaskNotificationsList ?? []).filter(
+      (notification: INotification) => !notification.isRead,
+    ).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: INotification) => notification.isRead).length,
+  getNotificationsList,
+  (metamaskNotificationsList) =>
+    (metamaskNotificationsList ?? []).filter(
+      (notification: INotification) => notification.isRead,
+    ).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter(
+  getNotificationsList,
+  (metamaskNotificationsList) =>
+    (metamaskNotificationsList ?? []).filter(
       (notification: INotification) =>
         !notification.isRead &&
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,

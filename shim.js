@@ -1,15 +1,24 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
-import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FIXTURE_SERVER_PORT,
+  COMMAND_QUEUE_SERVER_PORT,
+  isE2E,
   isTest,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
+
+import { getPublicKey } from '@metamask/native-utils';
+
+// polyfill getPublicKey with much faster C++ implementation
+// IMPORTANT: This patching works only if @noble/curves version in root package.json is same as @noble/curves version in package.json of @scure/bip32.
+// eslint-disable-next-line import/no-commonjs, import/no-extraneous-dependencies
+const secp256k1_1 = require('@noble/curves/secp256k1');
+secp256k1_1.secp256k1.getPublicKey = getPublicKey;
 
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
@@ -23,20 +32,29 @@ import 'react-native-url-polyfill/auto';
 // Needed to polyfill browser
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
+// Log early if running in E2E mode to help diagnose accidental js.env flags
+if (isE2E) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[E2E MODE] App running with isE2E=true. If unexpected, check your .js.env and unset IS_TEST or METAMASK_ENVIRONMENT=e2e.',
+  );
+  // eslint-disable-next-line no-console
+  console.warn(
+    `IS_TEST=${process.env.IS_TEST || 'unset'} METAMASK_ENVIRONMENT=${
+      process.env.METAMASK_ENVIRONMENT || 'unset'
+    }`,
+  );
+}
+
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FIXTURE_SERVER_PORT;
-}
-
-if (!global.btoa) {
-  global.btoa = encode;
-}
-
-if (!global.atob) {
-  global.atob = decode;
+  testConfig.commandQueueServerPort = raw?.commandQueueServerPort
+    ? raw.commandQueueServerPort
+    : COMMAND_QUEUE_SERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -59,6 +77,9 @@ if (typeof process === 'undefined') {
   }
 }
 
+// Use faster Buffer implementation for React Native
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+
 // Polyfill crypto after process is polyfilled
 const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
 
@@ -71,7 +92,6 @@ global.crypto = {
 };
 
 process.browser = false;
-if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // EventTarget polyfills for Hyperliquid SDK WebSocket support
 if (
@@ -134,6 +154,7 @@ if (enableApiCallLogs || isTest) {
     )
       .then((res) => res.ok)
       .catch(() => false);
+
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) =>
       isMockServerAvailable
@@ -142,5 +163,82 @@ if (enableApiCallLogs || isTest) {
             options,
           ).catch(() => originalFetch(url, options))
         : originalFetch(url, options);
+
+    if (isMockServerAvailable) {
+      // Patch XMLHttpRequest for Axios and other libraries
+      const OriginalXHR = global.XMLHttpRequest;
+
+      if (OriginalXHR) {
+        global.XMLHttpRequest = function (...args) {
+          const xhr = new OriginalXHR(...args);
+          const originalOpen = xhr.open;
+
+          xhr.open = function (method, url, ...openArgs) {
+            try {
+              // Route external URLs through mock server proxy
+              if (
+                typeof url === 'string' &&
+                (url.startsWith('http://') || url.startsWith('https://'))
+              ) {
+                // Bypass proxy for local command queue server (uses adb reverse on Android)
+                try {
+                  const parsed = new URL(url);
+                  const isLocalHost =
+                    parsed.hostname === 'localhost' ||
+                    parsed.hostname === '127.0.0.1';
+                  const isCommandQueue =
+                    isLocalHost &&
+                    parsed.port ===
+                      String(
+                        testConfig.commandQueueServerPort ||
+                          COMMAND_QUEUE_SERVER_PORT,
+                      );
+                  if (isCommandQueue) {
+                    return originalOpen.call(this, method, url, ...openArgs);
+                  }
+                } catch (e) {
+                  // ignore URL parse errors and continue to proxy
+                }
+                if (
+                  !url.includes(`localhost:${mockServerPort}`) &&
+                  !url.includes('/proxy')
+                ) {
+                  const originalUrl = url;
+                  url = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+                }
+              }
+              return originalOpen.call(this, method, url, ...openArgs);
+            } catch (error) {
+              return originalOpen.call(this, method, url, ...openArgs);
+            }
+          };
+
+          return xhr;
+        };
+
+        // Copy static properties and prototype chain
+        try {
+          Object.setPrototypeOf(global.XMLHttpRequest, OriginalXHR);
+          Object.assign(global.XMLHttpRequest, OriginalXHR);
+
+          // Store reference to verify patching worked
+          global.__MOCK_XHR_PATCHED = true;
+          global.__ORIGINAL_XHR = OriginalXHR;
+
+          // eslint-disable-next-line no-console
+          console.log(
+            '[XHR Patch] Successfully patched XMLHttpRequest for E2E testing',
+          );
+        } catch (error) {
+          console.warn('[XHR Patch] Failed to copy XHR properties:', error);
+          // Restore original if copying failed
+          global.XMLHttpRequest = OriginalXHR;
+        }
+      } else {
+        console.warn(
+          '[XHR Patch] XMLHttpRequest not available, skipping patch',
+        );
+      }
+    }
   })();
 }

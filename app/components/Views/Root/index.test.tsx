@@ -26,6 +26,14 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
 }));
 
+jest.mock('expo-sensors', () => ({
+  Accelerometer: {
+    setUpdateInterval: jest.fn(),
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+  },
+}));
+
 describe('Root', () => {
   it('should render correctly', () => {
     const { toJSON } = render(<Root foxCode="" />);

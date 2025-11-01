@@ -7,6 +7,10 @@ import {
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 class SettingsView {
+  get title(): DetoxElement {
+    return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
+  }
+
   get generalSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
@@ -21,10 +25,6 @@ class SettingsView {
 
   get securityAndPrivacyButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
-  }
-
-  get networksButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
   }
 
   get notificationsButton(): DetoxElement {
@@ -52,6 +52,10 @@ class SettingsView {
 
   get backupAndSyncSectionButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
+  }
+
+  get snapsSectionButton(): DetoxElement {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS);
   }
 
   get alertButton(): DetoxElement {
@@ -118,12 +122,6 @@ class SettingsView {
     });
   }
 
-  async tapNetworks(): Promise<void> {
-    await Gestures.waitAndTap(this.networksButton, {
-      elemDescription: 'Settings - Networks Button',
-    });
-  }
-
   async tapNotifications(): Promise<void> {
     await Gestures.waitAndTap(this.notificationsButton, {
       elemDescription: 'Settings - Notifications Button',
@@ -164,6 +162,35 @@ class SettingsView {
   async tapBackupAndSync(): Promise<void> {
     await Gestures.tap(this.backupAndSyncSectionButton, {
       elemDescription: 'Settings - Backup and Sync Section Button',
+    });
+  }
+
+  get developerOptionsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.DEVELOPER_OPTIONS);
+  }
+
+  async scrollToDeveloperOptions() {
+    await Gestures.scrollToElement(
+      this.developerOptionsButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapDeveloperOptions() {
+    await Gestures.waitAndTap(this.developerOptionsButton);
+  }
+
+  async tapSnaps(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.snapsSectionButton,
+      this.scrollViewIdentifier,
+      {
+        elemDescription: 'Scroll to Snaps Button',
+      },
+    );
+
+    await Gestures.tap(this.snapsSectionButton, {
+      elemDescription: 'Settings - Snaps Button',
     });
   }
 }

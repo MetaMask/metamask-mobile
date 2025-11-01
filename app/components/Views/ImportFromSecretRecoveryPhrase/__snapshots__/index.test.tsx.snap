@@ -382,7 +382,15 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -395,7 +403,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
-                            "paddingBottom": 16,
                             "paddingHorizontal": 16,
                           }
                         }
@@ -545,27 +552,52 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     }
                                   >
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      focusable={true}
+                                      onClick={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderColor": "#4459ff",
+                                          "borderColor": "#b7bbc8",
                                           "borderRadius": 8,
                                           "borderWidth": 0,
+                                          "display": "flex",
+                                          "flex": 1,
                                           "flexDirection": "row",
-                                          "height": 66,
+                                          "height": 40,
                                           "opacity": 1,
                                           "paddingHorizontal": 0,
-                                          "width": "100%",
                                         }
                                       }
                                       testID="textfield"
                                     >
                                       <View
                                         style={
-                                          {
-                                            "backgroundColor": "inherit",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "inherit",
+                                              "height": 38,
+                                            },
+                                            {
+                                              "flex": 1,
+                                            },
+                                          ]
                                         }
                                       >
                                         <TextInput
@@ -581,9 +613,10 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onKeyPress={[Function]}
+                                          onSelectionChange={[Function]}
+                                          onSubmitEditing={[Function]}
                                           placeholder="Add a space between each word and make sure no one is watching."
                                           placeholderTextColor="#686e7d"
-                                          secureTextEntry={true}
                                           showSoftInputOnFocus={true}
                                           spellCheck={false}
                                           style={
@@ -592,14 +625,14 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "display": "flex",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 66,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
-                                              "width": "100%",
                                             }
                                           }
                                           submitBehavior="submit"
@@ -612,96 +645,26 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     </View>
                                   </View>
                                 </View>
-                                <View
-                                  style={
-                                    {
-                                      "borderTopColor": "#ffffff",
-                                      "borderTopWidth": 1,
-                                      "flexDirection": "row",
-                                      "justifyContent": "space-between",
-                                      "marginTop": "auto",
-                                      "width": "100%",
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    accessibilityRole="link"
-                                    accessible={true}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "backgroundColor": "transparent",
-                                        "color": "#121314",
-                                        "flex": 1,
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "paddingHorizontal": 16,
-                                        "paddingVertical": 16,
-                                        "textAlign": "center",
-                                      }
-                                    }
-                                    suppressHighlighting={true}
-                                    width="full"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#4459ff",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Show all
-                                    </Text>
-                                  </Text>
-                                  <Text
-                                    accessibilityRole="link"
-                                    accessible={true}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "backgroundColor": "transparent",
-                                        "color": "#121314",
-                                        "flex": 1,
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "paddingHorizontal": 16,
-                                        "paddingVertical": 16,
-                                        "textAlign": "center",
-                                      }
-                                    }
-                                    suppressHighlighting={true}
-                                    width="full"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#4459ff",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Paste
-                                    </Text>
-                                  </Text>
-                                </View>
                               </View>
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-end",
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "paddingBottom": 16,
+                                    "paddingTop": 12,
+                                    "textAlign": "right",
+                                  }
+                                }
+                              >
+                                Paste
+                              </Text>
                             </View>
                             <View
                               style={
@@ -756,7 +719,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         </View>
                       </RCTScrollView>
                       <View />
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

@@ -9,12 +9,11 @@ import {
 } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useDepositRouting } from '../../../hooks/useDepositRouting';
+import { endTrace, TraceName } from '../../../../../../../util/trace';
 
 interface KycWebviewModalParams extends WebviewModalParams {
   quote: BuyQuote;
-  kycWorkflowRunId: string;
-  cryptoCurrencyChainId: string;
-  paymentMethodId: string;
+  workFlowRunId: string;
 }
 
 export const createKycWebviewModalNavigationDetails =
@@ -24,15 +23,28 @@ export const createKycWebviewModalNavigationDetails =
   );
 
 function KycWebviewModal() {
-  const { quote, cryptoCurrencyChainId, paymentMethodId, kycWorkflowRunId } =
-    useParams<KycWebviewModalParams>();
+  const { quote, workFlowRunId } = useParams<KycWebviewModalParams>();
 
-  const { routeAfterAuthentication } = useDepositRouting({
-    cryptoCurrencyChainId,
-    paymentMethodId,
-  });
+  const { routeAfterAuthentication } = useDepositRouting();
 
-  const { idProofStatus } = useIdProofPolling(kycWorkflowRunId, 1000, true, 0);
+  const { idProofStatus } = useIdProofPolling(workFlowRunId, 1000, true, 0);
+
+  useEffect(() => {
+    endTrace({
+      name: TraceName.DepositContinueFlow,
+      data: {
+        destination: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      },
+    });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      },
+    });
+  }, []);
+
   useEffect(() => {
     if (idProofStatus === 'SUBMITTED' && quote) {
       routeAfterAuthentication(quote);

@@ -3,8 +3,8 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
-import { RefreshControl, SafeAreaView, ScrollView, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -19,53 +19,32 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBottomSheet';
-import type { Position } from '../../controllers/types';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { usePerpsLivePositions } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
-  usePerpsAccount,
-  usePerpsPositions,
-  usePerpsTPSLUpdate,
-  usePerpsClosePosition,
-} from '../../hooks';
-import { formatPnl, formatPrice } from '../../utils/formatUtils';
+  formatPnl,
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PerpsPositionsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsPositionsView: React.FC = () => {
-  const { styles, theme } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null,
-  );
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
-
-  const { positions, isLoading, isRefreshing, error, loadPositions } =
-    usePerpsPositions({
-      loadOnMount: true,
-      refreshOnFocus: true,
-    });
-
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
-    onSuccess: () => {
-      // Refresh positions to show updated data
-      loadPositions({ isRefresh: true });
-    },
+  // Get real-time positions via WebSocket
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000, // Update every second
   });
 
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Refresh positions to show updated data
-      loadPositions({ isRefresh: true });
-      setIsClosePositionVisible(false);
-      setSelectedPosition(null);
-    },
-  });
+  const error = null;
 
   // Memoize position count text to avoid recalculating on every render
   const positionCountText = useMemo(() => {
@@ -86,22 +65,8 @@ const PerpsPositionsView: React.FC = () => {
     navigation.goBack();
   };
 
-  const handleRefresh = () => {
-    loadPositions({ isRefresh: true });
-  };
-
-  const handleEditTPSL = (position: Position) => {
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
-  };
-
-  const handleClosePositionClick = (position: Position) => {
-    setSelectedPosition(position);
-    setIsClosePositionVisible(true);
-  };
-
   const renderContent = () => {
-    if (isLoading) {
+    if (isInitialLoading) {
       return (
         <View style={styles.loadingContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
@@ -138,7 +103,10 @@ const PerpsPositionsView: React.FC = () => {
     }
 
     return (
-      <View style={styles.positionsSection}>
+      <View
+        style={styles.positionsSection}
+        testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION}
+      >
         <View style={styles.sectionHeader}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.open_positions')}
@@ -147,29 +115,30 @@ const PerpsPositionsView: React.FC = () => {
             {positionCountText}
           </Text>
         </View>
-        {positions.map((position, index) => (
-          <PerpsPositionCard
-            key={`${position.coin}-${index}`}
-            position={position}
-            onEdit={handleEditTPSL}
-            onClose={handleClosePositionClick}
-          />
-        ))}
+        {positions.map((position, index) => {
+          const directionSegment = getPositionDirection(position.size);
+          return (
+            <View
+              key={`${position.coin}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+            >
+              <PerpsPositionCard position={position} />
+            </View>
+          );
+        })}
       </View>
     );
   };
 
-  const { top } = useSafeAreaInsets();
-
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: top }]}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Md}
           onPress={handleBackPress}
-          testID="back-button"
+          testID={PerpsPositionsViewSelectorsIDs.BACK_BUTTON}
         />
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.position.title')}
@@ -177,16 +146,7 @@ const PerpsPositionsView: React.FC = () => {
         <View style={styles.headerPlaceholder} />
       </View>
 
-      <ScrollView
-        style={styles.container}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.colors.primary.default}
-          />
-        }
-      >
+      <ScrollView style={styles.container}>
         {/* Account Summary */}
         <View style={styles.accountSummary}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -198,7 +158,12 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.totalBalance || '0')}
+              {account?.totalBalance !== undefined &&
+              account?.totalBalance !== null
+                ? formatPerpsFiat(account.totalBalance, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 
@@ -207,7 +172,12 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.availableBalance || '0')}
+              {account?.availableBalance !== undefined &&
+              account?.availableBalance !== null
+                ? formatPerpsFiat(account.availableBalance, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 
@@ -216,7 +186,11 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.marginUsed || '0')}
+              {account?.marginUsed !== undefined && account?.marginUsed !== null
+                ? formatPerpsFiat(account.marginUsed, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 
@@ -234,55 +208,8 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
         </View>
-
         {renderContent()}
       </ScrollView>
-
-      {/* TP/SL Bottom Sheet - Rendered outside ScrollView to fix layering issue */}
-      {isTPSLVisible && selectedPosition && (
-        <PerpsTPSLBottomSheet
-          isVisible
-          onClose={() => {
-            setIsTPSLVisible(false);
-            setSelectedPosition(null);
-          }}
-          onConfirm={async (takeProfitPrice, stopLossPrice) => {
-            await handleUpdateTPSL(
-              selectedPosition,
-              takeProfitPrice,
-              stopLossPrice,
-            );
-            setIsTPSLVisible(false);
-            setSelectedPosition(null);
-          }}
-          asset={selectedPosition.coin}
-          position={selectedPosition}
-          initialTakeProfitPrice={selectedPosition.takeProfitPrice}
-          initialStopLossPrice={selectedPosition.stopLossPrice}
-          isUpdating={isUpdating}
-        />
-      )}
-
-      {/* Close Position Bottom Sheet */}
-      {isClosePositionVisible && selectedPosition && (
-        <PerpsClosePositionBottomSheet
-          isVisible
-          onClose={() => {
-            setIsClosePositionVisible(false);
-            setSelectedPosition(null);
-          }}
-          onConfirm={async (size, orderType, limitPrice) => {
-            await handleClosePosition(
-              selectedPosition,
-              size,
-              orderType,
-              limitPrice,
-            );
-          }}
-          position={selectedPosition}
-          isClosing={isClosing}
-        />
-      )}
     </SafeAreaView>
   );
 };

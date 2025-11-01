@@ -1,26 +1,21 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import Device from '../../../../util/device';
 import { fontStyles } from '../../../../styles/common';
-import scaling from '../../../../util/scaling';
 import {
   getFontFamily,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 
-const HEIGHT = scaling.scale(240);
-const DEVICE_WIDTH = Device.getDeviceWidth();
-const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
-
 export type NotificationDetailStyles = ReturnType<typeof createStyles>;
 
 export const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
-    contentContainerWrapper: {
+    scrollContainer: {
       flex: 1,
-      alignItems: 'flex-start',
-      backgroundColor: colors.background.default,
-      paddingTop: 16,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      padding: 16,
     },
     headerImageContainer: {
       paddingBottom: 16,
@@ -34,9 +29,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
     headerImageFullPlaceholder: {
       width: '100%',
       backgroundColor: colors.background.alternative,
-    },
-    fieldsContainer: {
-      gap: 4,
     },
     row: {
       flexDirection: 'row',
@@ -64,72 +56,17 @@ export const createStyles = ({ colors, typography }: Theme) =>
       flexDirection: 'column',
     },
     boxRight: { marginLeft: 'auto' },
-    text: {
-      marginBottom: 8,
-      paddingHorizontal: 32,
-      textAlign: 'center',
-    },
-    descriptionContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
     addressLinkLabel: {
       ...fontStyles.normal,
       color: colors.text.alternative,
     },
-    icon: { marginHorizontal: 20 },
-    touchableViewOnEtherscan: {
-      marginBottom: 24,
-      marginTop: 12,
-    },
-    viewOnEtherscan: {
-      fontSize: 16,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-      textAlign: 'center',
-    },
-    renderContainer: {
-      alignItems: 'flex-start',
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      width: '100%',
-    },
-    renderFCMText: {
-      textAlign: 'left',
-    },
-    renderFCMCard: {
-      height: HEIGHT,
-      width: Device.getDeviceWidth() - 32,
-      alignContent: 'center',
-      borderRadius: 12,
-      overflow: 'hidden',
-      marginBottom: 16,
-      backgroundColor: colors.background.alternative,
-    },
-    FCMImage: {
-      resizeMode: 'cover',
-      height: HEIGHT,
-      width: Device.getDeviceWidth() - 32,
-    },
-    renderTxContainer: {
-      alignSelf: 'center',
-    },
-    renderTxNFT: {
-      height: COLLECTIBLE_WIDTH,
-      width: COLLECTIBLE_WIDTH,
-      alignContent: 'center',
-      borderRadius: 4,
-      overflow: 'hidden',
-      alignSelf: 'center',
+    footerContainer: {
+      marginTop: 'auto',
     },
     ctaBtn: {
-      bottom: 10,
-      position: 'absolute',
-      width: '90%',
+      width: '100%',
       alignSelf: 'center',
       margin: 16,
-      backgroundColor: colors.background.default,
     },
     rightSection: {
       flex: 1,
@@ -197,25 +134,17 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    foxWrapper: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.background.alternative,
-      alignItems: 'center',
-      justifyContent: 'center',
-      alignSelf: 'flex-start',
-      position: 'absolute',
-      top: '25%',
+    modalContainer: {
+      flex: 1,
+    },
+    navContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 16,
     },
     header: {
-      flexDirection: 'row',
-      marginTop: 4,
-      flexWrap: 'wrap',
-    },
-    headerText: {
-      width: Device.isAndroid() ? '80%' : '100%',
-      textAlign: 'center',
+      paddingInline: 4,
+      flex: 1,
     },
     announcementDescriptionText: {
       ...typography.sBodyMD,

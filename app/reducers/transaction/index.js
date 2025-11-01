@@ -30,6 +30,7 @@ const initialState = {
   nonce: undefined,
   securityAlertResponses: {},
   useMax: false,
+  maxValueMode: false,
 };
 
 const getAssetType = (selectedAsset) => {

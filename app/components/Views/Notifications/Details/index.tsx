@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   INotification,
   isNotificationsFeatureEnabled,
@@ -89,38 +90,63 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerLeft: HeaderLeft,
-      headerTitle: HeaderTitle,
+      headerShown: false,
     });
   });
+
+  const insets = useSafeAreaInsets();
 
   if (!state) {
     return null;
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.contentContainerWrapper}>
-      <View style={styles.renderContainer}>
-        {/* Modal Headers */}
-        {state.header && <ModalHeader modalHeader={state.header} />}
+    <View style={styles.modalContainer}>
+      {/* Header */}
+      <View
+        style={[
+          styles.navContainer,
+          {
+            paddingTop: insets.top,
+          },
+        ]}
+      >
+        <HeaderLeft />
+        <HeaderTitle />
+      </View>
 
-        {/* Modal Fields */}
-        {state.fields.map((field, idx) => (
-          <ModalField
-            key={idx}
-            modalField={field}
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            notification={notification}
-          />
-        ))}
+      {/* Body */}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View>
+          {/* Modal Headers */}
+          {state.header && <ModalHeader modalHeader={state.header} />}
+
+          {/* Modal Fields */}
+          {state.fields.map((field, idx) => (
+            <ModalField
+              key={idx}
+              modalField={field}
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+              notification={notification}
+            />
+          ))}
+        </View>
 
         {/* Modal Footers */}
         {state.footer && (
-          <ModalFooter modalFooter={state.footer} notification={notification} />
+          <View style={styles.footerContainer}>
+            <ModalFooter
+              modalFooter={state.footer}
+              notification={notification}
+            />
+          </View>
         )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 

@@ -73,7 +73,7 @@ exports[`AssetOverview should render correctly 1`] = `
                       "width": 100,
                     },
                     {
-                      "backgroundColor": "#E1E9EE",
+                      "backgroundColor": "#f3f5f9",
                       "overflow": "hidden",
                     },
                   ]
@@ -122,7 +122,7 @@ exports[`AssetOverview should render correctly 1`] = `
                       "width": 150,
                     },
                     {
-                      "backgroundColor": "#E1E9EE",
+                      "backgroundColor": "#f3f5f9",
                       "overflow": "hidden",
                     },
                   ]
@@ -136,35 +136,90 @@ exports[`AssetOverview should render correctly 1`] = `
     <View
       style={
         {
-          "paddingHorizontal": 16,
-          "paddingTop": 10,
+          "height": 576.96,
+          "marginVertical": 10,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
           "width": 750,
         }
       }
     >
       <View
-        onLayout={[Function]}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
       >
         <View
           style={
             {
-              "position": "relative",
+              "alignItems": "center",
+              "bottom": 0,
+              "justifyContent": "center",
+              "left": 0,
+              "padding": 96,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 1,
             }
           }
         >
           <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 586.96,
+                      "width": 718,
+                    },
+                    {
+                      "backgroundColor": "#f3f5f9",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
             style={
-              [
-                {
-                  "borderRadius": 6,
-                  "height": 586.96,
-                  "width": 718,
-                },
-                {
-                  "backgroundColor": "#E1E9EE",
-                  "overflow": "hidden",
-                },
-              ]
+              {
+                "flex": 1,
+              }
             }
           />
         </View>
@@ -365,773 +420,487 @@ exports[`AssetOverview should render correctly 1`] = `
     <View
       style={
         {
-          "display": "flex",
           "flexDirection": "row",
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
+          "gap": 8,
+          "paddingHorizontal": 16,
+          "width": "100%",
         }
       }
     >
       <View
         style={
           {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-buy-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Add"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Buy
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-swap-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="SwapHorizontal"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Swap
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-bridge-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Bridge"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Bridge
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-send-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Arrow2UpRight"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Send
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-receive-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="QrCode"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Receive
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "paddingHorizontal": 15,
-            "paddingVertical": 4,
-          }
-        }
-      >
-        Your balance
-      </Text>
-      <TouchableOpacity
-        disabled={false}
-        onLongPress={[Function]}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
             "flex": 1,
-            "flexDirection": "row",
-            "height": 64,
+            "overflow": "hidden",
           }
         }
-        testID="asset-ETH"
       >
         <View
-          onLayout={[Function]}
+          collapsable={false}
           style={
             {
-              "alignSelf": "center",
-              "position": "relative",
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
-          testID="badge-wrapper-badge"
         >
-          <View>
-            <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 20,
-                  "height": 40,
-                  "overflow": "hidden",
-                  "width": 40,
-                }
-              }
-            >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
-                  }
-                }
-                testID="token-avatar-image"
-              />
-            </View>
-          </View>
           <View
-            style={
+            accessibilityState={
               {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-buy-button"
           >
             <View
-              onLayout={[Function]}
               style={
                 {
                   "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
                   "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
+                  "width": "100%",
                 }
               }
-              testID="badgenetwork"
             >
-              <View
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="AttachMoney"
                 style={
                   {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 8,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
                   }
                 }
               >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={1}
-                  style={
-                    {
-                      "height": 32,
-                      "width": 32,
-                    }
-                  }
-                  testID="network-avatar-image"
-                />
-              </View>
+                Buy
+              </Text>
             </View>
           </View>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
         <View
+          collapsable={false}
           style={
             {
-              "alignContent": "flex-start",
-              "alignItems": "flex-start",
-              "flex": 1,
-              "flexDirection": "column",
-              "paddingLeft": 16,
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
+          <View
+            accessibilityState={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-swap-button"
           >
-            Ethereum
-          </Text>
-          <View>
-            <Text
-              accessibilityRole="text"
+            <View
               style={
                 {
-                  "color": "#ca3542",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
                 }
               }
-            />
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="SwapVertical"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Swap
+              </Text>
+            </View>
           </View>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
         <View
+          collapsable={false}
           style={
             {
-              "alignItems": "flex-end",
-              "flexShrink": 0,
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
+          <View
+            accessibilityState={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            testID="balance-test-id"
-          >
-            1500
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
+            accessibilityValue={
               {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "paddingHorizontal": 0,
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
               }
             }
-            testID="secondary-balance-test-id"
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-send-button"
           >
-            0 ETH
-          </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
+                }
+              }
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="Send"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Send
+              </Text>
+            </View>
+          </View>
         </View>
-      </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            }
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-receive-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
+                }
+              }
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="Received"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Receive
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <View>
+      <Text
+        testID="tokenDetailsName"
+      >
+        Ethereum
+      </Text>
+      <Text
+        testID="tokenDetailsBalance"
+      >
+        400
+      </Text>
+      <Text
+        testID="balance-test-id"
+      >
+        1500
+      </Text>
+      <Text
+        testID="token-amount-balance-test-id"
+      >
+        0 ETH
+      </Text>
     </View>
     <View
       style={
@@ -1227,7 +996,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                       "width": 100,
                     },
                     {
-                      "backgroundColor": "#E1E9EE",
+                      "backgroundColor": "#f3f5f9",
                       "overflow": "hidden",
                     },
                   ]
@@ -1276,7 +1045,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                       "width": 150,
                     },
                     {
-                      "backgroundColor": "#E1E9EE",
+                      "backgroundColor": "#f3f5f9",
                       "overflow": "hidden",
                     },
                   ]
@@ -1290,35 +1059,90 @@ exports[`AssetOverview should render native balances even if there are no accoun
     <View
       style={
         {
-          "paddingHorizontal": 16,
-          "paddingTop": 10,
+          "height": 576.96,
+          "marginVertical": 10,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
           "width": 750,
         }
       }
     >
       <View
-        onLayout={[Function]}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
       >
         <View
           style={
             {
-              "position": "relative",
+              "alignItems": "center",
+              "bottom": 0,
+              "justifyContent": "center",
+              "left": 0,
+              "padding": 96,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 1,
             }
           }
         >
           <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 586.96,
+                      "width": 718,
+                    },
+                    {
+                      "backgroundColor": "#f3f5f9",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
             style={
-              [
-                {
-                  "borderRadius": 6,
-                  "height": 586.96,
-                  "width": 718,
-                },
-                {
-                  "backgroundColor": "#E1E9EE",
-                  "overflow": "hidden",
-                },
-              ]
+              {
+                "flex": 1,
+              }
             }
           />
         </View>
@@ -1519,809 +1343,487 @@ exports[`AssetOverview should render native balances even if there are no accoun
     <View
       style={
         {
-          "display": "flex",
           "flexDirection": "row",
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
+          "gap": 8,
+          "paddingHorizontal": 16,
+          "width": "100%",
         }
       }
     >
       <View
         style={
           {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-buy-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Add"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Buy
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-swap-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="SwapHorizontal"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Swap
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-bridge-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Bridge"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Bridge
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-send-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Arrow2UpRight"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Send
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-receive-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="QrCode"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Receive
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "paddingHorizontal": 15,
-            "paddingVertical": 4,
-          }
-        }
-      >
-        Your balance
-      </Text>
-      <TouchableOpacity
-        disabled={true}
-        onLongPress={[Function]}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
             "flex": 1,
-            "flexDirection": "row",
-            "height": 64,
+            "overflow": "hidden",
           }
         }
-        testID="asset-ETH"
       >
         <View
-          onLayout={[Function]}
+          collapsable={false}
           style={
             {
-              "alignSelf": "center",
-              "position": "relative",
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
-          testID="badge-wrapper-badge"
         >
-          <View>
-            <View
-              useNativeDriver={true}
-            >
-              <Image
-                fadeIn={true}
-                onError={[Function]}
-                onLoadEnd={[Function]}
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  [
-                    {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
-                    },
-                    undefined,
-                    false,
-                    false,
-                    {
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    },
-                  ]
-                }
-                testID="Ethereum"
-              />
-              <View
-                collapsable={false}
-                style={
-                  {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
-                }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 20,
-                        "height": 40,
-                        "overflow": "hidden",
-                        "width": 40,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-          </View>
           <View
-            style={
+            accessibilityState={
               {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-buy-button"
           >
             <View
-              onLayout={[Function]}
               style={
                 {
                   "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
                   "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
+                  "width": "100%",
                 }
               }
-              testID="badgenetwork"
             >
-              <View
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="AttachMoney"
                 style={
                   {
-                    "alignItems": "center",
-                    "backgroundColor": "#f3f5f9",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 16,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  ?
-                </Text>
-              </View>
+                Buy
+              </Text>
             </View>
           </View>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
         <View
+          collapsable={false}
           style={
             {
-              "alignContent": "flex-start",
-              "alignItems": "flex-start",
-              "flex": 1,
-              "flexDirection": "column",
-              "paddingLeft": 16,
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
+          <View
+            accessibilityState={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-swap-button"
           >
-            Ethereum
-          </Text>
-          <View>
-            <Text
-              accessibilityRole="text"
+            <View
               style={
                 {
-                  "color": "#ca3542",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
                 }
               }
-            />
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="SwapVertical"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Swap
+              </Text>
+            </View>
           </View>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
         <View
+          collapsable={false}
           style={
             {
-              "alignItems": "flex-end",
-              "flexShrink": 0,
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
+          <View
+            accessibilityState={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            testID="balance-test-id"
-          >
-            1500
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
+            accessibilityValue={
               {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "paddingHorizontal": 0,
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
               }
             }
-            testID="secondary-balance-test-id"
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-send-button"
           >
-            0 ETH
-          </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
+                }
+              }
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="Send"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Send
+              </Text>
+            </View>
+          </View>
         </View>
-      </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            }
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-receive-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
+                }
+              }
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="Received"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Receive
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <View>
+      <Text
+        testID="tokenDetailsName"
+      >
+        Ethereum
+      </Text>
+      <Text
+        testID="tokenDetailsBalance"
+      >
+        400
+      </Text>
+      <Text
+        testID="balance-test-id"
+      >
+        1500
+      </Text>
+      <Text
+        testID="token-amount-balance-test-id"
+      >
+        0 ETH
+      </Text>
     </View>
     <View
       style={
@@ -2709,807 +2211,487 @@ exports[`AssetOverview should render native balances when non evm network is sel
     <View
       style={
         {
-          "display": "flex",
           "flexDirection": "row",
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
+          "gap": 8,
+          "paddingHorizontal": 16,
+          "width": "100%",
         }
       }
     >
       <View
         style={
           {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-buy-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Add"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Buy
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-swap-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="SwapHorizontal"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Swap
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-bridge-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Bridge"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Bridge
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-send-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="Arrow2UpRight"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Send
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-receive-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={24}
-              name="QrCode"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 18,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Receive
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "paddingHorizontal": 15,
-            "paddingVertical": 4,
-          }
-        }
-      >
-        Your balance
-      </Text>
-      <TouchableOpacity
-        disabled={true}
-        onLongPress={[Function]}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
             "flex": 1,
-            "flexDirection": "row",
-            "height": 64,
+            "overflow": "hidden",
           }
         }
-        testID="asset-ETH"
       >
         <View
-          onLayout={[Function]}
+          collapsable={false}
           style={
             {
-              "alignSelf": "center",
-              "position": "relative",
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
-          testID="badge-wrapper-badge"
         >
-          <View>
-            <View
-              useNativeDriver={true}
-            >
-              <Image
-                fadeIn={true}
-                onError={[Function]}
-                onLoadEnd={[Function]}
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  [
-                    {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
-                    },
-                    undefined,
-                    false,
-                    false,
-                    {
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    },
-                  ]
-                }
-                testID="Ethereum"
-              />
-              <View
-                collapsable={false}
-                style={
-                  {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
-                }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 20,
-                        "height": 40,
-                        "overflow": "hidden",
-                        "width": 40,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-          </View>
           <View
-            style={
+            accessibilityState={
               {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-buy-button"
           >
             <View
-              onLayout={[Function]}
               style={
                 {
                   "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
                   "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
+                  "width": "100%",
                 }
               }
-              testID="badgenetwork"
             >
-              <View
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="AttachMoney"
                 style={
                   {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 8,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
                   }
                 }
               >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={1}
-                  style={
-                    {
-                      "height": 32,
-                      "width": 32,
-                    }
-                  }
-                  testID="network-avatar-image"
-                />
-              </View>
+                Buy
+              </Text>
             </View>
           </View>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
         <View
+          collapsable={false}
           style={
             {
-              "alignContent": "flex-start",
-              "alignItems": "flex-start",
-              "flex": 1,
-              "flexDirection": "column",
-              "paddingLeft": 16,
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
+          <View
+            accessibilityState={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-swap-button"
           >
-            Ethereum
-          </Text>
-          <View>
-            <Text
-              accessibilityRole="text"
+            <View
               style={
                 {
-                  "color": "#ca3542",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
                 }
               }
-            />
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="SwapVertical"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Swap
+              </Text>
+            </View>
           </View>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
         <View
+          collapsable={false}
           style={
             {
-              "alignItems": "flex-end",
-              "flexShrink": 0,
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
+          <View
+            accessibilityState={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            testID="balance-test-id"
-          >
-            1500
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
+            accessibilityValue={
               {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "paddingHorizontal": 0,
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
               }
             }
-            testID="secondary-balance-test-id"
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-send-button"
           >
-            400 ETH
-          </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
+                }
+              }
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="Send"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Send
+              </Text>
+            </View>
+          </View>
         </View>
-      </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "overflow": "hidden",
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            }
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 16,
+                },
+                false,
+              ]
+            }
+            testID="token-receive-button"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": "100%",
+                }
+              }
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={24}
+                name="Received"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "flexShrink": 0,
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginTop": 2,
+                    "minWidth": 0,
+                    "textAlign": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                Receive
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <View>
+      <Text
+        testID="tokenDetailsName"
+      >
+        Ethereum
+      </Text>
+      <Text
+        testID="tokenDetailsBalance"
+      >
+        400
+      </Text>
+      <Text
+        testID="balance-test-id"
+      >
+        1500
+      </Text>
+      <Text
+        testID="token-amount-balance-test-id"
+      >
+        400 ETH
+      </Text>
     </View>
     <View
       style={

@@ -39,6 +39,7 @@ interface SnapUIFooterButtonProps {
   isSnapAction?: boolean;
   onCancel?: () => void;
   type: ButtonType;
+  form?: string;
   snapVariant: ButtonProps['variant'];
   disabled?: boolean;
   loading?: boolean;
@@ -56,6 +57,8 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   variant = ButtonVariants.Primary,
   snapVariant,
   testID,
+  type,
+  form,
   ...props
 }) => {
   const theme = useTheme();
@@ -84,6 +87,14 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       event: UserInputEventType.ButtonClickEvent,
       name,
     });
+
+    // Since we don't have onSubmit on mobile, the button submits the form.
+    if (type === ButtonType.Submit) {
+      handleEvent({
+        event: UserInputEventType.FormSubmitEvent,
+        name: form,
+      });
+    }
   };
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

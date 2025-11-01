@@ -14,7 +14,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native-scrollable-tab-view', () => ({
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
@@ -23,9 +23,6 @@ jest.mock('react-native-scrollable-tab-view', () => ({
 }));
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: {
       ...backgroundState,

@@ -8,17 +8,17 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
+import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   getDecimalChainId,
   getNetworkImageSource,
@@ -28,18 +28,22 @@ import {
   selectSourceAmount,
   selectSelectedDestChainId,
   setSourceAmount,
+  setSourceAmountAsMax,
+  selectIsMaxSourceAmount,
   resetBridgeState,
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
-  selectIsEvmSolanaBridge,
-  selectIsSolanaSwap,
-  setSlippage,
+  selectIsEvmNonEvmBridge,
   selectIsSubmittingTx,
   setIsSubmittingTx,
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
+  setBridgeViewMode,
+  selectNoFeeAssets,
+  selectIsNonEvmNonEvmBridge,
+  selectIsSelectingRecipient,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -52,11 +56,12 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -65,24 +70,35 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
+import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
+import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
+import ApprovalTooltip from '../../components/ApprovalText';
+import { RootState } from '../../../../../reducers/index.ts';
+import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { isNullOrUndefined } from '@metamask/utils';
+import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 
 export interface BridgeRouteParams {
-  token?: BridgeToken;
   sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
 }
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -97,6 +113,7 @@ const BridgeView = () => {
   useGasFeeEstimates(selectedNetworkClientId);
 
   const sourceAmount = useSelector(selectSourceAmount);
+  const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
@@ -110,9 +127,12 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
+  const noFeeDestAssets = useSelector((state: RootState) =>
+    selectNoFeeAssets(state, destToken?.chainId),
+  );
 
-  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
-  const isSolanaSwap = useSelector(selectIsSolanaSwap);
+  const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
+  const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -121,29 +141,35 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  const initialSourceToken = route.params?.token;
-  useInitialSourceToken(initialSourceToken);
-  useInitialDestToken(initialSourceToken);
+  const initialSourceToken = route.params?.sourceToken;
+  const initialSourceAmount = route.params?.sourceAmount;
+  const initialDestToken = route.params?.destToken;
+  useInitialSourceToken(initialSourceToken, initialSourceAmount);
+  useInitialDestToken(initialSourceToken, initialDestToken);
+
+  // Initialize recipient account
+  const hasInitializedRecipient = useRef(false);
+  useRecipientInitialization(hasInitializedRecipient);
+
+  useEffect(() => {
+    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
+      dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
+    }
+  }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
 
   // End trace when component mounts
   useEffect(() => {
     endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
   }, []);
 
-  // Set slippage to undefined for Solana swaps
-  useEffect(() => {
-    if (isSolanaSwap) {
-      dispatch(setSlippage(undefined));
-    }
-  }, [isSolanaSwap, dispatch]);
+  useInitialSlippage();
 
-  const hasDestinationPicker = isEvmSolanaBridge;
+  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
   });
 
   const {
@@ -155,11 +181,10 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
     blockaidError,
+    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
-
-  const hasQuoteDetails = activeQuote && !isLoading;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -169,16 +194,31 @@ const BridgeView = () => {
     !!sourceToken &&
     !!destToken &&
     // Prevent quote fetching when destination address is not set
-    // Destinations address is only needed for EVM <> Solana bridges
-    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
+    // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
+    (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
 
+  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
+  const isSubmitDisabled =
+    hasInsufficientBalance ||
+    isSubmittingTx ||
+    (isHardwareAddress && isSolanaSourced) ||
+    !!blockaidError ||
+    !hasSufficientGas;
+
+  useBridgeQuoteEvents({
+    hasInsufficientBalance,
+    hasNoQuotesAvailable: isNoQuotesAvailable,
+    hasInsufficientGas: !hasSufficientGas,
+    hasTxAlert: Boolean(blockaidError),
+    isSubmitDisabled,
+    isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+  });
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
@@ -186,6 +226,8 @@ const BridgeView = () => {
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
     isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
+  // Hide quote whenever the keypad is displayed
+  const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -199,13 +241,13 @@ const BridgeView = () => {
 
   // Blur input when quotes have loaded
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading || activeQuote?.quote?.requestId) {
       setIsInputFocused(false);
       if (inputRef.current) {
         inputRef.current.blur();
       }
     }
-  }, [isLoading]);
+  }, [isLoading, activeQuote?.quote?.requestId]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -288,16 +330,6 @@ const BridgeView = () => {
     }
   };
 
-  const handleTermsPress = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.TERMS_AND_CONDITIONS,
-        title: strings('bridge.terms_and_conditions'),
-      },
-    });
-  };
-
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
@@ -310,25 +342,23 @@ const BridgeView = () => {
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    const isSwap = sourceToken?.chainId === destToken?.chainId;
-    return isSwap
-      ? strings('bridge.confirm_swap')
-      : strings('bridge.confirm_bridge');
+    return strings('bridge.confirm_swap');
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh) {
+    if (isExpired && !willRefresh && !isSelectingRecipient) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation]);
+  }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
 
-  const renderBottomContent = () => {
+  const renderBottomContent = (submitDisabled: boolean) => {
     if (shouldDisplayKeypad && !isLoading) {
       return (
         <Box style={styles.buttonContainer}>
@@ -339,7 +369,7 @@ const BridgeView = () => {
       );
     }
 
-    if (isLoading) {
+    if (isLoading && !activeQuote) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Alternative}>
@@ -364,6 +394,23 @@ const BridgeView = () => {
       );
     }
 
+    // TODO: remove this once controller types are updated
+    // @ts-expect-error: controller types are not up to date yet
+    const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
+    const feePercentage = !isNullOrUndefined(quoteBpsFee)
+      ? quoteBpsFee / 100
+      : BRIDGE_MM_FEE_RATE;
+
+    const hasFee = activeQuote && feePercentage > 0;
+
+    const isNoFeeDestinationAsset =
+      destToken?.address && noFeeDestAssets?.includes(destToken.address);
+
+    const approval =
+      activeQuote?.approval && sourceAmount && sourceToken
+        ? { amount: sourceAmount, symbol: sourceToken.symbol }
+        : null;
+
     return (
       activeQuote &&
       quotesLastFetched && (
@@ -383,27 +430,40 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            label={getButtonLabel()}
-            onPress={handleContinue}
-            style={styles.button}
-            isDisabled={
-              hasInsufficientBalance ||
-              isSubmittingTx ||
-              (isHardwareAddress && isSolanaSourced) ||
-              !!blockaidError
-            }
-          />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Primary}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
+
+          {!shouldDisplayKeypad && (
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              label={getButtonLabel()}
+              onPress={handleContinue}
+              style={styles.button}
+              testID="bridge-confirm-button"
+              isDisabled={submitDisabled}
+            />
+          )}
+          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {hasFee
+                ? strings('bridge.fee_disclaimer', {
+                    feePercentage,
+                  })
+                : !hasFee && isNoFeeDestinationAsset
+                  ? strings('bridge.no_mm_fee_disclaimer', {
+                      destTokenSymbol: destToken?.symbol,
+                    })
+                  : ''}
+              {approval
+                ? ` ${strings('bridge.approval_needed', approval)}`
+                : ''}{' '}
+            </Text>
+            {approval && (
+              <ApprovalTooltip
+                amount={approval.amount}
+                symbol={approval.symbol}
+              />
+            )}
+          </Box>
         </Box>
       )
     );
@@ -418,6 +478,7 @@ const BridgeView = () => {
           <TokenInputArea
             ref={inputRef}
             amount={sourceAmount}
+            isMaxAmount={isMaxSourceAmount}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
             networkImageSource={
@@ -435,18 +496,22 @@ const BridgeView = () => {
             onInputPress={() => setIsInputFocused(true)}
             onMaxPress={() => {
               if (latestSourceBalance?.displayBalance) {
-                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+                dispatch(
+                  setSourceAmountAsMax(latestSourceBalance.displayBalance),
+                );
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
+            isSourceToken
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
               <ButtonIcon
-                iconName={IconName.Arrow2Down}
+                iconName={IconName.SwapVertical}
                 onPress={handleSwitchTokens}
                 disabled={!destChainId || !destToken}
                 testID="arrow-button"
+                size={ButtonIconSizes.Lg}
               />
             </Box>
           </Box>
@@ -461,7 +526,8 @@ const BridgeView = () => {
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
-            isLoading={isLoading}
+            isLoading={!destTokenAmount && isLoading}
+            style={styles.destTokenArea}
           />
         </Box>
 
@@ -473,37 +539,24 @@ const BridgeView = () => {
           showsVerticalScrollIndicator={false}
         >
           <Box style={styles.dynamicContent}>
-            <Box style={styles.destinationAccountSelectorContainer}>
-              {hasDestinationPicker && <DestinationAccountSelector />}
-            </Box>
-
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
             ) : shouldDisplayKeypad ? (
-              <Box
-                style={[
-                  styles.keypadContainer,
-                  hasDestinationPicker &&
-                    styles.keypadContainerWithDestinationPicker,
-                ]}
-              >
+              <Box style={styles.keypadContainer}>
                 <Keypad
                   style={styles.keypad}
                   value={sourceAmount || '0'}
                   onChange={handleKeypadChange}
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}
-                  deleteIcon={
-                    <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
-                  }
                 />
               </Box>
             ) : null}
           </Box>
         </ScrollView>
-        {renderBottomContent()}
+        {renderBottomContent(isSubmitDisabled)}
       </Box>
     </ScreenView>
   );

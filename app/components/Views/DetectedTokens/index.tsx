@@ -1,12 +1,6 @@
 // Third party dependencies
 import React, { useRef, useState, useCallback, useMemo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  InteractionManager,
-  ViewStyle,
-} from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Token as TokenType } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
@@ -23,10 +17,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -38,7 +29,6 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
-  selectNetworkClientId,
 } from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
@@ -70,7 +60,7 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
-      ...(fontStyles.normal as ViewStyle),
+      ...fontStyles.normal,
       fontSize: 18,
       paddingVertical: 16,
       color: colors.text.default,
@@ -100,7 +90,6 @@ const DetectedTokens = () => {
   const allNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
   const chainId = useSelector(selectEvmChainId);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
-  const selectedNetworkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
@@ -110,9 +99,7 @@ const DetectedTokens = () => {
   const styles = createStyles(colors);
 
   const currentDetectedTokens =
-    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
-      ? allDetectedTokens
-      : detectedTokens;
+    isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
 
   const detectedTokensForAnalytics = useMemo(
     () =>
@@ -216,40 +203,33 @@ const DetectedTokens = () => {
             await Promise.all(ignorePromises);
           }
           if (tokensToImport.length > 0) {
-            if (isPortfolioViewEnabled()) {
-              // Group tokens by their `chainId` using a plain object
-              const tokensByChainId: Record<Hex, TokenType[]> = {};
+            // Group tokens by their `chainId` using a plain object
+            const tokensByChainId: Record<Hex, TokenType[]> = {};
 
-              for (const token of tokensToImport) {
-                const tokenChainId: Hex =
-                  (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+            for (const token of tokensToImport) {
+              const tokenChainId: Hex =
+                (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
-                if (!tokensByChainId[tokenChainId]) {
-                  tokensByChainId[tokenChainId] = [];
-                }
-
-                tokensByChainId[tokenChainId].push(token);
+              if (!tokensByChainId[tokenChainId]) {
+                tokensByChainId[tokenChainId] = [];
               }
 
-              // Process grouped tokens in parallel
-              const importPromises = Object.entries(tokensByChainId).map(
-                async ([networkId, tokens]) => {
-                  const chainConfig = allNetworks[networkId as Hex];
-                  const { defaultRpcEndpointIndex } = chainConfig;
-                  const { networkClientId: networkInstanceId } =
-                    chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
-
-                  await TokensController.addTokens(tokens, networkInstanceId);
-                },
-              );
-
-              await Promise.all(importPromises);
-            } else {
-              await TokensController.addTokens(
-                tokensToImport,
-                selectedNetworkClientId,
-              );
+              tokensByChainId[tokenChainId].push(token);
             }
+
+            // Process grouped tokens in parallel
+            const importPromises = Object.entries(tokensByChainId).map(
+              async ([networkId, tokens]) => {
+                const chainConfig = allNetworks[networkId as Hex];
+                const { defaultRpcEndpointIndex } = chainConfig;
+                const { networkClientId: networkInstanceId } =
+                  chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+                await TokensController.addTokens(tokens, networkInstanceId);
+              },
+            );
+
+            await Promise.all(importPromises);
             InteractionManager.runAfterInteractions(() => {
               tokensToImport.forEach(
                 ({ address, symbol }: { address: string; symbol: string }) => {
@@ -291,7 +271,6 @@ const DetectedTokens = () => {
       createEventBuilder,
       currentDetectedTokens,
       ignoredTokens,
-      selectedNetworkClientId,
       allNetworks,
       getTokenAddedAnalyticsParams,
     ],

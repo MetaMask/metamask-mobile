@@ -12,13 +12,18 @@ import Icon, {
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
+import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
+import AlertRow from '../../../UI/info-row/alert-row';
 import styleSheet from './from-to-row.styles';
 
 const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
+
+  // Do not set than 13 characters, it breaks the UI for small screens
+  const MAX_CHAR_LENGTH = 13;
 
   if (!transactionMetadata) {
     return null;
@@ -38,6 +43,7 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={fromAddress}
             variation={chainId}
+            maxCharLength={MAX_CHAR_LENGTH}
           />
         </View>
 
@@ -50,11 +56,15 @@ const FromToRow = () => {
         </View>
 
         <View style={[styles.nameContainer, styles.rightNameContainer]}>
-          <Name
-            type={NameType.EthereumAddress}
-            value={toAddress}
-            variation={chainId}
-          />
+          {/* Intentional empty label to trigger the alert row without a label */}
+          <AlertRow alertField={RowAlertKey.BurnAddress}>
+            <Name
+              type={NameType.EthereumAddress}
+              value={toAddress as string}
+              variation={chainId}
+              maxCharLength={MAX_CHAR_LENGTH}
+            />
+          </AlertRow>
         </View>
       </View>
     </InfoSection>

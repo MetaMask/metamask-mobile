@@ -1,3 +1,5 @@
+import enContent from '../../../locales/languages/en.json';
+
 export const AdvancedViewSelectorsIDs = {
   CONTAINER: 'advanced-settings',
   ETH_SIGN_SWITCH: 'eth-sign-switch',
@@ -7,4 +9,9 @@ export const AdvancedViewSelectorsIDs = {
   STX_OPT_IN_SWITCH: 'smart_transactions_opt_in_switch',
   DISMISS_SMART_ACCOUNT_UPDATE: 'dismiss_smart_account_update',
   SMART_ACCOUNT_OPT_IN: 'smart_account_opt_in',
+};
+
+export const AdvancedViewSelectorsText = {
+  RESET_ACCOUNT: enContent.app_settings.reset_account_button,
+  RESET_CONFIRMED: enContent.app_settings.reset_account_confirm_button,
 };

@@ -1,4 +1,4 @@
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -10,9 +10,10 @@ import LoginView from '../../pages/wallet/LoginView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
 import { logger } from '../../framework/logger';
+import { loginToApp } from '../../viewHelper';
 
 const isIOS = device.getPlatform() === 'ios';
-(isIOS ? describe : describe.skip)(Regression('Auto-Lock'), () => {
+(isIOS ? describe : describe.skip)(RegressionAccounts('Auto-Lock'), () => {
   it('backgrounds then relaunches without needing password on default auto-lock setting', async () => {
     await withFixtures(
       {
@@ -39,6 +40,7 @@ const isIOS = device.getPlatform() === 'ios';
         restartDevice: true,
       },
       async () => {
+        await loginToApp();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.scrollToAutoLockSection();

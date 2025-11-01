@@ -29,7 +29,6 @@ const useApprovalRequest = () => {
       value?: Parameters<typeof Engine.acceptPendingApproval>[1],
     ) => {
       if (!approvalRequest) return;
-
       await Engine.acceptPendingApproval(
         approvalRequest.id,
         { ...approvalRequest.requestData, ...(value || {}) },
@@ -52,7 +51,10 @@ const useApprovalRequest = () => {
   );
 
   const pageMeta = useMemo(
-    () => approvalRequest?.requestData?.pageMeta ?? {},
+    () =>
+      approvalRequest?.requestData?.pageMeta ??
+      approvalRequest?.requestData?.metadata?.pageMeta ??
+      {},
     [approvalRequest],
   );
 

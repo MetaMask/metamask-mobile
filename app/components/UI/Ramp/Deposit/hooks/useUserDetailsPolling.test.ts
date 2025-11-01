@@ -1,32 +1,19 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import useUserDetailsPolling from './useUserDetailsPolling';
-import {
-  DepositSdkMethodState,
-  useDepositSdkMethod,
-} from './useDepositSdkMethod';
-import { useDepositSDK } from '../sdk';
-import {
-  NativeRampsSdk,
-  NativeTransakAccessToken,
-} from '@consensys/native-ramps-sdk';
-import { DepositRegion, KycStatus } from '../constants';
+import { useDepositUser } from './useDepositUser';
 
-jest.mock('./useDepositSdkMethod');
-jest.mock('../sdk');
+jest.mock('./useDepositUser');
 
-const mockUseDepositSdkMethod = useDepositSdkMethod as jest.MockedFunction<
-  typeof useDepositSdkMethod
->;
-
-const mockUseDepositSDK = useDepositSDK as jest.MockedFunction<
-  typeof useDepositSDK
+const mockUseDepositUser = useDepositUser as jest.MockedFunction<
+  typeof useDepositUser
 >;
 
 const mockFetchUserDetails = jest.fn();
-const mockSdkResponse: DepositSdkMethodState<'getUserDetails'> = {
-  data: null,
-  error: null,
+const mockUserState = {
+  userDetails: null as ReturnType<typeof useDepositUser>['userDetails'],
+  error: null as string | null,
   isFetching: false,
+  fetchUserDetails: mockFetchUserDetails,
 };
 
 jest.useFakeTimers();
@@ -34,30 +21,11 @@ jest.useFakeTimers();
 describe('useUserDetailsPolling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSdkResponse.data = null;
-    mockSdkResponse.error = null;
-    mockSdkResponse.isFetching = false;
-    mockUseDepositSdkMethod.mockReturnValue([
-      mockSdkResponse,
-      mockFetchUserDetails,
-    ]);
-    mockUseDepositSDK.mockReturnValue({
-      sdk: {} as NativeRampsSdk,
-      sdkError: undefined,
-      providerApiKey: 'test-key',
-      providerFrontendAuth: 'test-auth',
-      isAuthenticated: true,
-      authToken: { id: 'test-token' } as NativeTransakAccessToken,
-      setAuthToken: jest.fn(),
-      checkExistingToken: jest.fn(),
-      logoutFromProvider: jest.fn(),
-      getStarted: true,
-      setGetStarted: jest.fn(),
-      selectedRegion: {
-        isoCode: 'US',
-      } as DepositRegion,
-      setSelectedRegion: jest.fn(),
-    });
+    mockUserState.userDetails = null;
+    mockUserState.error = null;
+    mockUserState.isFetching = false;
+    mockFetchUserDetails.mockResolvedValue(undefined);
+    mockUseDepositUser.mockReturnValue(mockUserState);
   });
 
   afterEach(() => {
@@ -101,7 +69,7 @@ describe('useUserDetailsPolling', () => {
   });
 
   it('should return userDetails and status', () => {
-    mockSdkResponse.data = {
+    mockUserState.userDetails = {
       id: 'id',
       firstName: 'First',
       lastName: 'Last',
@@ -120,12 +88,15 @@ describe('useUserDetailsPolling', () => {
       },
       createdAt: '2023-01-01T00:00:00Z',
       kyc: {
-        l1: {
-          status: KycStatus.APPROVED,
-          type: 'dummy',
-          updatedAt: '2023-01-01T00:00:00Z',
-          kycSubmittedAt: '2023-01-01T00:00:00Z',
-        },
+        status: 'APPROVED',
+        type: 'L1',
+        workFlowRunId: 'test-workflow-id',
+        attempts: [],
+        highestApprovedKYCType: 'L1',
+        kycMarkedBy: null,
+        kycResult: null,
+        rejectionDetails: null,
+        userId: 'test-user',
       },
     };
 
@@ -150,12 +121,15 @@ describe('useUserDetailsPolling', () => {
       },
       createdAt: '2023-01-01T00:00:00Z',
       kyc: {
-        l1: {
-          status: KycStatus.APPROVED,
-          type: 'dummy',
-          updatedAt: '2023-01-01T00:00:00Z',
-          kycSubmittedAt: '2023-01-01T00:00:00Z',
-        },
+        status: 'APPROVED',
+        type: 'L1',
+        workFlowRunId: 'test-workflow-id',
+        attempts: [],
+        highestApprovedKYCType: 'L1',
+        kycMarkedBy: null,
+        kycResult: null,
+        rejectionDetails: null,
+        userId: 'test-user',
       },
     });
   });
@@ -167,7 +141,7 @@ describe('useUserDetailsPolling', () => {
 
     expect(mockFetchUserDetails).toHaveBeenCalledTimes(1);
 
-    mockSdkResponse.data = {
+    mockUserState.userDetails = {
       id: 'id',
       firstName: 'First',
       lastName: 'Last',
@@ -186,12 +160,15 @@ describe('useUserDetailsPolling', () => {
       },
       createdAt: '2023-01-01T00:00:00Z',
       kyc: {
-        l1: {
-          status: KycStatus.APPROVED,
-          type: 'dummy',
-          updatedAt: '2023-01-01T00:00:00Z',
-          kycSubmittedAt: '2023-01-01T00:00:00Z',
-        },
+        status: 'APPROVED',
+        type: 'L1',
+        workFlowRunId: 'test-workflow-id',
+        attempts: [],
+        highestApprovedKYCType: 'L1',
+        kycMarkedBy: null,
+        kycResult: null,
+        rejectionDetails: null,
+        userId: 'test-user',
       },
     };
     rerender();
@@ -242,8 +219,8 @@ describe('useUserDetailsPolling', () => {
   });
 
   it('should pass through loading and error states', () => {
-    mockSdkResponse.isFetching = true;
-    mockSdkResponse.error = 'Network error';
+    mockUserState.isFetching = true;
+    mockUserState.error = 'Network error';
 
     const { result } = renderHook(() => useUserDetailsPolling(10000, true, 30));
 

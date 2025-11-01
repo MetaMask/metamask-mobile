@@ -1,0 +1,632 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworksFilterBar renders correctly when networkFilter is a subset of uniqueNetworks and removes selection 1`] = `
+<RCTScrollView
+  collapsable={false}
+  contentContainerStyle={
+    {
+      "flexDirection": "row",
+      "gap": 8,
+      "paddingHorizontal": 16,
+    }
+  }
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
+  horizontal={true}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
+  showsHorizontalScrollIndicator={false}
+>
+  <View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <View
+        alignItems="center"
+        flexDirection="row"
+        gap={8}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            },
+            undefined,
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          See all
+        </Text>
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={12}
+          name="ArrowDown"
+          style={
+            {
+              "height": 12,
+              "width": 12,
+            }
+          }
+          width={12}
+        />
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#121314",
+          "borderRadius": 12,
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 4,
+            "height": 16,
+            "justifyContent": "center",
+            "marginRight": 8,
+            "overflow": "hidden",
+            "width": 16,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          resizeMode="contain"
+          source={1}
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="network-avatar-image"
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Ethereum
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#121314",
+          "borderRadius": 12,
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 4,
+            "height": 16,
+            "justifyContent": "center",
+            "marginRight": 8,
+            "overflow": "hidden",
+            "width": 16,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          resizeMode="contain"
+          source={1}
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="network-avatar-image"
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Linea
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        BNB Smart Chain
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
+<RCTScrollView
+  collapsable={false}
+  contentContainerStyle={
+    {
+      "flexDirection": "row",
+      "gap": 8,
+      "paddingHorizontal": 16,
+    }
+  }
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
+  horizontal={true}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
+  showsHorizontalScrollIndicator={false}
+>
+  <View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <View
+        alignItems="center"
+        flexDirection="row"
+        gap={8}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          flexDirection="row-reverse"
+          gap={0}
+          style={
+            [
+              {
+                "flexDirection": "row-reverse",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 4,
+                "borderWidth": 1.5,
+                "height": 16,
+                "justifyContent": "center",
+                "marginLeft": -6,
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 4,
+                "borderWidth": 1.5,
+                "height": 16,
+                "justifyContent": "center",
+                "marginLeft": -6,
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 4,
+                "borderWidth": 1.5,
+                "height": 16,
+                "justifyContent": "center",
+                "marginLeft": -6,
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          All networks
+        </Text>
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={12}
+          name="ArrowDown"
+          style={
+            {
+              "height": 12,
+              "width": 12,
+            }
+          }
+          width={12}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`NetworksFilterBar renders correctly when networkFilter is the same as uniqueNetworks 1`] = `
+<RCTScrollView
+  collapsable={false}
+  contentContainerStyle={
+    {
+      "flexDirection": "row",
+      "gap": 8,
+      "paddingHorizontal": 16,
+    }
+  }
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
+  horizontal={true}
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
+  showsHorizontalScrollIndicator={false}
+>
+  <View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <View
+        alignItems="center"
+        flexDirection="row"
+        gap={8}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          flexDirection="row-reverse"
+          gap={0}
+          style={
+            [
+              {
+                "flexDirection": "row-reverse",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 4,
+                "borderWidth": 1.5,
+                "height": 16,
+                "justifyContent": "center",
+                "marginLeft": -6,
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 4,
+                "borderWidth": 1.5,
+                "height": 16,
+                "justifyContent": "center",
+                "marginLeft": -6,
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 4,
+                "borderWidth": 1.5,
+                "height": 16,
+                "justifyContent": "center",
+                "marginLeft": -6,
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          All networks
+        </Text>
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={12}
+          name="ArrowDown"
+          style={
+            {
+              "height": 12,
+              "width": 12,
+            }
+          }
+          width={12}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</RCTScrollView>
+`;

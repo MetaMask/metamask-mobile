@@ -349,8 +349,8 @@ class Approve extends PureComponent {
       chainIds: [chainId],
     });
     await Engine.context.TokenListController.fetchTokenList(chainId);
-    await Engine.context.TokenBalancesController.updateBalancesByChainId({
-      chainId,
+    await Engine.context.TokenBalancesController.updateBalances({
+      chainIds: [chainId],
     });
   };
 
@@ -600,7 +600,6 @@ class Approve extends PureComponent {
         },
       };
       await updateTransaction(updatedTx);
-      await KeyringController.resetQRKeyringState();
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {

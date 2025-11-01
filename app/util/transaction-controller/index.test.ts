@@ -3,6 +3,7 @@ import {
   WalletDevice,
   type TransactionMeta,
   TransactionEnvelopeType,
+  IsAtomicBatchSupportedRequest,
 } from '@metamask/transaction-controller';
 import { cloneDeep } from 'lodash';
 //eslint-disable-next-line import/no-namespace
@@ -97,6 +98,9 @@ jest.mock('../../core/Engine', () => ({
       updateTransactionGasFees: jest.fn(),
       updateAtomicBatchData: jest.fn(),
       addTransactionBatch: jest.fn(),
+      updateSelectedGasFeeToken: jest.fn(),
+      updateRequiredTransactionIds: jest.fn(),
+      isAtomicBatchSupported: jest.fn(),
     },
   },
 }));
@@ -572,6 +576,41 @@ describe('Transaction Controller Util', () => {
       updaterFunction: TransactionControllerUtils.updateEditableParams,
       updaterFunctionName: 'updateEditableParams',
       updaterFunctionParams: [ID_MOCK, EIP_1559_TRANSACTION_PARAMS_MOCK],
+    });
+  });
+
+  describe('updateSelectedGasFeeToken', () => {
+    it('calls updateSelectedGasFeeToken with transactionId and selectedGasFeeToken', () => {
+      const transactionId = '0xabcdef1234567890abcdef1234567890abcdef';
+      const selectedGasFeeToken = '0x1234567890abcdef1234567890abcdef12345678';
+      TransactionControllerUtils.updateSelectedGasFeeToken(
+        transactionId,
+        selectedGasFeeToken,
+      );
+      expect(
+        Engine.context.TransactionController.updateSelectedGasFeeToken,
+      ).toHaveBeenCalledWith(transactionId, selectedGasFeeToken);
+    });
+  });
+
+  describe('isAtomicBatchSupported', () => {
+    it('calls isAtomicBatchSupported with the request object and returns the result', async () => {
+      const request = {
+        chainId: '0x1',
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+      } as IsAtomicBatchSupportedRequest;
+      const mockResult = { isSupported: true, reason: '' };
+      (
+        Engine.context.TransactionController.isAtomicBatchSupported as jest.Mock
+      ).mockResolvedValueOnce(mockResult);
+
+      const result =
+        await TransactionControllerUtils.isAtomicBatchSupported(request);
+
+      expect(
+        Engine.context.TransactionController.isAtomicBatchSupported,
+      ).toHaveBeenCalledWith(request);
+      expect(result).toBe(mockResult);
     });
   });
 });

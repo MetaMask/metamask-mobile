@@ -40,7 +40,6 @@ interface OptionsProps {
   onNewTabPress: () => void;
   toggleOptionsIfNeeded: () => void;
   activeUrl: string;
-  isHomepage: () => boolean;
   getMaskedUrl: (urlToMask: string, sessionENSNames: SessionENSNames) => string;
   title: MutableRefObject<string>;
   reload: () => void;
@@ -57,7 +56,6 @@ const Options = ({
   onNewTabPress,
   toggleOptionsIfNeeded,
   activeUrl,
-  isHomepage,
   getMaskedUrl,
   title,
   reload,
@@ -229,45 +227,6 @@ const Options = ({
     [activeUrl, onReloadPress, styles],
   );
 
-  /**
-   * Render non-homepage options menu
-   */
-  const renderNonHomeOptions = () => {
-    if (isHomepage()) return null;
-    return (
-      <React.Fragment>
-        {renderReloadOption()}
-        {!isBookmark() && (
-          <Button onPress={navigateToAddBookmark} style={styles.option}>
-            <View style={styles.optionIconWrapper}>
-              <Icon name="plus-square" size={16} style={styles.optionIcon} />
-            </View>
-            <Text
-              style={styles.optionText}
-              numberOfLines={2}
-              {...generateTestId(Platform, ADD_FAVORITES_OPTION)}
-            >
-              {strings('browser.add_to_favorites')}
-            </Text>
-          </Button>
-        )}
-        {renderShareOption()}
-        <Button onPress={openInBrowser} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="expand" size={16} style={styles.optionIcon} />
-          </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
-          >
-            {strings('browser.open_in_browser')}
-          </Text>
-        </Button>
-      </React.Fragment>
-    );
-  };
-
   return (
     <TouchableWithoutFeedback onPress={toggleOptions}>
       <View style={styles.optionsOverlay}>
@@ -296,7 +255,34 @@ const Options = ({
               {strings('browser.new_tab')}
             </Text>
           </Button>
-          {renderNonHomeOptions()}
+          {renderReloadOption()}
+          {!isBookmark() && (
+            <Button onPress={navigateToAddBookmark} style={styles.option}>
+              <View style={styles.optionIconWrapper}>
+                <Icon name="plus-square" size={16} style={styles.optionIcon} />
+              </View>
+              <Text
+                style={styles.optionText}
+                numberOfLines={2}
+                {...generateTestId(Platform, ADD_FAVORITES_OPTION)}
+              >
+                {strings('browser.add_to_favorites')}
+              </Text>
+            </Button>
+          )}
+          {renderShareOption()}
+          <Button onPress={openInBrowser} style={styles.option}>
+            <View style={styles.optionIconWrapper}>
+              <Icon name="expand" size={16} style={styles.optionIcon} />
+            </View>
+            <Text
+              style={styles.optionText}
+              numberOfLines={2}
+              {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
+            >
+              {strings('browser.open_in_browser')}
+            </Text>
+          </Button>
         </View>
       </View>
     </TouchableWithoutFeedback>

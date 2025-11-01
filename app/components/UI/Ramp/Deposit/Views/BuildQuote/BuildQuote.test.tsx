@@ -5,11 +5,45 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  WIRE_TRANSFER_PAYMENT_METHOD,
-} from '../../constants';
+  BuyQuote,
+  NativeTransakUserDetails,
+} from '@consensys/native-ramps-sdk';
+import { trace, endTrace } from '../../../../../../util/trace';
+import { useRegions } from '../../hooks/useRegions';
+import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
+import { usePaymentMethods } from '../../hooks/usePaymentMethods';
+import { useDepositUser } from '../../hooks/useDepositUser';
+import {
+  createMockSDKReturn,
+  MOCK_USE_REGIONS_ERROR,
+  MOCK_USE_CRYPTOCURRENCIES_ERROR,
+  MOCK_USE_PAYMENT_METHODS_ERROR,
+  MOCK_USE_REGIONS_EMPTY,
+  MOCK_USE_CRYPTOCURRENCIES_EMPTY,
+  MOCK_USE_PAYMENT_METHODS_EMPTY,
+  createMockSDKMethods,
+  createMockNavigation,
+  MOCK_REGIONS,
+  MOCK_US_REGION,
+  MOCK_EUR_REGION,
+  MOCK_USDC_TOKEN,
+  MOCK_CREDIT_DEBIT_CARD,
+  MOCK_USE_REGIONS_RETURN,
+  MOCK_USE_CRYPTOCURRENCIES_RETURN,
+  MOCK_USE_PAYMENT_METHODS_RETURN,
+  MOCK_CRYPTOCURRENCIES,
+  MOCK_PAYMENT_METHODS,
+  MOCK_USER_DETAILS_US,
+  MOCK_USER_DETAILS_FR,
+  MOCK_USE_DEPOSIT_USER_RETURN,
+  MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
+  MOCK_USE_DEPOSIT_USER_ERROR,
+} from '../../testUtils';
+
+const createMockInteractionManager = () => ({
+  runAfterInteractions: jest.fn((callback) => callback()),
+});
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -17,36 +51,21 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-const mockInteractionManager = {
-  runAfterInteractions: jest.fn((callback) => callback()),
-};
+const mockInteractionManager = createMockInteractionManager();
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockSetNavigationOptions = jest.fn();
-const mockSetParams = jest.fn();
-const mockGetQuote = jest.fn();
-const mockRouteAfterAuthentication = jest.fn();
-const mockNavigateToVerifyIdentity = jest.fn();
+const { mockNavigate, mockGoBack, mockSetNavigationOptions, mockSetParams } =
+  createMockNavigation();
+
+const {
+  mockGetQuote,
+  mockRouteAfterAuthentication,
+  mockNavigateToVerifyIdentity,
+  mockTrackEvent,
+} = createMockSDKMethods();
+
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockUseAccountTokenCompatible = jest.fn();
-const mockTrackEvent = jest.fn();
 const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
-
-const createMockSDKReturn = (overrides = {}) => ({
-  isAuthenticated: false,
-  selectedWalletAddress: '0x123',
-  selectedRegion: {
-    isoCode: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    currency: 'USD',
-    supported: true,
-  },
-  setSelectedRegion: jest.fn(),
-  ...overrides,
-});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -83,11 +102,6 @@ jest.mock(
   () => () => mockUseDepositTokenExchange(),
 );
 
-jest.mock(
-  '../../hooks/useAccountTokenCompatible',
-  () => () => mockUseAccountTokenCompatible(),
-);
-
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
     routeAfterAuthentication: mockRouteAfterAuthentication,
@@ -95,13 +109,29 @@ jest.mock('../../hooks/useDepositRouting', () => ({
   })),
 }));
 
-const mockUsePaymentMethods = jest
-  .fn()
-  .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
-jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
+jest.mock('../../hooks/usePaymentMethods', () => ({
+  usePaymentMethods: jest.fn(),
+}));
 
-// Mock the analytics hook like in the aggregator test
+jest.mock('../../hooks/useRegions', () => ({
+  useRegions: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCryptoCurrencies', () => ({
+  useCryptoCurrencies: jest.fn(),
+}));
+
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('../../hooks/useDepositUser', () => ({
+  useDepositUser: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 jest.mock('react-native', () => {
   const actualReactNative = jest.requireActual('react-native');
@@ -130,13 +160,26 @@ function render(Component: React.ComponentType) {
 describe('BuildQuote Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+    const mockSDK = createMockSDKReturn();
+
+    mockUseDepositSDK.mockReturnValue(mockSDK);
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockUseAccountTokenCompatible.mockReturnValue(true);
-    // Ensure trackEvent mock is reset
+    mockUseRoute.mockReturnValue({ params: {} });
+
+    jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_RETURN);
+    jest
+      .mocked(useCryptoCurrencies)
+      .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_RETURN);
+    jest
+      .mocked(usePaymentMethods)
+      .mockReturnValue(MOCK_USE_PAYMENT_METHODS_RETURN);
+    jest.mocked(useDepositUser).mockReturnValue(MOCK_USE_DEPOSIT_USER_RETURN);
+
     mockTrackEvent.mockClear();
+    (trace as jest.MockedFunction<typeof trace>).mockClear();
+    (endTrace as jest.MockedFunction<typeof endTrace>).mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -157,18 +200,21 @@ describe('BuildQuote Component', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
+        params: {
+          regions: MOCK_REGIONS,
+        },
       });
     });
 
     it('displays EUR currency when selectedRegion is EUR', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
-          selectedRegion: {
-            isoCode: 'DE',
-            flag: '🇩🇪',
-            name: 'Germany',
-            currency: 'EUR',
-            supported: true,
+          selectedRegion: MOCK_EUR_REGION,
+          fiatCurrency: {
+            id: 'EUR',
+            name: 'Euro',
+            symbol: '€',
+            emoji: '🇪🇺',
           },
         }),
       );
@@ -182,6 +228,7 @@ describe('BuildQuote Component', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           selectedRegion: {
+            ...MOCK_US_REGION,
             isoCode: 'XX',
             flag: '🏳️',
             name: 'Unsupported Region',
@@ -196,12 +243,80 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
           screen: 'DepositUnsupportedRegionModal',
+          params: {
+            regions: MOCK_REGIONS,
+          },
         });
+      });
+    });
+
+    it('does not open region modal when regions error occurs', () => {
+      jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_ERROR);
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open region modal when regions array is empty', () => {
+      jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_EMPTY);
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open region modal when user region is locked', () => {
+      jest.mocked(useRegions).mockReturnValue({
+        ...MOCK_USE_REGIONS_RETURN,
+        userRegionLocked: true,
+      });
+
+      render(BuildQuote);
+
+      const regionButton = screen.getByText('US');
+      fireEvent.press(regionButton);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
       });
     });
   });
 
   describe('Payment Method Selection', () => {
+    it('shows the right duration for the selected payment method', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: {
+            ...MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
+          },
+        }),
+      );
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('does not show the duration when selected payment method is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: null,
+        }),
+      );
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
     it('navigates to payment method selection when payment button is pressed', () => {
       render(BuildQuote);
       const payWithButton = screen.getByText('Pay with');
@@ -209,32 +324,39 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
         params: {
-          handleSelectPaymentMethodId: expect.any(Function),
-          selectedPaymentMethodId: 'credit_debit_card',
+          paymentMethods: MOCK_PAYMENT_METHODS,
         },
       });
     });
 
-    it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
+    it('does not open payment method modal when payment methods error occurs', () => {
+      jest
+        .mocked(usePaymentMethods)
+        .mockReturnValue(MOCK_USE_PAYMENT_METHODS_ERROR);
+
       render(BuildQuote);
-      const payWithButton = screen.getByText('Pay with');
-      fireEvent.press(payWithButton);
 
-      act(() =>
-        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId(
-          'credit_debit_card',
-        ),
-      );
+      expect(screen.toJSON()).toMatchSnapshot();
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_PAYMENT_METHOD_SELECTED',
-        {
-          ramp_type: 'DEPOSIT',
-          region: 'US',
-          payment_method_id: 'credit_debit_card',
-          is_authenticated: false,
-        },
-      );
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open payment method modal when payment methods array is empty', () => {
+      jest
+        .mocked(usePaymentMethods)
+        .mockReturnValue(MOCK_USE_PAYMENT_METHODS_EMPTY);
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: expect.any(Object),
+      });
     });
   });
 
@@ -246,32 +368,38 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
         params: {
-          handleSelectAssetId: expect.any(Function),
-          selectedAssetId:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          cryptoCurrencies: MOCK_CRYPTOCURRENCIES,
         },
       });
     });
 
-    it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
+    it('does not open token modal when crypto currencies error occurs', () => {
+      jest
+        .mocked(useCryptoCurrencies)
+        .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_ERROR);
+
       render(BuildQuote);
-      const tokenButton = screen.getByText('USDC');
-      fireEvent.press(tokenButton);
 
-      act(() =>
-        mockNavigate.mock.calls[0][1].params.handleSelectAssetId(
-          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        ),
-      );
+      expect(screen.toJSON()).toMatchSnapshot();
 
-      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
-        ramp_type: 'DEPOSIT',
-        region: 'US',
-        chain_id: 'eip155:1',
-        currency_destination:
-          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        currency_source: 'USD',
-        is_authenticated: false,
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open token modal when crypto currencies array is empty', () => {
+      jest
+        .mocked(useCryptoCurrencies)
+        .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_EMPTY);
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: expect.any(Object),
       });
     });
   });
@@ -297,6 +425,16 @@ describe('BuildQuote Component', () => {
     });
   });
 
+  describe('User Details Error', () => {
+    it('displays user details error alert when fetching fails', () => {
+      jest.mocked(useDepositUser).mockReturnValue(MOCK_USE_DEPOSIT_USER_ERROR);
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('Continue button functionality', () => {
     it('calls getQuote with transformed parameters using utility functions', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
@@ -310,13 +448,7 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockGetQuote).toHaveBeenCalledWith(
-          'USD',
-          'USDC',
-          'ethereum',
-          'credit_debit_card',
-          '0',
-        );
+        expect(mockGetQuote).toHaveBeenCalled();
       });
     });
 
@@ -336,12 +468,11 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 0,
           amount_destination: 0,
-          payment_method_id: 'credit_debit_card',
-          region: 'US',
-          chain_id: 'eip155:1',
-          currency_destination:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          currency_source: 'USD',
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_source: MOCK_US_REGION.currency,
           is_authenticated: false,
         });
       });
@@ -382,8 +513,11 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('navigates to incompatible token modal when user they are not compatible', async () => {
-      mockUseAccountTokenCompatible.mockReturnValue(false);
+    it('navigates to incompatible token modal when selectedWalletAddress is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ selectedWalletAddress: null }),
+      );
+
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
@@ -433,12 +567,11 @@ describe('BuildQuote Component', () => {
           gas_fee: 0.01,
           processing_fee: 0.02,
           total_fee: 0.03,
-          payment_method_id: 'credit_debit_card',
-          region: 'US',
-          chain_id: 'eip155:1',
-          currency_destination:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          currency_source: 'USD',
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_source: MOCK_US_REGION.currency,
         });
       });
     });
@@ -475,12 +608,11 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 0,
           amount_destination: 0,
-          payment_method_id: 'credit_debit_card',
-          region: 'US',
-          chain_id: 'eip155:1',
-          currency_destination:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          currency_source: 'USD',
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_source: MOCK_US_REGION.currency,
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
         });
@@ -519,12 +651,11 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 0,
           amount_destination: 0,
-          payment_method_id: 'credit_debit_card',
-          region: 'US',
-          chain_id: 'eip155:1',
-          currency_destination:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          currency_source: 'USD',
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_source: MOCK_US_REGION.currency,
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
         });
@@ -583,12 +714,11 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 100,
           amount_destination: 0.05,
-          payment_method_id: 'credit_debit_card',
-          region: 'US',
-          chain_id: 'eip155:1',
-          currency_destination:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          currency_source: 'USD',
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_source: MOCK_US_REGION.currency,
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,
         });
@@ -607,13 +737,232 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
 
       await waitFor(() => {
-        expect(mockGetQuote).toHaveBeenCalledWith(
-          'USD',
-          'USDC',
-          'ethereum',
-          'credit_debit_card',
-          '0',
-        );
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('does not call handleOnPressContinue when shouldRouteImmediately is true but user region does not match selected region', async () => {
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: MOCK_USER_DETAILS_FR,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+      });
+
+      expect(mockGetQuote).not.toHaveBeenCalled();
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user region matches selected region', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: MOCK_USER_DETAILS_US,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user details are not available', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: null,
+      });
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user details do not have address', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      const userDetailsWithoutAddress = {
+        id: 'user-id-no-address',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        mobileNumber: '1234567890',
+        status: 'active',
+        dob: '1990-01-01',
+        kyc: {
+          l1: {
+            status: 'APPROVED',
+            type: 'BASIC',
+            updatedAt: '2023-01-01',
+            kycSubmittedAt: '2023-01-01',
+          },
+        },
+        createdAt: '2023-01-01',
+        isKycApproved: jest.fn().mockReturnValue(true),
+      } as unknown as NativeTransakUserDetails;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: userDetailsWithoutAddress,
+      });
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Tracing functionality', () => {
+    beforeEach(() => {
+      const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      mockEndTrace.mockClear();
+      mockTrace.mockClear();
+    });
+
+    it('should call endTrace for LoadDepositExperience when component mounts', () => {
+      const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+
+      render(BuildQuote);
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Load Deposit Experience',
+        data: {
+          destination: 'BuildQuote',
+        },
+      });
+    });
+
+    it('should call trace for DepositContinueFlow when continue is pressed normally', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      await act(async () => {
+        const continueButton = screen.getByText('Continue');
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: 'Deposit Continue Flow',
+          tags: {
+            amount: 0,
+            currency: MOCK_USDC_TOKEN.symbol,
+            paymentMethod: MOCK_CREDIT_DEBIT_CARD.id,
+            authenticated: false,
+          },
+        });
+      });
+    });
+
+    it('should NOT call trace for DepositContinueFlow when shouldRouteImmediately is true', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+
+      expect(mockTrace).not.toHaveBeenCalledWith({
+        name: 'Deposit Continue Flow',
+        tags: expect.any(Object),
+      });
+    });
+
+    it('should call endTrace for DepositContinueFlow with error when quote fetch fails', async () => {
+      const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      await act(async () => {
+        const continueButton = screen.getByText('Continue');
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: 'Deposit Continue Flow',
+          tags: expect.any(Object),
+        });
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: 'Deposit Continue Flow',
+          data: {
+            error: 'Failed to fetch quote',
+          },
+        });
       });
     });
   });

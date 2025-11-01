@@ -149,7 +149,7 @@ describe('ImportPrivateKey', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls learnMore function when learn more text is pressed', () => {
+  it('calls learnMore function with srp url when learn more text is pressed', () => {
     const { getByText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
@@ -157,12 +157,34 @@ describe('ImportPrivateKey', () => {
     );
 
     const learnMoreText = getByText(strings('import_private_key.here'));
+    expect(learnMoreText).toBeOnTheScreen();
     fireEvent.press(learnMoreText);
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/what-are-imported-accounts-/',
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
+        title: strings('drawer.metamask_support'),
+      },
+    });
+  });
+
+  it('calls learnMore function with social login url when learn more text is pressed', () => {
+    const { getByText } = renderScreen(
+      ImportPrivateKey,
+      { name: 'ImportPrivateKey' },
+      { state: initialState },
+    );
+
+    const learnMoreText = getByText(strings('import_private_key.learn_more'));
+    expect(learnMoreText).toBeOnTheScreen();
+
+    fireEvent.press(learnMoreText);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
         title: strings('drawer.metamask_support'),
       },
     });

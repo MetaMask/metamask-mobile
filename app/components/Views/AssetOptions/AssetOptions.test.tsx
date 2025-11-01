@@ -1,16 +1,15 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import AssetOptions from './AssetOptions';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 
 import {
   createProviderConfig,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import { TokenI } from '../../UI/Tokens/types';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -164,6 +163,11 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(() => ({})),
 }));
 
+jest.mock('react-native-inappbrowser-reborn', () => ({
+  isAvailable: jest.fn(),
+  open: jest.fn(),
+}));
+
 const mockAsset = {
   address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
   balanceFiat: '$11.89',
@@ -224,8 +228,7 @@ describe('AssetOptions Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should match the snapshot when portfolio view is enabled  ', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+  it('should match the snapshot', () => {
     const { toJSON } = render(
       <AssetOptions
         route={{
@@ -262,7 +265,7 @@ describe('AssetOptions Component', () => {
     expect(getByText('Remove token')).toBeTruthy();
   });
 
-  it('handles "View on Block Explorer" press', () => {
+  it('when reborn is unavailable, handles "View on Block Explorer" press with navigation to SimpleWebView', async () => {
     const { getByText } = render(
       <AssetOptions
         route={{
@@ -276,14 +279,43 @@ describe('AssetOptions Component', () => {
       />,
     );
 
+    (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(false);
+
     fireEvent.press(getByText('View on block explorer'));
     jest.runAllTimers();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://example-explorer.com/token/0x123',
-        title: 'example-explorer.com',
-      },
+    await waitFor(() => {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://example-explorer.com/token/0x123',
+          title: 'example-explorer.com',
+        },
+      });
+    });
+  });
+
+  it('when reborn is available, handles "View on Block Explorer" press with navigation to reborn', async () => {
+    const { getByText } = render(
+      <AssetOptions
+        route={{
+          params: {
+            address: '0x123',
+            chainId: '0x1',
+            isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
+          },
+        }}
+      />,
+    );
+
+    (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+
+    fireEvent.press(getByText('View on block explorer'));
+    jest.runAllTimers();
+    await waitFor(() => {
+      expect(InAppBrowser.open).toHaveBeenCalledWith(
+        'https://example-explorer.com/token/0x123',
+      );
     });
   });
 
@@ -350,9 +382,7 @@ describe('AssetOptions Component', () => {
       });
     });
 
-    it('should use correct provider config when portfolio view is enabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
+    it('should use correct provider config', () => {
       render(
         <AssetOptions
           route={{

@@ -51,6 +51,7 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectProviderTypeByChainId,
+  selectNetworkConfigurations,
 } from '../../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -59,13 +60,19 @@ import {
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
-import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
+import {
+  getDetectedGeolocation,
+  getRampNetworks,
+} from '../../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+import ContextualNetworkPicker from '../../../../../UI/ContextualNetworkPicker';
+import { selectNetworkImageSource } from '../../../../../../selectors/networkInfos';
+import { NETWORK_SELECTOR_SOURCES } from '../../../../../../constants/networkSelector';
 
 const dummy = () => true;
 
@@ -147,6 +154,18 @@ class SendFlow extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Network name
+     */
+    networkName: PropTypes.string,
+    /**
+     * Network image source
+     */
+    networkImageSource: PropTypes.object,
+    /**
+     * Geodetected region for ramp
+     */
+    rampGeodetectedRegion: PropTypes.string,
   };
 
   addressToInputRef = React.createRef();
@@ -168,14 +187,16 @@ class SendFlow extends PureComponent {
   updateNavBar = () => {
     const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
+
     navigation.setOptions(
-      getSendFlowTitle(
-        'send.send_to',
+      getSendFlowTitle({
+        title: 'send.send_to',
         navigation,
         route,
-        colors,
+        themeColors: colors,
         resetTransaction,
-      ),
+        transaction: null,
+      }),
     );
   };
 
@@ -323,6 +344,7 @@ class SendFlow extends PureComponent {
           button_location: 'Send Flow warning',
           button_copy: 'Buy Native Token',
           chain_id_destination: this.props.globalChainId,
+          region: this.props.rampGeodetectedRegion,
         })
         .build(),
     );
@@ -396,8 +418,8 @@ class SendFlow extends PureComponent {
     return filteredAddressBook[checksummedAddress]
       ? filteredAddressBook[checksummedAddress].name
       : matchingAccount
-      ? matchingAccount.metadata.name
-      : null;
+        ? matchingAccount.metadata.name
+        : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -496,8 +518,24 @@ class SendFlow extends PureComponent {
     }
   };
 
+  onNetworkSelectorPress = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+      params: {
+        source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+      },
+    });
+  };
+
   render = () => {
-    const { ticker, addressBook, globalChainId } = this.props;
+    const {
+      ticker,
+      addressBook,
+      globalChainId,
+      networkImageSource,
+      networkName,
+    } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -538,6 +576,13 @@ class SendFlow extends PureComponent {
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
+        {isRemoveGlobalNetworkSelectorEnabled() ? (
+          <ContextualNetworkPicker
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            onPress={this.onNetworkSelectorPress}
+          />
+        ) : null}
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
             chainId={globalChainId}
@@ -719,6 +764,10 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
+    networkImageSource: selectNetworkImageSource(state, globalChainId),
+    networkName:
+      selectNetworkConfigurations(state)?.[globalChainId]?.name || '',
+    rampGeodetectedRegion: getDetectedGeolocation(state),
   };
 };
 

@@ -13,11 +13,7 @@ import Device from '../../../util/device';
 import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import {
-  ONBOARDING_WIZARD,
-  SEED_PHRASE_HINTS,
-} from '../../../constants/storage';
+import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -99,10 +95,6 @@ class ManualBackupStep3 extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Action to set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
-    /**
      * Action to save onboarding event
      */
     saveOnboardingEvent: PropTypes.func,
@@ -120,9 +112,8 @@ class ManualBackupStep3 extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
@@ -166,9 +157,8 @@ class ManualBackupStep3 extends PureComponent {
       return;
     }
     this.toggleHint();
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints = JSON.parse(currentSeedphraseHints);
     await StorageWrapper.setItem(
       SEED_PHRASE_HINTS,
@@ -183,13 +173,7 @@ class ManualBackupStep3 extends PureComponent {
   };
 
   done = async () => {
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-    } else {
-      this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-    }
+    this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
   };
 
   handleChangeText = (text) => this.setState({ hintText: text });
@@ -237,7 +221,6 @@ ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 

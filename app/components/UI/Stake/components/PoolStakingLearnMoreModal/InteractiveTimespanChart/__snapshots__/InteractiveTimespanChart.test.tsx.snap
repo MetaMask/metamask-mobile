@@ -21,7 +21,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -288,7 +288,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -551,7 +551,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -816,7 +816,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -1081,7 +1081,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -1348,7 +1348,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",

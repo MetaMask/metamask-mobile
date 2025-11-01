@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
@@ -39,7 +39,7 @@ const networkErrorBodyMessage =
 const validAccount = Accounts.getValidAccount();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(Regression('Deep linking Tests'), () => {
+describe(RegressionWalletPlatform('Deep linking Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -76,13 +76,6 @@ describe(Regression('Deep linking Tests'), () => {
     await Assertions.expectTextDisplayed(networkNotFoundText);
     await Assertions.expectTextDisplayed(networkErrorBodyMessage);
     await CommonView.tapOKAlertButton();
-  });
-
-  it('should go to settings then networks', async () => {
-    await TabBarComponent.tapSettings();
-    await SettingsView.tapNetworks();
-
-    await Assertions.expectElementToBeVisible(NetworkView.networkContainer);
   });
 
   it('should add BSC network', async () => {

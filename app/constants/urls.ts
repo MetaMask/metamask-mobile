@@ -10,6 +10,8 @@ export const NON_CUSTODIAL_WALLET_URL =
   'https://support.metamask.io/getting-started/metamask-is-a-self-custodial-wallet/';
 export const KEEP_SRP_SAFE_URL =
   'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/scammers-and-phishers-rugpulls-and-airdrop-scams/';
+export const PRIVATE_KEY_GUIDE_URL =
+  'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#private-keys';
 export const LEARN_MORE_URL =
   'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/';
 export const WHY_TRANSACTION_TAKE_TIME_URL =
@@ -79,6 +81,9 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
+// WalletConnect
+export const MM_WALLETCONNECT_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/wc?`;
+
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
 export const UTM_SOURCE = 'metamask-ppom';
@@ -91,7 +96,7 @@ export const ADD_CUSTOM_NETWORK_ARTCILE =
   'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/';
 
 export const LEDGER_SUPPORT_LINK =
-  'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true';
+  'https://support.ledger.com/article/4404366864657-zd';
 
 export const GOERLI_DEPRECATED_ARTICLE =
   'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';
@@ -101,6 +106,3 @@ export const ETHEREUM_LOGO =
 
 export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
   'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
-
-export const SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE =
-  'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts';

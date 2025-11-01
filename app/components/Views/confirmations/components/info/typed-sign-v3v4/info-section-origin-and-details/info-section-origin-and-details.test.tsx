@@ -17,6 +17,14 @@ describe('InfoSectionOriginAndDetails', () => {
     expect(getByText('metamask.github.io')).toBeTruthy();
   });
 
+  it('renders network', () => {
+    const { getByText } = renderWithProvider(<InfoSectionOriginAndDetails />, {
+      state: typedSignV4ConfirmationState,
+    });
+
+    expect(getByText('Network')).toBeTruthy();
+  });
+
   it('renders "Interacting with" if associated with a valid verifying contract', () => {
     const { getByText } = renderWithProvider(<InfoSectionOriginAndDetails />, {
       state: typedSignV4ConfirmationState,

@@ -15,15 +15,10 @@ import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  fontStyles,
-  baseStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -40,12 +35,14 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import LottieView from 'lottie-react-native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
   TraceOperation,
   endTrace,
   trace,
+  hasMetricsConsent,
+  discardBufferedTraces,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -55,13 +52,18 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import fox from '../../../animations/Searching_Fox.json';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
+import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import FastOnboarding from './FastOnboarding';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import FoxAnimation from './FoxAnimation';
+import OnboardingAnimation from './OnboardingAnimation';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -72,7 +74,7 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: Device.isMediumDevice() ? 16 : 30,
+      paddingVertical: 16,
     },
     loaderWrapper: {
       flex: 1,
@@ -80,6 +82,16 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       rowGap: 32,
       marginBottom: 160,
+    },
+    loaderOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1000,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     image: {
       alignSelf: 'center',
@@ -94,7 +106,11 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       marginHorizontal: 'auto',
       padding: Device.isMediumDevice() ? 30 : 40,
-      marginTop: 16,
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
+      marginTop: -(Device.isMediumDevice() ? 90 : 120),
     },
     foxImage: {
       width: Device.isMediumDevice() ? 110 : 145,
@@ -133,23 +149,16 @@ const createStyles = (colors) =>
       marginBottom: 40,
       marginTop: -40,
     },
-    login: {
-      fontSize: 18,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    buttonDescription: {
-      textAlign: 'center',
-      marginBottom: 16,
-    },
-    importWrapper: {
-      marginVertical: 16,
-    },
     createWrapper: {
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
-      width: '100%',
+      position: 'absolute',
+      top: '50%',
+      left: Device.isMediumDevice() ? 26 : 36,
+      right: Device.isMediumDevice() ? 26 : 36,
+      marginTop: 180,
+      alignItems: 'stretch',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -169,6 +178,7 @@ const createStyles = (colors) =>
     loadingText: {
       marginTop: 30,
       textAlign: 'center',
+      color: colors.text.default,
     },
     modalTypeView: {
       position: 'absolute',
@@ -183,28 +193,11 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
+    blackButton: {
+      backgroundColor: importedColors.white,
     },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    bottomSheetContainer: {
-      padding: 16,
-      flexDirection: 'column',
-      rowGap: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    socialBtn: {
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      color: colors.text.default,
+    inverseBlackButton: {
+      backgroundColor: importedColors.applePayBlack,
     },
   });
 
@@ -280,6 +273,8 @@ class Onboarding extends PureComponent {
     existingWallet: false,
     errorSheetVisible: false,
     errorToThrow: null,
+    startOnboardingAnimation: false,
+    startFoxAnimation: false,
   };
 
   seedwords = null;
@@ -308,16 +303,10 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { route, navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getTransparentOnboardingNavbarOptions(
-        colors,
-        importedColors.gettingStartedPageBackgroundColor,
-        true,
-        importedColors.btnBlack,
-      ),
-    );
+    const { navigation } = this.props;
+    navigation.setOptions({
+      headerShown: false,
+    });
   };
 
   componentDidMount() {
@@ -336,12 +325,9 @@ class Onboarding extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
-        this.props.setLoading(strings('onboarding.delete_current'));
-        setTimeout(() => {
-          this.showNotification();
-          this.props.unsetLoading();
-        }, 2000);
+        this.showNotification();
       }
+      this.setState({ startOnboardingAnimation: true });
     });
   }
 
@@ -382,10 +368,14 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressCreate = () => {
+  onPressCreate = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+    // need to call hasMetricConset to update the cached consent state
+    await hasMetricsConsent();
+
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       trace({
@@ -407,10 +397,13 @@ class Onboarding extends PureComponent {
     endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
-  onPressImport = () => {
+  onPressImport = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+    await hasMetricsConsent();
+
     const action = async () => {
       trace({
         name: TraceName.OnboardingExistingSrpImport,
@@ -433,6 +426,7 @@ class Onboarding extends PureComponent {
   };
 
   handlePostSocialLogin = (result, createWallet, provider) => {
+    const isIOS = Platform.OS === 'ios';
     if (this.socialLoginTraceCtx) {
       endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
       this.socialLoginTraceCtx = null;
@@ -457,11 +451,25 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('ChoosePassword', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+
+          if (isIOS) {
+            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
+            this.props.navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+              {
+                accountName: result.accountName,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+              },
+            );
+          } else {
+            // Direct navigation to ChoosePassword for Android
+            this.props.navigation.navigate('ChoosePassword', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+              onboardingTraceCtx: this.onboardingTraceCtx,
+            });
+          }
         }
       } else if (!createWallet) {
         if (result.existingUser) {
@@ -471,11 +479,20 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('Rehydrate', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+          isIOS
+            ? this.props.navigation.navigate(
+                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+                {
+                  [PREVIOUS_SCREEN]: ONBOARDING,
+                  oauthLoginSuccess: true,
+                  onboardingTraceCtx: this.onboardingTraceCtx,
+                },
+              )
+            : this.props.navigation.navigate('Rehydrate', {
+                [PREVIOUS_SCREEN]: ONBOARDING,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+              });
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
@@ -490,7 +507,46 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
+    // check for internet connection
+    try {
+      const netState = await NetInfo.fetch();
+      if (!netState.isConnected || netState.isInternetReachable === false) {
+        this.props.navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Network check failed:', error);
+    }
+
+    // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
+
+    // Enable metrics for OAuth users
+    await this.props.metrics.enableSocialLogin(true);
+    discardBufferedTraces();
+    await setupSentry();
+
+    // use new trace instead of buffered trace for social login
+    this.onboardingTraceCtx = trace({
+      name: TraceName.OnboardingJourneyOverall,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+    });
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -539,15 +595,6 @@ class Onboarding extends PureComponent {
     if (error instanceof OAuthError) {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
-        error.code !== OAuthErrorType.UserCancelled &&
-        error.code !== OAuthErrorType.UserDismissed &&
-        error.code !== OAuthErrorType.GoogleLoginError &&
-        error.code !== OAuthErrorType.AppleLoginError
-      ) {
-        this.handleOAuthLoginError(error);
-        return;
-      }
-      if (
         error.code === OAuthErrorType.UserCancelled ||
         error.code === OAuthErrorType.UserDismissed ||
         error.code === OAuthErrorType.GoogleLoginError ||
@@ -555,7 +602,27 @@ class Onboarding extends PureComponent {
       ) {
         // QA: do not show error sheet if user cancelled
         return;
+      } else if (
+        error.code === OAuthErrorType.GoogleLoginNoCredential ||
+        error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+      ) {
+        // de-escalate google no credential error
+        const errorMessage = 'google_login_no_credential';
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.${errorMessage}_title`),
+            description: strings(`error_sheet.${errorMessage}_description`),
+            descriptionAlign: 'center',
+            buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+            type: 'error',
+          },
+        });
+        return;
       }
+      // unexpected oauth login error
+      this.handleOAuthLoginError(error);
+      return;
     }
 
     const errorMessage = 'oauth_error';
@@ -627,7 +694,7 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = (actionType) => {
+  handleCtaActions = async (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
@@ -641,10 +708,14 @@ class Onboarding extends PureComponent {
       });
       // else
     } else if (actionType === 'create') {
-      this.onPressCreate();
+      await this.onPressCreate();
     } else {
-      this.onPressImport();
+      await this.onPressImport();
     }
+  };
+
+  setStartFoxAnimation = () => {
+    this.setState({ startFoxAnimation: 'Start' });
   };
 
   renderLoader = () => {
@@ -653,15 +724,6 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.loaderWrapper}>
-        <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
-          />
-        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
           <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
@@ -676,34 +738,25 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <View style={styles.titleWrapper}>
-          <View style={styles.largeFoxWrapper}>
-            <LottieView
-              style={styles.image}
-              autoPlay
-              loop
-              source={fox}
-              resizeMode="contain"
-            />
-          </View>
-
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.title}
-            testID={OnboardingSelectorIDs.SCREEN_TITLE}
-          >
-            {strings('onboarding.title')}
-          </Text>
-        </View>
-
-        <View style={styles.createWrapper}>
+        <OnboardingAnimation
+          startOnboardingAnimation={this.state.startOnboardingAnimation}
+          setStartFoxAnimation={this.setStartFoxAnimation}
+        >
           <Button
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={strings('onboarding.start_exploring_now')}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={importedColors.applePayBlack}
+              >
+                {strings('onboarding.start_exploring_now')}
+              </Text>
+            }
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            style={styles.blackButton}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -714,15 +767,16 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlack}
+                color={importedColors.white}
               >
                 {SEEDLESS_ONBOARDING_ENABLED
                   ? strings('onboarding.import_using_srp_social_login')
                   : strings('onboarding.import_using_srp')}
               </Text>
             }
+            style={styles.inverseBlackButton}
           />
-        </View>
+        </OnboardingAnimation>
       </View>
     );
   }
@@ -755,9 +809,10 @@ class Onboarding extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { existingUser, errorToThrow } = this.state;
+    const { existingUser, errorToThrow, startFoxAnimation } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const hasFooter = existingUser && !loading;
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
@@ -776,11 +831,14 @@ class Onboarding extends PureComponent {
         }
       >
         <ThrowErrorIfNeeded />
-        <View
+        <SafeAreaView
           style={[
             baseStyles.flexGrow,
             {
-              backgroundColor: importedColors.gettingStartedPageBackgroundColor,
+              backgroundColor:
+                this.context.themeAppearance === 'dark'
+                  ? importedColors.gettingStartedTextColor
+                  : importedColors.gettingStartedPageBackgroundColorLightMode,
             },
           ]}
           testID={OnboardingSelectorIDs.CONTAINER_ID}
@@ -790,7 +848,23 @@ class Onboarding extends PureComponent {
             contentContainerStyle={styles.scroll}
           >
             <View style={styles.wrapper}>
-              {loading ? this.renderLoader() : this.renderContent()}
+              {this.renderContent()}
+
+              {loading && (
+                <View
+                  style={[
+                    styles.loaderOverlay,
+                    {
+                      backgroundColor:
+                        this.context.themeAppearance === 'dark'
+                          ? importedColors.gettingStartedTextColor
+                          : importedColors.gettingStartedPageBackgroundColorLightMode,
+                    },
+                  ]}
+                >
+                  {this.renderLoader()}
+                </View>
+              )}
             </View>
 
             {existingUser && !loading && (
@@ -808,8 +882,17 @@ class Onboarding extends PureComponent {
 
           <FadeOutOverlay />
 
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+
           <View>{this.handleSimpleNotification()}</View>
-        </View>
+
+          <FastOnboarding
+            onPressContinueWithGoogle={this.onPressContinueWithGoogle}
+            onPressContinueWithApple={this.onPressContinueWithApple}
+            onPressImport={this.onPressImport}
+            onPressCreate={this.onPressCreate}
+          />
+        </SafeAreaView>
       </ErrorBoundary>
     );
   }

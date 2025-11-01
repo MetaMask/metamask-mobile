@@ -110,7 +110,7 @@ const TransactionsFooter = ({
 
   return (
     <View>
-      {blockExplorerText && (
+      {blockExplorerText && rpcBlockExplorer && (
         <View style={styles.viewMoreWrapper}>
           <Button
             variant={ButtonVariants.Link}

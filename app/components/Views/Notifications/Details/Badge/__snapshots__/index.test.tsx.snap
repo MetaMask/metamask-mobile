@@ -15,10 +15,8 @@ exports[`NotificationBadge should renders correctly 1`] = `
     <View
       useNativeDriver={true}
     >
-      <Image
+      <View
         fadeIn={true}
-        onError={[Function]}
-        onLoadEnd={[Function]}
         source={
           {
             "uri": "",

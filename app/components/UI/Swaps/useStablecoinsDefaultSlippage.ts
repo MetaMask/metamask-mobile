@@ -52,6 +52,9 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [NETWORKS_CHAIN_ID.SEI]: new Set([
     '0x3894085Ef7Ff0f0aeDf52E2A2704928d1Ec074F1', // USDC
   ]),
+  [NETWORKS_CHAIN_ID.MONAD]: new Set([
+    '0x754704Bc059F8C67012fEd69BC8A327a5aafb603', // USDC
+  ]),
 };
 
 /**
@@ -61,7 +64,7 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
  * @param chainId - The chain id of the swap.
  * @returns true if the source and destination tokens are both stablecoins, false otherwise.
  */
-const getIsStablecoinPair = (
+export const getIsStablecoinPair = (
   sourceTokenAddress: string,
   destTokenAddress: string,
   chainId: Hex,
@@ -89,7 +92,7 @@ const getIsStablecoinPair = (
  * @param prevSourceTokenAddress - The previous source token address.
  * @param prevDestTokenAddress - The previous destination token address.
  */
-export const handleStablecoinSlippage = ({
+export const handleEvmStablecoinSlippage = ({
   sourceTokenAddress,
   destTokenAddress,
   chainId,
@@ -153,7 +156,7 @@ export const useStablecoinsDefaultSlippage = ({
   const prevDestTokenAddress = usePrevious(destTokenAddress);
 
   useEffect(() => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress,
       destTokenAddress,
       chainId,

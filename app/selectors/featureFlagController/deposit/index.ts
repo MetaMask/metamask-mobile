@@ -9,6 +9,9 @@ export interface DepositConfig {
   };
   minimumVersion?: string;
   active?: boolean;
+  features?: {
+    [key: string]: boolean | undefined | null;
+  };
 }
 
 export const selectDepositConfig = createSelector(
@@ -63,5 +66,13 @@ export const selectDepositEntrypointWalletActions = createSelector(
   (depositEntrypoints) => {
     const depositEntrypointWalletActions = depositEntrypoints?.walletActions;
     return depositEntrypointWalletActions ?? false;
+  },
+);
+
+export const selectDepositFeatures = createSelector(
+  selectDepositConfig,
+  (depositConfig) => {
+    const depositFeatures = depositConfig?.features;
+    return depositFeatures ?? {};
   },
 );

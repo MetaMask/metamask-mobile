@@ -34,13 +34,13 @@ const Input = React.forwardRef<
       isReadonly = false,
       onBlur,
       onFocus,
-      autoFocus = true,
+      autoFocus = false,
       inputStyle,
       ...props
     },
     ref,
   ) => {
-    const [isFocused, setIsFocused] = useState(autoFocus);
+    const [isFocused, setIsFocused] = useState(false);
 
     const { styles } = useStyles(styleSheet, {
       style,

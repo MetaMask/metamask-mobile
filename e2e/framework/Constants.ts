@@ -4,7 +4,7 @@ import { GanacheHardfork } from './types';
 
 // Port Constants
 export const DEFAULT_FIXTURE_SERVER_PORT = 12345;
-
+export const DEFAULT_COMMAND_QUEUE_SERVER_PORT = 2446;
 export const DEFAULT_MOCKSERVER_PORT = 8000;
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
@@ -17,6 +17,12 @@ export const defaultGanacheOptions = {
 };
 
 export const DEFAULT_TAB_ID = 1749234797566;
+
+// App Package IDs for different platforms
+export const APP_PACKAGE_IDS = {
+  IOS: 'io.metamask.MetaMask',
+  ANDROID: 'io.metamask',
+} as const;
 
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',
@@ -44,6 +50,18 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
   'test-dapp-solana',
   'dist',
 );
+
+/**
+ * The schemes for the E2E deep links.
+ * @enum {string}
+ * @example
+ * {
+ *  E2EDeeplinkSchemes.PERPS,
+ * }
+ */
+export enum E2EDeeplinkSchemes {
+  PERPS = 'e2e://perps/',
+}
 
 /**
  * The variants of the dapp to load for test.
@@ -76,6 +94,7 @@ export enum RampsRegionsEnum {
   SAINT_LUCIA = 'saint-lucia',
   FRANCE = 'france',
   UNITED_STATES = 'united-states',
+  SPAIN = 'spain',
 }
 
 export const RampsRegions = {
@@ -104,6 +123,16 @@ export const RampsRegions = {
     emoji: '🇺🇸',
     id: '/regions/us-ca',
     name: 'California',
+    support: { buy: true, sell: true, recurringBuy: true },
+    unsupported: false,
+    recommended: false,
+    detected: false,
+  },
+  [RampsRegionsEnum.SPAIN]: {
+    currencies: ['/currencies/fiat/eur'],
+    emoji: '🇪🇸',
+    id: '/regions/es',
+    name: 'Spain',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,

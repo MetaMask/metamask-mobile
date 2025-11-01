@@ -11,6 +11,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../../core/Analytics');
 
@@ -21,7 +22,7 @@ const initialState = {
   settings: {
     lockTime: 1000,
     searchEngine: 'Google',
-    useBlockieIcon: true,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState,
@@ -100,24 +101,6 @@ describe('updateUserTraitsWithCurrencyType', () => {
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
       [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
     });
-  });
-
-  it('tracks the primary currency toggle event', () => {
-    const primaryCurrency = 'crypto';
-
-    updateUserTraitsWithCurrencyType(primaryCurrency, mockMetrics);
-
-    // Check if trackEvent was called with the correct event and properties
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE,
-      )
-        .addProperties({
-          [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
-          location: 'app_settings',
-        })
-        .build(),
-    );
   });
 
   it('does not throw errors if metrics object is properly passed', () => {

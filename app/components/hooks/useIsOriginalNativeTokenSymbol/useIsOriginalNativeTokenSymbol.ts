@@ -15,9 +15,10 @@ function useIsOriginalNativeTokenSymbol(
   chainId: string,
   ticker: string | undefined,
   type: string,
-): boolean {
-  const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] =
-    useState<boolean>(false);
+): boolean | null {
+  const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] = useState<
+    boolean | null
+  >(null);
 
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,

@@ -11,9 +11,8 @@ import {
   selectAllDetectedTokensFlat,
   selectTokensByChainIdAndAddress,
   getChainIdsToPoll,
+  selectSingleTokenByAddressAndChainId,
 } from './tokensController';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 describe('TokensController Selectors', () => {
@@ -96,7 +95,6 @@ describe('TokensController Selectors', () => {
     });
 
     it('returns tokens from TokensController state if portfolio view is enabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       expect(selectTokens(mockRootState)).toStrictEqual([mockToken]);
     });
   });
@@ -341,22 +339,32 @@ describe('TokensController Selectors', () => {
       '0x2': { chainId: '0x2' } as unknown as NetworkConfiguration,
     };
 
-    it('returns only the current chain ID if PORTFOLIO_VIEW is not set', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+    it('returns only the chainIds included in PopularList', () => {
       const chainIds = getChainIdsToPoll.resultFunc(
         mockNetworkConfigurations,
         '0x1',
       );
       expect(chainIds).toStrictEqual(['0x1']);
     });
+  });
 
-    it('returns only the chainIds included in PopularList if PORTFOLIO_VIEW is set', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      const chainIds = getChainIdsToPoll.resultFunc(
-        mockNetworkConfigurations,
+  describe('selectSingleTokenByAddressAndChainId', () => {
+    it('returns the token for the given address and chain ID', () => {
+      const token = selectSingleTokenByAddressAndChainId(
+        mockRootState,
+        '0xToken1',
         '0x1',
       );
-      expect(chainIds).toStrictEqual(['0x1']);
+      expect(token).toStrictEqual(mockToken);
+    });
+
+    it('returns undefined if no token exists for the given address and chain ID', () => {
+      const token = selectSingleTokenByAddressAndChainId(
+        mockRootState,
+        '0xAddress1',
+        '0x2',
+      );
+      expect(token).toBeUndefined();
     });
   });
 });

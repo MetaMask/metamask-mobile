@@ -69,10 +69,6 @@ export const createStyles = ({ colors }: Theme) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    TabWrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
     list: { flexGrow: 1, paddingBottom: 100 },
     fox: {
       width: 20,
@@ -98,27 +94,11 @@ export const createStyles = ({ colors }: Theme) =>
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
-    circleLogoPlaceholder: {
-      backgroundColor: colors.background.alternative,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      borderWidth: 0.5,
-      borderColor: colors.background.alternative,
-    },
     squareLogo: {
       width: 32,
       height: 32,
       borderRadius: 8,
       overflow: 'hidden',
-      borderWidth: 0.5,
-      borderColor: colors.background.alternative,
-    },
-    squareLogoPlaceholder: {
-      backgroundColor: colors.background.alternative,
-      width: 32,
-      height: 32,
-      borderRadius: 8,
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },

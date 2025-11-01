@@ -1,14 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActivityIndicator,
   Alert,
   View,
-  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -26,15 +26,12 @@ import {
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import Device from '../../../util/device';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
-import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -44,7 +41,6 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
@@ -53,9 +49,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -74,8 +67,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import fox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
+import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -85,6 +77,7 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -101,29 +94,29 @@ const createStyles = (colors) =>
       flexDirection: 'column',
     },
     loadingWrapper: {
-      paddingHorizontal: 40,
-      paddingBottom: 30,
+      paddingHorizontal: 16,
       alignItems: 'center',
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignContent: 'center',
       flex: 1,
+      rowGap: 24,
     },
     foxWrapper: {
-      width: Device.isIos() ? 90 : 80,
-      height: Device.isIos() ? 90 : 80,
-      marginTop: 30,
-      marginBottom: 30,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
     image: {
       alignSelf: 'center',
-      width: 80,
-      height: 80,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
-    title: {
-      justifyContent: 'flex-start',
-      textAlign: 'flex-start',
-      fontSize: 32,
-    },
-    subtitle: {
-      textAlign: 'center',
+    loadingTextContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      rowGap: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     field: {
       position: 'relative',
@@ -141,18 +134,6 @@ const createStyles = (colors) =>
         default: 16,
       }),
     },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
-    },
     learnMoreContainer: {
       flexDirection: 'row',
       alignItems: 'flex-start',
@@ -160,6 +141,9 @@ const createStyles = (colors) =>
       gap: 8,
       marginTop: 8,
       marginBottom: 16,
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 16,
     },
     learnMoreTextContainer: {
       flexDirection: 'row',
@@ -168,6 +152,7 @@ const createStyles = (colors) =>
       gap: 1,
       flexWrap: 'wrap',
       width: '90%',
+      marginTop: -6,
     },
     headerLeft: {
       marginLeft: 16,
@@ -199,6 +184,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  */
 class ChoosePassword extends PureComponent {
   static propTypes = {
+    setDataCollectionForMarketing: PropTypes.func,
     /**
      * The navigator object
      */
@@ -245,9 +231,7 @@ class ChoosePassword extends PureComponent {
     password: '',
     confirmPassword: '',
     secureTextEntry: true,
-    biometryType: null,
     biometryChoice: false,
-    rememberMe: false,
     loading: false,
     error: null,
     errorToThrow: null,
@@ -283,7 +267,7 @@ class ChoosePassword extends PureComponent {
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={this.state.loading ? colors.icon.muted : colors.icon.default}
+          color={colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>
@@ -297,18 +281,12 @@ class ChoosePassword extends PureComponent {
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: this.headerLeft,
+          headerLeft: this.state.loading ? () => <View /> : this.headerLeft,
         },
         colors,
         false,
       ),
     );
-  };
-
-  termsOfUse = async () => {
-    if (this.props.navigation) {
-      await navigateTermsOfUse(this.props.navigation.navigate);
-    }
   };
 
   async componentDidMount() {
@@ -326,9 +304,8 @@ class ChoosePassword extends PureComponent {
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),
@@ -348,7 +325,6 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -407,16 +383,20 @@ class ChoosePassword extends PureComponent {
 
   tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
-      password,
-    );
+    const uint8ArrayMnemonic =
+      await KeyringController.exportSeedPhrase(password);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
   onPressCreate = async () => {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
+    let canSubmit;
+    if (this.getOauth2LoginSuccess()) {
+      canSubmit = passwordsMatch;
+    } else {
+      canSubmit = passwordsMatch && isSelected;
+    }
     if (loading) return;
     if (!canSubmit) {
       if (
@@ -440,20 +420,35 @@ class ChoosePassword extends PureComponent {
     }
 
     const provider = this.props.route.params?.provider;
+    const accountType = provider ? `metamask_${provider}` : 'metamask';
+
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: provider ? `metamask_${provider}` : 'metamask',
+      account_type: accountType,
     });
 
     try {
       this.setState({ loading: true });
       const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
+      // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
-        this.state.biometryChoice,
-        this.state.rememberMe,
+        true,
+        false,
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
+
+      const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
+      trace({
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+        tags: {
+          is_social_login: Boolean(provider),
+          account_type: accountType,
+          biometrics_enabled: Boolean(this.state.biometryType),
+        },
+      });
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -476,51 +471,45 @@ class ChoosePassword extends PureComponent {
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-      this.setState({ loading: false });
 
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-        if (this.props.metrics.isEnabled()) {
-          this.props.navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.ONBOARDING.SUCCESS,
-                params: { showPasswordHint: true },
-              },
-            ],
-          });
-        } else {
-          this.props.navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              this.props.navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.SUCCESS,
-                    params: { showPasswordHint: true },
-                  },
-                ],
-              });
+        this.props.setDataCollectionForMarketing(this.state.isSelected);
+        OAuthLoginService.updateMarketingOptInStatus(
+          this.state.isSelected,
+        ).catch((error) => {
+          Logger.error(error);
+        });
+
+        this.props.navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS,
+              params: { showPasswordHint: true },
             },
-          });
-        }
+          ],
+        });
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
-        this.props.navigation.replace('AccountBackupStep1', {
+        this.props.navigation.replace('ManualBackupStep1', {
           seedPhrase,
+          backupFlow: false,
+          settingsBackup: false,
         });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
+        account_type: accountType,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
+      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (error) {
       try {
         await this.recreateVault('');
@@ -674,31 +663,9 @@ class ChoosePassword extends PureComponent {
     current && current.focus();
   };
 
-  updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    this.setState({ biometryChoice });
-  };
-
-  renderSwitch = () => {
-    const { biometryType, biometryChoice } = this.state;
-    const handleUpdateRememberMe = (rememberMe) => {
-      this.setState({ rememberMe });
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={this.updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
-
   onPasswordChange = (val) => {
-    const passInfo = zxcvbn(val);
     this.setState((prevState) => ({
       password: val,
-      passwordStrength: passInfo.score,
       confirmPassword: val === '' ? '' : prevState.confirmPassword,
     }));
   };
@@ -706,11 +673,13 @@ class ChoosePassword extends PureComponent {
   learnMore = () => {
     const learnMoreUrl =
       'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
+
     this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
       url: learnMoreUrl,
     });
+
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -739,46 +708,25 @@ class ChoosePassword extends PureComponent {
   };
 
   renderContent = () => {
-    const { isSelected, password, passwordStrength, confirmPassword, loading } =
-      this.state;
+    const { isSelected, password, confirmPassword, loading } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit =
-      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+    let canSubmit;
+    if (this.getOauth2LoginSuccess()) {
+      canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
+    } else {
+      canSubmit =
+        passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+    }
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
-    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <LottieView
-                style={styles.image}
-                autoPlay
-                loop
-                source={fox}
-                resizeMode="contain"
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.text.default} />
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.title}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-            >
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-              {strings('create_wallet.subtitle')}
-            </Text>
+            <FoxRiveLoaderAnimation />
           </View>
         ) : (
           <KeyboardAwareScrollView
@@ -813,9 +761,33 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
-                    {this.getOauth2LoginSuccess()
-                      ? strings('choose_password.description_social_login')
-                      : strings('choose_password.description')}
+                    {this.getOauth2LoginSuccess() ? (
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                          ? strings(
+                              'choose_password.description_social_login_update_ios',
+                            )
+                          : strings(
+                              'choose_password.description_social_login_update',
+                            )}
+                        {Platform.OS === 'android' && (
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Warning}
+                          >
+                            {' '}
+                            {strings(
+                              'choose_password.description_social_login_update_bold',
+                            )}
+                          </Text>
+                        )}
+                      </Text>
+                    ) : (
+                      strings('choose_password.description')
+                    )}
                   </Text>
                 </View>
 
@@ -828,9 +800,6 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.password')}
                   </Label>
                   <TextField
-                    placeholder={strings(
-                      'import_from_seed.enter_strong_password',
-                    )}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}
@@ -856,37 +825,16 @@ class ChoosePassword extends PureComponent {
                       />
                     }
                   />
-                  {Boolean(password) &&
-                    password.length < MIN_PASSWORD_LENGTH && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('choose_password.must_be_at_least', {
-                          number: MIN_PASSWORD_LENGTH,
-                        })}
-                      </Text>
-                    )}
-                  {Boolean(password) &&
-                    password.length >= MIN_PASSWORD_LENGTH && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Alternative}
-                        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
-                      >
-                        {strings('choose_password.password_strength')}
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Alternative}
-                          style={styles[`strength_${passwordStrengthWord}`]}
-                        >
-                          {' '}
-                          {strings(
-                            `choose_password.strength_${passwordStrengthWord}`,
-                          )}
-                        </Text>
-                      </Text>
-                    )}
+                  {(!password || password.length < MIN_PASSWORD_LENGTH) && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  )}
                 </View>
 
                 <View style={styles.field}>
@@ -899,7 +847,6 @@ class ChoosePassword extends PureComponent {
                   </Label>
                   <TextField
                     ref={this.confirmPasswordInput}
-                    placeholder={strings('import_from_seed.re_enter_password')}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}
@@ -911,7 +858,7 @@ class ChoosePassword extends PureComponent {
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
                     autoComplete="new-password"
-                    onSubmitEditing={this.onPressCreate}
+                    onSubmitEditing={Keyboard.dismiss}
                     returnKeyType={'done'}
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
@@ -929,6 +876,7 @@ class ChoosePassword extends PureComponent {
                       />
                     }
                     isDisabled={password === ''}
+                    isError={this.checkError()}
                   />
                   {this.checkError() && (
                     <Text variant={TextVariant.BodySM} color={TextColor.Error}>
@@ -954,27 +902,40 @@ class ChoosePassword extends PureComponent {
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     label={
                       <Text
-                        variant={TextVariant.BodyMD}
+                        variant={TextVariant.BodySM}
                         color={TextColor.Default}
                       >
-                        {this.getOauth2LoginSuccess()
-                          ? strings('import_from_seed.learn_more_social_login')
-                          : strings('import_from_seed.learn_more')}
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Primary}
-                          onPress={this.learnMore}
-                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                        >
-                          {' ' + strings('reset_password.learn_more')}
-                        </Text>
+                        {this.getOauth2LoginSuccess() ? (
+                          strings(
+                            'choose_password.marketing_opt_in_description',
+                          )
+                        ) : (
+                          <Text
+                            variant={TextVariant.BodySM}
+                            color={TextColor.Alternative}
+                          >
+                            {strings(
+                              'choose_password.loose_password_description',
+                            )}
+                            <Text
+                              variant={TextVariant.BodySM}
+                              color={TextColor.Primary}
+                              onPress={this.learnMore}
+                              testID={
+                                ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID
+                              }
+                            >
+                              {' '}
+                              {strings('reset_password.learn_more')}
+                            </Text>
+                          </Text>
+                        )}
                       </Text>
                     }
                   />
                 </View>
 
                 <View style={styles.ctaWrapper}>
-                  {this.renderSwitch()}
                   <Button
                     variant={ButtonVariants.Primary}
                     onPress={this.onPressCreate}
@@ -1029,6 +990,8 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
   setExistingUser: (value) => dispatch(setExistingUser(value)),
+  setDataCollectionForMarketing: (enabled) =>
+    dispatch(setDataCollectionForMarketing(enabled)),
 });
 
 const mapStateToProps = (state) => ({});

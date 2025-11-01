@@ -15,6 +15,9 @@ const TEST_CONFIG_DEFAULTS = {
 
 const logger = createLogger({ name: 'Utilities' });
 
+export const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
  */
@@ -51,6 +54,14 @@ export default class Utilities {
           '   await Gestures.waitAndTap(element, {checkEnabled: false})',
         ].join('\n'),
       );
+    }
+  }
+
+  static async checkElementDisabled(detoxElement: DetoxElement): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const attributes = await el.getAttributes();
+    if (!('enabled' in attributes) || attributes.enabled) {
+      throw new Error('🚫 Element is enabled, but should be disabled.');
     }
   }
 

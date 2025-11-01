@@ -7,9 +7,6 @@ import AssetDetailsActions, {
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: initialBackgroundState,
   },
@@ -39,11 +36,8 @@ export const Default = Template.bind(
   {
     displayBuyButton: true,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    swapsIsLive: true,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -54,11 +48,8 @@ export const NoBuyButton = Template.bind(
   {
     displayBuyButton: false,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    swapsIsLive: true,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -69,26 +60,8 @@ export const NoSwapsButton = Template.bind(
   {
     displayBuyButton: true,
     displaySwapsButton: false,
-    displayBridgeButton: true,
-    swapsIsLive: false,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
-    onSend: () => null,
-    onReceive: () => null,
-  },
-);
-
-export const NoBridgeButton = Template.bind(
-  {},
-  {
-    displayBuyButton: true,
-    displaySwapsButton: true,
-    displayBridgeButton: false,
-    swapsIsLive: false,
-    onBuy: () => null,
-    goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -99,11 +72,20 @@ export const NoButtons = Template.bind(
   {
     displayBuyButton: false,
     displaySwapsButton: false,
-    displayBridgeButton: false,
-    swapsIsLive: false,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
+    onSend: () => null,
+    onReceive: () => null,
+  },
+);
+
+export const FundActionMenuNavigation = Template.bind(
+  {},
+  {
+    displayBuyButton: true,
+    displaySwapsButton: true,
+    // No onBuy prop - will navigate to FundActionMenu
+    goToSwaps: () => null,
     onSend: () => null,
     onReceive: () => null,
   },

@@ -7,6 +7,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 
 const mockIsEvmAccountType = jest.fn();
 const mockNavigate = jest.fn();
@@ -40,7 +41,7 @@ const mockEvmAccount = createMockInternalAccount(
 
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {

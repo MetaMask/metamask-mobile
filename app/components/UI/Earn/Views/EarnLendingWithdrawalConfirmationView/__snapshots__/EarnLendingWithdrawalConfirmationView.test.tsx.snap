@@ -275,7 +275,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#b7bbc8"
+                      color="#686e7d"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -481,7 +481,14 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                           }
                         }
                       >
-                        <Image />
+                        <View
+                          style={
+                            {
+                              "height": 16,
+                              "width": 16,
+                            }
+                          }
+                        />
                       </View>
                       <View
                         accessible={false}
@@ -505,7 +512,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                         }
                         testID="tagbase-text"
                       >
-                        Account 2
+                        Test Wallet Group
                       </Text>
                     </View>
                   </View>
@@ -589,7 +596,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#b7bbc8"
+                      color="#686e7d"
                       fill="currentColor"
                       height={16}
                       name="Question"
@@ -660,9 +667,11 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                       <View
                         style={
                           {
+                            "alignItems": "center",
                             "backgroundColor": "#ffffff",
                             "borderRadius": 4,
                             "height": 16,
+                            "justifyContent": "center",
                             "overflow": "hidden",
                             "width": 16,
                           }
@@ -898,7 +907,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

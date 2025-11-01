@@ -7,7 +7,7 @@ import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
 import { ApproveRow } from '../../rows/transactions/approve-row';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
-import OriginRow from '../../rows/origin-row';
+import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-row';
 
 const Approve = () => {
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
@@ -18,7 +18,7 @@ const Approve = () => {
     <View testID={ConfirmationInfoComponentIDs.APPROVE}>
       <AccountNetworkInfoRow />
       <ApproveRow />
-      <OriginRow isSignatureRequest={false} />
+      <NetworkAndOriginRow />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>

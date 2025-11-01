@@ -8,7 +8,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { flushPromises } from '../../../../../util/test/utils';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import {
   selectConfirmationRedesignFlags,
   type ConfirmationRedesignRemoteFlags,
@@ -34,9 +33,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockImplementation((selector) => selector()),
 }));
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../../../selectors/accountsController'),
-  selectSelectedInternalAccount: jest.fn(),
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => () => MOCK_SELECTED_INTERNAL_ACCOUNT,
+  ),
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
@@ -101,9 +101,6 @@ describe('GasImpactModal', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
-  const selectSelectedInternalAccountMock = jest.mocked(
-    selectSelectedInternalAccount,
-  );
   const useNavigationMock = jest.mocked(useNavigation);
   const mockNavigate = jest.fn();
   const mockGoBack = jest.fn();
@@ -114,10 +111,6 @@ describe('GasImpactModal', () => {
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
-
-    selectSelectedInternalAccountMock.mockReturnValue(
-      MOCK_SELECTED_INTERNAL_ACCOUNT,
-    );
 
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,

@@ -77,9 +77,8 @@ exports[`SliderButton should render correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           }
         }
       >
@@ -120,9 +119,8 @@ exports[`SliderButton should render correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           }
         }
       >

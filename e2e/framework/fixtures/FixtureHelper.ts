@@ -1,3 +1,4 @@
+/* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
@@ -10,10 +11,16 @@ import {
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
+  getCommandQueueServerPort,
 } from './FixtureUtils';
-import Utilities from '../../utils/Utilities';
+import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import {
+  startMockServer,
+  stopMockServer,
+  validateLiveRequests,
+} from '../../api-mocking/mock-server';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -26,27 +33,38 @@ import {
   DappOptions,
   AnvilNodeOptions,
   GanacheNodeOptions,
+  TestSpecificMock,
 } from '../types';
-import {
-  TestDapps,
-  DappVariants,
-  defaultGanacheOptions,
-  DEFAULT_MOCKSERVER_PORT,
-} from '../Constants';
+import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
+import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
+import { type Mockttp } from 'mockttp';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import CommandQueueServer from './CommandQueueServer';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
 const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
+const COMMAND_QUEUE_SERVER_URL = `http://localhost:${getCommandQueueServerPort()}/queue.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
   try {
     const response = await axios.get(FIXTURE_SERVER_URL);
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+};
+
+// checks if command queue server has already been started
+const isCommandQueueServerStarted = async () => {
+  try {
+    const response = await axios.get(COMMAND_QUEUE_SERVER_URL);
     return response.status === 200;
   } catch (error) {
     return false;
@@ -172,6 +190,7 @@ async function handleLocalNodes(
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
+
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
@@ -314,6 +333,64 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
+// Start the command queue server
+export const startCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
+) => {
+  if (await isCommandQueueServerStarted()) {
+    logger.debug('The command queue server has already been started');
+    return;
+  }
+
+  await commandQueueServer.start();
+  logger.debug('The command queue server is started');
+};
+
+// Stop the command queue server
+export const stopCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
+) => {
+  await commandQueueServer.stop();
+  logger.debug('The command queue server is stopped');
+};
+
+export const createMockAPIServer = async (
+  testSpecificMock?: TestSpecificMock,
+): Promise<{
+  mockServer: Mockttp;
+  mockServerPort: number;
+}> => {
+  const mockServerPort = getMockServerPort();
+  const mockServer = await startMockServer(
+    DEFAULT_MOCKS,
+    mockServerPort,
+    testSpecificMock, // Applied First, so any test-specific mocks take precedence
+  );
+
+  if (testSpecificMock) {
+    logger.debug(
+      `Mock server started with testSpecificMock (priority) + defaults fallback on port ${mockServerPort}`,
+    );
+  } else {
+    logger.debug(`Mock server started with defaults on port ${mockServerPort}`);
+  }
+
+  // Additional Global Mocks
+  await mockNotificationServices(mockServer);
+
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
+
+  const endpoints = await mockServer.getMockedEndpoints();
+  logger.debug(`Mocked endpoints: ${endpoints.length}`);
+
+  return {
+    mockServer,
+    mockServerPort,
+  };
+};
+
 /**
  * Executes a test suite with fixtures by setting up a fixture server, loading a specified fixture,
  * and running the test suite. After the test suite execution, it stops the fixture server.
@@ -342,43 +419,19 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
-    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
     endTestfn,
+    skipReactNativeReload = false,
+    useCommandQueueServer = false,
   } = options;
-
-  if (mockServerInstance && testSpecificMock) {
-    throw new Error(
-      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
-    );
-  }
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  // Handle mock server
-  let mockServer;
-  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-
-  if (mockServerInstance && !testSpecificMock) {
-    mockServer = mockServerInstance;
-    mockServerPort = mockServer.port;
-    logger.debug(
-      `Mock server started from mockServerInstance on port ${mockServerPort}`,
-    );
-    const endpoints = await mockServer.getMockedEndpoints();
-    logger.debug(`Mocked endpoints: ${endpoints.length}`);
-  }
-
-  if (testSpecificMock && !mockServerInstance) {
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
+  const { mockServer, mockServerPort } =
+    await createMockAPIServer(testSpecificMock);
 
   // Handle local nodes
   let localNodes;
@@ -389,6 +442,9 @@ export async function withFixtures(
 
   const dappServer: http.Server[] = [];
   const fixtureServer = new FixtureServer();
+  const commandQueueServer = new CommandQueueServer();
+
+  let testError: Error | null = null;
 
   try {
     // Handle smart contracts
@@ -420,13 +476,19 @@ export async function withFixtures(
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
+
+    if (useCommandQueueServer) {
+      await startCommandQueueServer(commandQueueServer);
+    }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
+
     if (restartDevice) {
       await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
+          commandQueueServerPort: `${getCommandQueueServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
           mockServerPort: `${mockServerPort}`,
           ...(launchArgs || {}),
@@ -436,30 +498,116 @@ export async function withFixtures(
       });
     }
 
-    await testSuite({ contractRegistry, mockServer, localNodes });
+    await testSuite({
+      contractRegistry,
+      mockServer,
+      localNodes,
+      commandQueueServer,
+    });
   } catch (error) {
+    testError = error as Error;
     logger.error('Error in withFixtures:', error);
-    throw error;
   } finally {
+    const cleanupErrors: Error[] = [];
+
     if (endTestfn) {
-      // Pass the mockServer to the endTestfn if it exists as we may want
-      // to capture events before cleanup
-      await endTestfn({ mockServer });
+      try {
+        // Pass the mockServer to the endTestfn if it exists as we may want
+        // to capture events before cleanup
+        await endTestfn({ mockServer });
+      } catch (endTestError) {
+        logger.error('Error in endTestfn:', endTestError);
+        cleanupErrors.push(endTestError as Error);
+      }
     }
 
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
-      await handleLocalNodeCleanup(localNodes);
+      try {
+        await handleLocalNodeCleanup(localNodes);
+      } catch (cleanupError) {
+        logger.error('Error during local node cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (dapps && dapps.length > 0) {
-      await handleDappCleanup(dapps, dappServer);
+      try {
+        await handleDappCleanup(dapps, dappServer);
+      } catch (cleanupError) {
+        logger.error('Error during dapp cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (mockServer) {
-      await stopMockServer(mockServer);
+      try {
+        await stopMockServer(mockServer);
+      } catch (cleanupError) {
+        logger.error('Error during mock server cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
-    await stopFixtureServer(fixtureServer);
+    try {
+      await stopFixtureServer(fixtureServer);
+    } catch (cleanupError) {
+      logger.error('Error during fixture server cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    if (useCommandQueueServer) {
+      try {
+        await stopCommandQueueServer(commandQueueServer);
+      } catch (cleanupError) {
+        logger.error(
+          'Error during command queue server cleanup:',
+          cleanupError,
+        );
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    if (!skipReactNativeReload) {
+      try {
+        // Force reload React Native to stop any lingering timers
+        await device.reloadReactNative();
+      } catch (cleanupError) {
+        logger.warn('React Native reload failed (non-critical):', cleanupError);
+        // Don't add to cleanupErrors as this is a non-critical cleanup operation
+        // The test should not fail if only React Native reload fails
+      }
+    }
+
+    try {
+      // Validate live requests
+      validateLiveRequests(mockServer);
+    } catch (cleanupError) {
+      logger.error('Error during live request validation:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    // Handle error reporting: prioritize test error over cleanup errors
+    if (testError && cleanupErrors.length > 0) {
+      // Both test and cleanup failed - report both but throw the test error
+      const cleanupErrorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      logger.error(
+        `Test failed AND cleanup failed with ${cleanupErrors.length} error(s):\n${cleanupErrorMessages}`,
+      );
+      throw testError; // Preserve original test failure
+    } else if (testError) {
+      // Only test failed - normal case
+      throw testError;
+    } else if (cleanupErrors.length > 0) {
+      // Only cleanup failed - throw cleanup error
+      const errorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      const errorMessage = `Test cleanup failed with ${cleanupErrors.length} error(s):\n${errorMessages}`;
+      throw new Error(errorMessage);
+    }
+    // No errors - test passed successfully
   }
 }

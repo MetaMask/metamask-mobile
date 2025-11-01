@@ -1,21 +1,23 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
-import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { isEqual } from 'lodash';
+import { useMemo, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
-import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
-import { usePerpsAccount, usePerpsNetwork } from './index';
+import { selectTokenList } from '../../../../selectors/tokenListController';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
-  USDC_SYMBOL,
-  USDC_DECIMALS,
   TRADING_DEFAULTS,
   USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_DECIMALS,
+  USDC_SYMBOL,
 } from '../constants/hyperLiquidConfig';
-import type { PerpsToken } from '../components/PerpsTokenSelector';
+import type { PerpsToken } from '../types/perps-types';
+import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
+import { usePerpsNetwork } from './index';
+import { usePerpsLiveAccount } from './stream';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -34,11 +36,14 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
+  // Use ref to store previous token array
+  const previousTokensRef = useRef<PerpsToken[]>([]);
+
   // Get Hyperliquid account balance
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
-  const hyperliquidBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+  const hyperliquidBalance = Number.parseFloat(
+    account?.availableBalance?.toString() || '0',
   );
 
   // Get all chain IDs to search for tokens
@@ -91,7 +96,7 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
         if (token.chainId === hyperliquidChainId) return false;
 
         // Check if balance meets minimum order requirement
-        const balanceFiat = parseFloat(
+        const balanceFiat = Number.parseFloat(
           token.balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
         );
         return balanceFiat >= minimumOrderAmount;
@@ -124,16 +129,16 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     // Sort tokens by priority:
     // 1. USDC tokens first (faster to bridge)
     // 2. Then by balance (highest first)
-    const sortedTokens = otherFundedTokens.sort((a, b) => {
+    const sortedTokens = [...otherFundedTokens].sort((a, b) => {
       // Prioritize USDC
       if (a.symbol === USDC_SYMBOL && b.symbol !== USDC_SYMBOL) return -1;
       if (b.symbol === USDC_SYMBOL && a.symbol !== USDC_SYMBOL) return 1;
 
       // Then sort by balance
-      const aBalance = parseFloat(
+      const aBalance = Number.parseFloat(
         a.balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
       );
-      const bBalance = parseFloat(
+      const bBalance = Number.parseFloat(
         b.balanceFiat?.replace(/[^0-9.-]+/g, '') || '0',
       );
       return bBalance - aBalance;
@@ -152,5 +157,14 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     isIpfsGatewayEnabled,
   ]);
 
-  return paymentTokens;
+  // Check if tokens have actually changed using lodash deep equality
+  const tokensChanged = !isEqual(previousTokensRef.current, paymentTokens);
+
+  // Only update the reference if tokens have actually changed
+  if (tokensChanged) {
+    previousTokensRef.current = paymentTokens;
+  }
+
+  // Return the stable reference if tokens haven't changed
+  return tokensChanged ? paymentTokens : previousTokensRef.current;
 }

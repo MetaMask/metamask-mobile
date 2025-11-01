@@ -12,12 +12,9 @@ import { getEstimatedAnnualRewards } from '../../../components/UI/Earn/utils/tok
 import { TokenI } from '../../../components/UI/Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { RootState } from '../../../reducers';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
-import { selectSelectedInternalAccountAddress } from '../../accountsController';
+import { selectSelectedInternalAccountByScope } from '../../multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../accountTrackerController';
 import {
   selectCurrencyRates,
@@ -35,6 +32,7 @@ import {
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
+import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
 
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
@@ -48,7 +46,7 @@ const selectEarnTokenBaseData = createSelector(
     pooledStakingSelectors.selectEligibility,
     selectTokensBalances,
     selectTokenMarketData,
-    selectSelectedInternalAccountAddress,
+    selectSelectedInternalAccountByScope,
     selectCurrentCurrency,
     selectNetworkConfigurations,
     selectAccountTokensAcrossChains,
@@ -63,7 +61,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAddress,
+    selectedAccountByScope,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,
@@ -77,7 +75,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAddress,
+    selectedAddress: selectedAccountByScope(EVM_SCOPE)?.address,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,
@@ -138,10 +136,6 @@ const selectEarnTokens = createDeepEqualSelector(
       earnableTotalFiatNumber: 0,
       earnableTotalFiatFormatted: renderFiat(0, currentCurrency, 0),
     };
-
-    if (!isPortfolioViewEnabled()) {
-      return emptyEarnTokensData;
-    }
 
     // flatten the tokens across all chains
     const allTokens = Object.values(

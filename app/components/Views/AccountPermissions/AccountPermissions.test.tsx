@@ -25,6 +25,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
+import { MAINNET_DISPLAY_NAME } from '../../../core/Engine/constants';
 
 const MOCK_EVM_ACCOUNT_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_EVM_ACCOUNT_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -122,7 +123,7 @@ const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 const mockedTrackEvent = jest.fn();
 
-jest.mock('react-native-scrollable-tab-view', () => ({
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
@@ -285,16 +286,19 @@ const mockInitialState = (
       },
       AccountsController: {
         internalAccounts: {
-          accounts: accounts.reduce((acc, account, index) => {
-            const mockAccount = MOCK_INTERNAL_ACCOUNTS[index];
-            if (mockAccount) {
-              acc[mockAccount.id] = {
-                ...mockAccount,
-                address: account,
-              };
-            }
-            return acc;
-          }, {} as Record<string, InternalAccount>),
+          accounts: accounts.reduce(
+            (acc, account, index) => {
+              const mockAccount = MOCK_INTERNAL_ACCOUNTS[index];
+              if (mockAccount) {
+                acc[mockAccount.id] = {
+                  ...mockAccount,
+                  address: account,
+                };
+              }
+              return acc;
+            },
+            {} as Record<string, InternalAccount>,
+          ),
           selectedAccount: 'mock-id-1',
         },
       },
@@ -431,7 +435,7 @@ describe('AccountPermissions', () => {
     );
 
     // Unselect existing network
-    const existingNetwork = getByText('Ethereum Mainnet');
+    const existingNetwork = getByText(MAINNET_DISPLAY_NAME);
     fireEvent.press(existingNetwork);
 
     // Select a network
@@ -470,7 +474,7 @@ describe('AccountPermissions', () => {
     );
 
     // Unselect existing permitted chain
-    const network = getByText('Ethereum Mainnet');
+    const network = getByText(MAINNET_DISPLAY_NAME);
     fireEvent.press(network);
 
     // Press revoke button

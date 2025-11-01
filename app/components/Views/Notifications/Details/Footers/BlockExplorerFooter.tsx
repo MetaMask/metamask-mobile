@@ -61,7 +61,7 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
 
   return (
     <Button
-      variant={ButtonVariants.Secondary}
+      variant={ButtonVariants.Primary}
       label={strings('asset_details.options.view_on_block')}
       style={styles.ctaBtn}
       endIconName={IconName.Arrow2UpRight}

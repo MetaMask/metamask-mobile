@@ -138,7 +138,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

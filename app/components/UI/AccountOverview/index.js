@@ -165,10 +165,6 @@ class AccountOverview extends PureComponent {
     */
     showAlert: PropTypes.func,
     /**
-     * whether component is being rendered from onboarding wizard
-     */
-    onboardingWizard: PropTypes.bool,
-    /**
      * Used to get child ref
      */
     onRef: PropTypes.func,
@@ -207,9 +203,8 @@ class AccountOverview extends PureComponent {
   mainView = React.createRef();
 
   openAccountSelector = () => {
-    const { onboardingWizard, navigation } = this.props;
-    !onboardingWizard &&
-      navigation.navigate(...createAccountSelectorNavDetails({}));
+    const { navigation } = this.props;
+    navigation.navigate(...createAccountSelectorNavDetails({}));
   };
 
   isAccountLabelDefined = (accountLabel) =>
@@ -337,7 +332,6 @@ class AccountOverview extends PureComponent {
   render() {
     const {
       account: { address, name },
-      onboardingWizard,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -359,15 +353,10 @@ class AccountOverview extends PureComponent {
           <View style={styles.info} ref={this.mainView}>
             <TouchableOpacity
               style={styles.identiconBorder}
-              disabled={onboardingWizard}
               onPress={this.openAccountSelector}
               testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
             >
-              <Identicon
-                address={address}
-                diameter={38}
-                noFadeIn={onboardingWizard}
-              />
+              <Identicon address={address} diameter={38} />
             </TouchableOpacity>
             <View
               ref={this.editableLabelRef}
@@ -380,9 +369,7 @@ class AccountOverview extends PureComponent {
                     styles.label,
                     styles.labelInput,
                     styles.onboardingWizardLabel,
-                    onboardingWizard
-                      ? { borderColor: colors.primary.default }
-                      : { borderColor: colors.background.default },
+                    { borderColor: colors.background.default },
                   ]}
                   editable={accountLabelEditable}
                   onChangeText={this.onAccountLabelChange}
@@ -407,9 +394,7 @@ class AccountOverview extends PureComponent {
                         styles.label,
                         styles.onboardingWizardLabel,
                         {
-                          borderColor: onboardingWizard
-                            ? colors.primary.default
-                            : colors.background.default,
+                          borderColor: colors.background.default,
                         },
                       ]}
                       numberOfLines={1}

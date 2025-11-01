@@ -83,6 +83,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       },
       srcTokenAmount: '1000000000000000000',
       destTokenAmount: '2000000000000000000',
+      minDestTokenAmount: '1900000000000000000',
       feeData: {
         metabridge: {
           amount: '1000000000000000',
@@ -130,7 +131,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       getByText('bridge_transaction_details.bridge_to_chain'),
     ).toBeTruthy();
     expect(getByText('transaction.confirmed')).toBeTruthy();
-    expect(getByText('1000000000000000000 ETH')).toBeTruthy();
+    expect(getByText('1.0 ETH')).toBeTruthy();
     expect(getByText('Mar 15, 2025')).toBeTruthy();
   });
 

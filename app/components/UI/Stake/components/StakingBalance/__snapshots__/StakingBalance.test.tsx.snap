@@ -32,10 +32,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
         <View
           useNativeDriver={true}
         >
-          <Image
+          <View
             fadeIn={true}
-            onError={[Function]}
-            onLoadEnd={[Function]}
             source={
               {
                 "uri": "",
@@ -427,7 +425,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -467,7 +465,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -760,7 +758,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -795,7 +793,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
 </View>
 `;
 
-exports[`StakingBalance should match the snapshot when portfolio view is enabled   1`] = `
+exports[`StakingBalance should match the snapshot 1`] = `
 <View
   testID="staking-balance-container"
 >
@@ -827,10 +825,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         <View
           useNativeDriver={true}
         >
-          <Image
+          <View
             fadeIn={true}
-            onError={[Function]}
-            onLoadEnd={[Function]}
             source={
               {
                 "uri": "",
@@ -1222,7 +1218,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1262,7 +1258,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1555,7 +1551,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,

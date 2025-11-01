@@ -12,12 +12,9 @@ export const createStyles = (colors: Theme['colors']) =>
       paddingHorizontal: 16,
       borderRadius: 12,
       marginBottom: 16,
-      backgroundColor: colors.background.alternative,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
     },
     optionSelected: {
-      backgroundColor: colors.primary.muted,
+      backgroundColor: colors.background.section,
       borderColor: colors.primary.default,
     },
     optionHeader: {

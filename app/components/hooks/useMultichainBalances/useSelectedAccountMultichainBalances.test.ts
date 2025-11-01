@@ -6,7 +6,7 @@ import {
   MOCK_ACCOUNT_BIP122_P2WPKH,
 } from '../../../util/test/accountsControllerTestUtils';
 import Engine from '../../../core/Engine';
-import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
+import { isTestNet } from '../../../util/networks';
 import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { RootState } from '../../../reducers';
 import { TokensWithBalances } from '../useGetFormattedTokensPerChain';
@@ -33,6 +33,25 @@ const MOCK_STORE_STATE = {
           chainId: '0x1',
           ticker: 'ETH',
         },
+        selectedNetworkClientId: 'mainnet',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: [],
+          },
+          '0x89': {
+            chainId: '0x89',
+            name: 'Polygon Mainnet',
+            nativeCurrency: 'MATIC',
+            rpcEndpoints: [],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: [],
+          },
+        },
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
@@ -40,6 +59,14 @@ const MOCK_STORE_STATE = {
       },
       PreferencesController: {
         isTokenNetworkFilterEqualCurrentNetwork: true,
+      },
+      TokensController: {
+        allTokens: {},
+        allIgnoredTokens: {},
+        allDetectedTokens: {},
+      },
+      NetworkEnablementController: {
+        enabledNetworks: ['0x1', '0x89'],
       },
     },
   },
@@ -63,10 +90,15 @@ jest.mock('../useGetTotalFiatBalanceCrossChains', () => ({
   useGetTotalFiatBalanceCrossChains: jest.fn().mockReturnValue({}),
 }));
 
+jest.mock(
+  '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
+  () => jest.fn().mockReturnValue(true),
+);
+
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   isTestNet: jest.fn().mockReturnValue(false),
-  isPortfolioViewEnabled: jest.fn().mockReturnValue(false),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
 }));
 
 describe('useSelectedAccountMultichainBalances', () => {
@@ -109,7 +141,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       totalNativeTokenBalance: '0',
       nativeTokenUnit: 'ETH',
       shouldShowAggregatedPercentage: true,
-      isPortfolioVieEnabled: false,
+      isPortfolioViewEnabled: true,
       aggregatedBalance,
     });
   });
@@ -131,8 +163,20 @@ describe('useSelectedAccountMultichainBalances', () => {
       ethFiat1dAgo: 95,
     };
 
+    const mockTotalFiatBalancesCrossChain = {
+      [MOCK_SELECTED_INTERNAL_ACCOUNT.address]: {
+        totalFiatBalance: 150,
+        totalTokenFiat: 50,
+        tokenFiatBalancesCrossChains: [],
+      },
+    };
+
     (Engine.getTotalEvmFiatAccountBalance as jest.Mock).mockReturnValue(
       mockBalance,
+    );
+
+    (useGetTotalFiatBalanceCrossChains as jest.Mock).mockReturnValue(
+      mockTotalFiatBalancesCrossChain,
     );
 
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
@@ -146,7 +190,6 @@ describe('useSelectedAccountMultichainBalances', () => {
   });
 
   it('handles portfolio view mode correctly', () => {
-    (isPortfolioViewEnabled as jest.Mock).mockReturnValue(true);
     const mockTotalFiatBalance = 1000;
     const mockTokenFiatBalance = 500;
 
@@ -201,7 +244,7 @@ describe('useSelectedAccountMultichainBalances', () => {
     const { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     expect(
-      result.current.selectedAccountMultichainBalance?.isPortfolioVieEnabled,
+      result.current.selectedAccountMultichainBalance?.isPortfolioViewEnabled,
     ).toBe(true);
     expect(
       result.current.selectedAccountMultichainBalance?.totalFiatBalance,

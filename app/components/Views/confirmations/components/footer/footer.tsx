@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
+import { useNavigation } from '@react-navigation/native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,6 +29,20 @@ import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmat
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
+import Routes from '../../../../../constants/navigation/Routes';
+import { TransactionType } from '@metamask/transaction-controller';
+import {
+  MMM_ORIGIN,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../../constants/confirmations';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+
+const HIDE_FOOTER_BY_DEFAULT_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 export const Footer = () => {
   const {
@@ -38,17 +53,23 @@ export const Footer = () => {
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
-  const { isQRSigningInProgress, needsCameraPermission } =
-    useQRHardwareContext();
+  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const isStakingConfirmationBool = isStakingConfirmation(
-    transactionMetadata?.type as string,
-  );
-  const { isTransactionValueUpdating } = useConfirmationContext();
+  const transactionType = transactionMetadata?.type as TransactionType;
+  const isStakingConfirmationBool = isStakingConfirmation(transactionType);
+  const isMMSendReq =
+    REDESIGNED_TRANSFER_TYPES.includes(transactionType) &&
+    transactionMetadata?.origin === MMM_ORIGIN;
+  const { isLoading: isPayLoading } = useIsTransactionPayLoading();
+
+  const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
+    useConfirmationContext();
+
+  const navigation = useNavigation();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
@@ -68,8 +89,12 @@ export const Footer = () => {
 
   const onHandleConfirm = useCallback(async () => {
     hideConfirmAlertModal();
-    await onConfirm();
-  }, [hideConfirmAlertModal, onConfirm]);
+    try {
+      await onConfirm();
+    } catch {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    }
+  }, [hideConfirmAlertModal, onConfirm, navigation]);
 
   const onSignConfirm = useCallback(async () => {
     if (hasDangerAlerts) {
@@ -88,22 +113,34 @@ export const Footer = () => {
     isStakingConfirmationBool,
     isFullScreenConfirmation,
   });
+
   const confirmButtonLabel = () => {
-    if (isQRSigningInProgress) {
+    if (isSigningQRObject) {
       return strings('confirm.qr_get_sign');
     }
+
+    if (isPayLoading) {
+      return strings('confirm.confirm');
+    }
+
     if (hasUnconfirmedDangerAlerts) {
       return fieldAlerts.length > 1
         ? strings('alert_system.review_alerts')
         : strings('alert_system.review_alert');
     }
+
     if (hasBlockingAlerts) {
       return strings('alert_system.review_alerts');
     }
+
     return strings('confirm.confirm');
   };
 
   const getStartIcon = () => {
+    if (isPayLoading) {
+      return undefined;
+    }
+
     if (hasUnconfirmedDangerAlerts) {
       return IconName.SecuritySearch;
     }
@@ -112,23 +149,28 @@ export const Footer = () => {
     }
   };
 
+  const isConfirmDisabled =
+    needsCameraPermission ||
+    hasBlockingAlerts ||
+    isTransactionValueUpdating ||
+    isPayLoading;
+
   const buttons = [
     {
       variant: ButtonVariants.Secondary,
       label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
-      onPress: () => onReject(providerErrors.userRejectedRequest()),
+      onPress: () =>
+        onReject(providerErrors.userRejectedRequest(), undefined, isMMSendReq),
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {
       variant: ButtonVariants.Primary,
       isDanger:
-        securityAlertResponse?.result_type === ResultType.Malicious ||
-        hasDangerAlerts,
-      isDisabled:
-        needsCameraPermission ||
-        hasBlockingAlerts ||
-        isTransactionValueUpdating,
+        !isPayLoading &&
+        (securityAlertResponse?.result_type === ResultType.Malicious ||
+          hasDangerAlerts),
+      isDisabled: isConfirmDisabled,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
       onPress: onSignConfirm,
@@ -136,6 +178,22 @@ export const Footer = () => {
       startIconName: getStartIcon(),
     },
   ];
+
+  const isFooterVisible =
+    isFooterVisibleFlag ??
+    (!transactionMetadata ||
+      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
+
+  if (!isFooterVisible) {
+    return null;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
+  ) {
+    return <PredictClaimFooter onPress={onConfirm} />;
+  }
 
   return (
     <>

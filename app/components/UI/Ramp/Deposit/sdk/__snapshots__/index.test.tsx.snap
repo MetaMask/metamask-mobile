@@ -2,7 +2,7 @@
 
 exports[`Deposit SDK Context DepositSDKProvider renders and provides context values 1`] = `
 <Text>
-  API Key: test-provider-api-key, Frontend Auth: test-provider-frontend-auth
+  API Key: test-provider-api-key
 </Text>
 `;
 

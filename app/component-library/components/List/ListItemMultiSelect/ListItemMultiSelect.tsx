@@ -20,17 +20,26 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
+  onPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
+
   return (
-    <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
+    <TouchableOpacity
+      style={styles.base}
+      disabled={isDisabled}
+      onPress={onPress}
+      {...props}
+    >
       <ListItem gap={gap} style={styles.listItem}>
-        <Checkbox
-          style={styles.checkbox}
-          isChecked={isSelected}
-          onPressIn={props.onPress}
-        />
+        <View pointerEvents={'auto'}>
+          <Checkbox
+            style={styles.checkbox}
+            isChecked={isSelected}
+            isDisabled={isDisabled}
+          />
+        </View>
         {children}
       </ListItem>
       {isSelected && (

@@ -1,57 +1,46 @@
-import TestHelpers from '../../helpers';
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../framework/fixtures/FixtureHelper';
-import { getFixturesServerPort } from '../../fixtures/utils';
-import FixtureServer from '../../framework/fixtures/FixtureServer';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions.ts';
 
-const fixtureServer = new FixtureServer();
+jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withMultiSRPKeyringController()
-      .build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-    });
-    await loginToApp();
-
-    // Navigate to test snaps URL once for all tests
-    await TabBarComponent.tapBrowser();
-    await TestSnaps.navigateToTestSnap();
-  });
-
-  afterAll(async () => {
-    await stopFixtureServer(fixtureServer);
-  });
-
-  beforeEach(() => {
-    jest.setTimeout(150_000);
-  });
-
   it('connects to the Get Entropy Snap', async () => {
-    await TestSnaps.installSnap('connectGetEntropyButton');
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        restartDevice: true,
+        skipReactNativeReload: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await TestSnaps.navigateToTestSnap();
+
+        await TestSnaps.installSnap('connectGetEntropyButton');
+      },
+    );
   });
 
   it('signs a message with the Snap entropy', async () => {
-    await TestSnaps.fillMessage('entropyMessageInput', '1234');
-    await TestSnaps.tapButton('signEntropyMessageButton');
-    await TestSnaps.approveSignRequest();
-    await TestSnaps.checkResultSpan(
-      'entropySignResultSpan',
-      '"0x9341785782b512c86235612365f1076b16731ed9473beb4d0804c30b7fcc3a055aa7103b02dc64014d923220712dfbef023ddcf6327b313ea2dfd4d83dc5a53e1c5e7f4e10bce49830eded302294054df8a7a46e5b6cb3e50eec564ecba17941"',
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
+      },
+      async () => {
+        await TestSnaps.fillMessage('entropyMessageInput', '1234');
+        await TestSnaps.tapButton('signEntropyMessageButton');
+        await TestSnaps.approveSignRequest();
+        await TestSnaps.checkResultSpan(
+          'entropySignResultSpan',
+          '"0x9341785782b512c86235612365f1076b16731ed9473beb4d0804c30b7fcc3a055aa7103b02dc64014d923220712dfbef023ddcf6327b313ea2dfd4d83dc5a53e1c5e7f4e10bce49830eded302294054df8a7a46e5b6cb3e50eec564ecba17941"',
+        );
+      },
     );
   });
 
@@ -67,21 +56,40 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
   ])(
     'signs a message with the Snap entropy from %s',
     async (entropySource, result) => {
-      await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
-      await TestSnaps.fillMessage('entropyMessageInput', '5678');
-      await TestSnaps.tapButton('signEntropyMessageButton');
-      await TestSnaps.approveSignRequest();
-      await TestSnaps.checkResultSpan('entropySignResultSpan', `"${result}"`);
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+          skipReactNativeReload: true,
+        },
+        async () => {
+          await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
+          await TestSnaps.fillMessage('entropyMessageInput', '5678');
+          await TestSnaps.tapButton('signEntropyMessageButton');
+          await TestSnaps.approveSignRequest();
+          await TestSnaps.checkResultSpan(
+            'entropySignResultSpan',
+            `"${result}"`,
+          );
+        },
+      );
     },
   );
 
   it('fails when choosing an invalid entropy source', async () => {
-    await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
-    await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
-    await TestSnaps.tapButton('signEntropyMessageButton');
-    await TestSnaps.approveSignRequest();
-    await Assertions.checkIfTextIsDisplayed(
-      'Entropy source with ID "invalid" not found.',
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
+      },
+      async () => {
+        await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
+        await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
+        await TestSnaps.tapButton('signEntropyMessageButton');
+        await TestSnaps.approveSignRequest();
+        await Assertions.checkIfTextIsDisplayed(
+          'Entropy source with ID "invalid" not found.',
+        );
+      },
     );
   });
 });

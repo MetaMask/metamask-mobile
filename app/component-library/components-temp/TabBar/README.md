@@ -1,10 +1,10 @@
 # TabBar
 
-A TabBar component that provides a styled tab bar for use with ScrollableTabView. This component wraps the DefaultTabBar from `react-native-scrollable-tab-view` and applies consistent styling based on the app's theme.
+A TabBar component that provides a styled tab bar for use with ScrollableTabView. This component wraps the DefaultTabBar from `@tommasini/react-native-scrollable-tab-view` and applies consistent styling based on the app's theme.
 
 ## Props
 
-This component extends all props from `DefaultTabBar` from `react-native-scrollable-tab-view/DefaultTabBar`.
+This component extends all props from `DefaultTabBar` from `@tommasini/react-native-scrollable-tab-view/DefaultTabBar`.
 
 ### `style`
 
@@ -23,7 +23,7 @@ The TabBar component is designed to be used with ScrollableTabView as the `rende
 ```tsx
 import React from 'react';
 import { View } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../TabBar';
 import Text from '../../components/Texts/Text';
 
@@ -44,7 +44,7 @@ const MyTabView = () => (
 ```tsx
 import React from 'react';
 import { View } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../TabBar';
 import Text from '../../components/Texts/Text';
 
@@ -68,7 +68,7 @@ const MyTabView = () => (
 ```tsx
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../TabBar';
 import Text from '../../components/Texts/Text';
 
@@ -139,5 +139,5 @@ const MyTabView = () => {
 
 ## Related Components
 
-- [ScrollableTabView](https://github.com/ptomasroos/react-native-scrollable-tab-view)
-- [DefaultTabBar](https://github.com/ptomasroos/react-native-scrollable-tab-view/blob/master/DefaultTabBar.js)
+- [ScrollableTabView](https://github.com/@tommasini/react-native-scrollable-tab-view)
+- [DefaultTabBar](https://github.com/@tommasini/react-native-scrollable-tab-view/blob/master/DefaultTabBar.js)

@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -11,19 +11,21 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../framework/Assertions';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(RegressionConfirmations('ERC20 tokens'), () => {
   it('send an ERC20 token from a dapp', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+      );
     };
 
     await withFixtures(
@@ -35,6 +37,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
@@ -44,9 +49,8 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         testSpecificMock,
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
-          HST_CONTRACT,
-        );
+        const hstAddress =
+          await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
 
         // Navigate to the browser screen
@@ -59,7 +63,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.tapERC20TransferButton();
 
         // Tap confirm button
-        await TestDApp.tapConfirmButton();
+        await TestDApp.tapConfirmButtonToDisappear();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();

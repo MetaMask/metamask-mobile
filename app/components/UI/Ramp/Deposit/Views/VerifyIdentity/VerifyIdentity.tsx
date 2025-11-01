@@ -27,6 +27,7 @@ import {
 } from '../../constants/constants';
 import { useDepositSDK } from '../../sdk';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
+import { endTrace, TraceName } from '../../../../../../util/trace';
 
 export const createVerifyIdentityNavDetails = createNavigationDetails(
   Routes.DEPOSIT.VERIFY_IDENTITY,
@@ -51,6 +52,20 @@ const VerifyIdentity = () => {
         theme,
       ),
     );
+
+    endTrace({
+      name: TraceName.DepositContinueFlow,
+      data: {
+        destination: Routes.DEPOSIT.VERIFY_IDENTITY,
+      },
+    });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.VERIFY_IDENTITY,
+      },
+    });
   }, [navigation, theme]);
 
   const handleSubmit = useCallback(async () => {

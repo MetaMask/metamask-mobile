@@ -1,30 +1,30 @@
-import { BaseControllerMessenger } from '../../types';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type { AuthenticationControllerMessenger } from '@metamask/profile-sync-controller/auth';
 import { getAuthenticationControllerMessenger } from './authentication-controller-messenger';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<AuthenticationControllerMessenger>,
+  MessengerEvents<AuthenticationControllerMessenger>
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
 describe('getAuthenticationControllerMessenger', () => {
-  const arrangeMocks = () => {
-    const baseMessenger: BaseControllerMessenger =
-      new ExtendedControllerMessenger();
-    const mockGetRestricted = jest.spyOn(baseMessenger, 'getRestricted');
-    return { baseMessenger, mockGetRestricted };
-  };
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const authenticationControllerMessenger =
+      getAuthenticationControllerMessenger(rootMessenger);
 
-  it('returns a restricted messenger with the correct configuration', () => {
-    const { baseMessenger, mockGetRestricted } = arrangeMocks();
-
-    const restrictedMessenger =
-      getAuthenticationControllerMessenger(baseMessenger);
-
-    expect(mockGetRestricted).toHaveBeenCalledWith({
-      name: 'AuthenticationController',
-      allowedActions: [
-        'KeyringController:getState',
-        'SnapController:handleRequest',
-      ],
-      allowedEvents: ['KeyringController:lock', 'KeyringController:unlock'],
-    });
-
-    expect(restrictedMessenger).toBeDefined();
+    expect(authenticationControllerMessenger).toBeInstanceOf(Messenger);
   });
 });

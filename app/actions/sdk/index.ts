@@ -17,6 +17,7 @@ export enum ActionType {
   UPDATE_DAPP_CONNECTION = 'UPDATE_DAPP_CONNECTION',
   REMOVE_DAPP_CONNECTION = 'REMOVE_DAPP_CONNECTION',
   RESET_DAPP_CONNECTIONS = 'RESET_DAPP_CONNECTIONS',
+  SET_SDK_V2_CONNECTIONS = 'SET_SDK_V2_CONNECTIONS',
 }
 
 export type DisconnectAll = ReduxAction<ActionType.DISCONNECT_ALL>;
@@ -79,6 +80,11 @@ export interface SetConnected extends ReduxAction<ActionType.SET_CONNECTED> {
   connected: boolean;
 }
 
+export interface SetSDKV2Connections
+  extends ReduxAction<ActionType.SET_SDK_V2_CONNECTIONS> {
+  connections: SDKSessions;
+}
+
 export interface UpdateWC2Metadata
   extends ReduxAction<ActionType.WC2_METADATA> {
   metadata?: WC2Metadata;
@@ -97,7 +103,8 @@ export type Action =
   | UpdateDappConnection
   | RemoveDappConnection
   | ResetDappConnections
-  | SetConnected;
+  | SetConnected
+  | SetSDKV2Connections;
 
 export const disconnectAll = (): DisconnectAll => ({
   type: ActionType.DISCONNECT_ALL,
@@ -191,4 +198,11 @@ export const setConnected = (
   type: ActionType.SET_CONNECTED,
   channelId,
   connected,
+});
+
+export const setSdkV2Connections = (
+  connections: SDKSessions,
+): SetSDKV2Connections => ({
+  type: ActionType.SET_SDK_V2_CONNECTIONS,
+  connections,
 });

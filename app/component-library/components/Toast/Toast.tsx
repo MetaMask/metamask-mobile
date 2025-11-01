@@ -53,8 +53,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
+  const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateYProgress.value - TAB_BAR_HEIGHT }],
+    transform: [
+      { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
+    ],
   }));
   const baseStyle: StyleProp<Animated.AnimateStyle<StyleProp<ViewStyle>>> =
     useMemo(
@@ -72,6 +75,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         cancelAnimation(translateYProgress);
       }
       timeoutDuration = 100;
+      // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
+      setToastOptions(undefined);
     }
     setTimeout(() => {
       setToastOptions(options);
@@ -152,6 +157,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       variant={ButtonVariants.Primary}
       onPress={() => closeButtonOptions?.onPress()}
       label={closeButtonOptions?.label}
+      endIconName={closeButtonOptions?.endIconName}
+      style={closeButtonOptions?.style}
     />
   );
 
@@ -186,6 +193,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
+      case ToastVariants.App: {
+        const { appIconSource } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariant.Favicon}
+            imageSource={appIconSource}
+            size={AvatarSize.Md}
+            style={styles.avatar}
+          />
+        );
+      }
       case ToastVariants.Icon: {
         const { iconName, iconColor, backgroundColor } = toastOptions;
         return (
@@ -202,11 +220,19 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkButtonOptions, closeButtonOptions } = options;
+    const {
+      labelOptions,
+      linkButtonOptions,
+      closeButtonOptions,
+      startAccessory,
+    } = options;
+
+    const isStartAccessoryValid =
+      startAccessory != null && React.isValidElement(startAccessory);
 
     return (
       <>
-        {renderAvatar()}
+        {isStartAccessoryValid ? startAccessory : renderAvatar()}
         <View
           style={styles.labelsContainer}
           testID={ToastSelectorsIDs.CONTAINER}

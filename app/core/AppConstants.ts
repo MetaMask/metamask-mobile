@@ -34,6 +34,12 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  EXPLORE_TOKENS: {
+    URL: `${PORTFOLIO_URL}/explore/tokens?MetaMaskEntry=mobile`,
+  },
+  CARD: {
+    URL: 'https://card.metamask.io',
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -98,6 +104,8 @@ export default {
     POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
     DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
+    DEFAULT_SLIPPAGE_BRIDGE: 2,
+    DEFAULT_SLIPPAGE_SOLANA: undefined,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
@@ -126,7 +134,6 @@ export default {
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
       'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/',
-    NFT: 'https://support.metamask.io/nfts/nft-tokens-in-your-metamask-wallet/',
     SECURITY:
       'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
     TOKEN_BALANCE:
@@ -148,10 +155,24 @@ export default {
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
       'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
+    TERMS_OF_USE_URL: 'https://consensys.io/terms-of-use',
+    PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
+    MULTICHAIN_ACCOUNTS:
+      'https://support.metamask.io/configure/accounts/multichain-accounts/',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
+  REWARDS_API_URL: {
+    DEV: 'https://rewards.dev-api.cx.metamask.io',
+    UAT: 'https://rewards.uat-api.cx.metamask.io',
+    PRD: 'https://rewards.api.cx.metamask.io',
+  },
+  BAANX_API_URL: {
+    DEV: 'https://foxdev2-ag.foxcard.io',
+    UAT: 'https://dev.api.baanx.com',
+    PRD: 'https://api.baanx.com',
+  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
@@ -203,6 +224,7 @@ export default {
     SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',
     SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
+    SDK_CONNECT_V2_ORIGIN: 'MMSDKCONNECTV2::',
     UNKNOWN_PARAM: 'UNKNOWN',
   },
   CANCEL_RATE: 'Transactions (Cancel)',
@@ -242,4 +264,6 @@ export default {
   TOKEN_DISCOVERY_BROWSER_ENABLED:
     process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
   EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3',
+  DELEGATION_MANAGER_ADDRESS: '0xdb9B1e94B5b69Df7e401DDbedE43491141047dB3',
+  GASLESS_7702_ENFORCER_ADDRESS: '0x00e0251aaA263dfE3B3541B758A82D1CBA1c3B6D',
 } as const;

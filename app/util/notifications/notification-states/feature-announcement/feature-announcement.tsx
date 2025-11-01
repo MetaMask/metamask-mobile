@@ -1,5 +1,9 @@
 import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
-import { ModalFieldType, ModalHeaderType } from '../../constants';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  ModalHeaderType,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import { getNotificationBadge } from '../../methods/common';
@@ -42,10 +46,12 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
         description: notification.data.longDescription,
       },
     ],
-    /**
-     * TODO support mobile links
-     * GH Issue: https://github.com/MetaMask/metamask-mobile/issues/10377
-     * */
+    footer: {
+      type: ModalFooterType.ANNOUNCEMENT_CTA,
+      mobileLink: notification.data.mobileLink,
+      externalLink: notification.data.externalLink,
+      notification,
+    },
   }),
 };
 

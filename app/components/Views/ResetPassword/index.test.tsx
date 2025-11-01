@@ -16,10 +16,17 @@ import NavigationService from '../../../core/NavigationService';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Authentication } from '../../../core';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { BIOMETRY_TYPE } from 'react-native-keychain';
+import { BIOMETRY_TYPE, STORAGE_TYPE } from 'react-native-keychain';
 import Device from '../../../util/device';
 import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
+import { recreateVaultsWithNewPassword } from '../../../core/Vault';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { NavigationContainerRef } from '@react-navigation/native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -68,6 +75,8 @@ jest.mock('../../../core/Authentication', () => ({
     .mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     ),
+  checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
+  lockApp: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../core/NavigationService', () => ({
@@ -87,9 +96,11 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
 }));
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
+const mockTrackEvent = jest.fn();
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
+    trackEvent: mockTrackEvent,
   }),
 }));
 
@@ -125,7 +136,31 @@ const initialState = {
     allowLoginWithRememberMe: true,
   },
 };
+
 const store = mockStore(initialState);
+
+const initialStateWithoutSeedlessOnboardingLoginFlow = {
+  user: {
+    passwordSet: true,
+    seedphraseBackedUp: false,
+  },
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      SeedlessOnboardingController: {
+        vault: null,
+      },
+    },
+  },
+  security: {
+    allowLoginWithRememberMe: true,
+  },
+};
+
+const storeWithoutSeedlessOnboardingLoginFlow = mockStore(
+  initialStateWithoutSeedlessOnboardingLoginFlow,
+);
 interface ResetPasswordProps {
   route: {
     params: {
@@ -159,25 +194,49 @@ const renderWithProviders = (ui: React.ReactElement) =>
     </Provider>,
   );
 
+const renderWithProvidersWithoutSeedlessOnboardingLoginFlow = (
+  ui: React.ReactElement,
+) =>
+  render(
+    <Provider store={storeWithoutSeedlessOnboardingLoginFlow}>
+      <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
+    </Provider>,
+  );
+
 const defaultProps: ResetPasswordProps = {
   route: { params: { [PREVIOUS_SCREEN]: 'ChoosePassword' } },
   navigation: mockNavigation,
 };
+
+jest.mock('../../../core/Vault', () => {
+  const actual = jest.requireActual('../../../core/Vault');
+  return {
+    ...actual,
+    recreateVaultsWithNewPassword: jest.fn(),
+  };
+});
 
 describe('ResetPassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
     mockExportSeedPhrase.mockClear();
+    mockTrackEvent.mockClear();
     // Reset the navigation mocks to ensure they're properly tracked
     mockNavigation.push.mockClear();
   });
 
-  const renderConfirmPasswordView = async () => {
+  const renderConfirmPasswordView = async (
+    isSeedlessOnboardingLoginFlow = true,
+  ) => {
     // Test the mock directly to ensure it's working
     mockExportSeedPhrase.mockResolvedValue('test result');
 
-    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+    const component = isSeedlessOnboardingLoginFlow
+      ? renderWithProviders(<ResetPassword {...defaultProps} />)
+      : renderWithProvidersWithoutSeedlessOnboardingLoginFlow(
+          <ResetPassword {...defaultProps} />,
+        );
 
     const currentPasswordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -312,8 +371,17 @@ describe('ResetPassword', () => {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
             title: strings('reset_password.warning_password_change_title'),
-            description: strings(
-              'reset_password.warning_password_change_description',
+            description: (
+              <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+                {strings('reset_password.warning_password_change_description')}{' '}
+                <Text
+                  color={TextColor.Primary}
+                  onPress={expect.any(Function)}
+                  variant={TextVariant.BodyMD}
+                >
+                  {`${strings('reset_password.learn_more')}`}
+                </Text>
+              </Text>
             ),
             type: 'error',
             icon: 'Danger',
@@ -341,7 +409,7 @@ describe('ResetPassword', () => {
     });
   });
 
-  it('open webview on learnMore click', async () => {
+  it('open webview on learnMore click for seedless onboarding login flow', async () => {
     const component = await renderConfirmPasswordView();
 
     // The "Learn More" link should be visible immediately in the reset password view
@@ -352,10 +420,37 @@ describe('ResetPassword', () => {
     expect(learnMoreLink).toBeOnTheScreen();
 
     // Click the "Learn More" link
-    fireEvent.press(learnMoreLink);
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
 
     // Verify that the learnMore function was called with correct parameters
-    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        title: 'support.metamask.io',
+      },
+    });
+  });
+
+  it('open webview on learnMore click', async () => {
+    const component = await renderConfirmPasswordView(false);
+
+    // The "Learn More" link should be visible immediately in the reset password view
+    const learnMoreLink = component.getByTestId(
+      ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+    );
+
+    expect(learnMoreLink).toBeOnTheScreen();
+
+    // Click the "Learn More" link
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
+
+    // Verify that the learnMore function was called with correct parameters
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
@@ -513,7 +608,7 @@ describe('ResetPassword', () => {
       username: 'testUser',
       password: 'testPassword123',
       service: 'testService',
-      storage: 'testStorage',
+      storage: STORAGE_TYPE.AES_GCM,
     });
 
     // Mock StorageWrapper.getItem to return biometry choice
@@ -621,6 +716,292 @@ describe('ResetPassword', () => {
 
     await waitFor(() => {
       expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
+    });
+  });
+
+  describe('reset password error handling', () => {
+    const mockRecreateVaultsWithNewPassword = jest.mocked(
+      recreateVaultsWithNewPassword,
+    );
+
+    it('show error password is outdated', async () => {
+      mockRecreateVaultsWithNewPassword.mockClear();
+      mockRecreateVaultsWithNewPassword.mockRejectedValueOnce(
+        new Error(SeedlessOnboardingControllerErrorMessage.OutdatedPassword),
+      );
+
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValueOnce(false);
+
+      NavigationService.navigation =
+        mockNavigation as unknown as NavigationContainerRef;
+
+      const component = await renderConfirmPasswordView();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'NewPassword123');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      const confirmButton =
+        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
+      await confirmButton();
+
+      expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
+      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
+        strings('login.seedless_password_outdated_modal_title'),
+      );
+    });
+
+    it('show error change password failed', async () => {
+      mockRecreateVaultsWithNewPassword.mockClear();
+      mockRecreateVaultsWithNewPassword.mockRejectedValueOnce(
+        new Error(
+          SeedlessOnboardingControllerErrorMessage.FailedToChangePassword,
+        ),
+      );
+
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValueOnce(false);
+
+      NavigationService.navigation =
+        mockNavigation as unknown as NavigationContainerRef;
+
+      const component = await renderConfirmPasswordView();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'NewPassword123');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      const confirmButton =
+        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
+      await confirmButton();
+
+      expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
+
+      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
+        strings('reset_password.seedless_change_password_error_modal_title'),
+      );
+    });
+  });
+
+  // Handle Error for SeedlessOnboarding Controller
+  describe('handle error for SeedlessOnboarding Controller Error', () => {
+    it('handle error for SeedlessOnboarding Controller Outdated Password', async () => {
+      // Mock recreateVaultsWithNewPassword to throw an outdated password error
+      const mockRecreateVaultsWithNewPassword = jest.mocked(
+        recreateVaultsWithNewPassword,
+      );
+      mockRecreateVaultsWithNewPassword.mockClear();
+      mockRecreateVaultsWithNewPassword.mockRejectedValueOnce(
+        new Error(SeedlessOnboardingControllerErrorMessage.OutdatedPassword),
+      );
+
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValueOnce(false);
+
+      NavigationService.navigation =
+        mockNavigation as unknown as NavigationContainerRef;
+
+      const spyLockApp = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValue(undefined);
+      const component = await renderConfirmPasswordView();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'NewPassword123');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      // First expect the warning modal to be shown
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('reset_password.warning_password_change_title'),
+            onPrimaryButtonPress: expect.any(Function),
+          }),
+        }),
+      );
+
+      // Get the onPrimaryButtonPress function from the warning modal and call it
+      const warningCall = mockNavigation.navigate.mock.calls[0];
+      const onPrimaryButtonPress = warningCall[1].params.onPrimaryButtonPress;
+
+      await act(async () => {
+        await onPrimaryButtonPress();
+      });
+
+      // Now expect the error modal for outdated password to be shown
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('login.seedless_password_outdated_modal_title'),
+            description: strings(
+              'login.seedless_password_outdated_modal_content',
+            ),
+          }),
+        }),
+      );
+
+      const ErrorSheetCall = mockNavigation.navigate.mock.calls[1];
+      const onErrorSheetPrimaryButtonPress =
+        ErrorSheetCall[1].params.onPrimaryButtonPress;
+      await act(async () => {
+        await onErrorSheetPrimaryButtonPress();
+      });
+      expect(spyLockApp).toHaveBeenCalled();
+    });
+
+    it('handle error for SeedlessOnboarding Controller Invalid Token', async () => {
+      // Mock recreateVaultsWithNewPassword to throw an invalid token error
+      const mockRecreateVaultsWithNewPassword = jest.mocked(
+        recreateVaultsWithNewPassword,
+      );
+      mockRecreateVaultsWithNewPassword.mockClear();
+      mockRecreateVaultsWithNewPassword.mockRejectedValueOnce(
+        new Error(SeedlessOnboardingControllerErrorMessage.InvalidAccessToken),
+      );
+
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValueOnce(false);
+
+      NavigationService.navigation =
+        mockNavigation as unknown as NavigationContainerRef;
+
+      const component = await renderConfirmPasswordView();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'NewPassword123');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      // Simulate pressing the submit button to trigger the invalid token error
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      // First expect the warning modal to be shown
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('reset_password.warning_password_change_title'),
+            onPrimaryButtonPress: expect.any(Function),
+          }),
+        }),
+      );
+
+      // Get the onPrimaryButtonPress function from the warning modal and call it
+      const warningCall = mockNavigation.navigate.mock.calls[0];
+      const onPrimaryButtonPress = warningCall[1].params.onPrimaryButtonPress;
+
+      await act(async () => {
+        await onPrimaryButtonPress();
+      });
+
+      // Now expect the error modal for invalid token to be shown
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings(
+              'reset_password.seedless_change_password_error_modal_title',
+            ),
+            description: strings(
+              'reset_password.seedless_change_password_error_modal_content',
+            ),
+          }),
+        }),
+      );
+
+      const ErrorSheetCall = mockNavigation.navigate.mock.calls[1];
+      const onErrorSheetPrimaryButtonPress =
+        ErrorSheetCall[1].params.onPrimaryButtonPress;
+      await act(async () => {
+        await onErrorSheetPrimaryButtonPress();
+      });
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        Routes.SETTINGS.SECURITY_SETTINGS,
+      );
     });
   });
 });

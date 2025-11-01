@@ -9,6 +9,8 @@ import {
   ViewStyle,
   NativeSyntheticEvent,
   TextInputFocusEventData,
+  TouchableWithoutFeedback,
+  TextInputSelectionChangeEventData,
 } from 'react-native';
 
 // External dependencies.
@@ -25,11 +27,13 @@ import {
   TEXTFIELD_STARTACCESSORY_TEST_ID,
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from '../../../component-library/components/Form/TextField/TextField.constants';
+import Device from '../../../util/device';
 
 const TextField = React.forwardRef<
   TextInput,
   TextFieldProps & {
     inputStyle?: StyleProp<ViewStyle>;
+    onInputFocus?: () => void;
   }
 >(
   (
@@ -46,11 +50,16 @@ const TextField = React.forwardRef<
       onFocus,
       testID,
       inputStyle,
+      onInputFocus,
+      value,
       ...props
     },
     ref,
   ) => {
-    const [isFocused, setIsFocused] = useState(autoFocus);
+    const [isFocused, setIsFocused] = useState(false);
+    const [inputSelection, setInputSelection] = useState<
+      { start: number; end: number } | undefined
+    >(undefined);
 
     const { styles } = useStyles(styleSheet, {
       style,
@@ -66,6 +75,9 @@ const TextField = React.forwardRef<
           setIsFocused(false);
           onBlur?.(e);
         }
+        if (Device.isAndroid()) {
+          setInputSelection({ start: 0, end: 0 });
+        }
       },
       [isDisabled, setIsFocused, onBlur],
     );
@@ -75,46 +87,67 @@ const TextField = React.forwardRef<
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);
+
+          if (Device.isAndroid()) {
+            setInputSelection({
+              start: value?.length ?? 0,
+              end: value?.length ?? 0,
+            });
+          }
         }
       },
-      [isDisabled, setIsFocused, onFocus],
+      [isDisabled, setIsFocused, onFocus, value],
     );
 
+    const handleSelectionChange = (
+      event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
+    ) => {
+      // Update selection state when user manually changes cursor position
+      if (Device.isAndroid()) {
+        setInputSelection(event.nativeEvent.selection);
+      }
+    };
+
     return (
-      <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
-        {startAccessory && (
-          <View
-            style={styles.startAccessory}
-            testID={TEXTFIELD_STARTACCESSORY_TEST_ID}
-          >
-            {startAccessory}
+      <TouchableWithoutFeedback onPress={onInputFocus}>
+        <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
+          {startAccessory && (
+            <View
+              style={styles.startAccessory}
+              testID={TEXTFIELD_STARTACCESSORY_TEST_ID}
+            >
+              {startAccessory}
+            </View>
+          )}
+          <View style={[styles.input, styles.inputContainer]}>
+            {inputElement ?? (
+              <Input
+                textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
+                isDisabled={isDisabled}
+                autoFocus={autoFocus}
+                onBlur={onBlurHandler}
+                onFocus={onFocusHandler}
+                testID={testID}
+                {...props}
+                ref={ref}
+                isStateStylesDisabled
+                inputStyle={inputStyle}
+                selection={inputSelection}
+                onSelectionChange={handleSelectionChange}
+                value={value}
+              />
+            )}
           </View>
-        )}
-        <View style={styles.input}>
-          {inputElement ?? (
-            <Input
-              textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
-              isDisabled={isDisabled}
-              autoFocus={autoFocus}
-              onBlur={onBlurHandler}
-              onFocus={onFocusHandler}
-              testID={testID}
-              {...props}
-              ref={ref}
-              isStateStylesDisabled
-              inputStyle={inputStyle}
-            />
+          {endAccessory && (
+            <View
+              style={styles.endAccessory}
+              testID={TEXTFIELD_ENDACCESSORY_TEST_ID}
+            >
+              {endAccessory}
+            </View>
           )}
         </View>
-        {endAccessory && (
-          <View
-            style={styles.endAccessory}
-            testID={TEXTFIELD_ENDACCESSORY_TEST_ID}
-          >
-            {endAccessory}
-          </View>
-        )}
-      </View>
+      </TouchableWithoutFeedback>
     );
   },
 );

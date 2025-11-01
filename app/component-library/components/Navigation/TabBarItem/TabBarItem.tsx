@@ -2,36 +2,61 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import { ButtonAnimated } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Icon, { IconColor, IconSize } from '../../Icons/Icon';
+import { default as MMText, TextColor, TextVariant } from '../../Texts/Text';
 
 // Internal dependencies
-import styleSheet from './TabBarItem.styles';
 import { TabBarItemProps } from './TabBarItem.types';
-import Avatar, { AvatarVariant } from '../../Avatars/Avatar';
+import TradeTabBarItem from '../TradeTabBarItem';
 
+// Internal component that uses the locked theme for trade button
 const TabBarItem = ({
-  style,
-  icon,
-  iconSize,
-  iconColor,
-  iconBackgroundColor,
+  iconName,
+  isActive = false,
+  isTradeButton = false,
+  label,
   ...props
 }: TabBarItemProps) => {
-  const { styles } = useStyles(styleSheet, { style });
+  const tw = useTailwind(); // Gets theme from ThemeProvider context
 
-  return (
-    <TouchableOpacity {...props} style={styles.base}>
-      <Avatar
-        variant={AvatarVariant.Icon}
-        name={icon}
-        size={iconSize}
-        backgroundColor={iconBackgroundColor}
-        iconColor={iconColor}
-      />
-    </TouchableOpacity>
+  const iconColor = isActive ? IconColor.Default : IconColor.Alternative;
+
+  return isTradeButton ? (
+    <TradeTabBarItem
+      testID={props.testID}
+      label={label}
+      accessibilityLabel={label}
+      accessible
+      accessibilityRole="button"
+    />
+  ) : (
+    <ButtonAnimated
+      style={tw.style(
+        'items-center justify-center bg-transparent w-full px-2 py-1',
+      )}
+      testID={props.testID}
+      accessibilityLabel={label}
+      accessible
+      accessibilityRole="button"
+      {...props}
+    >
+      <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
+      {label && (
+        <MMText
+          variant={TextVariant.BodyXSMedium}
+          color={isActive ? TextColor.Default : TextColor.Alternative}
+          style={tw.style('mt-1 w-full flex-shrink-0 text-center min-w-0')}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {label}
+        </MMText>
+      )}
+    </ButtonAnimated>
   );
 };
 

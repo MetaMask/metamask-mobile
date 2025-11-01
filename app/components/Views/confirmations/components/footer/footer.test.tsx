@@ -16,6 +16,14 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { merge } from 'lodash';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
+import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -25,6 +33,16 @@ jest.mock('../../hooks/useConfirmActions', () => ({
     onReject: mockRejectSpy,
   }),
 }));
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
@@ -50,6 +68,8 @@ jest.mock('../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: jest.fn(),
 }));
 
+jest.mock('../../hooks/pay/useIsTransactionPayLoading');
+
 const mockTrackAlertMetrics = jest.fn();
 
 (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
@@ -70,19 +90,30 @@ const mockAlerts = [
 
 describe('Footer', () => {
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
+
   beforeEach(() => {
     jest.clearAllMocks();
+
     mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: true,
       isTransactionValueUpdating: false,
+      setIsFooterVisible: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
+
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
       hasDangerAlerts: false,
     });
+
     (useAlertsConfirmed as jest.Mock).mockReturnValue({
       hasUnconfirmedDangerAlerts: false,
     });
+
+    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: false });
   });
 
   it('should render correctly', () => {
@@ -116,7 +147,7 @@ describe('Footer', () => {
 
   it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isQRSigningInProgress: true,
+      isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -170,10 +201,12 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
-  it('disables confirm button if there is a blocker alert', () => {
+  it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: true,
       isTransactionValueUpdating: true,
       setIsTransactionValueUpdating: jest.fn(),
+      setIsFooterVisible: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -181,6 +214,68 @@ describe('Footer', () => {
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
+  });
+
+  it('disables confirm button if quotes are loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        confirmationMetrics: {
+          isTransactionBridgeQuotesLoadingById: {
+            [transactionIdMock]: true,
+          },
+        },
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('hides footer when isFooterVisible is false', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: false,
+      isTransactionValueUpdating: false,
+      setIsTransactionValueUpdating: jest.fn(),
+      setIsFooterVisible: jest.fn(),
+    });
+
+    const { queryByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(
+      queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders predict claim footer if transaction type matches', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: merge({}, stakingDepositConfirmationState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type: TransactionType.predictClaim,
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+
+    expect(getByTestId('predict-claim-footer')).toBeDefined();
   });
 
   describe('Confirm Alert Modal', () => {
@@ -296,6 +391,25 @@ describe('Footer', () => {
         state: personalSignatureConfirmationState,
       });
       expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders standard button label even if alerts if quotes loading', async () => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        ...baseMockUseAlerts,
+        hasUnconfirmedDangerAlerts: true,
+      });
+
+      useIsTransactionPayLoadingMock.mockReturnValue({ isLoading: true });
+
+      const { getByText } = renderWithProvider(<Footer />, {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+        ),
+      });
+
+      expect(getByText('Confirm')).toBeDefined();
     });
   });
 });

@@ -34,6 +34,7 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
+import NavigationService from '../NavigationService';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -132,6 +133,7 @@ export class SDKConnect {
     originatorInfo,
     initialConnection,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+    hideReturnToApp,
   }: ConnectionProps) {
     return connectToChannel({
       id,
@@ -143,6 +145,7 @@ export class SDKConnect {
       validUntil,
       initialConnection,
       instance: this,
+      hideReturnToApp,
     });
   }
 
@@ -354,20 +357,18 @@ export class SDKConnect {
     return this.state.connections;
   }
 
-  public async init({
-    navigation,
-    context,
-  }: {
-    navigation: NavigationContainerRef;
-    context?: string;
-  }) {
+  public static async init({ context }: { context?: string }) {
+    const navigation = NavigationService.navigation;
+    const instance = SDKConnect.getInstance();
+
     analytics.setGlobalProperty('platform', 'mobile');
     analytics.enable();
-    return init({ navigation, context, instance: this });
+    await init({ navigation, context, instance });
+    await instance.postInit();
   }
 
-  async postInit(callback?: () => void) {
-    return postInit(this, callback);
+  async postInit() {
+    return postInit(this);
   }
 
   hasInitialized() {

@@ -60,6 +60,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
       <DSText
         variant={TextVariant.BodyMDMedium}
         testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
+        numberOfLines={1}
       >
         {accountName}
       </DSText>

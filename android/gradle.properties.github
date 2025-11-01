@@ -1,0 +1,56 @@
+# GitHub Actions-specific Gradle settings
+# High-performance settings for 64GB/16CPU runners
+
+# JVM configuration - high-performance for GitHub Actions
+org.gradle.jvmargs=-Xmx32g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=32m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
+
+# Enable all performance optimizations for GitHub Actions
+org.gradle.parallel=true
+org.gradle.configureondemand=true
+org.gradle.caching=true
+org.gradle.daemon=true
+org.gradle.workers.max=12
+org.gradle.vfs.watch=true
+
+# CI-specific optimizations - enabled for GitHub Actions
+kotlin.incremental=true
+kotlin.incremental.android=true
+kotlin.caching.enabled=true
+
+# File system optimizations
+org.gradle.vfs.verbose=false
+org.gradle.welcome=NEVER
+
+# AndroidX package structure to make it clearer which packages are bundled with the
+# Android operating system, and which are packaged with your app's APK
+# https://developer.android.com/topic/libraries/support-library/androidx-rn
+android.useAndroidX=true
+android.enableJetifier=true
+
+# Enable AAPT2 PNG crunching
+android.enablePngCrunchInReleaseBuilds=true
+
+# TODO: favour arch options here over cli options
+# replace them
+# Use this property to specify which architecture you want to build.
+# You can also override it from the CLI using
+# ./gradlew <task> -PreactNativeArchitectures=x86_64
+reactNativeArchitectures=x86_64
+
+# Use this property to enable support to the new architecture.
+# This will allow you to use TurboModules and the Fabric render in
+# your application. You should enable this flag either if you want
+# to write custom TurboModules/Fabric components OR use libraries that
+# are providing them.
+newArchEnabled=true
+
+# Use this property to enable or disable the Hermes JS engine.
+# If set to false, you will be using JSC instead.
+hermesEnabled=true
+
+# TODO: explain following config options
+# Some of these are depreceated in RN 0.72.15 but when removed the app won't build
+android.disableResourceValidation=true
+
+# Use legacy packaging to compress native libraries in the resulting APK.
+expo.useLegacyPackaging=false 

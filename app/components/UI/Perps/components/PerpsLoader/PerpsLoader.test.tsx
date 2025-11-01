@@ -85,7 +85,7 @@ describe('PerpsLoader', () => {
       'Initializing...',
       'Loading positions...',
       'Fetching market data...',
-      'Connecting to HyperLiquid...',
+      'Connecting to Perps...',
     ];
 
     messages.forEach((message) => {

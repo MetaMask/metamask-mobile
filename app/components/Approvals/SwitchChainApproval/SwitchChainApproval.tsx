@@ -5,10 +5,18 @@ import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { useDispatch, useSelector } from 'react-redux';
-import Engine from '../../../core/Engine';
-import { selectIsAllNetworks } from '../../../selectors/networkController';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 const SwitchChainApproval = () => {
   const {
@@ -19,48 +27,69 @@ const SwitchChainApproval = () => {
   } = useApprovalRequest();
 
   const dispatch = useDispatch();
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
+
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+
+  const caip25CaveatValue =
+    approvalRequest?.requestData?.diff?.permissionDiffMap?.[
+      Caip25EndowmentPermissionName
+    ]?.[Caip25CaveatType];
+
+  const permittedEthChainIds = caip25CaveatValue
+    ? getPermittedEthChainIds(caip25CaveatValue)
+    : [];
+
+  // This approval view only handles one chainId added to permissions at a time, and the permissionDiffMap should only contain one chainId
+  const chainId = permittedEthChainIds[0];
 
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
 
-    // If portfolio view is enabled should set network filter
-    if (isPortfolioViewEnabled()) {
-      const { PreferencesController } = Engine.context;
-      PreferencesController.setTokenNetworkFilter({
-        ...(isAllNetworks ? tokenNetworkFilter : {}),
-        [approvalRequest?.requestData?.chainId]: true,
-      });
+    // If remove global network selector is enabled should set network filter
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId);
     }
 
     dispatch(
       networkSwitched({
-        networkUrl: approvalRequest?.requestData?.rpcUrl,
+        networkUrl: approvalRequest?.requestData?.metadata?.rpcUrl,
         networkStatus: true,
       }),
     );
-  }, [
-    approvalRequest,
-    defaultOnConfirm,
-    dispatch,
-    isAllNetworks,
-    tokenNetworkFilter,
-  ]);
+  }, [approvalRequest, defaultOnConfirm, dispatch, selectNetwork, chainId]);
 
-  if (approvalRequest?.type !== ApprovalTypes.SWITCH_ETHEREUM_CHAIN)
-    return null;
+  if (
+    approvalRequest?.requestData?.diff?.permissionDiffMap?.[
+      Caip25EndowmentPermissionName
+    ] ||
+    // TODO: Revisit removing this when we DRY the addEthereumChain and switchEthereumChain handlers into core
+    approvalRequest?.type === ApprovalTypes.SWITCH_ETHEREUM_CHAIN
+  ) {
+    const customNetworkInformation = {
+      chainId,
+      chainName: evmNetworkConfigurations[chainId]?.name,
+    };
 
-  return (
-    <ApprovalModal isVisible onCancel={onReject}>
-      <SwitchCustomNetwork
-        onCancel={onReject}
-        onConfirm={onConfirm}
-        currentPageInformation={pageMeta}
-        customNetworkInformation={approvalRequest?.requestData}
-      />
-    </ApprovalModal>
-  );
+    return (
+      <ApprovalModal isVisible onCancel={onReject}>
+        <SwitchCustomNetwork
+          onCancel={onReject}
+          onConfirm={onConfirm}
+          currentPageInformation={pageMeta}
+          customNetworkInformation={customNetworkInformation}
+        />
+      </ApprovalModal>
+    );
+  }
+  return null;
 };
 
 export default SwitchChainApproval;

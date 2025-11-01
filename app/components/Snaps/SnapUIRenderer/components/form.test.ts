@@ -8,6 +8,10 @@ import {
   Selector,
   SelectorOption,
   Card,
+  RadioGroup,
+  Radio,
+  Dropdown,
+  Option,
 } from '@metamask/snaps-sdk/jsx';
 import Engine from '../../../../core/Engine/Engine';
 import { fireEvent } from '@testing-library/react-native';
@@ -59,6 +63,26 @@ describe('SnapUIForm', () => {
               }),
             }),
             Field({
+              label: 'My Radio Group',
+              children: RadioGroup({
+                name: 'radio',
+                children: [
+                  Radio({ value: 'option1', children: 'Radio 1' }),
+                  Radio({ value: 'option2', children: 'Radio 2' }),
+                ],
+              }),
+            }),
+            Field({
+              label: 'My Dropdown',
+              children: Dropdown({
+                name: 'dropdown',
+                children: [
+                  Option({ value: 'option1', children: 'Dropdown 1' }),
+                  Option({ value: 'option2', children: 'Dropdown 2' }),
+                ],
+              }),
+            }),
+            Field({
               label: 'My Selector',
               children: Selector({
                 name: 'selector',
@@ -89,7 +113,11 @@ describe('SnapUIForm', () => {
           ],
         }),
       }),
-      { state: { form: { selector: 'option1' } } },
+      {
+        state: {
+          form: { radio: 'option1', dropdown: 'option1', selector: 'option1' },
+        },
+      },
     );
 
     const input = getByTestId('input-snap-ui-input');
@@ -98,7 +126,12 @@ describe('SnapUIForm', () => {
     expect(
       mockEngine.context.SnapInterfaceController.updateInterfaceState,
     ).toHaveBeenNthCalledWith(1, MOCK_INTERFACE_ID, {
-      form: { input: 'abc', selector: 'option1' },
+      form: {
+        input: 'abc',
+        radio: 'option1',
+        dropdown: 'option1',
+        selector: 'option1',
+      },
     });
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
@@ -125,7 +158,13 @@ describe('SnapUIForm', () => {
     expect(
       mockEngine.context.SnapInterfaceController.updateInterfaceState,
     ).toHaveBeenNthCalledWith(2, MOCK_INTERFACE_ID, {
-      form: { input: 'abc', checkbox: true, selector: 'option1' },
+      form: {
+        input: 'abc',
+        checkbox: true,
+        dropdown: 'option1',
+        radio: 'option1',
+        selector: 'option1',
+      },
     });
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
@@ -155,7 +194,13 @@ describe('SnapUIForm', () => {
     expect(
       mockEngine.context.SnapInterfaceController.updateInterfaceState,
     ).toHaveBeenNthCalledWith(3, MOCK_INTERFACE_ID, {
-      form: { input: 'abc', checkbox: true, selector: 'option2' },
+      form: {
+        input: 'abc',
+        checkbox: true,
+        dropdown: 'option1',
+        radio: 'option1',
+        selector: 'option2',
+      },
     });
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
@@ -180,11 +225,88 @@ describe('SnapUIForm', () => {
       },
     );
 
+    const dropdown = getByText('Dropdown 1');
+    fireEvent.press(dropdown);
+
+    const dropdownItem = getByText('Dropdown 2');
+    fireEvent.press(dropdownItem);
+
+    expect(
+      mockEngine.context.SnapInterfaceController.updateInterfaceState,
+    ).toHaveBeenNthCalledWith(4, MOCK_INTERFACE_ID, {
+      form: {
+        input: 'abc',
+        checkbox: true,
+        dropdown: 'option2',
+        radio: 'option1',
+        selector: 'option2',
+      },
+    });
+
+    expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
+      4,
+      'SnapController:handleRequest',
+      {
+        handler: 'onUserInput',
+        origin: 'metamask',
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            event: {
+              name: 'dropdown',
+              type: 'InputChangeEvent',
+              value: 'option2',
+            },
+            id: MOCK_INTERFACE_ID,
+          },
+        },
+        snapId: MOCK_SNAP_ID,
+      },
+    );
+
+    const radioButton = getByText('Radio 2');
+    fireEvent.press(radioButton);
+
+    expect(
+      mockEngine.context.SnapInterfaceController.updateInterfaceState,
+    ).toHaveBeenNthCalledWith(5, MOCK_INTERFACE_ID, {
+      form: {
+        input: 'abc',
+        checkbox: true,
+        dropdown: 'option2',
+        radio: 'option2',
+        selector: 'option2',
+      },
+    });
+
+    expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
+      5,
+      'SnapController:handleRequest',
+      {
+        handler: 'onUserInput',
+        origin: 'metamask',
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            event: {
+              name: 'radio',
+              type: 'InputChangeEvent',
+              value: 'option2',
+            },
+            id: MOCK_INTERFACE_ID,
+          },
+        },
+        snapId: MOCK_SNAP_ID,
+      },
+    );
+
     const button = getByText('Submit');
     fireEvent.press(button);
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
-      4,
+      6,
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
@@ -202,7 +324,7 @@ describe('SnapUIForm', () => {
     );
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
-      5,
+      7,
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
@@ -217,6 +339,8 @@ describe('SnapUIForm', () => {
               value: {
                 checkbox: true,
                 input: 'abc',
+                dropdown: 'option2',
+                radio: 'option2',
                 selector: 'option2',
               },
             },

@@ -48,7 +48,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderRadius": 8,
                 "columnGap": 8,
                 "flexDirection": "row",

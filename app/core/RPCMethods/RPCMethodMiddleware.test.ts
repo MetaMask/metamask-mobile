@@ -38,7 +38,11 @@ import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   PermissionKeys,
   getCaveatSpecifications,
@@ -50,14 +54,18 @@ import { ProviderConfig } from '../../selectors/networkController';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getCaip25PermissionFromLegacyPermissions,
+  requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
-import {
-  getCaip25PermissionFromLegacyPermissions,
-  rejectOriginPendingApprovals,
-  requestPermittedChainsPermissionIncremental,
-} from '../../util/permissions';
+import { rejectOriginPendingApprovals } from '../../util/permissions';
 import { toHex } from '@metamask/controller-utils';
+
+jest.mock('@metamask/chain-agnostic-permission', () => ({
+  ...jest.requireActual('@metamask/chain-agnostic-permission'),
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
+  requestPermittedChainsPermissionIncremental: jest.fn(),
+}));
 
 jest.mock('../../util/metrics', () => ({
   trackDappViewedEvent: jest.fn(),
@@ -65,8 +73,6 @@ jest.mock('../../util/metrics', () => ({
 
 jest.mock('../../util/permissions', () => ({
   __esModule: true,
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
-  requestPermittedChainsPermissionIncremental: jest.fn(),
   rejectOriginPendingApprovals: jest.fn(),
 }));
 
@@ -95,6 +101,8 @@ jest.mock('../Engine', () => ({
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
       revokePermissions: jest.fn(),
+      grantPermissionsIncremental: jest.fn(),
+      requestPermissionsIncremental: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
@@ -182,8 +190,6 @@ function getMinimalOptions() {
     // Show autocomplete
     fromHomepage: { current: false },
     toggleUrlModal: jest.fn(),
-    // Wizard
-    wizardScrollAdjusted: { current: false },
     // For the browser
     tabId: '' as const,
     // For WalletConnect
@@ -406,7 +412,9 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('with permission middleware before', () => {
     const engine = new JsonRpcEngine();
-    const messenger = new Messenger();
+    const rootMessenger = new Messenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     const baseEoaAccount = {
       type: EthAccountType.Eoa,
       options: {},
@@ -433,10 +441,14 @@ describe('getRpcMethodMiddleware', () => {
       },
     ]);
     const permissionController = new PermissionController({
-      messenger: messenger.getRestricted({
-        name: 'PermissionController',
-        allowedActions: [],
-        allowedEvents: [],
+      messenger: new Messenger<
+        'PermissionController',
+        never,
+        never,
+        typeof rootMessenger
+      >({
+        namespace: 'PermissionController',
+        parent: rootMessenger,
       }),
       caveatSpecifications: getCaveatSpecifications({
         listAccounts: mockListAccounts,
@@ -1723,7 +1735,21 @@ describe('getRpcMethodMiddleware', () => {
 
 describe('getRpcMethodMiddlewareHooks', () => {
   const testOrigin = 'https://test.com';
-  const hooks = getRpcMethodMiddlewareHooks(testOrigin);
+  const mockUrl = { current: 'https://test.com' };
+  const mockTitle = { current: 'Test Site' };
+  const mockIcon = { current: undefined };
+  const mockAnalytics = { test: true };
+  const mockGetSource = jest.fn(() => 'test-source');
+
+  const hooks = getRpcMethodMiddlewareHooks({
+    origin: testOrigin,
+    url: mockUrl,
+    title: mockTitle,
+    icon: mockIcon,
+    analytics: mockAnalytics,
+    channelId: 'test-channel',
+    getSource: mockGetSource,
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -1804,6 +1830,10 @@ describe('getRpcMethodMiddlewareHooks', () => {
       ).toHaveBeenCalledWith({
         ...options,
         origin: testOrigin,
+        hooks: {
+          grantPermissionsIncremental: expect.any(Function),
+          requestPermissionsIncremental: expect.any(Function),
+        },
       });
     });
   });

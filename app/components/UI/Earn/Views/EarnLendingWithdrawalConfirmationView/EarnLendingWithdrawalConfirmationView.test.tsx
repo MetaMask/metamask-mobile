@@ -11,7 +11,9 @@ import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
@@ -31,6 +33,7 @@ import {
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
+import { RootState } from '../../../../../reducers';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -149,11 +152,34 @@ jest.mock('../../hooks/useEarnToken', () => ({
 }));
 
 describe('EarnLendingWithdrawalConfirmationView', () => {
-  const mockInitialState = {
+  const mockSelectedAccount =
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+      MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+    ];
+
+  const mockInitialState: DeepPartial<RootState> = {
     engine: {
       backgroundState: {
         ...backgroundState,
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        AccountTreeController: {
+          accountTree: {
+            selectedAccountGroup: 'keyring:test-wallet/ethereum',
+            wallets: {
+              'keyring:test-wallet': {
+                id: 'keyring:test-wallet',
+                groups: {
+                  'keyring:test-wallet/ethereum': {
+                    accounts: [mockSelectedAccount.id],
+                    metadata: {
+                      name: 'Test Wallet Group',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   };
@@ -293,6 +319,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -435,6 +462,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -520,6 +548,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -570,6 +599,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     ).toHaveBeenCalledWith({
       amount:
         '115792089237316195423570985008687907853269984665640564039457584007913129639935', // MaxUint256
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -614,6 +644,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '500000', // Actual amount, not MaxUint256
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -981,6 +1012,55 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('Account Display', () => {
+    it('should display account group name when available', () => {
+      const { getByText } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByText('Test Wallet Group')).toBeTruthy();
+    });
+
+    it('should display account name as fallback when account group metadata is not available', () => {
+      const stateWithoutGroupMetadata: DeepPartial<RootState> = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        accounts: [mockSelectedAccount.id],
+                        // No metadata field
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        {
+          state: stateWithoutGroupMetadata,
+        },
+      );
+
+      expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
     });
   });
 

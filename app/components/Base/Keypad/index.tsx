@@ -1,8 +1,19 @@
 import React, { useCallback } from 'react';
-import { ViewStyle, TextStyle } from 'react-native';
-import Keypad from './components';
+import { StyleSheet } from 'react-native';
+import Keypad, {
+  type KeypadButtonProps,
+  type KeypadContainerProps,
+  type KeypadDeleteButtonProps,
+} from './components';
 import { Keys } from './constants';
 import useCurrency from './useCurrency';
+import { colors } from '../../../styles/common';
+
+const styles = StyleSheet.create({
+  periodButton: {
+    backgroundColor: colors.transparent,
+  },
+});
 
 interface KeypadChangeData {
   value: string;
@@ -10,7 +21,7 @@ interface KeypadChangeData {
   pressedKey: Keys;
 }
 
-interface KeypadComponentProps {
+interface KeypadComponentProps extends Omit<KeypadContainerProps, 'children'> {
   /**
    * Function that will be called when a key is pressed with arguments `(value, key)`
    */
@@ -29,33 +40,13 @@ interface KeypadComponentProps {
    */
   value: string;
   /**
-   * Custom style for container
+   * Props for the period button
    */
-  style?: ViewStyle | ViewStyle[];
+  periodButtonProps?: Partial<KeypadButtonProps>;
   /**
-   * Custom style for digit buttons
+   * Props for the delete button
    */
-  digitButtonStyle?: ViewStyle | ViewStyle[];
-  /**
-   * Custom style for digit text
-   */
-  digitTextStyle?: TextStyle | TextStyle[];
-  /**
-   * Custom style for period button
-   */
-  periodButtonStyle?: ViewStyle | ViewStyle[];
-  /**
-   * Custom style for period text
-   */
-  periodTextStyle?: TextStyle | TextStyle[];
-  /**
-   * Custom style for delete button
-   */
-  deleteButtonStyle?: ViewStyle | ViewStyle[];
-  /**
-   * Custom icon for delete button
-   */
-  deleteIcon?: React.ReactNode;
+  deleteButtonProps?: Partial<KeypadDeleteButtonProps>;
 }
 
 function KeypadComponent({
@@ -63,13 +54,9 @@ function KeypadComponent({
   value,
   currency,
   decimals,
-  style,
-  digitButtonStyle,
-  digitTextStyle,
-  periodButtonStyle,
-  periodTextStyle,
-  deleteButtonStyle,
-  deleteIcon,
+  periodButtonProps,
+  deleteButtonProps,
+  ...props
 }: KeypadComponentProps): React.JSX.Element {
   const { handler, decimalSeparator } = useCurrency(currency, decimals);
 
@@ -143,118 +130,37 @@ function KeypadComponent({
   );
 
   return (
-    <Keypad style={style}>
+    <Keypad {...props}>
       <Keypad.Row>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress1}
-          accessibilityRole="button"
-          accessible
-        >
-          1
-        </Keypad.Button>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress2}
-          accessibilityRole="button"
-          accessible
-        >
-          2
-        </Keypad.Button>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress3}
-          accessibilityRole="button"
-          accessible
-        >
-          3
-        </Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress1}>1</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress2}>2</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress3}>3</Keypad.Button>
+      </Keypad.Row>
+      <Keypad.Row>
+        <Keypad.Button onPress={handleKeypadPress4}>4</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress5}>5</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress6}>6</Keypad.Button>
+      </Keypad.Row>
+      <Keypad.Row>
+        <Keypad.Button onPress={handleKeypadPress7}>7</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress8}>8</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
         <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress4}
-          accessibilityRole="button"
-          accessible
-        >
-          4
-        </Keypad.Button>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress5}
-          accessibilityRole="button"
-          accessible
-        >
-          5
-        </Keypad.Button>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress6}
-          accessibilityRole="button"
-          accessible
-        >
-          6
-        </Keypad.Button>
-      </Keypad.Row>
-      <Keypad.Row>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress7}
-          accessibilityRole="button"
-          accessible
-        >
-          7
-        </Keypad.Button>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress8}
-          accessibilityRole="button"
-          accessible
-        >
-          8
-        </Keypad.Button>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress9}
-          accessibilityRole="button"
-          accessible
-        >
-          9
-        </Keypad.Button>
-      </Keypad.Row>
-      <Keypad.Row>
-        <Keypad.Button
-          style={periodButtonStyle}
-          textStyle={periodTextStyle}
           onPress={handleKeypadPressPeriod}
+          style={styles.periodButton}
+          {...periodButtonProps}
         >
           {decimalSeparator}
         </Keypad.Button>
-        <Keypad.Button
-          style={digitButtonStyle}
-          textStyle={digitTextStyle}
-          onPress={handleKeypadPress0}
-          accessibilityRole="button"
-          accessible
-        >
-          0
-        </Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
         <Keypad.DeleteButton
           testID="keypad-delete-button"
-          style={deleteButtonStyle}
-          icon={deleteIcon}
           onPress={handleKeypadPressBack}
           onLongPress={handleKeypadLongPressBack}
           delayLongPress={500}
+          {...deleteButtonProps}
         />
       </Keypad.Row>
     </Keypad>

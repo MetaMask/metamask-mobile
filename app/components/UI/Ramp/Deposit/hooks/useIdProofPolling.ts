@@ -12,13 +12,13 @@ export interface IdProofPollingResult {
 /**
  * Hook to poll for user details from the SDK
  *
- * @param kycWorkflowRunId - The ID of the KYC workflow run to poll for
+ * @param workFlowRunId - The ID of the KYC workflow run to poll for
  * @param pollingInterval - The interval in milliseconds to poll for user details
  * @param autoStart - Whether to automatically start polling
  * @param maxPollingAttempts - The maximum number of polling attempts before stopping. Set to 0 to poll indefinitely.
  */
 const useIdProofPolling = (
-  kycWorkflowRunId: string,
+  workFlowRunId: string,
   pollingInterval: number = 10000,
   autoStart: boolean = true,
   maxPollingAttempts: number = 30,
@@ -29,13 +29,13 @@ const useIdProofPolling = (
 
   const [
     { data: response, error: sdkError, isFetching: loading },
-    getKycWorkflowRunStatus,
+    getIdProofStatus,
   ] = useDepositSdkMethod(
     {
-      method: 'getKycWorkflowRunStatus',
+      method: 'getIdProofStatus',
       onMount: false,
     },
-    kycWorkflowRunId,
+    workFlowRunId,
   );
 
   const stopPolling = useCallback(() => {
@@ -51,7 +51,7 @@ const useIdProofPolling = (
     setPollingError(null);
 
     // Call immediately
-    getKycWorkflowRunStatus();
+    getIdProofStatus();
     pollCountRef.current += 1;
 
     // Set up interval
@@ -66,14 +66,9 @@ const useIdProofPolling = (
         return;
       }
 
-      getKycWorkflowRunStatus();
+      getIdProofStatus();
     }, pollingInterval);
-  }, [
-    getKycWorkflowRunStatus,
-    maxPollingAttempts,
-    pollingInterval,
-    stopPolling,
-  ]);
+  }, [getIdProofStatus, maxPollingAttempts, pollingInterval, stopPolling]);
 
   const idProofStatus = response?.status ?? null;
 

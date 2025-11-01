@@ -3,7 +3,13 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
+import {
+  DepositOrder,
+  DepositOrderType,
+  DepositCryptoCurrency,
+  DepositPaymentMethod,
+  DepositRegion,
+} from '@consensys/native-ramps-sdk';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -20,18 +26,20 @@ import {
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
   setFiatOrdersRegionDeposit,
+  setFiatOrdersCryptoCurrencyDeposit,
+  setFiatOrdersPaymentMethodDeposit,
   updateFiatCustomIdData,
   updateFiatOrder,
   updateActivationKey,
   updateOnRampNetworks,
   setFiatSellTxHash,
   removeFiatSellTxHash,
+  setDetectedGeolocation,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
-import { DepositRegion } from '../../components/UI/Ramp/Deposit/constants';
 
 interface WyreOrder {
   order: Record<string, unknown>;
@@ -59,6 +67,7 @@ export interface FiatOrder {
   orderType: OrderOrderTypeEnum | DepositOrderType; // Order type
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
+  forceUpdate?: boolean; // Force update when processing
   data: Order | WyreOrder | DepositOrder; // Original provider data
 }
 
@@ -87,12 +96,15 @@ export interface FiatOrdersState {
   networks: AggregatorNetwork[];
   selectedRegionAgg: Country | null;
   selectedRegionDeposit: DepositRegion | null;
+  selectedCryptoCurrencyDeposit: DepositCryptoCurrency | null;
+  selectedPaymentMethodDeposit: DepositPaymentMethod | null;
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
   getStartedSell: boolean;
   getStartedDeposit: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
+  detectedGeolocation?: string;
 }
 
 export const ACTIONS = {
@@ -104,6 +116,8 @@ export const ACTIONS = {
   // aggregator actions
   FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
   FIAT_SET_REGION_DEPOSIT: 'FIAT_SET_REGION_DEPOSIT',
+  FIAT_SET_CRYPTO_CURRENCY_DEPOSIT: 'FIAT_SET_CRYPTO_CURRENCY_DEPOSIT',
+  FIAT_SET_PAYMENT_METHOD_DEPOSIT: 'FIAT_SET_PAYMENT_METHOD_DEPOSIT',
   FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
   FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
   FIAT_SET_GETSTARTED_SELL: 'FIAT_SET_GETSTARTED_SELL',
@@ -119,6 +133,7 @@ export const ACTIONS = {
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
   FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
+  FIAT_SET_DETECTED_GEOLOCATION: 'FIAT_SET_DETECTED_GEOLOCATION',
 } as const;
 
 export type Action =
@@ -128,6 +143,8 @@ export type Action =
   | ReturnType<typeof updateFiatOrder>
   | ReturnType<typeof setFiatOrdersRegionAGG>
   | ReturnType<typeof setFiatOrdersRegionDeposit>
+  | ReturnType<typeof setFiatOrdersCryptoCurrencyDeposit>
+  | ReturnType<typeof setFiatOrdersPaymentMethodDeposit>
   | ReturnType<typeof setFiatOrdersPaymentMethodAGG>
   | ReturnType<typeof setFiatOrdersGetStartedAGG>
   | ReturnType<typeof setFiatOrdersGetStartedSell>
@@ -142,7 +159,8 @@ export type Action =
   | ReturnType<typeof removeActivationKey>
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
-  | ReturnType<typeof removeFiatSellTxHash>;
+  | ReturnType<typeof removeFiatSellTxHash>
+  | ReturnType<typeof setDetectedGeolocation>;
 
 export type Region = Country & State;
 

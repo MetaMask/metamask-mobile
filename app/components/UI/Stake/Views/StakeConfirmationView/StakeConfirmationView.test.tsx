@@ -1,5 +1,7 @@
 import React from 'react';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import StakeConfirmationView from './StakeConfirmationView';
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
@@ -8,6 +10,7 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
+import { RootState } from '../../../../../reducers';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -33,12 +36,31 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 
 const mockStore = configureMockStore();
 
-const mockInitialState = {
+const mockSelectedAccount =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+  ];
+
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountTreeController: {
+        accountTree: {
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
+          wallets: {
+            'keyring:test-wallet': {
+              groups: {
+                'keyring:test-wallet/ethereum': {
+                  accounts: [mockSelectedAccount.id],
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
 };

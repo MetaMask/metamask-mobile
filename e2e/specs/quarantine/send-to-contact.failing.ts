@@ -1,10 +1,10 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
@@ -21,7 +21,7 @@ import Assertions from '../../framework/Assertions';
 const fixtureServer = new FixtureServer();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeConfirmations('Send ETH'), () => {
+describe(RegressionConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
 
@@ -58,8 +58,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
   });
 
   it('should send ETH to a contact from inside the wallet', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSendButton();
+    await WalletView.tapWalletSendButton();
     await SendView.scrollToSavedAccount();
 
     await SendView.tapAccountName('Test Name 1');

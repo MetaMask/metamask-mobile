@@ -41,6 +41,11 @@ jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
+jest.mock('../../../../util/address', () => ({
+  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
+  isValidHexAddress: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../../../util/rpc-domain-utils', () => ({
   getNetworkRpcUrl: jest.fn(),
   extractRpcDomain: jest.fn(),
@@ -142,6 +147,25 @@ describe('getTransactionTypeValue', () => {
       'unknown',
     );
   });
+
+  it.each([
+    ['predict_claim', TransactionType.predictClaim],
+    ['predict_deposit', TransactionType.predictDeposit],
+    ['predict_withdraw', TransactionType.predictWithdraw],
+  ])('returns %s if nested transaction type is %s', (expected, nestedType) => {
+    const mockTransactionMeta = {
+      type: TransactionType.simpleSend,
+      nestedTransactions: [
+        {
+          type: nestedType,
+        },
+      ],
+    } as TransactionMeta;
+
+    expect(
+      getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
+    ).toBe(expected);
+  });
 });
 
 describe('generateRPCProperties', () => {
@@ -178,6 +202,7 @@ describe('generateRPCProperties', () => {
 });
 
 describe('generateDefaultTransactionMetrics', () => {
+  const FROM_ADDRESS_MOCK = '0x6D404AfE1a6A07Aa3CbcBf9Fd027671Df628ebFc';
   const mockMetametricsEvent = {
     name: 'test_event',
     category: 'test_category',
@@ -195,7 +220,7 @@ describe('generateDefaultTransactionMetrics', () => {
     userFeeLevel: 'medium',
     txParams: {
       authorizationList: [],
-      from: '0x1',
+      from: FROM_ADDRESS_MOCK,
     },
   };
 
@@ -212,7 +237,7 @@ describe('generateDefaultTransactionMetrics', () => {
         confirmationMetrics: {
           metricsById: mockMetricsById,
         },
-      } as unknown as RootState),
+      }) as unknown as RootState,
   );
 
   const mockEventHandlerRequest: Partial<TransactionEventHandlerRequest> = {
@@ -244,8 +269,10 @@ describe('generateDefaultTransactionMetrics', () => {
       metametricsEvent: mockMetametricsEvent,
       properties: {
         account_eip7702_upgraded: undefined,
+        account_type: 'MetaMask',
         additional_property: 'test_value',
         chain_id: '0x1',
+        dapp_host_name: 'N/A',
         eip7702_upgrade_transaction: false,
         gas_estimation_failed: false,
         gas_fee_presented: expect.any(Array),
@@ -258,10 +285,7 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_type: 'simple_send',
       },
       sensitiveProperties: {
-        from_address: '0x1',
         sensitive_data: 'sensitive_value',
-        to_address: undefined,
-        value: undefined,
       },
     });
   });
@@ -283,7 +307,9 @@ describe('generateDefaultTransactionMetrics', () => {
       metametricsEvent: mockMetametricsEvent,
       properties: {
         account_eip7702_upgraded: undefined,
+        account_type: 'MetaMask',
         chain_id: '0x1',
+        dapp_host_name: 'N/A',
         eip7702_upgrade_transaction: false,
         gas_estimation_failed: false,
         gas_fee_presented: expect.any(Array),
@@ -294,11 +320,6 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_envelope_type: undefined,
         transaction_internal_id: 'test-id-123',
         transaction_type: 'simple_send',
-      },
-      sensitiveProperties: {
-        from_address: '0x1',
-        to_address: undefined,
-        value: undefined,
       },
     });
   });
@@ -517,16 +538,19 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
         account_eip7702_upgraded: undefined,
+        account_type: 'MetaMask',
         api_method: 'wallet_sendCalls',
         batch_transaction_count: 2,
         batch_transaction_method: 'eip7702',
         chain_id: '0xaa36a7',
+        dapp_host_name: 'metamask.github.io',
         eip7702_upgrade_transaction: true,
+        error: undefined,
         gas_estimation_failed: true,
         gas_fee_presented: ['custom'],
         gas_fee_selected: undefined,
@@ -550,13 +574,16 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
         account_eip7702_upgraded: undefined,
+        account_type: 'MetaMask',
         chain_id: '0xaa36a7',
+        dapp_host_name: 'metamask',
         eip7702_upgrade_transaction: true,
+        error: undefined,
         gas_estimation_failed: true,
         gas_fee_presented: ['custom'],
         gas_fee_selected: undefined,
@@ -585,14 +612,17 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
         account_eip7702_upgraded: undefined,
+        account_type: 'MetaMask',
         chain_id: '0xaa36a7',
+        dapp_host_name: 'metamask',
         eip7702_upgrade_rejection: true,
         eip7702_upgrade_transaction: true,
+        error: undefined,
         gas_estimation_failed: true,
         gas_fee_presented: ['custom'],
         gas_fee_selected: undefined,
@@ -615,16 +645,19 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [batchApprovalConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
         account_eip7702_upgraded: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
+        account_type: 'MetaMask',
         api_method: 'wallet_sendCalls',
         batch_transaction_count: 2,
         batch_transaction_method: 'eip7702',
         chain_id: '0x1',
+        dapp_host_name: 'jumper123.exchange',
         eip7702_upgrade_transaction: false,
+        error: undefined,
         gas_estimation_failed: false,
         gas_fee_presented: ['custom', 'low', 'medium', 'high'],
         gas_fee_selected: 'medium',

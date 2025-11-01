@@ -162,7 +162,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#b7bbc8"
+                    color="#686e7d"
                     fill="currentColor"
                     height={16}
                     name="Question"
@@ -216,7 +216,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                   }
                   testID="label"
                 >
-                  1 to 11 days
+                  1 to 44 days
                 </Text>
               </View>
             </View>
@@ -652,7 +652,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

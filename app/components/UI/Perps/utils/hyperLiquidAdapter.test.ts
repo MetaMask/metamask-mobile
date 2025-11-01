@@ -4,6 +4,7 @@
 
 import {
   adaptOrderToSDK,
+  adaptOrderFromSDK,
   adaptPositionFromSDK,
   adaptMarketFromSDK,
   adaptAccountStateFromSDK,
@@ -14,12 +15,13 @@ import {
 } from './hyperLiquidAdapter';
 import type { OrderParams } from '../controllers/types';
 import type {
-  PerpsClearinghouseState,
   AssetPosition,
-  SpotClearinghouseState,
-} from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
-import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
-import { SpotBalance } from '@deeeed/hyperliquid-node20';
+  SpotBalance,
+  ClearinghouseStateResponse,
+  SpotClearinghouseStateResponse,
+  PerpsUniverse,
+  FrontendOrder,
+} from '../types/hyperliquid-types';
 
 // Mock the isHexString utility
 jest.mock('@metamask/utils', () => ({
@@ -54,8 +56,8 @@ describe('hyperLiquidAdapter', () => {
         p: '0', // market order price
         s: '0.1', // size
         r: false, // not reduce only
-        t: { limit: { tif: 'Ioc' } }, // market order type
-        c: null, // no client order ID
+        t: { limit: { tif: 'FrontendMarket' } }, // market order type
+        c: undefined, // no client order ID
       });
     });
 
@@ -108,7 +110,7 @@ describe('hyperLiquidAdapter', () => {
 
       const result = adaptOrderToSDK(order, coinToAssetId);
 
-      expect(result.c).toBeNull();
+      expect(result.c).toBeUndefined();
     });
 
     it('should throw error for unknown coin', () => {
@@ -120,8 +122,498 @@ describe('hyperLiquidAdapter', () => {
       };
 
       expect(() => adaptOrderToSDK(order, coinToAssetId)).toThrow(
-        'Unknown asset: UNKNOWN',
+        'Asset UNKNOWN not found in asset mapping',
       );
+    });
+  });
+
+  describe('adaptOrderFromSDK', () => {
+    it('should convert basic buy order from SDK', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 12345,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.5',
+        origSz: '1.0',
+        limitPx: '50000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '12345',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.5',
+        originalSize: '1.0',
+        price: '50000',
+        filledSize: '0.5',
+        remainingSize: '0.5',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+      });
+    });
+
+    it('should convert sell order from SDK', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 54321,
+        coin: 'ETH',
+        side: 'A',
+        sz: '2.0',
+        origSz: '2.0',
+        limitPx: '3000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: true,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '54321',
+        symbol: 'ETH',
+        side: 'sell',
+        orderType: 'limit',
+        size: '2.0',
+        originalSize: '2.0',
+        price: '3000',
+        filledSize: '0',
+        remainingSize: '2.0',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: true,
+      });
+    });
+
+    it('should handle market order', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 99999,
+        coin: 'SOL',
+        side: 'B',
+        sz: '10',
+        origSz: '10',
+        orderType: 'Market',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        limitPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '99999',
+        symbol: 'SOL',
+        side: 'buy',
+        orderType: 'market',
+        size: '10',
+        originalSize: '10',
+        price: '0',
+        filledSize: '0',
+        remainingSize: '10',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Market',
+        isTrigger: false,
+        reduceOnly: false,
+      });
+    });
+
+    it('should handle trigger order with triggerPx', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 11111,
+        coin: 'AVAX',
+        side: 'A',
+        sz: '5',
+        origSz: '5',
+        triggerPx: '25.50',
+        orderType: 'Stop Market',
+        timestamp: 1234567890000,
+        isTrigger: true,
+        reduceOnly: true,
+        triggerCondition: '',
+        limitPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '11111',
+        symbol: 'AVAX',
+        side: 'sell',
+        orderType: 'market',
+        size: '5',
+        originalSize: '5',
+        price: '25.50',
+        filledSize: '0',
+        remainingSize: '5',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Stop Market',
+        isTrigger: true,
+        reduceOnly: true,
+      });
+    });
+
+    it('converts order with child orders including TP and SL order IDs', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 22222,
+        coin: 'UNI',
+        side: 'B',
+        sz: '100',
+        origSz: '100',
+        limitPx: '10',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [
+          {
+            oid: 22223,
+            coin: 'UNI',
+            side: 'A',
+            sz: '100',
+            origSz: '100',
+            triggerPx: '12',
+            orderType: 'Take Profit Market',
+            timestamp: 1234567890001,
+            isTrigger: true,
+            reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
+          },
+          {
+            oid: 22224,
+            coin: 'UNI',
+            side: 'A',
+            sz: '100',
+            origSz: '100',
+            triggerPx: '8',
+            orderType: 'Stop Market',
+            timestamp: 1234567890002,
+            isTrigger: true,
+            reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
+          },
+        ],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '22222',
+        symbol: 'UNI',
+        side: 'buy',
+        orderType: 'limit',
+        size: '100',
+        originalSize: '100',
+        price: '10',
+        filledSize: '0',
+        remainingSize: '100',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+        takeProfitPrice: '12',
+        takeProfitOrderId: '22223',
+        stopLossPrice: '8',
+        stopLossOrderId: '22224',
+      });
+    });
+
+    it('should handle partially filled order', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 33333,
+        coin: 'LINK',
+        side: 'B',
+        sz: '30',
+        origSz: '100',
+        limitPx: '15',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '33333',
+        symbol: 'LINK',
+        side: 'buy',
+        orderType: 'limit',
+        size: '30',
+        originalSize: '100',
+        price: '15',
+        filledSize: '70', // 100 - 30
+        remainingSize: '30',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+      });
+    });
+
+    it('should handle order without origSz', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 44444,
+        coin: 'MATIC',
+        side: 'A',
+        sz: '500',
+        limitPx: '1.2',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        origSz: '500',
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '44444',
+        symbol: 'MATIC',
+        side: 'sell',
+        orderType: 'limit',
+        size: '500',
+        originalSize: '500', // Uses sz as default
+        price: '1.2',
+        filledSize: '0',
+        remainingSize: '500',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+      });
+    });
+
+    it('should determine order type from orderType string', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 55555,
+        coin: 'DOT',
+        side: 'B',
+        sz: '20',
+        origSz: '20',
+        orderType: 'Limit', // 'Limit at 5.5' is not a valid OrderType
+        limitPx: '5.5',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.orderType).toBe('limit');
+      expect(result.price).toBe('5.5');
+    });
+
+    it('converts child order with limitPx instead of triggerPx', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 66666,
+        coin: 'ADA',
+        side: 'B',
+        sz: '1000',
+        origSz: '1000',
+        limitPx: '0.5',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [
+          {
+            oid: 66667,
+            coin: 'ADA',
+            side: 'A',
+            sz: '1000',
+            origSz: '1000',
+            limitPx: '0.6', // Using limitPx instead of triggerPx
+            orderType: 'Take Profit Limit',
+            timestamp: 1234567890001,
+            isTrigger: true,
+            reduceOnly: true,
+            triggerCondition: '',
+            triggerPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
+          },
+        ],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBe('0.6');
+      expect(result.takeProfitOrderId).toBe('66667');
+      expect(result.stopLossPrice).toBeUndefined();
+      expect(result.stopLossOrderId).toBeUndefined();
+    });
+
+    it('converts order with only take profit child order', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 77777,
+        coin: 'BNB',
+        side: 'B',
+        sz: '50',
+        origSz: '50',
+        limitPx: '300',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [
+          {
+            oid: 77778,
+            coin: 'BNB',
+            side: 'A',
+            sz: '50',
+            origSz: '50',
+            triggerPx: '350',
+            orderType: 'Take Profit Market',
+            timestamp: 1234567890001,
+            isTrigger: true,
+            reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
+          },
+        ],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBe('350');
+      expect(result.takeProfitOrderId).toBe('77778');
+      expect(result.stopLossPrice).toBeUndefined();
+      expect(result.stopLossOrderId).toBeUndefined();
+    });
+
+    it('converts order with only stop loss child order', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 88888,
+        coin: 'XRP',
+        side: 'B',
+        sz: '1000',
+        origSz: '1000',
+        limitPx: '0.5',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [
+          {
+            oid: 88889,
+            coin: 'XRP',
+            side: 'A',
+            sz: '1000',
+            origSz: '1000',
+            triggerPx: '0.4',
+            orderType: 'Stop Market',
+            timestamp: 1234567890001,
+            isTrigger: true,
+            reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
+          },
+        ],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBeUndefined();
+      expect(result.takeProfitOrderId).toBeUndefined();
+      expect(result.stopLossPrice).toBe('0.4');
+      expect(result.stopLossOrderId).toBe('88889');
     });
   });
 
@@ -166,6 +658,8 @@ describe('hyperLiquidAdapter', () => {
           sinceOpen: '50',
           sinceChange: '25',
         },
+        takeProfitCount: 0,
+        stopLossCount: 0,
       });
     });
   });
@@ -216,7 +710,7 @@ describe('hyperLiquidAdapter', () => {
 
   describe('adaptAccountStateFromSDK', () => {
     it('should convert account state with perps only', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '1000.50',
           totalMarginUsed: '300.25',
@@ -243,7 +737,7 @@ describe('hyperLiquidAdapter', () => {
               unrealizedPnl: '50.0',
               returnOnEquity: '0.1',
               liquidationPx: '40000',
-              marginUsed: '25000',
+              marginUsed: '250',
               maxLeverage: 100,
               cumFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
             },
@@ -259,7 +753,7 @@ describe('hyperLiquidAdapter', () => {
               unrealizedPnl: '-25.5',
               returnOnEquity: '-0.02',
               liquidationPx: '2500',
-              marginUsed: '500',
+              marginUsed: '50.25',
               maxLeverage: 50,
               cumFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
             },
@@ -272,14 +766,15 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '700.25',
-        totalBalance: '1000.5', // Perps only
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
+        returnOnEquity: '8.0', // Calculated from weighted return and margin
+        totalBalance: '1000.5', // Perps only (no spot balance provided)
       });
     });
 
     it('should convert account state with spot and perps', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '500.0',
           totalMarginUsed: '150.0',
@@ -303,7 +798,7 @@ describe('hyperLiquidAdapter', () => {
         ],
       };
 
-      const spotState: SpotClearinghouseState = {
+      const spotState: SpotClearinghouseStateResponse = {
         balances: [
           { total: '200.0' },
           { total: '300.5' },
@@ -314,14 +809,15 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '350.0',
-        totalBalance: '1000.5', // 500.0 + 200.0 + 300.5
         marginUsed: '150.0',
         unrealizedPnl: '100',
+        returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
+        totalBalance: '1000.5', // Spot (200.0 + 300.5 = 500.5) + Perps (500.0) = 1000.5
       });
     });
 
     it('should handle missing spot balances', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '1000.0',
           totalMarginUsed: '200.0',
@@ -340,7 +836,7 @@ describe('hyperLiquidAdapter', () => {
         assetPositions: [],
       };
 
-      const spotState: SpotClearinghouseState = {
+      const spotState: SpotClearinghouseStateResponse = {
         balances: [
           { total: undefined },
           {} as SpotBalance, // no total field
@@ -351,14 +847,15 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         availableBalance: '800.0',
-        totalBalance: '1000', // Spot balances default to 0
         marginUsed: '200.0',
         unrealizedPnl: '0',
+        returnOnEquity: '0.0',
+        totalBalance: '1000', // Perps only (spot balances array is empty)
       });
     });
 
     it('should handle empty asset positions', () => {
-      const perpsState: PerpsClearinghouseState = {
+      const perpsState: ClearinghouseStateResponse = {
         crossMarginSummary: {
           accountValue: '1000.0',
           totalMarginUsed: '0',
@@ -391,7 +888,10 @@ describe('hyperLiquidAdapter', () => {
         { name: 'SOL', szDecimals: 3, maxLeverage: 20, marginTableId: 3 },
       ];
 
-      const result = buildAssetMapping(metaUniverse);
+      const result = buildAssetMapping({
+        metaUniverse,
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.get('BTC')).toBe(0);
       expect(result.coinToAssetId.get('ETH')).toBe(1);
@@ -403,7 +903,10 @@ describe('hyperLiquidAdapter', () => {
     });
 
     it('should handle empty universe', () => {
-      const result = buildAssetMapping([]);
+      const result = buildAssetMapping({
+        metaUniverse: [],
+        perpDexIndex: 0,
+      });
 
       expect(result.coinToAssetId.size).toBe(0);
       expect(result.assetIdToCoin.size).toBe(0);

@@ -17,9 +17,8 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager, Alert } from 'react-native';
+import { InteractionManager, Alert, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
-import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -38,6 +37,8 @@ import {
   trace,
   endTrace,
 } from '../../../util/trace';
+import type { Span } from '@sentry/core';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -52,7 +53,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('lottie-react-native', () => 'LottieView');
+jest.mock('./FoxRiveLoaderAnimation/FoxRiveLoaderAnimation');
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
@@ -84,6 +85,7 @@ jest.mock('../../../core/Authentication', () => ({
 jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
@@ -92,12 +94,16 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
+const mockEnable = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
+    enable: mockEnable,
   }),
 }));
+
+const mockSetDataCollectionForMarketing = jest.fn();
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
@@ -151,6 +157,7 @@ interface ChoosePasswordProps {
   metrics: {
     isEnabled: jest.Mock;
   };
+  setDataCollectionForMarketing: jest.Mock;
 }
 
 const mockNavigation = {
@@ -171,11 +178,17 @@ const renderWithProviders = (ui: React.ReactElement) =>
   );
 
 const defaultProps: ChoosePasswordProps = {
-  route: { params: { [ONBOARDING]: true, [PROTECT]: true } },
+  route: {
+    params: {
+      [ONBOARDING]: true,
+      [PROTECT]: true,
+    },
+  },
   navigation: mockNavigation,
   metrics: {
     isEnabled: mockMetricsIsEnabled,
   },
+  setDataCollectionForMarketing: mockSetDataCollectionForMarketing,
 };
 
 describe('ChoosePassword', () => {
@@ -195,6 +208,14 @@ describe('ChoosePassword', () => {
 
   it('render loading state while creating password', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(true);
+    jest.spyOn(Device, 'isMediumDevice').mockReturnValue(true);
+    const spyUpdateMarketingOptInStatus = jest.spyOn(
+      OAuthLoginService,
+      'updateMarketingOptInStatus',
+    );
+
+    spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
     const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
@@ -236,12 +257,153 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Check if title text is rendered correctly for loading state
-    const loadingTitle = component.getByText(
-      strings('secure_your_wallet.creating_password'),
-    );
-    expect(loadingTitle).toBeTruthy();
+    // Now using FoxRiveLoaderAnimation which shows "Setting up your wallet..."
     jest.spyOn(Device, 'isIos').mockRestore();
+    jest.spyOn(Device, 'isMediumDevice').mockRestore();
+  });
+
+  it('renders FoxRiveLoaderAnimation component with correct props in loading state', async () => {
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByRole('button', {
+      name: strings('choose_password.create_password_cta'),
+    });
+
+    // Fill form and submit to trigger loading state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'Test123456!');
+      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      fireEvent.press(checkbox);
+    });
+
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    // Verify FoxRiveLoaderAnimation component is rendered
+    const animationComponent = component.getByTestId(
+      'fox-rive-loader-animation',
+    );
+    expect(animationComponent).toBeTruthy();
+  });
+
+  it('applies loadingWrapper styles when in loading state', async () => {
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByRole('button', {
+      name: strings('choose_password.create_password_cta'),
+    });
+
+    // Fill form and submit to trigger loading state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'Test123456!');
+      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      fireEvent.press(checkbox);
+    });
+
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    // Verify loading wrapper is present (contains the animation)
+    const animationComponent = component.getByTestId(
+      'fox-rive-loader-animation',
+    );
+    expect(animationComponent.parent).toBeTruthy();
+
+    expect(() =>
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toThrow();
+  });
+
+  it('toggles between loading and normal state correctly', async () => {
+    // Mock Authentication.newWalletAndKeychain to control loading state
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+
+    let resolveWalletCreation: () => void;
+    const walletCreationPromise = new Promise<void>((resolve) => {
+      resolveWalletCreation = resolve;
+    });
+
+    mockNewWalletAndKeychain.mockReturnValue(walletCreationPromise);
+
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Initially should show normal form
+    expect(
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toBeTruthy();
+    expect(() => component.getByTestId('fox-rive-loader-animation')).toThrow();
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByRole('button', {
+      name: strings('choose_password.create_password_cta'),
+    });
+
+    // Fill form and submit to trigger loading state
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'Test123456!');
+      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      fireEvent.press(checkbox);
+    });
+
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    expect(component.getByTestId('fox-rive-loader-animation')).toBeTruthy();
+    expect(() =>
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toThrow();
+
+    // Complete wallet creation to exit loading state
+    await act(async () => {
+      resolveWalletCreation();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    mockNewWalletAndKeychain.mockRestore();
   });
 
   it('error message is shown when passwords do not match', async () => {
@@ -359,9 +521,6 @@ describe('ChoosePassword', () => {
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
     );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
-    );
 
     // Component should render without errors
     expect(component).toBeTruthy();
@@ -410,12 +569,9 @@ describe('ChoosePassword', () => {
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
     );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
-    );
   });
 
-  it('create a password and navigate to AccountBackupStep1', async () => {
+  it('create a password and navigate to ManualBackupStep1', async () => {
     // Mock Authentication.newWalletAndKeychain to resolve quickly to trigger loading state
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
@@ -489,13 +645,18 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Wait a moment for the loading state to be set and componentDidUpdate to be called
+    // Wait for loading state to be set and animation to complete
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(mockNavigation.replace).toHaveBeenCalledWith('AccountBackupStep1', {
-      seedPhrase: expect.any(Array),
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.replace).toHaveBeenCalledWith('ManualBackupStep1', {
+        seedPhrase: expect.any(Array),
+        backupFlow: false,
+        settingsBackup: false,
+      });
     });
 
     // // Clean up mock
@@ -509,6 +670,7 @@ describe('ChoosePassword', () => {
       metrics: {
         isEnabled: jest.fn(),
       },
+      setDataCollectionForMarketing: jest.fn(),
     };
 
     const component = renderWithProviders(<ChoosePassword {...props} />);
@@ -569,6 +731,9 @@ describe('ChoosePassword', () => {
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
 
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
     // Use short password that will fail passwordRequirementsMet
     await act(async () => {
       fireEvent.press(checkbox);
@@ -580,7 +745,7 @@ describe('ChoosePassword', () => {
     });
 
     await act(async () => {
-      fireEvent(confirmPasswordInput, 'submitEditing');
+      fireEvent(submitButton, 'press');
     });
 
     // Should not proceed with wallet creation
@@ -613,6 +778,9 @@ describe('ChoosePassword', () => {
     const checkbox = component.getByTestId(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
 
     // Enter mismatched passwords
     await act(async () => {
@@ -625,7 +793,7 @@ describe('ChoosePassword', () => {
     });
 
     await act(async () => {
-      fireEvent(confirmPasswordInput, 'submitEditing');
+      fireEvent(submitButton, 'press');
     });
 
     // Should not proceed with wallet creation
@@ -678,6 +846,9 @@ describe('ChoosePassword', () => {
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
 
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
     await act(async () => {
       fireEvent.press(checkbox);
       fireEvent.changeText(passwordInput, 'StrongPassword123!');
@@ -688,7 +859,7 @@ describe('ChoosePassword', () => {
     });
 
     await act(async () => {
-      fireEvent(confirmPasswordInput, 'submitEditing');
+      fireEvent(submitButton, 'press');
     });
 
     // Should handle the rejection and create wallet with fallback method
@@ -724,6 +895,10 @@ describe('ChoosePassword', () => {
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
 
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
     await act(async () => {
       fireEvent.press(checkbox);
       fireEvent.changeText(passwordInput, 'StrongPassword123!');
@@ -734,7 +909,7 @@ describe('ChoosePassword', () => {
     });
 
     await act(async () => {
-      fireEvent(confirmPasswordInput, 'submitEditing');
+      fireEvent(submitButton, 'press');
     });
 
     await act(async () => {
@@ -751,6 +926,79 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to success screen when oauth2Login is true and metrics enabled', async () => {
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockResolvedValue(undefined);
+    mockMetricsIsEnabled.mockReturnValueOnce(true);
+    const spyUpdateMarketingOptInStatus = jest.spyOn(
+      OAuthLoginService,
+      'updateMarketingOptInStatus',
+    );
+
+    spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent(submitButton, 'press');
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingSuccess',
+            params: { showPasswordHint: true },
+          },
+        ],
+      });
+    });
+
+    mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('should navigate to success screen when oauth2Login is true', async () => {
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -785,6 +1033,9 @@ describe('ChoosePassword', () => {
     const checkbox = component.getByTestId(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
 
     await act(async () => {
       fireEvent.press(checkbox);
@@ -796,34 +1047,30 @@ describe('ChoosePassword', () => {
     });
 
     await act(async () => {
-      fireEvent(confirmPasswordInput, 'submitEditing');
+      fireEvent(submitButton, 'press');
     });
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(mockNavigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        {
-          name: 'OnboardingSuccess',
-          params: { showPasswordHint: true },
-        },
-      ],
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingSuccess',
+            params: { showPasswordHint: true },
+          },
+        ],
+      });
     });
 
     mockNewWalletAndKeychain.mockRestore();
   });
 
-  it('should navigate to OptinMetrics when oauth2Login is true and metrics disabled', async () => {
-    const mockNewWalletAndKeychain = jest.spyOn(
-      Authentication,
-      'newWalletAndKeychain',
-    );
-    mockNewWalletAndKeychain.mockResolvedValue(undefined);
-    mockMetricsIsEnabled.mockReturnValueOnce(false);
-
+  it('should navigate to support article when learn more link is pressed when oauth2Login is false', async () => {
     const props: ChoosePasswordProps = {
       ...defaultProps,
       route: {
@@ -831,122 +1078,34 @@ describe('ChoosePassword', () => {
         params: {
           ...defaultProps.route.params,
           [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true,
+          oauthLoginSuccess: false,
         },
       },
       navigation: mockNavigation,
     };
     const component = renderWithProviders(<ChoosePassword {...props} />);
 
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-    const confirmPasswordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    const learnMoreLink = component.getByTestId(
+      ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
     );
 
-    await act(async () => {
-      fireEvent.press(checkbox);
-      fireEvent.changeText(passwordInput, 'StrongPassword123!');
-    });
+    expect(learnMoreLink).toBeOnTheScreen();
+    expect(learnMoreLink.props.onPress).toBeDefined();
 
     await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      fireEvent.press(learnMoreLink);
     });
 
-    await act(async () => {
-      fireEvent(confirmPasswordInput, 'submitEditing');
+    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        title: 'support.metamask.io',
+      },
     });
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    });
-
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('OptinMetrics', {
-      onContinue: expect.any(Function),
-    });
-
-    mockNewWalletAndKeychain.mockRestore();
   });
 
   describe('ErrorBoundary Tests', () => {
-    it('should trigger ErrorBoundary for OAuth password creation failures when analytics disabled', async () => {
-      const loggerErrorSpy = jest.spyOn(Logger, 'error');
-      mockMetricsIsEnabled.mockReturnValueOnce(false);
-      const mockNewWalletAndKeychain = jest.spyOn(
-        Authentication,
-        'newWalletAndKeychain',
-      );
-      mockNewWalletAndKeychain
-        .mockRejectedValueOnce(
-          new Error('SeedlessOnboardingController - Auth server is down'),
-        )
-        .mockResolvedValueOnce(undefined);
-
-      const props: ChoosePasswordProps = {
-        ...defaultProps,
-        route: {
-          ...defaultProps.route,
-          params: {
-            ...defaultProps.route.params,
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-          },
-        },
-      };
-      const component = renderWithProviders(<ChoosePassword {...props} />);
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      const passwordInput = component.getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-      );
-      const confirmPasswordInput = component.getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-      );
-      const checkbox = component.getByTestId(
-        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-      );
-
-      await act(async () => {
-        fireEvent.press(checkbox);
-        fireEvent.changeText(passwordInput, 'StrongPassword123!');
-      });
-      await act(async () => {
-        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
-      });
-      await act(async () => {
-        fireEvent(confirmPasswordInput, 'submitEditing');
-      });
-
-      expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('OAuth password creation failed'),
-        }),
-        expect.objectContaining({
-          View: 'ChoosePassword',
-          ErrorBoundary: true,
-        }),
-      );
-      expect(mockTrackEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
-
-      mockNewWalletAndKeychain.mockRestore();
-    });
-
     it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
       mockMetricsIsEnabled.mockReturnValueOnce(true);
       const mockNewWalletAndKeychain = jest.spyOn(
@@ -985,6 +1144,9 @@ describe('ChoosePassword', () => {
       const checkbox = component.getByTestId(
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
       );
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
 
       await act(async () => {
         fireEvent.press(checkbox);
@@ -994,7 +1156,7 @@ describe('ChoosePassword', () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
       });
       await act(async () => {
-        fireEvent(confirmPasswordInput, 'submitEditing');
+        fireEvent(submitButton, 'press');
       });
 
       await act(async () => {
@@ -1011,7 +1173,125 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
   });
+  describe('Marketing API Integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
 
+    it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in enabled', async () => {
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+      const spyUpdateMarketingOptInStatus = jest.spyOn(
+        OAuthLoginService,
+        'updateMarketingOptInStatus',
+      );
+
+      spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProviders(
+        <ChoosePassword {...props} />,
+      );
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const createButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      const marketingCheckbox = getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test123456!');
+        fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      });
+      await act(async () => {
+        fireEvent.press(marketingCheckbox);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        fireEvent(createButton, 'press');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+    });
+
+    it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in disabled', async () => {
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+      const spyUpdateMarketingOptInStatus = jest.spyOn(
+        OAuthLoginService,
+        'updateMarketingOptInStatus',
+      );
+
+      spyUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProviders(
+        <ChoosePassword {...props} />,
+      );
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const createButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test123456!');
+        fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+      });
+      await act(async () => {
+        fireEvent(createButton, 'press');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+    });
+  });
   describe('Tracing functionality', () => {
     const mockTrace = trace as jest.MockedFunction<typeof trace>;
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
@@ -1023,8 +1303,12 @@ describe('ChoosePassword', () => {
     });
 
     it('should start and end tracing on component unmount', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = {
+        traceId: 'setup-attempt-trace-id',
+      } as unknown as Span;
 
       mockTrace.mockReturnValue(mockTraceCtx);
 
@@ -1082,8 +1366,10 @@ describe('ChoosePassword', () => {
     });
 
     it('should trace error when password creation fails', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = undefined;
       const testError = new Error('Password creation failed');
 
       mockTrace.mockReturnValue(mockTraceCtx);
@@ -1118,6 +1404,9 @@ describe('ChoosePassword', () => {
       const checkbox = component.getByTestId(
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
       );
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
 
       await act(async () => {
         fireEvent.press(checkbox);
@@ -1129,7 +1418,7 @@ describe('ChoosePassword', () => {
       });
 
       await act(async () => {
-        fireEvent(confirmPasswordInput, 'submitEditing');
+        fireEvent(submitButton, 'press');
       });
 
       await act(async () => {
@@ -1215,8 +1504,10 @@ describe('ChoosePassword', () => {
     });
 
     it('should handle successful password creation without error tracing', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = undefined;
 
       mockTrace.mockReturnValue(mockTraceCtx);
 
@@ -1292,6 +1583,207 @@ describe('ChoosePassword', () => {
       );
       expect(mockEndTrace).not.toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupError,
+      });
+    });
+
+    describe('Conditional canSubmit logic - User Experience', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should allow OAuth users to submit without marketing opt-in checkbox', async () => {
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const passwordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
+        const confirmPasswordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
+        const submitButton = component.getByTestId(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        );
+
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Test1234');
+        });
+
+        await act(async () => {
+          fireEvent.changeText(confirmPasswordInput, 'Test1234');
+        });
+
+        expect(submitButton.props.disabled).toBe(false);
+      });
+
+      it('should require marketing opt-in checkbox for non-OAuth users', async () => {
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: false,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const passwordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
+        const confirmPasswordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
+        const submitButton = component.getByTestId(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        );
+
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Test1234');
+        });
+
+        await act(async () => {
+          fireEvent.changeText(confirmPasswordInput, 'Test1234');
+        });
+
+        expect(submitButton.props.disabled).toBe(true);
+      });
+
+      it('should handle edge case where oauthLoginSuccess is undefined', async () => {
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const passwordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
+        const confirmPasswordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
+        const submitButton = component.getByTestId(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        );
+
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Test1234');
+        });
+
+        await act(async () => {
+          fireEvent.changeText(confirmPasswordInput, 'Test1234');
+        });
+
+        expect(submitButton.props.disabled).toBe(true);
+      });
+    });
+  });
+
+  describe('OAuth Login Description Text', () => {
+    it('should show iOS-specific description when Platform.OS is ios and OAuth login is successful', async () => {
+      // Mock Platform.OS to be 'ios'
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: 'ios',
+      });
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Check that iOS-specific text is rendered
+      expect(() =>
+        component.getByText(/Use this for wallet recovery/),
+      ).not.toThrow();
+
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: originalPlatform,
+      });
+    });
+
+    it('should show different text when Platform.OS is android and OAuth login is successful', async () => {
+      // Mock Platform.OS to be 'android'
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: 'android',
+      });
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Check that non-iOS text is rendered
+      expect(() =>
+        component.getByText(/If you lose this password/),
+      ).not.toThrow();
+
+      Object.defineProperty(Platform, 'OS', {
+        writable: true,
+        value: originalPlatform,
       });
     });
   });

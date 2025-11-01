@@ -31,3 +31,15 @@ export const selectSeedphraseBackedUp = (state: RootState) =>
  * Selects the existingUser state
  */
 export const selectExistingUser = (state: RootState) => state.user.existingUser;
+
+/**
+ * Selects the isConnectionRemoved state
+ */
+export const selectIsConnectionRemoved = (state: RootState) =>
+  state.user.isConnectionRemoved;
+
+/**
+ * Selects the multichainAccountsIntroModalSeen state
+ */
+export const selectMultichainAccountsIntroModalSeen = (state: RootState) =>
+  state.user?.multichainAccountsIntroModalSeen ?? false;

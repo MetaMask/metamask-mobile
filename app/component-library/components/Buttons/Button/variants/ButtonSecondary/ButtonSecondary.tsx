@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types */
 
+/**
+ * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native` with variant `ButtonVariant.Secondary`
+ */
+
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, GestureResponderEvent } from 'react-native';
@@ -22,6 +26,7 @@ const ButtonSecondary = ({
   isDanger = false,
   isInverse = false,
   label,
+  labelTextVariant = DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT,
   ...props
 }: ButtonSecondaryProps) => {
   const [pressed, setPressed] = useState(false);
@@ -84,10 +89,7 @@ const ButtonSecondary = ({
 
   const renderLabel = () =>
     typeof label === 'string' ? (
-      <TextComponent
-        variant={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT}
-        color={textColor}
-      >
+      <TextComponent variant={labelTextVariant} color={textColor}>
         {label}
       </TextComponent>
     ) : (

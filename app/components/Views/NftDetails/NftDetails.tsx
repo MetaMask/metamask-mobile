@@ -3,6 +3,7 @@ import {
   NativeSyntheticEvent,
   SafeAreaView,
   TextLayoutEventData,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
@@ -13,7 +14,7 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NftDetails.styles';
 import Routes from '../../../constants/navigation/Routes';
 import { NftDetailsParams } from './NftDetails.types';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import StyledButton from '../../../components/UI/StyledButton';
 import NftDetailsBox from './NftDetailsBox';
 import NftDetailsInformationRow from './NftDetailsInformationRow';
@@ -50,6 +51,7 @@ import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
@@ -101,7 +103,7 @@ const NftDetails = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
+      createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
         .addProperties({
           chain_id: getDecimalChainId(chainId),
         })
@@ -187,7 +189,7 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    navigateToSendPage(collectible);
+    navigateToSendPage(InitSendLocation.NftDetails, collectible);
   }, [collectible, chainId, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(

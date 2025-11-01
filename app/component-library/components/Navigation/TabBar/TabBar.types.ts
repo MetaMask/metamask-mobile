@@ -18,8 +18,10 @@ export enum TabBarIconKey {
   Wallet = 'Wallet',
   Browser = 'Browser',
   Actions = 'Actions',
+  Trade = 'Trade',
   Activity = 'Activity',
   Setting = 'Setting',
+  Rewards = 'Rewards',
 }
 
 /**
@@ -47,10 +49,3 @@ type TabBarOptions = BottomTabBarOptions & {
  * TabBar component props.
  */
 export type TabBarProps = BottomTabBarProps<TabBarOptions>;
-
-/**
- * Style sheet input parameters.
- */
-export interface TabBarStyleSheetVars {
-  bottomInset: number;
-}

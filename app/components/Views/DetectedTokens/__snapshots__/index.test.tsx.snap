@@ -6,9 +6,8 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     style={
       {
         "color": "black",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 18,
-        "fontWeight": "400",
         "paddingVertical": 16,
         "textAlign": "center",
       }
@@ -94,9 +93,8 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {
@@ -160,9 +158,8 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             },
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {
@@ -189,9 +186,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     style={
       {
         "color": "black",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 18,
-        "fontWeight": "400",
         "paddingVertical": 16,
         "textAlign": "center",
       }
@@ -359,9 +355,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 18,
-                  "fontWeight": "400",
                   "marginBottom": 4,
                 }
               }
@@ -380,9 +375,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": undefined,
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                   }
                 }
               >
@@ -402,9 +396,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                   style={
                     {
                       "color": "blue",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -449,9 +442,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": "black",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                   }
                 }
               >
@@ -618,9 +610,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 18,
-                  "fontWeight": "400",
                   "marginBottom": 4,
                 }
               }
@@ -639,9 +630,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": undefined,
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                   }
                 }
               >
@@ -661,9 +651,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                   style={
                     {
                       "color": "blue",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -708,9 +697,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": "black",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                   }
                 }
               >
@@ -809,9 +797,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {
@@ -872,9 +859,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {

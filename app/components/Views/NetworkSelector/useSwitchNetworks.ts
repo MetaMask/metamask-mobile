@@ -16,10 +16,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
@@ -27,6 +25,7 @@ import {
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
+  TraceContext,
   TraceName,
   TraceOperation,
   endTrace,
@@ -39,6 +38,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
+import Logger from '../../../util/Logger';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -47,7 +47,7 @@ interface UseSwitchNetworksProps {
   selectedNetworkName?: string;
   dismissModal?: () => void;
   closeRpcModal?: () => void;
-  parentSpan?: unknown;
+  parentSpan?: TraceContext;
 }
 
 interface UseSwitchNetworksReturn {
@@ -91,11 +91,8 @@ export function useSwitchNetworks({
    * Sets the token network filter based on the chain ID
    */
   const setTokenNetworkFilter = useCallback(
-    (chainId: string) => {
-      const isPopularNetwork =
-        chainId === CHAIN_IDS.MAINNET ||
-        chainId === CHAIN_IDS.LINEA_MAINNET ||
-        PopularList.some((network) => network.chainId === chainId);
+    (chainId: Hex) => {
+      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(chainId);
       const { PreferencesController } = Engine.context;
       if (!isAllNetwork && isPopularNetwork) {
         PreferencesController.setTokenNetworkFilter({
@@ -130,6 +127,15 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = networkConfigurationId;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         trace({
@@ -144,8 +150,6 @@ export function useSwitchNetworks({
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
       }
-
-      setTokenNetworkFilter(chainId);
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
@@ -163,7 +167,6 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
@@ -192,6 +195,15 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = type;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =

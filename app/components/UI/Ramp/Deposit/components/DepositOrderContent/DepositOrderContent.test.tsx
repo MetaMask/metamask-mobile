@@ -4,12 +4,12 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import DepositOrderContent from './DepositOrderContent';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import {
   FIAT_ORDER_STATES,
   FIAT_ORDER_PROVIDERS,
 } from '../../../../../../constants/on-ramp';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
-import { SEPA_PAYMENT_METHOD } from '../../constants';
+import { MOCK_DEPOSIT_ORDER, MOCK_BANK_DETAILS_ORDER } from '../../testUtils';
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -31,18 +31,10 @@ describe('DepositOrderContent Component', () => {
     excludeFromPurchases: false,
     orderType: DepositOrderType.Deposit,
     data: {
+      ...MOCK_DEPOSIT_ORDER,
       id: 'test-order-id-123456',
       providerOrderId: 'transak-provider-order-id-123456',
-      provider: 'test-provider',
-      createdAt: Date.now(),
-      fiatAmount: 100,
-      fiatCurrency: 'USD',
-      cryptoCurrency: 'USDC',
-      network: 'ethereum',
-      status: 'COMPLETED',
-      orderType: 'DEPOSIT',
-      walletAddress: '0x1234567890123456789012345678901234567890',
-      providerOrderLink: 'https://transak.com/order/123',
+      statusDescription: 'Order succeeded',
     } as DepositOrder,
   };
 
@@ -58,11 +50,20 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
+
+    expect(screen.getByText('Order succeeded')).toBeOnTheScreen();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders error state correctly with generic message when no statusDescription', () => {
-    const errorOrder = { ...mockOrder, state: FIAT_ORDER_STATES.FAILED };
+  it('renders error state correctly with statusDescription from API', () => {
+    const errorOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: 'Order failed',
+      },
+    };
 
     renderWithProvider(<DepositOrderContent order={errorOrder} />, {
       state: {
@@ -72,9 +73,7 @@ describe('DepositOrderContent Component', () => {
       },
     });
 
-    expect(
-      screen.getByText('We were unable to complete your deposit'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('Order failed')).toBeOnTheScreen();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -102,7 +101,7 @@ describe('DepositOrderContent Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders error state with generic message when statusDescription is empty string', () => {
+  it('renders no subtitle when statusDescription is empty string', () => {
     const errorOrderWithEmptyReason = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.FAILED,
@@ -123,14 +122,49 @@ describe('DepositOrderContent Component', () => {
       },
     );
 
-    expect(
-      screen.getByText('We were unable to complete your deposit'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText('Your deposit is being processed')).toBeNull();
+    expect(screen.queryByText('Order failed')).toBeNull();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders no subtitle when statusDescription is missing', () => {
+    const orderWithoutStatusDescription = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.PENDING,
+      data: {
+        ...MOCK_DEPOSIT_ORDER,
+        id: 'test-order-id-123456',
+        providerOrderId: 'transak-provider-order-id-123456',
+        status: 'PENDING',
+      } as DepositOrder,
+    };
+
+    renderWithProvider(
+      <DepositOrderContent order={orderWithoutStatusDescription} />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+
+    // Should not show any subtitle when statusDescription is missing
+    expect(screen.queryByText('Your deposit is being processed')).toBeNull();
+    expect(screen.queryByText('Order processing')).toBeNull();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders processing state correctly', () => {
-    const processingOrder = { ...mockOrder, state: FIAT_ORDER_STATES.PENDING };
+    const processingOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.PENDING,
+      data: {
+        ...mockOrder.data,
+        statusDescription: 'Order processing',
+      },
+    };
 
     renderWithProvider(<DepositOrderContent order={processingOrder} />, {
       state: {
@@ -139,11 +173,20 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
+
+    expect(screen.getByText('Order processing')).toBeOnTheScreen();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders cancelled state correctly', () => {
-    const cancelledOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CANCELLED };
+    const cancelledOrder = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.CANCELLED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: 'Order cancelled',
+      },
+    };
 
     renderWithProvider(<DepositOrderContent order={cancelledOrder} />, {
       state: {
@@ -152,6 +195,8 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
+
+    expect(screen.getByText('Order cancelled')).toBeOnTheScreen();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -161,7 +206,8 @@ describe('DepositOrderContent Component', () => {
       state: FIAT_ORDER_STATES.PENDING,
       data: {
         ...mockOrder.data,
-        paymentMethod: SEPA_PAYMENT_METHOD.id,
+        paymentMethod: MOCK_BANK_DETAILS_ORDER.data.paymentMethod,
+        statusDescription: 'Bank transfer initiated',
       },
     };
 
@@ -172,6 +218,7 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
+
     expect(screen.toJSON()).toMatchSnapshot();
   });
 

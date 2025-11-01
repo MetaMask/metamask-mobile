@@ -1,13 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountStatus Snapshots android renders correctly with accountName in route params 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -44,13 +58,15 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -139,7 +155,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -168,17 +184,31 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
-exports[`AccountStatus Snapshots android renders correctly with type="found and statusbar current height to zero" 1`] = `
-<RCTSafeAreaView>
+exports[`AccountStatus Snapshots android renders correctly with type="found" 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -215,13 +245,15 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -310,7 +342,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -339,17 +371,31 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots android renders correctly with type="not_exist" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -386,13 +432,15 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
             Wallet not found
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -481,7 +529,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -510,17 +558,31 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with accountName in route params 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -557,13 +619,15 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -588,7 +652,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
                 }
               }
             >
-              A wallet using "test@example.com" already exists. Do you want to try logging in instead?
+              A wallet using "test@example.com" already exists. Do you want to unlock this wallet?
             </Text>
           </View>
         </View>
@@ -638,7 +702,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             }
           }
         >
-          Log in
+          Unlock wallet
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -652,7 +716,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -681,17 +745,31 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -728,13 +806,15 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -759,7 +839,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
                 }
               }
             >
-              A wallet using "[missing {{accountName}} value]" already exists. Do you want to try logging in instead?
+              A wallet using "[missing {{accountName}} value]" already exists. Do you want to unlock this wallet?
             </Text>
           </View>
         </View>
@@ -809,7 +889,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             }
           }
         >
-          Log in
+          Unlock wallet
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -823,7 +903,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -852,17 +932,31 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`] = `
-<RCTSafeAreaView>
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       {
-        "height": "100%",
+        "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -899,13 +993,15 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
             Wallet not found
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -994,7 +1090,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1023,5 +1119,5 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       </TouchableOpacity>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

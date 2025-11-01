@@ -104,6 +104,41 @@ export default class Assertions {
   }
 
   /**
+   * Assert element contains specific text with auto-retry
+   */
+  static async expectElementToContainText(
+    webElement: WebElement,
+    text: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      description = `element contains text "${text}"`,
+    } = options;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await webElement;
+        const actualText = await el.getText();
+        const normalizedText = actualText
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+        const expectedText = text.toLowerCase();
+        if (!normalizedText.includes(expectedText)) {
+          throw new Error(
+            `Expected text containing "${text}" but got "${actualText}"`,
+          );
+        }
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
+  /**
    * Assert element does not have specific text with auto-retry
    */
   static async expectElementToNotHaveText(
@@ -546,7 +581,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is displayed anywhere on screen
-   * @deprecated Use expectTextNotDisplayed() instead for better error handling and retry mechanisms
+   * @deprecated Use expectTextDisplayed() instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsDisplayed(
     text: string,
@@ -557,7 +592,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is not displayed
-   * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
+   * @deprecated Use expectTextNotDisplayed() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsNotDisplayed(
     text: string,

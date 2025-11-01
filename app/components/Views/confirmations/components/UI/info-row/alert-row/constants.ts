@@ -1,8 +1,11 @@
 export enum RowAlertKey {
+  Amount = 'amount',
   AccountTypeUpgrade = 'accountTypeUpgrade',
+  BatchedApprovals = 'batchedApprovals',
+  BurnAddress = 'burnAddress',
   Blockaid = 'blockaid',
   EstimatedFee = 'estimatedFee',
-  RequestFrom = 'requestFrom',
+  PayWith = 'payWith',
   PendingTransaction = 'pendingTransaction',
-  BatchedApprovals = 'batchedApprovals',
+  RequestFrom = 'requestFrom',
 }

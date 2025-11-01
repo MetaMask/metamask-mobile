@@ -5,33 +5,35 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
-import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/Onboarding/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/Onboarding/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
-import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
+import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
-import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
-import { getGanachePort } from './fixtures/utils';
+import { getGanachePort } from './framework/fixtures/FixtureUtils';
 import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
-import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
-import Matchers from './utils/Matchers';
+import Matchers from './framework/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
+import { createLogger } from './framework/logger';
+import Utilities, { sleep } from './framework/Utilities';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+
+const logger = createLogger({
+  name: 'ViewHelper',
+});
 
 /**
  * Accepts the terms of use modal.
@@ -67,25 +69,12 @@ export const closeOnboardingModals = async (fromResetWallet = false) => {
    * have to have all these workarounds in the tests
    */
 
-  try {
-    await Assertions.expectElementToBeVisible(ToastModal.container, {
-      description: 'Toast Modal should be visible',
-    });
-    await ToastModal.tapToastCloseButton();
-    await Assertions.expectElementToNotBeVisible(ToastModal.container, {
-      description: 'Toast Modal should not be visible',
-    });
-  } catch {
-    // eslint-disable-next-line no-console
-    console.log('The marketing toast is not visible');
-  }
+  // Nothing to do here
+  // We can add more logic here if we add more modals
+  // that need to be closed after onboarding
 
   if (!fromResetWallet) {
-    // Handle Solana New feature sheet
-    await Assertions.expectElementToBeVisible(
-      SolanaNewFeatureSheet.notNowButton,
-    );
-    await SolanaNewFeatureSheet.tapNotNowButton();
+    // Nothing to do here for now
   }
 };
 
@@ -106,10 +95,7 @@ export const skipNotificationsDeviceSettings = async () => {
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    /* eslint-disable no-console */
-
-    console.log('The notification device alert modal is not visible');
+    logger.error('The notification device alert modal is not visible');
   }
 };
 
@@ -131,9 +117,7 @@ export const dismissProtectYourWalletModal: () => Promise<void> = async () => {
       ProtectYourWalletModal.collapseWalletModal,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    // eslint-disable-next-line no-console
-    console.log('The protect your wallet modal is not visible');
+    logger.error('The protect your wallet modal is not visible');
   }
 };
 
@@ -162,16 +146,8 @@ export const importWalletWithRecoveryPhrase = async ({
 }) => {
   // tap on import seed phrase button
 
-  if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(
-      OnboardingCarouselView.container,
-      {
-        description: 'Onboarding Carousel should be visible',
-      },
-    );
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await acceptTermOfUse();
-  }
+  // OnboardingCarousel has been removed from the navigation flow
+  // The app now starts directly with the Onboarding page
 
   await Assertions.expectElementToBeVisible(
     OnboardingView.existingWalletButton,
@@ -181,10 +157,11 @@ export const importWalletWithRecoveryPhrase = async ({
   );
 
   await OnboardingView.tapHaveAnExistingWallet();
-  await OnboardingSheet.tapImportSeedButton();
 
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
   // should import wallet with secret recovery phrase
-  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
@@ -200,22 +177,17 @@ export const importWalletWithRecoveryPhrase = async ({
     await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
       description: 'MetaMetrics Opt-In should be visible',
     });
-    if (optInToMetrics) {
-      await MetaMetricsOptIn.tapAgreeButton();
-    } else {
-      await MetaMetricsOptIn.tapNoThanksButton();
+    if (!optInToMetrics) {
+      await MetaMetricsOptIn.tapMetricsCheckbox();
     }
+
+    await MetaMetricsOptIn.tapAgreeButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  // await skipNotificationsDeviceSettings();
-
-  // should dismiss the onboarding wizard
-  // dealing with flakiness on bitrise.
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -243,10 +215,6 @@ export const importWalletWithRecoveryPhrase = async ({
  */
 export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
-
-  // tap on import seed phrase button
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -265,36 +233,30 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  // Check that we are on the Secure your wallet screen
-  await Assertions.expectElementToBeVisible(ProtectYourWalletView.container, {
-    description: 'Protect Your Wallet View should be visible',
+  // Check that we are on the Manual Backup Step 1 screen
+  await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {
+    description: 'Manual Backup Step 1 View should be visible',
   });
-  await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
-  // This should be removed once we implement mockAll
-  await device.disableSynchronization();
-  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-  await SkipAccountSecurityModal.tapSkipButton();
-  // This should be removed once we implement mockAll
-  await device.enableSynchronization();
+  await ManualBackupStep1View.tapOnRemindMeLaterButton();
 
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
+  if (!optInToMetrics) {
+    await MetaMetricsOptIn.tapMetricsCheckbox();
   }
+
+  await MetaMetricsOptIn.tapAgreeButton();
+  await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
+  await device.enableSynchronization();
 };
 
 /**
@@ -305,8 +267,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
  * @returns {Promise<void>} Resolves when the Localhost network is added to the user's network list.
  */
 export const addLocalhostNetwork = async () => {
-  await TabBarComponent.tapSettings();
-  await SettingsView.tapNetworks();
+  // Access network list from wallet view (network switcher)
+  await WalletView.tapNetworksButtonOnNavBar();
+
   await Assertions.expectElementToBeVisible(NetworkView.networkContainer, {
     description: 'Network Container should be visible',
   });
@@ -370,29 +333,106 @@ export const switchToSepoliaNetwork = async () => {
     await Assertions.expectElementToBeVisible(ToastModal.container);
     await Assertions.expectElementToNotBeVisible(ToastModal.container);
   } catch {
-    // eslint-disable-next-line no-console
-    console.log('Toast is not visible');
+    logger.error('Toast is not visible');
   }
 };
 
 /**
+ * Waits for app initialization and rehydration to complete.
+ * This ensures the app is in a stable state before proceeding with tests.
+ * Handles the case where React Native reload triggers state rehydration that may
+ * cause the app to briefly log out and return to the login screen.
+ *
+ * @async
+ * @function waitForAppReady
+ * @param {number} timeout - Maximum time to wait in milliseconds (default: 15000)
+ * @returns {Promise<void>} Resolves when app is ready
+ * @throws {Error} Throws an error if app fails to stabilize within timeout
+ */
+export const waitForAppReady = async (timeout: number = 15000) => {
+  const startTime = Date.now();
+
+  logger.debug('Waiting for app to complete rehydration and stabilize...');
+
+  try {
+    await sleep(500);
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToBeVisible(LoginView.container, {
+          description: 'Login view should be stable',
+          timeout: 2000,
+        });
+
+        // Verify it stays visible (not flickering)
+        await sleep(1000);
+
+        await Assertions.expectElementToBeVisible(LoginView.container, {
+          description: 'Login view should remain visible',
+          timeout: 1000,
+        });
+      },
+      {
+        timeout,
+        description:
+          'wait for app to complete rehydration and stabilize on login screen',
+      },
+    );
+
+    logger.debug(`App ready after ${Date.now() - startTime}ms`);
+  } catch (error) {
+    logger.error(`App failed to stabilize within ${timeout}ms`, error);
+    throw new Error(
+      `App did not stabilize on login screen within ${timeout}ms. ` +
+        `This may indicate rehydration issues or state corruption.`,
+    );
+  }
+};
+
+/**
+ * Wait for app readiness and retry logic to handle rehydration flakiness.
  * Logs into the application using the provided password or a default password.
  *
  * @async
  * @function loginToApp
  * @param {string} [password] - The password to use for login. If not provided, defaults to '123123123'.
  * @returns {Promise<void>} A promise that resolves when the login process is complete.
- * @throws {Error} Throws an error if the login view container or password input is not visible.
+ * @throws {Error} Throws an error if the login view container or password input is not visible after all retries.
  */
 export const loginToApp = async (password?: string) => {
   const PASSWORD = password ?? '123123123';
-  await Assertions.expectElementToBeVisible(LoginView.container, {
-    description: 'Login View container should be visible',
-  });
-  await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
-    description: 'Login View password input should be visible',
-  });
-  await LoginView.enterPassword(PASSWORD);
+
+  // Wait for app to complete rehydration ONCE before attempting login
+  await waitForAppReady();
+
+  await Utilities.executeWithRetry(
+    async () => {
+      await Assertions.expectElementToBeVisible(LoginView.container, {
+        description: 'Login View container should be visible',
+      });
+      await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
+        description: 'Login View password input should be visible',
+      });
+
+      await LoginView.enterPassword(PASSWORD);
+
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description: 'Wallet container should be visible after login',
+        timeout: 10000,
+      });
+
+      // SUCCESS: Verify wallet is stable (not flickering back to login)
+      await sleep(1000);
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description: 'Wallet container should remain visible',
+        timeout: 2000,
+      });
+    },
+    {
+      timeout: 30000,
+      interval: 2000,
+      description: 'login to app after rehydration',
+    },
+  );
 };
 
 /**

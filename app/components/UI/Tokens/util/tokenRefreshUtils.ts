@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
@@ -16,28 +16,48 @@ export const performEvmRefresh = async (
     TokenRatesController,
     TokenBalancesController,
     NetworkController,
+    NetworkEnablementController,
   } = Engine.context;
 
-  const networkClientIds = Object.values(
-    NetworkController.state.networkConfigurationsByChainId,
-  ).map(
-    (network) =>
-      network?.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.networkClientId,
-  );
+  const networkConfigurations =
+    NetworkController.state.networkConfigurationsByChainId;
+
+  const chainIds = Object.entries(
+    NetworkEnablementController.state.enabledNetworkMap[
+      KnownCaipNamespace.Eip155
+    ] || {},
+  )
+    .filter(([, isEnabled]) => isEnabled === true)
+    .map(([chainId]) => chainId as Hex);
+
+  const networkClientIds = chainIds
+    .map((c) => {
+      const config = networkConfigurations[c];
+      if (!config) {
+        return undefined;
+      }
+
+      return config?.rpcEndpoints?.[config?.defaultRpcEndpointIndex]
+        ?.networkClientId;
+    })
+    .filter((c: string | undefined): c is string => Boolean(c));
 
   const actions = [
     TokenDetectionController.detectTokens({
-      chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
+      chainIds,
     }),
     TokenBalancesController.updateBalances({
-      chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
+      chainIds,
     }),
     AccountTrackerController.refresh(networkClientIds),
     CurrencyRateController.updateExchangeRate(nativeCurrencies),
     TokenRatesController.updateExchangeRatesByChainId(
-      Object.values(evmNetworkConfigurationsByChainId).filter(
-        (n) => n.chainId && n.nativeCurrency,
-      ),
+      chainIds
+        .filter((chainId) => {
+          const config = evmNetworkConfigurationsByChainId[chainId];
+          return config?.chainId && config?.nativeCurrency;
+        })
+        .map((c) => evmNetworkConfigurationsByChainId[c]),
     ),
   ];
 

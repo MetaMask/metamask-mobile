@@ -18,6 +18,13 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn(),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 // Create mock account to avoid circular dependency
 const createMockAccount = (): InternalAccount => ({
   type: EthAccountType.Eoa,
@@ -96,7 +103,10 @@ jest.mock('../../../store/storage-wrapper', () => ({
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 // Simplified ScrollableTabView mock - just needs to render children
-jest.mock('react-native-scrollable-tab-view', () => 'ScrollableTabView');
+jest.mock(
+  '@tommasini/react-native-scrollable-tab-view',
+  () => 'ScrollableTabView',
+);
 
 // Device mock - necessary since component uses Device.isIos(), Device.isAndroid(), Device.getDeviceAPILevel()
 jest.mock('../../../util/device', () => ({

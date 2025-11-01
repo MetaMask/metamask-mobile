@@ -21,7 +21,10 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
-import { MM_SDK_DEEPLINK } from '../../../constants/urls';
+import {
+  MM_SDK_DEEPLINK,
+  MM_WALLETCONNECT_DEEPLINK,
+} from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
@@ -35,6 +38,7 @@ import {
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
+import SDKConnectV2 from '../../../core/SDKConnectV2';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -149,12 +153,26 @@ const QRScanner = ({
         }
       }
 
+      if (SDKConnectV2.isConnectDeeplink(response.data)) {
+        // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
+        // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
+        // parent components don't need to be notified.
+        // See: app/core/DeeplinkManager/Handlers/handleDeeplink.ts for details.
+        shouldReadBarCodeRef.current = false;
+        SDKConnectV2.handleConnectDeeplink(response.data);
+        end();
+        return;
+      }
+
       const contentProtocol = getURLProtocol(content);
+      const isWalletConnect = content.startsWith(MM_WALLETCONNECT_DEEPLINK);
+      const isSDK = content.startsWith(MM_SDK_DEEPLINK);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
           contentProtocol === PROTOCOLS.HTTPS ||
           contentProtocol === PROTOCOLS.DAPP) &&
-        !content.startsWith(MM_SDK_DEEPLINK)
+        !isWalletConnect &&
+        !isSDK
       ) {
         if (contentProtocol === PROTOCOLS.DAPP) {
           content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
