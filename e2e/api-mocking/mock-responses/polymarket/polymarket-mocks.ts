@@ -801,111 +801,82 @@ export const MOCK_BATCH_TRANSACTIONS = async (mockServer: Mockttp) => {
   // Only user-specific data (positions, activity, UpNL) should be mocked
 };
 
-/**
- * Post-claim mock for USDC balance update
- * This mock should be triggered after claim button is tapped
- * Returns updated USDC balance reflecting claimed positions
- * Also sets up EIP-7702 and transaction sentinel mocks specifically for claim flow
- */
-export const POLYMARKET_POST_CLAIM_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_UPDATE_CLAIM_BALANCE_MOCKS = async (
+  mockServer: Mockttp,
+) => {
   // Update USDC balance to claim amount using the reusable function
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer, POST_CLAIM_USDC_BALANCE_WEI);
-
-  // Mock EIP-7702 eth_getCode for user wallet address (claim flow requires this)
+  // High-priority mock to catch balance refresh calls after cash-out via /proxy
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
       const urlParam = new URL(request.url).searchParams.get('url');
-      const isPolygonRPC = Boolean(urlParam?.includes('polygon'));
-
-      if (isPolygonRPC) {
-        try {
-          const bodyText = await request.body.getText();
-          const body = bodyText ? JSON.parse(bodyText) : undefined;
-          if (body?.method === 'eth_getCode') {
-            const address = body?.params?.[0];
-            return address?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase();
-          }
-        } catch (error) {
-          return false;
-        }
-      }
-      return false;
-    })
-    .asPriority(1000) // High priority for claim flow
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: {
-        id: 1,
-        jsonrpc: '2.0',
-        result: EIP7702_CODE_FORMAT(POLYGON_EIP7702_CONTRACT_ADDRESS),
-      },
-    }));
-
-  // Mock proxy wallet eth_call (0xaffed0e0 selector) for claim flow
-  await mockServer
-    .forPost('/proxy')
-    .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
-      const isPolygonRPC = Boolean(urlParam?.includes('polygon'));
-
-      if (isPolygonRPC) {
-        try {
-          const bodyText = await request.body.getText();
-          const body = bodyText ? JSON.parse(bodyText) : undefined;
-          if (body?.method === 'eth_call') {
-            const toAddress = body?.params?.[0]?.to;
-            const callData = body?.params?.[0]?.data;
-            return (
-              (toAddress?.toLowerCase() ===
-                PROXY_WALLET_ADDRESS.toLowerCase() ||
-                toAddress?.toLowerCase() ===
-                  '0x254955bE605cf7c4E683E92b157187550bd5e639'.toLowerCase()) &&
-              callData === '0xaffed0e0'
-            );
-          }
-        } catch (error) {
-          return false;
-        }
-      }
-      return false;
-    })
-    .asPriority(1000) // High priority for claim flow
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: {
-        id: 1,
-        jsonrpc: '2.0',
-        result:
-          '0x0000000000000000000000000000000000000000000000000000000000000006',
-      },
-    }));
-
-  // Mock transaction sentinel for Polygon claim transactions
-  await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
-
-  // Mock updated UPNL reflecting claimed positions
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = request.url;
-      return Boolean(
-        url && /^https:\/\/data-api\.polymarket\.com\/upnl/.test(url),
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
       );
+
+      if (isPolygonRPC) {
+        try {
+          const bodyText = await request.body.getText();
+          const body = bodyText ? JSON.parse(bodyText) : undefined;
+          const isUSDCBalanceCall =
+            body?.method === 'eth_call' &&
+            body?.params?.[0]?.to?.toLowerCase() ===
+              USDC_CONTRACT_ADDRESS.toLowerCase();
+
+          return isUSDCBalanceCall;
+        } catch (error) {
+          return false;
+        }
+      }
+      return false;
     })
-    .asPriority(999)
+    .asPriority(1005) // High priority to catch cash-out balance refresh calls
     .thenCallback(() => ({
       statusCode: 200,
-      json: [
-        {
-          user: '0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72',
-          cashUpnl: 30.282462133473, // Increased by claimed amount
-          percentUpnl: 60.02623256406863,
-        },
-      ],
+      json: {
+        id: 50,
+        jsonrpc: '2.0',
+        result: POST_CLAIM_USDC_BALANCE_WEI, // 48.16 USDC
+      },
     }));
-};
 
+  // Also mock direct polygon-rpc.com calls for cash-out balance refresh
+  await mockServer
+    .forPost()
+    .matching((request) => request.url.includes('polygon-rpc.com'))
+    .asPriority(1007)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+      if (
+        body?.method === 'eth_call' &&
+        body?.params?.[0]?.to?.toLowerCase() ===
+          USDC_CONTRACT_ADDRESS.toLowerCase()
+      ) {
+        // Return cash-out balance for USDC balance calls
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: POST_CLAIM_USDC_BALANCE_WEI, // 48.16 USDC
+          }),
+        };
+      }
+
+      // For other calls, return empty result
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: '0x',
+        }),
+      };
+    });
+};
 /**
  * Mocks for cash-out transaction and balance update
  * This mock should be triggered before tapping the cash-out button

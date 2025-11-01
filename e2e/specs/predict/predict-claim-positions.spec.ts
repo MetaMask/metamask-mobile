@@ -11,16 +11,16 @@ import {
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
-  POLYMARKET_POST_CLAIM_MOCKS,
   POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
+  POLYMARKET_UPDATE_CLAIM_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
-// import TabBarComponent from '../../pages/wallet/TabBarComponent';
-// import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-// import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 import {
   POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
@@ -69,16 +69,15 @@ describe(SmokeTrade('Predictions'), () => {
         await WalletView.tapClaimButton();
         // Set up mocks to remove claimed positions after tapping claim button
         await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
-        await POLYMARKET_POST_CLAIM_MOCKS(mockServer);
 
         await Assertions.expectElementToBeVisible(PredictClaimPage.container);
 
         await PredictClaimPage.tapClaimConfirmButton();
+
         await device.enableSynchronization();
+        await POLYMARKET_UPDATE_CLAIM_BALANCE_MOCKS(mockServer); // Update USDC balance post claim
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-
-        // await Assertions.expectTextDisplayed('$48.16');
 
         // Verify that all resolved positions (loss positions + winning positions) are removed after claiming
         // Resolved positions include both:
@@ -96,6 +95,18 @@ describe(SmokeTrade('Predictions'), () => {
         }
 
         await Assertions.expectElementToNotBeVisible(WalletView.claimButton);
+
+        await TabBarComponent.tapActivity();
+
+        await ActivitiesView.tapOnPredictionsTab();
+
+        await ActivitiesView.tapPredictPosition('Bears vs. Commanders');
+        await Assertions.expectElementToBeVisible(
+          PredictActivityDetails.container,
+        );
+        await PredictActivityDetails.tapBackButton();
+        await TabBarComponent.tapWallet();
+        // await Assertions.expectTextDisplayed('$48.16');
       },
     );
   });
