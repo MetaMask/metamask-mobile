@@ -87,37 +87,6 @@ describe('asyncifyMigrations', () => {
 
     expect(isPromiseMigrations).toEqual(true);
   });
-
-  it('should only call validation callback after all migrations complete', async () => {
-    const mockValidation = jest.fn();
-    const testMigrationList = {
-      0: synchronousMigration,
-      1: asyncMigration,
-      2: synchronousMigration,
-    };
-
-    // Convert all migrations to async with validation callback
-    const asyncMigrations = asyncifyMigrations(
-      testMigrationList,
-      mockValidation,
-    );
-
-    // Run migrations in sequence and verify validation is only called after the highest migration
-    let state: PersistedState = initialState;
-
-    for (const migrationKey in asyncMigrations) {
-      state = (await asyncMigrations[migrationKey](state)) as PersistedState;
-
-      if (Number(migrationKey) === 2) {
-        // Should be called exactly once after the last migration
-        expect(mockValidation).toHaveBeenCalledTimes(1);
-        expect(mockValidation).toHaveBeenCalledWith(state);
-      } else {
-        // Should not be called for any other migration
-        expect(mockValidation).not.toHaveBeenCalled();
-      }
-    }
-  });
 });
 
 describe('migrations', () => {
