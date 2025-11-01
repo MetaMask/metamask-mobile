@@ -21,7 +21,10 @@ import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
 // import TabBarComponent from '../../pages/wallet/TabBarComponent';
 // import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 // import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
-import { POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
+import {
+  POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE,
+  POLYMARKET_WINNING_POSITIONS_RESPONSE,
+} from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
 
 /*
 Test Scenario: Claim positions
@@ -30,7 +33,7 @@ Test Scenario: Claim positions
   2. Verify Claim Button is visible with $20.00 claimable amount
   3. Tap Claim Button
   4. Complete claim transaction
-  7. Verify balance updated to $48.16 and resolved market positions are removed from the UI
+  5. Verify balance updated to $48.16 and all resolved positions (loss positions + winning positions) are removed from the UI
   */
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
@@ -77,14 +80,21 @@ describe(SmokeTrade('Predictions'), () => {
 
         // await Assertions.expectTextDisplayed('$48.16');
 
-        // Verify that all resolved market positions (including winning positions) are not visible after claiming
-        const resolvedPositions =
-          POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE;
-        for (const position of resolvedPositions) {
+        // Verify that all resolved positions (loss positions + winning positions) are removed after claiming
+        // Resolved positions include both:
+        // 1. Loss positions (from POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE)
+        // 2. Winning positions (from POLYMARKET_WINNING_POSITIONS_RESPONSE)
+        const allResolvedPositions = [
+          ...POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE,
+          ...POLYMARKET_WINNING_POSITIONS_RESPONSE,
+        ];
+
+        for (const position of allResolvedPositions) {
           await Assertions.expectTextNotDisplayed(position.title, {
-            description: `Resolved market position "${position.title}" should not be visible`,
+            description: `Resolved position "${position.title}" should not be visible after claiming`,
           });
         }
+
         await Assertions.expectElementToNotBeVisible(WalletView.claimButton);
       },
     );
