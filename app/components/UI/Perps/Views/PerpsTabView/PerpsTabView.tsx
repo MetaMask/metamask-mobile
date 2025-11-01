@@ -80,17 +80,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  const contentContainerStyle = useMemo(
-    () => [
-      styles.contentContainer,
-      isHomepageRedesignV1Enabled && {
-        flexGrow: undefined,
-        minHeight: isInitialLoading ? 100 : undefined,
-      },
-    ],
-    [styles.contentContainer, isHomepageRedesignV1Enabled, isInitialLoading],
-  );
-
   // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -256,14 +245,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView
-          style={[
-            styles.content,
-            isHomepageRedesignV1Enabled && { flex: undefined },
-          ]}
-          scrollEnabled={!isHomepageRedesignV1Enabled}
-        >
-          <View style={contentContainerStyle}>
+        {}
+        {isHomepageRedesignV1Enabled ? (
+          <>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
                 onAction={handleNewTrade}
@@ -276,8 +260,25 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 <View>{renderOrdersSection()}</View>
               </View>
             )}
-          </View>
-        </ScrollView>
+          </>
+        ) : (
+          <ScrollView style={styles.content}>
+            <View style={styles.contentContainer}>
+              {!isInitialLoading && hasNoPositionsOrOrders ? (
+                <PerpsEmptyState
+                  onAction={handleNewTrade}
+                  testID="perps-empty-state"
+                  twClassName="mx-auto"
+                />
+              ) : (
+                <View style={styles.tradeInfoContainer}>
+                  <View>{renderPositionsSection()}</View>
+                  <View>{renderOrdersSection()}</View>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        )}
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>

@@ -15,6 +15,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -32,6 +33,7 @@ interface ToastConfig {
 
 interface PendingToastConfig extends ToastConfig {
   getAmount?: (transactionMeta: TransactionMeta) => string;
+  onPress?: () => void;
 }
 
 interface ConfirmedToastConfig extends ToastConfig {
@@ -91,6 +93,14 @@ export const usePredictToasts = ({
             />
           </View>
         ),
+        ...(config.onPress
+          ? {
+              linkButtonOptions: {
+                label: strings('predict.deposit.in_progress_link'),
+                onPress: config.onPress,
+              },
+            }
+          : {}),
       });
     },
     [theme.colors.accent04.dark, theme.colors.accent04.normal, toastRef],
