@@ -5,6 +5,7 @@ import {
   Pressable,
   Keyboard,
   TextInput,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -96,7 +97,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             style={styles.searchBarContainer}
-            twClassName="flex-1 bg-muted rounded-lg px-3 py-1 mr-2"
+            twClassName={`flex-1 bg-muted rounded-lg ${Platform.OS === 'ios' ? 'py-3' : 'py-1'} px-3 mr-2`}
           >
             <Icon
               name={IconName.Search}
