@@ -8,7 +8,7 @@ import { setupMockRequest } from '../../helpers/mockHelpers';
 import {
   POLYMARKET_CURRENT_POSITIONS_RESPONSE,
   POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE,
-  createPositionsWithWinnings,
+  POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from './polymarket-positions-response';
 import {
   POLYMARKET_EVENT_DETAILS_BLUE_JAYS_MARINERS_RESPONSE,
@@ -208,11 +208,13 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
  * Mock for Polymarket positions API with controllable winning positions
  * Returns positions data for user with optional winning positions
  * This mock will trigger the CLAIM button
+ * Winning positions (redeemable=true) should be in resolved markets, not current positions
  */
 export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
   mockServer: Mockttp,
   includeWinnings: boolean = false,
 ) => {
+  // Mock for current positions (redeemable=false) - never include winning positions here
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -221,7 +223,8 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         url &&
           /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
             url,
-          ),
+          ) &&
+          !url.includes('redeemable=true'),
       );
     })
     .asPriority(999)
@@ -234,13 +237,10 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const eventIdMatch = url?.match(/eventId=([0-9]+)/);
       const eventId = eventIdMatch ? eventIdMatch[1] : null;
 
-      // Use the new function to control whether to include winning positions
-      const positionsData = createPositionsWithWinnings(includeWinnings);
-
-      // Filter positions by eventId if provided
-      let filteredPositions = positionsData;
+      // Current positions should never include winning positions
+      let filteredPositions = POLYMARKET_CURRENT_POSITIONS_RESPONSE;
       if (eventId) {
-        filteredPositions = positionsData.filter(
+        filteredPositions = POLYMARKET_CURRENT_POSITIONS_RESPONSE.filter(
           (position) => position.eventId === eventId,
         );
       }
@@ -254,6 +254,49 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       return {
         statusCode: 200,
         json: dynamicResponse,
+      };
+    });
+
+  // Mock for resolved markets (redeemable=true) - add winning positions here if includeWinnings is true
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
+            url,
+          ) &&
+          url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(999)
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Combine resolved markets with winning positions if includeWinnings is true
+      const resolvedMarkets =
+        POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE.map((position) => ({
+          ...position,
+          proxyWallet: userAddress,
+        }));
+
+      let resolvedPositions = resolvedMarkets;
+      if (includeWinnings) {
+        const winningPositions = POLYMARKET_WINNING_POSITIONS_RESPONSE.map(
+          (position) => ({
+            ...position,
+            proxyWallet: userAddress,
+          }),
+        );
+        resolvedPositions = [...resolvedMarkets, ...winningPositions];
+      }
+
+      return {
+        statusCode: 200,
+        json: resolvedPositions,
       };
     });
 };
@@ -758,111 +801,82 @@ export const MOCK_BATCH_TRANSACTIONS = async (mockServer: Mockttp) => {
   // Only user-specific data (positions, activity, UpNL) should be mocked
 };
 
-/**
- * Post-claim mock for USDC balance update
- * This mock should be triggered after claim button is tapped
- * Returns updated USDC balance reflecting claimed positions
- * Also sets up EIP-7702 and transaction sentinel mocks specifically for claim flow
- */
-export const POLYMARKET_POST_CLAIM_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_UPDATE_CLAIM_BALANCE_MOCKS = async (
+  mockServer: Mockttp,
+) => {
   // Update USDC balance to claim amount using the reusable function
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer, POST_CLAIM_USDC_BALANCE_WEI);
-
-  // Mock EIP-7702 eth_getCode for user wallet address (claim flow requires this)
+  // High-priority mock to catch balance refresh calls after cash-out via /proxy
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
       const urlParam = new URL(request.url).searchParams.get('url');
-      const isPolygonRPC = Boolean(urlParam?.includes('polygon'));
-
-      if (isPolygonRPC) {
-        try {
-          const bodyText = await request.body.getText();
-          const body = bodyText ? JSON.parse(bodyText) : undefined;
-          if (body?.method === 'eth_getCode') {
-            const address = body?.params?.[0];
-            return address?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase();
-          }
-        } catch (error) {
-          return false;
-        }
-      }
-      return false;
-    })
-    .asPriority(1000) // High priority for claim flow
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: {
-        id: 1,
-        jsonrpc: '2.0',
-        result: EIP7702_CODE_FORMAT(POLYGON_EIP7702_CONTRACT_ADDRESS),
-      },
-    }));
-
-  // Mock proxy wallet eth_call (0xaffed0e0 selector) for claim flow
-  await mockServer
-    .forPost('/proxy')
-    .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
-      const isPolygonRPC = Boolean(urlParam?.includes('polygon'));
-
-      if (isPolygonRPC) {
-        try {
-          const bodyText = await request.body.getText();
-          const body = bodyText ? JSON.parse(bodyText) : undefined;
-          if (body?.method === 'eth_call') {
-            const toAddress = body?.params?.[0]?.to;
-            const callData = body?.params?.[0]?.data;
-            return (
-              (toAddress?.toLowerCase() ===
-                PROXY_WALLET_ADDRESS.toLowerCase() ||
-                toAddress?.toLowerCase() ===
-                  '0x254955bE605cf7c4E683E92b157187550bd5e639'.toLowerCase()) &&
-              callData === '0xaffed0e0'
-            );
-          }
-        } catch (error) {
-          return false;
-        }
-      }
-      return false;
-    })
-    .asPriority(1000) // High priority for claim flow
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: {
-        id: 1,
-        jsonrpc: '2.0',
-        result:
-          '0x0000000000000000000000000000000000000000000000000000000000000006',
-      },
-    }));
-
-  // Mock transaction sentinel for Polygon claim transactions
-  await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
-
-  // Mock updated UPNL reflecting claimed positions
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = request.url;
-      return Boolean(
-        url && /^https:\/\/data-api\.polymarket\.com\/upnl/.test(url),
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
       );
+
+      if (isPolygonRPC) {
+        try {
+          const bodyText = await request.body.getText();
+          const body = bodyText ? JSON.parse(bodyText) : undefined;
+          const isUSDCBalanceCall =
+            body?.method === 'eth_call' &&
+            body?.params?.[0]?.to?.toLowerCase() ===
+              USDC_CONTRACT_ADDRESS.toLowerCase();
+
+          return isUSDCBalanceCall;
+        } catch (error) {
+          return false;
+        }
+      }
+      return false;
     })
-    .asPriority(999)
+    .asPriority(1005) // High priority to catch cash-out balance refresh calls
     .thenCallback(() => ({
       statusCode: 200,
-      json: [
-        {
-          user: '0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72',
-          cashUpnl: 30.282462133473, // Increased by claimed amount
-          percentUpnl: 60.02623256406863,
-        },
-      ],
+      json: {
+        id: 50,
+        jsonrpc: '2.0',
+        result: POST_CLAIM_USDC_BALANCE_WEI, // 48.16 USDC
+      },
     }));
-};
 
+  // Also mock direct polygon-rpc.com calls for cash-out balance refresh
+  await mockServer
+    .forPost()
+    .matching((request) => request.url.includes('polygon-rpc.com'))
+    .asPriority(1007)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+      if (
+        body?.method === 'eth_call' &&
+        body?.params?.[0]?.to?.toLowerCase() ===
+          USDC_CONTRACT_ADDRESS.toLowerCase()
+      ) {
+        // Return cash-out balance for USDC balance calls
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: POST_CLAIM_USDC_BALANCE_WEI, // 48.16 USDC
+          }),
+        };
+      }
+
+      // For other calls, return empty result
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: '0x',
+        }),
+      };
+    });
+};
 /**
  * Mocks for cash-out transaction and balance update
  * This mock should be triggered before tapping the cash-out button
@@ -1112,6 +1126,36 @@ export const POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS = async (
         }),
       };
     });
+};
+
+/**
+ * Removes claimed positions from redeemable positions (resolved markets)
+ * After claiming, redeemable positions should be removed so the UI updates correctly
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  // Override redeemable positions (resolved markets) to remove winning positions after claiming
+  // This removes all resolved market positions (including winning positions) so the UI updates correctly
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
+            url,
+          ) &&
+          url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(1000) // Higher priority to override the original redeemable positions mock
+    .thenCallback(() => ({
+      // Return empty array - all resolved market positions (including winning positions) are removed after claiming
+      statusCode: 200,
+      json: [],
+    }));
 };
 
 /**

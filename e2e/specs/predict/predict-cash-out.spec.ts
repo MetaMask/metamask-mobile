@@ -88,9 +88,9 @@ describe(SmokePredictions('Predictions'), () => {
         await TabBarComponent.tapActivity();
 
         await ActivitiesView.tapOnPredictionsTab();
-        // await ActivitiesView.tapCashedOutPosition(positionDetails.name);
+        // await ActivitiesView.tapPredictPosition(positionDetails.name);
         await Assertions.expectTextDisplayed('Cashed out');
-        await ActivitiesView.tapCashedOutPosition(positionDetails.name);
+        await ActivitiesView.tapPredictPosition(positionDetails.name);
         await Assertions.expectElementToBeVisible(
           PredictActivityDetails.container,
         );
