@@ -5,9 +5,9 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { FlashList, FlashListProps } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
-import { RefreshTestId, SpinnerTestId } from './constants';
+import { RefreshTestId } from './constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -19,12 +19,12 @@ import NftGridItem from './NftGridItem';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
+import NftGridSkeleton from './NftGridSkeleton';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { ActivityIndicator } from 'react-native';
 import {
   Box,
   Button,
@@ -38,6 +38,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 
 interface NFTNavigationParamList {
   AddAsset: { assetType: string };
@@ -45,8 +46,6 @@ interface NFTNavigationParamList {
 }
 
 interface NftGridProps {
-  flashListProps?: Partial<FlashListProps<Nft[]>>;
-  maxItems?: number;
   isFullView?: boolean;
 }
 
@@ -57,7 +56,7 @@ const NftRow = ({
   items: Nft[];
   onLongPress: (nft: Nft) => void;
 }) => (
-  <Box twClassName="flex-row justify-between gap-3 mb-3">
+  <Box twClassName="flex-row gap-3 mb-3">
     {items.map((item, index) => {
       // Create a truly unique key combining multiple identifiers
       const uniqueKey = `${item.address}-${item.tokenId}-${item.chainId}-${index}`;
@@ -75,11 +74,7 @@ const NftRow = ({
   </Box>
 );
 
-const NftGrid = ({
-  flashListProps,
-  maxItems,
-  isFullView = false,
-}: NftGridProps) => {
+const NftGrid = ({ isFullView = false }: NftGridProps) => {
   const navigation =
     useNavigation<StackNavigationProp<NFTNavigationParamList, 'AddAsset'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -89,6 +84,9 @@ const NftGrid = ({
   const tw = useTailwind();
 
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const actionSheetRef = useRef<typeof ActionSheet>();
 
@@ -105,6 +103,13 @@ const NftGrid = ({
     endTrace({ name: TraceName.LoadCollectibles });
     return owned;
   }, [collectiblesByEnabledNetworks]);
+
+  const maxItems = useMemo(() => {
+    if (isFullView) {
+      return undefined;
+    }
+    return isHomepageRedesignV1Enabled ? 18 : undefined;
+  }, [isFullView, isHomepageRedesignV1Enabled]);
 
   const groupedCollectibles: Nft[][] = useMemo(() => {
     const groups: Nft[][] = [];
@@ -133,50 +138,25 @@ const NftGrid = ({
     setIsAddNFTEnabled(true);
   }, [navigation, trackEvent, createEventBuilder]);
 
-  const additionalButtons = (
-    <ButtonIcon
-      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-      size={ButtonIconSizes.Lg}
-      onPress={goToAddCollectible}
-      iconName={IconName.Add}
-    />
-  );
-
   const handleViewAllNfts = useCallback(() => {
     navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
   }, [navigation]);
 
-  // Determine if we should show the "View all NFTs" button
-  const shouldShowViewAllButton =
-    maxItems && allFilteredCollectibles.length > maxItems;
-
-  // Default flashListProps for full view
-  const defaultFullViewProps = useMemo(
-    () => ({
-      contentContainerStyle: tw`px-4`,
-      scrollEnabled: true,
-    }),
-    [tw],
-  );
-
-  // Merge default props with passed props
-  const mergedFlashListProps = useMemo(() => {
-    if (isFullView) {
-      return { ...defaultFullViewProps, ...flashListProps };
-    }
-    return flashListProps;
-  }, [isFullView, defaultFullViewProps, flashListProps]);
-
-  return (
-    <>
-      <BaseControlBar
-        networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-        useEvmSelectionLogic={false}
-        customWrapper={'outer'}
-        additionalButtons={additionalButtons}
-        hideSort
-        style={isFullView ? tw`px-4` : tw`pb-3`}
-      />
+  const nftRowList =
+    !isFullView && isHomepageRedesignV1Enabled ? (
+      <Box>
+        <NftGridHeader />
+        <Box twClassName="gap-3">
+          {groupedCollectibles.map((items, index) => (
+            <NftRow
+              key={`nft-row-${index}`}
+              items={items}
+              onLongPress={setLongPressedCollectible}
+            />
+          ))}
+        </Box>
+      </Box>
+    ) : (
       <FlashList
         ListHeaderComponent={<NftGridHeader />}
         data={groupedCollectibles}
@@ -187,36 +167,44 @@ const NftGrid = ({
         testID={RefreshTestId}
         decelerationRate="fast"
         refreshControl={<NftGridRefreshControl />}
-        ListEmptyComponent={
-          !isNftFetchingProgress ? (
-            <CollectiblesEmptyState
-              onAction={goToAddCollectible}
-              actionButtonProps={{
-                testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
-                isDisabled: !isAddNFTEnabled,
-              }}
-              twClassName="mx-auto mt-4"
-              testID="collectibles-empty-state"
-            />
-          ) : null
-        }
-        ListFooterComponent={
-          <>
-            {isNftFetchingProgress && (
-              <ActivityIndicator size="large" testID={SpinnerTestId} />
-            )}
-          </>
-        }
-        {...mergedFlashListProps}
+        contentContainerStyle={!isFullView ? undefined : tw`px-4`}
       />
+    );
 
-      <NftGridItemActionSheet
-        actionSheetRef={actionSheetRef}
-        longPressedCollectible={longPressedCollectible}
+  return (
+    <>
+      <BaseControlBar
+        networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+        useEvmSelectionLogic={false}
+        customWrapper={'outer'}
+        additionalButtons={
+          <ButtonIcon
+            testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+            size={ButtonIconSizes.Lg}
+            onPress={goToAddCollectible}
+            iconName={IconName.Add}
+          />
+        }
+        hideSort
+        style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
       />
-
+      {isNftFetchingProgress ? (
+        <NftGridSkeleton />
+      ) : allFilteredCollectibles.length > 0 ? (
+        nftRowList
+      ) : (
+        <CollectiblesEmptyState
+          onAction={goToAddCollectible}
+          actionButtonProps={{
+            testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+            isDisabled: !isAddNFTEnabled,
+          }}
+          twClassName="mx-auto mt-4"
+          testID="collectibles-empty-state"
+        />
+      )}
       {/* View all NFTs button - shown when there are more items than maxItems */}
-      {shouldShowViewAllButton && (
+      {maxItems && allFilteredCollectibles.length > maxItems && (
         <Box twClassName="pt-3 pb-9">
           <Button
             variant={ButtonVariant.Secondary}
@@ -228,6 +216,10 @@ const NftGrid = ({
           </Button>
         </Box>
       )}
+      <NftGridItemActionSheet
+        actionSheetRef={actionSheetRef}
+        longPressedCollectible={longPressedCollectible}
+      />
     </>
   );
 };

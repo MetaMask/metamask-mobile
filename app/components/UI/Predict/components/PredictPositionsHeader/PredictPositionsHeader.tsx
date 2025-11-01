@@ -152,7 +152,11 @@ const PredictPositionsHeader = forwardRef<
     });
   };
 
-  if (isBalanceLoading || isUnrealizedPnLLoading) {
+  if (
+    isBalanceLoading ||
+    isUnrealizedPnLLoading ||
+    (!hasClaimableAmount && !shouldShowMainCard)
+  ) {
     return null;
   }
 

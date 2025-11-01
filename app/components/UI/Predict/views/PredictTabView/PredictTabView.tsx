@@ -1,6 +1,7 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { default as React, useRef, useState, useCallback } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import PredictPositionsHeader, {
   PredictPositionsHeaderHandle,
 } from '../../components/PredictPositionsHeader';
@@ -13,6 +14,7 @@ import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 
 interface PredictTabViewProps {
   isVisible?: boolean;
@@ -26,6 +28,10 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
 
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
+
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   usePredictDepositToasts();
   usePredictClaimToasts();
@@ -56,10 +62,31 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
     setHeaderError(error);
   }, []);
 
+  const content = (
+    <>
+      <PredictPositionsHeader
+        ref={predictPositionsHeaderRef}
+        onError={handleHeaderError}
+      />
+      <PredictPositions
+        ref={predictPositionsRef}
+        onError={handlePositionsError}
+        isVisible={isVisible}
+      />
+      <PredictAddFundsSheet />
+    </>
+  );
+
   return (
-    <View style={tw.style('flex-1 bg-default')}>
+    <View
+      style={tw.style(
+        isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+      )}
+    >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />
+      ) : isHomepageRedesignV1Enabled ? (
+        <View testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}>{content}</View>
       ) : (
         <ScrollView
           testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
@@ -70,16 +97,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
             />
           }
         >
-          <PredictPositionsHeader
-            ref={predictPositionsHeaderRef}
-            onError={handleHeaderError}
-          />
-          <PredictPositions
-            ref={predictPositionsRef}
-            onError={handlePositionsError}
-            isVisible={isVisible}
-          />
-          <PredictAddFundsSheet />
+          {content}
         </ScrollView>
       )}
     </View>

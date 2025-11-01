@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     emptyState: {
-      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 24,

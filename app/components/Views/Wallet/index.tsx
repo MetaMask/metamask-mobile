@@ -14,6 +14,7 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
+  ScrollView,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -117,6 +118,7 @@ import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -473,6 +475,18 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     collectiblesEnabled,
     enabledNetworksIsSolana,
   ]);
+
+  // Reset currentTabIndex when tabs structure changes
+  useEffect(() => {
+    // When tabs structure changes (e.g., network switch disables DeFi),
+    // TabsList will remount with initialActiveIndex=0, so sync our state
+    setCurrentTabIndex(0);
+
+    // Notify parent if tab changed
+    if (tabsToRender[0]) {
+      onChangeTab({ i: 0, ref: tabsToRender[0] });
+    }
+  }, [tabsKey, tabsToRender, onChangeTab]);
 
   return (
     <View style={styles.tabContainer}>
@@ -1064,6 +1078,9 @@ const Wallet = ({
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1288,12 +1305,17 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
-  const renderContent = useCallback(
-    () => (
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-      >
+  const scrollViewContentStyle = useMemo(
+    () => [
+      styles.wrapper,
+      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
+    ],
+    [styles.wrapper, isHomepageRedesignV1Enabled],
+  );
+
+  const renderContent = useCallback(() => {
+    const content = (
+      <>
         <AssetPollingProvider />
         <View style={styles.banner}>
           {!basicFunctionalityEnabled ? (
@@ -1341,28 +1363,46 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
+      </>
+    );
+
+    return isHomepageRedesignV1Enabled ? (
+      <ScrollView
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+        contentContainerStyle={scrollViewContentStyle}
+        showsVerticalScrollIndicator={false}
+      >
+        {content}
+      </ScrollView>
+    ) : (
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+      >
+        {content}
       </View>
-    ),
-    [
-      styles.banner,
-      styles.carousel,
-      styles.wrapper,
-      basicFunctionalityEnabled,
-      defiEnabled,
-      isMultichainAccountsState2Enabled,
-      turnOnBasicFunctionality,
-      onChangeTab,
-      navigation,
-      goToSwaps,
-      displayBuyButton,
-      displaySwapsButton,
-      onReceive,
-      onSend,
-      route.params,
-      isCarouselBannersEnabled,
-      collectiblesEnabled,
-    ],
-  );
+    );
+  }, [
+    styles.banner,
+    styles.carousel,
+    styles.wrapper,
+    scrollViewContentStyle,
+    basicFunctionalityEnabled,
+    defiEnabled,
+    isMultichainAccountsState2Enabled,
+    isHomepageRedesignV1Enabled,
+    turnOnBasicFunctionality,
+    onChangeTab,
+    navigation,
+    goToSwaps,
+    displayBuyButton,
+    displaySwapsButton,
+    onReceive,
+    onSend,
+    route.params,
+    isCarouselBannersEnabled,
+    collectiblesEnabled,
+  ]);
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>

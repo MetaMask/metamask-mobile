@@ -49,15 +49,16 @@ const styleSheet = (params: {
       borderRadius: 12,
     },
     textContainer: {
+      flex: 1,
       alignItems: 'center',
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
       backgroundColor: colors.background.section,
       borderRadius: 8,
     },
     textWrapper: {
-      flex: 1,
       textAlign: 'center',
-      marginTop: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     textWrapperIcon: {
       fontSize: 18,

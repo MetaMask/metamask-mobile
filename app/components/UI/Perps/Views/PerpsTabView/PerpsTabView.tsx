@@ -1,5 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -23,6 +23,8 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import { useSelector } from 'react-redux';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -49,6 +51,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { account } = usePerpsLiveAccount();
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
@@ -227,15 +232,22 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
+    <SafeAreaView
+      style={[
+        styles.wrapper,
+        isHomepageRedesignV1Enabled && { flex: undefined },
+      ]}
+      edges={['left', 'right']}
+    >
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView style={styles.content}>
-          <View style={styles.contentContainer}>
+        {}
+        {isHomepageRedesignV1Enabled ? (
+          <>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
                 onAction={handleNewTrade}
@@ -248,8 +260,25 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 <View>{renderOrdersSection()}</View>
               </View>
             )}
-          </View>
-        </ScrollView>
+          </>
+        ) : (
+          <ScrollView style={styles.content}>
+            <View style={styles.contentContainer}>
+              {!isInitialLoading && hasNoPositionsOrOrders ? (
+                <PerpsEmptyState
+                  onAction={handleNewTrade}
+                  testID="perps-empty-state"
+                  twClassName="mx-auto"
+                />
+              ) : (
+                <View style={styles.tradeInfoContainer}>
+                  <View>{renderPositionsSection()}</View>
+                  <View>{renderOrdersSection()}</View>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        )}
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>
