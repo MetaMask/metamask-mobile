@@ -26,12 +26,14 @@ const CONFIG_MAP = {
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: false,
     updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
+    checkAutomatically: 'NEVER',
   },
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: false,
     updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
+    checkAutomatically: 'NEVER',
   },
 };
 
@@ -51,8 +53,9 @@ function getConfigForEnvironment(environment) {
  * @param {string} runtimeVersion
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
+ * @param {string} checkAutomatically
  */
-function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled, updateUrl) {
+function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically) {
   let content = fs.readFileSync(filePath, 'utf8');
 
   // Update or insert EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE (channel)
@@ -121,6 +124,19 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
     );
   }
 
+  // Update or insert EXPO_UPDATES_CHECK_ON_LAUNCH
+  if (content.includes('expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH')) {
+    content = content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="[^"]*" \/>/g,
+      `<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="${checkAutomatically}" />`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/application>/,
+      `\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="${checkAutomatically}" />$1</application>`
+    );
+  }
+
   fs.writeFileSync(filePath, content, 'utf8');
   console.log('✓ AndroidManifest.xml updated successfully');
 }
@@ -133,9 +149,10 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
  * @param {string} fileName
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
+ * @param {string} checkAutomatically
  */
-function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled, updateUrl) {
-  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}`);
+function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled, updateUrl, checkAutomatically) {
+  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}, checkOnLaunch=${checkAutomatically}`);
 
   let content = fs.readFileSync(filePath, 'utf8');
 
@@ -211,6 +228,19 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
     );
   }
 
+  // Update or insert EXUpdatesCheckOnLaunch
+  if (content.includes('<key>EXUpdatesCheckOnLaunch</key>')) {
+    content = content.replace(
+      /(<key>EXUpdatesCheckOnLaunch<\/key>\s*<string>)[^<]*(<\/string>)/,
+      `$1${checkAutomatically}$2`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/dict>\s*<\/plist>/,
+      `\n\t<key>EXUpdatesCheckOnLaunch</key>\n\t<string>${checkAutomatically}</string>$1</dict>\n</plist>`
+    );
+  }
+
   fs.writeFileSync(filePath, content, 'utf8');
   console.log(`✓ ${fileName} updated successfully`);
 }
@@ -242,12 +272,13 @@ function main() {
   console.log(`Environment: ${environment}`);
 
   // Get configuration for this environment
-  const { channel, runtimeVersion, updatesEnabled, updateUrl } = getConfigForEnvironment(environment);
+  const { channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically } = getConfigForEnvironment(environment);
 
   console.log(`Channel: ${channel}`);
   console.log(`Runtime Version: ${runtimeVersion}`);
   console.log(`Updates Enabled: ${updatesEnabled}`);
   console.log(`Update URL: ${updateUrl}`);
+  console.log(`Check Automatically: ${checkAutomatically}`);
   console.log('');
 
   // Check if files exist
@@ -263,8 +294,8 @@ function main() {
 
 
   try {
-    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl);
-    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled, updateUrl);
+    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically);
+    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled, updateUrl, checkAutomatically);
 
     console.log('✓ All files updated successfully!');
   } catch (error) {
