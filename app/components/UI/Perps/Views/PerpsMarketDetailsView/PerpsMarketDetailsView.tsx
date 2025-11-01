@@ -686,11 +686,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
           />
 
-          {/* OI Cap Warning - Shows when market is at capacity */}
-          {market?.symbol && (
-            <PerpsOICapWarning symbol={market.symbol} variant="banner" />
-          )}
-
           {/* Market Tabs Section */}
           <View style={styles.tabsSection}>
             <PerpsMarketTabs

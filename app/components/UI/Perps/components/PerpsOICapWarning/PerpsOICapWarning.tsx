@@ -1,6 +1,5 @@
 import React, { memo } from 'react';
-import { View, StyleSheet } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -12,50 +11,8 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
-
-export interface PerpsOICapWarningProps {
-  /** Market symbol to check OI cap status for */
-  symbol: string;
-  /** Variant determines the display style */
-  variant?: 'inline' | 'banner';
-  /** Optional test ID for testing */
-  testID?: string;
-}
-
-const styleSheet = (params: { theme: Theme }) => {
-  const { colors } = params.theme;
-
-  return StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 8,
-    },
-    bannerContainer: {
-      backgroundColor: colors.warning.muted,
-      borderRadius: 8,
-      padding: 12,
-      borderWidth: 1,
-      borderColor: colors.warning.default,
-    },
-    inlineContainer: {
-      paddingVertical: 8,
-    },
-    icon: {
-      marginTop: 2,
-    },
-    textContainer: {
-      flex: 1,
-      gap: 4,
-    },
-    title: {
-      fontWeight: '600',
-    },
-    description: {
-      lineHeight: 18,
-    },
-  });
-};
+import type { PerpsOICapWarningProps } from './PerpsOICapWarning.types';
+import styleSheet from './PerpsOICapWarning.styles';
 
 /**
  * Reusable component that displays a warning when a market is at its open interest cap
