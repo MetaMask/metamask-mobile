@@ -571,26 +571,23 @@ const createMockStreamManager = () => {
     account: {
       subscribe: jest.fn(() => jest.fn()),
     },
-    orderBooks: {
-      subscribeToSymbols: ({
-        symbols,
+    topOfBook: {
+      subscribeToSymbol: ({
+        symbol: _symbol,
         callback,
       }: {
-        symbols: string[];
+        symbol: string;
         callback: (data: unknown) => void;
       }) => {
         const id = Math.random().toString();
         subscribers.set(id, callback);
-        // Immediately provide mock order book data
-        const mockOrderBooks: Record<string, unknown> = {};
-        symbols.forEach((symbol: string) => {
-          mockOrderBooks[symbol] = {
-            bestBid: '2999',
-            bestAsk: '3001',
-            spread: '2',
-          };
-        });
-        callback(mockOrderBooks);
+        // Immediately provide mock top of book data
+        const mockTopOfBook = {
+          bestBid: '2999',
+          bestAsk: '3001',
+          spread: '2',
+        };
+        callback(mockTopOfBook);
         return () => {
           subscribers.delete(id);
         };

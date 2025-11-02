@@ -4,7 +4,7 @@ export { usePerpsLiveOrders } from './usePerpsLiveOrders';
 export { usePerpsLivePositions } from './usePerpsLivePositions';
 export { usePerpsLiveFills } from './usePerpsLiveFills';
 export { usePerpsLiveAccount } from './usePerpsLiveAccount';
-export { usePerpsOrderBook } from './usePerpsOrderBook';
+export { usePerpsTopOfBook } from './usePerpsTopOfBook';
 
 // Export types for convenience
 export type { UsePerpsLivePricesOptions } from './usePerpsLivePrices';
@@ -16,9 +16,9 @@ export type {
   UsePerpsLiveAccountReturn,
 } from './usePerpsLiveAccount';
 export type {
-  UsePerpsOrderBookOptions,
-  OrderBookData,
-} from './usePerpsOrderBook';
+  UsePerpsTopOfBookOptions,
+  TopOfBookData,
+} from './usePerpsTopOfBook';
 
 // Re-export types from controllers
 export type {
