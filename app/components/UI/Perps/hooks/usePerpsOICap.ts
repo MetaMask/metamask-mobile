@@ -87,6 +87,9 @@ export const usePerpsOICap = (symbol?: string): UsePerpsOICapReturn => {
   const isAtCap = useMemo(() => {
     // Developer override (only in __DEV__ builds)
     if (__DEV__ && FORCE_OI_CAP_STATE !== null) {
+      console.warn(
+        `[usePerpsOICap] Developer override active: isAtCap=${FORCE_OI_CAP_STATE}`,
+      );
       return FORCE_OI_CAP_STATE;
     }
 
