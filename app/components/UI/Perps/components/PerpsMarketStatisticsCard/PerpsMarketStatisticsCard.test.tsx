@@ -93,7 +93,7 @@ describe('PerpsMarketStatisticsCard', () => {
   });
 
   it('renders all statistics rows correctly', () => {
-    const { getByText } = render(
+    const { getByText, getByTestId } = render(
       <PerpsMarketStatisticsCard {...defaultProps} />,
     );
 
@@ -112,6 +112,9 @@ describe('PerpsMarketStatisticsCard', () => {
     // Check funding rate row
     expect(getByText('perps.market.funding_rate')).toBeOnTheScreen();
     expect(getByText('0.0125%')).toBeOnTheScreen();
+
+    // Check tutorial card
+    expect(getByTestId('perps-tutorial-card')).toBeOnTheScreen();
   });
 
   it('displays positive funding rate in success color', () => {

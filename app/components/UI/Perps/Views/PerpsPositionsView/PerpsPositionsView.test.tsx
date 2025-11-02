@@ -32,7 +32,6 @@ jest.mock('@react-navigation/native', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(),
-  usePerpsLivePrices: jest.fn(),
 }));
 
 jest.mock('../../hooks', () => ({
@@ -56,7 +55,6 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
-  usePerpsLivePrices: jest.fn(),
 }));
 
 // Mock the selector module
@@ -179,14 +177,6 @@ describe('PerpsPositionsView', () => {
     });
     (useFocusEffect as jest.Mock).mockImplementation(() => {
       // Do nothing - prevent automatic callback execution
-    });
-
-    // Mock usePerpsLivePrices from hooks (re-exported from stream)
-    const { usePerpsLivePrices: usePerpsLivePricesHook } =
-      jest.requireMock('../../hooks');
-    (usePerpsLivePricesHook as jest.Mock).mockReturnValue({
-      ETH: '2100',
-      BTC: '49500',
     });
 
     // Mock usePerpsPositions hook

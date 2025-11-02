@@ -604,8 +604,9 @@ describe('Transaction Controller Util', () => {
         Engine.context.TransactionController.isAtomicBatchSupported as jest.Mock
       ).mockResolvedValueOnce(mockResult);
 
-      const result =
-        await TransactionControllerUtils.isAtomicBatchSupported(request);
+      const result = await TransactionControllerUtils.isAtomicBatchSupported(
+        request,
+      );
 
       expect(
         Engine.context.TransactionController.isAtomicBatchSupported,

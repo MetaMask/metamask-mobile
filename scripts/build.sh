@@ -29,14 +29,10 @@ loadJSEnv(){
 # Load JS env variables
 loadJSEnv
 
-if [ "$PLATFORM" != "watcher" ]; then
-	# Use the values from the environment variables when platform is watcher
-	export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
-	export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
-fi
-
 # Enable Sentry to auto upload source maps and debug symbols
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 export EXPO_NO_TYPESCRIPT_SETUP=1
 
 echo "PLATFORM = $PLATFORM"
@@ -76,7 +72,7 @@ printTitle(){
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
-	echo "  🚀 BUILDING $PLATFORM for $METAMASK_BUILD_TYPE target with $METAMASK_ENVIRONMENT environment" | tr [a-z] [A-Z]
+	echo "  🚀 BUILDING $PLATFORM for $MODE target with $ENVIRONMENT environment" | tr [a-z] [A-Z]
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
@@ -141,18 +137,6 @@ checkParameters(){
 		*)
 			# Invalid environment - exit with error
 			printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not valid. Please set it to one of the following: ${VALID_METAMASK_ENVIRONMENTS}"
-			exit 1
-	esac
-
-	VALID_METAMASK_BUILD_TYPES="main|flask|qa"
-	# Check if the METAMASK_BUILD_TYPE is valid
-	case "${METAMASK_BUILD_TYPE}" in
-		main|flask|qa)
-			# Valid build type - continue
-			;;
-		*)
-			# Invalid build type - exit with error
-			printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not valid. Please set it to one of the following: ${VALID_METAMASK_BUILD_TYPES}"
 			exit 1
 	esac
 	
@@ -426,6 +410,27 @@ prebuild_android(){
 	fi
 }
 
+# Builds the Main APK for dev development
+buildAndroidMainDev(){
+	prebuild_android
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew app:assembleProdDebug app:assembleProdDebugAndroidTest --build-cache --parallel && cd ..
+}
+
+# Builds the Flask APK for dev development
+buildAndroidFlaskDev(){
+	prebuild_android
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew app:assembleFlaskDebug app:assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
+}
+
+# Builds the QA APK for dev development
+buildAndroidQaDev(){
+	prebuild_android
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew app:assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
+}
+
 # Builds and installs the Main APK for local development
 buildAndroidMainLocal(){
 	prebuild_android
@@ -463,6 +468,25 @@ buildIosFlaskLocal(){
 buildIosQALocal(){
   	prebuild_ios
 	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device "$IOS_SIMULATOR"
+}
+
+buildIosSimulatorE2E(){
+	prebuild_ios
+	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
+}
+
+buildIosFlaskSimulatorE2E(){
+	prebuild_ios
+	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-Flask -configuration Debug -sdk iphonesimulator -derivedDataPath build
+}
+
+buildIosQASimulatorE2E(){
+	prebuild_ios
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug -sdk iphonesimulator -derivedDataPath build
+}
+
+runIosE2E(){
+  cd e2e && yarn ios:debug
 }
 
 # Generates the iOS binary for the given scheme and configuration
@@ -513,40 +537,6 @@ generateIosBinary() {
 
 }
 
-# Generates the Android binary for the given scheme and configuration
-generateAndroidBinary() {
-	# Prod, Flask, or QA (Deprecated - Do not use)
-	flavor="$1"
-	# Debug or Release
-	configuration="${CONFIGURATION:-"Release"}"
-
-	# Create flavor configuration
-	flavorConfiguration="app:assemble${flavor}${configuration}"
-	# Create test configuration
-	testConfiguration="app:assemble${flavor}${configuration}AndroidTest"
-
-	# Generate Android binary
-	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
-
-
-	if [ "$configuration" = "Release" ] ; then
-		# Generate AAB bundle
-		bundleConfiguration="bundle${flavor}Release"
-		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
-		./gradlew $bundleConfiguration
-
-		# Generate checksum
-		lowerCaseFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
-		checkSumCommand="build:android:checksum:${lowerCaseFlavor}"
-		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
-		yarn $checkSumCommand
-	fi
-
-	# Change directory back out
-	cd ..
-}
-
 buildIosReleaseE2E(){
 	prebuild_ios
 
@@ -567,57 +557,113 @@ buildIosReleaseE2E(){
 	fi
 }
 
+# Builds the Main APK for production
+buildAndroidMainProduction(){
+	prebuild_android
+
+	# Generate APK for production
+	cd android && ./gradlew app:assembleProdRelease app:assembleProdReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleProdRelease
+
+	# Generate checksum
+	yarn build:android:checksum
+
+	# Change directory back out
+	cd ..
+}
+
+# Builds the Flask APK for production
+buildAndroidFlaskProduction(){
+	prebuild_android
+
+	# Generate APK for production
+	cd android && ./gradlew app:assembleFlaskRelease app:assembleFlaskReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleFlaskRelease
+
+	# Generate checksum
+	yarn build:android:checksum:flask
+
+	# Change directory back out
+	cd ..
+}
+
+# Builds the QA APK for production
+buildAndroidQaProduction(){
+	# Builds the QA APK for production
+	prebuild_android
+
+	# Generate APK for production
+	cd android && ./gradlew app:assembleQaRelease app:assembleQaReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleQaRelease
+
+	# Generate checksum
+	yarn build:android:checksum:qa
+
+	# Change directory back out
+	cd ..
+}
+
 buildAndroidReleaseE2E(){
 	prebuild_android
 	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
-	echo "Build Android $METAMASK_BUILD_TYPE started..."
-	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
+	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidMainLocal
+		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
+			buildAndroidMainDev
 		else
-			# Prepare Android dependencies
-			prebuild_android
-			# Go to android directory
-			cd android
-			# Generate Android binary
-			generateAndroidBinary "Prod"
+			buildAndroidMainProduction
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
+	elif [ "$MODE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidFlaskLocal
+		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
+			buildAndroidFlaskDev
 		else
-			# Prepare Android dependencies
-			prebuild_android
-			# Go to android directory
-			cd android
-			# Generate Android binary
-			generateAndroidBinary "Flask"
+			buildAndroidFlaskProduction
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidQALocal
+		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
+			buildAndroidQaDev
 		else
-			# Prepare Android dependencies
-			prebuild_android
-			# Go to android directory
-			cd android
-			# Generate Android binary
-			generateAndroidBinary "Qa"
+			buildAndroidQaProduction
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] ; then
+	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
+  	elif [ "$MODE" == "debugE2E" ] ; then
+		buildAndroidRunE2E
+	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+		buildAndroidFlaskDev
 	else
-		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized."
+		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized."
 		exit 1
 	fi
 }
 
+buildAndroidRunE2E(){
+	prebuild_android
+	if [ -e $ANDROID_ENV_FILE ]
+	then
+		source $ANDROID_ENV_FILE
+	fi
+	# Specify specific task name :app:TASKNAME to prevent processing other variants
+	cd android && ./gradlew :app:assembleProdDebug :app:assembleProdDebugAndroidTest -PminSdkVersion=26 -DtestBuildType=debug --build-cache && cd ..
+}
+
 buildIos() {
-	echo "Build iOS $METAMASK_BUILD_TYPE started..."
-	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
+	echo "Build iOS $MODE started..."
+	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildIosMainLocal
 		else
@@ -628,7 +674,7 @@ buildIos() {
 			# Generate iOS binary
 			generateIosBinary "MetaMask"
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
+	elif [ "$MODE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildIosFlaskLocal
 		else
@@ -639,7 +685,7 @@ buildIos() {
 			# Generate iOS binary
 			generateIosBinary "MetaMask-Flask"
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildIosQALocal
 		else
@@ -650,10 +696,16 @@ buildIos() {
 			# Generate iOS binary
 			generateIosBinary "MetaMask-QA"
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] ; then
-			buildIosReleaseE2E
+	elif [ "$MODE" == "releaseE2E" ] ; then
+		buildIosReleaseE2E
+	elif [ "$MODE" == "debugE2E" ] ; then
+			buildIosSimulatorE2E
+	elif [ "$MODE" == "qadebugE2E" ] ; then
+			buildIosQASimulatorE2E
+	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+			buildIosFlaskSimulatorE2E
 	else
-		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized"
+		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized"
 		exit 1
 	fi
 }
@@ -679,7 +731,7 @@ checkAuthToken() {
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+		if [ "$ENVIRONMENT" == "production" ]; then
 			printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
 			exit 1
 		else
@@ -692,7 +744,7 @@ checkAuthToken() {
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
 			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 		else
-			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+			if [ "$ENVIRONMENT" == "production" ]; then
 				printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
 				exit 1
 			else
@@ -709,50 +761,50 @@ printTitle
 
 # Map environment variables based on mode.
 # TODO: MODE should be renamed to TARGET
-if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+if [ "$MODE" == "main" ]; then
 	export GENERATE_BUNDLE=true # Used only for Android
 	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+	if [ "$ENVIRONMENT" == "production" ]; then
 		remapMainProdEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
+	elif [ "$ENVIRONMENT" == "beta" ]; then
 		remapMainBetaEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
+	elif [ "$ENVIRONMENT" == "rc" ]; then
 		remapMainReleaseCandidateEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
+	elif [ "$ENVIRONMENT" == "exp" ]; then
 		remapMainExperimentalEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+	elif [ "$ENVIRONMENT" == "test" ]; then
 		remapMainTestEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+	elif [ "$ENVIRONMENT" == "e2e" ]; then
 		remapMainE2EEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
+	elif [ "$ENVIRONMENT" == "dev" ]; then
 		remapMainDevEnvVariables
 	fi
-elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebugE2E" ]; then
 	# TODO: Map environment variables based on environment
-	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+	if [ "$ENVIRONMENT" == "production" ]; then
 		remapFlaskProdEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+	elif [ "$ENVIRONMENT" == "test" ]; then
 		remapFlaskTestEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+	elif [ "$ENVIRONMENT" == "e2e" ]; then
 		remapFlaskE2EEnvVariables
 	fi
-elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
 fi
 
-if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+if [ "$ENVIRONMENT" == "e2e" ]; then
 	# Build for simulator
 	export IS_SIM_BUILD="true"
 	# Ignore Boxlogs for E2E builds
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
-if [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ] || [ "$MODE" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"

@@ -1,8 +1,4 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 
 import {
   KeyringControllerSignPersonalMessageAction,
@@ -41,12 +37,9 @@ import {
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
   RewardsDataServiceGetPointsEventsLastUpdatedAction,
-  RewardsDataServiceGetDiscoverSeasonsAction,
-  RewardsDataServiceGetSeasonMetadataAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
-import { RootMessenger } from '../../types';
 
-const name = 'RewardsController' as const;
+const name = 'RewardsController';
 
 // Don't reexport as per guidelines
 type AllowedActions =
@@ -70,37 +63,30 @@ type AllowedActions =
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
   | RewardsDataServiceGetUnlockedRewardsAction
-  | RewardsDataServiceClaimRewardAction
-  | RewardsDataServiceGetDiscoverSeasonsAction
-  | RewardsDataServiceGetSeasonMetadataAction;
+  | RewardsDataServiceClaimRewardAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
   | AccountTreeControllerSelectedAccountGroupChangeEvent
   | KeyringControllerUnlockEvent;
 
-export type RewardsControllerMessenger = Messenger<
+export type RewardsControllerMessenger = RestrictedMessenger<
   typeof name,
   RewardsControllerActions | AllowedActions,
-  RewardsControllerEvents | AllowedEvents
+  RewardsControllerEvents | AllowedEvents,
+  AllowedActions['type'],
+  AllowedEvents['type'] // ← This was wrong!
 >;
 
 export function getRewardsControllerMessenger(
-  rootMessenger: RootMessenger,
+  messenger: Messenger<
+    RewardsControllerActions | AllowedActions,
+    RewardsControllerEvents | AllowedEvents
+  >,
 ): RewardsControllerMessenger {
-  const messenger = new Messenger<
-    typeof name,
-    MessengerActions<RewardsControllerMessenger>,
-    MessengerEvents<RewardsControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: name,
-    parent: rootMessenger,
-  });
-
-  rootMessenger.delegate({
-    messenger,
-    actions: [
+  return messenger.getRestricted({
+    name,
+    allowedActions: [
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
@@ -122,14 +108,10 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getActivePointsBoosts',
       'RewardsDataService:getUnlockedRewards',
       'RewardsDataService:claimReward',
-      'RewardsDataService:getDiscoverSeasons',
-      'RewardsDataService:getSeasonMetadata',
     ],
-    events: [
+    allowedEvents: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
     ],
   });
-
-  return messenger;
 }

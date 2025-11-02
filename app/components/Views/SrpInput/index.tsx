@@ -10,7 +10,6 @@ import {
   NativeSyntheticEvent,
   TextInputFocusEventData,
   TouchableWithoutFeedback,
-  TextInputSelectionChangeEventData,
 } from 'react-native';
 
 // External dependencies.
@@ -27,7 +26,6 @@ import {
   TEXTFIELD_STARTACCESSORY_TEST_ID,
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from '../../../component-library/components/Form/TextField/TextField.constants';
-import Device from '../../../util/device';
 
 const TextField = React.forwardRef<
   TextInput,
@@ -51,15 +49,11 @@ const TextField = React.forwardRef<
       testID,
       inputStyle,
       onInputFocus,
-      value,
       ...props
     },
     ref,
   ) => {
     const [isFocused, setIsFocused] = useState(false);
-    const [inputSelection, setInputSelection] = useState<
-      { start: number; end: number } | undefined
-    >(undefined);
 
     const { styles } = useStyles(styleSheet, {
       style,
@@ -75,9 +69,6 @@ const TextField = React.forwardRef<
           setIsFocused(false);
           onBlur?.(e);
         }
-        if (Device.isAndroid()) {
-          setInputSelection({ start: 0, end: 0 });
-        }
       },
       [isDisabled, setIsFocused, onBlur],
     );
@@ -87,26 +78,10 @@ const TextField = React.forwardRef<
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);
-
-          if (Device.isAndroid()) {
-            setInputSelection({
-              start: value?.length ?? 0,
-              end: value?.length ?? 0,
-            });
-          }
         }
       },
-      [isDisabled, setIsFocused, onFocus, value],
+      [isDisabled, setIsFocused, onFocus],
     );
-
-    const handleSelectionChange = (
-      event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-    ) => {
-      // Update selection state when user manually changes cursor position
-      if (Device.isAndroid()) {
-        setInputSelection(event.nativeEvent.selection);
-      }
-    };
 
     return (
       <TouchableWithoutFeedback onPress={onInputFocus}>
@@ -132,9 +107,6 @@ const TextField = React.forwardRef<
                 ref={ref}
                 isStateStylesDisabled
                 inputStyle={inputStyle}
-                selection={inputSelection}
-                onSelectionChange={handleSelectionChange}
-                value={value}
               />
             )}
           </View>

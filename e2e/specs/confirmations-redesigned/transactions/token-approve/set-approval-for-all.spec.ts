@@ -56,8 +56,9 @@ describe(
           smartContracts: [ERC_721_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc721Address =
-            await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
+          const erc721Address = await contractRegistry?.getContractAddress(
+            ERC_721_CONTRACT,
+          );
 
           await loginToApp();
 
@@ -124,8 +125,9 @@ describe(
           smartContracts: [ERC_1155_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc1155Address =
-            await contractRegistry?.getContractAddress(ERC_1155_CONTRACT);
+          const erc1155Address = await contractRegistry?.getContractAddress(
+            ERC_1155_CONTRACT,
+          );
 
           await loginToApp();
 
@@ -178,8 +180,9 @@ describe(
             smartContracts: [ERC_721_CONTRACT],
           },
           async ({ contractRegistry }) => {
-            const erc721Address =
-              await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
+            const erc721Address = await contractRegistry?.getContractAddress(
+              ERC_721_CONTRACT,
+            );
 
             await loginToApp();
 

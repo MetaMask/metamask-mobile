@@ -37,10 +37,11 @@ describe('usePerpsDepositProgress', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         availableBalance: '1000.00',
+        totalBalance: '10000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalBalance: '10100.00',
+        totalValue: '10100.00',
       },
       isInitialLoading: false,
     });
@@ -209,10 +210,11 @@ describe('usePerpsDepositProgress', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '1500.00', // Increased from 1000.00
+          totalBalance: '10500.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalBalance: '10600.00',
+          totalValue: '10600.00',
         },
         isInitialLoading: false,
       });
@@ -250,10 +252,11 @@ describe('usePerpsDepositProgress', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '500.00', // Decreased from 1000.00
+          totalBalance: '9500.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalBalance: '9600.00',
+          totalValue: '9600.00',
         },
         isInitialLoading: false,
       });
@@ -291,10 +294,11 @@ describe('usePerpsDepositProgress', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '1000.00', // Same as initial
+          totalBalance: '10000.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalBalance: '10100.00',
+          totalValue: '10100.00',
         },
         isInitialLoading: false,
       });
@@ -324,10 +328,11 @@ describe('usePerpsDepositProgress', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '0',
+          totalBalance: '10000.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalBalance: '10100.00',
+          totalValue: '10100.00',
         },
         isInitialLoading: false,
       });
@@ -408,10 +413,11 @@ describe('usePerpsDepositProgress', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '1000.01', // Small increase
+          totalBalance: '10000.01',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalBalance: '10100.01',
+          totalValue: '10100.01',
         },
         isInitialLoading: false,
       });

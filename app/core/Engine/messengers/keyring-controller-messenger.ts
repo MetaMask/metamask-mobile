@@ -1,28 +1,26 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { KeyringControllerMessenger } from '@metamask/keyring-controller';
-import { RootMessenger } from '../types';
+import { Messenger } from '@metamask/base-controller';
+
+type AllowedActions = never;
+
+type AllowedEvents = never;
+
+export type KeyringControllerMessenger = ReturnType<
+  typeof getKeyringControllerMessenger
+>;
 
 /**
- * Get the KeyringControllerMessenger for the KeyringController.
+ * Get a messenger restricted to the actions and events that the
+ * keyring controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The KeyringControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getKeyringControllerMessenger(
-  rootMessenger: RootMessenger,
-): KeyringControllerMessenger {
-  const messenger = new Messenger<
-    'KeyringController',
-    MessengerActions<KeyringControllerMessenger>,
-    MessengerEvents<KeyringControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'KeyringController',
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'KeyringController',
+    allowedActions: [],
+    allowedEvents: [],
   });
-  return messenger;
 }

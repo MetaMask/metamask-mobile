@@ -1,17 +1,14 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import {
   getTokensControllerMessenger,
   getTokensControllerInitMessenger,
+  type TokensControllerMessenger,
   TokensControllerInitMessenger,
 } from '../messengers/tokens-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { tokensControllerInit } from './tokens-controller-init';
-import {
-  TokensController,
-  TokensControllerMessenger,
-} from '@metamask/assets-controllers';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { TokensController } from '@metamask/assets-controllers';
 
 jest.mock('@metamask/assets-controllers');
 
@@ -21,9 +18,7 @@ function getInitRequestMock(): jest.Mocked<
     TokensControllerInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

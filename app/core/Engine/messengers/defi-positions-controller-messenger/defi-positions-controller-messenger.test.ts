@@ -1,46 +1,29 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  type MockAnyNamespace,
-  MOCK_ANY_NAMESPACE,
-} from '@metamask/messenger';
-import { DeFiPositionsControllerMessenger } from '@metamask/assets-controllers';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import {
   getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
-  DeFiPositionsControllerInitMessenger,
 } from './defi-positions-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<DeFiPositionsControllerMessenger>
-  | MessengerActions<DeFiPositionsControllerInitMessenger>,
-  | MessengerEvents<DeFiPositionsControllerMessenger>
-  | MessengerEvents<DeFiPositionsControllerInitMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-
 describe('getDeFiPositionsControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const controllerMessenger = new Messenger<never, never>();
     const defiPositionsControllerMessenger =
-      getDeFiPositionsControllerMessenger(rootMessenger);
+      getDeFiPositionsControllerMessenger(controllerMessenger);
 
-    expect(defiPositionsControllerMessenger).toBeInstanceOf(Messenger);
+    expect(defiPositionsControllerMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });
 
 describe('getDeFiPositionsControllerInitMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const controllerMessenger = new Messenger<never, never>();
     const defiPositionsControllerInitMessenger =
-      getDeFiPositionsControllerInitMessenger(rootMessenger);
+      getDeFiPositionsControllerInitMessenger(controllerMessenger);
 
-    expect(defiPositionsControllerInitMessenger).toBeInstanceOf(Messenger);
+    expect(defiPositionsControllerInitMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

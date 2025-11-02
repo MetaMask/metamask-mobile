@@ -179,14 +179,12 @@ class AccountInfoCard extends PureComponent {
     const originatorInfo = currentConnection?.originatorInfo;
 
     const sdkDappMetadata = {
-      url: isOriginUrl
-        ? origin
-        : (originatorInfo?.url ?? strings('sdk.unknown')),
+      url: isOriginUrl ? origin : originatorInfo?.url ?? strings('sdk.unknown'),
       icon: originatorInfo?.icon,
     };
     const actualOriginUrl = isOriginUrl
       ? origin
-      : (originatorInfo?.url ?? strings('sdk.unknown'));
+      : originatorInfo?.url ?? strings('sdk.unknown');
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader

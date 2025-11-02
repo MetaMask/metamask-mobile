@@ -137,7 +137,6 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../../selectors/settings', () => ({
   selectAvatarAccountType: () => 'MaskIcon',
-  selectBasicFunctionalityEnabled: () => true,
 }));
 
 jest.mock(

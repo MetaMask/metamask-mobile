@@ -1,47 +1,27 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import {
   getPermissionControllerMessenger,
   getPermissionControllerInitMessenger,
-  PermissionControllerInitMessenger,
 } from './permission-controller-messenger';
-import { PermissionControllerMessenger } from '@metamask/permission-controller';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<PermissionControllerMessenger>
-  | MessengerActions<PermissionControllerInitMessenger>,
-  | MessengerEvents<PermissionControllerMessenger>
-  | MessengerEvents<PermissionControllerInitMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
 
 describe('getPermissionControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const permissionControllerMessenger =
-      getPermissionControllerMessenger(rootMessenger);
+      getPermissionControllerMessenger(messenger);
 
-    expect(permissionControllerMessenger).toBeInstanceOf(Messenger);
+    expect(permissionControllerMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });
 
 describe('getPermissionControllerInitMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const permissionControllerInitMessenger =
-      getPermissionControllerInitMessenger(rootMessenger);
+      getPermissionControllerInitMessenger(messenger);
 
-    expect(permissionControllerInitMessenger).toBeInstanceOf(Messenger);
+    expect(permissionControllerInitMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

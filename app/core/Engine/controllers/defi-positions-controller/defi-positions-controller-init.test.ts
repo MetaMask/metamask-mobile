@@ -1,6 +1,6 @@
 import { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import {
   DeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerInitMessenger,
@@ -12,7 +12,6 @@ import {
 } from '@metamask/assets-controllers';
 import { defiPositionsControllerInit } from './defi-positions-controller-init';
 import { MetaMetrics } from '../../../Analytics';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
 
@@ -23,9 +22,7 @@ jest.mock('.../../../../store', () => ({
 }));
 
 function getInitRequestMock(
-  baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  }),
+  baseMessenger = new ExtendedControllerMessenger<never, never>(),
 ): jest.Mocked<
   ControllerInitRequest<
     DeFiPositionsControllerMessenger,

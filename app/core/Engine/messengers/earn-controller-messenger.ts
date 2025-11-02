@@ -1,11 +1,27 @@
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { EarnControllerMessenger } from '@metamask/earn-controller';
-import { NetworkControllerGetStateAction } from '@metamask/network-controller';
-import { RootMessenger } from '../types';
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetStateAction,
+  NetworkControllerNetworkDidChangeEvent,
+} from '@metamask/network-controller';
+import {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
+import { TransactionControllerTransactionConfirmedEvent } from '@metamask/transaction-controller';
+
+type AllowedActions =
+  | NetworkControllerGetNetworkClientByIdAction
+  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction;
+
+type AllowedEvents =
+  | AccountTreeControllerSelectedAccountGroupChangeEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | NetworkControllerNetworkDidChangeEvent;
+
+export type EarnControllerMessenger = ReturnType<
+  typeof getEarnControllerMessenger
+>;
 
 /**
  * Get a messenger restricted to the actions and events that the
@@ -15,30 +31,20 @@ import { RootMessenger } from '../types';
  * @returns The restricted controller messenger.
  */
 export function getEarnControllerMessenger(
-  rootMessenger: RootMessenger,
-): EarnControllerMessenger {
-  const messenger = new Messenger<
-    'EarnController',
-    MessengerActions<EarnControllerMessenger>,
-    MessengerEvents<EarnControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'EarnController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'EarnController',
+    allowedActions: [
       'NetworkController:getNetworkClientById',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
     ],
-    events: [
+    allowedEvents: [
       'AccountTreeController:selectedAccountGroupChange',
       'TransactionController:transactionConfirmed',
       'NetworkController:networkDidChange',
     ],
-    messenger,
   });
-  return messenger;
 }
 
 type AllowedInitializationActions = NetworkControllerGetStateAction;
@@ -54,20 +60,12 @@ export type EarnControllerInitMessenger = ReturnType<
  * @param messenger - The controller messenger to restrict.
  * @returns The restricted controller messenger.
  */
-export function getEarnControllerInitMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
-    'EarnControllerInitialization',
-    AllowedInitializationActions,
-    never,
-    RootMessenger
-  >({
-    namespace: 'EarnControllerInitialization',
-    parent: rootMessenger,
+export function getEarnControllerInitMessenger(
+  messenger: Messenger<AllowedInitializationActions, never>,
+) {
+  return messenger.getRestricted({
+    name: 'EarnControllerInitialization',
+    allowedActions: ['NetworkController:getState'],
+    allowedEvents: [],
   });
-  rootMessenger.delegate({
-    actions: ['NetworkController:getState'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

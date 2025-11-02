@@ -10,9 +10,10 @@ import Assertions from '../../framework/Assertions';
 
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
+import SettingsView from '../../pages/Settings/SettingsView';
+import NetworksView from '../../pages/Settings/NetworksView';
 import TestDApp from '../../pages/Browser/TestDApp';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
@@ -55,14 +56,13 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkConnectMultiSelector.tapUpdateButton();
         await ConnectBottomSheet.tapConnectButton();
 
-        // Remove network using network switcher
-        await TabBarComponent.tapWallet();
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.longPressOnNetwork(
+        // Remove network from settings
+        await TabBarComponent.tapSettings();
+        await SettingsView.tapNetworks();
+        await NetworksView.longPressToRemoveNetwork(
           PopularNetworksList.Polygon.providerConfig.nickname,
         );
-        await NetworkListModal.deleteNetwork();
-        await NetworkListModal.tapDeleteButton();
+        await NetworkEducationModal.tapGotItButton();
 
         // Verify permission cleanup
         await TabBarComponent.tapBrowser();

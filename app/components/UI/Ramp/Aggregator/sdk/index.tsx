@@ -316,10 +316,11 @@ export const useRampSDK = () => {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const withRampSDK = (Component: React.FC) => (props: any) => (
-  <RampSDKProvider>
-    <Component {...props} />
-  </RampSDKProvider>
-);
+export const withRampSDK = (Component: React.FC) => (props: any) =>
+  (
+    <RampSDKProvider>
+      <Component {...props} />
+    </RampSDKProvider>
+  );
 
 export default SDKContext;

@@ -1,10 +1,9 @@
 import {
+  ControllerStateChangeEvent,
   Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+} from '@metamask/base-controller';
+import { ErrorReportingServiceCaptureExceptionAction } from '@metamask/error-reporting-service';
 import {
-  NetworkControllerMessenger,
   NetworkControllerRpcEndpointDegradedEvent,
   NetworkControllerRpcEndpointUnavailableEvent,
 } from '@metamask/network-controller';
@@ -12,34 +11,28 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
-import { RootMessenger } from '../types';
-import { ControllerStateChangeEvent } from '@metamask/base-controller';
+
+type AllowedActions = ErrorReportingServiceCaptureExceptionAction;
+
+export type NetworkControllerMessenger = ReturnType<
+  typeof getNetworkControllerMessenger
+>;
 
 /**
- * Get the messenger for the network controller. This is scoped to the
+ * Get a restricted messenger for the network controller. This is scoped to the
  * actions and events that the network controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The NetworkControllerMessenger.
+ * @param messenger - The messenger to restrict.
+ * @returns The restricted messenger.
  */
 export function getNetworkControllerMessenger(
-  rootMessenger: RootMessenger,
-): NetworkControllerMessenger {
-  const messenger = new Messenger<
-    'NetworkController',
-    MessengerActions<NetworkControllerMessenger>,
-    MessengerEvents<NetworkControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'NetworkController',
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, never>,
+) {
+  return messenger.getRestricted({
+    name: 'NetworkController',
+    allowedActions: ['ErrorReportingService:captureException'],
+    allowedEvents: [],
   });
-  rootMessenger.delegate({
-    actions: ['ErrorReportingService:captureException'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }
 
 type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
@@ -57,33 +50,26 @@ export type NetworkControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the messenger for the network controller initialization. This is scoped to the
+ * Get a restricted messenger for the network controller. This is scoped to the
  * actions and events that the network controller is allowed to handle during
  * initialization.
  *
- * @param rootMessenger - The root messenger.
- * @returns The NetworkControllerInitMessenger.
+ * @param messenger - The messenger to restrict.
+ * @returns The restricted messenger.
  */
 export function getNetworkControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'NetworkControllerInit',
+  messenger: Messenger<
     AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
-    namespace: 'NetworkControllerInit',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
-    events: [
+    AllowedInitializationEvents
+  >,
+) {
+  return messenger.getRestricted({
+    name: 'NetworkControllerInit',
+    allowedActions: ['RemoteFeatureFlagController:getState'],
+    allowedEvents: [
       'NetworkController:rpcEndpointDegraded',
       'NetworkController:rpcEndpointUnavailable',
       'RemoteFeatureFlagController:stateChange',
     ],
-    messenger,
   });
-  return messenger;
 }

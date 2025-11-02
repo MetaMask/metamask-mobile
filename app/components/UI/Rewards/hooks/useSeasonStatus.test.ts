@@ -16,6 +16,7 @@ import {
   setSeasonStatusLoading,
 } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
+import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
   ParamListBase,
   NavigationProp,
@@ -157,7 +158,7 @@ describe('useSeasonStatus', () => {
     });
   });
 
-  it('skips fetch when subscriptionId is missing', () => {
+  it('should skip fetch when subscriptionId is missing', () => {
     // Reset and override the selector for this specific test
     mockUseSelector
       .mockReset()
@@ -178,19 +179,18 @@ describe('useSeasonStatus', () => {
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
-  it('fetches season status successfully and dispatches loading states', async () => {
-    const mockSeasonMetadata = {
-      id: 'season-1',
-      name: 'Test Season',
-      startDate: 1640995200000,
-      endDate: 1672531200000,
-      tiers: [],
-    };
-
+  it('should fetch season status successfully and dispatch loading states', async () => {
     const mockStatusData = {
-      season: mockSeasonMetadata,
+      season: {
+        id: 'season-1',
+        name: 'Test Season',
+        startDate: 1640995200000,
+        endDate: 1672531200000,
+        tiers: [],
+      },
       balance: {
         total: 100,
+        refereePortion: 20,
         updatedAt: 1640995200000,
       },
       tier: {
@@ -220,9 +220,7 @@ describe('useSeasonStatus', () => {
       },
     };
 
-    mockEngineCall
-      .mockResolvedValueOnce(mockSeasonMetadata)
-      .mockResolvedValueOnce(mockStatusData);
+    mockEngineCall.mockResolvedValueOnce(mockStatusData);
 
     renderHook(() => useSeasonStatus({}));
 
@@ -235,20 +233,16 @@ describe('useSeasonStatus', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
     expect(mockEngineCall).toHaveBeenCalledWith(
-      'RewardsController:getSeasonMetadata',
-      'current',
-    );
-    expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getSeasonStatus',
       'test-subscription-id',
-      'season-1',
+      CURRENT_SEASON_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(mockStatusData));
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusError(null));
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
   });
 
-  it('handles fetch errors gracefully and dispatches error state', async () => {
+  it('should handle fetch errors gracefully and dispatch error state', async () => {
     const mockError = new Error('Fetch failed');
     mockEngineCall.mockRejectedValueOnce(mockError);
 
@@ -269,46 +263,9 @@ describe('useSeasonStatus', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
   });
 
-  it('handles null season metadata and dispatches error state', async () => {
-    mockEngineCall.mockResolvedValueOnce(null);
-
-    renderHook(() => useSeasonStatus({}));
-
-    // Verify that the focus effect callback was registered
-    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-    // Execute the focus effect callback to trigger the fetch logic
-    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-    await focusCallback();
-
-    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
-    expect(mockEngineCall).toHaveBeenCalledWith(
-      'RewardsController:getSeasonMetadata',
-      'current',
-    );
-    expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'No season metadata found',
-      }),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSeasonStatusError('Mocked error message'),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
-  });
-
-  it('handles 403 errors by resetting rewards state and setting candidate subscription to retry', async () => {
-    const mockSeasonMetadata = {
-      id: 'season-1',
-      name: 'Test Season',
-      startDate: 1640995200000,
-      endDate: 1672531200000,
-      tiers: [],
-    };
+  it('should handle 403 errors by resetting rewards state and setting candidate subscription to retry', async () => {
     const mock403Error = new AuthorizationFailedError('403 Forbidden');
-    mockEngineCall
-      .mockResolvedValueOnce(mockSeasonMetadata)
-      .mockRejectedValueOnce(mock403Error);
+    mockEngineCall.mockRejectedValueOnce(mock403Error);
 
     renderHook(() => useSeasonStatus({}));
 
@@ -324,19 +281,20 @@ describe('useSeasonStatus', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setCandidateSubscriptionId('retry'),
     );
+    expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mock403Error);
     expect(mockDispatch).toHaveBeenCalledWith(
       setSeasonStatusError('Mocked error message'),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
   });
 
-  it('registers focus effect callback', () => {
+  it('should register focus effect callback', () => {
     renderHook(() => useSeasonStatus({}));
 
     expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
   });
 
-  it('prevents duplicate fetch calls when already loading', async () => {
+  it('should prevent duplicate fetch calls when already loading', async () => {
     // First call will start loading
     mockEngineCall.mockImplementation(
       () =>
@@ -360,19 +318,18 @@ describe('useSeasonStatus', () => {
   });
 
   describe('loading state management', () => {
-    it('sets loading to true at start of fetch', async () => {
-      const mockSeasonMetadata = {
-        id: 'test',
-        name: 'Test Season',
-        startDate: 1640995200000,
-        endDate: 1672531200000,
-        tiers: [],
-      };
-
+    it('should set loading to true at start of fetch', async () => {
       const mockStatusData = {
-        season: mockSeasonMetadata,
+        season: {
+          id: 'test',
+          name: 'Test Season',
+          startDate: 1640995200000,
+          endDate: 1672531200000,
+          tiers: [],
+        },
         balance: {
           total: 100,
+          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
@@ -401,9 +358,7 @@ describe('useSeasonStatus', () => {
           nextTierPointsNeeded: 50,
         },
       };
-      mockEngineCall
-        .mockResolvedValueOnce(mockSeasonMetadata)
-        .mockResolvedValueOnce(mockStatusData);
+      mockEngineCall.mockResolvedValueOnce(mockStatusData);
 
       renderHook(() => useSeasonStatus({}));
 
@@ -415,19 +370,18 @@ describe('useSeasonStatus', () => {
       expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
     });
 
-    it('sets loading to false after successful fetch', async () => {
-      const mockSeasonMetadata = {
-        id: 'test',
-        name: 'Test Season',
-        startDate: 1640995200000,
-        endDate: 1672531200000,
-        tiers: [],
-      };
-
+    it('should set loading to false after successful fetch', async () => {
       const mockStatusData = {
-        season: mockSeasonMetadata,
+        season: {
+          id: 'test',
+          name: 'Test Season',
+          startDate: 1640995200000,
+          endDate: 1672531200000,
+          tiers: [],
+        },
         balance: {
           total: 100,
+          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
@@ -456,9 +410,7 @@ describe('useSeasonStatus', () => {
           nextTierPointsNeeded: 50,
         },
       };
-      mockEngineCall
-        .mockResolvedValueOnce(mockSeasonMetadata)
-        .mockResolvedValueOnce(mockStatusData);
+      mockEngineCall.mockResolvedValueOnce(mockStatusData);
 
       renderHook(() => useSeasonStatus({}));
 
@@ -473,7 +425,7 @@ describe('useSeasonStatus', () => {
       expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
     });
 
-    it('sets loading to false after failed fetch', async () => {
+    it('should set loading to false after failed fetch', async () => {
       const mockError = new Error('Fetch failed');
       mockEngineCall.mockRejectedValueOnce(mockError);
 
@@ -492,7 +444,7 @@ describe('useSeasonStatus', () => {
   });
 
   describe('onlyForExplicitFetch parameter', () => {
-    it('skips focus effect when onlyForExplicitFetch is true', () => {
+    it('should skip focus effect when onlyForExplicitFetch is true', () => {
       renderHook(() => useSeasonStatus({ onlyForExplicitFetch: true }));
 
       // Verify that the focus effect callback was registered
@@ -509,19 +461,18 @@ describe('useSeasonStatus', () => {
       );
     });
 
-    it('allows manual fetch when onlyForExplicitFetch is true', async () => {
-      const mockSeasonMetadata = {
-        id: 'test',
-        name: 'Test Season',
-        startDate: 1640995200000,
-        endDate: 1672531200000,
-        tiers: [],
-      };
-
+    it('should still allow manual fetch when onlyForExplicitFetch is true', async () => {
       const mockStatusData = {
-        season: mockSeasonMetadata,
+        season: {
+          id: 'test',
+          name: 'Test Season',
+          startDate: 1640995200000,
+          endDate: 1672531200000,
+          tiers: [],
+        },
         balance: {
           total: 100,
+          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
@@ -550,9 +501,7 @@ describe('useSeasonStatus', () => {
           nextTierPointsNeeded: 50,
         },
       };
-      mockEngineCall
-        .mockResolvedValueOnce(mockSeasonMetadata)
-        .mockResolvedValueOnce(mockStatusData);
+      mockEngineCall.mockResolvedValueOnce(mockStatusData);
 
       const { result } = renderHook(() =>
         useSeasonStatus({ onlyForExplicitFetch: true }),
@@ -563,13 +512,9 @@ describe('useSeasonStatus', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
       expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:getSeasonMetadata',
-        'current',
-      );
-      expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonStatus',
         'test-subscription-id',
-        'test',
+        CURRENT_SEASON_ID,
       );
       expect(mockDispatch).toHaveBeenCalledWith(
         setSeasonStatus(mockStatusData),
@@ -578,7 +523,7 @@ describe('useSeasonStatus', () => {
       expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
     });
 
-    it('uses empty invalidate events array when onlyForExplicitFetch is true', () => {
+    it('should use empty invalidate events array when onlyForExplicitFetch is true', () => {
       renderHook(() => useSeasonStatus({ onlyForExplicitFetch: true }));
 
       // Verify that useInvalidateByRewardEvents was called with empty array
@@ -588,7 +533,7 @@ describe('useSeasonStatus', () => {
       );
     });
 
-    it('uses full invalidate events array when onlyForExplicitFetch is false', () => {
+    it('should use full invalidate events array when onlyForExplicitFetch is false', () => {
       renderHook(() => useSeasonStatus({ onlyForExplicitFetch: false }));
 
       // Verify that useInvalidateByRewardEvents was called with full events array
@@ -602,7 +547,7 @@ describe('useSeasonStatus', () => {
       );
     });
 
-    it('uses full invalidate events array when onlyForExplicitFetch is not provided (default)', () => {
+    it('should use full invalidate events array when onlyForExplicitFetch is not provided (default)', () => {
       renderHook(() => useSeasonStatus({}));
 
       // Verify that useInvalidateByRewardEvents was called with full events array
@@ -616,19 +561,18 @@ describe('useSeasonStatus', () => {
       );
     });
 
-    it('executes focus effect when onlyForExplicitFetch is false', async () => {
-      const mockSeasonMetadata = {
-        id: 'test',
-        name: 'Test Season',
-        startDate: 1640995200000,
-        endDate: 1672531200000,
-        tiers: [],
-      };
-
+    it('should execute focus effect when onlyForExplicitFetch is false', async () => {
       const mockStatusData = {
-        season: mockSeasonMetadata,
+        season: {
+          id: 'test',
+          name: 'Test Season',
+          startDate: 1640995200000,
+          endDate: 1672531200000,
+          tiers: [],
+        },
         balance: {
           total: 100,
+          refereePortion: 20,
           updatedAt: 1640995200000,
         },
         tier: {
@@ -657,9 +601,7 @@ describe('useSeasonStatus', () => {
           nextTierPointsNeeded: 50,
         },
       };
-      mockEngineCall
-        .mockResolvedValueOnce(mockSeasonMetadata)
-        .mockResolvedValueOnce(mockStatusData);
+      mockEngineCall.mockResolvedValueOnce(mockStatusData);
 
       renderHook(() => useSeasonStatus({ onlyForExplicitFetch: false }));
 
@@ -673,13 +615,9 @@ describe('useSeasonStatus', () => {
       // Should call the engine and dispatch actions
       expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
       expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:getSeasonMetadata',
-        'current',
-      );
-      expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonStatus',
         'test-subscription-id',
-        'test',
+        CURRENT_SEASON_ID,
       );
       expect(mockDispatch).toHaveBeenCalledWith(
         setSeasonStatus(mockStatusData),

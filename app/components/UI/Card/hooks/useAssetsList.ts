@@ -91,7 +91,7 @@ export const useAssetsList = (
         const assetAddress =
           token.caipChainId && isSolanaChainId(token.caipChainId)
             ? `${token.caipChainId}/token:${token.address}`
-            : (token.address?.toLowerCase() ?? '');
+            : token.address?.toLowerCase() ?? '';
         const iconUrl = buildTokenIconUrl(
           token.caipChainId,
           token.address ?? '',

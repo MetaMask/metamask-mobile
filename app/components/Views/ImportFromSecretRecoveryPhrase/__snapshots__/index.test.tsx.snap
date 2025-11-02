@@ -613,7 +613,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onKeyPress={[Function]}
-                                          onSelectionChange={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Add a space between each word and make sure no one is watching."
                                           placeholderTextColor="#686e7d"

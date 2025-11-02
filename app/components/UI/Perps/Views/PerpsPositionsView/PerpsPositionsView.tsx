@@ -138,7 +138,7 @@ const PerpsPositionsView: React.FC = () => {
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Md}
           onPress={handleBackPress}
-          testID={PerpsPositionsViewSelectorsIDs.BACK_BUTTON}
+          testID="back-button"
         />
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.position.title')}

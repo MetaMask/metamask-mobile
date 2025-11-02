@@ -1,10 +1,7 @@
 import {
   BaseController,
-  ControllerGetStateAction,
-  ControllerStateChangeEvent,
-  StateMetadata,
+  type RestrictedMessenger,
 } from '@metamask/base-controller';
-import type { Messenger } from '@metamask/messenger';
 import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
@@ -21,14 +18,8 @@ import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
-import { generateDepositId } from '../utils/idUtils';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
-import {
-  LastTransactionResult,
-  TransactionStatus,
-} from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
+import Logger from '../../../../util/Logger';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import { generateTransferData } from '../../../../util/transactions';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
@@ -51,31 +42,19 @@ import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DATA_LAKE_API_CONFIG,
   PERPS_CONSTANTS,
-  MARKET_SORTING_CONFIG,
-  type SortOptionId,
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import {
-  getStreamManagerInstance,
-  type PerpsStreamManager,
-} from '../providers/PerpsStreamManager';
 import type {
   AccountState,
   AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
-  CancelOrdersParams,
-  CancelOrdersResult,
   ClosePositionParams,
-  ClosePositionsParams,
-  ClosePositionsResult,
   EditOrderParams,
-  FeeCalculationParams,
   FeeCalculationResult,
   Funding,
   GetAccountStateParams,
-  GetAvailableDexsParams,
   GetFundingParams,
   GetOrderFillsParams,
   GetOrdersParams,
@@ -146,7 +125,7 @@ export type PerpsControllerState = {
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
     [provider: string]: {
-      totalBalance: string; // Current total account value (cash + positions) in USD
+      totalValue: string; // Current total account value (cash + positions) in USD
       unrealizedPnl: string; // Current P&L from open positions in USD
       accountValue1dAgo: string; // Account value 24h ago for daily change calculation in USD
       lastUpdated: number; // Timestamp of last update
@@ -161,50 +140,20 @@ export type PerpsControllerState = {
   // Internal transaction id for the deposit transaction
   // We use this to fetch the bridge quotes and get the estimated time.
   lastDepositTransactionId: string | null;
-  lastDepositResult: LastTransactionResult | null;
+  lastDepositResult: {
+    success: boolean;
+    txHash?: string;
+    error?: string;
+  } | null;
 
   // Simple withdrawal state (transient, for UI feedback)
   withdrawInProgress: boolean;
-  lastWithdrawResult: LastTransactionResult | null;
-
-  // Withdrawal request tracking (persistent, for transaction history)
-  withdrawalRequests: {
-    id: string;
-    amount: string;
-    asset: string;
-    txHash?: string;
-    timestamp: number;
+  lastWithdrawResult: {
     success: boolean;
-    status: TransactionStatus;
-    destination?: string;
-    source?: string;
-    transactionId?: string;
-    withdrawalId?: string;
-    depositId?: string;
-  }[];
-
-  // Withdrawal progress tracking (persistent across navigation)
-  withdrawalProgress: {
-    progress: number; // 0-100
-    lastUpdated: number; // timestamp
-    activeWithdrawalId: string | null; // ID of the withdrawal being tracked
-  };
-
-  // Deposit request tracking (persistent, for transaction history)
-  depositRequests: {
-    id: string;
-    amount: string;
-    asset: string;
     txHash?: string;
-    timestamp: number;
-    success: boolean;
-    status: TransactionStatus;
-    destination?: string;
-    source?: string;
-    transactionId?: string;
-    withdrawalId?: string;
-    depositId?: string;
-  }[];
+    amount?: string;
+    error?: string;
+  } | null;
 
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
@@ -221,29 +170,6 @@ export type PerpsControllerState = {
     mainnet: boolean;
   };
 
-  // Watchlist markets tracking (per network)
-  watchlistMarkets: {
-    testnet: string[]; // Array of watchlist market symbols for testnet
-    mainnet: string[]; // Array of watchlist market symbols for mainnet
-  };
-
-  // Trade configurations per market (per network)
-  tradeConfigurations: {
-    testnet: {
-      [marketSymbol: string]: {
-        leverage?: number; // Last used leverage for this market
-      };
-    };
-    mainnet: {
-      [marketSymbol: string]: {
-        leverage?: number;
-      };
-    };
-  };
-
-  // Market filter preferences (network-independent) - includes both sorting and filtering options
-  marketFilterPreferences: SortOptionId;
-
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -254,7 +180,7 @@ export type PerpsControllerState = {
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
-  isTestnet: false, // Default to mainnet
+  isTestnet: __DEV__, // Default to testnet in dev
   connectionStatus: 'disconnected',
   accountState: null,
   positions: [],
@@ -265,13 +191,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   withdrawInProgress: false,
   lastDepositTransactionId: null,
   lastWithdrawResult: null,
-  withdrawalRequests: [],
-  withdrawalProgress: {
-    progress: 0,
-    lastUpdated: 0,
-    activeWithdrawalId: null,
-  },
-  depositRequests: [],
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
@@ -283,157 +202,112 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: false,
     mainnet: false,
   },
-  watchlistMarkets: {
-    testnet: [],
-    mainnet: [],
-  },
-  tradeConfigurations: {
-    testnet: {},
-    mainnet: {},
-  },
-  marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
 });
 
 /**
  * State metadata for the PerpsController
  */
-const metadata: StateMetadata<PerpsControllerState> = {
+const metadata = {
   accountState: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   positions: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   perpsBalances: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   isTestnet: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   activeProvider: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   connectionStatus: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   pendingOrders: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: false,
   },
   depositInProgress: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   lastDepositTransactionId: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   lastDepositResult: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   withdrawInProgress: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   lastWithdrawResult: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  withdrawalRequests: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  withdrawalProgress: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  depositRequests: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   lastError: {
     includeInStateLogs: false,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: false,
   },
   lastUpdateTimestamp: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: false,
   },
   isEligible: {
     includeInStateLogs: true,
     persist: false,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   isFirstTimeUser: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
   hasPlacedFirstOrder: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  watchlistMarkets: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  tradeConfigurations: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  marketFilterPreferences: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
+    anonymous: false,
     usedInUi: true,
   },
 };
@@ -441,16 +315,19 @@ const metadata: StateMetadata<PerpsControllerState> = {
 /**
  * PerpsController events
  */
-export type PerpsControllerEvents = ControllerStateChangeEvent<
-  'PerpsController',
-  PerpsControllerState
->;
+export interface PerpsControllerEvents {
+  type: 'PerpsController:stateChange';
+  payload: [PerpsControllerState, PerpsControllerState[]];
+}
 
 /**
  * PerpsController actions
  */
 export type PerpsControllerActions =
-  | ControllerGetStateAction<'PerpsController', PerpsControllerState>
+  | {
+      type: 'PerpsController:getState';
+      handler: () => PerpsControllerState;
+    }
   | {
       type: 'PerpsController:placeOrder';
       handler: PerpsController['placeOrder'];
@@ -464,16 +341,8 @@ export type PerpsControllerActions =
       handler: PerpsController['cancelOrder'];
     }
   | {
-      type: 'PerpsController:cancelOrders';
-      handler: PerpsController['cancelOrders'];
-    }
-  | {
       type: 'PerpsController:closePosition';
       handler: PerpsController['closePosition'];
-    }
-  | {
-      type: 'PerpsController:closePositions';
-      handler: PerpsController['closePositions'];
     }
   | {
       type: 'PerpsController:withdraw';
@@ -538,22 +407,6 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:resetFirstTimeUserState';
       handler: PerpsController['resetFirstTimeUserState'];
-    }
-  | {
-      type: 'PerpsController:saveTradeConfiguration';
-      handler: PerpsController['saveTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:getTradeConfiguration';
-      handler: PerpsController['getTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:saveMarketFilterPreferences';
-      handler: PerpsController['saveMarketFilterPreferences'];
-    }
-  | {
-      type: 'PerpsController:getMarketFilterPreferences';
-      handler: PerpsController['getMarketFilterPreferences'];
     };
 
 /**
@@ -576,10 +429,12 @@ export type AllowedEvents =
 /**
  * PerpsController messenger constraints
  */
-export type PerpsControllerMessenger = Messenger<
+export type PerpsControllerMessenger = RestrictedMessenger<
   'PerpsController',
   PerpsControllerActions | AllowedActions,
-  PerpsControllerEvents | AllowedEvents
+  PerpsControllerEvents | AllowedEvents,
+  AllowedActions['type'],
+  AllowedEvents['type']
 >;
 
 /**
@@ -625,14 +480,10 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
-  // Store HIP-3 configuration from client
-  private readonly equityEnabled: boolean;
-  private readonly enabledDexs: string[];
-
   constructor({
     messenger,
     state = {},
-    clientConfig = {},
+    clientConfig = { fallbackBlockedRegions: [] },
   }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
@@ -640,11 +491,6 @@ export class PerpsController extends BaseController<
       messenger,
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
-
-    // Store HIP-3 configuration from client (immutable after construction)
-    // Clone array to prevent external mutations
-    this.equityEnabled = clientConfig.equityEnabled ?? false;
-    this.enabledDexs = [...(clientConfig.enabledDexs ?? [])];
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
@@ -660,7 +506,7 @@ export class PerpsController extends BaseController<
      * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
      */
     try {
-      const currentRemoteFeatureFlagState = this.messenger.call(
+      const currentRemoteFeatureFlagState = this.messagingSystem.call(
         'RemoteFeatureFlagController:getState',
       );
 
@@ -677,7 +523,7 @@ export class PerpsController extends BaseController<
       );
     }
 
-    this.messenger.subscribe(
+    this.messagingSystem.subscribe(
       'RemoteFeatureFlagController:stateChange',
       this.refreshEligibilityOnFeatureFlagChange.bind(this),
     );
@@ -733,81 +579,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Execute an operation while temporarily pausing specified stream channels
-   * to prevent WebSocket updates from triggering UI re-renders during operations.
-   *
-   * WebSocket connections remain alive but updates are not emitted to subscribers.
-   * This prevents race conditions where UI re-renders fetch stale data during operations.
-   *
-   * @param operation - The async operation to execute
-   * @param channels - Array of stream channel names to pause
-   * @returns The result of the operation
-   *
-   * @example
-   * ```typescript
-   * // Cancel orders without stream interference
-   * await this.withStreamPause(
-   *   async () => this.provider.cancelOrders({ cancelAll: true }),
-   *   ['orders']
-   * );
-   *
-   * // Close positions and pause multiple streams
-   * await this.withStreamPause(
-   *   async () => this.provider.closePositions(positions),
-   *   ['positions', 'account', 'orders']
-   * );
-   * ```
-   */
-  private async withStreamPause<T>(
-    operation: () => Promise<T>,
-    channels: (keyof PerpsStreamManager)[],
-  ): Promise<T> {
-    const streamManager = getStreamManagerInstance();
-    const pausedChannels: (keyof PerpsStreamManager)[] = [];
-
-    // Pause emission on specified channels (WebSocket stays connected)
-    // Track which channels successfully paused to ensure proper cleanup
-    for (const channel of channels) {
-      try {
-        streamManager[channel].pause();
-        pausedChannels.push(channel);
-      } catch (err) {
-        // Log error to Sentry but continue pausing remaining channels
-        Logger.error(
-          ensureError(err),
-          this.getErrorContext('withStreamPause', {
-            operation: 'pause',
-            channel: String(channel),
-            pausedChannels: pausedChannels.join(','),
-          }),
-        );
-      }
-    }
-
-    try {
-      // Execute operation without stream interference
-      return await operation();
-    } finally {
-      // Resume only channels that were successfully paused
-      for (const channel of pausedChannels) {
-        try {
-          streamManager[channel].resume();
-        } catch (err) {
-          // Log error to Sentry but continue resuming remaining channels
-          Logger.error(
-            ensureError(err),
-            this.getErrorContext('withStreamPause', {
-              operation: 'resume',
-              channel: String(channel),
-              pausedChannels: pausedChannels.join(','),
-            }),
-          );
-        }
-      }
-    }
-  }
-
-  /**
    * Calculate user fee discount from RewardsController
    * Used to apply MetaMask reward discounts to trading fees
    * @param parentSpan - Optional parent span to attach measurement to (for order traces)
@@ -842,7 +613,9 @@ export class PerpsController extends BaseController<
       }
 
       // Get the chain ID using proper NetworkController method
-      const networkState = this.messenger.call('NetworkController:getState');
+      const networkState = this.messagingSystem.call(
+        'NetworkController:getState',
+      );
       const selectedNetworkClientId = networkState.selectedNetworkClientId;
       const networkClient = NetworkController.getNetworkClientById(
         selectedNetworkClientId,
@@ -969,23 +742,9 @@ export class PerpsController extends BaseController<
       );
     }
     this.providers.clear();
-
-    DevLogger.log(
-      'PerpsController: Creating provider with HIP-3 configuration',
-      {
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
-        isTestnet: this.state.isTestnet,
-      },
-    );
-
     this.providers.set(
       'hyperliquid',
-      new HyperLiquidProvider({
-        isTestnet: this.state.isTestnet,
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
-      }),
+      new HyperLiquidProvider({ isTestnet: this.state.isTestnet }),
     );
 
     // Future providers can be added here with their own authentication patterns:
@@ -1005,36 +764,23 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Generate standard error context for Logger.error calls with searchable tags and context.
-   * Enables Sentry dashboard filtering by feature, provider, and network.
-   *
+   * Generate standard error context for Logger.error calls
+   * Ensures consistent error reporting to Sentry with minimal but complete context
    * @param method - The method name where the error occurred
-   * @param extra - Optional additional context fields (becomes searchable context data)
-   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @param extra - Optional additional context fields
+   * @returns Standardized error context object
    * @private
-   *
-   * @example
-   * Logger.error(error, this.getErrorContext('placeOrder', { coin: 'BTC', operation: 'validate' }));
-   * // Creates searchable tags: feature:perps, provider:hyperliquid, network:mainnet
-   * // Creates searchable context: perps_controller.method:placeOrder, perps_controller.coin:BTC, perps_controller.operation:validate
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): LoggerErrorOptions {
+  ): Record<string, unknown> {
     return {
-      tags: {
-        feature: PERPS_CONSTANTS.FEATURE_NAME,
-        provider: this.state.activeProvider,
-        network: this.state.isTestnet ? 'testnet' : 'mainnet',
-      },
-      context: {
-        name: 'PerpsController',
-        data: {
-          method,
-          ...extra,
-        },
-      },
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+      context: `PerpsController.${method}`,
+      provider: this.state.activeProvider,
+      network: this.state.isTestnet ? 'testnet' : 'mainnet',
+      ...extra,
     };
   }
 
@@ -1107,17 +853,9 @@ export class PerpsController extends BaseController<
       // Calculate fee discount at execution time (fresh, secure)
       const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
 
-      DevLogger.log('PerpsController: Fee discount calculated', {
-        feeDiscountBips,
-        hasDiscount: feeDiscountBips !== undefined,
-      });
-
       // Set discount context in provider for this order
       if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
         provider.setUserFeeDiscount(feeDiscountBips);
-        DevLogger.log('PerpsController: Fee discount set in provider', {
-          feeDiscountBips,
-        });
       }
 
       // Optimistic update - exclude trackingData to avoid persisting analytics data
@@ -1126,30 +864,13 @@ export class PerpsController extends BaseController<
         state.pendingOrders.push(orderWithoutTracking);
       });
 
-      DevLogger.log('PerpsController: Submitting order to provider', {
-        coin: params.coin,
-        orderType: params.orderType,
-        isBuy: params.isBuy,
-        size: params.size,
-        leverage: params.leverage,
-        hasTP: !!params.takeProfitPrice,
-        hasSL: !!params.stopLossPrice,
-      });
-
       let result: OrderResult;
       try {
         result = await provider.placeOrder(params);
-
-        DevLogger.log('PerpsController: Provider response received', {
-          success: result.success,
-          orderId: result.orderId,
-          error: result.error,
-        });
       } finally {
         // Always clear discount context, even on exception
         if (provider.setUserFeeDiscount) {
           provider.setUserFeeDiscount(undefined);
-          DevLogger.log('PerpsController: Fee discount cleared from provider');
         }
       }
 
@@ -1161,11 +882,6 @@ export class PerpsController extends BaseController<
           );
           state.lastUpdateTimestamp = Date.now();
         });
-
-        // Save executed trade configuration for this market
-        if (params.leverage) {
-          this.saveTradeConfiguration(params.coin, params.leverage);
-        }
 
         // Track trade transaction executed
         const completionDuration = performance.now() - startTime;
@@ -1555,151 +1271,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Cancel multiple orders in parallel
-   * Batch version of cancelOrder() that cancels multiple orders simultaneously
-   */
-  async cancelOrders(params: CancelOrdersParams): Promise<CancelOrdersResult> {
-    const traceId = uuidv4();
-    const startTime = performance.now();
-    let operationResult: CancelOrdersResult | null = null;
-    let operationError: Error | null = null;
-
-    try {
-      trace({
-        name: TraceName.PerpsCancelOrder,
-        id: traceId,
-        op: TraceOperation.PerpsOrderSubmission,
-        tags: {
-          provider: this.state.activeProvider,
-          isBatch: 'true',
-          isTestnet: this.state.isTestnet,
-        },
-        data: {
-          cancelAll: params.cancelAll ? 'true' : 'false',
-          coinCount: params.coins?.length || 0,
-          orderIdCount: params.orderIds?.length || 0,
-        },
-      });
-
-      // Pause orders stream to prevent WebSocket updates during cancellation
-      operationResult = await this.withStreamPause(async () => {
-        // Get all open orders (using getOpenOrders to avoid duplicates from historicalOrders)
-        const orders = await this.getOpenOrders();
-
-        // Filter orders based on params
-        let ordersToCancel = orders;
-        if (params.cancelAll || (!params.coins && !params.orderIds)) {
-          // Cancel all orders
-          ordersToCancel = orders;
-        } else if (params.orderIds && params.orderIds.length > 0) {
-          // Cancel specific order IDs
-          ordersToCancel = orders.filter((o) =>
-            params.orderIds?.includes(o.orderId),
-          );
-        } else if (params.coins && params.coins.length > 0) {
-          // Cancel orders for specific coins
-          ordersToCancel = orders.filter((o) =>
-            params.coins?.includes(o.symbol),
-          );
-        }
-
-        if (ordersToCancel.length === 0) {
-          return {
-            success: false,
-            successCount: 0,
-            failureCount: 0,
-            results: [],
-          };
-        }
-
-        const provider = this.getActiveProvider();
-
-        // Use batch cancel if provider supports it
-        if (provider.cancelOrders) {
-          return await provider.cancelOrders(
-            ordersToCancel.map((order) => ({
-              coin: order.symbol,
-              orderId: order.orderId,
-            })),
-          );
-        }
-
-        // Fallback: Cancel orders in parallel (for providers without batch support)
-        const results = await Promise.allSettled(
-          ordersToCancel.map((order) =>
-            this.cancelOrder({ coin: order.symbol, orderId: order.orderId }),
-          ),
-        );
-
-        // Aggregate results
-        const successCount = results.filter(
-          (r) => r.status === 'fulfilled' && r.value.success,
-        ).length;
-        const failureCount = results.length - successCount;
-
-        return {
-          success: successCount > 0,
-          successCount,
-          failureCount,
-          results: results.map((result, index) => {
-            let error: string | undefined;
-            if (result.status === 'rejected') {
-              error =
-                result.reason instanceof Error
-                  ? result.reason.message
-                  : 'Unknown error';
-            } else if (result.status === 'fulfilled' && !result.value.success) {
-              error = result.value.error;
-            }
-
-            return {
-              orderId: ordersToCancel[index].orderId,
-              coin: ordersToCancel[index].symbol,
-              success: !!(
-                result.status === 'fulfilled' && result.value.success
-              ),
-              error,
-            };
-          }),
-        };
-      }, ['orders']); // Disconnect orders stream during operation
-
-      return operationResult;
-    } catch (error) {
-      operationError =
-        error instanceof Error ? error : new Error(String(error));
-      throw error;
-    } finally {
-      const completionDuration = performance.now() - startTime;
-
-      // Track batch cancel event (success or failure)
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]:
-              operationResult?.success && operationResult.successCount > 0
-                ? PerpsEventValues.STATUS.EXECUTED
-                : PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            ...(operationError && {
-              [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
-            }),
-            // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
-            // can be added to PerpsEventProperties if needed for analytics
-          })
-          .build(),
-      );
-
-      endTrace({
-        name: TraceName.PerpsCancelOrder,
-        id: traceId,
-      });
-    }
-  }
-
-  /**
    * Close a position (partial or full)
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
@@ -2009,138 +1580,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Close multiple positions in parallel
-   * Batch version of closePosition() that closes multiple positions simultaneously
-   */
-  async closePositions(
-    params: ClosePositionsParams,
-  ): Promise<ClosePositionsResult> {
-    const traceId = uuidv4();
-    const startTime = performance.now();
-    let operationResult: ClosePositionsResult | null = null;
-    let operationError: Error | null = null;
-
-    try {
-      trace({
-        name: TraceName.PerpsClosePosition,
-        id: traceId,
-        op: TraceOperation.PerpsPositionManagement,
-        tags: {
-          provider: this.state.activeProvider,
-          isBatch: 'true',
-          isTestnet: this.state.isTestnet,
-        },
-        data: {
-          closeAll: params.closeAll ? 'true' : 'false',
-          coinCount: params.coins?.length || 0,
-        },
-      });
-
-      const provider = this.getActiveProvider();
-
-      DevLogger.log('[closePositions] Batch method check', {
-        providerType: provider.protocolId,
-        hasBatchMethod: !!provider.closePositions,
-        methodType: typeof provider.closePositions,
-        providerKeys: Object.keys(provider).filter((k) => k.includes('close')),
-      });
-
-      // Use batch close if provider supports it (provider handles filtering)
-      if (provider.closePositions) {
-        operationResult = await provider.closePositions(params);
-      } else {
-        // Fallback: Get positions, filter, and close in parallel
-        const positions = await this.getPositions();
-
-        const positionsToClose =
-          params.closeAll || !params.coins || params.coins.length === 0
-            ? positions
-            : positions.filter((p) => params.coins?.includes(p.coin));
-
-        if (positionsToClose.length === 0) {
-          operationResult = {
-            success: false,
-            successCount: 0,
-            failureCount: 0,
-            results: [],
-          };
-          return operationResult;
-        }
-
-        const results = await Promise.allSettled(
-          positionsToClose.map((position) =>
-            this.closePosition({ coin: position.coin }),
-          ),
-        );
-
-        // Aggregate results
-        const successCount = results.filter(
-          (r) => r.status === 'fulfilled' && r.value.success,
-        ).length;
-        const failureCount = results.length - successCount;
-
-        operationResult = {
-          success: successCount > 0,
-          successCount,
-          failureCount,
-          results: results.map((result, index) => {
-            let error: string | undefined;
-            if (result.status === 'rejected') {
-              error =
-                result.reason instanceof Error
-                  ? result.reason.message
-                  : 'Unknown error';
-            } else if (result.status === 'fulfilled' && !result.value.success) {
-              error = result.value.error;
-            }
-
-            return {
-              coin: positionsToClose[index].coin,
-              success: !!(
-                result.status === 'fulfilled' && result.value.success
-              ),
-              error,
-            };
-          }),
-        };
-      }
-
-      return operationResult;
-    } catch (error) {
-      operationError =
-        error instanceof Error ? error : new Error(String(error));
-      throw error;
-    } finally {
-      const completionDuration = performance.now() - startTime;
-
-      // Track batch close event (success or failure)
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]:
-              operationResult?.success && operationResult.successCount > 0
-                ? PerpsEventValues.STATUS.EXECUTED
-                : PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            ...(operationError && {
-              [PerpsEventProperties.ERROR_MESSAGE]: operationError.message,
-            }),
-            // Note: Custom properties for batch tracking (totalCount, successCount, failureCount)
-            // can be added to PerpsEventProperties if needed for analytics
-          })
-          .build(),
-      );
-
-      endTrace({
-        name: TraceName.PerpsClosePosition,
-        id: traceId,
-      });
-    }
-  }
-
-  /**
    * Update TP/SL for an existing position
    */
   async updatePositionTPSL(
@@ -2264,33 +1703,14 @@ export class PerpsController extends BaseController<
    * Simplified deposit method that prepares transaction for confirmation screen
    * No complex state tracking - just sets a loading flag
    */
-  async depositWithConfirmation(amount?: string) {
+  async depositWithConfirmation() {
     const { NetworkController, TransactionController } = Engine.context;
 
     try {
       // Clear any stale results when starting a new deposit flow
       // Don't set depositInProgress yet - wait until user confirms
-
-      // Generate deposit request ID for tracking
-      const currentDepositId = generateDepositId();
-
       this.update((state) => {
         state.lastDepositResult = null;
-
-        // Add deposit request to tracking
-        const depositRequest = {
-          id: currentDepositId,
-          timestamp: Date.now(),
-          amount: amount || '0', // Use provided amount or default to '0'
-          asset: USDC_SYMBOL,
-          success: false, // Will be updated when transaction completes
-          txHash: undefined,
-          status: 'pending' as TransactionStatus,
-          source: undefined,
-          transactionId: undefined, // Will be set to depositId when available
-        };
-
-        state.depositRequests.unshift(depositRequest); // Add to beginning of array
       });
 
       const provider = this.getActiveProvider();
@@ -2335,7 +1755,7 @@ export class PerpsController extends BaseController<
           type: TransactionType.perpsDeposit,
         });
 
-      // Store the transaction ID and try to get amount from transaction
+      // Store the transaction ID
       this.update((state) => {
         state.lastDepositTransactionId = transactionMeta.id;
       });
@@ -2359,25 +1779,7 @@ export class PerpsController extends BaseController<
             state.lastDepositResult = {
               success: true,
               txHash: actualTxHash,
-              amount: amount || '0',
-              asset: USDC_SYMBOL, // Default asset for deposits
-              timestamp: Date.now(),
-              error: '',
             };
-
-            // Update the deposit request by request ID to avoid race conditions
-            if (state.depositRequests.length > 0) {
-              const requestToUpdate = state.depositRequests.find(
-                (req) => req.id === currentDepositId,
-              );
-              if (requestToUpdate) {
-                // For deposits, we have a txHash immediately, so mark as completed
-                // (the transaction hash means the deposit was successful)
-                requestToUpdate.status = 'completed' as TransactionStatus;
-                requestToUpdate.success = true;
-                requestToUpdate.txHash = actualTxHash;
-              }
-            }
           });
 
           // Clear depositInProgress after a short delay
@@ -2413,22 +1815,7 @@ export class PerpsController extends BaseController<
               state.lastDepositResult = {
                 success: false,
                 error: errorMessage,
-                amount: amount || '0',
-                asset: USDC_SYMBOL, // Default asset for deposits
-                timestamp: Date.now(),
-                txHash: '',
               };
-
-              // Update the deposit request by request ID to avoid race conditions
-              if (state.depositRequests.length > 0) {
-                const requestToUpdate = state.depositRequests.find(
-                  (req) => req.id === currentDepositId,
-                );
-                if (requestToUpdate) {
-                  requestToUpdate.status = 'failed' as TransactionStatus;
-                  requestToUpdate.success = false;
-                }
-              }
             });
           }
         });
@@ -2450,7 +1837,10 @@ export class PerpsController extends BaseController<
         // Only track actual errors, not user cancellations
         this.update((state) => {
           state.lastDepositTransactionId = null;
-          // Note: lastDepositResult is already set in the catch block above
+          state.lastDepositResult = {
+            success: false,
+            error: errorMessage,
+          };
         });
       }
       throw error;
@@ -2470,73 +1860,6 @@ export class PerpsController extends BaseController<
     this.update((state) => {
       state.lastWithdrawResult = null;
     });
-  }
-
-  /**
-   * Update withdrawal request status when it completes
-   * This is called when a withdrawal is matched with a completed withdrawal from the API
-   */
-  updateWithdrawalStatus(
-    withdrawalId: string,
-    status: 'completed' | 'failed',
-    txHash?: string,
-  ): void {
-    this.update((state) => {
-      const withdrawalIndex = state.withdrawalRequests.findIndex(
-        (request) => request.id === withdrawalId,
-      );
-
-      if (withdrawalIndex >= 0) {
-        const request = state.withdrawalRequests[withdrawalIndex];
-        request.status = status;
-        request.success = status === 'completed';
-        if (txHash) {
-          request.txHash = txHash;
-        }
-
-        // Clear withdrawal progress when withdrawal completes
-        if (status === 'completed' || status === 'failed') {
-          state.withdrawalProgress = {
-            progress: 0,
-            lastUpdated: Date.now(),
-            activeWithdrawalId: null,
-          };
-        }
-
-        DevLogger.log('PerpsController: Updated withdrawal status', {
-          withdrawalId,
-          status,
-          txHash,
-        });
-      }
-    });
-  }
-
-  /**
-   * Update withdrawal progress (persistent across navigation)
-   */
-  updateWithdrawalProgress(
-    progress: number,
-    activeWithdrawalId: string | null = null,
-  ): void {
-    this.update((state) => {
-      state.withdrawalProgress = {
-        progress,
-        lastUpdated: Date.now(),
-        activeWithdrawalId,
-      };
-    });
-  }
-
-  /**
-   * Get current withdrawal progress
-   */
-  getWithdrawalProgress(): {
-    progress: number;
-    lastUpdated: number;
-    activeWithdrawalId: string | null;
-  } {
-    return this.state.withdrawalProgress;
   }
 
   /**
@@ -2564,11 +1887,6 @@ export class PerpsController extends BaseController<
         }
       | undefined;
 
-    // Generate withdrawal request ID for tracking (outside try block for catch access)
-    const currentWithdrawalId = `withdraw-${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2, 11)}`;
-
     try {
       trace({
         name: TraceName.PerpsWithdraw,
@@ -2593,26 +1911,6 @@ export class PerpsController extends BaseController<
       // Set withdrawal in progress
       this.update((state) => {
         state.withdrawInProgress = true;
-
-        // Calculate net amount after fees (same logic as completed withdrawals)
-        const grossAmount = parseFloat(params.amount);
-        const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
-        const netAmount = Math.max(0, grossAmount - feeAmount);
-
-        // Add withdrawal request to tracking
-        const withdrawalRequest = {
-          id: currentWithdrawalId,
-          timestamp: Date.now(),
-          amount: netAmount.toString(), // Use net amount (after fees)
-          asset: USDC_SYMBOL, // Default to USDC for now
-          success: false, // Will be updated when transaction completes
-          txHash: undefined,
-          status: 'pending' as TransactionStatus,
-          destination: params.destination,
-          transactionId: undefined, // Will be set to withdrawalId when available
-        };
-
-        state.withdrawalRequests.unshift(withdrawalRequest); // Add to beginning of array
       });
 
       // Get provider (all validation is handled at the provider level)
@@ -2640,35 +1938,9 @@ export class PerpsController extends BaseController<
           state.withdrawInProgress = false;
           state.lastWithdrawResult = {
             success: true,
-            txHash: result.txHash || '',
+            txHash: result.txHash,
             amount: params.amount,
-            asset: USDC_SYMBOL, // Default asset for withdrawals
-            timestamp: Date.now(),
-            error: '',
           };
-
-          // Update the withdrawal request by request ID to avoid race conditions
-          if (state.withdrawalRequests.length > 0) {
-            const requestToUpdate = state.withdrawalRequests.find(
-              (req) => req.id === currentWithdrawalId,
-            );
-            if (requestToUpdate) {
-              // Set status based on success and txHash availability
-              if (result.txHash) {
-                requestToUpdate.status = 'completed' as TransactionStatus;
-                requestToUpdate.success = true;
-                requestToUpdate.txHash = result.txHash;
-              } else {
-                // Success but no txHash means it's bridging
-                requestToUpdate.status = 'bridging' as TransactionStatus;
-                requestToUpdate.success = true;
-              }
-              // Always update withdrawal ID if available
-              if (result.withdrawalId) {
-                requestToUpdate.withdrawalId = result.withdrawalId;
-              }
-            }
-          }
         });
 
         DevLogger.log('PerpsController: WITHDRAWAL SUCCESSFUL', {
@@ -2721,22 +1993,7 @@ export class PerpsController extends BaseController<
         state.lastWithdrawResult = {
           success: false,
           error: result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED,
-          amount: params.amount,
-          asset: USDC_SYMBOL, // Default asset for withdrawals
-          timestamp: Date.now(),
-          txHash: '',
         };
-
-        // Update the withdrawal request by request ID to avoid race conditions
-        if (state.withdrawalRequests.length > 0) {
-          const requestToUpdate = state.withdrawalRequests.find(
-            (req) => req.id === currentWithdrawalId,
-          );
-          if (requestToUpdate) {
-            requestToUpdate.status = 'failed' as TransactionStatus;
-            requestToUpdate.success = false;
-          }
-        }
       });
 
       DevLogger.log('PerpsController: WITHDRAWAL FAILED', {
@@ -2787,22 +2044,7 @@ export class PerpsController extends BaseController<
         state.lastWithdrawResult = {
           success: false,
           error: errorMessage,
-          amount: '0', // Unknown amount for pre-confirmation errors
-          asset: USDC_SYMBOL, // Default asset for withdrawals
-          timestamp: Date.now(),
-          txHash: '',
         };
-
-        // Update the withdrawal request by request ID to avoid race conditions
-        if (state.withdrawalRequests.length > 0) {
-          const requestToUpdate = state.withdrawalRequests.find(
-            (req) => req.id === currentWithdrawalId,
-          );
-          if (requestToUpdate) {
-            requestToUpdate.status = 'failed' as TransactionStatus;
-            requestToUpdate.success = false;
-          }
-        }
       });
 
       // Track withdrawal transaction failed (catch block)
@@ -3117,7 +2359,7 @@ export class PerpsController extends BaseController<
       // fallback to the current account total value if possible
       const historicalPortfolioToUse: HistoricalPortfolioResult =
         historicalPortfolio ?? {
-          accountValue1dAgo: accountState.totalBalance || '0',
+          accountValue1dAgo: accountState.totalValue || '0',
           timestamp: 0,
         };
 
@@ -3227,13 +2469,8 @@ export class PerpsController extends BaseController<
 
   /**
    * Get available markets with optional filtering
-   * Delegates to provider which handles all multi-DEX logic transparently
-   * @param params - Optional parameters for filtering (symbols, dex)
    */
-  async getMarkets(params?: {
-    symbols?: string[];
-    dex?: string;
-  }): Promise<MarketInfo[]> {
+  async getMarkets(params?: { symbols?: string[] }): Promise<MarketInfo[]> {
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -3245,13 +2482,11 @@ export class PerpsController extends BaseController<
         tags: {
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
-          ...(params?.symbols && { symbolCount: params.symbols.length }),
-          ...(params?.dex !== undefined && { dex: params.dex }),
         },
       });
 
       const provider = this.getActiveProvider();
-      const markets = await provider.getMarkets(params);
+      const allMarkets = await provider.getMarkets();
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -3259,8 +2494,20 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      // Filter by symbols if provided
+      if (params?.symbols && params.symbols.length > 0) {
+        const filtered = allMarkets.filter((market) =>
+          params.symbols?.some(
+            (symbol) => market.name.toLowerCase() === symbol.toLowerCase(),
+          ),
+        );
+
+        traceData = { success: true };
+        return filtered;
+      }
+
       traceData = { success: true };
-      return markets;
+      return allMarkets;
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -3289,21 +2536,6 @@ export class PerpsController extends BaseController<
         data: traceData,
       });
     }
-  }
-
-  /**
-   * Get list of available HIP-3 builder-deployed DEXs
-   * @param params - Optional parameters for filtering
-   * @returns Array of DEX names
-   */
-  async getAvailableDexs(params?: GetAvailableDexsParams): Promise<string[]> {
-    const provider = this.getActiveProvider();
-
-    if (!provider.getAvailableDexs) {
-      throw new Error('Provider does not support HIP-3 DEXs');
-    }
-
-    return provider.getAvailableDexs(params);
   }
 
   /**
@@ -3684,9 +2916,11 @@ export class PerpsController extends BaseController<
    * Calculate trading fees for the active provider
    * Each provider implements its own fee structure
    */
-  async calculateFees(
-    params: FeeCalculationParams,
-  ): Promise<FeeCalculationResult> {
+  async calculateFees(params: {
+    orderType: 'market' | 'limit';
+    isMaker?: boolean;
+    amount?: string;
+  }): Promise<FeeCalculationResult> {
     const provider = this.getActiveProvider();
     return provider.calculateFees(params);
   }
@@ -3808,7 +3042,7 @@ export class PerpsController extends BaseController<
    */
   async refreshEligibility(): Promise<void> {
     // Default to false in case of error.
-    let isEligible = true;
+    let isEligible = false;
 
     try {
       DevLogger.log('PerpsController: Refreshing eligibility');
@@ -3910,120 +3144,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get saved trade configuration for a market
-   */
-  getTradeConfiguration(coin: string): { leverage?: number } | undefined {
-    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
-    const config = this.state.tradeConfigurations[network]?.[coin];
-
-    if (!config?.leverage) return undefined;
-
-    DevLogger.log('PerpsController: Retrieved trade config', {
-      coin,
-      network,
-      leverage: config.leverage,
-    });
-
-    return { leverage: config.leverage };
-  }
-
-  /**
-   * Save trade configuration for a market
-   * @param coin - Market symbol
-   * @param leverage - Leverage value
-   */
-  saveTradeConfiguration(coin: string, leverage: number): void {
-    const network = this.state.isTestnet ? 'testnet' : 'mainnet';
-
-    DevLogger.log('PerpsController: Saving trade configuration', {
-      coin,
-      network,
-      leverage,
-      timestamp: new Date().toISOString(),
-    });
-
-    this.update((state) => {
-      if (!state.tradeConfigurations[network]) {
-        state.tradeConfigurations[network] = {};
-      }
-
-      state.tradeConfigurations[network][coin] = {
-        leverage,
-      };
-    });
-  }
-
-  /**
-   * Get saved market filter preferences
-   */
-  getMarketFilterPreferences(): SortOptionId {
-    return (
-      this.state.marketFilterPreferences ??
-      MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID
-    );
-  }
-
-  /**
-   * Save market filter preferences
-   * @param optionId - Sort/filter option ID
-   */
-  saveMarketFilterPreferences(optionId: SortOptionId): void {
-    DevLogger.log('PerpsController: Saving market filter preferences', {
-      optionId,
-      timestamp: new Date().toISOString(),
-    });
-
-    this.update((state) => {
-      state.marketFilterPreferences = optionId;
-    });
-  }
-
-  /**
-   * Toggle watchlist status for a market
-   * Watchlist markets are stored per network (testnet/mainnet)
-   */
-  toggleWatchlistMarket(symbol: string): void {
-    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
-    const currentWatchlist = this.state.watchlistMarkets[currentNetwork];
-    const isWatchlisted = currentWatchlist.includes(symbol);
-
-    DevLogger.log('PerpsController: Toggling watchlist market', {
-      timestamp: new Date().toISOString(),
-      network: currentNetwork,
-      symbol,
-      action: isWatchlisted ? 'remove' : 'add',
-    });
-
-    this.update((state) => {
-      if (isWatchlisted) {
-        // Remove from watchlist
-        state.watchlistMarkets[currentNetwork] = currentWatchlist.filter(
-          (s) => s !== symbol,
-        );
-      } else {
-        // Add to watchlist
-        state.watchlistMarkets[currentNetwork] = [...currentWatchlist, symbol];
-      }
-    });
-  }
-
-  /**
-   * Check if a market is in the watchlist on the current network
-   */
-  isWatchlistMarket(symbol: string): boolean {
-    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
-    return this.state.watchlistMarkets[currentNetwork].includes(symbol);
-  }
-
-  /**
-   * Get all watchlist markets for the current network
-   */
-  getWatchlistMarkets(): string[] {
-    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
-    return this.state.watchlistMarkets[currentNetwork];
-  }
-
-  /**
    * Report order events to data lake API with retry (non-blocking)
    */
   private async reportOrderToDataLake(params: {
@@ -4087,7 +3207,7 @@ export class PerpsController extends BaseController<
     const apiCallStartTime = performance.now();
 
     try {
-      const token = await this.messenger.call(
+      const token = await this.messagingSystem.call(
         'AuthenticationController:getBearerToken',
       );
       const evmAccount = getEvmAccountFromSelectedAccountGroup();

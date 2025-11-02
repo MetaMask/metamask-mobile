@@ -1,7 +1,7 @@
 import EventEmitter from 'eventemitter2';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
-import Engine, { RootExtendedMessenger } from '../../Engine';
+import Engine, { BaseControllerMessenger } from '../../Engine';
 import AppConstants from '../../AppConstants';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { ImageSourcePropType } from 'react-native';
@@ -16,7 +16,7 @@ export class RPCBridgeAdapter
 {
   private readonly connInfo: ConnectionInfo;
   private client: BackgroundBridge | null = null;
-  private messenger: RootExtendedMessenger | null = null;
+  private messenger: BaseControllerMessenger | null = null;
   private initialized: Promise<void> | null = null;
   private processing = false;
   private queue: unknown[] = [];

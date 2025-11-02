@@ -317,7 +317,7 @@ describe('WaysToEarn', () => {
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
+      screen: Routes.PERPS.MARKETS,
     });
   });
 

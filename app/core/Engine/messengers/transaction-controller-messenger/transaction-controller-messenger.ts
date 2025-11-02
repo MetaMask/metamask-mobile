@@ -4,11 +4,7 @@ import {
 } from '@metamask/accounts-controller';
 import { ApprovalControllerActions } from '@metamask/approval-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-} from '@metamask/messenger';
+import { Messenger } from '@metamask/base-controller';
 import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetEIP1559CompatibilityAction,
@@ -40,37 +36,8 @@ import {
   BridgeStatusControllerEvents,
 } from '@metamask/bridge-status-controller';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
-import { RootMessenger } from '../../types';
 
-export function getTransactionControllerMessenger(
-  rootMessenger: RootMessenger,
-): TransactionControllerMessenger {
-  const messenger = new Messenger<
-    'TransactionController',
-    MessengerActions<TransactionControllerMessenger>,
-    MessengerEvents<TransactionControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'TransactionController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
-      'AccountsController:getSelectedAccount',
-      'AccountsController:getState',
-      `ApprovalController:addRequest`,
-      'KeyringController:signEip7702Authorization',
-      'NetworkController:findNetworkClientIdByChainId',
-      'NetworkController:getNetworkClientById',
-      'RemoteFeatureFlagController:getState',
-    ],
-    events: [`NetworkController:stateChange`],
-    messenger,
-  });
-  return messenger;
-}
-
-type InitMessengerActions =
+type MessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | ApprovalControllerActions
@@ -84,7 +51,7 @@ type InitMessengerActions =
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerGetStateAction;
 
-type InitMessengerEvents =
+type MessengerEvents =
   | BridgeStatusControllerEvents
   | TransactionControllerStateChangeEvent
   | TransactionControllerTransactionApprovedEvent
@@ -102,33 +69,30 @@ export type TransactionControllerInitMessenger = ReturnType<
   typeof getTransactionControllerInitMessenger
 >;
 
-export function getTransactionControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'TransactionControllerInit',
-    InitMessengerActions,
-    InitMessengerEvents,
-    RootMessenger
-  >({
-    namespace: 'TransactionControllerInit',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
-      'ApprovalController:addRequest',
-      'ApprovalController:endFlow',
-      'ApprovalController:startFlow',
-      'ApprovalController:updateRequestState',
-      'BridgeStatusController:getState',
-      'BridgeStatusController:submitTx',
-      'DelegationController:signDelegation',
-      'NetworkController:getEIP1559Compatibility',
+export function getTransactionControllerMessenger(
+  messenger: Messenger<MessengerActions, MessengerEvents>,
+): TransactionControllerMessenger {
+  return messenger.getRestricted({
+    name: 'TransactionController',
+    allowedActions: [
+      'AccountsController:getSelectedAccount',
+      'AccountsController:getState',
+      `ApprovalController:addRequest`,
       'KeyringController:signEip7702Authorization',
-      'KeyringController:signTypedMessage',
-      'TransactionController:getState',
+      'NetworkController:findNetworkClientIdByChainId',
+      'NetworkController:getNetworkClientById',
+      'RemoteFeatureFlagController:getState',
     ],
-    events: [
+    allowedEvents: [`NetworkController:stateChange`],
+  });
+}
+
+export function getTransactionControllerInitMessenger(
+  messenger: Messenger<MessengerActions, MessengerEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'TransactionControllerInit',
+    allowedEvents: [
       'BridgeStatusController:stateChange',
       'TransactionController:stateChange',
       'TransactionController:transactionApproved',
@@ -141,7 +105,18 @@ export function getTransactionControllerInitMessenger(
       'SmartTransactionsController:smartTransaction',
       'SmartTransactionsController:smartTransactionConfirmationDone',
     ],
-    messenger,
+    allowedActions: [
+      'ApprovalController:addRequest',
+      'ApprovalController:endFlow',
+      'ApprovalController:startFlow',
+      'ApprovalController:updateRequestState',
+      'BridgeStatusController:getState',
+      'BridgeStatusController:submitTx',
+      'DelegationController:signDelegation',
+      'NetworkController:getEIP1559Compatibility',
+      'KeyringController:signEip7702Authorization',
+      'KeyringController:signTypedMessage',
+      'TransactionController:getState',
+    ],
   });
-  return messenger;
 }

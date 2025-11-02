@@ -240,7 +240,6 @@
       "0xa869": true,
       "0xaa37dc": true,
       "0x89": true,
-      "0x8f": true,
       "0x13881": true,
       "0xa86a": true,
       "0xfa": true,
@@ -253,8 +252,7 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true,
-      "0x8f": true
+      "0x531": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -473,6 +471,20 @@
   "MultichainBalancesController": {
     "balances": {}
   },
+  "RatesController": {
+    "cryptocurrencies": ["btc", "sol"],
+    "fiatCurrency": "usd",
+    "rates": {
+      "btc": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      },
+      "sol": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      }
+    }
+  },
   "MultichainNetworkController": {
     "isEvmSelected": true,
     "networksWithTransactionActivity": {},
@@ -628,9 +640,6 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
-  "SamplePetnamesController": {
-    "namesByChainIdAndAddress": {}
-  },
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
@@ -646,7 +655,8 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "pendingDeposits": {},
+    "claimTransaction": null,
+    "depositTransaction": null,
     "isOnboarded": {}
   }
 }

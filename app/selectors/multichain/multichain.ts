@@ -17,6 +17,7 @@ import {
   SolScope,
   Transaction as NonEvmTransaction,
 } from '@metamask/keyring-api';
+import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
@@ -141,9 +142,29 @@ export const selectMultichainSelectedAccountCachedBalance =
     selectNonEvmCachedBalance,
     (isEvmSelected, accountBalanceByChainId, nonEvmCachedBalance) =>
       isEvmSelected
-        ? (accountBalanceByChainId?.balance ?? '0x0')
+        ? accountBalanceByChainId?.balance ?? '0x0'
         : nonEvmCachedBalance,
   );
+
+export function selectMultichainCoinRates(state: RootState) {
+  return state.engine.backgroundState.RatesController.rates;
+}
+
+export const selectMultichainConversionRate = createDeepEqualSelector(
+  selectIsEvmNetworkSelected,
+  selectConversionRate,
+  selectMultichainCoinRates,
+  selectSelectedNonEvmNetworkSymbol,
+  (isEvmSelected, evmConversionRate, multichaincCoinRates, nonEvmTicker) => {
+    if (isEvmSelected) {
+      return evmConversionRate;
+    }
+    // TODO: [SOLANA] - This should be mapping a caip-19 not a ticker
+    return nonEvmTicker
+      ? multichaincCoinRates?.[nonEvmTicker.toLowerCase()]?.conversionRate
+      : undefined;
+  },
+);
 
 /**
  *

@@ -1,45 +1,30 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { BaseControllerMessenger } from '../../types';
 import { MultichainAssetsRatesControllerMessenger } from '@metamask/assets-controllers';
 
 /**
  * Get the MultichainAssetsRatesControllerMessenger for the MultichainAssetsRatesController.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The MultichainAssetsRatesControllerMessenger.
  */
 export function getMultichainAssetsRatesControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): MultichainAssetsRatesControllerMessenger {
-  const messenger = new Messenger<
-    'MultichainAssetsRatesController',
-    MessengerActions<MultichainAssetsRatesControllerMessenger>,
-    MessengerEvents<MultichainAssetsRatesControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'MultichainAssetsRatesController',
-    parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
-      'AccountsController:listMultichainAccounts',
-      'SnapController:handleRequest',
-      'CurrencyRateController:getState',
-      'MultichainAssetsController:getState',
-      'AccountsController:getSelectedMultichainAccount',
-    ],
-    events: [
+  return baseControllerMessenger.getRestricted({
+    name: 'MultichainAssetsRatesController',
+    allowedEvents: [
       'AccountsController:accountAdded',
       'KeyringController:lock',
       'KeyringController:unlock',
       'CurrencyRateController:stateChange',
       'MultichainAssetsController:accountAssetListUpdated',
     ],
-    messenger,
+    allowedActions: [
+      'AccountsController:listMultichainAccounts',
+      'SnapController:handleRequest',
+      'CurrencyRateController:getState',
+      'MultichainAssetsController:getState',
+      'AccountsController:getSelectedMultichainAccount',
+    ],
   });
-  return messenger;
 }

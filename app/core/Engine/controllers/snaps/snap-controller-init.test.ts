@@ -8,15 +8,10 @@ import {
 } from '../../messengers/snaps';
 import { snapControllerInit } from './snap-controller-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import {
-  KeyringControllerLockEvent,
-  KeyringControllerUnlockEvent,
-  KeyringControllerGetKeyringsByTypeAction,
-} from '@metamask/keyring-controller';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { KeyringControllerGetKeyringsByTypeAction } from '@metamask/keyring-controller';
 import { store } from '../../../../store';
 import { MetaMetrics } from '../../../Analytics';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/snaps-controllers');
 
@@ -27,9 +22,7 @@ jest.mock('.../../../../store', () => ({
 }));
 
 function getInitRequestMock(
-  baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  }),
+  baseMessenger = new ExtendedControllerMessenger<never, never>(),
 ): jest.Mocked<
   ControllerInitRequest<SnapControllerMessenger, SnapControllerInitMessenger>
 > {
@@ -82,55 +75,12 @@ describe('SnapControllerInit', () => {
     });
   });
 
-  it('calls `SnapController:setClientActive` when the client is locked', () => {
-    const baseMessenger = new ExtendedMessenger<
-      MockAnyNamespace,
-      never,
-      KeyringControllerLockEvent
-    >({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
-
-    const request = getInitRequestMock(baseMessenger);
-    const { initMessenger } = request;
-
-    const spy = jest.spyOn(initMessenger, 'call').mockImplementation();
-
-    snapControllerInit(request);
-    baseMessenger.publish('KeyringController:lock');
-
-    expect(spy).toHaveBeenCalledWith('SnapController:setClientActive', false);
-  });
-
-  it('calls `SnapController:setClientActive` when the client is unlocked', () => {
-    const baseMessenger = new ExtendedMessenger<
-      MockAnyNamespace,
-      never,
-      KeyringControllerUnlockEvent
-    >({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
-
-    const request = getInitRequestMock(baseMessenger);
-    const { initMessenger } = request;
-
-    const spy = jest.spyOn(initMessenger, 'call').mockImplementation();
-
-    snapControllerInit(request);
-    baseMessenger.publish('KeyringController:unlock');
-
-    expect(spy).toHaveBeenCalledWith('SnapController:setClientActive', true);
-  });
-
   describe('getMnemonicSeed', () => {
     it('returns the mnemonic seed', () => {
-      const messenger = new ExtendedMessenger<
-        MockAnyNamespace,
+      const messenger = new ExtendedControllerMessenger<
         KeyringControllerGetKeyringsByTypeAction,
         never
-      >({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
+      >();
 
       snapControllerInit(getInitRequestMock(messenger));
 
@@ -152,13 +102,10 @@ describe('SnapControllerInit', () => {
     });
 
     it('throws an error if the keyring is not available', () => {
-      const messenger = new ExtendedMessenger<
-        MockAnyNamespace,
+      const messenger = new ExtendedControllerMessenger<
         KeyringControllerGetKeyringsByTypeAction,
         never
-      >({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
+      >();
 
       snapControllerInit(getInitRequestMock(messenger));
 

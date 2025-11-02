@@ -1,4 +1,3 @@
-import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import type { ControllerInitFunction } from '../../types';
 import {
   RewardsController,
@@ -16,17 +15,14 @@ export const rewardsControllerInit: ControllerInitFunction<
   RewardsController,
   RewardsControllerMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState, getState } = request;
+  const { controllerMessenger, persistedState } = request;
+
   const rewardsControllerState =
     persistedState.RewardsController ?? defaultRewardsControllerState;
 
   const controller = new RewardsController({
     messenger: controllerMessenger,
     state: rewardsControllerState,
-    isDisabled: () => {
-      const isEnabled = selectBasicFunctionalityEnabled(getState());
-      return !isEnabled;
-    },
   });
 
   return { controller };
