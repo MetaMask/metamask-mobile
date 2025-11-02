@@ -8,6 +8,7 @@ export const PROXY_WALLET_ADDRESS =
   '0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72';
 // Use the default fixture account address for consistency with tests
 export const USER_WALLET_ADDRESS = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
+
 // Mock USDC balance (28.16 USDC = 28,160,000 = 0x1adb5e4)
 export const MOCK_USDC_BALANCE_WEI =
   '0x0000000000000000000000000000000000000000000000000000000001adb5e4'; // 28160000 in hex

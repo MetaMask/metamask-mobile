@@ -13,7 +13,7 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
-  POLYMARKET_UPDATE_CLAIM_BALANCE_MOCKS,
+  POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -79,7 +79,7 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictClaimPage.tapClaimConfirmButton();
 
         await device.enableSynchronization();
-        await POLYMARKET_UPDATE_CLAIM_BALANCE_MOCKS(mockServer); // Update USDC balance post claim
+        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim'); // Update USDC balance post claim
 
         await Assertions.expectElementToBeVisible(WalletView.container);
 
