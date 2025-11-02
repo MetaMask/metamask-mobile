@@ -420,7 +420,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
+    // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData3
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
         // Validate account context
@@ -556,7 +556,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
+    // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData3
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
         // Validate account context
@@ -847,7 +847,7 @@ class OICapStreamChannel extends StreamChannel<string[]> {
       return;
     }
 
-    // Subscribe to OI cap updates (zero overhead - extracted from existing webData2)
+    // Subscribe to OI cap updates (zero overhead - extracted from existing webData3)
     this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
       callback: (caps: string[]) => {
         // Validate account context

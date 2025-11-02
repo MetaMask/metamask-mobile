@@ -229,13 +229,26 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return; // Already initialized
     }
 
-    const wallet = this.walletService.createWalletAdapter();
-    this.clientService.initialize(wallet);
-    this.clientsInitialized = true;
+    try {
+      const wallet = this.walletService.createWalletAdapter();
+      this.clientService.initialize(wallet);
+      // Only set flag AFTER successful initialization
+      this.clientsInitialized = true;
 
-    DevLogger.log('[HyperLiquidProvider] Clients initialized lazily', {
-      timestamp: new Date().toISOString(),
-    });
+      DevLogger.log('[HyperLiquidProvider] Clients initialized lazily', {
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      // Reset flag to allow retry on next call
+      this.clientsInitialized = false;
+      // Log error with context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('ensureClientsInitialized'),
+      );
+      // Rethrow to propagate to caller
+      throw error;
+    }
   }
 
   /**

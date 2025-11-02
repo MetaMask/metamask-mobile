@@ -3671,7 +3671,7 @@ export class PerpsController extends BaseController<
 
   /**
    * Subscribe to open interest cap updates
-   * Zero additional network overhead - data comes from existing webData2 subscription
+   * Zero additional network overhead - data comes from existing webData3 subscription
    */
   subscribeToOICaps(params: {
     accountId?: CaipAccountId;

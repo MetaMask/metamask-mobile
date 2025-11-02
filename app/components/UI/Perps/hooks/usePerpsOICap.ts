@@ -42,7 +42,7 @@ export interface UsePerpsOICapReturn {
  * Hook to check if a market is at its open interest cap
  *
  * Uses PerpsStreamManager for centralized subscription management.
- * Leverages the existing webData2 WebSocket subscription which includes
+ * Leverages the existing webData3 WebSocket subscription which includes
  * `perpsAtOpenInterestCap` field - zero additional network overhead.
  *
  * **Architecture:**
