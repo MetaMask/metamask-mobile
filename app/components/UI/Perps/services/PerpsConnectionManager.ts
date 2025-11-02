@@ -110,6 +110,7 @@ class PerpsConnectionManagerClass {
         streamManager.account.clearCache();
         streamManager.prices.clearCache();
         streamManager.marketData.clearCache();
+        streamManager.oiCaps.clearCache();
 
         // Force the controller to reconnect with new account
         // This ensures proper WebSocket reconnection at the controller level
@@ -663,6 +664,7 @@ class PerpsConnectionManagerClass {
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
       streamManager.marketData.clearCache();
+      streamManager.oiCaps.clearCache();
       setMeasurement(
         PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
         performance.now() - cleanupStart,
