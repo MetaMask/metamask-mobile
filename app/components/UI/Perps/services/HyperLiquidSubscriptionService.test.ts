@@ -134,31 +134,36 @@ describe('HyperLiquidSubscriptionService', () => {
         }, 0);
         return Promise.resolve(mockSubscription);
       }),
-      webData2: jest.fn((_params: any, callback: any) => {
-        // Simulate position and order data
+      webData3: jest.fn((_params: any, callback: any) => {
+        // Simulate webData3 data with perpDexStates structure
         // First callback immediately
         setTimeout(() => {
           callback({
-            clearinghouseState: {
-              assetPositions: [
-                {
-                  position: { szi: '0.1' },
-                  coin: 'BTC',
-                },
-              ],
-            },
-            openOrders: [
+            perpDexStates: [
               {
-                oid: 12345,
-                coin: 'BTC',
-                side: 'B',
-                sz: '0.5',
-                origSz: '1.0',
-                limitPx: '50000',
-                orderType: 'Limit',
-                timestamp: 1234567890000,
-                isTrigger: false,
-                reduceOnly: false,
+                clearinghouseState: {
+                  assetPositions: [
+                    {
+                      position: { szi: '0.1' },
+                      coin: 'BTC',
+                    },
+                  ],
+                },
+                openOrders: [
+                  {
+                    oid: 12345,
+                    coin: 'BTC',
+                    side: 'B',
+                    sz: '0.5',
+                    origSz: '1.0',
+                    limitPx: '50000',
+                    orderType: 'Limit',
+                    timestamp: 1234567890000,
+                    isTrigger: false,
+                    reduceOnly: false,
+                  },
+                ],
+                perpsAtOpenInterestCap: [],
               },
             ],
           });
@@ -167,26 +172,31 @@ describe('HyperLiquidSubscriptionService', () => {
         // Second callback with changed data to ensure updates are triggered
         setTimeout(() => {
           callback({
-            clearinghouseState: {
-              assetPositions: [
-                {
-                  position: { szi: '0.2' }, // Changed position size
-                  coin: 'BTC',
-                },
-              ],
-            },
-            openOrders: [
+            perpDexStates: [
               {
-                oid: 12346, // Changed order ID
-                coin: 'BTC',
-                side: 'S',
-                sz: '0.3',
-                origSz: '0.5',
-                limitPx: '51000',
-                orderType: 'Limit',
-                timestamp: 1234567890001,
-                isTrigger: false,
-                reduceOnly: false,
+                clearinghouseState: {
+                  assetPositions: [
+                    {
+                      position: { szi: '0.2' }, // Changed position size
+                      coin: 'BTC',
+                    },
+                  ],
+                },
+                openOrders: [
+                  {
+                    oid: 12346, // Changed order ID
+                    coin: 'BTC',
+                    side: 'S',
+                    sz: '0.3',
+                    origSz: '0.5',
+                    limitPx: '51000',
+                    orderType: 'Limit',
+                    timestamp: 1234567890001,
+                    isTrigger: false,
+                    reduceOnly: false,
+                  },
+                ],
+                perpsAtOpenInterestCap: [],
               },
             ],
           });
@@ -214,6 +224,8 @@ describe('HyperLiquidSubscriptionService', () => {
         return Promise.resolve(mockSubscription);
       }),
       l2Book: jest.fn().mockResolvedValue(mockSubscription),
+      clearinghouseState: jest.fn(() => Promise.resolve(mockSubscription)),
+      assetCtxs: jest.fn(() => Promise.resolve(mockSubscription)),
     };
 
     mockWalletAdapter = {
@@ -353,10 +365,10 @@ describe('HyperLiquidSubscriptionService', () => {
         params.accountId,
       );
 
-      // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Wait for async operations (webData3 subscription setup)
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(mockSubscriptionClient.webData2).toHaveBeenCalledWith(
+      expect(mockSubscriptionClient.webData3).toHaveBeenCalledWith(
         { user: '0x123' },
         expect.any(Function),
       );
@@ -380,7 +392,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
+      expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
     });
 
@@ -398,23 +410,29 @@ describe('HyperLiquidSubscriptionService', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(typeof unsubscribe).toBe('function');
-      expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
+      expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
     });
 
     it('should filter out zero-size positions', async () => {
       const mockCallback = jest.fn();
 
-      // Mock webData2 with mixed positions
-      mockSubscriptionClient.webData2.mockImplementation(
+      // Mock webData3 with mixed positions
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  { position: { szi: '0.1' }, coin: 'BTC' }, // Should be included
-                  { position: { szi: '0' }, coin: 'ETH' }, // Should be filtered out
-                ],
-              },
+              perpDexStates: [
+                {
+                  clearinghouseState: {
+                    assetPositions: [
+                      { position: { szi: '0.1' }, coin: 'BTC' }, // Should be included
+                      { position: { szi: '0' }, coin: 'ETH' }, // Should be filtered out
+                    ],
+                  },
+                  openOrders: [],
+                  perpsAtOpenInterestCap: [],
+                },
+              ],
             });
           }, 0);
           return Promise.resolve({
@@ -562,8 +580,8 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
-  describe('Shared WebData2 Subscription', () => {
-    it('should share webData2 subscription between positions and orders', async () => {
+  describe('Shared WebData3 Subscription', () => {
+    it('should share webData3 subscription between positions and orders', async () => {
       const positionCallback = jest.fn();
       const orderCallback = jest.fn();
 
@@ -578,24 +596,24 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established and initial callback
-      // This will trigger the first webData2 callback which caches both positions and orders
+      // This will trigger the first webData3 callback which caches both positions and orders
       await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Verify position callback was called
       expect(positionCallback).toHaveBeenCalled();
 
-      // Subscribe to orders - should reuse same webData2 subscription
+      // Subscribe to orders - should reuse same webData3 subscription
       // and immediately get cached data
       const unsubscribeOrders = service.subscribeToOrders({
         callback: orderCallback,
       });
 
       // Orders should get cached data immediately (synchronously)
-      // or after the second webData2 update with changed data
+      // or after the second webData3 update with changed data
       await new Promise((resolve) => setTimeout(resolve, 20));
 
-      // Should only call webData2 once for shared subscription
-      expect(mockSubscriptionClient.webData2).toHaveBeenCalledTimes(1);
+      // Should only call webData3 once for shared subscription
+      expect(mockSubscriptionClient.webData3).toHaveBeenCalledTimes(1);
 
       // Both callbacks should be called with their respective data
       expect(positionCallback).toHaveBeenCalled();
@@ -625,15 +643,20 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe1();
 
       // Second callback should still receive updates
-      mockSubscriptionClient.webData2.mock.calls[0][1]({
-        clearinghouseState: {
-          assetPositions: [
-            {
-              position: { coin: 'BTC', szi: '1.0' },
+      mockSubscriptionClient.webData3.mock.calls[0][1]({
+        perpDexStates: [
+          {
+            clearinghouseState: {
+              assetPositions: [
+                {
+                  position: { coin: 'BTC', szi: '1.0' },
+                },
+              ],
             },
-          ],
-        },
-        openOrders: [],
+            openOrders: [],
+            perpsAtOpenInterestCap: [],
+          },
+        ],
       });
 
       expect(positionCallback2).toHaveBeenCalled();
@@ -644,31 +667,36 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should cache positions and orders data', async () => {
       const positionCallback = jest.fn();
 
-      // Setup webData2 mock to call callback with data
-      mockSubscriptionClient.webData2.mockImplementation(
+      // Setup webData3 mock to call callback with data
+      mockSubscriptionClient.webData3.mockImplementation(
         (_addr: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: { szi: '1.0' },
-                    coin: 'BTC',
-                  },
-                ],
-              },
-              openOrders: [
+              perpDexStates: [
                 {
-                  oid: 123,
-                  coin: 'BTC',
-                  side: 'B',
-                  sz: '0.5',
-                  origSz: '0.5',
-                  limitPx: '50000',
-                  orderType: 'Limit',
-                  timestamp: Date.now(),
-                  isTrigger: false,
-                  reduceOnly: false,
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: { szi: '1.0' },
+                        coin: 'BTC',
+                      },
+                    ],
+                  },
+                  openOrders: [
+                    {
+                      oid: 123,
+                      coin: 'BTC',
+                      side: 'B',
+                      sz: '0.5',
+                      origSz: '0.5',
+                      limitPx: '50000',
+                      orderType: 'Limit',
+                      timestamp: Date.now(),
+                      isTrigger: false,
+                      reduceOnly: false,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -708,7 +736,7 @@ describe('HyperLiquidSubscriptionService', () => {
         unsubscribe: jest.fn().mockResolvedValue(undefined),
       };
 
-      mockSubscriptionClient.webData2.mockResolvedValue(mockSubscription);
+      mockSubscriptionClient.webData3.mockResolvedValue(mockSubscription);
 
       const unsubscribe = service.subscribeToPositions({
         callback: mockCallback,
@@ -758,7 +786,7 @@ describe('HyperLiquidSubscriptionService', () => {
           .mockRejectedValue(new Error('Unsubscribe failed')),
       };
 
-      mockSubscriptionClient.webData2.mockResolvedValue(mockSubscription);
+      mockSubscriptionClient.webData3.mockResolvedValue(mockSubscription);
 
       const unsubscribe = service.subscribeToPositions({
         callback: mockCallback,
@@ -879,7 +907,7 @@ describe('HyperLiquidSubscriptionService', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(typeof unsubscribe).toBe('function');
-      expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
+      expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
     });
 
     it('should handle missing subscription client in order fill subscription', () => {
@@ -936,15 +964,20 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should handle missing position data gracefully', async () => {
       const mockCallback = jest.fn();
 
-      // Mock webData2 with no position data
-      mockSubscriptionClient.webData2.mockImplementation(
+      // Mock webData3 with no position data
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [], // Empty array instead of undefined
-              },
-              openOrders: [], // Also need openOrders array
+              perpDexStates: [
+                {
+                  clearinghouseState: {
+                    assetPositions: [], // Empty array instead of undefined
+                  },
+                  openOrders: [], // Also need openOrders array
+                  perpsAtOpenInterestCap: [],
+                },
+              ],
             });
           }, 0);
           return Promise.resolve({
@@ -1288,29 +1321,34 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should process Take Profit orders correctly', async () => {
       const mockCallback = jest.fn();
 
-      // Mock webData2 with TP/SL trigger orders
-      mockSubscriptionClient.webData2.mockImplementation(
+      // Mock webData3 with TP/SL trigger orders
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: { szi: '1.0', coin: 'BTC' },
-                    coin: 'BTC',
-                  },
-                ],
-              },
-              openOrders: [
+              perpDexStates: [
                 {
-                  oid: 123,
-                  coin: 'BTC',
-                  side: 'S', // Sell order (opposite of long position)
-                  sz: '1.0',
-                  triggerPx: '55000', // Take profit trigger price
-                  orderType: 'Take Profit',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: { szi: '1.0', coin: 'BTC' },
+                        coin: 'BTC',
+                      },
+                    ],
+                  },
+                  openOrders: [
+                    {
+                      oid: 123,
+                      coin: 'BTC',
+                      side: 'S', // Sell order (opposite of long position)
+                      sz: '1.0',
+                      triggerPx: '55000', // Take profit trigger price
+                      orderType: 'Take Profit',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -1343,28 +1381,33 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should process Stop Loss orders correctly', async () => {
       const mockCallback = jest.fn();
 
-      mockSubscriptionClient.webData2.mockImplementation(
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: { szi: '1.0', coin: 'BTC' },
-                    coin: 'BTC',
-                  },
-                ],
-              },
-              openOrders: [
+              perpDexStates: [
                 {
-                  oid: 124,
-                  coin: 'BTC',
-                  side: 'S',
-                  sz: '1.0',
-                  triggerPx: '45000', // Stop loss trigger price
-                  orderType: 'Stop',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: { szi: '1.0', coin: 'BTC' },
+                        coin: 'BTC',
+                      },
+                    ],
+                  },
+                  openOrders: [
+                    {
+                      oid: 124,
+                      coin: 'BTC',
+                      side: 'S',
+                      sz: '1.0',
+                      triggerPx: '45000', // Stop loss trigger price
+                      orderType: 'Stop',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -1397,48 +1440,53 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should handle multiple TP/SL orders for same position', async () => {
       const mockCallback = jest.fn();
 
-      mockSubscriptionClient.webData2.mockImplementation(
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: { szi: '2.0', coin: 'BTC' },
-                    coin: 'BTC',
+              perpDexStates: [
+                {
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: { szi: '2.0', coin: 'BTC' },
+                        coin: 'BTC',
+                      },
+                    ],
                   },
-                ],
-              },
-              openOrders: [
-                {
-                  oid: 125,
-                  coin: 'BTC',
-                  side: 'S',
-                  sz: '1.0',
-                  triggerPx: '55000',
-                  orderType: 'Take Profit',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
-                },
-                {
-                  oid: 126,
-                  coin: 'BTC',
-                  side: 'S',
-                  sz: '1.0',
-                  triggerPx: '56000',
-                  orderType: 'Take Profit',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
-                },
-                {
-                  oid: 127,
-                  coin: 'BTC',
-                  side: 'S',
-                  sz: '0.5',
-                  triggerPx: '45000',
-                  orderType: 'Stop',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
+                  openOrders: [
+                    {
+                      oid: 125,
+                      coin: 'BTC',
+                      side: 'S',
+                      sz: '1.0',
+                      triggerPx: '55000',
+                      orderType: 'Take Profit',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                    {
+                      oid: 126,
+                      coin: 'BTC',
+                      side: 'S',
+                      sz: '1.0',
+                      triggerPx: '56000',
+                      orderType: 'Take Profit',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                    {
+                      oid: 127,
+                      coin: 'BTC',
+                      side: 'S',
+                      sz: '0.5',
+                      triggerPx: '45000',
+                      orderType: 'Stop',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -1473,7 +1521,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should fallback to price-based TP/SL detection when orderType is ambiguous', async () => {
       const mockCallback = jest.fn();
 
-      // Mock the adapter to include entryPrice before setting up webData2 mock
+      // Mock the adapter to include entryPrice before setting up webData3 mock
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
       mockAdapter.adaptPositionFromSDK.mockImplementationOnce(() => ({
         coin: 'BTC',
@@ -1491,42 +1539,47 @@ describe('HyperLiquidSubscriptionService', () => {
         stopLossCount: 0,
       }));
 
-      mockSubscriptionClient.webData2.mockImplementation(
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: {
-                      szi: '1.0',
-                      coin: 'BTC',
-                      entryPrice: '50000', // Entry price for comparison
-                    },
-                    coin: 'BTC',
+              perpDexStates: [
+                {
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: {
+                          szi: '1.0',
+                          coin: 'BTC',
+                          entryPrice: '50000', // Entry price for comparison
+                        },
+                        coin: 'BTC',
+                      },
+                    ],
                   },
-                ],
-              },
-              openOrders: [
-                {
-                  oid: 128,
-                  coin: 'BTC',
-                  side: 'S',
-                  sz: '1.0',
-                  triggerPx: '55000', // Above entry price = Take Profit for long
-                  orderType: 'Trigger', // Ambiguous order type
-                  reduceOnly: true,
-                  isPositionTpsl: true,
-                },
-                {
-                  oid: 129,
-                  coin: 'BTC',
-                  side: 'S',
-                  sz: '1.0',
-                  triggerPx: '45000', // Below entry price = Stop Loss for long
-                  orderType: 'Trigger', // Ambiguous order type
-                  reduceOnly: true,
-                  isPositionTpsl: true,
+                  openOrders: [
+                    {
+                      oid: 128,
+                      coin: 'BTC',
+                      side: 'S',
+                      sz: '1.0',
+                      triggerPx: '55000', // Above entry price = Take Profit for long
+                      orderType: 'Trigger', // Ambiguous order type
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                    {
+                      oid: 129,
+                      coin: 'BTC',
+                      side: 'S',
+                      sz: '1.0',
+                      triggerPx: '45000', // Below entry price = Stop Loss for long
+                      orderType: 'Trigger', // Ambiguous order type
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -1560,42 +1613,47 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should handle short position TP/SL logic correctly', async () => {
       const mockCallback = jest.fn();
 
-      mockSubscriptionClient.webData2.mockImplementation(
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: {
-                      szi: '-1.0', // Short position (negative size)
-                      coin: 'BTC',
-                      entryPrice: '50000',
-                    },
-                    coin: 'BTC',
+              perpDexStates: [
+                {
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: {
+                          szi: '-1.0', // Short position (negative size)
+                          coin: 'BTC',
+                          entryPrice: '50000',
+                        },
+                        coin: 'BTC',
+                      },
+                    ],
                   },
-                ],
-              },
-              openOrders: [
-                {
-                  oid: 130,
-                  coin: 'BTC',
-                  side: 'B', // Buy order (opposite of short position)
-                  sz: '1.0',
-                  triggerPx: '45000', // Below entry price = Take Profit for short
-                  orderType: 'Trigger',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
-                },
-                {
-                  oid: 131,
-                  coin: 'BTC',
-                  side: 'B',
-                  sz: '1.0',
-                  triggerPx: '55000', // Above entry price = Stop Loss for short
-                  orderType: 'Trigger',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
+                  openOrders: [
+                    {
+                      oid: 130,
+                      coin: 'BTC',
+                      side: 'B', // Buy order (opposite of short position)
+                      sz: '1.0',
+                      triggerPx: '45000', // Below entry price = Take Profit for short
+                      orderType: 'Trigger',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                    {
+                      oid: 131,
+                      coin: 'BTC',
+                      side: 'B',
+                      sz: '1.0',
+                      triggerPx: '55000', // Above entry price = Stop Loss for short
+                      orderType: 'Trigger',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -1647,38 +1705,43 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should include TP/SL orders in the orders list', async () => {
       const mockCallback = jest.fn();
 
-      mockSubscriptionClient.webData2.mockImplementation(
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: { szi: '1.0', coin: 'BTC' },
-                    coin: 'BTC',
+              perpDexStates: [
+                {
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: { szi: '1.0', coin: 'BTC' },
+                        coin: 'BTC',
+                      },
+                    ],
                   },
-                ],
-              },
-              openOrders: [
-                {
-                  oid: 132,
-                  coin: 'BTC',
-                  side: 'S',
-                  sz: '1.0',
-                  triggerPx: '55000',
-                  orderType: 'Take Profit',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
-                },
-                {
-                  oid: 133,
-                  coin: 'BTC',
-                  side: 'B',
-                  sz: '0.5',
-                  limitPx: '49000',
-                  orderType: 'Limit',
-                  reduceOnly: false,
-                  isPositionTpsl: false,
+                  openOrders: [
+                    {
+                      oid: 132,
+                      coin: 'BTC',
+                      side: 'S',
+                      sz: '1.0',
+                      triggerPx: '55000',
+                      orderType: 'Take Profit',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                    {
+                      oid: 133,
+                      coin: 'BTC',
+                      side: 'B',
+                      sz: '0.5',
+                      limitPx: '49000',
+                      orderType: 'Limit',
+                      reduceOnly: false,
+                      isPositionTpsl: false,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -1749,32 +1812,37 @@ describe('HyperLiquidSubscriptionService', () => {
           stopLossCount: 0,
         }));
 
-      mockSubscriptionClient.webData2.mockImplementation(
+      mockSubscriptionClient.webData3.mockImplementation(
         (_params: any, callback: any) => {
           setTimeout(() => {
             callback({
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: { szi: '1.0', coin: 'BTC' },
-                    coin: 'BTC',
-                  },
-                  {
-                    position: { szi: '2.0', coin: 'ETH' },
-                    coin: 'ETH',
-                  },
-                ],
-              },
-              openOrders: [
+              perpDexStates: [
                 {
-                  oid: 134,
-                  coin: 'BTC', // Only BTC has TP/SL orders
-                  side: 'S',
-                  sz: '1.0',
-                  triggerPx: '55000',
-                  orderType: 'Take Profit',
-                  reduceOnly: true,
-                  isPositionTpsl: true,
+                  clearinghouseState: {
+                    assetPositions: [
+                      {
+                        position: { szi: '1.0', coin: 'BTC' },
+                        coin: 'BTC',
+                      },
+                      {
+                        position: { szi: '2.0', coin: 'ETH' },
+                        coin: 'ETH',
+                      },
+                    ],
+                  },
+                  openOrders: [
+                    {
+                      oid: 134,
+                      coin: 'BTC', // Only BTC has TP/SL orders
+                      side: 'S',
+                      sz: '1.0',
+                      triggerPx: '55000',
+                      orderType: 'Take Profit',
+                      reduceOnly: true,
+                      isPositionTpsl: true,
+                    },
+                  ],
+                  perpsAtOpenInterestCap: [],
                 },
               ],
             });
@@ -1897,26 +1965,36 @@ describe('HyperLiquidSubscriptionService', () => {
   it('should not repeatedly notify subscribers with empty positions', async () => {
     const mockCallback = jest.fn();
 
-    // Mock webData2 to send multiple empty updates
-    mockSubscriptionClient.webData2.mockImplementation(
+    // Mock webData3 to send multiple empty updates
+    mockSubscriptionClient.webData3.mockImplementation(
       (_params: any, callback: any) => {
         // Send first update
         setTimeout(() => {
           callback({
-            clearinghouseState: {
-              assetPositions: [],
-            },
-            openOrders: [],
+            perpDexStates: [
+              {
+                clearinghouseState: {
+                  assetPositions: [],
+                },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
           });
         }, 0);
 
         // Send second update (still empty)
         setTimeout(() => {
           callback({
-            clearinghouseState: {
-              assetPositions: [],
-            },
-            openOrders: [],
+            perpDexStates: [
+              {
+                clearinghouseState: {
+                  assetPositions: [],
+                },
+                openOrders: [],
+                perpsAtOpenInterestCap: [],
+              },
+            ],
           });
         }, 20);
 
@@ -2038,46 +2116,6 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'newdex2' });
     });
 
-    it('updates feature flags with position subscribers', async () => {
-      const mockPositionCallback = jest.fn();
-      const mockInfoClient = {
-        frontendOpenOrders: jest.fn().mockResolvedValue([]),
-      };
-      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
-
-      const clearinghouseStateSubscription = {
-        unsubscribe: jest.fn().mockResolvedValue(undefined),
-      };
-      mockSubscriptionClient.clearinghouseState = jest.fn(
-        (_params: any, callback: any) => {
-          setTimeout(() => {
-            callback({
-              user: '0x123',
-              clearinghouseState: {
-                assetPositions: [],
-              },
-            });
-          }, 0);
-          return Promise.resolve(clearinghouseStateSubscription);
-        },
-      );
-
-      // Subscribe to positions first
-      service.subscribeToPositions({
-        callback: mockPositionCallback,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 20));
-
-      // Update feature flags with new DEXs
-      await service.updateFeatureFlags(true, ['dex3']);
-
-      expect(mockSubscriptionClient.clearinghouseState).toHaveBeenCalledWith(
-        { user: '0x123', dex: 'dex3' },
-        expect.any(Function),
-      );
-    });
-
     it('handles errors when establishing assetCtxs subscriptions for new DEXs', async () => {
       const mockCallback = jest.fn();
 
@@ -2176,113 +2214,6 @@ describe('HyperLiquidSubscriptionService', () => {
         ? (mockSubscriptionClient.assetCtxs as jest.Mock).mock.calls.length
         : 0;
       expect(finalCallCount).toBe(initialCallCount);
-    });
-
-    it('subscribes to positions with HIP-3 DEXs enabled', async () => {
-      const mockPositionCallback = jest.fn();
-      const mockInfoClient = {
-        frontendOpenOrders: jest.fn().mockResolvedValue([]),
-      };
-      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
-
-      const clearinghouseStateSubscription = {
-        unsubscribe: jest.fn().mockResolvedValue(undefined),
-      };
-      mockSubscriptionClient.clearinghouseState = jest.fn(
-        (_params: any, callback: any) => {
-          setTimeout(() => {
-            callback({
-              user: '0x123',
-              clearinghouseState: {
-                assetPositions: [
-                  {
-                    position: { szi: '1.0', coin: 'BTC' },
-                    coin: 'BTC',
-                  },
-                ],
-              },
-            });
-          }, 0);
-          return Promise.resolve(clearinghouseStateSubscription);
-        },
-      );
-
-      // Create service with HIP-3 enabled
-      const hip3Service = new HyperLiquidSubscriptionService(
-        mockClientService,
-        mockWalletService,
-        true,
-        ['dex1', 'dex2'],
-      );
-
-      const unsubscribe = hip3Service.subscribeToPositions({
-        callback: mockPositionCallback,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 30));
-
-      // Should create clearinghouseState subscriptions for HIP-3 DEXs
-      expect(mockSubscriptionClient.clearinghouseState).toHaveBeenCalledWith(
-        { user: '0x123', dex: 'dex1' },
-        expect.any(Function),
-      );
-      expect(mockSubscriptionClient.clearinghouseState).toHaveBeenCalledWith(
-        { user: '0x123', dex: 'dex2' },
-        expect.any(Function),
-      );
-
-      unsubscribe();
-    });
-
-    it('cleans up HIP-3 DEX subscriptions when last subscriber unsubscribes', async () => {
-      const mockPositionCallback = jest.fn();
-      const mockInfoClient = {
-        frontendOpenOrders: jest.fn().mockResolvedValue([]),
-      };
-      mockClientService.getInfoClient = jest.fn(() => mockInfoClient as any);
-
-      const clearinghouseStateUnsubscribe = jest
-        .fn()
-        .mockResolvedValue(undefined);
-      const clearinghouseStateSubscription = {
-        unsubscribe: clearinghouseStateUnsubscribe,
-      };
-
-      mockSubscriptionClient.clearinghouseState = jest.fn(
-        (_params: any, callback: any) => {
-          setTimeout(() => {
-            callback({
-              user: '0x123',
-              clearinghouseState: {
-                assetPositions: [],
-              },
-            });
-          }, 0);
-          return Promise.resolve(clearinghouseStateSubscription);
-        },
-      );
-
-      // Create service with HIP-3 enabled
-      const hip3Service = new HyperLiquidSubscriptionService(
-        mockClientService,
-        mockWalletService,
-        true,
-        ['testdex'],
-      );
-
-      const unsubscribe = hip3Service.subscribeToPositions({
-        callback: mockPositionCallback,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 30));
-
-      // Unsubscribe and trigger cleanup
-      unsubscribe();
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      // Should have called unsubscribe on clearinghouseState subscription
-      expect(clearinghouseStateUnsubscribe).toHaveBeenCalled();
     });
   });
 
@@ -2426,11 +2357,11 @@ describe('HyperLiquidSubscriptionService', () => {
   });
 
   describe('Multi-DEX Error Handling', () => {
-    it('handles webData2 subscription errors gracefully', async () => {
+    it('handles webData3 subscription errors gracefully', async () => {
       const mockCallback = jest.fn();
-      mockSubscriptionClient.webData2 = jest
+      mockSubscriptionClient.webData3 = jest
         .fn()
-        .mockRejectedValue(new Error('WebData2 subscription failed'));
+        .mockRejectedValue(new Error('WebData3 subscription failed'));
 
       const unsubscribe = service.subscribeToPositions({
         callback: mockCallback,

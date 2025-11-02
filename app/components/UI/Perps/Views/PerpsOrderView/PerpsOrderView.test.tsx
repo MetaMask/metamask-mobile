@@ -575,6 +575,9 @@ const createMockStreamManager = () => {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
     },
+    oiCaps: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
   };
 };
 
