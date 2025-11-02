@@ -916,6 +916,12 @@ class TopOfBookStreamChannel extends StreamChannel<
           requestedSymbol: params.symbol,
         },
       );
+
+      // Force disconnect to clear old symbol
+      this.disconnect();
+
+      // Set new symbol
+      this.currentSymbol = params.symbol;
     } else if (!this.currentSymbol) {
       this.currentSymbol = params.symbol;
     }
