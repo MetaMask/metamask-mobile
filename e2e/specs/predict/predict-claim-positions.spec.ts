@@ -76,10 +76,10 @@ describe(SmokePredictions('Predictions'), () => {
 
         // Set up mocks to remove claimed positions after tapping claim button
         await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
-        await PredictClaimPage.tapClaimConfirmButton();
+        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
 
+        await PredictClaimPage.tapClaimConfirmButton();
         await device.enableSynchronization();
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim'); // Update USDC balance post claim
 
         await Assertions.expectElementToBeVisible(WalletView.container);
 
