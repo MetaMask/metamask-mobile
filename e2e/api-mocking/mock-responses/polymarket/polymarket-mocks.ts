@@ -850,6 +850,12 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
         // Return a valid nonce (transaction count) - needed for claim flow
         // This is critical for transaction construction, must be a valid hex number
         result = MOCK_RPC_RESPONSES.TRANSACTION_COUNT_RESULT;
+      } else if (body?.method === 'eth_getTransactionReceipt') {
+        // Return a mock transaction receipt indicating the transaction is confirmed
+        // This is CRITICAL for TransactionController to mark transactions as confirmed
+        // TransactionController polls for receipts to determine transaction status
+        // Without this, transactions will remain in "pending" status
+        result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT;
       }
       // For other methods, return empty result (base mocks will handle them)
 
