@@ -100,8 +100,9 @@ describe(SmokePredictions('Predictions'), () => {
           });
         }
 
-        await Assertions.expectElementToNotBeVisible(WalletView.claimButton);
-
+        await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
+          description: 'Claim button should not be visible',
+        });
         // await TabBarComponent.tapActivity();
 
         // await ActivitiesView.tapOnPredictionsTab();
