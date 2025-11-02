@@ -831,6 +831,97 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 }
 
+// Open Interest Cap channel for tracking markets at capacity
+class OICapStreamChannel extends StreamChannel<string[]> {
+  private prewarmUnsubscribe?: () => void;
+
+  protected connect() {
+    if (this.wsSubscription) return;
+
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      setTimeout(
+        () => this.connect(),
+        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+      );
+      return;
+    }
+
+    // Subscribe to OI cap updates (zero overhead - extracted from existing webData2)
+    this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
+      callback: (caps: string[]) => {
+        // Validate account context
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
+        if (this.accountAddress && this.accountAddress !== currentAccount) {
+          Logger.error(new Error('OICapStreamChannel: Wrong account context'), {
+            expected: currentAccount,
+            received: this.accountAddress,
+          });
+          return;
+        }
+        this.accountAddress = currentAccount;
+
+        this.cache.set('oiCaps', caps);
+        this.notifySubscribers(caps);
+      },
+    });
+  }
+
+  protected getCachedData(): string[] | null {
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('oiCaps');
+    return cached !== undefined ? cached : null;
+  }
+
+  protected getClearedData(): string[] {
+    return [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('OICapStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('OICapStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
+}
+
 // Market data channel for caching market list data
 class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
@@ -1001,6 +1092,7 @@ export class PerpsStreamManager {
   public readonly fills = new FillStreamChannel();
   public readonly account = new AccountStreamChannel();
   public readonly marketData = new MarketDataChannel();
+  public readonly oiCaps = new OICapStreamChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();

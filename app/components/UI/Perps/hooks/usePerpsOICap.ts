@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import Engine from '../../../../core/Engine';
+import { usePerpsStream } from '../providers/PerpsStreamManager';
 
 /**
  * Developer-only override for OI cap state testing
@@ -41,8 +41,15 @@ export interface UsePerpsOICapReturn {
 /**
  * Hook to check if a market is at its open interest cap
  *
+ * Uses PerpsStreamManager for centralized subscription management.
  * Leverages the existing webData2 WebSocket subscription which includes
  * `perpsAtOpenInterestCap` field - zero additional network overhead.
+ *
+ * **Architecture:**
+ * - Single shared WebSocket subscription for all component instances
+ * - Built-in caching for instant subsequent access
+ * - Automatic account switch handling via clearCache()
+ * - Consistent with other live data hooks (usePerpsLiveOrders, usePerpsLiveAccount)
  *
  * @param symbol - Market symbol to check (e.g., 'BTC', 'xyz:TSLA')
  * @returns Object with isAtCap and isLoading flags
@@ -57,24 +64,24 @@ export interface UsePerpsOICapReturn {
  * ```
  */
 export const usePerpsOICap = (symbol?: string): UsePerpsOICapReturn => {
+  const streamManager = usePerpsStream();
   const [oiCaps, setOICaps] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     if (!symbol) return;
 
-    const controller = Engine.context.PerpsController;
-
-    // Subscribe to OI cap updates from the controller
-    const unsubscribe = controller.subscribeToOICaps({
+    // Subscribe through stream manager (single shared subscription)
+    const unsubscribe = streamManager.oiCaps.subscribe({
       callback: (caps: string[]) => {
         setOICaps(caps);
         setIsInitialized(true);
       },
+      throttleMs: 0, // No throttle for OI caps (low frequency updates)
     });
 
     return unsubscribe;
-  }, [symbol]);
+  }, [streamManager, symbol]);
 
   // Check if the current symbol is in the OI caps list
   const isAtCap = useMemo(() => {

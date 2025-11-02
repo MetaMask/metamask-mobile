@@ -176,6 +176,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
   };
 
+  // Track whether clients have been initialized (lazy initialization)
+  private clientsInitialized = false;
+
   constructor(
     options: {
       isTestnet?: boolean;
@@ -203,8 +206,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.enabledDexs,
     );
 
-    // Initialize clients
-    this.initializeClients();
+    // NOTE: Clients are NOT initialized here - they'll be initialized lazily
+    // when first needed. This avoids accessing Engine.context before it's ready.
 
     // Debug: Confirm batch methods exist
     DevLogger.log('[HyperLiquidProvider] Constructor complete', {
@@ -215,11 +218,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Initialize HyperLiquid SDK clients
+   * Initialize HyperLiquid SDK clients (lazy initialization)
+   *
+   * This is called on first API operation to ensure Engine.context is ready.
+   * Creating the wallet adapter requires accessing Engine.context.AccountTreeController,
+   * which may not be available during early app initialization.
    */
-  private initializeClients(): void {
+  private ensureClientsInitialized(): void {
+    if (this.clientsInitialized) {
+      return; // Already initialized
+    }
+
     const wallet = this.walletService.createWalletAdapter();
     this.clientService.initialize(wallet);
+    this.clientsInitialized = true;
+
+    DevLogger.log('[HyperLiquidProvider] Clients initialized lazily', {
+      timestamp: new Date().toISOString(),
+    });
   }
 
   /**
@@ -283,6 +299,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * since HIP-3 configuration is immutable after construction
    */
   private async ensureReady(): Promise<void> {
+    // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
+    this.ensureClientsInitialized();
+
+    // Verify clients are properly initialized
     this.clientService.ensureInitialized();
 
     // Build asset mapping on first call only (flags are immutable)
@@ -4130,8 +4150,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.clientService.setTestnetMode(newIsTestnet);
       this.walletService.setTestnetMode(newIsTestnet);
 
-      // Reinitialize clients
-      this.initializeClients();
+      // Reset initialization flag so clients will be recreated on next use
+      this.clientsInitialized = false;
 
       return {
         success: true,
@@ -4146,11 +4166,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Initialize provider
+   * Initialize provider (ensures clients are ready)
    */
   async initialize(): Promise<InitializeResult> {
     try {
-      this.initializeClients();
+      // Ensure clients are initialized (lazy initialization)
+      this.ensureClientsInitialized();
       return {
         success: true,
         chainId: getChainId(this.clientService.isTestnetMode()),
