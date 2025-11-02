@@ -847,122 +847,88 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 }
 
-// Order book channel for L2 bid/ask data
-class OrderBookStreamChannel extends StreamChannel<
-  Record<string, { bestBid?: string; bestAsk?: string; spread?: string }>
+// Top of book channel for best bid/ask data
+class TopOfBookStreamChannel extends StreamChannel<
+  { bestBid?: string; bestAsk?: string; spread?: string } | undefined
 > {
-  private symbols = new Set<string>();
-  // Override cache to store individual order book objects
-  protected orderBookCache = new Map<
-    string,
-    { bestBid?: string; bestAsk?: string; spread?: string }
-  >();
+  private currentSymbol: string | null = null;
+  private cachedTopOfBook:
+    | { bestBid?: string; bestAsk?: string; spread?: string }
+    | undefined = undefined;
 
   protected connect() {
-    if (this.wsSubscription) {
+    if (!this.currentSymbol || this.wsSubscription) {
       return;
     }
 
-    // Collect all unique symbols from subscribers
-    const allSymbols = Array.from(this.symbols);
-
-    DevLogger.log(`OrderBookStreamChannel: Subscribing to L2 order book`, {
-      symbolCount: allSymbols.length,
-      symbols: allSymbols,
+    DevLogger.log(`TopOfBookStreamChannel: Subscribing to top of book`, {
+      symbol: this.currentSymbol,
     });
 
-    if (allSymbols.length === 0) {
-      return;
-    }
-
-    // Subscribe to prices WITH order book data
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
-      symbols: allSymbols,
-      includeOrderBook: true, // Request L2 order book data
+      symbols: [this.currentSymbol],
+      includeOrderBook: true,
       callback: (updates: PriceUpdate[]) => {
-        // Extract only order book fields and build map
-        const orderBookMap: Record<
-          string,
-          { bestBid?: string; bestAsk?: string; spread?: string }
-        > = {};
-        updates.forEach((update) => {
-          const orderBook = {
+        const update = updates.find((u) => u.coin === this.currentSymbol);
+        if (update) {
+          const topOfBook = {
             bestBid: update.bestBid,
             bestAsk: update.bestAsk,
             spread: update.spread,
           };
-          this.orderBookCache.set(update.coin, orderBook);
-          orderBookMap[update.coin] = orderBook;
-        });
-
-        this.notifySubscribers(orderBookMap);
+          this.cachedTopOfBook = topOfBook;
+          this.notifySubscribers(topOfBook);
+        }
       },
     });
   }
 
-  protected getCachedData(): Record<
-    string,
-    { bestBid?: string; bestAsk?: string; spread?: string }
-  > | null {
-    if (this.orderBookCache.size === 0) return null;
-    const cached: Record<
-      string,
-      { bestBid?: string; bestAsk?: string; spread?: string }
-    > = {};
-    this.orderBookCache.forEach((value, key) => {
-      cached[key] = value;
-    });
-    return cached;
+  protected getCachedData():
+    | { bestBid?: string; bestAsk?: string; spread?: string }
+    | undefined {
+    return this.cachedTopOfBook;
   }
 
-  protected getClearedData(): Record<
-    string,
-    { bestBid?: string; bestAsk?: string; spread?: string }
-  > {
-    return {};
+  protected getClearedData():
+    | { bestBid?: string; bestAsk?: string; spread?: string }
+    | undefined {
+    return undefined;
   }
 
   public clearCache(): void {
-    // Clear the order book specific cache
-    this.orderBookCache.clear();
-    // Call parent clearCache
+    this.cachedTopOfBook = undefined;
     super.clearCache();
   }
 
-  subscribeToSymbols(params: {
-    symbols: string[];
+  subscribeToSymbol(params: {
+    symbol: string;
     callback: (
-      orderBooks: Record<
-        string,
-        { bestBid?: string; bestAsk?: string; spread?: string }
-      >,
+      orderBook:
+        | { bestBid?: string; bestAsk?: string; spread?: string }
+        | undefined,
     ) => void;
   }): () => void {
-    // Track symbols for filtering
-    params.symbols.forEach((s) => {
-      this.symbols.add(s);
-    });
-
-    // Ensure connection is established
-    if (!this.wsSubscription) {
-      this.connect();
+    if (this.currentSymbol && this.currentSymbol !== params.symbol) {
+      DevLogger.log(
+        'TopOfBookStreamChannel: Warning - different symbol requested, staying on current',
+        {
+          currentSymbol: this.currentSymbol,
+          requestedSymbol: params.symbol,
+        },
+      );
+    } else if (!this.currentSymbol) {
+      this.currentSymbol = params.symbol;
     }
 
     return this.subscribe({
-      callback: (allOrderBooks) => {
-        // Filter to only requested symbols
-        const filtered: Record<
-          string,
-          { bestBid?: string; bestAsk?: string; spread?: string }
-        > = {};
-        params.symbols.forEach((symbol) => {
-          if (allOrderBooks?.[symbol]) {
-            filtered[symbol] = allOrderBooks[symbol];
-          }
-        });
-        params.callback(filtered);
-      },
+      callback: params.callback,
     });
+  }
+
+  public disconnect() {
+    this.currentSymbol = null;
+    this.cachedTopOfBook = undefined;
+    super.disconnect();
   }
 }
 
@@ -1136,7 +1102,7 @@ export class PerpsStreamManager {
   public readonly fills = new FillStreamChannel();
   public readonly account = new AccountStreamChannel();
   public readonly marketData = new MarketDataChannel();
-  public readonly orderBooks = new OrderBookStreamChannel();
+  public readonly topOfBook = new TopOfBookStreamChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();

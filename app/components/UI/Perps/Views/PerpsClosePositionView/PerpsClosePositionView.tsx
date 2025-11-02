@@ -46,7 +46,7 @@ import {
   usePerpsToasts,
   usePerpsMarketData,
 } from '../../hooks';
-import { usePerpsLivePrices, usePerpsOrderBook } from '../../hooks/stream';
+import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
@@ -115,11 +115,10 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
-  // Get order book data for maker/taker fee determination
-  const orderBooks = usePerpsOrderBook({
-    symbols: [position.coin],
+  // Get top of book data for maker/taker fee determination
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol: position.coin,
   });
-  const currentOrderBook = orderBooks[position.coin];
 
   // Determine position direction
   const isLong = parseFloat(position.size) > 0;
@@ -198,11 +197,11 @@ const PerpsClosePositionView: React.FC = () => {
     isClosing: true,
     limitPrice,
     direction: isLong ? 'short' : 'long',
-    currentAskPrice: currentOrderBook?.bestAsk
-      ? Number.parseFloat(currentOrderBook.bestAsk)
+    currentAskPrice: currentTopOfBook?.bestAsk
+      ? Number.parseFloat(currentTopOfBook.bestAsk)
       : undefined,
-    currentBidPrice: currentOrderBook?.bestBid
-      ? Number.parseFloat(currentOrderBook.bestBid)
+    currentBidPrice: currentTopOfBook?.bestBid
+      ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
 

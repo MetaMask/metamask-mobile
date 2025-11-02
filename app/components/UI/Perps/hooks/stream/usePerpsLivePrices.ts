@@ -48,7 +48,10 @@ export function usePerpsLivePrices(
     return () => {
       unsubscribe();
     };
-  }, [stream, symbolsKey, symbols, throttleMs]);
+    // symbolsKey captures symbols changes via memoization, so symbols is intentionally omitted
+    // to prevent re-subscriptions when array reference changes but content is the same
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream, symbolsKey, throttleMs]);
 
   return prices;
 }
