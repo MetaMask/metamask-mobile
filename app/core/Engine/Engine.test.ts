@@ -133,7 +133,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
-    expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -159,7 +158,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: 'vault',
@@ -177,7 +177,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: undefined,
@@ -225,9 +226,8 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         balances: {},
-        claimTransaction: null,
         claimablePositions: [],
-        depositTransaction: null,
+        pendingDeposits: {},
         withdrawTransaction: null,
         isOnboarded: {},
       },
@@ -250,7 +250,16 @@ describe('Engine', () => {
         withdrawalProgress: {
           progress: 0,
           lastUpdated: 0,
-          activeWithdrawalId: undefined,
+          activeWithdrawalId: null,
+        },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
         },
       },
     };

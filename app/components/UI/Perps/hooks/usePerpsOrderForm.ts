@@ -8,9 +8,15 @@ import {
   findOptimalAmount,
   getMaxAllowedAmount as getMaxAllowedAmountUtils,
 } from '../utils/orderCalculations';
-import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
+import {
+  usePerpsLiveAccount,
+  usePerpsLivePositions,
+  usePerpsLivePrices,
+} from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { selectTradeConfiguration } from '../controllers/selectors';
+import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -55,12 +61,25 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { account } = usePerpsLiveAccount();
+  const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
   const { marketData } = usePerpsMarketData(initialAsset);
+
+  // Get existing position leverage for this asset (protocol constraint)
+  // Positions load asynchronously via WebSocket, so this may be undefined initially
+  const existingPositionLeverage = useMemo(
+    () => positions.find((p) => p.coin === initialAsset)?.leverage?.value,
+    [positions, initialAsset],
+  );
+
+  // Get saved trade configuration for this asset (user preference for new positions)
+  const savedConfig = usePerpsSelector((state) =>
+    selectTradeConfiguration(state, initialAsset),
+  );
 
   // Get available balance from live account data
   const availableBalance = Number.parseFloat(
@@ -73,8 +92,12 @@ export function usePerpsOrderForm(
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
 
-  // Calculate the maximum possible amount based on available balance and leverage
-  const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
+  // Priority: navigation param > existing position leverage > saved config > default (3x)
+  const defaultLeverage =
+    initialLeverage ||
+    existingPositionLeverage ||
+    savedConfig?.leverage ||
+    TRADING_DEFAULTS.leverage;
 
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
   const initialAmountValue = useMemo(() => {
@@ -201,6 +224,26 @@ export function usePerpsOrderForm(
       hasSetInitialAmount.current = true;
     }
   }, [initialAmountValue]);
+
+  // Sync leverage from existing position when it loads asynchronously
+  // This handles the case where positions haven't loaded yet when form initializes
+  const hasSyncedLeverage = useRef(false);
+  useEffect(() => {
+    // Only update if:
+    // 1. Haven't synced yet (avoid fighting with user input)
+    // 2. No explicit initialLeverage was provided (respect navigation params)
+    // 3. existingPositionLeverage loaded (was undefined, now has value)
+    // 4. Current leverage would cause protocol violation (< existing)
+    if (
+      !hasSyncedLeverage.current &&
+      !initialLeverage &&
+      existingPositionLeverage &&
+      orderForm.leverage < existingPositionLeverage
+    ) {
+      setOrderForm((prev) => ({ ...prev, leverage: existingPositionLeverage }));
+      hasSyncedLeverage.current = true;
+    }
+  }, [existingPositionLeverage, initialLeverage, orderForm.leverage]);
 
   // Update entire form
   const updateOrderForm = (updates: Partial<OrderFormState>) => {

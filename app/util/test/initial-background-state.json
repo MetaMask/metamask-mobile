@@ -240,6 +240,7 @@
       "0xa869": true,
       "0xaa37dc": true,
       "0x89": true,
+      "0x8f": true,
       "0x13881": true,
       "0xa86a": true,
       "0xfa": true,
@@ -472,20 +473,6 @@
   "MultichainBalancesController": {
     "balances": {}
   },
-  "RatesController": {
-    "cryptocurrencies": ["btc", "sol"],
-    "fiatCurrency": "usd",
-    "rates": {
-      "btc": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      },
-      "sol": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      }
-    }
-  },
   "MultichainNetworkController": {
     "isEvmSelected": true,
     "networksWithTransactionActivity": {},
@@ -659,8 +646,7 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "claimTransaction": null,
-    "depositTransaction": null,
+    "pendingDeposits": {},
     "isOnboarded": {}
   }
 }
