@@ -212,15 +212,17 @@ const PerpsPositionTransactionView: React.FC = () => {
             )}
           </View>
 
-          {/* Block explorer button */}
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.transactions.view_on_explorer')}
-            onPress={handleViewOnBlockExplorer}
-            style={styles.blockExplorerButton}
-          />
+          <View style={styles.buttonsContainer}>
+            {/* Block explorer button */}
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.transactions.view_on_explorer')}
+              onPress={handleViewOnBlockExplorer}
+              style={styles.blockExplorerButton}
+            />
+          </View>
         </View>
       </ScrollView>
     </ScreenView>

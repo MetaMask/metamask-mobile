@@ -56,7 +56,7 @@ describe('useBurnAddressAlert', () => {
       key: AlertKeys.BurnAddress,
       field: RowAlertKey.BurnAddress,
       severity: Severity.Danger,
-      isBlocking: false,
+      isBlocking: true,
     });
     expect(result.current[0].title).toBeDefined();
     expect(result.current[0].message).toBeDefined();
@@ -72,7 +72,7 @@ describe('useBurnAddressAlert', () => {
       key: AlertKeys.BurnAddress,
       field: RowAlertKey.BurnAddress,
       severity: Severity.Danger,
-      isBlocking: false,
+      isBlocking: true,
     });
   });
 
@@ -100,7 +100,7 @@ describe('useBurnAddressAlert', () => {
       key: AlertKeys.BurnAddress,
       field: RowAlertKey.BurnAddress,
       severity: Severity.Danger,
-      isBlocking: false,
+      isBlocking: true,
     });
   });
 

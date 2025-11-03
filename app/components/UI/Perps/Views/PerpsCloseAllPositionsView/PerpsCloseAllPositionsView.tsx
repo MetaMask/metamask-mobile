@@ -105,7 +105,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent03],
@@ -128,7 +128,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent01],

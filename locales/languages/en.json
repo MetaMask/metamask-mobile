@@ -1228,7 +1228,8 @@
       "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "Please select an amount to close",
       "order_type_reverted_to_market_order": "Changed to market order",
-      "you_need_set_price_limit_order": "You need to set a price for a limit order."
+      "you_need_set_price_limit_order": "You need to set a price for a limit order.",
+      "your_pnl_is": "Your P&L is"
     },
     "tpsl": {
       "title": "Auto close",
@@ -1717,7 +1718,17 @@
     "points_error": "We can't load points right now",
     "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
     "tp_on_chart": "TP on Chart",
-    "sl_on_chart": "SL on Chart"
+    "sl_on_chart": "SL on Chart",
+    "pnl_hero_card": {
+      "title": "PnL Hero Card",
+      "header_title": "Share your trade",
+      "share_button": "Share",
+      "share_message_with_referral_code": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
+      "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
+      "share_failed": "Failed to export image",
+      "export_success": "Exported image",
+      "referral_code_text": "Use my referral code to earn extra rewards."
+    }
   },
   "predict": {
     "title": "MetaMask Predict",
@@ -1771,6 +1782,7 @@
     },
     "outcomes_singular": "outcome",
     "outcomes_plural": "outcomes",
+    "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
       "new": "New",
@@ -2491,7 +2503,7 @@
     "nft_autodetect_mode": "Autodetect NFTs",
     "nft_autodetect_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Show conversion on test networks",
-    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
+    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks.",
     "show_fiat_on_testnets_modal_title": "Be careful",
     "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
     "show_fiat_on_testnets_modal_learn_more": "Learn more.",
@@ -2505,9 +2517,9 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "General",
-    "general_desc": "Currency conversion, primary currency, language and search engine",
+    "general_desc": "Currency conversion, primary currency, language and search engine.",
     "advanced_title": "Advanced",
-    "advanced_desc": "Access developer features, reset account, setup testnets, state logs, IPFS gateway and custom RPC",
+    "advanced_desc": "Access developer features, reset account, setup testnets, state logs, IPFS gateway and custom RPC.",
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
@@ -2531,9 +2543,9 @@
       "perps_title": "Perps trading"
     },
     "contacts_title": "Contacts",
-    "contacts_desc": "Add, edit, remove, and manage your accounts",
+    "contacts_desc": "Add, edit, remove, and manage your accounts.",
     "permissions_title": "Permissions",
-    "permissions_desc": "Manage the permissions given to sites and apps",
+    "permissions_desc": "Manage the permissions given to sites and apps.",
     "no_permissions": "No permissions",
     "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security & Privacy",
@@ -4231,13 +4243,13 @@
   },
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",
-    "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
+    "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions.",
     "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "select_provider": "Select your preferred provider",
     "switch_network": "Please switch to mainnet or sepolia",
     "card_title": "Always show MetaMask Card button",
-    "card_desc": "MetaMask Card is only available to residents of select countries"
+    "card_desc": "MetaMask Card is only available to residents of select countries."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -6655,7 +6667,8 @@
       "info": {
         "title": "Share your code to earn more",
         "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
-      }
+      },
+      "referral_code_copied": "Referral code copied to clipboard"
     },
     "link_account_group": {
       "link_account": "Add account",

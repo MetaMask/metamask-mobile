@@ -329,7 +329,7 @@ export async function withFixtures(
   testSuite: TestSuiteFunction,
 ) {
   const {
-    fixture,
+    fixture: fixtureOption,
     restartDevice = false,
     smartContracts,
     disableLocalNodes = false,
@@ -387,6 +387,14 @@ export async function withFixtures(
         localNodeOptions[0],
         localNodes[0],
       );
+    }
+
+    // Resolve fixture after local nodes are started so dynamic ports are known
+    let resolvedFixture: FixtureBuilder;
+    if (typeof fixtureOption === 'function') {
+      resolvedFixture = await fixtureOption({ localNodes });
+    } else {
+      resolvedFixture = fixtureOption;
     }
 
     // Handle dapps

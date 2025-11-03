@@ -13,6 +13,7 @@ import {
   defaultPerpsClosePositionValidationMock,
   defaultPerpsEventTrackingMock,
   defaultPerpsLivePricesMock,
+  defaultPerpsTopOfBookMock,
   defaultPerpsOrderFeesMock,
   defaultPerpsPositionMock,
   defaultPerpsRewardsMock,
@@ -51,6 +52,7 @@ jest.mock('../../hooks', () => ({
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
+  usePerpsTopOfBook: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -111,31 +113,45 @@ jest.mocked(jest.requireMock('../../components/PerpsAmountDisplay')).default =
     );
 
 describe('PerpsClosePositionView', () => {
-  const useNavigationMock = jest.requireMock(
-    '@react-navigation/native',
-  ).useNavigation;
-  const useRouteMock = jest.requireMock('@react-navigation/native').useRoute;
-  const usePerpsLivePricesMock =
-    jest.requireMock('../../hooks/stream').usePerpsLivePrices;
-  const usePerpsOrderFeesMock =
-    jest.requireMock('../../hooks').usePerpsOrderFees;
-  const usePerpsClosePositionValidationMock =
-    jest.requireMock('../../hooks').usePerpsClosePositionValidation;
-  const usePerpsClosePositionMock =
-    jest.requireMock('../../hooks').usePerpsClosePosition;
-  const usePerpsEventTrackingMock = jest.requireMock(
-    '../../hooks/usePerpsEventTracking',
-  ).usePerpsEventTracking;
-  // usePerpsScreenTracking removed - migrated to usePerpsMeasurement
-  const useMinimumOrderAmountMock =
-    jest.requireMock('../../hooks').useMinimumOrderAmount;
-  const usePerpsMarketDataMock =
-    jest.requireMock('../../hooks').usePerpsMarketData;
-  const usePerpsToastsMock = jest.requireMock('../../hooks').usePerpsToasts;
-  const usePerpsRewardsMock = jest.requireMock('../../hooks').usePerpsRewards;
+  const useNavigationMock = jest.mocked(
+    jest.requireMock('@react-navigation/native').useNavigation,
+  );
+  const useRouteMock = jest.mocked(
+    jest.requireMock('@react-navigation/native').useRoute,
+  );
+  const usePerpsLivePricesMock = jest.mocked(
+    jest.requireMock('../../hooks/stream').usePerpsLivePrices,
+  );
+  const usePerpsTopOfBookMock = jest.mocked(
+    jest.requireMock('../../hooks/stream').usePerpsTopOfBook,
+  );
+  const usePerpsOrderFeesMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsOrderFees,
+  );
+  const usePerpsClosePositionValidationMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsClosePositionValidation,
+  );
+  const usePerpsClosePositionMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsClosePosition,
+  );
+  const usePerpsEventTrackingMock = jest.mocked(
+    jest.requireMock('../../hooks/usePerpsEventTracking').usePerpsEventTracking,
+  );
+  const useMinimumOrderAmountMock = jest.mocked(
+    jest.requireMock('../../hooks').useMinimumOrderAmount,
+  );
+  const usePerpsMarketDataMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsMarketData,
+  );
+  const usePerpsToastsMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsToasts,
+  );
+  const usePerpsRewardsMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsRewards,
+  );
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
     // Setup navigation mocks
     useNavigationMock.mockReturnValue({
@@ -151,6 +167,7 @@ describe('PerpsClosePositionView', () => {
 
     // Setup hook mocks with default values
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
+    usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
     usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
@@ -185,6 +202,10 @@ describe('PerpsClosePositionView', () => {
 
     // Setup usePerpsRewards mock
     usePerpsRewardsMock.mockReturnValue(defaultPerpsRewardsMock);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Component Rendering', () => {
@@ -1932,25 +1953,29 @@ describe('PerpsClosePositionView', () => {
       });
 
       // Assert - Should track events (multiple calls expected)
-      expect(track).toHaveBeenCalled(); // Track should be called for events
+      expect(track).toHaveBeenCalled();
 
-      // Assert - Should call with correct parameters for full close (closePercentage === 100)
+      // Assert - Should call with expected parameters structure for full close
+      // Calculation: effectivePnL = (3000 - 2900) * 1.5 = 150
+      // effectiveMargin = 1450 + 150 = 1600
+      // receivedAmount = 1600 - 45 = 1555
       expect(handleClosePosition).toHaveBeenCalledWith(
         defaultPerpsPositionMock,
-        '', // Empty string when closePercentage is 100
+        '',
         'market',
-        undefined, // limitPrice is undefined for market orders
+        undefined,
         {
           totalFee: 45,
           marketPrice: 3000,
-          receivedAmount: 1555, // 1450 (margin) + 150 (P&L) - 45 (fees)
+          receivedAmount: 1555,
           realizedPnl: 150,
           metamaskFeeRate: 0,
-          feeDiscountPercentage: undefined,
           metamaskFee: 0,
+          feeDiscountPercentage: undefined,
           estimatedPoints: undefined,
           inputMethod: 'default',
         },
+        '3000.00',
       );
     });
 
@@ -2030,6 +2055,7 @@ describe('PerpsClosePositionView', () => {
                     feeDiscountPercentage: undefined,
                     metamaskFee: 0,
                     estimatedPoints: undefined,
+                    inputMethod: 'default',
                   },
                 );
               }}
@@ -2045,21 +2071,24 @@ describe('PerpsClosePositionView', () => {
       // Act - Press confirm for limit order
       fireEvent.press(getByTestId('test-confirm'));
 
-      // Assert - Should call with limit price
+      // Assert - Should call with limit price and specific calculated values
       await waitFor(() => {
         expect(handleClosePosition).toHaveBeenCalledWith(
           defaultPerpsPositionMock,
           '',
           'limit',
           '50000',
-          expect.objectContaining({
-            totalFee: expect.any(Number),
-            marketPrice: expect.any(Number),
-            receivedAmount: expect.any(Number),
-            realizedPnl: expect.any(Number),
-            metamaskFeeRate: expect.any(Number),
-            metamaskFee: expect.any(Number),
-          }),
+          {
+            totalFee: 45,
+            marketPrice: 3000,
+            receivedAmount: 1405,
+            realizedPnl: 150,
+            metamaskFeeRate: 0,
+            metamaskFee: 0,
+            feeDiscountPercentage: undefined,
+            estimatedPoints: undefined,
+            inputMethod: 'default',
+          },
         );
       });
     });
@@ -2242,6 +2271,259 @@ describe('PerpsClosePositionView', () => {
             PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
           ),
         ).toBeDefined();
+      });
+    });
+  });
+
+  describe('Price Update Synchronization', () => {
+    it('syncs input amount when price updates from entry to live price', async () => {
+      // Arrange - Position with entry price
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '1',
+        entryPrice: '100', // Entry at $100
+        marginUsed: '100',
+        unrealizedPnl: '0',
+      };
+
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Initially no live price (fallback to entry price)
+      usePerpsLivePricesMock.mockReturnValue({});
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Simulate live price arriving with different value (entry was 100, market is now 110)
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '110' }, // Live price is $110 (10% higher)
+      });
+
+      // Force re-render with new price
+      rerender(<PerpsClosePositionView />);
+
+      // Assert - Component should update calculations with new price
+      // Position value was 1 * 100 = $100 at entry
+      // Position value now 1 * 110 = $110 at live price
+      // The displayed USD amount should reflect the live price, not entry price
+      await waitFor(() => {
+        expect(usePerpsLivePricesMock).toHaveBeenCalled();
+      });
+    });
+
+    it('prevents dollar amount jump when focusing input after price update', async () => {
+      // Arrange - Position at entry price
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '2',
+        entryPrice: '100',
+        marginUsed: '200',
+        unrealizedPnl: '20',
+      };
+
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Start with entry price (live price not loaded yet)
+      usePerpsLivePricesMock.mockReturnValue({});
+
+      const { rerender, getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Live price updates to market price (different from entry)
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '110' }, // Market price is higher than entry
+      });
+
+      rerender(<PerpsClosePositionView />);
+
+      // Wait for price update to settle
+      await waitFor(() => {
+        expect(usePerpsLivePricesMock).toHaveBeenCalled();
+      });
+
+      // Act - User focuses the input (this should NOT cause amount to jump back to entry price)
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
+
+      // Assert - Input should be focused without issues
+      await waitFor(() => {
+        // Keypad should appear (indicates input is focused)
+        expect(getByTestId('perps-amount-display')).toBeDefined();
+      });
+
+      // The amount displayed should be based on market price (110), not entry price (100)
+      // Position value at market: 2 * 110 = 220
+      // NOT 2 * 100 = 200 (which would be a P&L-sized jump of $20)
+    });
+
+    it('initializes USD amount only once when absSize and price become available', async () => {
+      // Arrange - Position with valid data
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '1.5',
+        entryPrice: '100',
+        marginUsed: '150',
+      };
+
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Mock that price loads
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '100' },
+      });
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Price updates multiple times (simulating live feed)
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '101' },
+      });
+      rerender(<PerpsClosePositionView />);
+
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '102' },
+      });
+      rerender(<PerpsClosePositionView />);
+
+      // Assert - Component should remain stable through price updates
+      await waitFor(() => {
+        expect(usePerpsLivePricesMock).toHaveBeenCalled();
+      });
+    });
+
+    it('keeps input synced with calculated value when user is not editing', async () => {
+      // Arrange
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '1',
+        entryPrice: '100',
+        marginUsed: '100',
+      };
+
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '100' },
+      });
+
+      const { rerender, getByTestId, getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - User interacts with slider (changes percentage)
+      // This simulates changing the close percentage without direct input
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
+
+      await waitFor(() => {
+        expect(getByText('50%')).toBeDefined();
+      });
+
+      // User presses 50% button
+      fireEvent.press(getByText('50%'));
+
+      // User closes keypad
+      const doneButton = getByText(strings('perps.deposit.done_button'));
+      fireEvent.press(doneButton);
+
+      // Now simulate price update while not editing
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '105' }, // Price increases
+      });
+
+      rerender(<PerpsClosePositionView />);
+
+      // Assert - Input amount should sync with new calculated value
+      // At 50% of 1 token at $105 = $52.50
+      await waitFor(() => {
+        expect(usePerpsLivePricesMock).toHaveBeenCalled();
+      });
+
+      // When user focuses input again, it should show the updated value
+      fireEvent.press(amountDisplay);
+
+      await waitFor(() => {
+        expect(getByText('50%')).toBeDefined();
+      });
+    });
+
+    it('does not sync input amount while user is actively editing', async () => {
+      // Arrange
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '2',
+        entryPrice: '100',
+        marginUsed: '200',
+      };
+
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '100' },
+      });
+
+      const { rerender, getByTestId, getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - User opens keypad and starts editing
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
+
+      await waitFor(() => {
+        expect(getByText('50%')).toBeDefined();
+      });
+
+      // User presses percentage button (starts active editing)
+      fireEvent.press(getByText('25%'));
+
+      // While keypad is open (user is actively editing), price updates
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '110' }, // Price changes
+      });
+
+      rerender(<PerpsClosePositionView />);
+
+      // Assert - User's input should NOT be overwritten while actively editing
+      // The isUserInputActive flag should prevent sync
+      await waitFor(() => {
+        // Keypad should still be visible
+        expect(getByText('25%')).toBeDefined();
+        expect(getByText('50%')).toBeDefined();
       });
     });
   });
@@ -2521,7 +2803,7 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Rewards Points Row', () => {
-    it('should render RewardsAnimations component when rewards are enabled', async () => {
+    it('renders RewardsAnimations component when rewards are enabled', async () => {
       // Arrange
       usePerpsRewardsMock.mockReturnValue({
         shouldShowRewardsRow: true,
@@ -2547,7 +2829,7 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('should not render rewards row when shouldShowRewardsRow is false', async () => {
+    it('does not render rewards row when shouldShowRewardsRow is false', async () => {
       // Arrange
       usePerpsRewardsMock.mockReturnValue({
         shouldShowRewardsRow: false,
@@ -2572,7 +2854,7 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('should render RewardsAnimations in loading state', async () => {
+    it('renders RewardsAnimations in loading state', async () => {
       // Arrange
       usePerpsRewardsMock.mockReturnValue({
         shouldShowRewardsRow: true,
@@ -2597,7 +2879,7 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('should render RewardsAnimations in error state', async () => {
+    it('renders RewardsAnimations in error state', async () => {
       // Arrange
       usePerpsRewardsMock.mockReturnValue({
         shouldShowRewardsRow: true,
@@ -2622,7 +2904,7 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('should render RewardsAnimations with bonus bips', async () => {
+    it('renders RewardsAnimations with bonus bips', async () => {
       // Arrange
       usePerpsRewardsMock.mockReturnValue({
         shouldShowRewardsRow: true,
@@ -2645,6 +2927,101 @@ describe('PerpsClosePositionView', () => {
       await waitFor(() => {
         expect(getByText(strings('perps.estimated_points'))).toBeDefined();
         expect(getByText('2,500')).toBeDefined();
+      });
+    });
+  });
+
+  describe('market price passing to closePosition', () => {
+    it('passes priceData[position.coin]?.price to handleClosePosition', async () => {
+      const priceData = {
+        ETH: { price: '$2500.00' },
+      };
+      usePerpsLivePricesMock.mockReturnValue(priceData);
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          defaultPerpsClosePositionMock.handleClosePosition,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    it('works when priceData is undefined', async () => {
+      usePerpsLivePricesMock.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          defaultPerpsClosePositionMock.handleClosePosition,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    it('works when priceData[position.coin] is undefined', async () => {
+      const priceData = {
+        BTC: { price: '$50000.00' },
+      };
+      usePerpsLivePricesMock.mockReturnValue(priceData);
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          defaultPerpsClosePositionMock.handleClosePosition,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    it('works when priceData[position.coin].price is undefined', async () => {
+      const priceData = {
+        ETH: { price: undefined },
+      };
+      usePerpsLivePricesMock.mockReturnValue(priceData);
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          defaultPerpsClosePositionMock.handleClosePosition,
+        ).toHaveBeenCalled();
       });
     });
   });

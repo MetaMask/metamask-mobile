@@ -246,6 +246,13 @@ class AnvilManager implements Resource {
   }
 
   /**
+   * Returns the port the Anvil server is listening on (if started).
+   */
+  getPort(): number | undefined {
+    return this.serverPort;
+  }
+
+  /**
    * Get all accounts available on the Anvil server
    * @returns {Promise<string[]>} Array of account addresses
    */
