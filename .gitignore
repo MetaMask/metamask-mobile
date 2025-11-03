@@ -175,3 +175,6 @@ temp/
 
 # Reassure performance testing
 .reassure/
+
+# Linting
+.eslintcache
