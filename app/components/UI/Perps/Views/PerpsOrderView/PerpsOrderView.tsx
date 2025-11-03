@@ -86,7 +86,11 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
-import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
+import {
+  usePerpsLiveAccount,
+  usePerpsLivePrices,
+  usePerpsTopOfBook,
+} from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -276,6 +280,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   });
   const currentPrice = prices[orderForm.asset];
 
+  // Get top of book data for maker/taker fee determination
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol: orderForm.asset,
+  });
+
   // Track screen load with unified hook
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
@@ -304,11 +313,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     isClosing: false,
     limitPrice: orderForm.limitPrice,
     direction: orderForm.direction,
-    currentAskPrice: currentPrice?.bestAsk
-      ? Number.parseFloat(currentPrice.bestAsk)
+    currentAskPrice: currentTopOfBook?.bestAsk
+      ? Number.parseFloat(currentTopOfBook.bestAsk)
       : undefined,
-    currentBidPrice: currentPrice?.bestBid
-      ? Number.parseFloat(currentPrice.bestBid)
+    currentBidPrice: currentTopOfBook?.bestBid
+      ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
 
