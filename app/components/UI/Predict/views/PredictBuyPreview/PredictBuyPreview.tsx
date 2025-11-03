@@ -112,7 +112,7 @@ const PredictBuyPreview = () => {
     outcomeTokenId: outcomeToken.id,
     side: Side.BUY,
     size: currentValue,
-    autoRefreshTimeout: 5000,
+    autoRefreshTimeout: 1000,
   });
 
   const errorMessage = previewError ?? placeOrderError;

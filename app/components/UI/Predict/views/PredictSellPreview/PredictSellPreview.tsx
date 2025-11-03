@@ -83,7 +83,7 @@ const PredictSellPreview = () => {
     outcomeTokenId: position.outcomeTokenId,
     side: Side.SELL,
     size: position.amount,
-    autoRefreshTimeout: 5000,
+    autoRefreshTimeout: 1000,
   });
 
   // Track Predict Action Initiated when screen mounts
