@@ -619,5 +619,92 @@ describe('TabsList', () => {
       expect(getByText('Tab 2 Content')).toBeOnTheScreen();
       expect(queryByText('Tab 3 Content')).toBeNull();
     });
+
+    it('allows navigation through multiple tabs using ref', async () => {
+      // Arrange
+      const ref = React.createRef<TabsListRef>();
+      const { getByText } = render(
+        <TabsList testID="tabs-list" ref={ref} initialActiveIndex={1}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Tab 3 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      expect(getByText('Tab 2 Content')).toBeOnTheScreen();
+
+      // Act - Navigate backward to Tab 1
+      await act(async () => {
+        ref.current?.goToTabIndex(0);
+      });
+
+      // Assert
+      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+      expect(ref.current?.getCurrentIndex()).toBe(0);
+
+      // Act - Navigate forward to Tab 3
+      await act(async () => {
+        ref.current?.goToTabIndex(2);
+      });
+
+      // Assert
+      expect(getByText('Tab 3 Content')).toBeOnTheScreen();
+      expect(ref.current?.getCurrentIndex()).toBe(2);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('handles non-React element children with default values', () => {
+      // Arrange
+      const nonReactElementChild = 'Plain text';
+
+      // Act
+      const { toJSON } = render(
+        <TabsList>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          {nonReactElementChild as unknown as React.ReactElement}
+        </TabsList>,
+      );
+
+      // Assert - Component handles non-React elements gracefully
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('uses initialActiveIndex when it points to an enabled tab', () => {
+      // Arrange
+      const ref = React.createRef<TabsListRef>();
+      const tabs = [
+        { label: 'Tab 1', content: 'Tab 1 Content' },
+        { label: 'Tab 2', content: 'Tab 2 Content' },
+        { label: 'Tab 3', content: 'Tab 3 Content' },
+      ];
+
+      // Act - initialActiveIndex points to Tab 3 (index 2) which is enabled
+      const { getByText } = render(
+        <TabsList ref={ref} initialActiveIndex={2}>
+          <View key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+            <Text>{tabs[0].content}</Text>
+          </View>
+          <View key="tab1" {...({ tabLabel: tabs[1].label } as TabViewProps)}>
+            <Text>{tabs[1].content}</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
+            <Text>{tabs[2].content}</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Should show the tab at initialActiveIndex
+      expect(getByText('Tab 3 Content')).toBeOnTheScreen();
+      expect(ref.current?.getCurrentIndex()).toBe(2);
+    });
   });
 });
