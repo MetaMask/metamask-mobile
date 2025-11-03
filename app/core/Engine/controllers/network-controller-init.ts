@@ -62,6 +62,21 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState.networkConfigurationsByChainId[
       ChainId['base-mainnet']
     ].name = 'Base';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].name = 'Arbitrum';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].name = 'BNB Chain';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].name = 'OP';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].name = 'Polygon';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['sei-mainnet']
+    ].name = 'Sei';
   }
 
   return initialNetworkControllerState;
