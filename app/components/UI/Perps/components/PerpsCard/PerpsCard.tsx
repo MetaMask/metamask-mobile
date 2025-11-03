@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -106,7 +106,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     <TempTouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
-      onPress={memoizedPressHandler}
+      onPress={handlePress}
       testID={testID}
       shouldEnableAndroidPressIn
     >

@@ -21,7 +21,7 @@ jobs:
     name: Build Android E2E APKs
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
     env:
-      GRADLE_USER_HOME: /home/runner/_work/.gradle
+      GRADLE_USER_HOME: /home/admin/_work/.gradle
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
@@ -30,6 +30,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images for AVD..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
 
       - name: Setup Android Build Environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
@@ -40,11 +46,13 @@ jobs:
           target: qa
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@v4
         with:
           path: |
             /home/runner/_work/.gradle/caches
             /home/runner/_work/.gradle/wrapper
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
             android/.gradle
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
@@ -86,7 +94,7 @@ jobs:
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          cp android/gradle.properties.github android/gradle.properties
+          # cp android/gradle.properties.github android/gradle.properties - Build for all apps to stabilize e2e 
           yarn build:android:main:e2e
         shell: bash
         env:
@@ -203,16 +211,6 @@ jobs:
         with:
           name: app-prod-release.aab
           path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true
-
-      - name: Upload Android Source Map
-        id: upload-sourcemap
-        uses: actions/upload-artifact@v4
-        with:
-          name: index.android.bundle.map
-          path: sourcemaps/android/index.android.bundle.map
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true

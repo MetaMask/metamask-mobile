@@ -118,7 +118,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const renderStartTradeCTA = () => (
     <TempTouchableOpacity
       style={styles.startTradeCTA}
-      onPress={memoizedPressHandler}
+      onPress={handleNewTrade}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
       shouldEnableAndroidPressIn
     >

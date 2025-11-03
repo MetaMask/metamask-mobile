@@ -345,6 +345,19 @@ prebuild_ios(){
   fi
 }
 
+installICULibraries(){
+	# Install ICU libraries for Hermes
+	echo "Installing ICU libraries for Hermes..."
+	
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# macOS - use Homebrew
+		brew install icu4c
+	else
+		# Linux (GitHub CI uses Ubuntu) - use apt-get
+		sudo apt-get update && sudo apt-get install -y libicu-dev
+	fi
+}
+
 prebuild_android(){
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
