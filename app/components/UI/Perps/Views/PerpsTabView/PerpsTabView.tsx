@@ -249,7 +249,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         />
         <ConditionalScrollView
           isScrollEnabled={!isHomepageRedesignV1Enabled}
-          scrollViewProps={{ style: styles.content }}
+          scrollViewProps={{
+            style: styles.content,
+            testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,
+          }}
         >
           {!isInitialLoading && hasNoPositionsOrOrders ? (
             <PerpsEmptyState

@@ -154,12 +154,18 @@ jest.mock('../../components/PerpsTabControlBar', () => ({
 jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
   PerpsTabViewSelectorsIDs: {
     START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+    SCROLL_VIEW: 'perps-tab-scroll-view',
   },
   PerpsPositionsViewSelectorsIDs: {
     POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
     POSITION_ITEM: 'perps-positions-item',
   },
 }));
+
+// Import after mock to use the mocked values
+const { PerpsTabViewSelectorsIDs } = jest.requireMock(
+  '../../../../../../e2e/selectors/Perps/Perps.selectors',
+);
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
@@ -656,7 +662,7 @@ describe('PerpsTabView', () => {
       expect(manageBalanceButton).toBeOnTheScreen();
     });
 
-    it('renders text with proper variants and colors', () => {
+    it('renders positions section title when positions exist', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
@@ -696,7 +702,7 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      expect(screen.queryByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW)).toBeNull();
       expect(
         screen.getByText(strings('perps.position.title')),
       ).toBeOnTheScreen();
@@ -727,7 +733,7 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      expect(screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW)).toBeOnTheScreen();
       expect(
         screen.getByText(strings('perps.position.title')),
       ).toBeOnTheScreen();
