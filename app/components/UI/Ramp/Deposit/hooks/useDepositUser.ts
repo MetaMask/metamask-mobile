@@ -31,18 +31,22 @@ export function useDepositUser(config?: UseDepositUserConfig) {
 
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
+      const result = await fetchUserDetails();
       if (shouldTrackFetch) {
         trackEvent('RAMPS_USER_DETAILS_FETCHED', {
           logged_in: isAuthenticated,
-          region:
-            userDetails?.address?.countryCode || selectedRegion?.isoCode || '',
+          region: result?.address?.countryCode || selectedRegion?.isoCode || '',
           location: screenLocation,
         });
       }
-      const result = await fetchUserDetails();
       return result;
     } catch (error) {
       if ((error as AxiosError).status === 401) {
+        trackEvent('RAMPS_USER_DETAILS_FETCHED', {
+          logged_in: false,
+          region: selectedRegion?.isoCode || '',
+          location: screenLocation,
+        });
         Logger.log('useDepositUser: 401 error, clearing authentication');
         await logoutFromProvider(false);
       } else {
@@ -55,7 +59,6 @@ export function useDepositUser(config?: UseDepositUserConfig) {
     logoutFromProvider,
     shouldTrackFetch,
     isAuthenticated,
-    userDetails,
     selectedRegion,
     screenLocation,
   ]);
