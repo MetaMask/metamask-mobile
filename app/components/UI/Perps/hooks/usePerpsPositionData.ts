@@ -199,10 +199,9 @@ export const usePerpsPositionData = ({
     const currentPrice = Number.parseFloat(priceData.price.toString());
     const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
     const existingCandles = candleData?.candles ?? [];
-    const existingCandleIndex =
-      existingCandles.findIndex(
-        (candle) => candle.time === currentCandleTime,
-      ) ?? -1;
+    const existingCandleIndex = existingCandles.findIndex(
+      (candle) => candle.time === currentCandleTime,
+    );
 
     const existingLiveCandle =
       existingCandleIndex >= 0 ? existingCandles[existingCandleIndex] : null;
@@ -290,7 +289,8 @@ export const usePerpsPositionData = ({
         candles: candlesCopy,
       };
     });
-  }, [candleData, liveCandle]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveCandle]);
 
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
