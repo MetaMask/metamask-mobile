@@ -671,6 +671,8 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
+          currency_destination_symbol: selectedAsset.symbol,
+          currency_destination_network: selectedAsset.network?.shortName,
           chain_id_destination: selectedAsset.network?.chainId,
         });
       } else {
@@ -678,6 +680,8 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
+          currency_source_symbol: selectedAsset.symbol,
+          currency_source_network: selectedAsset.network?.shortName,
           chain_id_source: selectedAsset.network?.chainId,
         });
       }
