@@ -1224,7 +1224,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 &&
             !isLoadingMarketData &&
-            currentPrice !== null &&
+            currentPrice != null &&
             !orderValidation.isValidating && (
               <View style={styles.validationContainer}>
                 {filteredErrors.map((error) => (
