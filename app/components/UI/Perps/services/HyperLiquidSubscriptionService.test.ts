@@ -2444,4 +2444,125 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(() => unsubscribe()).not.toThrow();
     });
   });
+
+  describe('Cache Initialization Checks', () => {
+    it('returns false for OI caps cache before initialization', () => {
+      const result = service.isOICapsCacheInitialized();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for orders cache before initialization', () => {
+      const result = service.isOrdersCacheInitialized();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for positions cache before initialization', () => {
+      const result = service.isPositionsCacheInitialized();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns null for cached positions before initialization', () => {
+      const result = service.getCachedPositions();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for cached orders before initialization', () => {
+      const result = service.getCachedOrders();
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('OI Cap Subscriptions', () => {
+    it('subscribes to OI cap updates successfully', async () => {
+      const mockCallback = jest.fn();
+
+      const unsubscribe = service.subscribeToOICaps({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockSubscriptionClient.webData3).toHaveBeenCalled();
+      expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('immediately provides cached OI caps if available', async () => {
+      const mockCallback = jest.fn();
+
+      // Mock webData3 to provide OI caps data
+      mockSubscriptionClient.webData3.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              perpDexStates: [
+                {
+                  clearinghouseState: { assetPositions: [] },
+                  openOrders: [],
+                  perpsAtOpenInterestCap: ['BTC', 'ETH'],
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // First subscription to populate cache
+      const unsubscribe1 = service.subscribeToOICaps({ callback: jest.fn() });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Second subscription should get cached data immediately
+      const unsubscribe2 = service.subscribeToOICaps({
+        callback: mockCallback,
+      });
+
+      expect(mockCallback).toHaveBeenCalledWith(['BTC', 'ETH']);
+
+      unsubscribe1();
+      unsubscribe2();
+    });
+  });
+
+  describe('Account Subscriptions', () => {
+    it('subscribes to account updates successfully', async () => {
+      const mockCallback = jest.fn();
+
+      const unsubscribe = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockSubscriptionClient.webData3).toHaveBeenCalled();
+      expect(mockCallback).toHaveBeenCalled();
+      expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('immediately provides cached account state if available', async () => {
+      const mockCallback = jest.fn();
+
+      // First subscription to populate cache
+      const unsubscribe1 = service.subscribeToAccount({
+        callback: jest.fn(),
+      });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Second subscription should get cached data immediately
+      const unsubscribe2 = service.subscribeToAccount({
+        callback: mockCallback,
+      });
+
+      expect(mockCallback).toHaveBeenCalled();
+
+      unsubscribe1();
+      unsubscribe2();
+    });
+  });
 });
