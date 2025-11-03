@@ -113,24 +113,24 @@ export const usePredictPriceHistory = (
           );
 
           // Capture exception with price history loading context (single market)
-          captureException(
-            err instanceof Error ? err : new Error(String(err)),
-            {
-              tags: {
-                component: 'usePredictPriceHistory',
+          Logger.error(ensureError(err), {
+            tags: {
+              feature: PREDICT_CONSTANTS.FEATURE_NAME,
+              component: 'usePredictPriceHistory',
+            },
+            context: {
+              name: 'usePredictPriceHistory',
+              data: {
+                method: 'loadPriceHistory',
                 action: 'price_history_load_single',
                 operation: 'data_fetching',
-              },
-              extra: {
-                priceHistoryContext: {
-                  marketId,
-                  providerId,
-                  interval,
-                  fidelity,
-                },
+                marketId,
+                providerId,
+                interval,
+                fidelity,
               },
             },
-          );
+          });
 
           return { index, data: [], error: errorMessage };
         }

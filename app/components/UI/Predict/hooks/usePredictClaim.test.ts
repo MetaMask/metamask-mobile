@@ -58,7 +58,9 @@ const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
 >;
-const mockLoggerError = Logger.error as jest.MockedFunction<typeof Logger.error>;
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
+>;
 
 const mockNavigation = {
   navigate: mockNavigate,
@@ -181,18 +183,21 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockLoggerError).toHaveBeenCalledWith(mockError, expect.objectContaining({
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            action: 'claim_winnings',
+            operation: 'position_management',
           },
-        },
-      });
+          extra: {
+            claimContext: {
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -228,18 +233,21 @@ describe('usePredictClaim', () => {
 
       // Assert - first attempt should call goBack and captureException
       expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockLoggerError).toHaveBeenCalledWith(mockError, expect.objectContaining({
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            action: 'claim_winnings',
+            operation: 'position_management',
           },
-        },
-      });
+          extra: {
+            claimContext: {
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
 
       // Get the onPress function from the toast call
       const toastCall = mockShowToast.mock.calls[0][0];
@@ -280,18 +288,21 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockLoggerError).toHaveBeenCalledWith(mockError, expect.objectContaining({
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            action: 'claim_winnings',
+            operation: 'position_management',
           },
-        },
-      });
+          extra: {
+            claimContext: {
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
     });
 
     it('converts non-Error exceptions to Error when capturing to Sentry', async () => {
@@ -380,18 +391,21 @@ describe('usePredictClaim', () => {
 
       // Assert - captures exception and goes back even without toastRef
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockLoggerError).toHaveBeenCalledWith(mockError, expect.objectContaining({
-        tags: {
-          component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
-        },
-        extra: {
-          claimContext: {
-            providerId: POLYMARKET_PROVIDER_ID,
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          tags: {
+            component: 'usePredictClaim',
+            action: 'claim_winnings',
+            operation: 'position_management',
           },
-        },
-      });
+          extra: {
+            claimContext: {
+              providerId: POLYMARKET_PROVIDER_ID,
+            },
+          },
+        }),
+      );
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
