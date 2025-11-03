@@ -37,7 +37,7 @@ jest.mock('../styles', () => {
       alignItems: 'flex-end',
     },
   }));
-  
+
   return mockCreateStyles;
 });
 
@@ -63,7 +63,8 @@ describe('TokenListSkeleton', () => {
 
   it('renders SkeletonPlaceholder component with background colors', () => {
     const { UNSAFE_getByType } = render(<TokenListSkeleton />);
-    const SkeletonPlaceholder = require('react-native-skeleton-placeholder').default;
+    const SkeletonPlaceholder =
+      require('react-native-skeleton-placeholder').default;
 
     const skeleton = UNSAFE_getByType(SkeletonPlaceholder);
 

@@ -32,8 +32,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'wallet.tokens_empty_description':
-        'Tokens you hold will appear here.',
+      'wallet.tokens_empty_description': 'Tokens you hold will appear here.',
       'wallet.show_tokens_without_balance': 'Show tokens without balance',
     };
     return translations[key] || key;
@@ -41,43 +40,39 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 // Mock TabEmptyState component to simplify testing
-jest.mock(
-  '../../../component-library/components-temp/TabEmptyState',
-  () => ({
-    TabEmptyState: ({
-      icon,
-      description,
-      actionButtonText,
-      actionButtonProps,
-      testID,
-    }: {
-      icon?: React.ReactNode;
-      description?: string;
-      actionButtonText?: string;
-      actionButtonProps?: { onPress: () => void };
-      testID?: string;
-    }) => {
-      const { View, Text, TouchableOpacity } =
-        jest.requireActual('react-native');
-      return (
-        <View testID={testID || 'tab-empty-state'}>
-          {icon && <View testID="empty-state-icon">{icon}</View>}
-          {description && (
-            <Text testID="empty-state-description">{description}</Text>
-          )}
-          {actionButtonText && actionButtonProps && (
-            <TouchableOpacity
-              testID="empty-state-action-button"
-              onPress={actionButtonProps.onPress}
-            >
-              <Text>{actionButtonText}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      );
-    },
-  }),
-);
+jest.mock('../../../component-library/components-temp/TabEmptyState', () => ({
+  TabEmptyState: ({
+    icon,
+    description,
+    actionButtonText,
+    actionButtonProps,
+    testID,
+  }: {
+    icon?: React.ReactNode;
+    description?: string;
+    actionButtonText?: string;
+    actionButtonProps?: { onPress: () => void };
+    testID?: string;
+  }) => {
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+    return (
+      <View testID={testID || 'tab-empty-state'}>
+        {icon && <View testID="empty-state-icon">{icon}</View>}
+        {description && (
+          <Text testID="empty-state-description">{description}</Text>
+        )}
+        {actionButtonText && actionButtonProps && (
+          <TouchableOpacity
+            testID="empty-state-action-button"
+            onPress={actionButtonProps.onPress}
+          >
+            <Text>{actionButtonText}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  },
+}));
 
 describe('TokensEmptyState', () => {
   const initialState = {

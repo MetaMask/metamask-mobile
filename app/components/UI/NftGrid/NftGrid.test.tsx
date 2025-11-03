@@ -773,11 +773,11 @@ describe('NftGrid', () => {
       // Should render first 18 NFTs
       expect(getByTestId('collectible-NFT 0-0')).toBeOnTheScreen();
       expect(getByTestId('collectible-NFT 17-17')).toBeOnTheScreen();
-      
+
       // Should NOT render NFTs beyond 18
       expect(queryByTestId('collectible-NFT 18-18')).toBeNull();
       expect(queryByTestId('collectible-NFT 24-24')).toBeNull();
-      
+
       // View all button should be present
       expect(getByTestId('view-all-nfts-button')).toBeOnTheScreen();
     });
@@ -811,7 +811,7 @@ describe('NftGrid', () => {
       // Should render all NFTs when full view
       expect(getByTestId('collectible-NFT 0-0')).toBeOnTheScreen();
       expect(getByTestId('collectible-NFT 24-24')).toBeOnTheScreen();
-      
+
       // View all button should NOT be present in full view
       expect(queryByTestId('view-all-nfts-button')).toBeNull();
     });

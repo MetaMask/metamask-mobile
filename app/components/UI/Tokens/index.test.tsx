@@ -1099,7 +1099,7 @@ describe('Tokens', () => {
       };
 
       const { getByTestId } = renderComponent(emptyTokensState);
-      
+
       await waitFor(() => {
         expect(
           getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
@@ -1111,7 +1111,7 @@ describe('Tokens', () => {
   describe('Initial Load Handling', () => {
     it('shows skeleton during initial load', () => {
       const { getByTestId } = renderComponent(initialState);
-      
+
       expect(
         getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
       ).toBeDefined();
@@ -1119,7 +1119,7 @@ describe('Tokens', () => {
 
     it('transitions from skeleton to token list after initial load completes', async () => {
       const { getByTestId } = renderComponent(initialState);
-      
+
       await waitFor(() => {
         expect(
           getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),

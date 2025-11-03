@@ -354,9 +354,7 @@ describe('TokenList', () => {
 
     it('renders tokens directly in Box when isHomepageRedesignV1Enabled is true and not full view', () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (
-          selector.toString().includes('selectHomepageRedesignV1Enabled')
-        ) {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
           return true;
         }
         return selector({});
@@ -370,9 +368,7 @@ describe('TokenList', () => {
 
     it('renders FlashList when isHomepageRedesignV1Enabled is true but isFullView is true', () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (
-          selector.toString().includes('selectHomepageRedesignV1Enabled')
-        ) {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
           return true;
         }
         return selector({});
@@ -387,9 +383,7 @@ describe('TokenList', () => {
 
     it('renders FlashList when isHomepageRedesignV1Enabled is false', () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (
-          selector.toString().includes('selectHomepageRedesignV1Enabled')
-        ) {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
           return false;
         }
         return selector({});
@@ -404,9 +398,7 @@ describe('TokenList', () => {
 
     it('shows view all button when homepage redesign is enabled and maxItems is exceeded', () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (
-          selector.toString().includes('selectHomepageRedesignV1Enabled')
-        ) {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
           return true;
         }
         return selector({});
@@ -419,9 +411,7 @@ describe('TokenList', () => {
 
     it('renders mapped token items when homepage redesign is enabled and not full view', () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (
-          selector.toString().includes('selectHomepageRedesignV1Enabled')
-        ) {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
           return true;
         }
         return selector({});

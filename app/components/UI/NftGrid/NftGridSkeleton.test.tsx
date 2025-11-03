@@ -45,7 +45,8 @@ describe('NftGridSkeleton', () => {
 
   it('renders SkeletonPlaceholder component with theme background colors', () => {
     const { UNSAFE_getByType } = render(<NftGridSkeleton />);
-    const SkeletonPlaceholder = require('react-native-skeleton-placeholder').default;
+    const SkeletonPlaceholder =
+      require('react-native-skeleton-placeholder').default;
 
     const skeleton = UNSAFE_getByType(SkeletonPlaceholder);
 
@@ -71,4 +72,3 @@ describe('NftGridSkeleton', () => {
     expect(views.length).toBeGreaterThanOrEqual(19); // 1 container + 18 items
   });
 });
-
