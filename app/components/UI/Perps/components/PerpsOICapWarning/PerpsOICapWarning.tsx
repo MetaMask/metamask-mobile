@@ -10,6 +10,7 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import type { PerpsOICapWarningProps } from './PerpsOICapWarning.types';
 import styleSheet from './PerpsOICapWarning.styles';
@@ -64,15 +65,14 @@ const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
             color={TextColor.Warning}
             style={styles.title}
           >
-            Open Interest Cap Reached
+            {strings('perps.order.validation.oi_cap_reached')}
           </Text>
           <Text
             variant={TextVariant.BodyXS}
             color={TextColor.Alternative}
             style={styles.description}
           >
-            This market is at capacity. New positions cannot be opened until
-            open interest decreases.
+            {strings('perps.order.validation.oi_cap_description')}
           </Text>
         </View>
       </View>

@@ -96,6 +96,7 @@ import type {
   Position,
   ReadyToTradeResult,
   SubscribeAccountParams,
+  SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -4149,10 +4150,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Subscribe to open interest cap updates
    * Zero additional overhead - data extracted from existing webData2 subscription
    */
-  subscribeToOICaps(params: {
-    accountId?: CaipAccountId;
-    callback: (caps: string[]) => void;
-  }): () => void {
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void {
     return this.subscriptionService.subscribeToOICaps(params);
   }
 

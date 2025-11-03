@@ -15,11 +15,7 @@ import {
   TransactionParams,
   TransactionType,
 } from '@metamask/transaction-controller';
-import {
-  parseCaipAssetId,
-  type CaipAccountId,
-  type Hex,
-} from '@metamask/utils';
+import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
@@ -96,6 +92,7 @@ import type {
   PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
+  SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -3673,10 +3670,7 @@ export class PerpsController extends BaseController<
    * Subscribe to open interest cap updates
    * Zero additional network overhead - data comes from existing webData3 subscription
    */
-  subscribeToOICaps(params: {
-    accountId?: CaipAccountId;
-    callback: (caps: string[]) => void;
-  }): () => void {
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void {
     try {
       const provider = this.getActiveProvider();
       return provider.subscribeToOICaps(params);

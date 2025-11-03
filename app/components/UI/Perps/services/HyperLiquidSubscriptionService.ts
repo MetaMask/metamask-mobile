@@ -23,6 +23,7 @@ import type {
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribeAccountParams,
+  SubscribeOICapsParams,
 } from '../controllers/types';
 import {
   adaptPositionFromSDK,
@@ -973,10 +974,7 @@ export class HyperLiquidSubscriptionService {
    * Subscribe to open interest cap updates
    * OI caps are extracted from webData2 subscription (zero additional overhead)
    */
-  public subscribeToOICaps(params: {
-    callback: (caps: string[]) => void;
-    accountId?: CaipAccountId;
-  }): () => void {
+  public subscribeToOICaps(params: SubscribeOICapsParams): () => void {
     const { callback, accountId } = params;
 
     // Create subscription
