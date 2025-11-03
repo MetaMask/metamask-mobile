@@ -404,8 +404,7 @@ export async function withFixtures(
 
     // Start fixture server
     await fixtureServer.start();
-
-    await loadFixture(fixtureServer, { fixture });
+    await loadFixture(fixtureServer, { fixture: resolvedFixture });
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
