@@ -1,7 +1,6 @@
 import { get } from 'lodash';
 
 export type SortOrder = 'asc' | 'dsc';
-
 export interface SortCriteria {
   key: string;
   order: string;
