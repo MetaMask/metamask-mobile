@@ -51,6 +51,22 @@ export function getInitialNetworkControllerState(persistedState: {
       ChainId['base-mainnet']
     ].rpcEndpoints[0].failoverUrls =
       getFailoverUrlsForInfuraNetwork('base-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('arbitrum-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('bsc-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('optimism-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('polygon-mainnet');
 
     // Update default popular network names
     initialNetworkControllerState.networkConfigurationsByChainId[
