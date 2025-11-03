@@ -118,6 +118,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import TokenBalancesLoadMarker from '../../UI/Assets/components/TokenBalancesLoadMarker';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -1323,6 +1324,9 @@ const Wallet = ({
           ) : (
             <PortfolioBalance />
           )}
+
+          {/* Performance marker for measuring token balances load time (without prices) */}
+          <TokenBalancesLoadMarker />
 
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}

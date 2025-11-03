@@ -127,6 +127,22 @@ class WalletMainScreen {
     return Selectors.getXpathElementByText('Localhost 8545 now active.');
   }
 
+  get totalBalanceText() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    }
+  }
+
+  get tokenBalancesLoadedMarker() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId('token-balances-loaded-marker');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'token-balances-loaded-marker');
+    }
+  }
+
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
     await importToken.waitForDisplayed();

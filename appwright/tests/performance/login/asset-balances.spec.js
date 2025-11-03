@@ -5,11 +5,10 @@ import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.j
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import { login } from '../../../utils/Flows.js';
-import AppwrightSelectors from '../../../../e2e/framework/AppwrightSelectors.js';
 import { expect as appwrightExpect } from 'appwright';
 
-/* Scenario: AccountGroupBalance Component Load Time - Measure time to load balance display */
-test('Asset Balances - AccountGroupBalance Component Load Time (NFT to Tokens)', async ({
+/* Scenario: Token Balances Polling Cycle - Measure time for one complete TokenBalancesController polling cycle (excluding prices) */
+test('Asset Balances - Token Balances Polling Cycle (NFT to Tokens)', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -35,35 +34,35 @@ test('Asset Balances - AccountGroupBalance Component Load Time (NFT to Tokens)',
   await WalletMainScreen.tapNFTTab();
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  // Create timer to measure AccountGroupBalance component load time
-  const accountGroupBalanceTimer = new TimerHelper(
-    'Time from clicking Tokens tab (from NFT) until AccountGroupBalance displays actual balance (not skeleton)',
+  // Create timer to measure one complete token balances polling cycle (without prices)
+  const tokenBalancesPollingTimer = new TimerHelper(
+    'Time from clicking Tokens tab (from NFT) until one complete token balances polling cycle finishes (excluding prices)',
   );
 
   // Start timer and click on Tokens tab
-  console.log('Clicking on Tokens tab to measure AccountGroupBalance load...');
-  accountGroupBalanceTimer.start();
+  console.log(
+    'Clicking on Tokens tab to measure token balances polling cycle...',
+  );
+  tokenBalancesPollingTimer.start();
   await WalletMainScreen.tapTokensTab();
 
-  // Wait for the AccountGroupBalance component to display actual balance data
-  // The component shows a skeleton initially, then loads the actual balance
-  const totalBalanceText = await AppwrightSelectors.getElementByID(
-    device,
-    'total-balance-text',
-  );
+  // Wait for the token balances polling cycle to complete
+  // The marker appears only when balance data CHANGES from initial state,
+  // indicating a fresh polling cycle has completed (not just stale cached data)
+  const tokenBalancesMarker = await WalletMainScreen.tokenBalancesLoadedMarker;
 
-  // Wait for the balance text to be visible (not skeleton)
-  await appwrightExpect(totalBalanceText).toBeVisible({ timeout: 30000 });
+  // Wait for the marker to be visible
+  await appwrightExpect(tokenBalancesMarker).toBeVisible({ timeout: 30000 });
 
-  // Stop timer once AccountGroupBalance has loaded actual balance data
-  accountGroupBalanceTimer.stop();
+  // Stop timer once one polling cycle has completed
+  tokenBalancesPollingTimer.stop();
 
   console.log(
-    `AccountGroupBalance component loaded in: ${accountGroupBalanceTimer.getDuration()}ms`,
+    `Token balances polling cycle completed in: ${tokenBalancesPollingTimer.getDuration()}ms (excluding prices)`,
   );
 
   // Add timer to performance tracker
-  performanceTracker.addTimer(accountGroupBalanceTimer);
+  performanceTracker.addTimer(tokenBalancesPollingTimer);
 
   // Attach performance metrics to test
   await performanceTracker.attachToTest(testInfo);
