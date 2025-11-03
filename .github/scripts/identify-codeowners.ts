@@ -158,17 +158,24 @@ function matchFilesToCodeowners(files: PullRequestFile[], codeowners: CodeOwnerR
 
 function isFileMatchingPattern(file: string, pattern: string): boolean {
   // Case 1: Pattern explicitly ends with a slash (e.g., "docs/")
+  // This is explicitly a directory pattern
   if (pattern.endsWith('/')) {
     return micromatch.isMatch(file, `${pattern}**`);
   }
 
-  // Case 2: Pattern doesn't end with a file extension - treat as directory
-  if (!pattern.match(/\.[^/]*$/)) {
-    // Treat as directory - match this path and everything under it
-    return micromatch.isMatch(file, `${pattern}/**`);
+  // Case 2: Pattern has wildcards - use as-is
+  if (pattern.includes('*')) {
+    return micromatch.isMatch(file, pattern);
   }
 
-  // Case 3: Pattern with file extension or already has wildcards
+  // Case 3: Pattern doesn't have a file extension
+  // Could be either an exact file (README, Dockerfile) or a directory (docs, app)
+  // Try both: exact match OR directory match
+  if (!pattern.match(/\.[^/]*$/)) {
+    return micromatch.isMatch(file, pattern) || micromatch.isMatch(file, `${pattern}/**`);
+  }
+
+  // Case 4: Pattern with file extension - exact match
   return micromatch.isMatch(file, pattern);
 }
 
