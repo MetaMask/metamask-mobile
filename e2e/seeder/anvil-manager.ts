@@ -211,6 +211,7 @@ class AnvilManager implements Resource {
           logger.debug(
             `Server started successfully on alternative port ${alternativePort}`,
           );
+          this.serverStatus = ServerStatus.STARTED;
           return;
         } catch (retryError) {
           logger.error(
