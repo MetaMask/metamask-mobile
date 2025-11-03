@@ -23,6 +23,7 @@ import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
+import { PredictHelpers } from './helpers/predict-helpers';
 
 /*
 Test Scenario: Claim positions
@@ -43,11 +44,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true); // Include winnings for claim flow
 };
-
-const PORTUGAL_LOCATION = {
-  lat: 41.1318702,
-  lon: -7.798836,
-};
 describe(SmokePredictions('Predictions'), () => {
   it('should claim positions', async () => {
     await withFixtures(
@@ -57,7 +53,7 @@ describe(SmokePredictions('Predictions'), () => {
         testSpecificMock: PredictionMarketFeature,
       },
       async ({ mockServer }) => {
-        await device.setLocation(PORTUGAL_LOCATION.lat, PORTUGAL_LOCATION.lon);
+        await PredictHelpers.setPortugalLocation();
         await loginToApp();
 
         // Claim button is animated - disabling sync to prevent test hang
@@ -101,6 +97,10 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
           description: 'Claim button should not be visible',
         });
+        /* there is a bug where balances are not updating quick enough.
+          Leaving this commented for now. Once the bug is fixed we shoudl uncomment.
+         */
+        // await Assertions.expectTextDisplayed('$48.16');
       },
     );
   });
