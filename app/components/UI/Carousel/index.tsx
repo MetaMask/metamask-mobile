@@ -474,6 +474,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         });
       } catch (error) {
         console.error('Transition to next card failed:', error);
+        dismissingLastCardRef.current = false;
         setIsTransitioning(false);
         isAnimating.current = false;
       }
@@ -515,6 +516,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       isAnimating.current = false;
     } catch (error) {
       console.error('Transition to empty failed:', error);
+      dismissingLastCardRef.current = false;
       isAnimating.current = false;
     }
   }, [transitionToEmpty, onEmptyState]);
