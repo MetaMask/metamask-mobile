@@ -22,6 +22,23 @@ export default class AppwrightSelectors {
     return await testDevice.getByText(text);
   }
 
+  static async getElementByTextContains(
+    testDevice: Device,
+    text: string,
+  ): Promise<AppwrightLocator> {
+    const isAndroid = AppwrightSelectors.isAndroid(testDevice);
+
+    if (isAndroid) {
+      // Android: text or content-desc contains
+      const xpath = `//*[contains(@text,'${text}') or contains(@content-desc,'${text}')]`;
+      return await AppwrightSelectors.getElementByXpath(testDevice, xpath);
+    }
+
+    // iOS: name, label, or value contains
+    const xpath = `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@value,'${text}')]`;
+    return await AppwrightSelectors.getElementByXpath(testDevice, xpath);
+  }
+
   // Catch-all xpath selector that works on both platforms
   static async getElementByCatchAll(
     testDevice: Device,
