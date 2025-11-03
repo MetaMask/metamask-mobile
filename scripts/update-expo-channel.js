@@ -21,17 +21,10 @@ const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 
 // Configuration map for each environment
 const CONFIG_MAP = {
-  production: {
-    channel: 'production',
-    runtimeVersion: RUNTIME_VERSION,
-    updatesEnabled: false,
-    updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
-    checkAutomatically: 'NEVER',
-  },
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
-    updatesEnabled: false,
+    updatesEnabled: true,
     updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
     checkAutomatically: 'NEVER',
   },

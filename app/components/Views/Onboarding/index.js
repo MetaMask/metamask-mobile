@@ -758,7 +758,7 @@ class Onboarding extends PureComponent {
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             style={styles.blackButton}
           />
-          <Button
+          {/* <Button
             variant={ButtonVariants.Secondary}
             onPress={() => this.handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
@@ -775,7 +775,7 @@ class Onboarding extends PureComponent {
               </Text>
             }
             style={styles.inverseBlackButton}
-          />
+          /> */}
         </OnboardingAnimation>
       </View>
     );
