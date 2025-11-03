@@ -470,6 +470,20 @@ generateIosBinary() {
 	scheme="$1"
 	configuration="${CONFIGURATION:-"Release"}"
 
+	# Check if configuration is valid
+	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
+		# Configuration is not recognized
+		echo "Configuration $configuration is not recognized! Only Debug and Release are supported"
+		exit 1
+	fi
+
+	# Check if scheme is valid
+	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-QA" ] && [ "$scheme" != "MetaMask-Flask" ] ; then
+		# Scheme is not recognized
+		echo "Scheme $scheme is not recognized! Only MetaMask, MetaMask-QA, and MetaMask-Flask are supported"
+		exit 1
+	fi
+
 	if [ "$scheme" = "MetaMask" ] ; then
 		# Main target
 		if [ "$configuration" = "Debug" ] ; then
@@ -520,6 +534,20 @@ generateAndroidBinary() {
 	# Debug or Release
 	configuration="${CONFIGURATION:-"Release"}"
 
+	# Check if configuration is valid
+	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
+		# Configuration is not recognized
+		echo "Configuration $configuration is not recognized! Only Debug and Release are supported"
+		exit 1
+	fi
+
+	# Check if flavor is valid
+	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] && [ "$flavor" != "Qa" ] ; then
+		# Flavor is not recognized
+		echo "Flavor $flavor is not recognized! Only Prod, Flask, and Qa (Deprecated - Do not use) are supported"
+		exit 1
+	fi
+
 	# Create flavor configuration
 	flavorConfiguration="app:assemble${flavor}${configuration}"
 
@@ -542,10 +570,6 @@ generateAndroidBinary() {
 		testConfiguration="app:assemble${flavor}DebugAndroidTest"
 		# Generate Android binary
 		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
-	else 
-		#configuration is not supported
-		echo "Configuration $configuration is not recognized! Only Release and Debug are supported"
-		exit 1
 	fi
 
 	# Change directory back out
