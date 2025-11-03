@@ -42,6 +42,7 @@ import {
   POST_CLAIM_USDC_BALANCE_WEI,
   POLYGON_EIP7702_CONTRACT_ADDRESS,
   EIP7702_CODE_FORMAT,
+  POST_WITHDRAW_USDC_BALANCE_WEI,
 } from './polymarket-constants';
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response';
 
@@ -1235,4 +1236,23 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
         json: dynamicResponse,
       };
     });
+};
+
+/**
+ * Post-withdraw mocks to finalize the withdraw flow
+ * - Ensures transaction simulation is mocked
+ * - Refreshes USDC balance via proxy RPC with a defined post-withdraw value
+ */
+export const POLYMARKET_POST_WITHDRAW_MOCKS = async (mockServer: Mockttp) => {
+  // Update global balance if needed and ensure balance refresh uses the value
+  await POLYMARKET_USDC_BALANCE_MOCKS(
+    mockServer,
+    POST_WITHDRAW_USDC_BALANCE_WEI,
+  );
+
+  // Re-ensure tx sentinel mock is in place for confirmation events
+  await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
+
+  // High-priority balance refresh for withdraw screen flow
+  await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);
 };
