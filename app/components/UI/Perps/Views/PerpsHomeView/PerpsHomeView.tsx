@@ -57,17 +57,13 @@ const PerpsHomeView = () => {
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
-
   // Bottom sheet state and refs
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
   const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
-  // Fetch all home screen data with search filtering
+  // Fetch all home screen data
   const {
     positions,
     orders,
@@ -78,9 +74,7 @@ const PerpsHomeView = () => {
     recentActivity,
     sortBy,
     isLoading,
-  } = usePerpsHomeData({
-    searchQuery: isSearchVisible ? searchQuery : '',
-  });
+  } = usePerpsHomeData({});
 
   // Determine if any data is loading for initial load tracking
   // Orders and activity load via WebSocket instantly, only track positions and markets
@@ -105,12 +99,13 @@ const PerpsHomeView = () => {
   });
 
   const handleSearchToggle = useCallback(() => {
-    setIsSearchVisible(!isSearchVisible);
-    if (isSearchVisible) {
-      // Clear search when hiding search bar
-      setSearchQuery('');
-    }
-  }, [isSearchVisible]);
+    // Navigate to MarketListView with search enabled
+    perpsNavigation.navigateToMarketList({
+      defaultSearchVisible: true,
+      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      fromHome: true,
+    });
+  }, [perpsNavigation]);
 
   const navigtateToTutorial = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {
@@ -186,10 +181,7 @@ const PerpsHomeView = () => {
     <SafeAreaView style={styles.container}>
       {/* Header - Using extracted component */}
       <PerpsHomeHeader
-        isSearchVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        onSearchClear={() => setSearchQuery('')}
+        isSearchVisible={false}
         onBack={handleBackPress}
         onSearchToggle={handleSearchToggle}
         testID="perps-home"

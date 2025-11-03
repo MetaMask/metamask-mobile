@@ -12,10 +12,7 @@ import { getEstimatedAnnualRewards } from '../../../components/UI/Earn/utils/tok
 import { TokenI } from '../../../components/UI/Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { RootState } from '../../../reducers';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
 import { selectSelectedInternalAccountByScope } from '../../multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../accountTrackerController';
@@ -139,10 +136,6 @@ const selectEarnTokens = createDeepEqualSelector(
       earnableTotalFiatNumber: 0,
       earnableTotalFiatFormatted: renderFiat(0, currentCurrency, 0),
     };
-
-    if (!isPortfolioViewEnabled()) {
-      return emptyEarnTokensData;
-    }
 
     // flatten the tokens across all chains
     const allTokens = Object.values(

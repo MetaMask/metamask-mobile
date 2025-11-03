@@ -46,7 +46,7 @@ import {
   usePerpsToasts,
   usePerpsMarketData,
 } from '../../hooks';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
@@ -57,6 +57,7 @@ import {
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
+  formatCloseAmountUSD,
 } from '../../utils/positionCalculations';
 import { createStyles } from './PerpsClosePositionView.styles';
 import {
@@ -80,6 +81,7 @@ const PerpsClosePositionView: React.FC = () => {
   const { position } = route.params as { position: Position };
 
   const inputMethodRef = useRef<InputMethod>('default');
+  const isAmountInitializedRef = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -113,6 +115,11 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
+  // Get top of book data for maker/taker fee determination
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol: position.coin,
+  });
+
   // Determine position direction
   const isLong = parseFloat(position.size) > 0;
   const absSize = Math.abs(parseFloat(position.size));
@@ -138,7 +145,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     return {
       closeAmount: tokenAmount.toString(),
-      calculatedUSDString: usdValue.toFixed(2),
+      calculatedUSDString: formatCloseAmountUSD(usdValue),
     };
   }, [closePercentage, absSize, effectivePrice]);
 
@@ -183,8 +190,6 @@ const PerpsClosePositionView: React.FC = () => {
     [closingValue],
   );
 
-  const positionPriceData = priceData[position.coin];
-
   const feeResults = usePerpsOrderFees({
     orderType,
     amount: closingValueString,
@@ -192,11 +197,11 @@ const PerpsClosePositionView: React.FC = () => {
     isClosing: true,
     limitPrice,
     direction: isLong ? 'short' : 'long',
-    currentAskPrice: positionPriceData?.bestAsk
-      ? Number.parseFloat(positionPriceData.bestAsk)
+    currentAskPrice: currentTopOfBook?.bestAsk
+      ? Number.parseFloat(currentTopOfBook.bestAsk)
       : undefined,
-    currentBidPrice: positionPriceData?.bestBid
-      ? Number.parseFloat(positionPriceData.bestBid)
+    currentBidPrice: currentTopOfBook?.bestBid
+      ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
 
@@ -274,10 +279,20 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
-    const initialUSDAmount = absSize * effectivePrice;
-    setCloseAmountUSDString(initialUSDAmount.toFixed(2));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally excluding effectivePrice to prevent updates on price changes
-  }, [absSize]);
+    if (!isAmountInitializedRef.current && absSize > 0 && effectivePrice > 0) {
+      const initialUSDAmount = absSize * effectivePrice;
+      setCloseAmountUSDString(formatCloseAmountUSD(initialUSDAmount));
+      isAmountInitializedRef.current = true;
+    }
+  }, [absSize, effectivePrice]);
+
+  // Sync closeAmountUSDString with calculatedUSDString when user is not actively editing
+  // This prevents the jump when focusing input after price updates
+  useEffect(() => {
+    if (!isUserInputActive && isAmountInitializedRef.current) {
+      setCloseAmountUSDString(calculatedUSDString);
+    }
+  }, [calculatedUSDString, isUserInputActive]);
 
   // Auto-open limit price bottom sheet when switching to limit order
   useEffect(() => {
@@ -403,7 +418,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     // Update USD input to match calculated value for keypad display consistency
     const newUSDAmount = (newPercentage / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(newUSDAmount.toFixed(2));
+    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
   const handleMaxPress = () => {
@@ -412,7 +427,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     // Update USD input to match calculated value for keypad display consistency
     const newUSDAmount = absSize * effectivePrice;
-    setCloseAmountUSDString(newUSDAmount.toFixed(2));
+    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
   const handleDonePress = () => {
@@ -423,6 +438,10 @@ const PerpsClosePositionView: React.FC = () => {
   const handleSliderChange = (value: number) => {
     inputMethodRef.current = 'slider';
     setClosePercentage(value);
+
+    // Update USD input to match calculated value for keypad display consistency
+    const newUSDAmount = (value / 100) * absSize * effectivePrice;
+    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
   // Hide provider-level limit price required error on this UI

@@ -113,7 +113,11 @@ const BoostCard: React.FC<BoostCardProps> = ({
     if (boost.endDate) {
       return (
         <Box twClassName="flex-row items-center gap-2">
-          <Icon name={IconName.Clock} size={IconSize.Sm} />
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Sm}
+            twClassName="text-white"
+          />
           <Text variant={TextVariant.BodySm} twClassName="text-white">
             {timeRemaining}
           </Text>
