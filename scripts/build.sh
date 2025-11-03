@@ -522,15 +522,11 @@ generateAndroidBinary() {
 
 	# Create flavor configuration
 	flavorConfiguration="app:assemble${flavor}${configuration}"
-	# Create test configuration
-	testConfiguration="app:assemble${flavor}${configuration}AndroidTest"
 
-	# Generate Android binary
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
-
-
 	if [ "$configuration" = "Release" ] ; then
+		# Generate Android binary
+		./gradlew $flavorConfiguration --build-cache --parallel
 		# Generate AAB bundle
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
@@ -541,6 +537,15 @@ generateAndroidBinary() {
 		checkSumCommand="build:android:checksum:${lowerCaseFlavor}"
 		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
 		yarn $checkSumCommand
+	elif [ "$configuration" = "Debug" ] ; then
+		# Create test configuration
+		testConfiguration="app:assemble${flavor}DebugAndroidTest"
+		# Generate Android binary
+		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
+	else 
+		#configuration is not supported
+		echo "Configuration $configuration is not recognized! Only Release and Debug are supported"
+		exit 1
 	fi
 
 	# Change directory back out
