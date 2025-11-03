@@ -74,6 +74,9 @@ import { PREDICT_ERROR_CODES } from '../constants/errors';
 export type PredictControllerState = {
   // Eligibility (Geo-Blocking) per Provider
   eligibility: { [key: string]: boolean };
+  geoBlockData: {
+    [key: string]: { country?: string };
+  };
 
   // Error handling
   lastError: string | null;
@@ -104,6 +107,7 @@ export type PredictControllerState = {
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
+  geoBlockData: {},
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
@@ -118,6 +122,12 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
  */
 const metadata: StateMetadata<PredictControllerState> = {
   eligibility: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  geoBlockData: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -921,6 +931,35 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * Track geo-blocking event when user attempts an action but is blocked
+   */
+  public trackGeoBlockTriggered({
+    providerId,
+    attemptedAction,
+  }: {
+    providerId: string;
+    attemptedAction: string;
+  }): void {
+    const geoData = this.state.geoBlockData[providerId];
+    const analyticsProperties = {
+      [PredictEventProperties.COUNTRY]: geoData?.country,
+      [PredictEventProperties.ATTEMPTED_ACTION]: attemptedAction,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_GEO_BLOCKED_TRIGGERED', {
+      analyticsProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.providers.get(params.providerId);
@@ -1242,9 +1281,12 @@ export class PredictController extends BaseController<
         continue;
       }
       try {
-        const isEligible = await provider.isEligible();
+        const geoBlockResponse = await provider.isEligible();
         this.update((state) => {
-          state.eligibility[providerId] = isEligible;
+          state.eligibility[providerId] = geoBlockResponse.isEligible;
+          state.geoBlockData[providerId] = {
+            country: geoBlockResponse.country,
+          };
         });
       } catch (error) {
         // Default to false in case of error

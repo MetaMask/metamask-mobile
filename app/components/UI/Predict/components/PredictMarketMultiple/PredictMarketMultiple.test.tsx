@@ -8,6 +8,14 @@ import { PredictMarket, Recurrence } from '../../types';
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackGeoBlockTriggered: jest.fn(),
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');

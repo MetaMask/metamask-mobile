@@ -16,6 +16,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackMarketDetailsOpened: jest.fn(),
+      trackGeoBlockTriggered: jest.fn(),
     },
   },
 }));

@@ -303,14 +303,20 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           },
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
   const handleClaimPress = async () => {
-    await executeGuardedAction(async () => {
-      await claim();
-    });
+    await executeGuardedAction(
+      async () => {
+        await claim();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
   };
 
   const handleTabPress = (tabIndex: number) => {

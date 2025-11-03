@@ -68,6 +68,11 @@ export interface PredictFees {
   totalFee: number;
 }
 
+export interface GeoBlockResponse {
+  isEligible: boolean;
+  country?: string;
+}
+
 /**
  * @example
  * side = BUY;
@@ -219,7 +224,7 @@ export interface PredictProvider {
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
 
   // Eligibility (Geo-Blocking)
-  isEligible(): Promise<boolean>;
+  isEligible(): Promise<GeoBlockResponse>;
 
   // Predict wallet management
   prepareDeposit(

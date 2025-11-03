@@ -1040,11 +1040,17 @@ describe('PredictController', () => {
   describe('refreshEligibility', () => {
     it('update eligibility for all providers successfully', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'PT',
+        });
 
         await controller.refreshEligibility();
 
         expect(controller.state.eligibility.polymarket).toBe(true);
+        expect(controller.state.geoBlockData.polymarket).toEqual({
+          country: 'PT',
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
@@ -1078,7 +1084,10 @@ describe('PredictController', () => {
         // Add a second mock provider to the internal providers map
         const mockSecondProvider = {
           ...mockPolymarketProvider,
-          isEligible: jest.fn().mockResolvedValue(false),
+          isEligible: jest.fn().mockResolvedValue({
+            isEligible: false,
+            country: 'US',
+          }),
         };
 
         // Manually add second provider to test multiple providers scenario
@@ -1088,7 +1097,10 @@ describe('PredictController', () => {
           providers.set('second-provider', mockSecondProvider);
         });
 
-        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'PT',
+        });
 
         await controller.refreshEligibility();
 
