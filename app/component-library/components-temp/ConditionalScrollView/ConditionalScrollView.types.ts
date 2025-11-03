@@ -14,4 +14,3 @@ export interface ConditionalScrollViewProps {
    */
   scrollViewProps?: ScrollViewProps;
 }
-

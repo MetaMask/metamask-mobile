@@ -489,7 +489,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     if (tabsToRender[0]) {
       onChangeTab({ i: 0, ref: tabsToRender[0] });
     }
-  }, [tabsKey, tabsToRender, onChangeTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabsKey, onChangeTab]);
 
   return (
     <View style={styles.tabContainer}>

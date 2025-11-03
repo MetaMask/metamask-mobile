@@ -87,22 +87,22 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />
       ) : (
-        <View testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}>
-          <ConditionalScrollView
-            isScrollEnabled={!isHomepageRedesignV1Enabled}
-            scrollViewProps={{
-              refreshControl: (
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
+            refreshControl: (
+              <View testID={PredictTabViewSelectorsIDs.REFRESH_CONTROL}>
                 <RefreshControl
-                  testID={PredictTabViewSelectorsIDs.REFRESH_CONTROL}
                   refreshing={isRefreshing}
                   onRefresh={handleRefresh}
                 />
-              ),
-            }}
-          >
-            {content}
-          </ConditionalScrollView>
-        </View>
+              </View>
+            ),
+          }}
+        >
+          {content}
+        </ConditionalScrollView>
       )}
     </View>
   );
