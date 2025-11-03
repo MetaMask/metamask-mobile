@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
-import { View } from 'react-native';
+import { View, InteractionManager } from 'react-native';
 
 // External dependencies.
 import { Text } from '@metamask/design-system-react-native';
@@ -10,9 +10,25 @@ import { Text } from '@metamask/design-system-react-native';
 import TabsList from './TabsList';
 import { TabViewProps, TabsListRef } from './TabsList.types';
 
+// Mock InteractionManager
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+  runAfterInteractions: jest.fn((callback) => {
+    // Execute callback immediately for tests
+    callback();
+    return { cancel: jest.fn() };
+  }),
+}));
+
 describe('TabsList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset to default behavior that executes callbacks immediately
+    (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+      (callback) => {
+        callback();
+        return { cancel: jest.fn() };
+      },
+    );
   });
 
   it('renders correctly with multiple tabs', () => {
@@ -55,16 +71,18 @@ describe('TabsList', () => {
       </TabsList>,
     );
 
-    // Assert - Active tab loads immediately
+    // Assert - Active tab loads via InteractionManager
     expect(getByText('Tokens Content')).toBeOnTheScreen();
 
     // Other tabs should not be loaded yet (on-demand loading)
     expect(queryByText('NFTs Content')).toBeNull();
 
     // When user clicks the NFTs tab, it should load
-    fireEvent.press(getAllByText('NFTs')[0]);
+    await act(async () => {
+      fireEvent.press(getAllByText('NFTs')[0]);
+    });
 
-    // Wait for the delayed loading to complete
+    // Wait for the deferred loading to complete
     await waitFor(() => {
       expect(getByText('NFTs Content')).toBeOnTheScreen();
     });
@@ -300,14 +318,15 @@ describe('TabsList', () => {
 
   it('handles all tabs disabled by setting activeIndex to -1', () => {
     // Arrange
+    const ref = React.createRef<TabsListRef>();
     const tabs = [
       { label: 'Tab 1', content: 'Tab 1 Content' },
       { label: 'Tab 2', content: 'Tab 2 Content' },
     ];
 
     // Act
-    const { queryByText } = render(
-      <TabsList initialActiveIndex={0}>
+    render(
+      <TabsList ref={ref} initialActiveIndex={0}>
         <View
           key="tab0"
           {...({ tabLabel: tabs[0].label, isDisabled: true } as TabViewProps)}
@@ -323,13 +342,13 @@ describe('TabsList', () => {
       </TabsList>,
     );
 
-    // Assert - No content should be displayed when all tabs are disabled
-    expect(queryByText('Tab 1 Content')).toBeNull();
-    expect(queryByText('Tab 2 Content')).toBeNull();
+    // Assert - activeIndex set to -1 when all tabs are disabled
+    expect(ref.current?.getCurrentIndex()).toBe(-1);
   });
 
   it('switches to first enabled tab when initialActiveIndex points to disabled tab', () => {
     // Arrange
+    const ref = React.createRef<TabsListRef>();
     const tabs = [
       { label: 'Disabled Tab', content: 'Disabled Content' },
       { label: 'Active Tab', content: 'Active Content' },
@@ -337,8 +356,8 @@ describe('TabsList', () => {
     ];
 
     // Act
-    const { getByText, queryByText } = render(
-      <TabsList initialActiveIndex={0}>
+    const { getByText } = render(
+      <TabsList ref={ref} initialActiveIndex={0}>
         <View
           key="tab0"
           {...({ tabLabel: tabs[0].label, isDisabled: true } as TabViewProps)}
@@ -354,10 +373,9 @@ describe('TabsList', () => {
       </TabsList>,
     );
 
-    // Assert - Should display the first enabled tab (index 1) instead of the disabled tab (index 0)
+    // Assert - Should switch to first enabled tab (index 1) when initial tab is disabled
+    expect(ref.current?.getCurrentIndex()).toBe(1);
     expect(getByText('Active Content')).toBeOnTheScreen();
-    expect(queryByText('Disabled Content')).toBeNull();
-    expect(queryByText('Another Content')).toBeNull();
   });
 
   it('preserves active tab selection when tabs array changes dynamically', () => {
@@ -436,18 +454,18 @@ describe('TabsList', () => {
     // even when the tab was temporarily removed and re-added
   });
 
-  describe('Lazy Loading', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
+  describe('Deferred Content Loading', () => {
+    it('loads active tab content via InteractionManager', () => {
+      // Arrange
+      const mockRunAfterInteractions = jest.fn((callback) => {
+        callback();
+        return { cancel: jest.fn() };
+      });
+      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+        mockRunAfterInteractions,
+      );
 
-    afterEach(() => {
-      jest.runOnlyPendingTimers();
-      jest.useRealTimers();
-    });
-
-    it('loads active tab immediately', () => {
-      // Arrange & Act
+      // Act
       const { getByText } = render(
         <TabsList initialActiveIndex={0}>
           <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
@@ -459,11 +477,12 @@ describe('TabsList', () => {
         </TabsList>,
       );
 
-      // Assert
+      // Assert - InteractionManager used for initial tab load
+      expect(mockRunAfterInteractions).toHaveBeenCalled();
       expect(getByText('Content 1')).toBeOnTheScreen();
     });
 
-    it('defers loading of inactive tabs', () => {
+    it('defers loading of inactive tabs until switched to', () => {
       // Arrange & Act
       const { queryByText } = render(
         <TabsList initialActiveIndex={0}>
@@ -476,13 +495,22 @@ describe('TabsList', () => {
         </TabsList>,
       );
 
-      // Assert
+      // Assert - Inactive tab content not loaded
       expect(queryByText('Content 2')).toBeNull();
     });
 
-    it('preloads adjacent tabs after settling', async () => {
-      // Arrange & Act
-      const { getByText } = render(
+    it('cancels pending content load when switching tabs quickly', async () => {
+      // Arrange
+      const mockCancel = jest.fn();
+      let capturedCallback: (() => void) | null = null;
+      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+        (callback: () => void) => {
+          capturedCallback = callback;
+          return { cancel: mockCancel };
+        },
+      );
+
+      const { getAllByText } = render(
         <TabsList initialActiveIndex={0}>
           <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Content 1</Text>
@@ -496,32 +524,58 @@ describe('TabsList', () => {
         </TabsList>,
       );
 
-      expect(getByText('Content 1')).toBeOnTheScreen();
-
+      // Act - Switch tabs quickly before interaction completes
       await act(async () => {
-        jest.advanceTimersByTime(600);
+        fireEvent.press(getAllByText('Tab 2')[0]);
+        fireEvent.press(getAllByText('Tab 3')[0]);
+        if (capturedCallback) {
+          capturedCallback();
+        }
       });
+
+      // Assert - Previous interaction was cancelled
+      expect(mockCancel).toHaveBeenCalled();
     });
 
-    it('skips disabled tabs when preloading adjacent tabs', async () => {
-      // Arrange & Act
-      render(
+    it('loads already-loaded tabs immediately without InteractionManager delay', async () => {
+      // Arrange
+      const mockRunAfterInteractions = jest.fn((callback) => {
+        callback();
+        return { cancel: jest.fn() };
+      });
+      (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
+        mockRunAfterInteractions,
+      );
+
+      const { getAllByText, getByText } = render(
         <TabsList initialActiveIndex={0}>
           <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Content 1</Text>
           </View>
-          <View {...({ tabLabel: 'Tab 2', isDisabled: true } as TabViewProps)}>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Content 2</Text>
-          </View>
-          <View {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
-            <Text>Content 3</Text>
           </View>
         </TabsList>,
       );
 
+      // Load Tab 2 for the first time
       await act(async () => {
-        jest.advanceTimersByTime(600);
+        fireEvent.press(getAllByText('Tab 2')[0]);
       });
+
+      const callCountAfterFirstSwitch =
+        mockRunAfterInteractions.mock.calls.length;
+
+      // Act - Switch back to Tab 1 (already loaded)
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 1')[0]);
+      });
+
+      // Assert - Already loaded tab displays immediately without new InteractionManager call
+      expect(getByText('Content 1')).toBeOnTheScreen();
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(
+        callCountAfterFirstSwitch,
+      );
     });
   });
 

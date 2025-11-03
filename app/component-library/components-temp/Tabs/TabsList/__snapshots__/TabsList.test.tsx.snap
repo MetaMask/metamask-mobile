@@ -335,10 +335,14 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
     }
   >
     <View
+      pointerEvents="auto"
       style={
         [
           {
             "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
           },
           undefined,
         ]
@@ -744,10 +748,14 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
     }
   >
     <View
+      pointerEvents="auto"
       style={
         [
           {
             "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
           },
           undefined,
         ]
