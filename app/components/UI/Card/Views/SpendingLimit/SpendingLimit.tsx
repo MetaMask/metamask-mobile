@@ -180,15 +180,8 @@ const SpendingLimit = ({
 
       // Only pre-select if it's NOT Solana (Solana delegation is not supported)
       if (!isPriorityTokenSolana) {
-        setSelectedToken({
-          address: priorityToken.address ?? '',
-          symbol: priorityToken.symbol ?? '',
-          name: priorityToken.name ?? '',
-          decimals: priorityToken.decimals ?? 0,
-          caipChainId: priorityToken.caipChainId,
-          allowanceState: priorityToken.allowanceState,
-          allowance: priorityToken.allowance,
-        });
+        // Spread the entire priorityToken to preserve all fields including delegationContract
+        setSelectedToken(priorityToken);
       }
     }
   }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
