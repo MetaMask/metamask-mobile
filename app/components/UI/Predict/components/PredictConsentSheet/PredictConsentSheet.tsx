@@ -4,25 +4,21 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useImperativeHandle } from 'react';
 import { Linking } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 
 // Internal dependencies.
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { usePredictAgreement } from '../../hooks/usePredictAgreement';
 import { ButtonsAlignment } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import {
+  usePredictBottomSheet,
+  type PredictBottomSheetRef,
+} from '../../hooks/usePredictBottomSheet';
 
 interface PredictConsentSheetProps {
   providerId: string;
@@ -30,35 +26,16 @@ interface PredictConsentSheetProps {
   onAgree?: () => void;
 }
 
-export interface PredictConsentSheetRef {
-  onOpenBottomSheet: () => void;
-  onCloseBottomSheet: () => void;
-}
+export type PredictConsentSheetRef = PredictBottomSheetRef;
 
 const PredictConsentSheet = forwardRef<
   PredictConsentSheetRef,
   PredictConsentSheetProps
 >(({ providerId, onDismiss, onAgree }, ref) => {
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
   const { acceptAgreement } = usePredictAgreement({ providerId });
-
-  const closeSheet = useCallback(() => {
-    if (!sheetRef.current) {
-      setIsVisible(false);
-      onDismiss?.();
-      return;
-    }
-
-    sheetRef.current.onCloseBottomSheet(() => {
-      setIsVisible(false);
-    });
-  }, [onDismiss]);
-
-  const handleSheetClosed = useCallback(() => {
-    closeSheet();
-  }, [closeSheet]);
+  const { sheetRef, isVisible, closeSheet, handleSheetClosed, getRefHandlers } =
+    usePredictBottomSheet({ onDismiss });
 
   const handleAgree = () => {
     acceptAgreement();
@@ -70,29 +47,7 @@ const PredictConsentSheet = forwardRef<
     closeSheet();
   };
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      onOpenBottomSheet: () => {
-        if (!isVisible) {
-          setIsVisible(true);
-          return;
-        }
-
-        sheetRef.current?.onOpenBottomSheet();
-      },
-      onCloseBottomSheet: () => {
-        closeSheet();
-      },
-    }),
-    [closeSheet, isVisible],
-  );
-
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
+  useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
   if (!isVisible) {
     return null;
