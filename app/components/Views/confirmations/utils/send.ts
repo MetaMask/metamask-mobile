@@ -249,7 +249,7 @@ export const submitEvmTransaction = async ({
   const trxnParams = prepareEVMTransaction(asset, { from, to, value });
 
   let transactionType;
-  if (asset.isNative) {
+  if (isNativeToken(asset)) {
     transactionType = TransactionType.simpleSend;
   } else if (asset.standard === TokenStandard.ERC20) {
     transactionType = TransactionType.tokenMethodTransfer;

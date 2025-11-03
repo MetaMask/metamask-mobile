@@ -1,7 +1,10 @@
-import { RegressionConfirmationsRedesigned } from '../../../tags';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import {
+  buildPermissions,
+  AnvilPort,
+} from '../../../framework/fixtures/FixtureUtils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
@@ -20,10 +23,12 @@ import {
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
-describe(RegressionConfirmationsRedesigned('Send Max Transfer'), () => {
+describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
@@ -63,15 +68,31 @@ describe(RegressionConfirmationsRedesigned('Send Max Transfer'), () => {
   it('handles max native asset', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withNetworkEnabledMap({
-            eip155: { '0x539': true },
-          })
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
+            .build();
+        },
         restartDevice: true,
         testSpecificMock,
       },

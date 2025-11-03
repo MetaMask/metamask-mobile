@@ -1062,6 +1062,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1097,6 +1098,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -1134,6 +1136,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2242,6 +2245,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2277,6 +2281,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -2314,6 +2319,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3422,6 +3428,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3457,6 +3464,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -3494,6 +3502,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4602,6 +4611,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4637,6 +4647,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -4674,6 +4685,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5782,6 +5794,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5817,6 +5830,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",
@@ -5854,6 +5868,7 @@ TypeError: Cannot read properties of undefined (reading 'key')
                             activeOpacity={1}
                             onPress={[Function]}
                             onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
                                 "alignItems": "center",

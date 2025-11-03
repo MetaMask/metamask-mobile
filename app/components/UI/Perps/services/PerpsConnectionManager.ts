@@ -260,9 +260,6 @@ class PerpsConnectionManagerClass {
             // Clean up preloaded subscriptions
             this.cleanupPreloadedSubscriptions();
 
-            // Clean up state monitoring when leaving Perps
-            this.cleanupStateMonitoring();
-
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
             this.isInitialized = false;
@@ -286,9 +283,6 @@ class PerpsConnectionManagerClass {
         })();
 
         await this.disconnectPromise;
-      } else {
-        // Even if not connected, clean up monitoring when leaving Perps
-        this.cleanupStateMonitoring();
       }
     } else {
       DevLogger.log(
@@ -819,9 +813,6 @@ class PerpsConnectionManagerClass {
           'PerpsConnectionManager: Starting grace period before disconnection',
         );
         this.scheduleGracePeriodDisconnection();
-      } else {
-        // Even if not connected, clean up monitoring when leaving Perps
-        this.cleanupStateMonitoring();
       }
     }
   }

@@ -20,6 +20,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import ResourceToggle, {
+  type ResourceType,
+} from '../../components/Tron/ResourceToggle';
+///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
@@ -114,7 +119,7 @@ const EarnInputView = () => {
   // otherwise, use the contract exchange rate or 0 if undefined
   const exchangeRate = token.isETH
     ? 1
-    : contractExchangeRates?.[token.address as Hex]?.price ?? 0;
+    : (contractExchangeRates?.[token.address as Hex]?.price ?? 0);
 
   // other hooks
   const { styles, theme } = useStyles(styleSheet, {});
@@ -153,6 +158,12 @@ const EarnInputView = () => {
     conversionRate,
     exchangeRate,
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const [resourceType, setResourceType] = useState<ResourceType>('energy');
+  const isTronNative =
+    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
@@ -799,6 +810,13 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled && isTronNative && (
+          <ResourceToggle value={resourceType} onChange={setResourceType} />
+        )
+        ///: END:ONLY_INCLUDE_IF
+      }
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}

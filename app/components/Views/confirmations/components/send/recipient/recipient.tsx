@@ -112,10 +112,10 @@ export const Recipient = () => {
 
   const onRecipientSelected = useCallback(
     (
-        recipientInputMethod:
-          | typeof RecipientInputMethod.SelectAccount
-          | typeof RecipientInputMethod.SelectContact,
-      ) =>
+      recipientInputMethod:
+        | typeof RecipientInputMethod.SelectAccount
+        | typeof RecipientInputMethod.SelectContact,
+    ) =>
       (recipient: RecipientType) => {
         if (isSubmittingTransaction) {
           return;

@@ -663,9 +663,10 @@ export async function validateAddressOrENS(
       // Check if it's token contract address on mainnet
       if (isMainnet) {
         try {
-          const symbol = await AssetsContractController.getERC721AssetSymbol(
-            checksummedAddress,
-          );
+          const symbol =
+            await AssetsContractController.getERC721AssetSymbol(
+              checksummedAddress,
+            );
           if (symbol) {
             addressError = SYMBOL_ERROR;
             errorContinue = true;
