@@ -48,7 +48,7 @@ import {
   usePerpsRewards,
   usePerpsToasts,
 } from '../../hooks';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
@@ -122,6 +122,11 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
+  // Get top of book data for maker/taker fee determination
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol: position.coin,
+  });
+
   // Determine position direction
   const isLong = parseFloat(position.size) > 0;
   const absSize = Math.abs(parseFloat(position.size));
@@ -192,8 +197,6 @@ const PerpsClosePositionView: React.FC = () => {
     [closingValue],
   );
 
-  const positionPriceData = priceData[position.coin];
-
   const feeResults = usePerpsOrderFees({
     orderType,
     amount: closingValueString,
@@ -201,11 +204,11 @@ const PerpsClosePositionView: React.FC = () => {
     isClosing: true,
     limitPrice,
     direction: isLong ? 'short' : 'long',
-    currentAskPrice: positionPriceData?.bestAsk
-      ? Number.parseFloat(positionPriceData.bestAsk)
+    currentAskPrice: currentTopOfBook?.bestAsk
+      ? Number.parseFloat(currentTopOfBook.bestAsk)
       : undefined,
-    currentBidPrice: positionPriceData?.bestBid
-      ? Number.parseFloat(positionPriceData.bestBid)
+    currentBidPrice: currentTopOfBook?.bestBid
+      ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
 
@@ -599,8 +602,8 @@ const PerpsClosePositionView: React.FC = () => {
                 rewardsState.isLoading
                   ? RewardAnimationState.Loading
                   : rewardsState.hasError
-                  ? RewardAnimationState.ErrorState
-                  : RewardAnimationState.Idle
+                    ? RewardAnimationState.ErrorState
+                    : RewardAnimationState.Idle
               }
             />
           </View>
