@@ -540,14 +540,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handlePasswordError = (loginErrorMessage: string) => {
-    if (isComingFromOauthOnboarding) {
-      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-        account_type: 'social',
-        failed_attempts: rehydrationFailedAttempts,
-        error_type: 'incorrect_password',
-      });
-    }
-
     setLoading(false);
 
     setError(strings('login.invalid_password'));
@@ -575,10 +567,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       return;
     }
 
-    const isPasswordError =
+    const isWrongPasswordError =
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
-      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2);
+
+    if (isWrongPasswordError && isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'incorrect_password',
+      });
+    }
+
+    const isPasswordError =
+      isWrongPasswordError ||
       loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
 
     if (isPasswordError) {
