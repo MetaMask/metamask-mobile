@@ -191,7 +191,7 @@ if (PR_NUMBER) {
     ? `https://github.com/${repository}/actions/runs/${runId}`
     : '#';
 
-  commentContent += `\n_[View E2E results](${runUrl})\n\n`;
+  commentContent += `\n_[View GitHub actions results](${runUrl})\n\n`;
   commentContent += '<!-- ai-e2e-analysis -->\n';
 
   // Write comment file
