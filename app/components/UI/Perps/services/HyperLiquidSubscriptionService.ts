@@ -790,7 +790,9 @@ export class HyperLiquidSubscriptionService {
           });
 
           // Update OI caps cache and notify if changed
-          const oiCapsHash = allOICaps.sort().join(',');
+          const oiCapsHash = [...allOICaps]
+            .sort((a: string, b: string) => a.localeCompare(b))
+            .join(',');
           if (oiCapsHash !== this.cachedOICapsHash) {
             this.cachedOICaps = allOICaps;
             this.cachedOICapsHash = oiCapsHash;
