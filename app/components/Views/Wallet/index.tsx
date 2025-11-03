@@ -287,7 +287,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const tokensTabProps = useMemo(
     () => ({
       key: 'tokens-tab',
-      tabLabel: strings('wallet.tokens'),
+      tabLabel: 'test ',
       navigation,
     }),
     [navigation],
