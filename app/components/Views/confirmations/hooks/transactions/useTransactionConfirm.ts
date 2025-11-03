@@ -164,7 +164,7 @@ export function useTransactionConfirm() {
 
     if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     } else if (
       isFullScreenConfirmation &&

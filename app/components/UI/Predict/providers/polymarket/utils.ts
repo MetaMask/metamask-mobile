@@ -53,6 +53,7 @@ import {
   OrderBook,
   RoundConfig,
 } from './types';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -213,7 +214,13 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
     method: 'GET',
   });
   if (!response.ok) {
-    throw new Error('Failed to get order book');
+    const responseData = (await response.json()) as { error: string };
+    if (
+      responseData.error === 'No orderbook exists for the requested token id'
+    ) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+    }
+    throw new Error(responseData.error);
   }
   const responseData = (await response.json()) as OrderBook;
   return responseData;
@@ -384,7 +391,8 @@ export const parsePolymarketEvents = (
         : PredictMarketStatus.OPEN,
       recurrence: getRecurrence(event.series),
       endDate: event.endDate,
-      categories: [category],
+      category,
+      tags: event.tags.map((t) => t.label),
       outcomes: event.markets
         .filter((market: PolymarketApiMarket) => market.active !== false)
         .sort((a: PolymarketApiMarket, b: PolymarketApiMarket) => {
@@ -1129,14 +1137,14 @@ export const previewOrder = async (
   const { marketId, outcomeId, outcomeTokenId, side, size } = params;
   const book = await getOrderBook({ tokenId: outcomeTokenId });
   if (!book) {
-    throw new Error('no orderbook');
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
   const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
 
   if (side === Side.BUY) {
     const { asks } = book;
     if (!asks || asks.length === 0) {
-      throw new Error('no order match (buy)');
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
     }
     const { price: bestPrice, size: shareAmount } = matchBuyOrder({
       asks,
@@ -1170,7 +1178,7 @@ export const previewOrder = async (
   }
   const { bids } = book;
   if (!bids || bids.length === 0) {
-    throw new Error('no order match (sell)');
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
   }
   const { price: bestPrice, size: dollarAmount } = matchSellOrder({
     bids,

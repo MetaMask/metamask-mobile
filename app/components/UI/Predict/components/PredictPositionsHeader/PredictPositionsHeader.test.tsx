@@ -78,11 +78,52 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: {
       Secondary: 'secondary',
     },
+    ButtonSize: {
+      Lg: 'lg',
+      Md: 'md',
+      Sm: 'sm',
+    },
+    TextColor: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+      PrimaryInverse: 'primary-inverse',
+      Alternative: 'alternative',
+      Muted: 'muted',
+      Success: 'success',
+      Error: 'error',
+      Warning: 'warning',
+      Info: 'info',
+    },
     IconColor: {
       Alternative: '#8A8A8A',
     },
   };
 });
+
+jest.mock(
+  '../../../../../component-library/components-temp/Buttons/ButtonHero',
+  () => {
+    const { TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        onPress,
+        testID,
+        children,
+        ...props
+      }: {
+        onPress?: () => void;
+        testID?: string;
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => (
+        <TouchableOpacity testID={testID} onPress={onPress} {...props}>
+          {children}
+        </TouchableOpacity>
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View, Text } = jest.requireActual('react-native');

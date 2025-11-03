@@ -49,17 +49,6 @@ jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
-// Use dynamic mocking to avoid native module conflicts
-jest.doMock('react-native', () => {
-  const originalRN = jest.requireActual('react-native');
-  return {
-    ...originalRN,
-    StatusBar: {
-      currentHeight: 42,
-    },
-  };
-});
-
 describe('AccountStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -98,13 +87,9 @@ describe('AccountStatus', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('renders correctly with type="found and statusbar current height to zero"', () => {
-      const { StatusBar } = jest.requireMock('react-native');
-      const originalCurrentHeight = StatusBar.currentHeight;
-      StatusBar.currentHeight = 0;
+    it('renders correctly with type="found"', () => {
       const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
       expect(toJSON()).toMatchSnapshot();
-      StatusBar.currentHeight = originalCurrentHeight;
     });
 
     it('renders correctly with accountName in route params', () => {
@@ -252,6 +237,17 @@ describe('AccountStatus', () => {
       fireEvent.press(primaryButton);
 
       expect(trackOnboarding).toHaveBeenCalled();
+    });
+  });
+
+  describe('SafeAreaView Configuration', () => {
+    it('uses SafeAreaView with top and bottom edges', () => {
+      const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
+      const tree = toJSON();
+
+      expect(tree).toBeTruthy();
+      expect(JSON.stringify(tree)).toContain('top');
+      expect(JSON.stringify(tree)).toContain('bottom');
     });
   });
 });
