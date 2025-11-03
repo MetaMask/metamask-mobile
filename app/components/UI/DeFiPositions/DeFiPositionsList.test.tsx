@@ -218,13 +218,14 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
     ).toBeOnTheScreen();
-    expect(await findByText('Protocol 1')).toBeOnTheScreen();
-    expect(await findByText('$100.00')).toBeOnTheScreen();
 
-    const flatList = await findByTestId(
+    const listContainer = await findByTestId(
       WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
     );
-    expect(flatList.props.data.length).toEqual(1);
+    expect(listContainer).toBeOnTheScreen();
+
+    expect(await findByText('Protocol 1')).toBeOnTheScreen();
+    expect(await findByText('$100.00')).toBeOnTheScreen();
   });
 
   it('renders protocol name and aggregated value for all chains when all networks is selected', async () => {
@@ -258,14 +259,16 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).toBeOnTheScreen();
+
+    const listContainer = await findByTestId(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+    );
+    expect(listContainer).toBeOnTheScreen();
+
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
     expect(await findByText('$10.00')).toBeOnTheScreen();
-    const flatList = await findByTestId(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
-    );
-    expect(flatList.props.data.length).toEqual(2);
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {
@@ -418,14 +421,13 @@ describe('DeFiPositionsList', () => {
         await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
       ).toBeOnTheScreen();
 
-      // Should show the filtered protocol name
-      expect(await findByText('Protocol 1 (Filtered)')).toBeOnTheScreen();
-      expect(await findByText('$100.00')).toBeOnTheScreen();
-
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.data.length).toEqual(1);
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1 (Filtered)')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
     });
 
     it('shows no positions when defiPositionsByEnabledNetworks returns empty data', async () => {
@@ -535,19 +537,19 @@ describe('DeFiPositionsList', () => {
         ),
       ).toBeOnTheScreen();
 
-      expect(await findByText('Protocol 1')).toBeOnTheScreen();
-      expect(await findByText('$100.00')).toBeOnTheScreen();
-
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.data.length).toEqual(1);
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
     });
   });
 
   describe('Homepage Redesign V1 Feature', () => {
     it('applies fixed height when isHomepageRedesignV1Enabled is true with positions', async () => {
-      const { findByTestId } = renderWithProvider(
+      const { findByTestId, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
         {
           state: {
@@ -576,10 +578,15 @@ describe('DeFiPositionsList', () => {
       );
       expect(container).toBeOnTheScreen();
 
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.scrollEnabled).toBe(false);
+      expect(listContainer).toBeOnTheScreen();
+
+      const scrollView = queryByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeNull();
     });
 
     it('calculates correct list height for empty state when isHomepageRedesignV1Enabled is true', async () => {
@@ -621,8 +628,8 @@ describe('DeFiPositionsList', () => {
       expect(container).toBeOnTheScreen();
     });
 
-    it('calculates list height based on item count when isHomepageRedesignV1Enabled is true', async () => {
-      const { findByTestId } = renderWithProvider(
+    it('renders multiple items without ScrollView when isHomepageRedesignV1Enabled is true', async () => {
+      const { findByTestId, findByText, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
         {
           state: {
@@ -654,11 +661,18 @@ describe('DeFiPositionsList', () => {
         },
       );
 
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.data.length).toEqual(2);
-      expect(flatList.props.scrollEnabled).toBe(false);
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1')).toBeOnTheScreen();
+      expect(await findByText('Protocol 2')).toBeOnTheScreen();
+
+      const scrollView = queryByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeNull();
     });
 
     it('does not apply fixed height when isHomepageRedesignV1Enabled is false', async () => {
@@ -669,10 +683,15 @@ describe('DeFiPositionsList', () => {
         },
       );
 
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.scrollEnabled).toBe(true);
+      expect(listContainer).toBeOnTheScreen();
+
+      const scrollView = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeOnTheScreen();
     });
   });
 });

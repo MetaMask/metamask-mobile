@@ -162,7 +162,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
         isHomepageRedesignV1Enabled ? (
           flatListContent
         ) : (
-          <ScrollView>{flatListContent}</ScrollView>
+          <ScrollView testID={WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW}>
+            {flatListContent}
+          </ScrollView>
         )
       ) : (
         <DefiEmptyState twClassName="mx-auto mt-4" />
