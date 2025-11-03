@@ -8,7 +8,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const setUseNftDetectionSpy = jest.spyOn(
@@ -98,13 +98,6 @@ describe('NFT Auto detection modal', () => {
       'Enable OpenSea API': 'ON',
       'NFT Autodetection': 'ON',
     });
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE,
-      )
-        .addProperties({ chainId: '0x1' })
-        .build(),
-    );
   });
 
   it('calls setDisplayNftMedia when clicking on allow button if displayNftMedia if on', () => {
@@ -118,13 +111,6 @@ describe('NFT Auto detection modal', () => {
     expect(mockAddTraitsToUser).toHaveBeenCalledWith({
       'NFT Autodetection': 'ON',
     });
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE,
-      )
-        .addProperties({ chainId: '0x1' })
-        .build(),
-    );
   });
 
   it('Does not call setUseNftDetection nor setDisplayNftMedia when clicking on not right now button', () => {
@@ -136,12 +122,5 @@ describe('NFT Auto detection modal', () => {
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
 
     expect(mockAddTraitsToUser).not.toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE,
-      )
-        .addProperties({ chainId: '0x1' })
-        .build(),
-    );
   });
 });

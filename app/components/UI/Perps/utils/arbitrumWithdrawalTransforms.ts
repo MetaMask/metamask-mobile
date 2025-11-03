@@ -30,8 +30,8 @@ export const transformArbitrumWithdrawalToHistoryItem = (
     withdrawal.status === 'completed'
       ? 'completed'
       : withdrawal.status === 'failed'
-      ? 'failed'
-      : 'pending',
+        ? 'failed'
+        : 'pending',
   details: {
     source: 'arbitrum_blockchain',
     bridgeContract: withdrawal.from,

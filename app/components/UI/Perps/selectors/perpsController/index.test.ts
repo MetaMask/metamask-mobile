@@ -22,7 +22,7 @@ describe('PerpsController Selectors', () => {
           },
         },
       },
-    } as unknown as RootState);
+    }) as unknown as RootState;
 
   describe('selectPerpsProvider', () => {
     it('returns the active provider from PerpsController state', () => {

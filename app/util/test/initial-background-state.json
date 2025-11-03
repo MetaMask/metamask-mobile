@@ -473,20 +473,6 @@
   "MultichainBalancesController": {
     "balances": {}
   },
-  "RatesController": {
-    "cryptocurrencies": ["btc", "sol"],
-    "fiatCurrency": "usd",
-    "rates": {
-      "btc": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      },
-      "sol": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      }
-    }
-  },
   "MultichainNetworkController": {
     "isEvmSelected": true,
     "networksWithTransactionActivity": {},
@@ -660,8 +646,7 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "claimTransaction": null,
-    "depositTransaction": null,
+    "pendingDeposits": {},
     "isOnboarded": {}
   }
 }

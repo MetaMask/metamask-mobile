@@ -60,7 +60,7 @@ import { sortAccounts } from './utils/sortAccounts';
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
 
-export const DEFAULT_BLOCKED_REGIONS = ['UK'];
+export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
@@ -1039,8 +1039,8 @@ export class RewardsController extends BaseController<
               .split(':')[2]
               ?.toLowerCase()}` as CaipAccountId)
           : account?.startsWith('eip155')
-          ? (account.toLowerCase() as CaipAccountId)
-          : (account as CaipAccountId);
+            ? (account.toLowerCase() as CaipAccountId)
+            : (account as CaipAccountId);
 
       this.update((state: RewardsControllerState) => {
         // Create account state if it doesn't exist
@@ -1614,8 +1614,8 @@ export class RewardsController extends BaseController<
           type === 'current'
             ? discoverSeasons.current
             : type === 'next'
-            ? discoverSeasons.next
-            : null;
+              ? discoverSeasons.next
+              : null;
 
         // If found with valid start date, fetch metadata and populate cache
         if (seasonInfo?.startDate) {

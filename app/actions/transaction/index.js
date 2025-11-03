@@ -25,8 +25,8 @@ export function newAssetTransaction(selectedAsset) {
     assetType: selectedAsset.isETH
       ? ETH
       : selectedAsset.tokenId
-      ? ERC721
-      : ERC20,
+        ? ERC721
+        : ERC20,
   };
 }
 
@@ -68,8 +68,8 @@ export function setSelectedAsset(selectedAsset) {
     assetType: selectedAsset.isETH
       ? ETH
       : selectedAsset.tokenId
-      ? ERC721
-      : ERC20,
+        ? ERC721
+        : ERC20,
   };
 }
 
