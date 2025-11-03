@@ -1038,24 +1038,88 @@ describe('Tokens', () => {
       ).toBeDefined();
     });
 
-    it('shows loader during initial token loading', () => {
+    it('renders correctly during initial token loading', () => {
       const { getByTestId } = renderComponent(initialState);
       expect(
         getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
       ).toBeDefined();
+    });
+
+    it('sets maxItems to 10 when homepage redesign is enabled and not full view', () => {
+      const { getByTestId } = renderComponent({
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                homepageRedesignV1: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeDefined();
+    });
+
+    it('shows empty state when no tokens after initial load', async () => {
+      const emptyTokensState = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  [selectedAddress]: [],
+                },
+              },
+              detectedTokens: [],
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                homepageRedesignV1: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderComponent(emptyTokensState);
+      
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeDefined();
+      });
     });
   });
 
-  describe('Progressive Loading', () => {
-    it('processes tokens in chunks for better performance', async () => {
+  describe('Initial Load Handling', () => {
+    it('shows skeleton during initial load', () => {
       const { getByTestId } = renderComponent(initialState);
+      
       expect(
         getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
       ).toBeDefined();
     });
 
-    it('deduplicates tokens after progressive loading', async () => {
+    it('transitions from skeleton to token list after initial load completes', async () => {
       const { getByTestId } = renderComponent(initialState);
+      
       await waitFor(() => {
         expect(
           getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),

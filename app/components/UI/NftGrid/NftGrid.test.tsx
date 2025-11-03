@@ -744,4 +744,76 @@ describe('NftGrid', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('NftFullView');
   });
+
+  it('limits NFTs to 18 when homepage redesign is enabled and not full view', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 25 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+        name: `NFT ${i}`,
+      })),
+    };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId, queryByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      // Should render first 18 NFTs
+      expect(getByTestId('collectible-NFT 0-0')).toBeOnTheScreen();
+      expect(getByTestId('collectible-NFT 17-17')).toBeOnTheScreen();
+      
+      // Should NOT render NFTs beyond 18
+      expect(queryByTestId('collectible-NFT 18-18')).toBeNull();
+      expect(queryByTestId('collectible-NFT 24-24')).toBeNull();
+      
+      // View all button should be present
+      expect(getByTestId('view-all-nfts-button')).toBeOnTheScreen();
+    });
+  });
+
+  it('does not limit NFTs when full view is enabled', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 25 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+        name: `NFT ${i}`,
+      })),
+    };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId, queryByTestId } = render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      // Should render all NFTs when full view
+      expect(getByTestId('collectible-NFT 0-0')).toBeOnTheScreen();
+      expect(getByTestId('collectible-NFT 24-24')).toBeOnTheScreen();
+      
+      // View all button should NOT be present in full view
+      expect(queryByTestId('view-all-nfts-button')).toBeNull();
+    });
+  });
 });

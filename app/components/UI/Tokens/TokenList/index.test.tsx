@@ -345,4 +345,94 @@ describe('TokenList', () => {
     expect(showRemoveMenu).not.toHaveBeenCalled();
     expect(setShowScamWarningModal).not.toHaveBeenCalled();
   });
+
+  describe('Homepage Redesign V1 Features', () => {
+    beforeEach(() => {
+      // Reset selector mocks for this describe block
+      mockUseSelector.mockReset();
+    });
+
+    it('renders tokens directly in Box when isHomepageRedesignV1Enabled is true and not full view', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (
+          selector.toString().includes('selectHomepageRedesignV1Enabled')
+        ) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { getByTestId } = renderComponent({ isFullView: false });
+
+      expect(getByTestId('token-item-0x123')).toBeOnTheScreen();
+      expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
+    });
+
+    it('renders FlashList when isHomepageRedesignV1Enabled is true but isFullView is true', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (
+          selector.toString().includes('selectHomepageRedesignV1Enabled')
+        ) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { getByTestId } = renderComponent({ isFullView: true });
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders FlashList when isHomepageRedesignV1Enabled is false', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (
+          selector.toString().includes('selectHomepageRedesignV1Enabled')
+        ) {
+          return false;
+        }
+        return selector({});
+      });
+
+      const { getByTestId } = renderComponent();
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows view all button when homepage redesign is enabled and maxItems is exceeded', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (
+          selector.toString().includes('selectHomepageRedesignV1Enabled')
+        ) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { getByText } = renderComponent({ maxItems: 1, isFullView: false });
+
+      expect(getByText('wallet.view_all_tokens')).toBeOnTheScreen();
+    });
+
+    it('renders mapped token items when homepage redesign is enabled and not full view', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (
+          selector.toString().includes('selectHomepageRedesignV1Enabled')
+        ) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const { queryByTestId } = renderComponent({ isFullView: false });
+
+      // When homepage redesign is enabled and not full view, tokens are rendered directly
+      // instead of in FlashList
+      expect(queryByTestId('token-item-0x123')).toBeOnTheScreen();
+      expect(queryByTestId('token-item-0x456')).toBeOnTheScreen();
+    });
+  });
 });

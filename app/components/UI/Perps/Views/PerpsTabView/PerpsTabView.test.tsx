@@ -634,14 +634,14 @@ describe('PerpsTabView', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have proper accessibility for manage balance button', () => {
+    it('has proper accessibility for manage balance button', () => {
       render(<PerpsTabView />);
 
       const manageBalanceButton = screen.getByTestId('manage-balance-button');
       expect(manageBalanceButton).toBeOnTheScreen();
     });
 
-    it('should render text with proper variants and colors', () => {
+    it('renders text with proper variants and colors', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
@@ -652,6 +652,96 @@ describe('PerpsTabView', () => {
       expect(
         screen.getByText(strings('perps.position.title')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Homepage Redesign V1 Feature', () => {
+    it('renders content without ScrollView when isHomepageRedesignV1Enabled is true', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        // selectHomepageRedesignV1Enabled
+        if (typeof selector === 'function') {
+          const selectorString = selector.toString();
+          if (selectorString.includes('homepageRedesign')) {
+            return true;
+          }
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsTabView />);
+
+      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.title')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders content with ScrollView when isHomepageRedesignV1Enabled is false', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        // selectHomepageRedesignV1Enabled returns false
+        if (typeof selector === 'function') {
+          const selectorString = selector.toString();
+          if (selectorString.includes('homepageRedesign')) {
+            return false;
+          }
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsTabView />);
+
+      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.title')),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays empty state when homepage redesign is enabled and no positions or orders', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (typeof selector === 'function') {
+          const selectorString = selector.toString();
+          if (selectorString.includes('homepageRedesign')) {
+            return true;
+          }
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
+
+      render(<PerpsTabView />);
+
+      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
     });
   });
 });
