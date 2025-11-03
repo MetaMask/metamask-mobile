@@ -702,7 +702,9 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.queryByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW)).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeNull();
       expect(
         screen.getByText(strings('perps.position.title')),
       ).toBeOnTheScreen();
@@ -733,7 +735,9 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeOnTheScreen();
       expect(
         screen.getByText(strings('perps.position.title')),
       ).toBeOnTheScreen();
