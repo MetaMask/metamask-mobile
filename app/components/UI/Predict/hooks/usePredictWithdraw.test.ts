@@ -363,10 +363,9 @@ describe('usePredictWithdraw', () => {
 
     it('shows error toast when prepareWithdraw returns failure result', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      mockPrepareWithdraw.mockResolvedValue({
-        success: false,
-        error: 'Provider not available',
-      });
+      mockPrepareWithdraw.mockRejectedValue(
+        new Error('Provider not available'),
+      );
 
       const { result } = setupUsePredictWithdrawTest();
 

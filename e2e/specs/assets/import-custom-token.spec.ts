@@ -8,6 +8,9 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { LocalNode } from '../../framework/types';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {
@@ -18,12 +21,28 @@ describe(RegressionAssets('Import custom token'), () => {
   it('should Import custom token with auto-population', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withNetworkEnabledMap({
-            eip155: { '0x539': true },
-          })
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .build();
+        },
         restartDevice: true,
         smartContracts: [SMART_CONTRACTS.HST],
       },
@@ -34,11 +53,8 @@ describe(RegressionAssets('Import custom token'), () => {
 
         await loginToApp();
         await WalletView.tapImportTokensButton();
-        await ImportTokensView.switchToCustomTab();
-        await ImportTokensView.tapOnNetworkInput();
-        await ImportTokensView.swipeNetworkList();
-        await ImportTokensView.tapNetworkOption('Localhost');
         await ImportTokensView.typeTokenAddress(hstAddress);
+        await new Promise((resolve) => setTimeout(resolve, 20000));
         await Assertions.expectElementToHaveText(
           ImportTokensView.symbolInput,
           'TST',
