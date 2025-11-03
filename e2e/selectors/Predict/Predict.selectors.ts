@@ -13,6 +13,9 @@ export const PredictTabViewSelectorsIDs = {
 
   // FlashList
   FLASH_LIST: 'predict-tab-view-flash-list',
+
+  // Refresh control
+  REFRESH_CONTROL: 'predict-tab-view-refresh-control',
 } as const;
 
 // ========================================

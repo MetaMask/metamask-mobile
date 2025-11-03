@@ -92,6 +92,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
           testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
           refreshControl={
             <RefreshControl
+              testID={PredictTabViewSelectorsIDs.REFRESH_CONTROL}
               refreshing={isRefreshing}
               onRefresh={handleRefresh}
             />

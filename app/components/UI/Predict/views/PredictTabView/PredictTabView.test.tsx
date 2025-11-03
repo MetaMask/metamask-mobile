@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { render, screen, act } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 import React from 'react';
+import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 jest.mock('../../hooks/usePredictDepositToasts', () => ({
   usePredictDepositToasts: jest.fn(),
@@ -216,7 +217,7 @@ jest.mock('../../../../../selectors/keyringController', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => '0x123'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -305,10 +306,34 @@ jest.mock('@shopify/flash-list', () => {
 });
 
 import PredictTabView from './PredictTabView';
+import { useSelector } from 'react-redux';
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+// Control variable for homepage redesign flag
+let isHomepageRedesignEnabled = true;
 
 describe('PredictTabView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset to default
+    isHomepageRedesignEnabled = true;
+    // Mock useSelector to return appropriate values based on call order
+    // The component typically calls: selectHomepageRedesignV1Enabled first
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      // First call is usually for feature flag
+      if (callCount === 1) {
+        return isHomepageRedesignEnabled;
+      }
+      // Second call might be for chain ID or other boolean flags
+      if (callCount === 2) {
+        return true; // selectIsEvmNetworkSelected or similar
+      }
+      // Other calls return chain ID
+      return '0x1';
+    });
   });
 
   afterEach(() => {
@@ -316,31 +341,47 @@ describe('PredictTabView', () => {
   });
 
   it('renders without crashing', () => {
-    renderWithProviders(<PredictTabView />);
+    const { getByTestId } = renderWithProviders(<PredictTabView />);
 
-    expect(screen.getByTestId('predict-account-state')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-positions')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
+    expect(getByTestId('predict-account-state')).toBeOnTheScreen();
+    expect(getByTestId('predict-positions')).toBeOnTheScreen();
+    expect(getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
   });
 
   it('renders all child components', () => {
-    renderWithProviders(<PredictTabView />);
+    const { getByText } = renderWithProviders(<PredictTabView />);
 
-    expect(screen.getByText('Account State')).toBeOnTheScreen();
-    expect(screen.getByText('Positions')).toBeOnTheScreen();
-    expect(screen.getByText('Add Funds')).toBeOnTheScreen();
+    expect(getByText('Account State')).toBeOnTheScreen();
+    expect(getByText('Positions')).toBeOnTheScreen();
+    expect(getByText('Add Funds')).toBeOnTheScreen();
   });
 
   it('renders ScrollView with RefreshControl', () => {
-    renderWithProviders(<PredictTabView />);
+    const { getByTestId } = renderWithProviders(<PredictTabView />);
 
     // Component should render successfully with all child components
-    expect(screen.getByTestId('predict-account-state')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-positions')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
+    expect(getByTestId('predict-account-state')).toBeOnTheScreen();
+    expect(getByTestId('predict-positions')).toBeOnTheScreen();
+    expect(getByTestId('predict-add-funds-sheet')).toBeOnTheScreen();
   });
 
   it('calls refresh on all child components when pull-to-refresh is triggered', async () => {
+    // Mock homepage redesign as disabled to render RefreshControl
+    isHomepageRedesignEnabled = false;
+
+    // Re-mock useSelector with the updated flag value
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return isHomepageRedesignEnabled;
+      }
+      if (callCount === 2) {
+        return true;
+      }
+      return '0x1';
+    });
+
     // Track the refresh functions from each mocked component
     const mockRefreshFunctions = {
       accountState: jest.fn().mockResolvedValue(undefined),
@@ -386,11 +427,13 @@ describe('PredictTabView', () => {
       },
     );
 
-    const { UNSAFE_getByType } = renderWithProviders(<PredictTabView />);
+    const { getByTestId } = renderWithProviders(<PredictTabView />);
 
-    // Get the RefreshControl component
-    const { RefreshControl } = jest.requireActual('react-native');
-    const refreshControl = UNSAFE_getByType(RefreshControl);
+    // Get the ScrollView component
+    const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
+
+    // Access the RefreshControl through ScrollView props
+    const refreshControl = scrollView.props.refreshControl;
 
     // Trigger the refresh wrapped in act
     await act(async () => {
@@ -403,6 +446,22 @@ describe('PredictTabView', () => {
   });
 
   it('handles refresh state correctly', async () => {
+    // Mock homepage redesign as disabled to render RefreshControl
+    isHomepageRedesignEnabled = false;
+
+    // Re-mock useSelector with the updated flag value
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return isHomepageRedesignEnabled;
+      }
+      if (callCount === 2) {
+        return true;
+      }
+      return '0x1';
+    });
+
     const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
     // Mock one component to track refresh
@@ -424,10 +483,13 @@ describe('PredictTabView', () => {
       },
     );
 
-    const { UNSAFE_getByType } = renderWithProviders(<PredictTabView />);
+    const { getByTestId } = renderWithProviders(<PredictTabView />);
 
-    const { RefreshControl } = jest.requireActual('react-native');
-    const refreshControl = UNSAFE_getByType(RefreshControl);
+    // Get the ScrollView component
+    const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
+
+    // Access the RefreshControl through ScrollView props
+    const refreshControl = scrollView.props.refreshControl;
 
     // Initially not refreshing
     expect(refreshControl.props.refreshing).toBe(false);
@@ -472,17 +534,15 @@ describe('PredictTabView', () => {
         },
       );
 
-      renderWithProviders(<PredictTabView />);
+      const { getByTestId, queryByTestId } = renderWithProviders(
+        <PredictTabView />,
+      );
 
       // Should render error state instead of normal components
-      expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('predict-account-state'),
-      ).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('predict-positions')).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('predict-add-funds-sheet'),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-positions')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-add-funds-sheet')).not.toBeOnTheScreen();
     });
 
     it('renders error state when header error occurs', () => {
@@ -515,17 +575,15 @@ describe('PredictTabView', () => {
         },
       );
 
-      renderWithProviders(<PredictTabView />);
+      const { getByTestId, queryByTestId } = renderWithProviders(
+        <PredictTabView />,
+      );
 
       // Should render error state instead of normal components
-      expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('predict-account-state'),
-      ).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('predict-positions')).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('predict-add-funds-sheet'),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-positions')).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-add-funds-sheet')).not.toBeOnTheScreen();
     });
 
     it('calls handleRefresh when retry button is pressed in error state', async () => {
@@ -582,7 +640,7 @@ describe('PredictTabView', () => {
       );
 
       // Re-render to apply the new mocks
-      const { rerender } = renderWithProviders(<PredictTabView />);
+      const { rerender, getByTestId } = renderWithProviders(<PredictTabView />);
       rerender(<PredictTabView />);
 
       // Now trigger errors to switch to error state
@@ -591,10 +649,10 @@ describe('PredictTabView', () => {
       });
 
       // Should now show error state
-      expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(getByTestId('predict-error-state')).toBeOnTheScreen();
 
       // The retry button should be present in the error state
-      expect(screen.getByTestId('retry-button')).toBeOnTheScreen();
+      expect(getByTestId('retry-button')).toBeOnTheScreen();
     });
 
     it('handles positions error callback', () => {
@@ -629,7 +687,7 @@ describe('PredictTabView', () => {
         },
       );
 
-      renderWithProviders(<PredictTabView />);
+      const { queryByTestId } = renderWithProviders(<PredictTabView />);
 
       // Simulate calling the error callback
       act(() => {
@@ -637,9 +695,7 @@ describe('PredictTabView', () => {
       });
 
       // Should render error state
-      expect(
-        screen.queryByTestId('predict-account-state'),
-      ).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
     });
 
     it('handles header error callback', () => {
@@ -674,7 +730,7 @@ describe('PredictTabView', () => {
         },
       );
 
-      renderWithProviders(<PredictTabView />);
+      const { queryByTestId } = renderWithProviders(<PredictTabView />);
 
       // Simulate calling the error callback
       act(() => {
@@ -682,9 +738,7 @@ describe('PredictTabView', () => {
       });
 
       // Should render error state
-      expect(
-        screen.queryByTestId('predict-account-state'),
-      ).not.toBeOnTheScreen();
+      expect(queryByTestId('predict-account-state')).not.toBeOnTheScreen();
     });
   });
 });
