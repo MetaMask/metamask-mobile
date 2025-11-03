@@ -260,9 +260,6 @@ class PerpsConnectionManagerClass {
             // Clean up preloaded subscriptions
             this.cleanupPreloadedSubscriptions();
 
-            // Keep state monitoring active to detect account changes even when disconnected
-            // This ensures we can reconnect with the correct account context when user returns
-
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
             this.isInitialized = false;
@@ -287,7 +284,6 @@ class PerpsConnectionManagerClass {
 
         await this.disconnectPromise;
       }
-      // Note: We no longer clean up state monitoring here to ensure account changes are detected
     } else {
       DevLogger.log(
         `PerpsConnectionManager: Grace period expired but refCount is now ${this.connectionRefCount}, skipping disconnection`,
@@ -357,7 +353,6 @@ class PerpsConnectionManagerClass {
     }
 
     // Set up monitoring when first entering Perps (refCount 0 -> 1)
-    // Keep monitoring active throughout app lifecycle to detect account changes even when disconnected
     if (this.connectionRefCount === 0) {
       this.setupStateMonitoring();
     }
@@ -819,7 +814,6 @@ class PerpsConnectionManagerClass {
         );
         this.scheduleGracePeriodDisconnection();
       }
-      // Note: Keep state monitoring active even when not connected to detect account changes
     }
   }
 
