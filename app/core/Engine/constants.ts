@@ -97,14 +97,14 @@ export const swapsSupportedChainIds = [
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
 export const LINEA_MAINNET_DISPLAY_NAME = 'Linea';
-export const POLYGON_DISPLAY_NAME = 'Polygon Mainnet';
+export const POLYGON_DISPLAY_NAME = 'Polygon';
 export const AVALANCHE_DISPLAY_NAME = 'Avalanche';
-export const ARBITRUM_DISPLAY_NAME = 'Arbitrum One';
-export const BNB_DISPLAY_NAME = 'BSC Mainnet';
-export const OPTIMISM_DISPLAY_NAME = 'Optimism Mainnet';
+export const ARBITRUM_DISPLAY_NAME = 'Arbitrum';
+export const BNB_DISPLAY_NAME = 'BNB Chain';
+export const OPTIMISM_DISPLAY_NAME = 'OP';
 export const ZK_SYNC_ERA_DISPLAY_NAME = 'zkSync Era';
 export const BASE_DISPLAY_NAME = 'Base';
-export const SEI_DISPLAY_NAME = 'Sei Mainnet';
+export const SEI_DISPLAY_NAME = 'Sei';
 export const MONAD_DISPLAY_NAME = 'Monad';
 
 export const NETWORK_TO_NAME_MAP = {
