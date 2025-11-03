@@ -170,7 +170,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
-  const { account } = usePerpsLiveAccount();
+  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get real HyperLiquid USDC balance
   const availableBalance = parseFloat(
@@ -843,7 +843,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.direction === 'long'
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
-  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
+  const isInsufficientFunds =
+    !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, { asset: orderForm.asset });
@@ -883,7 +884,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          showWarning={availableBalance === 0}
+          showWarning={!isLoadingAccount && availableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
@@ -1221,19 +1222,22 @@ const PerpsOrderViewContentBase: React.FC = () => {
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={fixedBottomContainerStyle}>
-          {filteredErrors.length > 0 && (
-            <View style={styles.validationContainer}>
-              {filteredErrors.map((error) => (
-                <Text
-                  key={error}
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Error}
-                >
-                  {error}
-                </Text>
-              ))}
-            </View>
-          )}
+          {filteredErrors.length > 0 &&
+            !isLoadingMarketData &&
+            currentPrice !== null &&
+            !orderValidation.isValidating && (
+              <View style={styles.validationContainer}>
+                {filteredErrors.map((error) => (
+                  <Text
+                    key={error}
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Error}
+                  >
+                    {error}
+                  </Text>
+                ))}
+              </View>
+            )}
 
           {/* OI Cap Warning - Only shows when market is at capacity */}
           <PerpsOICapWarning symbol={orderForm.asset} variant="inline" />
