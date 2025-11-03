@@ -463,6 +463,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         if (seedlessError.data?.numberOfAttempts !== undefined) {
           setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
         }
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'unknown_error',
+          });
+        }
         if (typeof seedlessError.data?.remainingTime === 'number') {
           tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
             () => null,
@@ -475,6 +482,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.code ===
         SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
       ) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'unknown_error',
+          });
+        }
         setError(strings('login.seedless_password_outdated'));
         return;
       }
@@ -502,6 +516,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     // capture unexpected exception for oauth login (rehydration) failures
     if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
+
       // If user has already consented to analytics, report error using regular Sentry
       if (isMetricsEnabled()) {
         captureException(seedlessError, {
@@ -588,6 +608,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       updateBiometryChoice(false);
     } else {
       setError(loginErrorMessage);
+    }
+
+    if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
     }
 
     setLoading(false);
