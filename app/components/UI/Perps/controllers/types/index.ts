@@ -40,11 +40,19 @@ export interface GetUserHistoryParams {
   accountId?: CaipAccountId;
 }
 
+// Trade configuration saved per market per network
+export interface TradeConfiguration {
+  leverage?: number; // Last used leverage for this market
+}
+
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
+
+// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
+export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -73,6 +81,13 @@ export interface TrackingData {
   realizedPnl?: number; // Realized P&L from close
 }
 
+// TP/SL-specific tracking data for analytics events
+export interface TPSLTrackingData {
+  direction: 'long' | 'short'; // Position direction
+  source: string; // Source of the TP/SL update (e.g., 'tp_sl_view', 'position_card')
+  positionSize: number; // Unsigned position size for metrics
+}
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
@@ -91,6 +106,7 @@ export type OrderParams = {
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+  existingPositionLeverage?: number; // Existing position leverage for validation (protocol constraint)
 
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
@@ -169,6 +185,22 @@ export type ClosePositionParams = {
   trackingData?: TrackingData;
 };
 
+export type ClosePositionsParams = {
+  coins?: string[]; // Optional: specific coins to close (omit or empty array to close all)
+  closeAll?: boolean; // Explicitly close all positions
+};
+
+export type ClosePositionsResult = {
+  success: boolean; // Overall success (true if at least one position closed)
+  successCount: number; // Number of positions closed successfully
+  failureCount: number; // Number of positions that failed to close
+  results: {
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
+
 export interface InitializeResult {
   success: boolean;
   error?: string;
@@ -230,6 +262,10 @@ export interface PerpsMarketData {
    * Trading volume as formatted string (e.g., '$1.2B', '$850M')
    */
   volume: string;
+  /**
+   * Open interest as formatted string (e.g., '$24.5M', '$1.2B')
+   */
+  openInterest?: string;
   /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */
@@ -296,6 +332,29 @@ export interface CancelOrderResult {
   orderId?: string; // Cancelled order ID
   error?: string;
 }
+
+export type BatchCancelOrdersParams = {
+  orderId: string;
+  coin: string;
+}[];
+
+export type CancelOrdersParams = {
+  coins?: string[]; // Optional: specific coins (omit to cancel all orders)
+  orderIds?: string[]; // Optional: specific order IDs (omit to cancel all orders for specified coins)
+  cancelAll?: boolean; // Explicitly cancel all orders
+};
+
+export type CancelOrdersResult = {
+  success: boolean; // Overall success (true if at least one order cancelled)
+  successCount: number; // Number of orders cancelled successfully
+  failureCount: number; // Number of orders that failed to cancel
+  results: {
+    orderId: string;
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
 
 export interface EditOrderParams {
   orderId: string | number; // Order ID or client order ID to modify
@@ -442,6 +501,7 @@ export interface OrderFill {
 export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetAccountStateParams {
@@ -464,6 +524,7 @@ export interface GetOrdersParams {
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetFundingParams {
@@ -538,6 +599,7 @@ export interface FeeCalculationParams {
   orderType: 'market' | 'limit';
   isMaker?: boolean;
   amount?: string;
+  coin: string; // Required: Asset symbol for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
 }
 
 export interface FeeCalculationResult {
@@ -566,6 +628,8 @@ export interface UpdatePositionTPSLParams {
   coin: string; // Asset symbol
   takeProfitPrice?: string; // Optional: undefined to remove
   stopLossPrice?: string; // Optional: undefined to remove
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TPSLTrackingData;
 }
 
 export interface Order {
@@ -584,6 +648,8 @@ export interface Order {
   // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)
+  stopLossOrderId?: string; // Stop loss order ID
+  takeProfitOrderId?: string; // Take profit order ID
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
@@ -608,7 +674,9 @@ export interface IPerpsProvider {
   placeOrder(params: OrderParams): Promise<OrderResult>;
   editOrder(params: EditOrderParams): Promise<OrderResult>;
   cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
+  cancelOrders?(params: BatchCancelOrdersParams): Promise<CancelOrdersResult>; // Optional: batch cancel for protocols that support it
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
+  closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;

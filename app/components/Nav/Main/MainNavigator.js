@@ -13,7 +13,6 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
-import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -21,11 +20,14 @@ import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
+import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
+import NftFullView from '../../Views/NftFullView';
+import TokensFullView from '../../Views/TokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -197,19 +199,9 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="AddAsset"
-      component={AddAsset}
-      options={AddAsset.navigationOptions}
-    />
-    <Stack.Screen
       name="Collectible"
       component={Collectible}
       options={Collectible.navigationOptions}
-    />
-    <Stack.Screen
-      name="ConfirmAddAsset"
-      component={ConfirmAddAsset}
-      options={ConfirmAddAsset.navigationOptions}
     />
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -396,11 +388,6 @@ const SettingsFlow = () => (
       name="ExperimentalSettings"
       component={ExperimentalSettings}
       options={ExperimentalSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name="NetworksSettings"
-      component={NetworksSettings}
-      options={NetworksSettings.navigationOptions}
     />
     <Stack.Screen
       name="CompanySettings"
@@ -943,6 +930,21 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen
+        name={Routes.WALLET.TOKENS_FULL_VIEW}
+        component={TokensFullView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AddAsset"
+        component={AddAsset}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ConfirmAddAsset"
+        component={ConfirmAddAsset}
+        options={{ headerShown: true }}
+      />
       {isRewardsEnabled && (
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
@@ -991,6 +993,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.NFTS_FULL_VIEW}
+        component={NftFullView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen name={Routes.RAMP.BUY}>
@@ -1120,6 +1127,15 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
+      {process.env.NODE_ENV !== 'production' && (
+        <Stack.Screen
+          name={Routes.FEATURE_FLAG_OVERRIDE}
+          component={FeatureFlagOverride}
+          options={{
+            headerShown: true,
+          }}
+        />
+      )}
       <Stack.Screen
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}

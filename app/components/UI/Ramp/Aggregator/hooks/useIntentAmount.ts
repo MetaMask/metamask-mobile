@@ -32,8 +32,8 @@ export default function useIntentAmount(
         const parsedAmount = parseAmount(
           intent.amount,
           isBuy
-            ? currentFiatCurrency.decimals ?? 0
-            : selectedAsset.decimals ?? 0,
+            ? (currentFiatCurrency.decimals ?? 0)
+            : (selectedAsset.decimals ?? 0),
         );
 
         if (parsedAmount) {

@@ -126,7 +126,9 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       <Text variant={TextVariant.BodyMD} style={styles.description}>
         {strings('default_settings.sheet.description_off2')}{' '}
         <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-          {strings('default_settings.sheet.description_off2_related_features1')}{' '}
+          {strings(
+            'default_settings.sheet.description_off2_related_features1',
+          )}{' '}
         </Text>
         <Text variant={TextVariant.BodyMD} style={styles.description}>
           {strings(

@@ -83,10 +83,7 @@ import { useConnectionHandler } from '../../../util/navigation/useConnectionHand
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
-import {
-  isPortfolioViewEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
@@ -137,9 +134,8 @@ const Main = (props) => {
       if (isSeedlessPasswordOutdated) {
         // Check for latest seedless password outdated state
         // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
-          false,
-        );
+        const isOutdated =
+          await Authentication.checkIsSeedlessPasswordOutdated(false);
         if (!isOutdated) {
           return;
         }
@@ -294,19 +290,16 @@ const Main = (props) => {
     if (
       hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
-      //set here token network filter if portfolio view is enabled
-      if (isPortfolioViewEnabled()) {
-        const { PreferencesController } = Engine.context;
-        if (Object.keys(tokenNetworkFilter).length === 1) {
-          PreferencesController.setTokenNetworkFilter({
-            [chainId]: true,
-          });
-        } else {
-          PreferencesController.setTokenNetworkFilter({
-            ...tokenNetworkFilter,
-            [chainId]: true,
-          });
-        }
+      const { PreferencesController } = Engine.context;
+      if (Object.keys(tokenNetworkFilter).length === 1) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        PreferencesController.setTokenNetworkFilter({
+          ...tokenNetworkFilter,
+          [chainId]: true,
+        });
       }
       if (
         isRemoveGlobalNetworkSelectorEnabled() &&
