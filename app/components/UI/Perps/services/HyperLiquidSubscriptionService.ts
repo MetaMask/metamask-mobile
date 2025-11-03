@@ -799,15 +799,6 @@ export class HyperLiquidSubscriptionService {
             this.cachedOICapsHash = oiCapsHash;
             this.oiCapsCacheInitialized = true;
 
-            DevLogger.log('OI Caps Updated (all DEXs)', {
-              oiCaps: allOICaps,
-              count: allOICaps.length,
-              perDex: data.perpDexStates.map((dexState, index) => ({
-                dex: enabledDexs[index] || 'main',
-                caps: dexState.perpsAtOpenInterestCap || [],
-              })),
-            });
-
             // Notify all subscribers
             this.oiCapSubscribers.forEach((callback) => callback(allOICaps));
           }
@@ -1562,12 +1553,6 @@ export class HyperLiquidSubscriptionService {
           // Cache asset contexts for this DEX
           this.dexAssetCtxsCache.set(dexKey, data.ctxs);
 
-          const callbackLogMessage = `assetCtxs callback fired for ${dexIdentifier}`;
-          DevLogger.log(callbackLogMessage, {
-            dex,
-            ctxsCount: data.ctxs?.length ?? 0,
-          });
-
           // Use cached meta to map ctxs array indices to symbols (no REST API call!)
           perpsMeta.universe.forEach((asset, index) => {
             const ctx = data.ctxs[index];
@@ -1606,11 +1591,6 @@ export class HyperLiquidSubscriptionService {
           });
 
           // Notify price subscribers with updated market data
-          DevLogger.log(`Notifying price subscribers after assetCtxs update`, {
-            dex: dex || 'main',
-            cachedPriceCount: this.cachedPriceData?.size ?? 0,
-            subscriberCount: this.priceSubscribers.size,
-          });
           this.notifyAllPriceSubscribers();
         })
         .then((sub) => {
@@ -1730,19 +1710,6 @@ export class HyperLiquidSubscriptionService {
         .clearinghouseState(
           subscriptionParams,
           async (data: WsClearinghouseStateEvent) => {
-            DevLogger.log(
-              `clearinghouseState callback fired for ${
-                dex ? `DEX: ${dex}` : 'main DEX'
-              }`,
-              {
-                dex,
-                positionsCount: data.clearinghouseState.assetPositions.filter(
-                  (assetPos: { position: { szi: string } }) =>
-                    assetPos.position.szi !== '0',
-                ).length,
-              },
-            );
-
             // Extract and process positions for this DEX
             const positions = data.clearinghouseState.assetPositions
               .filter(
