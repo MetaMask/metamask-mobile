@@ -1,7 +1,4 @@
-import {
-  isRemoveGlobalNetworkSelectorEnabled,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../util/networks';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -12,7 +9,6 @@ import Engine from '../../../core/Engine';
 
 // Mock the feature flags
 jest.mock('../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
   isPerDappSelectedNetworkEnabled: jest.fn(),
   getDecimalChainId: jest.fn(() => '1'),
 }));
@@ -87,10 +83,6 @@ const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
   typeof useNetworkSelection
 >;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
-const mockIsRemoveGlobalNetworkSelectorEnabled =
-  isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-    typeof isRemoveGlobalNetworkSelectorEnabled
-  >;
 const mockIsPerDappSelectedNetworkEnabled =
   isPerDappSelectedNetworkEnabled as jest.MockedFunction<
     typeof isPerDappSelectedNetworkEnabled
@@ -100,7 +92,7 @@ const mockSelectNetwork = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
-describe('useSwitchNetworks Feature Flag Tests', () => {
+describe('useSwitchNetworks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -136,7 +128,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       getMetaMetricsId: jest.fn(),
     });
 
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
     mockIsPerDappSelectedNetworkEnabled.mockReturnValue(false);
 
     // Mock the event builder
@@ -146,85 +137,38 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    // Common test configurations
-    const verifyControllersAvailable = () => {
+  describe('Network Controller Integration', () => {
+    it('provides access to MultichainNetworkController', () => {
       expect(
         Engine.context.MultichainNetworkController.setActiveNetwork,
       ).toBeDefined();
+    });
+
+    it('provides access to SelectedNetworkController', () => {
       expect(
         Engine.context.SelectedNetworkController.setNetworkClientIdForDomain,
       ).toBeDefined();
+    });
+
+    it('provides access to PreferencesController', () => {
       expect(
         Engine.context.PreferencesController.setTokenNetworkFilter,
       ).toBeDefined();
-    };
-
-    const verifyHookSetup = () => {
-      expect(mockUseNetworksByNamespace).toBeDefined();
-      expect(mockUseNetworkSelection).toBeDefined();
-      expect(mockSelectNetwork).toBeDefined();
-    };
-
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-      });
-
-      it('should call selectNetwork', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        expect(mockSelectNetwork).toBeDefined();
-        verifyHookSetup();
-      });
-
-      it('should have proper hook setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        verifyControllersAvailable();
-      });
     });
 
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-      });
-
-      it('should not call selectNetwork', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        expect(mockSelectNetwork).toBeDefined();
-        verifyHookSetup();
-      });
-
-      it('should have proper hook setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        verifyControllersAvailable();
-      });
+    it('provides access to AccountTrackerController', () => {
+      expect(Engine.context.AccountTrackerController.refresh).toBeDefined();
     });
   });
 
   describe('Hook Configuration', () => {
-    it('should properly initialize hooks with default values', () => {
-      // Verify that the hooks are properly initialized
+    it('initializes hooks with default values', () => {
       expect(mockUseNetworksByNamespace).toBeDefined();
       expect(mockUseNetworkSelection).toBeDefined();
       expect(mockUseMetrics).toBeDefined();
     });
 
-    it('should have all necessary Engine controllers available', () => {
-      // Verify that all necessary controllers are available
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toBeDefined();
-      expect(
-        Engine.context.SelectedNetworkController.setNetworkClientIdForDomain,
-      ).toBeDefined();
-      expect(
-        Engine.context.PreferencesController.setTokenNetworkFilter,
-      ).toBeDefined();
-      expect(Engine.context.AccountTrackerController.refresh).toBeDefined();
-    });
-
-    it('should have proper metrics setup', () => {
-      // Verify that metrics are properly set up
+    it('provides metrics tracking functionality', () => {
       expect(mockUseMetrics).toBeDefined();
       expect(mockTrackEvent).toBeDefined();
       expect(mockCreateEventBuilder).toBeDefined();
@@ -232,14 +176,12 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
   });
 
   describe('Network Selection Behavior', () => {
-    it('should provide selectNetwork function from useNetworkSelection', () => {
-      // Verify that selectNetwork is available from the hook
+    it('provides selectNetwork function from useNetworkSelection hook', () => {
       expect(mockSelectNetwork).toBeDefined();
       expect(typeof mockSelectNetwork).toBe('function');
     });
 
-    it('should provide networks from useNetworksByNamespace', () => {
-      // Verify that networks are available from the hook
+    it('provides networks array from useNetworksByNamespace hook', () => {
       const networksResult = mockUseNetworksByNamespace({
         networkType: 'popular' as NetworkType,
       });

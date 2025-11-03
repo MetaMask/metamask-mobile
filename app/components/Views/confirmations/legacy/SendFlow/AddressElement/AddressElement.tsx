@@ -33,7 +33,6 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const AddressElement: React.FC<AddressElementProps> = ({
   name,
@@ -54,7 +53,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
   const addressElementNetwork = allNetworks[chainId];
 
   const shouldDisplayNetworkBadge = useMemo(
-    () => isRemoveGlobalNetworkSelectorEnabled() && displayNetworkBadge,
+    () => displayNetworkBadge,
     [displayNetworkBadge],
   );
 

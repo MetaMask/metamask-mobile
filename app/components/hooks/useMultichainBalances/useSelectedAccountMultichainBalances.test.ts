@@ -81,7 +81,6 @@ jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   isTestNet: jest.fn().mockReturnValue(false),
   isPortfolioViewEnabled: jest.fn().mockReturnValue(false),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
 }));
 
 describe('useSelectedAccountMultichainBalances', () => {

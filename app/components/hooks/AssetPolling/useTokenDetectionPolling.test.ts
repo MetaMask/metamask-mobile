@@ -427,12 +427,9 @@ describe('useTokenDetectionPolling', () => {
     );
   });
 
-  describe('Feature flag scenarios', () => {
-    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
+  describe('Network Manager Integration', () => {
+    it('should poll enabled EVM networks portfolio view is enabled', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
 
       const { unmount } = renderHookWithProvider(
         () => useTokenDetectionPolling(),
@@ -460,7 +457,7 @@ describe('useTokenDetectionPolling', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('should poll current chain when portfolio view is disabled', () => {
+    it('polls current chain when portfolio view is disabled', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
 
       const { unmount } = renderHookWithProvider(
@@ -488,11 +485,8 @@ describe('useTokenDetectionPolling', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('should poll popular networks when all networks selected and global selector enabled', () => {
+    it('should poll popular networks when all networks selected', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(false);
 
       // Use chain IDs that are actually in PopularList: Ethereum Mainnet (0x1), Polygon (0x89), Optimism (0xa)
       const popularNetworks = ['0x1', '0x89', '0xa'];
@@ -542,6 +536,15 @@ describe('useTokenDetectionPolling', () => {
                 '0xa': true,
               },
             },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                  '0x89': true,
+                  '0xa': true,
+                },
+              },
+            },
           },
         },
       };
@@ -573,9 +576,6 @@ describe('useTokenDetectionPolling', () => {
 
     it('should handle empty enabled networks gracefully', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
 
       const stateWithEmptyNetworks = {
         ...state,

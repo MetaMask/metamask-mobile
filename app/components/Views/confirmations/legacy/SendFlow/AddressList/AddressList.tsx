@@ -23,7 +23,6 @@ import {
   AddressBookEntryWithRelaxedChainId,
   InternalAddressBookEntry,
 } from './AddressList.types';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const LabelElement = (styles: ReturnType<typeof styleSheet>, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
@@ -142,22 +141,11 @@ const AddressList = ({
       return fuse.search(inputSearch);
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      return completeAndFlattenedAddressBook;
-    }
-
-    return completeAndFlattenedAddressBookFilteredByCurrentChainId;
-  }, [
-    fuse,
-    inputSearch,
-    completeAndFlattenedAddressBook,
-    completeAndFlattenedAddressBookFilteredByCurrentChainId,
-  ]);
+    return completeAndFlattenedAddressBook;
+  }, [fuse, inputSearch, completeAndFlattenedAddressBook]);
 
   useEffect(() => {
-    const fuseAddressBook = isRemoveGlobalNetworkSelectorEnabled()
-      ? completeAndFlattenedAddressBook
-      : completeAndFlattenedAddressBookFilteredByCurrentChainId;
+    const fuseAddressBook = completeAndFlattenedAddressBook;
 
     const newFuse = new Fuse(fuseAddressBook, {
       shouldSort: true,

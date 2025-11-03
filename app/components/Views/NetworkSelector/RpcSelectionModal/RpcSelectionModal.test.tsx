@@ -18,23 +18,15 @@ import {
 } from '../../../../selectors/networkController';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
 import { Hex } from '@metamask/utils';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
-// Mock the feature flags
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
   getNetworkImageSource: jest.fn(),
   mainnet: {
     name: 'Ethereum Main Network',
   },
 }));
 const { PreferencesController, NetworkController } = Engine.context;
-
-const mockIsRemoveGlobalNetworkSelectorEnabled =
-  isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-    typeof isRemoveGlobalNetworkSelectorEnabled
-  >;
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -75,7 +67,7 @@ const MOCK_STORE_STATE = {
               decimals: 18,
             },
           },
-          '0xtest': {
+          '0x999': {
             rpcEndpoints: [
               {
                 url: 'https://test.infura.io/v3/{infuraProjectId}',
@@ -84,10 +76,10 @@ const MOCK_STORE_STATE = {
             ],
             defaultRpcEndpointIndex: 0,
             blockExplorerUrls: ['https://lineascan.io'],
-            chainId: '0xtest',
+            chainId: '0x999',
             name: 'Test Mainnet',
             nativeCurrency: {
-              name: 'Linea Ether',
+              name: 'Test Ether',
               symbol: 'ETH',
               decimals: 18,
             },
@@ -261,9 +253,6 @@ describe('RpcSelectionModal', () => {
       }
       return null;
     });
-
-    // Reset feature flag mock
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
   });
   afterEach(() => {
     jest.clearAllMocks();
@@ -375,7 +364,7 @@ describe('RpcSelectionModal', () => {
         {...defaultProps}
         showMultiRpcSelectModal={{
           isVisible: true,
-          chainId: '0xtest',
+          chainId: '0x999',
           networkName: 'Test Mainnet',
         }}
       />,
@@ -387,75 +376,30 @@ describe('RpcSelectionModal', () => {
     );
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    // Common test configurations
-    const renderAndPressRpc = () => {
+  describe('Network Manager Integration', () => {
+    it('calls updateNetwork when RPC is selected', () => {
       const { getByText } = renderWithProvider(
         <RpcSelectionModal {...defaultProps} />,
       );
       const rpcUrlElement = getByText('mainnet.infura.io/v3');
-      fireEvent.press(rpcUrlElement);
-      return { getByText };
-    };
 
-    const verifyControllersAvailable = () => {
+      fireEvent.press(rpcUrlElement);
+
+      expect(NetworkController.updateNetwork).toHaveBeenCalled();
+      expect(defaultProps.closeRpcModal).toHaveBeenCalled();
+    });
+
+    it('initializes with Engine controllers available', () => {
       expect(NetworkController.updateNetwork).toBeDefined();
       expect(PreferencesController.setTokenNetworkFilter).toBeDefined();
-    };
-
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-      });
-
-      it('should call selectNetwork', () => {
-        renderAndPressRpc();
-
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        expect(NetworkController.updateNetwork).toHaveBeenCalled();
-        expect(defaultProps.closeRpcModal).toHaveBeenCalled();
-      });
-
-      it('should have proper hook setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        verifyControllersAvailable();
-      });
     });
 
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-      });
-
-      it('should not call selectNetwork', () => {
-        renderAndPressRpc();
-
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        expect(NetworkController.updateNetwork).toHaveBeenCalled();
-        expect(defaultProps.closeRpcModal).toHaveBeenCalled();
-      });
-
-      it('should have proper hook setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        verifyControllersAvailable();
-      });
-    });
-  });
-
-  describe('Hook Configuration', () => {
-    it('should properly initialize hooks with default values', () => {
+    it('renders with default props', () => {
       const { getByText } = renderWithProvider(
         <RpcSelectionModal {...defaultProps} />,
       );
 
-      // Verify that the component renders correctly
       expect(getByText('Mainnet')).toBeTruthy();
-    });
-
-    it('should have all necessary Engine controllers available', () => {
-      // Verify that all necessary controllers are available
-      expect(NetworkController.updateNetwork).toBeDefined();
-      expect(PreferencesController.setTokenNetworkFilter).toBeDefined();
     });
   });
 });

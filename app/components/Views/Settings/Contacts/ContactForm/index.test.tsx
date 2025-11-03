@@ -11,10 +11,6 @@ const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xf55C0d639d99699bFd7EC54d9FAFee40E4d272C4';
 const ENS_ADDRESS = '0xabcdef1234567890abcdef1234567890abcdef12';
 
-const mockIsRemoveGlobalNetworkSelectorEnabled = jest
-  .fn()
-  .mockReturnValue(false);
-
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   renderShortAddress: jest.fn((address) => `0x123...${address.slice(-4)}`),
@@ -33,8 +29,6 @@ jest.mock('../../../../../util/address', () => ({
 
 jest.mock('../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: () =>
-    mockIsRemoveGlobalNetworkSelectorEnabled(),
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-image-uri' })),
 }));
 
@@ -135,7 +129,6 @@ const renderContactForm = (
 describe('ContactForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
   });
 
   it('renders correctly', () => {
@@ -261,9 +254,7 @@ describe('ContactForm', () => {
     });
   });
 
-  it('handles network selection when isRemoveGlobalNetworkSelectorEnabled is true', async () => {
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-
+  it('handles network selection', async () => {
     const { findByTestId } = renderContactForm();
 
     await waitFor(() => {
@@ -353,7 +344,7 @@ describe('ContactForm', () => {
 
     await waitFor(() => {
       expect(addressInput.props.value).toBe(MOCK_ADDRESS);
-      expect(addressInput.props.editable).toBeTruthy();
+      expect(addressInput.props.editable).toBeFalsy(); // Address is immutable in edit mode
       expect(nameInput.props.editable).toBeTruthy();
       expect(memoInput.props.editable).toBeTruthy();
     });

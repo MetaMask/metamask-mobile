@@ -374,9 +374,6 @@ describe('useCurrencyRatePolling', () => {
 
     it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
 
       renderHookWithProvider(() => useCurrencyRatePolling(), {
         state: baseState,
@@ -401,9 +398,6 @@ describe('useCurrencyRatePolling', () => {
 
     it('should handle empty enabled networks gracefully', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
 
       const stateWithEmptyNetworks = {
         ...baseState,
@@ -431,9 +425,6 @@ describe('useCurrencyRatePolling', () => {
 
     it('should handle missing network configurations gracefully', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
 
       const stateWithMissingConfigs = {
         ...baseState,
@@ -464,9 +455,6 @@ describe('useCurrencyRatePolling', () => {
 
     it('should handle undefined enabled networks gracefully', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
 
       const stateWithUndefinedNetworks = {
         ...baseState,

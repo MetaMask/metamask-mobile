@@ -119,7 +119,6 @@ jest.mock('../../../util/transactions', () => ({
 
 jest.mock('../../../util/networks', () => ({
   __esModule: true,
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
   findBlockExplorerForRpc: jest.fn(() => 'https://explorer.example'),
   getBlockExplorerAddressUrl: jest.fn(),
 }));
@@ -302,7 +301,6 @@ const { updateIncomingTransactions } = jest.requireMock(
   '../../../util/transaction-controller',
 );
 const networksMock = jest.requireMock('../../../util/networks');
-const { isRemoveGlobalNetworkSelectorEnabled } = networksMock;
 
 describe('UnifiedTransactionsView', () => {
   const mockUseSelector = useSelector as unknown as jest.Mock;
@@ -320,7 +318,6 @@ describe('UnifiedTransactionsView', () => {
       url: 'https://explorer.example/address/0xabc',
       title: 'explorer.example',
     }));
-    isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
@@ -500,7 +497,6 @@ describe('UnifiedTransactionsView', () => {
 
   describe('block explorer url', () => {
     it('uses selected chain block explorer when global selector is enabled with a single chain', () => {
-      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
           return [];
@@ -548,11 +544,9 @@ describe('UnifiedTransactionsView', () => {
         'https://explorer1.example',
       );
       expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledTimes(1);
-      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
     });
 
     it('omits block explorer when multiple EVM chains are selected with global selector enabled', () => {
-      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       networksMock.getBlockExplorerAddressUrl.mockImplementationOnce(() => ({
         url: undefined,
         title: 'explorer.example',
@@ -605,7 +599,6 @@ describe('UnifiedTransactionsView', () => {
         undefined,
       );
       expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledTimes(1);
-      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
     });
   });
 

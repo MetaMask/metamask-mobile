@@ -18,7 +18,6 @@ import {
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { cloneDeep } from 'lodash';
 import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TransactionBridgeQuote } from '../../utils/bridge';
 import { Hex, createProjectLogger } from '@metamask/utils';
@@ -163,9 +162,7 @@ export function useTransactionConfirm() {
     dispatch(resetTransaction());
 
     // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
+    tryEnableEvmNetwork(chainId);
   }, [
     batchTransactions,
     bridgeFeeFiat,

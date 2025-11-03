@@ -677,9 +677,6 @@ export const isPerDappSelectedNetworkEnabled = () => true;
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isRemoveGlobalNetworkSelectorEnabled = () =>
-  process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
-
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {
   [ChainId.mainnet]: 'Mainnet',

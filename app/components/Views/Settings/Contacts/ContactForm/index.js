@@ -44,10 +44,7 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
-import {
-  getNetworkImageSource,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../../../util/networks';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
@@ -456,8 +453,6 @@ class ContactForm extends PureComponent {
       '';
     const isAddMode = editable && mode === ADD;
     const isEditMode = editable && mode === EDIT;
-    const isRemoveGlobalNetworkSelectorFeatureFlagEnabled =
-      isRemoveGlobalNetworkSelectorEnabled();
 
     return (
       <SafeAreaView
@@ -492,11 +487,7 @@ class ContactForm extends PureComponent {
             >
               <View style={styles.inputWrapper}>
                 <TextInput
-                  editable={
-                    (editable &&
-                      !isRemoveGlobalNetworkSelectorFeatureFlagEnabled) ||
-                    isAddMode
-                  }
+                  editable={isAddMode}
                   autoCapitalize={'none'}
                   autoCorrect={false}
                   onChangeText={this.onChangeAddress}
@@ -507,8 +498,7 @@ class ContactForm extends PureComponent {
                   style={[
                     styles.textInput,
                     inputWidth ? { width: inputWidth } : {},
-                    isEditMode &&
-                    isRemoveGlobalNetworkSelectorFeatureFlagEnabled
+                    isEditMode
                       ? {
                           color: colors.text.alternative,
                         }
@@ -527,9 +517,7 @@ class ContactForm extends PureComponent {
                 )}
               </View>
 
-              {((editable &&
-                !isRemoveGlobalNetworkSelectorFeatureFlagEnabled) ||
-                isAddMode) && (
+              {isAddMode && (
                 <TouchableOpacity
                   onPress={this.onScan}
                   style={styles.iconWrapper}
@@ -571,55 +559,53 @@ class ContactForm extends PureComponent {
               </View>
             </View>
 
-            {isRemoveGlobalNetworkSelectorFeatureFlagEnabled && (
-              <>
-                <Text style={styles.label}>
-                  {strings('address_book.network')}
-                </Text>
-                <TouchableOpacity
-                  disabled={!editable}
-                  style={[styles.networkSelector]}
-                  onPress={() => {
-                    if (this.state.editable) {
-                      this.setOpenNetworkSelector(true);
-                    }
-                  }}
-                  onLongPress={() => {
-                    if (this.state.editable) {
-                      this.setOpenNetworkSelector(true);
-                    }
-                  }}
-                  testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
-                >
-                  <View style={styles.networkSelectorNetworkName}>
-                    <Avatar
-                      variant={AvatarVariant.Network}
-                      size={AvatarSize.Sm}
-                      name={networkName}
-                      imageSource={getNetworkImageSource({
-                        chainId: contactChainId || this.props.chainId,
-                      })}
-                    />
-                    <Text style={styles.networkSelectorNetworkNameLabel}>
-                      {networkName}
-                    </Text>
-                  </View>
-                  {!!editable && (
-                    <ButtonIcon
-                      iconName={IconName.ArrowDown}
-                      iconColor={IconColor.Default}
-                      onPress={() => {
-                        if (this.state.editable) {
-                          this.setOpenNetworkSelector(true);
-                        }
-                      }}
-                      accessibilityRole="button"
-                      style={styles.buttonIcon}
-                    />
-                  )}
-                </TouchableOpacity>
-              </>
-            )}
+            <>
+              <Text style={styles.label}>
+                {strings('address_book.network')}
+              </Text>
+              <TouchableOpacity
+                disabled={!editable}
+                style={[styles.networkSelector]}
+                onPress={() => {
+                  if (this.state.editable) {
+                    this.setOpenNetworkSelector(true);
+                  }
+                }}
+                onLongPress={() => {
+                  if (this.state.editable) {
+                    this.setOpenNetworkSelector(true);
+                  }
+                }}
+                testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
+              >
+                <View style={styles.networkSelectorNetworkName}>
+                  <Avatar
+                    variant={AvatarVariant.Network}
+                    size={AvatarSize.Sm}
+                    name={networkName}
+                    imageSource={getNetworkImageSource({
+                      chainId: contactChainId || this.props.chainId,
+                    })}
+                  />
+                  <Text style={styles.networkSelectorNetworkNameLabel}>
+                    {networkName}
+                  </Text>
+                </View>
+                {!!editable && (
+                  <ButtonIcon
+                    iconName={IconName.ArrowDown}
+                    iconColor={IconColor.Default}
+                    onPress={() => {
+                      if (this.state.editable) {
+                        this.setOpenNetworkSelector(true);
+                      }
+                    }}
+                    accessibilityRole="button"
+                    style={styles.buttonIcon}
+                  />
+                )}
+              </TouchableOpacity>
+            </>
           </View>
 
           {addressError && (

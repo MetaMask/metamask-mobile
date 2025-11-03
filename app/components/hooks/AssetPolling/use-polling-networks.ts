@@ -2,10 +2,7 @@ import { useSelector } from 'react-redux';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { useMemo } from 'react';
-import {
-  isPortfolioViewEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 import {
   selectAllPopularNetworkConfigurations,
   selectEvmNetworkConfigurationsByChainId,
@@ -44,7 +41,6 @@ export function usePollingNetworks() {
 
   const networkConfigs: NetworkConfiguration[] = useMemo(() => {
     const portfolioViewEnabled = isPortfolioViewEnabled();
-    const globalNetworkSelectorEnabled = isRemoveGlobalNetworkSelectorEnabled();
     const portfolioViewAllNetworksSelected =
       isAllNetworksSelected && isPopularNetwork;
 
@@ -58,8 +54,8 @@ export function usePollingNetworks() {
       return selectedNetworkConfig;
     }
 
-    // Portfolio View and GNS
-    if (portfolioViewEnabled && globalNetworkSelectorEnabled) {
+    // Portfolio View
+    if (portfolioViewEnabled) {
       // Filtered all EVM networks
       return (enabledEvmNetworks || [])
         .map((network) => {

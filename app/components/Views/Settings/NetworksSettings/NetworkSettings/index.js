@@ -2,13 +2,7 @@
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import React, { PureComponent } from 'react';
-import {
-  View,
-  TextInput,
-  SafeAreaView,
-  Linking,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { View, TextInput, SafeAreaView, Linking } from 'react-native';
 import isUrl from 'is-url';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -96,7 +90,6 @@ import {
   addItemToChainIdList,
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { NETWORK_TO_NAME_MAP } from '../../../../../core/Engine/constants';
 import { createStyles } from './index.styles';
 
@@ -685,10 +678,8 @@ export class NetworkSettings extends PureComponent {
       }
     }
 
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      const { NetworkEnablementController } = Engine.context;
-      NetworkEnablementController.enableNetwork(chainId);
-    }
+    const { NetworkEnablementController } = Engine.context;
+    NetworkEnablementController.enableNetwork(chainId);
 
     await this.handleNetworkUpdate({
       rpcUrl,
