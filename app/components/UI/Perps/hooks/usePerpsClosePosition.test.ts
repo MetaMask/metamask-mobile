@@ -16,7 +16,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock dependencies
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../../locales/i18n', () => ({
@@ -31,12 +30,12 @@ const mockPerpsToastOptions = {
       marketClose: {
         full: {
           closeFullPositionInProgress: jest.fn(),
-          closeFullPositionSuccess: {},
+          closeFullPositionSuccess: jest.fn(),
           closeFullPositionFailed: {},
         },
         partial: {
           closePartialPositionInProgress: jest.fn(),
-          closePartialPositionSuccess: {},
+          closePartialPositionSuccess: jest.fn(),
           closePartialPositionFailed: {},
         },
       },
@@ -107,9 +106,8 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition({ onSuccess }));
 
       await act(async () => {
-        const closeResult = await result.current.handleClosePosition(
-          mockPosition,
-        );
+        const closeResult =
+          await result.current.handleClosePosition(mockPosition);
         expect(closeResult).toEqual(successResult);
       });
 
@@ -130,11 +128,10 @@ describe('usePerpsClosePosition', () => {
         mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
           .closeFullPositionInProgress,
       ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
-      expect(mockShowToast).toHaveBeenNthCalledWith(
-        2,
+      expect(
         mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
           .closeFullPositionSuccess,
-      );
+      ).toHaveBeenCalledWith(mockPosition, undefined);
     });
 
     it('should successfully close a partial position with limit order', async () => {
@@ -364,9 +361,8 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        const closeResult = await result.current.handleClosePosition(
-          positionWithTPSL,
-        );
+        const closeResult =
+          await result.current.handleClosePosition(positionWithTPSL);
         expect(closeResult).toEqual(successResult);
       });
 
@@ -508,11 +504,10 @@ describe('usePerpsClosePosition', () => {
 
           // Should show progress toast first, then success toast
           expect(mockShowToast).toHaveBeenCalledTimes(2);
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .full.closeFullPositionSuccess,
-          );
+          ).toHaveBeenCalledWith(mockPosition, undefined);
         });
 
         it('should show success toast for partial position market close', async () => {
@@ -534,11 +529,10 @@ describe('usePerpsClosePosition', () => {
 
           // Should show progress toast first, then success toast
           expect(mockShowToast).toHaveBeenCalledTimes(2);
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .partial.closePartialPositionSuccess,
-          );
+          ).toHaveBeenCalledWith(mockPosition, undefined);
         });
 
         it('should show success toast when size is empty string (treated as full close)', async () => {
@@ -558,11 +552,10 @@ describe('usePerpsClosePosition', () => {
             );
           });
 
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .full.closeFullPositionSuccess,
-          );
+          ).toHaveBeenCalledWith(mockPosition, undefined);
         });
       });
 
@@ -788,12 +781,11 @@ describe('usePerpsClosePosition', () => {
               .full.closeFullPositionInProgress.mock.results[0]?.value;
           expect(mockShowToast).toHaveBeenNthCalledWith(1, progressToastResult);
 
-          // Second call should be success toast
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          // Second call should be success toast function result
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .full.closeFullPositionSuccess,
-          );
+          ).toHaveBeenCalledWith(mockPosition, undefined);
         });
 
         it('should show toasts in correct order for failed market close', async () => {
@@ -838,6 +830,135 @@ describe('usePerpsClosePosition', () => {
           );
         });
       });
+    });
+  });
+
+  describe('marketPrice parameter handling', () => {
+    it('accepts optional marketPrice parameter in handleClosePosition', async () => {
+      const successResult: OrderResult = {
+        success: true,
+        orderId: '123',
+      };
+      mockClosePosition.mockResolvedValue(successResult);
+
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await result.current.handleClosePosition(
+          mockPosition,
+          undefined,
+          'market',
+          undefined,
+          undefined,
+          '$55000',
+        );
+      });
+
+      expect(mockClosePosition).toHaveBeenCalled();
+    });
+
+    it('passes marketPrice to closeFullPositionSuccess toast for full market close', async () => {
+      const successResult: OrderResult = {
+        success: true,
+        orderId: '123',
+      };
+      mockClosePosition.mockResolvedValue(successResult);
+
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await result.current.handleClosePosition(
+          mockPosition,
+          undefined,
+          'market',
+          undefined,
+          undefined,
+          '$55000',
+        );
+      });
+
+      expect(
+        mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
+          .closeFullPositionSuccess,
+      ).toHaveBeenCalledWith(mockPosition, '$55000');
+    });
+
+    it('passes marketPrice to closePartialPositionSuccess toast for partial market close', async () => {
+      const successResult: OrderResult = {
+        success: true,
+        orderId: '456',
+      };
+      mockClosePosition.mockResolvedValue(successResult);
+
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await result.current.handleClosePosition(
+          mockPosition,
+          '0.05',
+          'market',
+          undefined,
+          undefined,
+          '$55000',
+        );
+      });
+
+      expect(
+        mockPerpsToastOptions.positionManagement.closePosition.marketClose
+          .partial.closePartialPositionSuccess,
+      ).toHaveBeenCalledWith(mockPosition, '$55000');
+    });
+
+    it('passes position object to success toast functions', async () => {
+      const successResult: OrderResult = {
+        success: true,
+        orderId: '789',
+      };
+      mockClosePosition.mockResolvedValue(successResult);
+
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await result.current.handleClosePosition(
+          mockPosition,
+          undefined,
+          'market',
+          undefined,
+          undefined,
+          '$50000',
+        );
+      });
+
+      expect(
+        mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
+          .closeFullPositionSuccess,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ coin: 'BTC' }),
+        '$50000',
+      );
+    });
+
+    it('works when marketPrice is undefined', async () => {
+      const successResult: OrderResult = {
+        success: true,
+        orderId: '999',
+      };
+      mockClosePosition.mockResolvedValue(successResult);
+
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await result.current.handleClosePosition(
+          mockPosition,
+          undefined,
+          'market',
+        );
+      });
+
+      expect(
+        mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
+          .closeFullPositionSuccess,
+      ).toHaveBeenCalledWith(mockPosition, undefined);
     });
   });
 

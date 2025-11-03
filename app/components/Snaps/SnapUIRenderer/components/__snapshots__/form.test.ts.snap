@@ -144,11 +144,12 @@ exports[`SnapUIForm will render 1`] = `
                           "color": "#121314",
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 20,
                           "opacity": 1,
-                          "paddingVertical": 0,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -361,11 +362,12 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "color": "#121314",
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 20,
                           "opacity": 1,
-                          "paddingVertical": 0,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"

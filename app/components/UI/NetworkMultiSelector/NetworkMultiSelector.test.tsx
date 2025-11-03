@@ -271,15 +271,21 @@ describe('NetworkMultiSelector', () => {
     });
 
     mockUseNetworksToUse.mockReturnValue({
-      networksToUse: [...mockNetworks, ...mockNetworks], // Combined EVM and Solana
+      networksToUse: [...mockNetworks, ...mockNetworks], // Combined EVM and Solana and Bitcoin networks
       evmNetworks: mockNetworks,
       solanaNetworks: mockNetworks,
-      isMultichainAccountsState2Enabled: true,
+      bitcoinNetworks: mockNetworks,
+      tronNetworks: mockNetworks,
       selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
+      selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
+      selectedTronAccount: { id: 'tron-account' } as InternalAccount,
+      isMultichainAccountsState2Enabled: true,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
+      areAllBitcoinNetworksSelected: false,
+      areAllTronNetworksSelected: false,
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -595,12 +601,18 @@ describe('NetworkMultiSelector', () => {
         networksToUse: mockEvmNetworks,
         evmNetworks: mockEvmNetworks,
         solanaNetworks: [],
-        isMultichainAccountsState2Enabled: true,
+        bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
         selectedSolanaAccount: null,
+        selectedBitcoinAccount: null,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: true,
         areAllSolanaNetworksSelected: false,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        selectedTronAccount: null,
       });
 
       // Setup selector mock
@@ -671,9 +683,15 @@ describe('NetworkMultiSelector', () => {
         networksToUse: mockSolanaNetworks,
         evmNetworks: [],
         solanaNetworks: mockSolanaNetworks,
-        isMultichainAccountsState2Enabled: true,
+        bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
+        selectedBitcoinAccount: null,
+        selectedTronAccount: null,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: true,
@@ -746,12 +764,18 @@ describe('NetworkMultiSelector', () => {
         networksToUse: mockNetworks,
         evmNetworks: [],
         solanaNetworks: [],
-        isMultichainAccountsState2Enabled: true,
+        bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
+        selectedBitcoinAccount: null,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        selectedTronAccount: null,
       });
 
       mockUseSelector.mockImplementation((selector) => {
@@ -813,12 +837,18 @@ describe('NetworkMultiSelector', () => {
         networksToUse: mockNetworks,
         evmNetworks: [],
         solanaNetworks: [],
-        isMultichainAccountsState2Enabled: false,
+        bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
+        selectedBitcoinAccount: null,
+        selectedTronAccount: null,
+        isMultichainAccountsState2Enabled: false,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
       });
 
       mockUseSelector.mockImplementation((selector) => {
@@ -832,6 +862,9 @@ describe('NetworkMultiSelector', () => {
             }
             if (scope.includes('solana')) {
               return { id: 'solana-account' };
+            }
+            if (scope === 'bip122:0') {
+              return { id: 'bitcoin-account' };
             }
             return null;
           };
@@ -849,9 +882,18 @@ describe('NetworkMultiSelector', () => {
   });
 
   describe('areAllNetworksSelected combined logic', () => {
-    it('returns true when both EVM and Solana networks are all selected', () => {
+    it('returns true when both EVM and Solana and Bitcoin networks are all selected', () => {
       // Set up specific mocks for this test - both EVM and Solana all selected
       mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: mockNetworks,
+          selectedNetworks: mockNetworks,
+          selectedCount: 2,
+          areAllNetworksSelected: true,
+          areAnyNetworksSelected: true,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
+        })
         .mockReturnValueOnce({
           networks: mockNetworks,
           selectedNetworks: mockNetworks,
@@ -886,6 +928,9 @@ describe('NetworkMultiSelector', () => {
               // SolScope.Mainnet
               return { id: 'solana-account' };
             }
+            if (scope === 'bip122:0') {
+              return { id: 'bitcoin-account' };
+            }
             return null;
           };
         }
@@ -901,7 +946,7 @@ describe('NetworkMultiSelector', () => {
       expect(networkList.props.areAllNetworksSelected).toBe(false);
     });
 
-    it('returns false when EVM networks are selected but Solana networks are not', () => {
+    it('returns false when EVM networks are selected but Solana and Bitcoin networks are not', () => {
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockNetworks,
@@ -920,12 +965,22 @@ describe('NetworkMultiSelector', () => {
           areAnyNetworksSelected: false,
           networkCount: 2,
           totalEnabledNetworksCount: 2,
+        })
+        .mockReturnValueOnce({
+          networks: mockNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
         });
 
       mockUseSelector
         .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
-        .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
+        .mockReturnValueOnce(() => ({ id: 'solana-account' })) // selectedSolanaAccount
+        .mockReturnValueOnce(() => ({ id: 'bitcoin-account' })); // selectedBitcoinAccount
 
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector openModal={mockOpenModal} />,
@@ -1018,7 +1073,8 @@ describe('NetworkMultiSelector', () => {
       mockUseSelector
         .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => null) // selectedEvmAccount
-        .mockReturnValueOnce(() => null); // selectedSolanaAccount
+        .mockReturnValueOnce(() => null) // selectedSolanaAccount
+        .mockReturnValueOnce(() => null); // selectedBitcoinAccount
 
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector openModal={mockOpenModal} />,
@@ -1183,6 +1239,15 @@ describe('NetworkMultiSelector', () => {
           areAnyNetworksSelected: true,
           networkCount: 2,
           totalEnabledNetworksCount: 2,
+        })
+        .mockReturnValueOnce({
+          networks: mockNetworks,
+          selectedNetworks: [mockNetworks[0]],
+          selectedCount: 1,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: true,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
         });
 
       const { getByTestId } = renderWithProvider(
@@ -1229,6 +1294,15 @@ describe('NetworkMultiSelector', () => {
           areAnyNetworksSelected: true,
           networkCount: 2,
           totalEnabledNetworksCount: 2,
+        })
+        .mockReturnValueOnce({
+          networks: mockNetworks,
+          selectedNetworks: mockNetworks,
+          selectedCount: 2,
+          areAllNetworksSelected: true,
+          areAnyNetworksSelected: true,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
         });
 
       // Override the selector for this specific test
@@ -1245,6 +1319,9 @@ describe('NetworkMultiSelector', () => {
             if (scope.includes('solana')) {
               // SolScope.Mainnet
               return { id: 'solana-account' };
+            }
+            if (scope === 'bip122:0') {
+              return { id: 'bitcoin-account' };
             }
             return null;
           };

@@ -4,9 +4,10 @@ import {
   getGanachePort,
   getLocalTestDappPort,
   getMockServerPort,
+  getCommandQueueServerPort,
   getSecondTestDappPort,
 } from './framework/fixtures/FixtureUtils';
-import Utilities from './utils/Utilities';
+import Utilities from './framework/Utilities';
 import { resolveConfig } from 'detox/internals';
 import { createLogger } from './framework/logger';
 
@@ -382,6 +383,7 @@ export default class TestHelpers {
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort(getGanachePort());
       await device.reverseTcpPort(getFixturesServerPort());
+      await device.reverseTcpPort(getCommandQueueServerPort());
       await device.reverseTcpPort(getLocalTestDappPort());
       await device.reverseTcpPort(getSecondTestDappPort());
       await device.reverseTcpPort(getMockServerPort());

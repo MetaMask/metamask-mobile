@@ -50,18 +50,12 @@ const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
     <Box twClassName="flex-1 gap-4">
       <Box twClassName="gap-1">
         {/* Title */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          twClassName="text-white"
-        >
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
           {title}
         </Text>
 
         {/* Description */}
-        <Text variant={TextVariant.BodyMd} twClassName="text-white">
-          {description}
-        </Text>
+        <Text variant={TextVariant.BodyMd}>{description}</Text>
       </Box>
 
       {/* Button Section */}

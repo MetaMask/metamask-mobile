@@ -19,7 +19,7 @@ import Keypad from '../../../../Base/Keypad';
 import {
   formatPerpsFiat,
   formatWithSignificantDigits,
-  PRICE_RANGES_POSITION_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -132,12 +132,37 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   /**
    * Format limit price with proper decimal handling
+   * Shows raw input during typing (preserves ".", "0.", "0.00", etc.)
+   * Only formats complete numbers
    * @param price - Price string to format
-   * @returns Formatted price string
+   * @returns Formatted price string with proper currency symbol
    */
   const formatLimitPriceValue = useCallback((price: string) => {
     if (!price || price === '0') {
       return '';
+    }
+
+    // Preserve raw input if it ends with a decimal point or has trailing zeros after decimal
+    // Format the base number to get proper currency symbol, then append the typed decimal part
+    if (price.endsWith('.') || /\.\d*0$/.test(price)) {
+      const parts = price.split('.');
+      const integerPart = parts[0] || '0';
+      const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
+
+      // Format the integer part to get proper currency formatting
+      const formatted = formatPerpsFiat(integerPart, {
+        ranges: [
+          {
+            condition: () => true,
+            threshold: 0,
+            maximumDecimals: 0,
+            minimumDecimals: 0,
+          },
+        ],
+      });
+
+      // Append the decimal part as typed by user
+      return `${formatted}${decimalPart}`;
     }
 
     const formatConfig = {
@@ -301,9 +326,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
           {asset}-USD{' '}
-          {currentPrice
+          {currentPrice !== undefined && currentPrice !== null
             ? formatPerpsFiat(currentPrice, {
-                ranges: PRICE_RANGES_POSITION_VIEW,
+                ranges: PRICE_RANGES_UNIVERSAL,
               })
             : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
         </Text>
@@ -375,15 +400,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 };
 
 PerpsLimitPriceBottomSheet.displayName = 'PerpsLimitPriceBottomSheet';
-
-// Enable WDYR tracking in development
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsLimitPriceBottomSheet as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsLimitPriceBottomSheet',
-  };
-}
 
 export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   // If bottom sheet is not visible in both states, skip re-render

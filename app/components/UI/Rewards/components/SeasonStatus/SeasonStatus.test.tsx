@@ -287,6 +287,43 @@ jest.mock('../ThemeImageComponent', () => {
   };
 });
 
+// Mock RewardsImageModal
+jest.mock('../RewardsImageModal', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (
+        {
+          visible,
+          onClose,
+          themeImage,
+          fallbackImage,
+          testID,
+          ...props
+        }: {
+          visible?: boolean;
+          onClose?: () => void;
+          themeImage?: { lightModeUrl?: string; darkModeUrl?: string };
+          fallbackImage?: unknown;
+          testID?: string;
+        },
+        ref: unknown,
+      ) =>
+        ReactActual.createElement(View, {
+          testID: testID || 'rewards-image-modal',
+          'data-visible': visible,
+          'data-on-close': onClose,
+          'data-theme-image': themeImage,
+          'data-fallback-image': fallbackImage,
+          ref,
+          ...props,
+        }),
+    ),
+  };
+});
+
 describe('SeasonStatus', () => {
   const mockDispatch = jest.fn();
 
@@ -619,6 +656,14 @@ describe('SeasonStatus', () => {
 
       expect(() => unmount()).not.toThrow();
     });
+
+    it('should call useSeasonStatus with onlyForExplicitFetch: true', () => {
+      render(<SeasonStatus />);
+
+      expect(mockUseSeasonStatus).toHaveBeenCalledWith({
+        onlyForExplicitFetch: true,
+      });
+    });
   });
 
   describe('RewardsThemeImageComponent Integration', () => {
@@ -792,6 +837,129 @@ describe('SeasonStatus', () => {
       expect(getByText("Season balance couldn't be loaded")).toBeTruthy();
       expect(getByText('Check your connection and try again.')).toBeTruthy();
       expect(getByText('Retry')).toBeTruthy();
+    });
+  });
+
+  describe('Image Modal Functionality', () => {
+    it('should render RewardsImageModal component', () => {
+      // Given: component with tier image
+      const { getByTestId } = render(<SeasonStatus />);
+
+      // When: component is rendered
+      const modal = getByTestId('rewards-image-modal');
+
+      // Then: modal should be present
+      expect(modal).toBeTruthy();
+    });
+
+    it('should render modal with visible set to false initially', () => {
+      // Given: component is rendered
+      const { getByTestId } = render(<SeasonStatus />);
+
+      // When: modal is checked
+      const modal = getByTestId('rewards-image-modal');
+
+      // Then: modal should not be visible
+      expect(modal.props['data-visible']).toBe(false);
+    });
+
+    it('should pass correct themeImage prop to RewardsImageModal', () => {
+      // Given: component with current tier image
+      const { getByTestId } = render(<SeasonStatus />);
+
+      // When: modal is checked
+      const modal = getByTestId('rewards-image-modal');
+
+      // Then: themeImage should match currentTier image
+      expect(modal.props['data-theme-image']).toEqual(
+        defaultMockValues.currentTier.image,
+      );
+    });
+
+    it('should pass fallback image to RewardsImageModal', () => {
+      // Given: component is rendered
+      const { getByTestId } = render(<SeasonStatus />);
+
+      // When: modal is checked
+      const modal = getByTestId('rewards-image-modal');
+
+      // Then: fallback image should be passed
+      expect(modal.props['data-fallback-image']).toBeDefined();
+    });
+
+    it('should wrap tier image in TouchableOpacity', () => {
+      // Given: component is rendered
+      const { UNSAFE_getByType } = render(<SeasonStatus />);
+
+      // When: looking for TouchableOpacity
+      const touchables =
+        UNSAFE_getByType as unknown as typeof UNSAFE_getByType &
+          ((type: unknown) => { props: { onPress: () => void } });
+      const { TouchableOpacity } = jest.requireActual('react-native');
+
+      // Then: TouchableOpacity should be present
+      expect(() => touchables(TouchableOpacity)).not.toThrow();
+    });
+
+    it('should render tier image with TouchableOpacity when tier has image', () => {
+      // Given: tier with image
+      const { getByTestId } = render(<SeasonStatus />);
+
+      // When: component is rendered
+      const tierImage = getByTestId('season-tier-image');
+
+      // Then: tier image should be rendered
+      expect(tierImage).toBeTruthy();
+      expect(tierImage.props['data-light-mode-url']).toBe('lightModeUrl');
+    });
+
+    it('should update modal themeImage when tier changes', () => {
+      // Given: initial tier with image
+      const { getByTestId, rerender } = render(<SeasonStatus />);
+      let modal = getByTestId('rewards-image-modal');
+      expect(modal.props['data-theme-image']).toEqual(
+        defaultMockValues.currentTier.image,
+      );
+
+      // When: tier changes to different image
+      mockSelectCurrentTier.mockReturnValue({
+        id: 'gold',
+        name: 'gold',
+        pointsNeeded: 5000,
+        image: {
+          lightModeUrl: 'newLightUrl',
+          darkModeUrl: 'newDarkUrl',
+        },
+        levelNumber: 'Level 3',
+        rewards: [],
+      });
+      rerender(<SeasonStatus />);
+
+      // Then: modal should receive updated themeImage
+      modal = getByTestId('rewards-image-modal');
+      expect(modal.props['data-theme-image']).toEqual({
+        lightModeUrl: 'newLightUrl',
+        darkModeUrl: 'newDarkUrl',
+      });
+    });
+
+    it('should pass undefined themeImage to modal when tier has no image', () => {
+      // Given: tier without image
+      mockSelectCurrentTier.mockReturnValue({
+        id: 'bronze',
+        name: 'bronze',
+        pointsNeeded: 0,
+        image: undefined,
+        levelNumber: 'Level 1',
+        rewards: [],
+      } as unknown as SeasonTierDto);
+
+      // When: component is rendered
+      const { getByTestId } = render(<SeasonStatus />);
+
+      // Then: modal should receive undefined themeImage
+      const modal = getByTestId('rewards-image-modal');
+      expect(modal.props['data-theme-image']).toBeUndefined();
     });
   });
 });

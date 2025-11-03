@@ -348,6 +348,99 @@ describe('BackgroundBridge', () => {
     });
   });
 
+  describe('onMessage', () => {
+    let bridge;
+    let mockPort;
+    beforeEach(() => {
+      bridge = setupBackgroundBridge('https://portfolio.metamask.io/');
+      mockPort = bridge.port;
+      mockPort.emit = jest.fn();
+      console.warn = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('WalletConnect or SDK connection', () => {
+      it('emits message to port regardless of message origin', () => {
+        const message = {
+          origin: 'https://non-matching-url.com',
+          name: 'test-message',
+          data: { method: 'eth_requestAccounts' },
+        };
+
+        bridge = setupBackgroundBridge('https://portfolio.metamask.io/', true);
+        mockPort = bridge.port;
+        mockPort.emit = jest.fn();
+        console.warn = jest.fn();
+        bridge.onMessage(message);
+
+        expect(mockPort.emit).toHaveBeenCalledWith('message', {
+          name: message.name,
+          data: message.data,
+        });
+        expect(console.warn).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('BrowserTab connection', () => {
+      it('emits message to port when origin matches bridge origin', () => {
+        const message = {
+          origin: 'https://portfolio.metamask.io',
+          name: 'test-message',
+          data: { method: 'eth_requestAccounts' },
+        };
+
+        bridge = setupBackgroundBridge('https://portfolio.metamask.io/');
+        mockPort = bridge.port;
+        mockPort.emit = jest.fn();
+        console.warn = jest.fn();
+        bridge.onMessage(message);
+
+        expect(mockPort.emit).toHaveBeenCalledWith('message', {
+          name: message.name,
+          data: message.data,
+        });
+        expect(console.warn).not.toHaveBeenCalled();
+      });
+
+      it('blocks message and logs warning when origin does not match', () => {
+        const message = {
+          origin: 'https://malicious.com',
+          name: 'test-message',
+          data: { method: 'eth_requestAccounts' },
+        };
+
+        bridge = setupBackgroundBridge('https://portfolio.metamask.io/');
+        mockPort = bridge.port;
+        mockPort.emit = jest.fn();
+        console.warn = jest.fn();
+        bridge.onMessage(message);
+
+        expect(mockPort.emit).not.toHaveBeenCalled();
+        expect(console.warn).toHaveBeenCalled();
+      });
+
+      it('handles different subdomains as different origins', () => {
+        const message = {
+          origin: 'https://dapp.metamask.io',
+          name: 'test-message',
+          data: { method: 'eth_requestAccounts' },
+        };
+
+        bridge = setupBackgroundBridge('https://portfolio.metamask.io/');
+        mockPort = bridge.port;
+        mockPort.emit = jest.fn();
+        console.warn = jest.fn();
+        bridge.onMessage(message);
+
+        expect(mockPort.emit).not.toHaveBeenCalled();
+        expect(console.warn).toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('notifySolanaAccountChangedForCurrentAccount', () => {
     it('emits nothing if there is no CAIP-25 permission', () => {
       const url = 'https:www.mock.io';

@@ -57,14 +57,14 @@ const mockAssets = {
   '0x1': [
     {
       chainId: '0x1',
-      type: 'eip155:1/erc20:0xtoken1',
+      accountType: 'eip155:1/erc20:0xtoken1',
       fiat: { balance: '100.50' },
       rawBalance: '0x1234',
       symbol: 'TOKEN1',
     },
     {
       chainId: '0x1',
-      type: 'eip155:1/erc20:0xtoken2',
+      accountType: 'eip155:1/erc20:0xtoken2',
       fiat: { balance: '0' },
       rawBalance: '0x0',
       symbol: 'TOKEN2',
@@ -73,7 +73,7 @@ const mockAssets = {
   'solana:mainnet': [
     {
       chainId: 'solana:mainnet',
-      type: 'solana:mainnet/spl:0xsoltoken1',
+      accountType: 'solana:mainnet/spl:0xsoltoken1',
       fiat: { balance: '50.25' },
       rawBalance: '0x5678',
       symbol: 'SOLTOKEN1',
@@ -144,7 +144,7 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('TOKEN1');
-      expect(result.current[0].type).toContain('eip155');
+      expect(result.current[0].accountType).toContain('eip155');
     });
   });
 
@@ -161,7 +161,7 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('SOLTOKEN1');
-      expect(result.current[0].type).toContain('solana');
+      expect(result.current[0].accountType).toContain('solana');
     });
   });
 
@@ -196,7 +196,7 @@ describe('useAccountTokens', () => {
         '0x1': [
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
             fiat: { balance: '100' },
             rawBalance: '0x1234',
             symbol: 'TOKEN1',
@@ -232,7 +232,7 @@ describe('useAccountTokens', () => {
         '0x1': [
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
             fiat: { balance: '100.50' },
             rawBalance: '0x1234',
             symbol: 'TOKEN1',
@@ -270,21 +270,21 @@ describe('useAccountTokens', () => {
         '0x1': [
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
             fiat: { balance: '50.25' },
             rawBalance: '0x1234',
             symbol: 'TOKEN1',
           },
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken2',
+            accountType: 'eip155:1/erc20:0xtoken2',
             fiat: { balance: '100.75' },
             rawBalance: '0x5678',
             symbol: 'TOKEN2',
           },
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken3',
+            accountType: 'eip155:1/erc20:0xtoken3',
             fiat: { balance: '25.50' },
             rawBalance: '0x9abc',
             symbol: 'TOKEN3',
@@ -337,7 +337,7 @@ describe('useAccountTokens', () => {
         '0x1': [
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
             rawBalance: '0x0',
             symbol: 'TOKEN1',
           },
@@ -368,7 +368,7 @@ describe('useAccountTokens', () => {
         '0x1': [
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
             rawBalance: '0x1234',
             symbol: 'TOKEN1',
           },
@@ -400,7 +400,7 @@ describe('useAccountTokens', () => {
         '0x1': [
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
             fiat: { balance: null },
             rawBalance: '0x0',
             symbol: 'TOKEN1',
@@ -432,7 +432,7 @@ describe('useAccountTokens', () => {
         '0x1': [
           {
             chainId: '0x1',
-            type: 'eip155:1/erc20:0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
             fiat: { balance: null },
             rawBalance: '0x5678',
             symbol: 'TOKEN1',
@@ -465,7 +465,7 @@ describe('useAccountTokens', () => {
         '0x5': [
           {
             chainId: '0x5',
-            type: 'eip155:5/erc20:0xtoken1',
+            accountType: 'eip155:5/erc20:0xtoken1',
             rawBalance: '0x1234',
             symbol: 'TESTTOKEN',
           },
@@ -499,7 +499,7 @@ describe('useAccountTokens', () => {
         '0x5': [
           {
             chainId: '0x5',
-            type: 'eip155:5/erc20:0xtoken1',
+            accountType: 'eip155:5/erc20:0xtoken1',
             rawBalance: '0x0',
             symbol: 'TESTTOKEN',
           },

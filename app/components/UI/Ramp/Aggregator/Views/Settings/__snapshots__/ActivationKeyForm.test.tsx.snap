@@ -582,11 +582,12 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
+                                        "lineHeight": 20,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -694,11 +695,12 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
+                                        "lineHeight": 20,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -765,6 +767,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
+                                onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={

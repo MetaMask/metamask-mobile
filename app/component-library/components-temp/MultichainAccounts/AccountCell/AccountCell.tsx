@@ -20,26 +20,35 @@ import I18n from '../../../../../locales/i18n';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+import Avatar, { AvatarVariant } from '../../../components/Avatars/Avatar';
 import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
-import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import {
+  selectIconSeedAddressByAccountGroupId,
+  selectInternalAccountByAccountGroupAndScope,
+} from '../../../../selectors/multichainAccounts/accounts';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { renderShortAddress } from '../../../../util/address';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
-  isSelected: boolean;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
+  chainId?: string;
+  onSelectAccount?: () => void;
 }
 
 const AccountCell = ({
   accountGroup,
   avatarAccountType,
-  isSelected,
   hideMenu = false,
   startAccessory,
+  chainId,
+  onSelectAccount,
 }: AccountCellProps) => {
-  const { styles } = useStyles(styleSheet, { isSelected });
+  const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
@@ -70,6 +79,22 @@ const AccountCell = ({
     });
   }, [totalBalance, userCurrency]);
 
+  // Determine which account address and network avatar to display based on the chainId
+  let networkAccountAddress;
+  let networkImageSource;
+  const getInternalAccountByAccountGroupAndScope = useSelector(
+    selectInternalAccountByAccountGroupAndScope,
+  );
+  if (chainId) {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const internalAccountFromAccountGroupForChainId =
+      getInternalAccountByAccountGroupAndScope(caipChainId, accountGroup.id);
+    networkAccountAddress = internalAccountFromAccountGroupForChainId?.address
+      ? renderShortAddress(internalAccountFromAccountGroupForChainId.address, 4)
+      : undefined;
+    networkImageSource = getNetworkImageSource({ chainId });
+  }
+
   return (
     <Box
       style={styles.container}
@@ -78,44 +103,60 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      {startAccessory}
-      <View style={styles.avatarWrapper}>
+      <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
+        {startAccessory}
         <AvatarAccount
           accountAddress={evmAddress}
           type={avatarAccountType}
           size={AvatarSize.Md}
-          style={styles.avatar}
           testID={AccountCellIds.AVATAR}
         />
-      </View>
-      <View style={styles.accountName}>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          numberOfLines={1}
-          style={styles.accountNameText}
-          testID={AccountCellIds.ADDRESS}
-        >
-          {accountGroup.metadata.name}
-        </Text>
-        {!startAccessory && isSelected && (
-          <Icon
-            name={IconName.CheckBold}
-            size={IconSize.Md}
-            style={styles.checkIcon}
-            color={TextColor.Primary}
-            testID={AccountCellIds.CHECK_ICON}
-          />
-        )}
-      </View>
+        <View style={styles.accountName}>
+          <View style={styles.accountNameRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              numberOfLines={1}
+              style={styles.accountNameText}
+              testID={AccountCellIds.ADDRESS}
+            >
+              {accountGroup.metadata.name}
+            </Text>
+          </View>
+          {networkAccountAddress && (
+            <View style={styles.accountSubRow}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                numberOfLines={1}
+                style={styles.accountSubText}
+              >
+                {networkAccountAddress}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
       <View style={styles.endContainer}>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          testID={AccountCellIds.BALANCE}
-        >
-          {displayBalance}
-        </Text>
+        <TouchableOpacity onPress={onSelectAccount}>
+          <View style={styles.balanceContainer}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              testID={AccountCellIds.BALANCE}
+            >
+              {totalBalance ? displayBalance : null}
+            </Text>
+            {networkImageSource && (
+              <Avatar
+                variant={AvatarVariant.Network}
+                size={AvatarSize.Xs}
+                style={styles.networkBadge}
+                imageSource={networkImageSource}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
         {!hideMenu && (
           <TouchableOpacity
             testID={AccountCellIds.MENU}

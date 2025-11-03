@@ -43,13 +43,13 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   usePerpsMeasurement,
   usePerpsNetwork,
   usePerpsWithdrawQuote,
   useWithdrawTokens,
 } from '../../hooks';
+import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
@@ -149,7 +149,7 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Performance tracking: Measure withdrawal screen load time until core data is ready
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED,
+    traceName: TraceName.PerpsWithdrawView,
     conditions: [
       !!account?.availableBalance,
       !!destToken,

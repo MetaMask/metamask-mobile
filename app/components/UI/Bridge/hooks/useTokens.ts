@@ -2,8 +2,12 @@ import { useTokensWithBalance } from './useTokensWithBalance';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useTopTokens } from './useTopTokens';
 import { BridgeToken } from '../types';
-import { isSolanaChainId } from '@metamask/bridge-controller';
-import { normalizeToCaipAssetType } from '../utils';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
+import { zeroAddress } from 'ethereumjs-util';
+import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 
 interface UseTokensProps {
   topTokensChainId?: Hex | CaipChainId;
@@ -40,10 +44,24 @@ export function useTokens({
     address: string;
     chainId: Hex | CaipChainId;
   }) => {
-    // Use the shared utility for Solana normalization to ensure consistent deduplication
-    const normalizedAddress = isSolanaChainId(token.chainId)
-      ? normalizeToCaipAssetType(token.address, token.chainId)
+    // Use the shared utility for non-EVM normalization to ensure consistent deduplication
+    let normalizedAddress = isNonEvmChainId(token.chainId)
+      ? formatAddressToAssetId(token.address, token.chainId)
       : token.address.toLowerCase();
+
+    if (!normalizedAddress) {
+      throw new Error(
+        `Invalid token address: ${token.address} for chain ID: ${token.chainId}`,
+      );
+    }
+
+    // Normalize the native token address for Polygon
+    // Prevents duplicate tokens with different addresses from
+    // rendering in the UI
+    if (normalizedAddress === POLYGON_NATIVE_TOKEN) {
+      normalizedAddress = zeroAddress();
+    }
+
     return `${normalizedAddress}-${token.chainId}`;
   };
 

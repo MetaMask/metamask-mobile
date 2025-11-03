@@ -129,7 +129,6 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
-  selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
@@ -477,9 +476,7 @@ describe('WalletActions', () => {
     // closeBottomSheetAndNavigate wraps navigation in a callback
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsTutorial',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('PerpsTutorial');
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
@@ -498,7 +495,7 @@ describe('WalletActions', () => {
     ).toBeDefined();
   });
 
-  it('should call the onPredict function when the Predict button is pressed', () => {
+  it('should call the onPredict function when the Predict button is pressed', async () => {
     (
       selectPredictEnabledFlag as jest.MockedFunction<
         typeof selectPredictEnabledFlag
@@ -513,14 +510,12 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
-      screen: 'WalletTabStackFlow',
-      params: {
-        screen: 'Predict',
-        params: {
-          screen: 'PredictMarketList',
-        },
-      },
+    // Wait for the bottom sheet close callback to execute
+    // closeBottomSheetAndNavigate wraps navigation in a callback
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+      screen: 'PredictMarketList',
     });
   });
 

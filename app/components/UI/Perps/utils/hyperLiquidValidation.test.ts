@@ -17,7 +17,6 @@ import {
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import type { GetSupportedPathsParams } from '../controllers/types';
 
-// Mock dependencies
 jest.mock('@metamask/utils', () => ({
   isValidHexAddress: (address: string) => /^0x[0-9a-fA-F]{40}$/.test(address),
 }));

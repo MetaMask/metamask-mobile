@@ -123,7 +123,7 @@ const EmptyRecordConstant = {};
 interface LoginRouteParams {
   locked: boolean;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: unknown;
+  onboardingTraceCtx?: TraceContext;
 }
 
 interface LoginProps {
@@ -250,9 +250,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-        PASSCODE_DISABLED,
-      );
+      const passcodePreviouslyDisabled =
+        await StorageWrapper.getItem(PASSCODE_DISABLED);
 
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));

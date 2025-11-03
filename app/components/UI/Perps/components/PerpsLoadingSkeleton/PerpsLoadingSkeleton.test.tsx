@@ -27,9 +27,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-// Mock the PerpsConnectionProvider
 const mockReconnect = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../providers/PerpsConnectionProvider', () => ({
+jest.mock('../../hooks/usePerpsConnection', () => ({
   usePerpsConnection: () => ({
     reconnectWithNewContext: mockReconnect,
   }),

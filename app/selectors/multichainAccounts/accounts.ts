@@ -3,11 +3,7 @@ import {
   AccountTreeControllerState,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
-import {
-  AccountGroupId,
-  AccountWalletId,
-  selectOne,
-} from '@metamask/account-api';
+import { AccountGroupId, AccountWalletId, select } from '@metamask/account-api';
 import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthAccountType, EthScope } from '@metamask/keyring-api';
@@ -121,10 +117,12 @@ const findInternalAccountByScope = (
       account.scopes.some((accountScope) => accountScope.startsWith('eip155:')),
     );
   }
-  // For non-EVM scopes, use exact matching
-  return selectOne(accountGroupInternalAccounts, {
+  // For non-EVM scopes, use exact first matching account
+  const [firstAccount] = select(accountGroupInternalAccounts, {
     scopes: [scope],
   });
+
+  return firstAccount;
 };
 
 /**
@@ -174,9 +172,9 @@ const filterTestnets = (
 export const selectSelectedInternalAccountByScope = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectInternalAccountsById],
   (
-      accountTreeState: AccountTreeControllerState,
-      internalAccountsMap: Record<AccountId, InternalAccount>,
-    ) =>
+    accountTreeState: AccountTreeControllerState,
+    internalAccountsMap: Record<AccountId, InternalAccount>,
+  ) =>
     (scope: CaipChainId): InternalAccount | undefined => {
       if (!accountTreeState?.accountTree?.selectedAccountGroup) {
         return undefined;
@@ -213,9 +211,9 @@ export const selectInternalAccountByAccountGroupAndScope =
   createDeepEqualSelector(
     [selectAccountTreeControllerState, selectInternalAccountsById],
     (
-        accountTreeState: AccountTreeControllerState,
-        internalAccountsMap: Record<AccountId, InternalAccount>,
-      ) =>
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+    ) =>
       (
         scope: CaipChainId,
         accountGroupId: string,

@@ -11,7 +11,7 @@ import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from './helpers/bridge-mocks';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',

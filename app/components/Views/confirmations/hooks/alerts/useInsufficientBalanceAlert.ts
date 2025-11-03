@@ -17,8 +17,8 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
-import { useMaxValueMode } from '../useMaxValueMode';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const HEX_ZERO = '0x0';
 
@@ -34,16 +34,17 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata?.chainId as Hex,
     transactionMetadata?.txParams?.from as string,
   );
-  const { maxValueMode } = useMaxValueMode();
+  const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
   const { payToken } = useTransactionPayToken();
 
   return useMemo(() => {
-    if (!transactionMetadata || maxValueMode) {
+    if (!transactionMetadata || isTransactionValueUpdating) {
       return [];
     }
 
-    const { txParams, selectedGasFeeToken } = transactionMetadata;
+    const { txParams, selectedGasFeeToken, isGasFeeSponsored } =
+      transactionMetadata;
     const { maxFeePerGas, gas, gasPrice } = txParams;
     const { nativeCurrency } =
       networkConfigurations[transactionMetadata.chainId as Hex];
@@ -67,7 +68,8 @@ export const useInsufficientBalanceAlert = ({
     const showAlert =
       hasInsufficientBalance &&
       (ignoreGasFeeToken || !selectedGasFeeToken) &&
-      !payToken;
+      !payToken &&
+      !isGasFeeSponsored;
 
     if (!showAlert) {
       return [];
@@ -98,7 +100,7 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
-    maxValueMode,
+    isTransactionValueUpdating,
     navigation,
     networkConfigurations,
     onReject,

@@ -8,12 +8,12 @@ export default {
     isQa || isRc
       ? () => true
       : isAndroid
-      ? NativeModules.PreventScreenshot.forbid
-      : () => true,
+        ? NativeModules.PreventScreenshot.forbid
+        : () => true,
   allow:
     isQa || isRc
       ? () => true
       : isAndroid
-      ? NativeModules.PreventScreenshot.allow
-      : () => true,
+        ? NativeModules.PreventScreenshot.allow
+        : () => true,
 };

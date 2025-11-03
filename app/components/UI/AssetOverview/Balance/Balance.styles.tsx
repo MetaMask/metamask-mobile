@@ -12,6 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       flex: 1,
       paddingHorizontal: 16,
+      paddingTop: 24,
     },
     badgeWrapper: {
       alignSelf: 'center',
@@ -49,6 +50,10 @@ const styleSheet = (params: { theme: Theme }) => {
       fontFamily: getFontFamily(TextVariant.BodySM),
       color: theme.colors.text.alternative,
     } as TextStyle,
+    assetName: {
+      flexDirection: 'row',
+      gap: 8,
+    },
   });
 };
 

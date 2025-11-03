@@ -247,40 +247,60 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Smart decimal precision based on price value and range
+                            // Specialized chart Y-axis formatter with space constraints
+                            // Different rules than price displays to keep axis labels compact
+                            // Rules:
+                            // - ≥$100: No decimals (e.g., BTC: 121,613 not 121,612.50 - too long)
+                            // - $10-$100: 2 decimals (e.g., 56.12)
+                            // - $1-$10: 3 decimals for 4 sig figs (e.g., XRP: 2.801)
+                            // - <$1: 4 sig figs (e.g., 0.1234)
+
+                            if (price === 0) return '0.00';
+
                             const absPrice = Math.abs(price);
-                            
-                            if (absPrice >= 1000) {
-                                // For large values (like ETH), show no decimals
+
+                            // For values >= 1, calculate decimals based on magnitude with chart space constraints
+                            if (absPrice >= 1) {
+                                let targetDecimals;
+
+                                if (absPrice >= 100) {
+                                    // ≥$100: No decimals for compact display on Y-axis
+                                    // BTC example: 121,613 instead of 121,612.50 (saves space)
+                                    targetDecimals = 0;
+                                } else if (absPrice >= 10) {
+                                    // $10-$100: 2 decimals (currency standard)
+                                    // Example: 56.12, 89.45
+                                    targetDecimals = 2;
+                                } else {
+                                    // $1-$10: 3 decimals for 4 sig figs
+                                    // XRP example: 2.801 (1 integer + 3 decimals = 4 sig figs)
+                                    // SOL example: 5.123 (1 integer + 3 decimals = 4 sig figs)
+                                    targetDecimals = 3;
+                                }
+
+                                // Round to prevent floating-point artifacts (e.g., 2.820000000000003 → 2.82)
+                                const roundedPrice = Number(price.toFixed(targetDecimals));
+
                                 return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                }).format(price);
-                            } else if (absPrice >= 100) {
-                                // For medium values, show 1 decimal place
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 1,
-                                    maximumFractionDigits: 1
-                                }).format(price);
-                            } else if (absPrice >= 1) {
-                                // For small values, show 2 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }).format(price);
-                            } else if (absPrice >= 0.01) {
-                                // For very small values, show 4 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 4,
-                                    maximumFractionDigits: 4
-                                }).format(price);
-                            } else {
-                                // For extremely small values (like PUMP-USD), show 6 decimal places
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 6,
-                                    maximumFractionDigits: 6
-                                }).format(price);
+                                    minimumFractionDigits: targetDecimals,
+                                    maximumFractionDigits: targetDecimals
+                                }).format(roundedPrice);
                             }
+
+                            // For values < 1, use 4 significant figures
+                            // Examples: 0.1234, 0.01234
+                            const precisionStr = absPrice.toPrecision(4);
+                            const precisionNum = parseFloat(precisionStr);
+                            const valueStr = precisionNum.toString();
+                            const [, decPart = ''] = valueStr.split('.');
+                            const actualDecimals = Math.min(decPart.length, 10);
+
+                            const finalValue = price < 0 ? -precisionNum : precisionNum;
+
+                            return new Intl.NumberFormat('en-US', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: actualDecimals
+                            }).format(finalValue);
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
@@ -390,14 +410,6 @@ export const createTradingViewChartTemplate = (
                 crosshairMarkerVisible: false, // Disable crosshair during panning for performance
                 crosshairMarkerRadius: 0, // Minimize crosshair impact
             });
-            
-            // Function to format numbers to 5 significant digits
-            function formatToSignificantDigits(num, digits = 5) {
-                if (num === 0) return '0';
-                const magnitude = Math.floor(Math.log10(Math.abs(num)));
-                const factor = Math.pow(10, digits - 1 - magnitude);
-                return (Math.round(num * factor) / factor).toString();
-            }
 
             // Subscribe to crosshair events to send OHLC data to React Native
             window.chart.subscribeCrosshairMove((param) => {
@@ -417,17 +429,18 @@ export const createTradingViewChartTemplate = (
                 if (window.candlestickSeries && param.seriesData && param.seriesData.get(window.candlestickSeries)) {
                     const data = param.seriesData.get(window.candlestickSeries);
                     if (data && data.open !== undefined) {
+                        // Send raw numeric values as strings - formatting will be done on React Native side
                         const ohlcData = {
-                            open: formatToSignificantDigits(data.open),
-                            high: formatToSignificantDigits(data.high),
-                            low: formatToSignificantDigits(data.low),
-                            close: formatToSignificantDigits(data.close),
+                            open: data.open.toString(),
+                            high: data.high.toString(),
+                            low: data.low.toString(),
+                            close: data.close.toString(),
                             time: param.time
                         };
-                        
+
                         // Console log for debugging
                         console.log('OHLC Data:', ohlcData);
-                        
+
                         // Send OHLC data back to React Native
                         if (window.ReactNativeWebView) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({

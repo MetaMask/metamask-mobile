@@ -1,14 +1,10 @@
 import { useCallback, useState } from 'react';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { Position, OrderResult, TrackingData } from '../controllers/types';
-import { usePerpsTrading } from './usePerpsTrading';
 import { strings } from '../../../../../locales/i18n';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import type { OrderResult, Position, TrackingData } from '../controllers/types';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
-import { usePerpsMeasurement } from './usePerpsMeasurement';
+import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -21,16 +17,7 @@ export const usePerpsClosePosition = (
   const { closePosition } = usePerpsTrading();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [lastResult, setLastResult] = useState<OrderResult>();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-
-  // Track close order submission toast with unified measurement hook
-  usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED,
-    startConditions: [isClosing], // Start when closing begins
-    endConditions: [!!lastResult || !!error], // End when we have result or error
-    resetConditions: [!isClosing], // Reset when not closing
-  });
 
   const handleClosePosition = useCallback(
     async (
@@ -39,11 +26,11 @@ export const usePerpsClosePosition = (
       orderType: 'market' | 'limit' = 'market',
       limitPrice?: string,
       trackingData?: TrackingData,
+      marketPrice?: string, // Used for PnL toast to lock in the market price at time of closing
     ) => {
       try {
         setIsClosing(true);
         setError(null);
-        setLastResult(undefined);
 
         DevLogger.log('usePerpsClosePosition: Closing position', {
           coin: position.coin,
@@ -51,9 +38,7 @@ export const usePerpsClosePosition = (
           orderType,
           limitPrice,
         });
-
-        const closeStartTime = performance.now();
-        const isLong = parseFloat(position.size) >= 0;
+        const isLong = Number.parseFloat(position.size) >= 0;
         const direction = isLong
           ? strings('perps.market.long')
           : strings('perps.market.short');
@@ -115,18 +100,9 @@ export const usePerpsClosePosition = (
           trackingData,
         });
 
-        setLastResult(result);
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
-          // Measure close order confirmation toast - kept as direct call due to complex async timing
-          const confirmationDuration = performance.now() - closeStartTime;
-          setMeasurement(
-            PerpsMeasurementName.CLOSE_ORDER_CONFIRMATION_TOAST_LOADED,
-            confirmationDuration,
-            'millisecond',
-          );
-
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
           // Note: We only support market close for now but keeping check for future limit close support.
@@ -134,15 +110,19 @@ export const usePerpsClosePosition = (
             // Market closed full position
             if (isFullClose) {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .full.closeFullPositionSuccess,
+                PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionSuccess(
+                  position,
+                  marketPrice,
+                ),
               );
             }
             // Market closed partial position
             else {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .partial.closePartialPositionSuccess,
+                PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionSuccess(
+                  position,
+                  marketPrice,
+                ),
               );
             }
           }

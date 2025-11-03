@@ -1,12 +1,13 @@
 import {
-  BaseRestrictedControllerMessenger,
-  BaseControllerMessenger,
+  ControllerMessenger,
+  RootExtendedMessenger,
   ControllerInitFunction,
   Controller,
   ControllerName,
   ControllerInitRequest,
 } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
+import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 
 /**
  * Build a mock for the ControllerInitRequest.
@@ -14,11 +15,11 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
  * @returns A mocked ControllerInitRequest.
  */
 export function buildControllerInitRequestMock(
-  controllerMessenger: BaseControllerMessenger,
-): jest.Mocked<ControllerInitRequest<BaseRestrictedControllerMessenger>> {
+  controllerMessenger: RootExtendedMessenger,
+): jest.Mocked<ControllerInitRequest<ControllerMessenger>> {
   return {
-    controllerMessenger:
-      controllerMessenger as unknown as BaseRestrictedControllerMessenger,
+    codefiTokenApiV2: jest.fn() as unknown as CodefiTokenPricesServiceV2,
+    controllerMessenger: controllerMessenger as unknown as ControllerMessenger,
     getController: jest.fn(),
     getGlobalChainId: jest.fn(),
     getState: jest.fn(),
@@ -38,7 +39,7 @@ export function buildControllerInitRequestMock(
  */
 export function createMockControllerInitFunction<
   T extends Controller,
-  M extends BaseRestrictedControllerMessenger,
+  M extends ControllerMessenger,
 >(requiredController?: string): ControllerInitFunction<T, M> {
   return (request) => {
     const { getController } = request;

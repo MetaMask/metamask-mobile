@@ -8,6 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     primaryValue: {
       color: theme.colors.text.default,
+      paddingRight: 4,
       ...fontStyles.normal,
     },
     secondaryValue: {

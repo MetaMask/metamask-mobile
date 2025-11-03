@@ -2,71 +2,91 @@ import {
   SignTypedDataVersion,
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { type Hex } from '@metamask/utils';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import { Hex, numberToHex } from '@metamask/utils';
+import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import {
-  OffchainTradeParams,
-  OffchainTradeResponse,
-  OnchainTradeParams,
+  generateTransferData,
+  isSmartContractAddress,
+} from '../../../../../util/transactions';
+import {
+  GetPriceHistoryParams,
   PredictActivity,
   PredictCategory,
-  PredictClaim,
-  PredictClaimStatus,
   PredictMarket,
-  PredictOrder,
   PredictPosition,
-  Side,
   PredictPriceHistoryPoint,
-  GetPriceHistoryParams,
+  Side,
+  UnrealizedPnL,
 } from '../../types';
 import {
-  GetMarketsParams,
-  BuyOrderParams,
-  PredictProvider,
-  SellOrderParams,
+  AccountState,
   ClaimOrderParams,
+  ClaimOrderResponse,
+  GetBalanceParams,
+  GetMarketsParams,
   GetPositionsParams,
+  OrderPreview,
+  OrderResult,
+  PlaceOrderParams,
+  PredictProvider,
+  PrepareDepositParams,
+  PrepareDepositResponse,
+  SignWithdrawParams,
+  SignWithdrawResponse,
+  PrepareWithdrawParams,
+  PrepareWithdrawResponse,
+  PreviewOrderParams,
+  Signer,
 } from '../types';
 import {
+  BUY_ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
+  MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
 } from './constants';
 import {
+  computeProxyAddress,
+  createSafeFeeAuthorization,
+  getClaimTransaction,
+  getDeployProxyWalletTransaction,
+  getProxyWalletAllowancesTransaction,
+  getSafeUsdcAmount,
+  getWithdrawTransactionCallData,
+  hasAllowances,
+} from './safe/utils';
+import {
   ApiKeyCreds,
-  OrderArtifactsParams,
   OrderData,
   OrderType,
-  PolymarketOffchainTradeParams,
+  PolymarketApiActivity,
   PolymarketPosition,
   SignatureType,
   TickSize,
-  CONDITIONAL_TOKEN_DECIMALS,
+  UtilsSide,
 } from './types';
-import { parseUnits } from 'ethers/lib/utils';
 import {
-  buildMarketOrderCreationArgs,
-  calculateMarketPrice,
   createApiKey,
-  encodeApprove,
-  encodeClaim,
-  encodeErc1155Approve,
-  getMarketDetailsFromGammaApi,
+  encodeErc20Transfer,
+  generateSalt,
+  getBalance,
   getContractConfig,
   getL2Headers,
-  parsePolymarketEvents,
-  getMarketsFromPolymarketApi,
-  getParsedMarketsFromPolymarketApi,
+  getMarketDetailsFromGammaApi,
   getOrderTypedData,
+  getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
-  getTickSize,
+  parsePolymarketActivity,
+  parsePolymarketEvents,
   parsePolymarketPositions,
-  priceValid,
+  previewOrder,
+  roundOrderAmount,
   submitClobOrder,
-  calculateFeeAmount,
 } from './utils';
-import { generateOrderId } from '../../utils/orders';
-import { computeSafeAddress, createSafeFeeAuthorization } from './safe/utils';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -74,9 +94,12 @@ export type SignTypedMessageFn = (
 ) => Promise<string>;
 
 export class PolymarketProvider implements PredictProvider {
-  readonly providerId = 'polymarket';
+  readonly providerId = POLYMARKET_PROVIDER_ID;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
+  #accountStateByAddress: Map<string, AccountState> = new Map();
+  #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
+  #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
 
@@ -111,81 +134,11 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
-    throw new Error('Method not implemented.');
+    return this.fetchActivity(_params);
   }
 
   public claimWinnings(): Promise<void> {
     throw new Error('Method not implemented.');
-  }
-
-  /**
-   * Builds the order artifacts for the Polymarket provider
-   * This is a private method that is used to build the order artifacts for the Polymarket provider
-   * @param address - The address of the signer
-   * @param orderParams - The order parameters
-   * @returns The order artifacts
-   */
-  private async buildOrderArtifacts({
-    address,
-    orderParams: { outcomeTokenId, side, size, outcomeId },
-  }: {
-    address: string;
-    orderParams: OrderArtifactsParams;
-  }): Promise<{
-    chainId: number;
-    price: number;
-    negRisk: boolean;
-    tickSize: TickSize;
-    order: OrderData & { salt: string };
-    contractConfig: ReturnType<typeof getContractConfig>;
-    exchangeContract: string;
-    verifyingContract: string;
-  }> {
-    const chainId = POLYGON_MAINNET_CHAIN_ID;
-    const tokenId = outcomeTokenId;
-    const conditionId = outcomeId;
-    const [tickSizeResponse, price, marketData] = await Promise.all([
-      getTickSize({ tokenId }),
-      calculateMarketPrice(tokenId, side, size, OrderType.FOK),
-      getMarketsFromPolymarketApi({ conditionIds: [conditionId] }),
-    ]);
-
-    const tickSize = tickSizeResponse.minimum_tick_size;
-
-    const negRisk = marketData[0].negRisk;
-
-    const order = await buildMarketOrderCreationArgs({
-      signer: address,
-      maker: address,
-      signatureType: SignatureType.EOA,
-      userMarketOrder: {
-        tokenID: tokenId,
-        price,
-        size,
-        side,
-        orderType: OrderType.FOK,
-      },
-      roundConfig: ROUNDING_CONFIG[tickSize as TickSize],
-    });
-
-    const contractConfig = getContractConfig(chainId);
-
-    const exchangeContract = negRisk
-      ? contractConfig.negRiskExchange
-      : contractConfig.exchange;
-
-    const verifyingContract = exchangeContract;
-
-    return {
-      chainId,
-      price,
-      order,
-      negRisk,
-      tickSize,
-      contractConfig,
-      exchangeContract,
-      verifyingContract,
-    };
   }
 
   private async getApiKey({
@@ -203,12 +156,37 @@ export class PolymarketProvider implements PredictProvider {
     return apiKeyCreds;
   }
 
+  private isRateLimited(address: string): boolean {
+    if (this.#buyOrderInProgressByAddress.get(address)) {
+      return true;
+    }
+
+    const lastTimestamp = this.#lastBuyOrderTimestampByAddress.get(address);
+    if (!lastTimestamp) {
+      return false;
+    }
+    const elapsed = Date.now() - lastTimestamp;
+    return elapsed < BUY_ORDER_RATE_LIMIT_MS;
+  }
+
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
       const markets = await getParsedMarketsFromPolymarketApi(params);
       return markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
+
+      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'PolymarketProvider.getMarkets',
+        feature: 'Predict',
+        provider: POLYMARKET_PROVIDER_ID,
+        category: params?.category,
+        status: params?.status,
+        sortBy: params?.sortBy,
+        hasSearchQuery: !!params?.q,
+      });
+
       return [];
     }
   }
@@ -264,6 +242,17 @@ export class PolymarketProvider implements PredictProvider {
         }));
     } catch (error) {
       DevLogger.log('Error getting price history via Polymarket API:', error);
+
+      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'PolymarketProvider.getPriceHistory',
+        feature: 'Predict',
+        provider: POLYMARKET_PROVIDER_ID,
+        marketId,
+        fidelity,
+        interval,
+      });
+
       return [];
     }
   }
@@ -273,14 +262,27 @@ export class PolymarketProvider implements PredictProvider {
     limit = 100, // todo: reduce this once we've decided on the pagination approach
     offset = 0,
     claimable = false,
+    marketId,
   }: GetPositionsParams): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
-    // NOTE: hardcoded address for testing
-    // address = '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00';
+    if (!address) {
+      throw new Error('Address is required');
+    }
+
+    const predictAddress = computeProxyAddress(address);
+
+    const queryParams = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString(),
+      user: predictAddress,
+      sortBy: 'CURRENT',
+      redeemable: claimable.toString(),
+      ...(marketId && { eventId: marketId }),
+    });
 
     const response = await fetch(
-      `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}&sortBy=CURRENT&redeemable=${claimable}`,
+      `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`,
       {
         method: 'GET',
         headers: {
@@ -288,6 +290,7 @@ export class PolymarketProvider implements PredictProvider {
         },
       },
     );
+
     if (!response.ok) {
       throw new Error('Failed to get positions');
     }
@@ -296,315 +299,347 @@ export class PolymarketProvider implements PredictProvider {
       positions: positionsData,
     });
 
-    // TODO: Remove this the filtering when polymarket api is fixed
-    const filteredPositions = claimable
-      ? parsedPositions
-      : parsedPositions.filter((position) => !position.claimable);
-
-    return filteredPositions;
+    return parsedPositions;
   }
 
-  public async prepareBuyOrder({
-    signer,
-    market,
-    outcomeId,
-    outcomeTokenId,
-    size,
-  }: BuyOrderParams): Promise<PredictOrder> {
-    const { address, signTypedMessage } = signer;
-    const side = Side.BUY;
+  private async fetchActivity({
+    address,
+  }: {
+    address: string;
+  }): Promise<PredictActivity[]> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
-    const {
-      chainId,
-      price,
-      order,
-      contractConfig,
-      exchangeContract,
-      verifyingContract,
-      negRisk,
-      tickSize,
-    } = await this.buildOrderArtifacts({
-      address,
-      orderParams: {
-        outcomeId,
-        outcomeTokenId,
-        side,
-        size,
-      },
-    });
-
-    if (!priceValid(price, tickSize as TickSize)) {
-      throw new Error(
-        `invalid price (${price}), min: ${parseFloat(tickSize)} - max: ${
-          1 - parseFloat(tickSize)
-        }`,
-      );
+    if (!address) {
+      throw new Error('Address is required');
     }
 
-    const callData = encodeApprove({
-      spender: exchangeContract,
-      amount: BigInt(order.makerAmount),
-    });
+    try {
+      const predictAddress =
+        this.#accountStateByAddress.get(address)?.address ??
+        (await this.getAccountState({ ownerAddress: address })).address;
 
-    const calls: OnchainTradeParams[] = [
+      const queryParams = new URLSearchParams({
+        // user: '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00',
+        user: predictAddress,
+      });
+
+      const response = await fetch(
+        `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get activity');
+      }
+
+      const activityRaw = (await response.json()) as PolymarketApiActivity[];
+      const parsedActivity = parsePolymarketActivity(activityRaw);
+      return Array.isArray(parsedActivity) ? parsedActivity : [];
+    } catch (error) {
+      DevLogger.log('Error getting activity via Polymarket API:', error);
+
+      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'PolymarketProvider.fetchActivity',
+        feature: 'Predict',
+        provider: POLYMARKET_PROVIDER_ID,
+        // No user address in params to avoid sensitive data
+      });
+
+      return [];
+    }
+  }
+
+  public async getUnrealizedPnL({
+    address,
+  }: {
+    address: string;
+  }): Promise<UnrealizedPnL> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+
+    const predictAddress =
+      this.#accountStateByAddress.get(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
+
+    const response = await fetch(
+      `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
       {
-        data: callData,
-        to: contractConfig.collateral,
-        chainId,
-        from: address,
-        value: '0x0',
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    ];
-
-    if (negRisk) {
-      const adapterCallData = encodeApprove({
-        spender: contractConfig.negRiskAdapter,
-        amount: BigInt(order.makerAmount),
-      });
-      calls.push({
-        data: adapterCallData,
-        to: contractConfig.collateral,
-        chainId,
-        from: address,
-        value: '0x0',
-      });
-    }
-
-    const typedData = getOrderTypedData({
-      order,
-      chainId,
-      verifyingContract,
-    });
-
-    const signature = await signTypedMessage(
-      { data: typedData, from: address },
-      SignTypedDataVersion.V4,
     );
 
-    const signedOrder = {
-      ...order,
-      signature,
-    };
-
-    const signerApiKey = await this.getApiKey({ address });
-
-    const clobOrder = {
-      order: { ...signedOrder, side, salt: parseInt(signedOrder.salt, 10) },
-      owner: signerApiKey.apiKey,
-      orderType: OrderType.FOK,
-    };
-
-    const body = JSON.stringify(clobOrder);
-
-    const headers = await getL2Headers({
-      l2HeaderArgs: {
-        method: 'POST',
-        requestPath: `/order`,
-        body,
-      },
-      address: clobOrder.order.signer ?? '',
-      apiKey: signerApiKey,
-    });
-
-    // Fee Authorization
-    const feeAmount = calculateFeeAmount(order);
-    let feeAuthorization;
-    if (feeAmount > 0n) {
-      const safeAddress = await computeSafeAddress(signer);
-      feeAuthorization = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount: feeAmount,
-        to: FEE_COLLECTOR_ADDRESS,
-      });
+    if (!response.ok) {
+      throw new Error('Failed to fetch unrealized P&L');
     }
 
-    return {
-      id: generateOrderId(),
-      chainId,
-      providerId: this.providerId,
-      marketId: market?.id,
-      outcomeId,
-      outcomeTokenId,
-      isBuy: true,
-      size,
-      price,
-      status: 'idle',
-      error: undefined,
-      timestamp: Date.now(),
-      lastUpdated: Date.now(),
-      onchainTradeParams: calls,
-      offchainTradeParams: { clobOrder, headers, feeAuthorization },
-    };
+    const data = (await response.json()) as UnrealizedPnL[];
+
+    if (!Array.isArray(data)) {
+      throw new Error('No unrealized P&L data found');
+    }
+
+    return data[0];
   }
 
-  public async prepareSellOrder({
-    signer,
-    position,
-  }: SellOrderParams): Promise<PredictOrder> {
-    const { address, signTypedMessage } = signer;
-    const side = Side.SELL;
+  public async previewOrder(
+    params: Omit<PreviewOrderParams, 'providerId'> & { signer?: Signer },
+  ): Promise<OrderPreview> {
+    const basePreview = await previewOrder(params);
+
+    if (params.side === Side.BUY && params.signer) {
+      if (this.isRateLimited(params.signer.address)) {
+        return {
+          ...basePreview,
+          rateLimited: true,
+        };
+      }
+    }
+
+    return basePreview;
+  }
+
+  public async placeOrder(
+    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
+  ): Promise<OrderResult> {
+    const { signer, preview } = params;
     const {
-      chainId,
-      price,
-      tickSize,
-      order,
-      contractConfig,
-      exchangeContract,
-      verifyingContract,
+      outcomeTokenId,
+      side,
+      maxAmountSpent,
+      minAmountReceived,
       negRisk,
-    } = await this.buildOrderArtifacts({
-      address,
-      orderParams: {
-        outcomeId: position.outcomeId,
-        outcomeTokenId: position.outcomeTokenId,
-        size: position.size,
-        side,
-      },
-    });
+      fees,
+      slippage,
+      tickSize,
+    } = preview;
 
-    if (!priceValid(price, tickSize)) {
-      throw new Error(
-        `invalid price (${price}), min: ${parseFloat(tickSize)} - max: ${
-          1 - parseFloat(tickSize)
-        }`,
-      );
+    if (side === Side.BUY) {
+      this.#buyOrderInProgressByAddress.set(signer.address, true);
     }
 
-    const calls = [];
+    try {
+      const chainId = POLYGON_MAINNET_CHAIN_ID;
 
-    // TODO: check if the user already has approved the exchange contract
-    const callData = encodeErc1155Approve({
-      spender: exchangeContract,
-      approved: true,
-    });
+      const makerAddress =
+        this.#accountStateByAddress.get(signer.address)?.address ??
+        computeProxyAddress(signer.address);
 
-    calls.push({
-      data: callData,
-      to: contractConfig.conditionalTokens,
-      chainId,
-      from: address,
-      value: '0x0',
-    });
+      if (!makerAddress) {
+        throw new Error('Maker address not found');
+      }
 
-    if (negRisk) {
-      const adapterCallData = encodeErc1155Approve({
-        spender: contractConfig.negRiskAdapter,
-        approved: true,
+      // Introduce slippage into minAmountReceived to reduce failure rate
+      const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
+      const decimals = roundConfig.amount ?? 4;
+      const minAmountWithSlippage = roundOrderAmount({
+        amount: minAmountReceived * (1 - slippage),
+        decimals,
       });
-      calls.push({
-        data: adapterCallData,
-        to: contractConfig.conditionalTokens,
+
+      const makerAmount = parseUnits(maxAmountSpent.toString(), 6).toString();
+      const takerAmount = parseUnits(
+        minAmountWithSlippage.toString(),
+        6,
+      ).toString();
+
+      /**
+       * Do NOT change the order below.
+       * This order needs to match the order on the relayer.
+       */
+      const order: OrderData & { salt: string } = {
+        salt: generateSalt(),
+        maker: makerAddress,
+        signer: signer.address,
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: outcomeTokenId,
+        makerAmount,
+        takerAmount,
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
+        signatureType: SignatureType.POLY_GNOSIS_SAFE,
+      };
+
+      const contractConfig = getContractConfig(chainId);
+
+      const exchangeContract = negRisk
+        ? contractConfig.negRiskExchange
+        : contractConfig.exchange;
+
+      const verifyingContract = exchangeContract;
+
+      const typedData = getOrderTypedData({
+        order,
         chainId,
-        from: address,
-        value: '0x0',
+        verifyingContract,
       });
+
+      const signature = await signer.signTypedMessage(
+        { data: typedData, from: signer.address },
+        SignTypedDataVersion.V4,
+      );
+
+      const signedOrder = {
+        ...order,
+        signature,
+      };
+
+      const signerApiKey = await this.getApiKey({ address: signer.address });
+
+      const clobOrder = {
+        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
+        owner: signerApiKey.apiKey,
+        orderType: OrderType.FOK,
+      };
+
+      const body = JSON.stringify(clobOrder);
+
+      const headers = await getL2Headers({
+        l2HeaderArgs: {
+          method: 'POST',
+          requestPath: `/order`,
+          body,
+        },
+        address: clobOrder.order.signer ?? '',
+        apiKey: signerApiKey,
+      });
+
+      let feeAuthorization;
+      if (fees !== undefined && fees.totalFee > 0) {
+        const safeAddress = computeProxyAddress(signer.address);
+        const feeAmountInUsdc = BigInt(
+          parseUnits(fees.totalFee.toString(), 6).toString(),
+        );
+        feeAuthorization = await createSafeFeeAuthorization({
+          safeAddress,
+          signer,
+          amount: feeAmountInUsdc,
+          to: FEE_COLLECTOR_ADDRESS,
+        });
+      }
+
+      const { success, response, error } = await submitClobOrder({
+        headers,
+        clobOrder,
+        feeAuthorization,
+      });
+
+      if (!response) {
+        return {
+          success,
+          error,
+        } as OrderResult;
+      }
+
+      if (side === Side.BUY) {
+        this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
+      }
+
+      return {
+        success,
+        response: {
+          id: response.orderID,
+          spentAmount: response.makingAmount,
+          receivedAmount: response.takingAmount,
+          txHashes: response.transactionsHashes,
+        },
+        error,
+      } as OrderResult;
+    } catch (error) {
+      // Catch all errors and return them in consistent format
+      // instead of throwing for better error handling
+      DevLogger.log('PolymarketProvider: Place order failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        side,
+        outcomeTokenId,
+      });
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to place order',
+      } as OrderResult;
+    } finally {
+      if (side === Side.BUY) {
+        this.#buyOrderInProgressByAddress.set(signer.address, false);
+      }
     }
-
-    const typedData = getOrderTypedData({
-      order,
-      chainId,
-      verifyingContract,
-    });
-
-    const signature = await signTypedMessage(
-      { data: typedData, from: address },
-      SignTypedDataVersion.V4,
-    );
-
-    const signedOrder = {
-      ...order,
-      signature,
-    };
-
-    const signerApiKey = await this.getApiKey({ address });
-
-    const clobOrder = {
-      order: { ...signedOrder, side, salt: parseInt(signedOrder.salt, 10) },
-      owner: signerApiKey.apiKey,
-      orderType: OrderType.FOK,
-    };
-
-    const body = JSON.stringify(clobOrder);
-
-    const headers = await getL2Headers({
-      l2HeaderArgs: {
-        method: 'POST',
-        requestPath: `/order`,
-        body,
-      },
-      address: clobOrder.order.signer ?? '',
-      apiKey: signerApiKey,
-    });
-
-    // Fee logic
-
-    return {
-      id: generateOrderId(),
-      providerId: this.providerId,
-      marketId: position.marketId,
-      outcomeId: position.outcomeId,
-      outcomeTokenId: position.outcomeTokenId,
-      size: position.size,
-      price,
-      chainId,
-      status: 'idle',
-      error: undefined,
-      timestamp: Date.now(),
-      lastUpdated: Date.now(),
-      onchainTradeParams: calls,
-      offchainTradeParams: { clobOrder, headers },
-      isBuy: false,
-    };
   }
 
-  public prepareClaim(params: ClaimOrderParams): PredictClaim {
-    const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-    const { position } = params;
-    const amounts: bigint[] = [0n, 0n];
-    amounts[position.outcomeIndex] = BigInt(
-      parseUnits(
-        position.size.toString(),
-        CONDITIONAL_TOKEN_DECIMALS,
-      ).toString(),
-    );
+  public async prepareClaim(
+    params: ClaimOrderParams,
+  ): Promise<ClaimOrderResponse> {
+    try {
+      const { positions, signer } = params;
 
-    const negRisk = !!position.negRisk;
+      if (!positions || positions.length === 0) {
+        throw new Error('No positions provided for claim');
+      }
 
-    const to = (
-      negRisk ? contractConfig.negRiskAdapter : contractConfig.conditionalTokens
-    ) as Hex;
-    const callData = encodeClaim(position.outcomeId, negRisk, amounts);
+      if (!signer?.address) {
+        throw new Error('Signer address is required for claim');
+      }
 
-    const response: PredictClaim = {
-      positionId: position.id,
-      chainId: POLYGON_MAINNET_CHAIN_ID,
-      status: PredictClaimStatus.IDLE,
-      txParams: {
-        data: callData,
-        to,
-        value: '0x0',
-      },
-    };
-    return response;
-  }
+      // Get safe address from cache or fetch it
+      let safeAddress: string | undefined;
+      try {
+        safeAddress = computeProxyAddress(signer.address);
+      } catch (error) {
+        throw new Error(
+          `Failed to retrieve account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
 
-  public async submitOffchainTrade(
-    params: OffchainTradeParams,
-  ): Promise<OffchainTradeResponse> {
-    const { clobOrder, headers, feeAuthorization } =
-      params as unknown as PolymarketOffchainTradeParams;
+      if (!safeAddress) {
+        throw new Error('Safe address not found for claim');
+      }
 
-    const response = await submitClobOrder({
-      headers,
-      clobOrder,
-      feeAuthorization,
-    });
+      // Generate claim transaction
+      let claimTransaction;
+      try {
+        claimTransaction = await getClaimTransaction({
+          signer,
+          positions,
+          safeAddress,
+        });
+      } catch (error) {
+        throw new Error(
+          `Failed to generate claim transaction: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
 
-    return {
-      success: response.success,
-      response,
-    };
+      if (!claimTransaction || claimTransaction.length === 0) {
+        throw new Error('No claim transaction generated');
+      }
+
+      return {
+        chainId: POLYGON_MAINNET_CHAIN_ID,
+        transactions: claimTransaction,
+      };
+    } catch (error) {
+      // Log error for debugging
+      DevLogger.log('PolymarketProvider: prepareClaim failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Re-throw with clear error message
+      throw error;
+    }
   }
 
   public async isEligible(): Promise<boolean> {
@@ -624,7 +659,237 @@ export class PolymarketProvider implements PredictProvider {
             : `Error checking geoblock status: ${error}`,
         timestamp: new Date().toISOString(),
       });
+
+      // Log to Sentry - this error is swallowed (returns false) so controller won't see it
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'PolymarketProvider.isEligible',
+        feature: 'Predict',
+        provider: POLYMARKET_PROVIDER_ID,
+        operation: 'geoblock_check',
+      });
     }
     return eligible;
+  }
+
+  public async prepareDeposit(
+    params: PrepareDepositParams & { signer: Signer },
+  ): Promise<PrepareDepositResponse> {
+    const transactions = [];
+    const { signer } = params;
+
+    if (!signer?.address) {
+      throw new Error('Signer address is required for deposit preparation');
+    }
+
+    const { collateral } = MATIC_CONTRACTS;
+
+    if (!collateral) {
+      throw new Error('Collateral contract address not configured');
+    }
+
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    if (!accountState) {
+      throw new Error('Failed to retrieve account state');
+    }
+
+    if (!accountState.address) {
+      throw new Error('Account address not found in account state');
+    }
+
+    if (!accountState.isDeployed) {
+      const deployTransaction = await getDeployProxyWalletTransaction({
+        signer,
+      });
+
+      if (!deployTransaction) {
+        throw new Error('Failed to get deploy proxy wallet transaction params');
+      }
+
+      if (!deployTransaction.params?.to || !deployTransaction.params?.data) {
+        throw new Error('Invalid deploy transaction: missing params');
+      }
+
+      transactions.push(deployTransaction);
+    }
+
+    if (!accountState.hasAllowances) {
+      const allowanceTransaction = await getProxyWalletAllowancesTransaction({
+        signer,
+      });
+
+      if (!allowanceTransaction) {
+        throw new Error('Failed to get proxy wallet allowances transaction');
+      }
+
+      if (
+        !allowanceTransaction.params?.to ||
+        !allowanceTransaction.params?.data
+      ) {
+        throw new Error('Invalid allowance transaction: missing params');
+      }
+
+      transactions.push(allowanceTransaction);
+    }
+
+    const depositTransactionCallData = generateTransferData('transfer', {
+      toAddress: accountState.address,
+      amount: '0x0',
+    });
+
+    if (!depositTransactionCallData) {
+      throw new Error(
+        'Failed to generate transfer data for deposit transaction',
+      );
+    }
+
+    transactions.push({
+      params: {
+        to: collateral as Hex,
+        data: depositTransactionCallData as Hex,
+      },
+      type: TransactionType.predictDeposit,
+    });
+
+    return {
+      chainId: CHAIN_IDS.POLYGON,
+      transactions,
+    };
+  }
+
+  public async getAccountState(params: {
+    ownerAddress: string;
+  }): Promise<AccountState> {
+    try {
+      const { ownerAddress } = params;
+
+      if (!ownerAddress) {
+        throw new Error('Owner address is required');
+      }
+
+      // Get or compute safe address
+      const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
+      let address: string;
+      try {
+        address = cachedAddress?.address ?? computeProxyAddress(ownerAddress);
+      } catch (error) {
+        throw new Error(
+          `Failed to compute safe address: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      if (!address) {
+        throw new Error('Failed to get safe address');
+      }
+
+      // Check deployment status and allowances
+      let isDeployed: boolean;
+      let hasAllowancesResult: boolean;
+      try {
+        [isDeployed, hasAllowancesResult] = await Promise.all([
+          isSmartContractAddress(
+            address,
+            numberToHex(POLYGON_MAINNET_CHAIN_ID),
+          ),
+          hasAllowances({ address }),
+        ]);
+      } catch (error) {
+        throw new Error(
+          `Failed to check account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+
+      const accountState = {
+        address: address as `0x${string}`,
+        isDeployed,
+        hasAllowances: hasAllowancesResult,
+      };
+
+      this.#accountStateByAddress.set(ownerAddress, accountState);
+
+      return accountState;
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: getAccountState failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
+  }
+
+  public async getBalance({ address }: GetBalanceParams): Promise<number> {
+    if (!address) {
+      throw new Error('address is required');
+    }
+    const cachedAddress = this.#accountStateByAddress.get(address);
+    const predictAddress =
+      cachedAddress?.address ?? computeProxyAddress(address);
+    const balance = await getBalance({ address: predictAddress });
+    return balance;
+  }
+
+  public async prepareWithdraw(
+    params: PrepareWithdrawParams & { signer: Signer },
+  ): Promise<PrepareWithdrawResponse> {
+    const { signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      (await this.getAccountState({ ownerAddress: signer.address })).address;
+
+    const callData = encodeErc20Transfer({
+      to: signer.address,
+      value: '0x0',
+    });
+
+    return {
+      chainId: CHAIN_IDS.POLYGON,
+      transaction: {
+        params: {
+          to: MATIC_CONTRACTS.collateral as Hex,
+          data: callData as Hex,
+        },
+        type: TransactionType.predictWithdraw,
+      },
+      predictAddress: safeAddress,
+    };
+  }
+
+  public async signWithdraw(
+    params: SignWithdrawParams,
+  ): Promise<SignWithdrawResponse> {
+    const { callData, signer } = params;
+
+    if (!signer.address) {
+      throw new Error('Signer address is required');
+    }
+
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      computeProxyAddress(signer.address);
+
+    const signedCallData = await getWithdrawTransactionCallData({
+      data: callData,
+      signer,
+      safeAddress,
+    });
+
+    const amount = getSafeUsdcAmount(callData);
+
+    return {
+      callData: signedCallData,
+      amount,
+    };
   }
 }

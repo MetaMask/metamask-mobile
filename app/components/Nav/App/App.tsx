@@ -72,6 +72,7 @@ import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
@@ -103,6 +104,7 @@ import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
+import TokenInsightsSheet from '../../UI/Bridge/components/TokenInsightsSheet';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
@@ -155,6 +157,7 @@ import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -175,11 +178,20 @@ const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
 const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
+const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
+
+const SocialLoginSuccessExistingUser = () => (
+  <SocialLoginIosUser type="existing" />
+);
+
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
       component={OnboardingSuccess} // Used in SRP flow
+      options={{
+        headerShown: false,
+      }}
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -207,6 +219,11 @@ const OnboardingSuccessFlow = () => (
 const OnboardingNav = () => (
   <Stack.Navigator initialRouteName={'Onboarding'}>
     <Stack.Screen name="Onboarding" component={Onboarding} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
+      component={SocialLoginSuccessNewUser}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
     <Stack.Screen
       name="AccountBackupStep1"
@@ -222,6 +239,7 @@ const OnboardingNav = () => (
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
       component={OnboardingSuccess} // Used in SRP flow
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -242,6 +260,11 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="AccountStatus"
       component={AccountStatus}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+      component={SocialLoginSuccessExistingUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -529,6 +552,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
+      name={Routes.SHEET.TOKEN_INSIGHTS}
+      component={TokenInsightsSheet}
+    />
+    <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
     />
@@ -546,6 +573,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
       component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
+    />
+    <Stack.Screen
+      name={Routes.CARD.NOTIFICATION}
+      component={CardNotification}
     />
   </Stack.Navigator>
 );

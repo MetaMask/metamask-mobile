@@ -47,7 +47,7 @@ const createStyles = (colors) =>
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 8,
     },
     scrollviewWrapper: {
       flexGrow: 1,
@@ -201,7 +201,7 @@ const AccountBackupStep1 = (props) => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper} edges={['bottom']}>
+    <SafeAreaView style={styles.mainWrapper} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}

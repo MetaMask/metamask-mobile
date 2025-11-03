@@ -130,32 +130,22 @@ function TradeWalletActions() {
   }, [goToSwapsBase, handleNavigateBack]);
 
   const onPerps = useCallback(() => {
-    let params: Record<string, string> | null = null;
-    if (isFirstTimePerpsUser) {
-      params = {
-        screen: Routes.PERPS.TUTORIAL,
-      };
-    } else {
-      params = {
-        screen: Routes.PERPS.MARKETS,
-      };
-    }
     postCallback.current = () => {
-      navigate(Routes.PERPS.ROOT, params);
+      if (isFirstTimePerpsUser) {
+        navigate(Routes.PERPS.TUTORIAL);
+      } else {
+        navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+        });
+      }
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
-      navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.PREDICT.ROOT,
-          params: {
-            screen: Routes.PREDICT.MARKET_LIST,
-          },
-        },
+      navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
       });
     };
     handleNavigateBack();

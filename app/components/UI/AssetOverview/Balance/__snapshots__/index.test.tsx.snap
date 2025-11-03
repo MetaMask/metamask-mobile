@@ -6,6 +6,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     {
       "flex": 1,
       "paddingHorizontal": 16,
+      "paddingTop": 24,
     }
   }
 >
@@ -168,20 +169,29 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         }
       }
     >
-      <Text
-        accessibilityRole="text"
+      <View
         style={
           {
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
+            "flexDirection": "row",
+            "gap": 8,
           }
         }
       >
-        Dai Stablecoin
-      </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Dai Stablecoin
+        </Text>
+      </View>
       <Text
         accessibilityRole="text"
         style={
@@ -233,6 +243,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     {
       "flex": 1,
       "paddingHorizontal": 16,
+      "paddingTop": 24,
     }
   }
 >
@@ -395,20 +406,29 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         }
       }
     >
-      <Text
-        accessibilityRole="text"
+      <View
         style={
           {
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
+            "flexDirection": "row",
+            "gap": 8,
           }
         }
       >
-        Dai Stablecoin
-      </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Dai Stablecoin
+        </Text>
+      </View>
     </View>
     <View
       style={

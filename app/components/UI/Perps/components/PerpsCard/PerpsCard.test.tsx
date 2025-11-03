@@ -20,7 +20,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {

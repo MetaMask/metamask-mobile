@@ -1,8 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
+import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
@@ -21,11 +23,20 @@ interface UsePredictPositionsOptions {
    * @default true
    */
   refreshOnFocus?: boolean;
+  /**
+   * The market ID to load positions for
+   */
+  marketId?: string;
 
   /**
    * The parameters to load positions for
    */
   claimable?: boolean;
+  /**
+   * Auto-refresh interval in milliseconds
+   * If provided, positions will be automatically refreshed at this interval
+   */
+  autoRefreshTimeout?: number;
 }
 
 interface UsePredictPositionsReturn {
@@ -49,9 +60,12 @@ export function usePredictPositions(
     loadOnMount = true,
     refreshOnFocus = true,
     claimable = false,
+    marketId,
+    autoRefreshTimeout,
   } = options;
 
   const { getPositions } = usePredictTrading();
+  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
   const [positions, setPositions] = useState<PredictPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,11 +89,24 @@ export function usePredictPositions(
         }
         setError(null);
 
+        // Ensure Polygon network exists before fetching positions
+        try {
+          await ensurePolygonNetworkExists();
+        } catch (networkError) {
+          // Error already logged to Sentry in usePredictNetworkManagement
+          DevLogger.log(
+            'usePredictPositions: Failed to ensure Polygon network exists',
+            networkError,
+          );
+          // Continue with positions fetch - network might already exist
+        }
+
         // Get positions from Predict controller
         const positionsData = await getPositions({
           address: selectedInternalAccountAddress,
           providerId,
           claimable,
+          marketId,
         });
         const validPositions = positionsData ?? [];
 
@@ -100,12 +127,35 @@ export function usePredictPositions(
           err instanceof Error ? err.message : 'Failed to load positions';
         setError(errorMessage);
         DevLogger.log('usePredictPositions: Error loading positions', err);
+
+        // Capture exception with positions loading context (no user address)
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePredictPositions',
+            action: 'positions_load',
+            operation: 'data_fetching',
+          },
+          extra: {
+            positionsContext: {
+              providerId,
+              claimable,
+              marketId,
+            },
+          },
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [getPositions, selectedInternalAccountAddress, providerId, claimable],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      getPositions,
+      selectedInternalAccountAddress,
+      providerId,
+      claimable,
+      marketId,
+    ],
   );
 
   // Load positions on mount if enabled
@@ -125,6 +175,25 @@ export function usePredictPositions(
       }
     }, [refreshOnFocus, loadPositions]),
   );
+
+  // Store loadPositions in a ref for auto-refresh
+  const loadPositionsRef = useRef(loadPositions);
+  loadPositionsRef.current = loadPositions;
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!autoRefreshTimeout) {
+      return;
+    }
+
+    const refreshTimer = setInterval(() => {
+      loadPositionsRef.current({ isRefresh: true });
+    }, autoRefreshTimeout);
+
+    return () => {
+      clearInterval(refreshTimer);
+    };
+  }, [autoRefreshTimeout]);
 
   return {
     positions,

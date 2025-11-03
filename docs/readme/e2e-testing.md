@@ -16,6 +16,7 @@ Our end-to-end (E2E) testing strategy leverages a combination of technologies to
   - [iOS builds](#ios-builds)
   - [Android builds](#android-builds)
 - [Run the E2E Tests](#run-the-e2e-tests)
+- [Flask E2E Testing (Snaps Support)](#flask-e2e-testing-snaps-support)
 - [Setup Troubleshooting](#setup-troubleshooting)
 - [Appium](#appium)
 
@@ -97,6 +98,8 @@ Please follow the [native development guide](../../README.md#native-development)
 # Build the app for testing
 yarn test:e2e:ios:debug:build
 yarn test:e2e:android:debug:build
+
+# These commands are hardcoded to build for `main` build type and `e2e` environment based on the .detoxrc.js file
 ```
 
 ### Use Expo prebuilds (recommended)
@@ -159,10 +162,10 @@ You can use prebuilt app files instead of building the app locally.
 ```bash
 # Firstly, make sure the build watcher is running in a dedicated terminal for the logs
 # and the emulators are up and running
-source .e2e.env && yarn watch:clean
-
-# Setup E2E dependencies (run this first)
-source .e2e.env && yarn setup:e2e
+# Ensure METAMASK_BUILD_TYPE is set to `main` and METAMASK_ENVIRONMENT is set to `e2e` in .js.env
+source .e2e.env   # Ensure .js.env is sourced
+yarn watch:clean  # First time or after dependency changes
+yarn watch        # Subsequent runs
 
 # Run all Tests
 source .e2e.env && yarn test:e2e:ios:debug:run
@@ -182,6 +185,165 @@ source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
 To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../e2e/docs/README.md).
+
+## Flask E2E Testing (Snaps Support)
+
+Flask is a special build variant that enables wider Snaps support and other experimental features. Flask E2E tests require specific configuration to enable development APIs.
+
+### Flask Prerequisites
+
+Ensure you have completed the [Local environment setup](#local-environment-setup) steps first.
+
+### Flask Build Commands
+
+**Development with Hot Reload:**
+
+```bash
+# Start Metro bundler for Flask development
+# Ensure METAMASK_BUILD_TYPE is set to `flask` and METAMASK_ENVIRONMENT is set to `e2e` in .js.env
+source .e2e.env   # Ensure .js.env is sourced
+yarn watch:clean  # First time or after dependency changes
+yarn watch        # Subsequent runs
+```
+
+**Build for E2E Testing:**
+
+```bash
+# Build Flask app for E2E tests
+yarn test:e2e:ios:flask:build
+yarn test:e2e:android:flask:build
+```
+
+**Run Flask E2E Tests:**
+
+```bash
+# Run all Flask E2E tests
+yarn test:e2e:ios:flask:run
+yarn test:e2e:android:flask:run
+# These commands are hardcoded to build for `flask` build type and `e2e` environment based on the .detoxrc.js file
+
+# Run specific Flask test
+yarn test:e2e:ios:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
+yarn test:e2e:android:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
+```
+
+### Flask Configuration Details
+
+Flask E2E builds use these key environment variables:
+
+```bash
+METAMASK_BUILD_TYPE=flask          # Enables Flask build variant
+METAMASK_ENVIRONMENT=e2e           # Enables E2E-specific configurations
+BRIDGE_USE_DEV_APIS=true          # Enables more snaps funcationality and dev APIs
+```
+
+**Build Script Architecture:**
+
+- **Local builds**: Use `MODE=flaskDebugE2E` (debug APKs/apps)
+- **CI builds**: Use `MODE=flask` (release APKs/apps)
+- Both modes use `ENVIRONMENT=e2e` for E2E-specific setup
+
+### Common Flask E2E Gotchas
+
+#### 1. Hardcoded `.js.env` Values ⚠️
+
+**Problem**: If your `.js.env` file has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT`, it will override command-line environment variables and cause Flask features (like Snaps) to be disabled.
+
+**Example of problematic `.js.env`:**
+
+```bash
+# ❌ DON'T: Hardcoded values override everything
+export METAMASK_BUILD_TYPE=main
+export METAMASK_ENVIRONMENT=production
+```
+
+**Solution**: Remove or comment out these lines in `.js.env`, or use conditional logic:
+
+```bash
+# ✅ DO: Allow override from command line
+export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-main}
+export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-production}
+```
+
+**Symptoms of this issue:**
+
+- Error: "Installing Snaps is currently disabled in this version of MetaMask"
+- Snaps tests work on CI but fail locally
+- Flask features not available despite using Flask build commands
+
+#### 2. Using Wrong Build for Tests ⚠️
+
+**Problem**: Testing with a Main build instead of Flask build, or testing with an old Flask build that was built before environment variables were properly configured.
+
+**How to verify you're testing the correct build:**
+
+1. Check the app splash screen - it should show "Flask" logo/text
+2. Check Metro bundler output - should show `METAMASK_BUILD_TYPE: flask`
+3. Check build artifacts:
+   - iOS: `ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app`
+   - Android: `android/app/build/outputs/apk/flask/debug/app-flask-debug.apk`
+
+**Solution**: Always rebuild after changing environment variables or `.js.env`:
+
+```bash
+# Clean previous builds
+yarn watch:clean
+
+# Rebuild Flask app
+yarn test:e2e:android:flask:build  # or iOS
+```
+
+#### 3. Metro Bundler Not Running ⚠️
+
+**Problem**: Flask development builds require Metro bundler to be running with correct environment variables.
+
+**Solution**: Always start Metro bundler first with Flask environment:
+
+```bash
+# Terminal 1: Start Metro bundler
+yarn watch:clean
+
+# Terminal 2: Reinstall and run Flask app
+yarn test:e2e:android:flask:run
+```
+
+### Flask vs Main Build Differences
+
+| Aspect            | Main Build                          | Flask Build                                  |
+| ----------------- | ----------------------------------- | -------------------------------------------- |
+| **Snaps Support** | ❌ Limited                          | ✅ Enabled (with `BRIDGE_USE_DEV_APIS=true`) |
+| **Dev APIs**      | ❌ Limited                          | ✅ Full access                               |
+| **App Icon**      | Standard MetaMask                   | Flask logo                                   |
+| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                          |
+| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                              |
+| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask`        |
+
+### Flask Troubleshooting
+
+**"Installing Snaps is currently disabled" error:**
+
+1. Check if `.js.env` has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT` - remove them
+2. Verify `BRIDGE_USE_DEV_APIS=true` is set during build
+3. Rebuild the app with `yarn test:e2e:*:flask:build`
+4. Verify Flask build by checking app icon/splash screen
+
+**Metro bundler shows wrong `METAMASK_BUILD_TYPE`:**
+
+1. Stop Metro bundler (Ctrl+C)
+2. Clean bundler cache: `yarn watch:clean`
+3. Restart Metro bundler: `yarn watch`
+
+**App crashes or shows blank screen:**
+
+1. Ensure emulator/simulator is running before building
+2. Check Metro bundler logs for JavaScript errors
+3. Try clean build: `yarn watch:clean && yarn test:e2e:*:flask:build`
+
+**Tests timeout waiting for elements:**
+
+1. Verify you're running Flask tests against Flask build (not Main build)
+2. Check if app actually has Flask features enabled
+3. Take screenshot to verify app state: `adb exec-out screencap -p > screenshot.png`
 
 ### Setup Troubleshooting
 
@@ -483,32 +645,20 @@ yarn run-appwright:ios
 
 Our CI/CD process is automated through various Bitrise pipelines, each designed to streamline and optimize different aspects of our E2E testing.
 
-#### **1. PR_Smoke_e2e_Pipeline**
-
-- **Triggers**:
-  - **When "run-ios-e2e-smoke" label is applied to a Pull request**: Automatically runs smoke tests.
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `pr_smoke_e2e_pipeline` from the pipeline dropdown menu.
-
-#### **2. PR_Regression_e2e_Pipeline**
-
-- **Triggers**:
-  - **Nightly**: Automatically runs all regression tests against main branch.
-- **Manual Trigger**: Select the main branch (or another branch of choice) in the Bitrise dashboard and choose `pr_regression_e2e_pipeline` from the pipeline dropdown menu.
-
-#### **3. Release_e2e_Pipeline**
+#### **1. Release_e2e_Pipeline**
 
 - **Workflows**:
   - **Build**: Creates iOS and Android artifacts.
   - **Test**: Executes regression tests across both platforms.
 - **Manual Trigger**: Typically run on release branches but can be manually triggered in the Bitrise dashboard.
 
-#### **4. App Launch Times Pipeline**
+#### **2. App Launch Times Pipeline**
 
 - **Function**: Measures and monitors app launch times on real devices using BrowserStack to ensure consistent performance over time.
 - **Nightly**: Automatically runs on the main branch.
 - **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
 
-#### **5. App Upgrade Pipeline**
+#### **3. App Upgrade Pipeline**
 
 - **Function**: Automates testing of app upgrades to verify smooth transitions between versions.
 - **Configuration**: Requires the `PRODUCTION_APP_URL` environment variable to be set with the current production build's BrowserStack URL.You would need to search and update `PRODUCTION_APP_URL` in the bitrise.yml with the production browserstack build URL.
