@@ -284,15 +284,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             if (!userToken.address) return false;
             const addressMatch =
               userToken.address.toLowerCase() === tokenAddressLower;
-
-            // Determine chain match based on network type
-            let chainMatch: boolean;
-            if (isSolana) {
-              chainMatch = userToken.caipChainId === caipChainId;
-            } else {
-              // For Linea, use special comparison to handle 'linea' and 'linea-us'
-              chainMatch = userToken.caipChainId === caipChainId;
-            }
+            const chainMatch = userToken.caipChainId === caipChainId;
 
             return addressMatch && chainMatch;
           });
@@ -303,15 +295,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
             const symbolMatch =
               userToken.symbol?.toUpperCase() ===
               tokenConfig.symbol?.toUpperCase();
-
-            // Determine chain match based on network type
-            let chainMatch: boolean;
-            if (isSolana) {
-              chainMatch = userToken.caipChainId === caipChainId;
-            } else {
-              // For Linea, use special comparison to handle 'linea' and 'linea-us'
-              chainMatch = userToken.caipChainId === caipChainId;
-            }
+            const chainMatch = userToken.caipChainId === caipChainId;
 
             return symbolMatch && chainMatch;
           });
@@ -324,15 +308,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
               const addressMatch =
                 settingsToken.address.toLowerCase() === tokenAddressLower;
               // The delegation settings returns the chain id in the decimal format.
-
-              // Determine chain match based on network type
-              let chainMatch: boolean;
-              if (isSolana) {
-                chainMatch = settingsToken.caipChainId === caipChainId;
-              } else {
-                // For Linea, use special comparison to handle 'linea' and 'linea-us'
-                chainMatch = settingsToken.caipChainId === caipChainId;
-              }
+              const chainMatch = settingsToken.caipChainId === caipChainId;
 
               return addressMatch && chainMatch;
             },

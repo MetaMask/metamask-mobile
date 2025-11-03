@@ -445,7 +445,6 @@ export const useGetPriorityCardToken = (
           externalWalletDetailsData.priorityWalletDetail
         ) {
           priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
-          Logger.log('priorityWalletDetail', priorityWalletDetail);
         }
 
         const warning = !priorityWalletDetail
