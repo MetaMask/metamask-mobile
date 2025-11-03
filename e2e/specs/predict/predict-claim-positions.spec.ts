@@ -18,9 +18,7 @@ import {
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
-// import TabBarComponent from '../../pages/wallet/TabBarComponent';
-// import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-// import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
+
 import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
@@ -103,18 +101,6 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
           description: 'Claim button should not be visible',
         });
-        // await TabBarComponent.tapActivity();
-
-        // await ActivitiesView.tapOnPredictionsTab();
-        // const LOST_POSITION = 'Bears vs. Commanders';
-
-        // await ActivitiesView.tapPredictPosition(LOST_POSITION);
-        // await Assertions.expectElementToBeVisible(
-        //   PredictActivityDetails.container,
-        // );
-        // await PredictActivityDetails.tapBackButton();
-        // await TabBarComponent.tapWallet();
-        // await Assertions.expectTextDisplayed('$48.16');
       },
     );
   });
