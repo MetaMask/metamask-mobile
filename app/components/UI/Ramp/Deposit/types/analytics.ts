@@ -31,6 +31,8 @@ interface RampsTokenSelected {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
 }
@@ -53,6 +55,8 @@ interface RampsOrderProposed {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
 }
@@ -71,6 +75,8 @@ interface RampsOrderSelected {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -84,6 +90,8 @@ interface RampsOrderFailed {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   error_message: string;
   is_authenticated: boolean;
@@ -154,6 +162,8 @@ interface RampsTransactionConfirmed {
   country: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -171,6 +181,8 @@ interface RampsTransactionCompleted {
   country: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -188,6 +200,8 @@ interface RampsTransactionFailed {
   country: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   error_message: string;
 }
