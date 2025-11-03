@@ -24,9 +24,10 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 8,
+      paddingTop: 16,
     },
     sectionTitle: {
-      paddingTop: 16,
+      // Removed paddingTop - now on parent sectionHeader for consistent alignment
     },
     emptyContainer: {
       padding: 24,
