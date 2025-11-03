@@ -227,6 +227,7 @@ exports[`ButtonBase renders when disabled 1`] = `
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "opacity": 0.5,
       "overflow": "hidden",
       "paddingHorizontal": 16,
     }
