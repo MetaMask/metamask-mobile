@@ -135,6 +135,14 @@ class WalletMainScreen {
     }
   }
 
+  get balanceContainer() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId('balance-container');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'balance-container');
+    }
+  }
+
   get tokenBalancesLoadedMarker() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId('token-balances-loaded-marker');

@@ -1,6 +1,7 @@
 import { test } from '../../../fixtures/performance-test.js';
 
 import TimerHelper from '../../../utils/TimersHelper.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import { login } from '../../../utils/Flows.js';
@@ -20,6 +21,7 @@ test('Asset Balances - Aggregated Balance Loading Time', async ({
   performanceTracker,
 }, testInfo) => {
   // Set device for screen objects
+  WalletMainScreen.device = device;
   TabBarModal.device = device;
   LoginScreen.device = device;
 
@@ -30,7 +32,7 @@ test('Asset Balances - Aggregated Balance Loading Time', async ({
   await TabBarModal.tapWalletButton();
 
   // Get the balance container element
-  const balanceContainer = await device.$('~balance-container');
+  const balanceContainer = await WalletMainScreen.balanceContainer;
 
   // Helper function to get the current balance text
   const getBalanceText = async () => {
