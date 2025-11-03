@@ -313,7 +313,7 @@ describe('SetPhoneNumber Component', () => {
         'set-phone-number-country-area-code-select',
       );
       // Should show +1 for US (initial selected country)
-      expect(countrySelect.props.selectedValue).toBe('+1');
+      expect(countrySelect.props.selectedValue).toBe('1');
     });
 
     it('updates area code when different country is selected', () => {
@@ -447,7 +447,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       expect(mockSendPhoneVerification).toHaveBeenCalledWith({
-        phoneCountryCode: '+1',
+        phoneCountryCode: '1',
         phoneNumber: '1234567890',
         contactVerificationId: 'test-verification-id',
       });
@@ -479,7 +479,7 @@ describe('SetPhoneNumber Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           'CardOnboardingConfirmPhoneNumber',
           {
-            phoneCountryCode: '+1',
+            phoneCountryCode: '1',
             phoneNumber: '1234567890',
           },
         );
@@ -638,7 +638,7 @@ describe('SetPhoneNumber Component', () => {
         'set-phone-number-country-area-code-select',
       );
       // Should default to +1
-      expect(countrySelect.props.selectedValue).toBe('+1');
+      expect(countrySelect.props.selectedValue).toBe('1');
     });
   });
 });

@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { RefreshControl } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
@@ -9,7 +10,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 import styleSheet from './MarketListContent.styles';
 import {
   PredictCategory,
@@ -19,17 +20,26 @@ import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
 import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { ScrollCoordinator } from '../../types/scrollCoordinator';
 
 interface MarketListContentProps {
   q?: string;
   category: PredictCategory;
   entryPoint?: PredictEntryPoint;
+  scrollCoordinator?: ScrollCoordinator;
 }
+
+// create once at module scope to avoid remounting on each render
+type PredictFlashListProps = FlashListProps<PredictMarketType>;
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<PredictFlashListProps>,
+) as unknown as React.ComponentType<PredictFlashListProps>;
 
 const MarketListContent: React.FC<MarketListContentProps> = ({
   category,
   q,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  scrollCoordinator,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
@@ -43,18 +53,18 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     fetchMore,
   } = usePredictMarketData({ category, q, pageSize: 20 });
 
-  const listRef = useRef<FlashListRef<PredictMarketType>>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const scrollHandler = scrollCoordinator?.getScrollHandler(category);
+
   const renderItem = useCallback(
-    ({ item, index }: { item: PredictMarketType; index: number }) => (
+    (info: { item: PredictMarketType; index: number }) => (
       <PredictMarket
-        key={item.id}
-        market={item}
+        market={info.item}
         entryPoint={entryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
-          index + 1,
+          info.index + 1,
         )}
       />
     ),
@@ -113,7 +123,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   if (isFetching) {
     return (
-      <Box style={styles.loadingContainer}>
+      <Box style={styles.loadingContainer} twClassName="py-2 px-4">
         <Skeleton
           testID="skeleton-loading-1"
           height={60}
@@ -165,9 +175,30 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     );
   }
 
+  if (scrollCoordinator && scrollHandler) {
+    return (
+      <AnimatedFlashList
+        data={marketData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.7}
+        ListFooterComponent={renderFooter}
+        onScroll={scrollHandler as never}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+        contentContainerStyle={tw.style('pt-2 pb-4 px-4')}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        getItemType={() => 'market'}
+      />
+    );
+  }
+
   return (
     <FlashList
-      ref={listRef}
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -177,7 +208,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }
-      contentContainerStyle={tw.style('pb-5')}
+      contentContainerStyle={tw.style('pt-4 pb-5 px-4')}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       getItemType={() => 'market'}

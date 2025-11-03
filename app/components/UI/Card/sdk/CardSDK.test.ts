@@ -13,9 +13,11 @@ import {
   CardAuthorizeResponse,
   CardExchangeTokenResponse,
   CardLocation,
+  CreateOnboardingConsentRequest,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
+import AppConstants from '../../../../core/AppConstants';
 
 // Type definition for accessing private methods in tests
 interface CardSDKPrivateAccess {
@@ -728,9 +730,8 @@ describe('CardSDK', () => {
         cardFeatureFlag: emptyTokensCardFeatureFlag,
       });
 
-      const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
-        testAddress,
-      );
+      const result =
+        await emptyTokensCardSDK.getSupportedTokensAllowances(testAddress);
       expect(result).toEqual([]);
     });
 
@@ -960,9 +961,8 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await cardSDK.initiateCardProviderAuthentication(
-        mockQueryParams,
-      );
+      const result =
+        await cardSDK.initiateCardProviderAuthentication(mockQueryParams);
 
       expect(result).toEqual(mockResponse);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -1557,47 +1557,6 @@ describe('CardSDK', () => {
     });
   });
 
-  describe('isBaanxLoginEnabled', () => {
-    it('returns true when Baanx login is enabled', () => {
-      const enabledFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-        isBaanxLoginEnabled: true,
-      };
-
-      const enabledSDK = new CardSDK({
-        cardFeatureFlag: enabledFeatureFlag,
-      });
-
-      expect(enabledSDK.isBaanxLoginEnabled).toBe(true);
-    });
-
-    it('returns false when Baanx login is disabled', () => {
-      const disabledFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-        isBaanxLoginEnabled: false,
-      };
-
-      const disabledSDK = new CardSDK({
-        cardFeatureFlag: disabledFeatureFlag,
-      });
-
-      expect(disabledSDK.isBaanxLoginEnabled).toBe(false);
-    });
-
-    it('returns false when Baanx login flag is undefined', () => {
-      const undefinedFeatureFlag: CardFeatureFlag = {
-        ...mockCardFeatureFlag,
-      };
-      delete undefinedFeatureFlag.isBaanxLoginEnabled;
-
-      const undefinedSDK = new CardSDK({
-        cardFeatureFlag: undefinedFeatureFlag,
-      });
-
-      expect(undefinedSDK.isBaanxLoginEnabled).toBe(false);
-    });
-  });
-
   describe('makeRequest error scenarios', () => {
     it('handles unknown error type', async () => {
       const unknownError = 'string error';
@@ -1816,12 +1775,14 @@ describe('CardSDK', () => {
       const mockPriorityWalletResponse = [
         {
           id: 1,
+          address: '0x1234567890123456789012345678901234567890',
           currency: 'USDC',
           network: 'linea',
           priority: 1,
         },
         {
           id: 2,
+          address: '0x0987654321098765432109876543210987654321',
           currency: 'USDT',
           network: 'linea',
           priority: 2,
@@ -1843,7 +1804,7 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
@@ -1878,7 +1839,7 @@ describe('CardSDK', () => {
         }),
       );
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toEqual([]);
     });
@@ -1900,7 +1861,7 @@ describe('CardSDK', () => {
       });
 
       await expect(
-        cardSDK.getCardExternalWalletDetails(),
+        cardSDK.getCardExternalWalletDetails([]),
       ).rejects.toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message:
@@ -1933,7 +1894,7 @@ describe('CardSDK', () => {
       });
 
       await expect(
-        cardSDK.getCardExternalWalletDetails(),
+        cardSDK.getCardExternalWalletDetails([]),
       ).rejects.toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message:
@@ -1962,12 +1923,14 @@ describe('CardSDK', () => {
       const mockPriorityWalletResponse = [
         {
           id: 1,
+          address: '0x1234567890123456789012345678901234567890',
           currency: 'USDC',
           network: 'linea',
           priority: 5, // Lower priority
         },
         {
           id: 2,
+          address: '0x0987654321098765432109876543210987654321',
           currency: 'USDT',
           network: 'linea',
           priority: 1, // Higher priority
@@ -1989,7 +1952,7 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       // Should be sorted by priority ascending (1 comes before 5)
       expect(result[0].priority).toBe(1);
@@ -2024,7 +1987,7 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails();
+      const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toEqual([]);
     });
@@ -2588,14 +2551,14 @@ describe('CardSDK', () => {
 
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
-      const mockRequest = {
+      const mockRequest: CreateOnboardingConsentRequest = {
+        policyType: 'US',
         onboardingId: 'onboarding123',
-        policy: 'terms_and_conditions',
-        consents: {
-          termsAndPrivacy: 'granted',
-          marketingNotifications: 'granted',
-          smsNotifications: 'granted',
-          emailNotifications: 'granted',
+        consents: [],
+        tenantId: 'tenant_baanx_global',
+        metadata: {
+          userAgent: AppConstants.USER_AGENT,
+          timestamp: new Date().toISOString(),
         },
       };
 
@@ -2623,14 +2586,14 @@ describe('CardSDK', () => {
     });
 
     it('handles create onboarding consent error', async () => {
-      const mockRequest = {
+      const mockRequest: CreateOnboardingConsentRequest = {
+        policyType: 'US',
         onboardingId: 'onboarding123',
-        policy: 'terms_and_conditions',
-        consents: {
-          termsAndPrivacy: 'granted',
-          marketingNotifications: 'granted',
-          smsNotifications: 'granted',
-          emailNotifications: 'granted',
+        consents: [],
+        tenantId: 'tenant_baanx_global',
+        metadata: {
+          userAgent: AppConstants.USER_AGENT,
+          timestamp: new Date().toISOString(),
         },
       };
 

@@ -8,7 +8,6 @@ import { isEthAccount } from '../../../Multichain/utils';
 import {
   CardLocation,
   CardTokenAllowance,
-  UserResponse,
 } from '../../../../components/UI/Card/types';
 import {
   selectCardExperimentalSwitch,
@@ -21,7 +20,6 @@ export interface OnboardingState {
   onboardingId: string | null;
   selectedCountry: string | null; // ISO 3166 alpha-2 country code, e.g. 'US'
   contactVerificationId: string | null;
-  user: UserResponse | null;
 }
 
 export interface CacheState {
@@ -61,7 +59,6 @@ export const initialState: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
-    user: null,
   },
   cache: {
     data: {},
@@ -144,16 +141,18 @@ const slice = createSlice({
     setContactVerificationId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.contactVerificationId = action.payload;
     },
-    setUser: (state, action: PayloadAction<UserResponse | null>) => {
-      state.onboarding.user = action.payload;
-    },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         selectedCountry: null,
         contactVerificationId: null,
-        user: null,
       };
+    },
+    resetAuthenticatedData: (state) => {
+      state.authenticatedPriorityToken = null;
+      state.authenticatedPriorityTokenLastFetched = null;
+      state.userCardLocation = 'international';
+      state.isAuthenticated = false;
     },
     setCacheData: (
       state,
@@ -229,8 +228,8 @@ export const selectCardPriorityToken = (
     authenticated
       ? card.authenticatedPriorityToken
       : address
-      ? card.priorityTokensByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.priorityTokensByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectCardPriorityTokenLastFetched = (
@@ -241,8 +240,8 @@ export const selectCardPriorityTokenLastFetched = (
     authenticated
       ? card.authenticatedPriorityTokenLastFetched
       : address
-      ? card.lastFetchedByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.lastFetchedByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectIsCardCacheValid = (
@@ -361,11 +360,6 @@ export const selectContactVerificationId = createSelector(
   (card) => card.onboarding.contactVerificationId,
 );
 
-export const selectUser = createSelector(
-  selectCardState,
-  (card) => card.onboarding.user,
-);
-
 // Actions
 export const {
   resetCardState,
@@ -380,9 +374,9 @@ export const {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
-  setUser,
   resetOnboardingState,
   setCacheData,
   clearCacheData,
   clearAllCache,
+  resetAuthenticatedData,
 } = actions;

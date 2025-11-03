@@ -54,8 +54,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 jest.mock(
   '@tommasini/react-native-scrollable-tab-view',
   () =>
-    ({ children }: { children: React.ReactNode }) =>
-      <>{children}</>,
+    ({ children }: { children: React.ReactNode }) => <>{children}</>,
 );
 
 const initialState = {
@@ -140,22 +139,6 @@ describe('AddAsset component', () => {
       // Verify that action buttons exist - this shows the banner with action button is rendered
       const buttons = getAllByRole('button');
       expect(buttons.length).toBeGreaterThan(0);
-    });
-
-    it('calls setOptions with correct navbar options for token view', () => {
-      mockUseParamsValues.assetType = 'token';
-      renderComponent(<AddAsset />);
-
-      // The component should call setOptions during useEffect
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
-
-    it('calls setOptions with correct navbar options for collectible view', () => {
-      mockUseParamsValues.assetType = 'collectible';
-      renderComponent(<AddAsset />);
-
-      // The component should call setOptions during useEffect
-      expect(mockSetOptions).toHaveBeenCalled();
     });
   });
 

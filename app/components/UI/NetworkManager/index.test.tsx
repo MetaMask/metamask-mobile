@@ -181,13 +181,20 @@ const mockNetworkConfigurations = {
     caipChainId: 'eip155:1',
     name: 'Ethereum Mainnet',
     nativeCurrency: 'ETH',
-    rpcEndpoints: [{ url: 'https://mainnet.infura.io' }],
+    rpcEndpoints: [
+      { url: 'https://mainnet.infura.io', networkClientId: 'mainnet-1' },
+      { url: 'https://mainnet.publicnode.com', networkClientId: 'mainnet-2' },
+    ],
+    defaultRpcEndpointIndex: 0,
   },
   'eip155:137': {
     caipChainId: 'eip155:137',
     name: 'Polygon Mainnet',
     nativeCurrency: 'MATIC',
-    rpcEndpoints: [{ url: 'https://polygon-rpc.com' }],
+    rpcEndpoints: [
+      { url: 'https://polygon-rpc.com', networkClientId: 'polygon-1' },
+    ],
+    defaultRpcEndpointIndex: 0,
   },
 };
 
@@ -299,6 +306,7 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
   } = jest.requireActual('react-native');
   return ({
     openModal,
+    openRpcModal,
     tabLabel,
   }: {
     openModal: (args: {
@@ -307,6 +315,7 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
       networkTypeOrRpcUrl: string;
       isReadOnly: boolean;
     }) => void;
+    openRpcModal?: (args: { chainId: string; networkName: string }) => void;
     tabLabel: string;
   }) => (
     <RNView testID="network-multi-selector">
@@ -324,6 +333,16 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
       >
         <RNText>Open Modal</RNText>
       </RNTouchableOpacity>
+      {openRpcModal && (
+        <RNTouchableOpacity
+          testID="open-rpc-modal-button"
+          onPress={() =>
+            openRpcModal({ chainId: '0x1', networkName: 'Ethereum Mainnet' })
+          }
+        >
+          <RNText>Open RPC Modal</RNText>
+        </RNTouchableOpacity>
+      )}
     </RNView>
   );
 });
@@ -344,6 +363,7 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
       networkTypeOrRpcUrl: string;
       isReadOnly: boolean;
     }) => void;
+    openRpcModal?: (args: { chainId: string; networkName: string }) => void;
     tabLabel: string;
   }) => (
     <RNView testID="custom-network-selector">
@@ -563,6 +583,43 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
   };
   return MockTextWithStatics;
 });
+
+jest.mock(
+  '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal',
+  () => {
+    const { View: RNView, Text: RNText } = jest.requireActual('react-native');
+    return ({
+      showMultiRpcSelectModal,
+      networkConfigurations,
+    }: {
+      showMultiRpcSelectModal: {
+        isVisible: boolean;
+        chainId: string;
+        networkName: string;
+      };
+      networkConfigurations: Record<string, unknown>;
+    }) => {
+      if (!showMultiRpcSelectModal.isVisible) return null;
+      return (
+        <RNView testID="rpc-selection-modal">
+          <RNText testID="rpc-modal-network-name">
+            {showMultiRpcSelectModal.networkName}
+          </RNText>
+          <RNText testID="rpc-modal-chain-id">
+            {showMultiRpcSelectModal.chainId}
+          </RNText>
+          <RNText testID="rpc-modal-configs-count">
+            {Object.keys(networkConfigurations).length}
+          </RNText>
+        </RNView>
+      );
+    };
+  },
+);
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: (chainId: string) => chainId.includes('solana'),
+}));
 
 const mockStore = configureStore([]);
 
@@ -898,6 +955,60 @@ describe('NetworkManager Component', () => {
           </Provider>,
         );
       }).not.toThrow();
+    });
+  });
+
+  describe('RPC Selection Functionality', () => {
+    it('passes openRpcModal prop to NetworkMultiSelector', () => {
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId('open-rpc-modal-button')).toBeOnTheScreen();
+    });
+
+    it('opens RPC selection modal when openRpcModal is called', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-selection-modal')).toBeOnTheScreen();
+      });
+    });
+
+    it('displays network name in RPC modal', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-modal-network-name')).toHaveTextContent(
+          'Ethereum Mainnet',
+        );
+      });
+    });
+
+    it('displays chain ID in RPC modal', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-modal-chain-id')).toHaveTextContent('0x1');
+      });
+    });
+
+    it('passes EVM network configurations to RPC modal', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openRpcButton = getByTestId('open-rpc-modal-button');
+      fireEvent.press(openRpcButton);
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-modal-configs-count')).toHaveTextContent('2');
+      });
     });
   });
 });

@@ -69,6 +69,8 @@ describe('useEmailVerificationVerify', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: mockLogoutFromProvider,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
@@ -96,9 +98,8 @@ describe('useEmailVerificationVerify', () => {
 
       let response: EmailVerificationVerifyResponse | undefined;
       await act(async () => {
-        response = await result.current.verifyEmailVerification(
-          mockVerifyRequest,
-        );
+        response =
+          await result.current.verifyEmailVerification(mockVerifyRequest);
       });
 
       expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
@@ -204,6 +205,8 @@ describe('useEmailVerificationVerify', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 
@@ -421,6 +424,8 @@ describe('useEmailVerificationVerify', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 

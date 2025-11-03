@@ -42,6 +42,7 @@ const styleSheet = (params: { theme: Theme }) => {
     headerLeft: {
       flex: 1,
       alignItems: 'flex-start',
+      minWidth: 0, // Allow flex item to shrink below content size
     },
     headerRight: {
       flex: 1,
@@ -50,6 +51,7 @@ const styleSheet = (params: { theme: Theme }) => {
     headerRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexWrap: 'nowrap', // Prevent wrapping
     },
     headerIcon: {
       marginRight: 4,

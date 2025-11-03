@@ -66,6 +66,8 @@ describe('usePhoneVerificationVerify', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: mockLogoutFromProvider,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
@@ -93,9 +95,8 @@ describe('usePhoneVerificationVerify', () => {
 
       let response: RegisterUserResponse | undefined;
       await act(async () => {
-        response = await result.current.verifyPhoneVerification(
-          mockVerifyRequest,
-        );
+        response =
+          await result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
       expect(mockPhoneVerificationVerify).toHaveBeenCalledWith({
@@ -141,6 +142,8 @@ describe('usePhoneVerificationVerify', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 
@@ -369,6 +372,8 @@ describe('usePhoneVerificationVerify', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 

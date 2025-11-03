@@ -126,12 +126,10 @@ describe('AutoDetectNFTSettings', () => {
       });
       expect(mockTrackEvent).toHaveBeenCalledWith(
         MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED,
+          MetaMetricsEvents.SETTINGS_UPDATED,
         )
           .addProperties({
-            'NFT Autodetection': true,
-            'Enable OpenSea API': true,
-            location: 'app_settings',
+            nft_autodetection_enabled: true,
           })
           .build(),
       );
@@ -153,11 +151,10 @@ describe('AutoDetectNFTSettings', () => {
       });
       expect(mockTrackEvent).toHaveBeenCalledWith(
         MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED,
+          MetaMetricsEvents.SETTINGS_UPDATED,
         )
           .addProperties({
-            'NFT Autodetection': false,
-            location: 'app_settings',
+            nft_autodetection_enabled: false,
           })
           .build(),
       );

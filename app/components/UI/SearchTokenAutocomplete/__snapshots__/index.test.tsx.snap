@@ -394,16 +394,11 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                     placeholder="Search Tokens"
                                     placeholderTextColor="#b7bbc8"
                                     style={
-                                      [
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                        },
-                                        {
-                                          "height": "85%",
-                                          "width": "85%",
-                                        },
-                                      ]
+                                      {
+                                        "color": "#121314",
+                                        "flex": 1,
+                                        "fontFamily": "Geist Regular",
+                                      }
                                     }
                                     testID="input-search-asset"
                                     value=""
@@ -475,6 +470,9 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                           accessible={true}
                           activeOpacity={1}
                           disabled={true}
+                          onPress={[Function]}
+                          onPressIn={[Function]}
+                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",

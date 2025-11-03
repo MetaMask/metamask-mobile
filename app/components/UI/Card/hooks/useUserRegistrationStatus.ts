@@ -1,17 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCardSDK } from '../sdk';
-import { UserResponse, CardVerificationState } from '../types';
+import { CardVerificationState } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
-import {
-  selectOnboardingId,
-  selectUser,
-  setUser,
-} from '../../../../core/redux/slices/card';
-import { useDispatch, useSelector } from 'react-redux';
+import { selectOnboardingId } from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 interface UseUserRegistrationStatusReturn {
   verificationState: CardVerificationState | null;
-  userResponse: UserResponse | null;
   isLoading: boolean;
   isError: boolean;
   error: string | null;
@@ -27,12 +22,9 @@ interface UseUserRegistrationStatusReturn {
  */
 export const useUserRegistrationStatus =
   (): UseUserRegistrationStatusReturn => {
-    const { sdk } = useCardSDK();
-    const user = useSelector(selectUser);
-    const dispatch = useDispatch();
+    const { sdk, user, setUser } = useCardSDK();
     const [verificationState, setVerificationState] =
       useState<CardVerificationState>(user?.verificationState || 'PENDING');
-    const [userResponse, setUserResponse] = useState<UserResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -68,8 +60,7 @@ export const useUserRegistrationStatus =
         setError(null);
 
         const response = await sdk.getRegistrationStatus(onboardingId);
-        dispatch(setUser(response));
-        setUserResponse(response);
+        setUser(response);
         setVerificationState(response.verificationState || 'PENDING');
         setIsLoading(false);
       } catch (err) {
@@ -78,7 +69,7 @@ export const useUserRegistrationStatus =
         setIsError(true);
         setIsLoading(false);
       }
-    }, [dispatch, onboardingId, sdk]);
+    }, [setUser, onboardingId, sdk]);
 
     const startPolling = useCallback(() => {
       // Clear any existing interval
@@ -118,7 +109,6 @@ export const useUserRegistrationStatus =
 
     return {
       verificationState,
-      userResponse,
       isLoading,
       isError,
       error,
