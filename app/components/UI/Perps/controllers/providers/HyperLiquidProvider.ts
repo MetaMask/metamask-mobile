@@ -1944,7 +1944,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
 
       // Get all current positions
-      const positions = await this.getPositions();
+      // Force fresh API data (not WebSocket cache) since we're about to mutate positions
+      const positions = await this.getPositions({ skipCache: true });
 
       // Filter positions based on params
       positionsToClose =
@@ -2163,9 +2164,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const { coin, takeProfitPrice, stopLossPrice } = params;
 
       // Get current position to validate it exists
+      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
       let positions: Position[];
       try {
-        positions = await this.getPositions();
+        positions = await this.getPositions({ skipCache: true });
       } catch (error) {
         Logger.error(
           ensureError(error),
@@ -2403,7 +2405,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       DevLogger.log('Closing position:', params);
 
-      const positions = await this.getPositions();
+      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
+      const positions = await this.getPositions({ skipCache: true });
       const position = positions.find((p) => p.coin === params.coin);
 
       if (!position) {
