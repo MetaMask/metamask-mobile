@@ -11,13 +11,6 @@ export const selectTrxStakingEnabled = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.trxStakingEnabled as unknown as VersionGatedFeatureFlag;
 
-    console.log('remoteFlag', remoteFlag);
-    console.log(
-      'validatedVersionGatedFeatureFlag',
-      validatedVersionGatedFeatureFlag(remoteFlag),
-    );
-    // TODO: Comeback and check this
-    return true;
-    // return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

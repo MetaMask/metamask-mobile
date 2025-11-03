@@ -50,13 +50,14 @@ const EarnTokenSelector = ({
     | EarnTokenDetails
     | TokenI
     | undefined;
-  const aprNumber = Number(
-    (tokenToRender as EarnTokenDetails | undefined)?.experience?.apr,
-  );
+
+  const rawApr =
+    (tokenToRender as EarnTokenDetails | undefined)?.experience?.apr ?? '';
+
+  const aprValue = parseFloat(rawApr);
+
   const apr =
-    Number.isFinite(aprNumber) && aprNumber > 0
-      ? aprNumber.toFixed(1)
-      : undefined;
+    Number.isFinite(aprValue) && aprValue > 0 ? aprValue.toFixed(1) : undefined;
 
   const handlePress = () => {
     trace({ name: TraceName.EarnTokenList });

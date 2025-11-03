@@ -108,8 +108,8 @@ const EarnWithdrawInputView = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTrxStakingEnabled,
     isTronAsset,
-    ///: END:ONLY_INCLUDE_IF
     token,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   const receiptTokenToUse: EarnTokenDetails | undefined = receiptToken
@@ -221,10 +221,10 @@ const EarnWithdrawInputView = () => {
     // Call once on render and only once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    receiptToken?.experience?.type,
+    receiptTokenToUse?.experience?.type,
     selectedAccount?.address,
-    receiptToken?.address,
-    receiptToken?.chainId,
+    receiptTokenToUse?.address,
+    receiptTokenToUse?.chainId,
   ]);
 
   const stakedBalanceText = strings('stake.staked_balance');
@@ -429,6 +429,7 @@ const EarnWithdrawInputView = () => {
     navigation,
     network?.name,
     receiptToken,
+    receiptTokenToUse,
     trackEvent,
   ]);
 
@@ -530,7 +531,7 @@ const EarnWithdrawInputView = () => {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
-    receiptToken?.experience?.type,
+    receiptTokenToUse?.experience?.type,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
   ]);
@@ -607,8 +608,8 @@ const EarnWithdrawInputView = () => {
     isOverMaximum.isOverMaximumToken,
     isOverMaximum.isOverMaximumEth,
     isWithdrawingMoreThanAvailableForLendingToken,
-    receiptToken?.ticker,
-    receiptToken?.symbol,
+    receiptTokenToUse?.ticker,
+    receiptTokenToUse?.symbol,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
