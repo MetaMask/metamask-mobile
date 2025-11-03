@@ -136,7 +136,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           variant={isBold ? TextVariant.BodyMDBold : TextVariant.BodyMD}
           style={styles.label}
         >
-          {label}
+          test
         </Text>
       ))}
     </Text>
