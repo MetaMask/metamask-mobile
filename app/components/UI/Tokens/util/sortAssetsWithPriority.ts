@@ -25,7 +25,49 @@ export function sortAssetsWithPriority<T extends Asset>(
     });
   }
 
-  return [...array].sort(compareFiatBalanceWithPriority);
+  const xxx = [...array].sort((a, b) => {
+    const comparison = compareFiatBalanceWithPriority(a, b);
+
+    if (a.name === 'Solana' || b.name === 'Solana') {
+      // eslint-disable-next-line no-console
+      console.log('XXXXX', {
+        a: {
+          name: a.name,
+          chainId: a.chainId,
+          fiatBalance: a.fiat?.balance,
+          isNative: a.isNative,
+        },
+        b: {
+          name: b.name,
+          chainId: b.chainId,
+          fiatBalance: b.fiat?.balance,
+          isNative: b.isNative,
+        },
+        comparison,
+        balanceCheck: a.fiat?.balance && b.fiat?.balance,
+      });
+    }
+
+    return comparison;
+  });
+
+  // eslint-disable-next-line no-console
+  // console.log('ARRAY', {
+  //   unsorted: array.map((asset) => ({
+  //     name: asset.name,
+  //     fiatBalance: asset.fiat?.balance,
+  //     isNative: asset.isNative,
+  //     chainId: asset.chainId,
+  //   })),
+  //   sorted: xxx.map((asset) => ({
+  //     name: asset.name,
+  //     fiatBalance: asset.fiat?.balance,
+  //     isNative: asset.isNative,
+  //     chainId: asset.chainId,
+  //   })),
+  // });
+
+  return xxx;
 }
 
 // Higher priority assets are last in the array to facilitate sorting
@@ -53,21 +95,11 @@ const defaultNativeAssetOrder: (Hex | CaipChainId)[] = [
  */
 export function compareFiatBalanceWithPriority(a: Asset, b: Asset) {
   // If one of the fiat balances is greater than the other, return the comparison
-  if (a.fiat?.balance && b.fiat?.balance === undefined) {
-    return -1;
-  }
+  const fiatBalanceComparison = (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0);
 
-  if (b.fiat?.balance && a.fiat?.balance === undefined) {
-    return 1;
-  }
-
-  let comparison = 0;
-  if (a.fiat?.balance && b.fiat?.balance) {
-    comparison = b.fiat.balance - a.fiat.balance;
-  }
-
-  if (comparison) {
-    return comparison;
+  // Only return comparison if it is not zero
+  if (fiatBalanceComparison) {
+    return fiatBalanceComparison;
   }
 
   // With equal fiat balances
@@ -89,10 +121,10 @@ export function compareFiatBalanceWithPriority(a: Asset, b: Asset) {
   const nativeAssetOrderA = defaultNativeAssetOrder.indexOf(a.chainId);
   const nativeAssetOrderB = defaultNativeAssetOrder.indexOf(b.chainId);
 
-  comparison = nativeAssetOrderB - nativeAssetOrderA;
+  const nativeAssetOrderComparison = nativeAssetOrderB - nativeAssetOrderA;
 
-  if (comparison) {
-    return comparison;
+  if (nativeAssetOrderComparison) {
+    return nativeAssetOrderComparison;
   }
 
   // If neither asset is in the defaultNativeAssetOrder, compare by name

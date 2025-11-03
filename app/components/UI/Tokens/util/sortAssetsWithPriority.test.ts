@@ -19,7 +19,7 @@ function createMockAsset({
 }): Asset {
   return {
     name,
-    fiat: fiatBalance ? { balance: fiatBalance } : undefined,
+    fiat: fiatBalance !== undefined ? { balance: fiatBalance } : undefined,
     isNative,
     chainId,
   } as unknown as Asset;
@@ -73,19 +73,7 @@ describe('sortAssetsWithPriority', () => {
 
 describe('compareFiatBalanceWithPriority', () => {
   describe('fiat balance comparison', () => {
-    it('returns -1 if the first asset has a fiat balance and the second asset does not', () => {
-      const assetA = createMockAsset({ name: 'Asset A', fiatBalance: 400 });
-      const assetB = createMockAsset({
-        name: 'Asset B',
-        fiatBalance: undefined,
-      });
-
-      const result = compareFiatBalanceWithPriority(assetA, assetB);
-
-      expect(result).toBe(-1);
-    });
-
-    it('returns 1 if the second asset has a fiat balance and the first asset does not', () => {
+    it('compares second value above first if the second asset has a fiat balance and the first asset does not', () => {
       const assetA = createMockAsset({
         name: 'Asset A',
         fiatBalance: undefined,
@@ -94,16 +82,16 @@ describe('compareFiatBalanceWithPriority', () => {
 
       const result = compareFiatBalanceWithPriority(assetA, assetB);
 
-      expect(result).toBe(1);
+      expect(result).toBeGreaterThan(0);
     });
 
-    it('compares first value above the second value if both assets have fiat balances and the first value is greater', () => {
-      const assetA = createMockAsset({ name: 'Asset A', fiatBalance: 400 });
-      const assetB = createMockAsset({ name: 'Asset B', fiatBalance: 300 });
+    it('compares second value above the first value if both assets have fiat balances and the second value is greater', () => {
+      const assetA = createMockAsset({ name: 'Asset A', fiatBalance: 300 });
+      const assetB = createMockAsset({ name: 'Asset B', fiatBalance: 400 });
 
       const result = compareFiatBalanceWithPriority(assetA, assetB);
 
-      expect(result).toBeLessThan(0);
+      expect(result).toBeGreaterThan(0);
     });
   });
 
@@ -114,7 +102,7 @@ describe('compareFiatBalanceWithPriority', () => {
 
       const result = compareFiatBalanceWithPriority(assetA, assetB);
 
-      expect(result).toBe(-1);
+      expect(result).toBeLessThan(0);
     });
 
     it('returns 1 if the second asset is native and the first asset is not', () => {
@@ -123,7 +111,7 @@ describe('compareFiatBalanceWithPriority', () => {
 
       const result = compareFiatBalanceWithPriority(assetA, assetB);
 
-      expect(result).toBe(1);
+      expect(result).toBeGreaterThan(0);
     });
 
     it('compares name values if neither asset is native', () => {
@@ -132,41 +120,11 @@ describe('compareFiatBalanceWithPriority', () => {
 
       const result = compareFiatBalanceWithPriority(assetA, assetB);
 
-      expect(result).toBe(-1);
+      expect(result).toBeLessThan(0);
     });
   });
 
   describe('native asset comparison', () => {
-    it('compares first value above second if the first asset is in the defaultNativeAssetOrder and the second asset is not', () => {
-      const assetA = createMockAsset({
-        name: 'Asset A',
-        chainId: CHAIN_IDS.BASE,
-      });
-      const assetB = createMockAsset({
-        name: 'Asset B',
-        chainId: '0xeeeeeeeeeeeee1',
-      });
-
-      const result = compareFiatBalanceWithPriority(assetA, assetB);
-
-      expect(result).toBeLessThan(0);
-    });
-
-    it('compares first value above second if both assets are in the defaultNativeAssetOrder and the first value has higher priority', () => {
-      const assetA = createMockAsset({
-        name: 'Asset A',
-        chainId: CHAIN_IDS.LINEA_MAINNET,
-      });
-      const assetB = createMockAsset({
-        name: 'Asset B',
-        chainId: CHAIN_IDS.ARBITRUM,
-      });
-
-      const result = compareFiatBalanceWithPriority(assetA, assetB);
-
-      expect(result).toBeLessThan(0);
-    });
-
     it('compares name values if neither asset is in the defaultNativeAssetOrder', () => {
       const assetA = createMockAsset({
         name: 'Asset A',
@@ -180,6 +138,53 @@ describe('compareFiatBalanceWithPriority', () => {
       const result = compareFiatBalanceWithPriority(assetA, assetB);
 
       expect(result).toBeLessThan(0);
+    });
+
+    it('compares second value above first if the second asset is in the defaultNativeAssetOrder and the first asset is not', () => {
+      const assetA = createMockAsset({
+        name: 'Asset A',
+        chainId: '0xeeeeeeeeeeeee1',
+      });
+      const assetB = createMockAsset({
+        name: 'Asset B',
+        chainId: CHAIN_IDS.BASE,
+      });
+
+      const result = compareFiatBalanceWithPriority(assetA, assetB);
+
+      expect(result).toBeGreaterThan(0);
+    });
+
+    it('compares second value above first if both assets are in the defaultNativeAssetOrder and the second value has higher priority', () => {
+      const assetA = createMockAsset({
+        name: 'Asset A',
+        chainId: CHAIN_IDS.ARBITRUM,
+      });
+      const assetB = createMockAsset({
+        name: 'Asset B',
+        chainId: CHAIN_IDS.LINEA_MAINNET,
+      });
+
+      const result = compareFiatBalanceWithPriority(assetA, assetB);
+
+      expect(result).toBeGreaterThan(0);
+    });
+
+    it('compares second value above first if both assets are in the defaultNativeAssetOrder and the second value has higher priority (both values have balances of zero)', () => {
+      const assetA = createMockAsset({
+        name: 'Asset A',
+        chainId: CHAIN_IDS.ARBITRUM,
+        fiatBalance: 0,
+      });
+      const assetB = createMockAsset({
+        name: 'Asset B',
+        chainId: CHAIN_IDS.LINEA_MAINNET,
+        fiatBalance: 0,
+      });
+
+      const result = compareFiatBalanceWithPriority(assetA, assetB);
+
+      expect(result).toBeGreaterThan(0);
     });
   });
 });
