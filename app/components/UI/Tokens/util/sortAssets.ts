@@ -1,9 +1,10 @@
 import { get } from 'lodash';
 
 export type SortOrder = 'asc' | 'dsc';
+
 export interface SortCriteria {
   key: string;
-  order: string;
+  order: SortOrder;
   sortCallback: string;
 }
 
@@ -30,10 +31,7 @@ function getNestedValue<T>(obj: T, keyPath: string): SortingType {
   return get(obj, keyPath) as SortingType;
 }
 
-export function sortAssets<T>(
-  array: T[],
-  criteria: Record<string, string>,
-): T[] {
+export function sortAssets<T>(array: T[], criteria: SortCriteria): T[] {
   const { key, order = 'asc', sortCallback } = criteria;
 
   return [...array].sort((a, b) => {
