@@ -49,8 +49,6 @@ metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
-app/util/parseAmount.ts              @MetaMask/ramp
-app/util/parseAmount.test.ts         @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card
@@ -101,8 +99,6 @@ app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-e
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
 app/components/UI/Bridge             @MetaMask/swaps-engineers
-app/util/parseAmount.ts              @MetaMask/swaps-engineers
-app/util/parseAmount.test.ts         @MetaMask/swaps-engineers
 
 # Notifications Team
 app/components/Views/Notifications @MetaMask/notifications
@@ -235,6 +231,10 @@ e2e/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa
+
+# Co-owned by Swaps and Ramps teams
+app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/ramp
+app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/ramp
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
