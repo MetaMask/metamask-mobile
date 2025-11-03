@@ -467,7 +467,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
             account_type: 'social',
             failed_attempts: rehydrationFailedAttempts,
-            error_type: 'unknown_error',
+            error_type: 'incorrect_password',
           });
         }
         if (typeof seedlessError.data?.remainingTime === 'number') {

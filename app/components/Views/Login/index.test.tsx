@@ -135,6 +135,8 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
 
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () => jest.fn());
+
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
   return {
@@ -195,6 +197,9 @@ const mockBackHandlerRemoveEventListener = jest.fn();
 describe('Login', () => {
   const mockTrace = jest.mocked(trace);
   const mockEndTrace = jest.mocked(endTrace);
+  const mockTrackOnboarding = jest.mocked(
+    jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -209,6 +214,7 @@ describe('Login', () => {
     mockEndTrace.mockClear();
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerRemoveEventListener.mockClear();
+    mockTrackOnboarding.mockClear();
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
@@ -499,7 +505,7 @@ describe('Login', () => {
       });
     });
 
-    describe('checkMetricsUISeen', () => {
+    describe('checkMetricsUISeen navigation', () => {
       beforeEach(() => {
         jest.clearAllMocks();
         mockRoute.mockReturnValue({
@@ -740,111 +746,6 @@ describe('Login', () => {
     });
   });
 
-  describe('Password Error Handling', () => {
-    beforeEach(() => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should handle WRONG_PASSWORD_ERROR', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Decrypt failed'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('should handle WRONG_PASSWORD_ERROR_ANDROID', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error(
-          'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
-        ),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('should handle PASSWORD_REQUIREMENTS_NOT_MET error', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Password requirements not met'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('should handle generic error (else case)', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Some unexpected error'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(
-        'Error: Some unexpected error',
-      );
-    });
-  });
-
   describe('Passcode Authentication', () => {
     beforeEach(() => {
       (StorageWrapper.getItem as jest.Mock).mockReset();
@@ -950,6 +851,7 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
+      mockTrackOnboarding.mockClear();
     });
 
     afterEach(() => {
@@ -957,6 +859,16 @@ describe('Login', () => {
     });
 
     it('should handle WRONG_PASSWORD_ERROR', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+        currentAuthType: 'password',
+        oauth2Login: true,
+      });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Decrypt failed'),
       );
@@ -976,9 +888,35 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] &&
+          typeof call[0] === 'object' &&
+          'name' in call[0] &&
+          call[0].name === 'Rehydration Password Failed' &&
+          'properties' in call[0] &&
+          call[0].properties &&
+          typeof call[0].properties === 'object' &&
+          'account_type' in call[0].properties &&
+          call[0].properties.account_type === 'social' &&
+          'error_type' in call[0].properties &&
+          call[0].properties.error_type === 'incorrect_password',
+      );
+      expect(rehydrationCall).toBeDefined();
     });
 
     it('should handle WRONG_PASSWORD_ERROR_ANDROID', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+        currentAuthType: 'password',
+        oauth2Login: true,
+      });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error(
           'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
@@ -1000,9 +938,83 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] &&
+          typeof call[0] === 'object' &&
+          'name' in call[0] &&
+          call[0].name === 'Rehydration Password Failed' &&
+          'properties' in call[0] &&
+          call[0].properties &&
+          typeof call[0].properties === 'object' &&
+          'account_type' in call[0].properties &&
+          call[0].properties.account_type === 'social' &&
+          'error_type' in call[0].properties &&
+          call[0].properties.error_type === 'incorrect_password',
+      );
+      expect(rehydrationCall).toBeDefined();
+    });
+
+    it('should handle WRONG_PASSWORD_ERROR_ANDROID_2', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+        currentAuthType: 'password',
+        oauth2Login: true,
+      });
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('error in DoCipher, status: 2'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] &&
+          typeof call[0] === 'object' &&
+          'name' in call[0] &&
+          call[0].name === 'Rehydration Password Failed' &&
+          'properties' in call[0] &&
+          call[0].properties &&
+          typeof call[0].properties === 'object' &&
+          'account_type' in call[0].properties &&
+          call[0].properties.account_type === 'social' &&
+          'error_type' in call[0].properties &&
+          call[0].properties.error_type === 'incorrect_password',
+      );
+      expect(rehydrationCall).toBeDefined();
     });
 
     it('should handle PASSWORD_REQUIREMENTS_NOT_MET error', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+        currentAuthType: 'password',
+        oauth2Login: true,
+      });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Password requirements not met'),
       );
@@ -1022,6 +1034,14 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
+      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] &&
+          typeof call[0] === 'object' &&
+          'name' in call[0] &&
+          call[0].name === 'Rehydration Password Failed',
+      );
+      expect(rehydrationCall).toBeUndefined();
     });
 
     it('should handle generic error (else case)', async () => {
