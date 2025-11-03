@@ -333,6 +333,29 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
+  // Compute TP/SL lines for the chart based on existing position and selected orders
+  const tpslLines = useMemo(() => {
+    if (existingPosition) {
+      return {
+        entryPrice: existingPosition.entryPrice,
+        takeProfitPrice:
+          selectedOrderTPSL.takeProfitPrice || existingPosition.takeProfitPrice,
+        stopLossPrice:
+          selectedOrderTPSL.stopLossPrice || existingPosition.stopLossPrice,
+        liquidationPrice: existingPosition.liquidationPrice || undefined,
+      };
+    }
+
+    if (selectedOrderTPSL.takeProfitPrice || selectedOrderTPSL.stopLossPrice) {
+      return {
+        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+        stopLossPrice: selectedOrderTPSL.stopLossPrice,
+      };
+    }
+
+    return undefined;
+  }, [existingPosition, selectedOrderTPSL]);
+
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
     traceName: TraceName.PerpsPositionDetailsView,
@@ -644,27 +667,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 candleData={candleData}
                 height={350}
                 visibleCandleCount={visibleCandleCount}
-                tpslLines={
-                  existingPosition
-                    ? {
-                        entryPrice: existingPosition.entryPrice,
-                        takeProfitPrice:
-                          selectedOrderTPSL.takeProfitPrice ||
-                          existingPosition.takeProfitPrice,
-                        stopLossPrice:
-                          selectedOrderTPSL.stopLossPrice ||
-                          existingPosition.stopLossPrice,
-                        liquidationPrice:
-                          existingPosition.liquidationPrice || undefined,
-                      }
-                    : selectedOrderTPSL.takeProfitPrice ||
-                        selectedOrderTPSL.stopLossPrice
-                      ? {
-                          takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
-                          stopLossPrice: selectedOrderTPSL.stopLossPrice,
-                        }
-                      : undefined
-                }
+                tpslLines={tpslLines}
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
               />
             ) : (
