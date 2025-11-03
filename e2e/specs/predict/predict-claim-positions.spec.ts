@@ -18,12 +18,16 @@ import {
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
-
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
+// import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
 import { PredictHelpers } from './helpers/predict-helpers';
+import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
 
 /*
 Test Scenario: Claim positions
@@ -97,9 +101,30 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
           description: 'Claim button should not be visible',
         });
-        /* there is a bug where balances are not updating quick enough.
-          Leaving this commented for now. Once the bug is fixed we shoudl uncomment.
-         */
+
+        await TabBarComponent.tapActivity();
+
+        await ActivitiesView.tapOnPredictionsTab();
+
+        for (const position of POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE) {
+          await ActivitiesView.tapPredictPosition(position.title);
+          await Assertions.expectElementToBeVisible(
+            PredictActivityDetails.container,
+            {
+              description: `Activity details should be visible for "${position.title}"`,
+            },
+          );
+          // Verify the balance is displayed correctly (formatted as $XX.XX)
+          const expectedBalance = `$${position.usdcSize.toFixed(2)}`;
+          await Assertions.expectTextDisplayed(expectedBalance, {
+            description: `Balance should be displayed as "${expectedBalance}" for "${position.title}"`,
+          });
+          await PredictActivityDetails.tapBackButton();
+        }
+
+        await TabBarComponent.tapWallet();
+        // await TabBarComponent.tapActions();
+        // await WalletActionsBottomSheet.tapPredictButton();
         // await Assertions.expectTextDisplayed('$48.16');
       },
     );
