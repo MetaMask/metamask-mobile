@@ -135,77 +135,54 @@ if (tagCount === 0) {
   console.log('ℹ️ Selected tags have no test files');
 }
 
-// Create readable test plan with file breakdown
-appendStepSummary('## 🔍 AI E2E Analysis Report');
-if (tagCount === 0) {
-  appendStepSummary('- **Selected E2E tags**: None (no tests recommended)');
-  appendStepSummary(`- **Risk Level**: ${riskLevel}`);
-  appendStepSummary(`- **AI Confidence**: ${confidence}%`);
-} else {
-  appendStepSummary(`- **Selected E2E tags**: ${tagDisplay}`);
-  appendStepSummary(`- **Risk Level**: ${riskLevel}`);
-  appendStepSummary(`- **AI Confidence**: ${confidence}%`);
-}
+// Generate analysis summary (single source of truth for both step summary and PR comment)
+function generateAnalysisSummary() {
+  let summary = '## 🔍 AI E2E Analysis Report\n';
 
-// Add AI reasoning in expandable section
-appendStepSummary('');
-appendStepSummary('<details>');
-appendStepSummary('<summary>click to see 🤖 AI reasoning details</summary>');
-appendStepSummary('');
-appendStepSummary(reasoning);
-
-// Add test file breakdown if available
-if (parsedResult.testFileBreakdown && parsedResult.testFileBreakdown.length > 0) {
-  const breakdown = parsedResult.testFileBreakdown
-    .map(item => `  - ${item.tag}: ${item.fileCount} files → ${item.recommendedSplits} splits`)
-    .join('\n');
-
-  if (breakdown) {
-    appendStepSummary('');
-    appendStepSummary('### 📊 Test File Breakdown');
-    appendStepSummary(breakdown);
+  // Add summary details
+  if (tagCount === 0) {
+    summary += '- **Selected E2E tags**: None (no tests recommended)\n';
+  } else {
+    summary += `- **Selected E2E tags**: ${tagDisplay}\n`;
   }
+  summary += `- **Risk Level**: ${riskLevel}\n`;
+  summary += `- **AI Confidence**: ${confidence}%\n`;
+
+  // Add AI reasoning in expandable section
+  summary += '\n<details>\n';
+  summary += '<summary>click to see 🤖 AI reasoning details</summary>\n\n';
+  summary += `${reasoning}\n`;
+
+  // Add test file breakdown if available
+  if (parsedResult.testFileBreakdown && parsedResult.testFileBreakdown.length > 0) {
+    const breakdown = parsedResult.testFileBreakdown
+      .map(item => `  - ${item.tag}: ${item.fileCount} files → ${item.recommendedSplits} splits`)
+      .join('\n');
+
+    if (breakdown) {
+      summary += '\n### 📊 Test File Breakdown\n';
+      summary += `${breakdown}\n`;
+    }
+  }
+
+  summary += '\n</details>\n';
+
+  return summary;
 }
 
-appendStepSummary('');
-appendStepSummary('</details>');
+// Generate the summary content (single source of truth)
+const summaryContent = generateAnalysisSummary();
+
+// Write to step summary
+appendStepSummary(summaryContent);
 
 // Generate PR comment file if PR number is available
 const PR_COMMENT_FILE = process.env.PR_COMMENT_FILE || 'pr_comment.md';
 if (PR_NUMBER) {
   console.log(`📝 Generating PR comment file: ${PR_COMMENT_FILE}`);
 
-  let commentContent = '## 🔍 AI E2E Analysis Report\n\n';
-
-  // Add risk level and tags header
-  commentContent += `**Risk Level:** ${riskLevel} | **Selected Tags:** ${tagDisplay}\n\n`;
-
-  // Add AI analysis reasoning
-  commentContent += '**🤖 AI Analysis:**\n';
-  commentContent += `> ${reasoning}\n\n`;
-
-  // Add analysis results
-  commentContent += '**📊 Analysis Results:**\n';
-  commentContent += `- **Confidence:** ${confidence}%\n\n`;
-
-  // Add test recommendation
-  if (tagCount === 0) {
-    commentContent += '**🏷️ Test Recommendation:**\n';
-    commentContent += 'Based on the code changes, the AI determined that no E2E tests are required.\n\n';
-  } else {
-    commentContent += '**🏷️ Test Recommendation:**\n';
-    commentContent += `Based on the code changes, the AI recommends testing the following areas: **${tagDisplay}**\n\n`;
-
-    // Add test file breakdown if available
-    if (parsedResult.testFileBreakdown && parsedResult.testFileBreakdown.length > 0) {
-      const breakdown = parsedResult.testFileBreakdown
-        .map(item => `  - ${item.tag}: ${item.fileCount} files → ${item.recommendedSplits} splits`)
-        .join('\n');
-
-      commentContent += '**📊 Test File Breakdown:**\n';
-      commentContent += breakdown + '\n\n';
-    }
-  }
+  // Use the same summary content, add footer for PR comment
+  let commentContent = summaryContent;
 
   // Add footer with link to workflow run
   const repository = process.env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile';
@@ -214,7 +191,7 @@ if (PR_NUMBER) {
     ? `https://github.com/${repository}/actions/runs/${runId}`
     : '#';
 
-  commentContent += `_🔍 [View complete analysis](${runUrl}) • AI E2E Analysis_\n\n`;
+  commentContent += `\n_🔍 [View complete analysis](${runUrl}) • AI E2E Analysis_\n\n`;
   commentContent += '<!-- ai-e2e-analysis -->\n';
 
   // Write comment file
