@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import { useCardDelegation } from './useCardDelegation';
+import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import { CardSDK } from '../sdk/CardSDK';
 import { CardTokenAllowance, AllowanceState } from '../types';
@@ -16,6 +16,7 @@ import { ARBITRARY_ALLOWANCE } from '../constants';
 import {
   TransactionType,
   WalletDevice,
+  TransactionStatus,
 } from '@metamask/transaction-controller';
 import TransactionTypes from '../../../../core/TransactionTypes';
 
@@ -38,6 +39,7 @@ jest.mock('../../../hooks/useMetrics', () => ({
 }));
 
 jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
   error: jest.fn(),
 }));
 
@@ -56,6 +58,9 @@ jest.mock('../../../../core/Engine', () => ({
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
     },
+  },
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
   },
 }));
 
@@ -110,17 +115,6 @@ describe('useCardDelegation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Mock setTimeout to execute callback immediately (synchronously)
-    // This bypasses the 10-second delay in the hook for faster tests
-    jest
-      .spyOn(global, 'setTimeout')
-      .mockImplementation((cb: TimerHandler, _ms?: number): NodeJS.Timeout => {
-        if (typeof cb === 'function') {
-          cb();
-        }
-        return 0 as unknown as NodeJS.Timeout;
-      });
-
     // Setup SDK mock
     mockSDK = {
       generateDelegationToken: jest.fn(),
@@ -174,10 +168,26 @@ describe('useCardDelegation', () => {
       .fn()
       .mockResolvedValue({
         result: Promise.resolve(mockTxHash),
+        transactionMeta: {
+          id: 'transaction-meta-id-123',
+        },
       });
     Engine.context.NetworkController.findNetworkClientIdByChainId = jest
       .fn()
       .mockReturnValue(mockNetworkClientId);
+
+    // Setup controllerMessenger mock to simulate transaction confirmation
+    Engine.controllerMessenger.subscribeOnceIf = jest
+      .fn()
+      .mockImplementation((_eventName, callback, _filter) => {
+        // Immediately call the callback with a confirmed transaction
+        setImmediate(() => {
+          callback({
+            id: 'transaction-meta-id-123',
+            status: TransactionStatus.confirmed,
+          });
+        });
+      });
 
     // Setup utility mocks
     mockToTokenMinimalUnit.mockReturnValue('100000000000000000000');
@@ -585,6 +595,102 @@ describe('useCardDelegation', () => {
     });
   });
 
+  describe('user cancellation', () => {
+    it('throws UserCancelledError when user denies transaction', async () => {
+      const error = new Error('User denied transaction signature');
+      Engine.context.TransactionController.addTransaction = jest
+        .fn()
+        .mockRejectedValue(error);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          UserCancelledError,
+        );
+      });
+
+      expect(result.current.error).toBe('User denied transaction signature');
+    });
+
+    it('throws UserCancelledError when user rejects transaction', async () => {
+      const error = new Error('User rejected the request');
+      Engine.context.TransactionController.addTransaction = jest
+        .fn()
+        .mockRejectedValue(error);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          UserCancelledError,
+        );
+      });
+    });
+
+    it('throws UserCancelledError when user cancels transaction', async () => {
+      const error = new Error('User cancelled transaction');
+      Engine.context.TransactionController.addTransaction = jest
+        .fn()
+        .mockRejectedValue(error);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          UserCancelledError,
+        );
+      });
+    });
+
+    it('throws UserCancelledError when user cancels with alternate spelling', async () => {
+      const error = new Error('User canceled the transaction');
+      Engine.context.TransactionController.addTransaction = jest
+        .fn()
+        .mockRejectedValue(error);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          UserCancelledError,
+        );
+      });
+    });
+
+    it('throws regular error for non-cancellation errors', async () => {
+      const error = new Error('Network connection failed');
+      Engine.context.TransactionController.addTransaction = jest
+        .fn()
+        .mockRejectedValue(error);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          'Network connection failed',
+        );
+      });
+
+      expect(result.current.error).toBe('Network connection failed');
+    });
+  });
+
   describe('metrics tracking', () => {
     it('tracks delegation process started event', async () => {
       const mockToken = createMockToken();
@@ -706,7 +812,7 @@ describe('useCardDelegation', () => {
       expect(signedMessage).toContain(`${mockAddress}`);
       expect(signedMessage).toContain('Chain ID: 59144');
       expect(signedMessage).toContain(`Nonce: ${mockNonce}`);
-      expect(signedMessage).toContain('MetaMask Mobile wants you to sign in');
+      expect(signedMessage).toContain('metamask.app.link wants you to sign in');
     });
 
     it('extracts chain ID from token caipChainId', async () => {
@@ -800,6 +906,69 @@ describe('useCardDelegation', () => {
       expect(
         Engine.context.NetworkController.findNetworkClientIdByChainId,
       ).toHaveBeenCalled();
+    });
+
+    it('subscribes to transaction confirmation event', async () => {
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledWith(
+        'TransactionController:transactionConfirmed',
+        expect.any(Function),
+        expect.any(Function),
+      );
+    });
+
+    it('waits for transaction confirmation before completing delegation', async () => {
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+      let resolveConfirmation: () => void;
+      const confirmationPromise = new Promise<void>((resolve) => {
+        resolveConfirmation = resolve;
+      });
+
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          confirmationPromise.then(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.confirmed,
+            });
+          });
+        });
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      // Start delegation (don't await yet)
+      const delegationPromise = result.current.submitDelegation(params);
+
+      // Wait a bit to ensure subscription is set up
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // completeEVMDelegation should not be called yet
+      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
+
+      // Simulate transaction confirmation
+      await act(async () => {
+        resolveConfirmation();
+        // Wait for confirmation to process
+        await new Promise((resolve) => setImmediate(resolve));
+      });
+
+      // Wait for delegation to complete
+      await act(async () => {
+        await delegationPromise;
+      });
+
+      // Now it should be called
+      expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
     });
   });
 

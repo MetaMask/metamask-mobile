@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  TransactionStatus,
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -16,6 +17,17 @@ import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { toTokenMinimalUnit } from '../../../../util/number';
+import AppConstants from '../../../../core/AppConstants';
+
+/**
+ * Custom error class for user-initiated cancellations
+ */
+export class UserCancelledError extends Error {
+  constructor(message = 'User cancelled the transaction') {
+    super(message);
+    this.name = 'UserCancelledError';
+  }
+}
 
 interface DelegationState {
   isLoading: boolean;
@@ -53,10 +65,13 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const generateSignatureMessage = useCallback(
     (address: string, nonce: string): string => {
       const now = new Date();
-      const expirationTime = new Date(now.getTime() + 30 * 60000); // 30 minutes
+      // Expiration time needs to be 30 secods
+      const expirationTime = new Date(now.getTime() + 30 * 1000);
       const chainId = token?.caipChainId?.split(':')[1] ?? '59144';
+      const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+      const uri = `https://${domain}`;
 
-      return `MetaMask Mobile wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: metamask://\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
+      return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
     },
     [token],
   );
@@ -106,37 +121,77 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         throw new Error('Token address not found');
       }
 
-      const { result } = await TransactionController.addTransaction(
-        {
-          from: address,
-          to: tokenAddress,
-          data: transactionData,
-        },
-        {
-          networkClientId,
-          origin: TransactionTypes.MMM,
-          type: TransactionType.tokenMethodApprove,
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          requireApproval: true,
-        },
-      );
+      try {
+        const { result, transactionMeta: trxMeta } =
+          await TransactionController.addTransaction(
+            {
+              from: address,
+              to: tokenAddress,
+              data: transactionData,
+            },
+            {
+              networkClientId,
+              origin: TransactionTypes.MMM,
+              type: TransactionType.tokenMethodApprove,
+              deviceConfirmedOn: WalletDevice.MM_MOBILE,
+              requireApproval: true,
+            },
+          );
+        const actualTxHash = await result;
+        const { id: transactionId } = trxMeta;
 
-      const actualTxHash = await result;
+        // Wait for transaction confirmation and completion
+        await new Promise<void>((resolve, reject) => {
+          Engine.controllerMessenger.subscribeOnceIf(
+            'TransactionController:transactionConfirmed',
+            async (transactionMeta) => {
+              if (transactionMeta.status === TransactionStatus.confirmed) {
+                Logger.log(
+                  'controllerMessenger::Transaction confirmed',
+                  transactionMeta.id,
+                  transactionId,
+                );
+                try {
+                  await sdk.completeEVMDelegation({
+                    address,
+                    network: params.network,
+                    currency: params.currency.toLowerCase(),
+                    amount: params.amount,
+                    txHash: actualTxHash,
+                    sigHash: signature,
+                    sigMessage: signatureMessage,
+                    token: delegationJWTToken,
+                  });
+                  resolve();
+                } catch (error) {
+                  Logger.error(
+                    error as Error,
+                    'Failed to complete EVM delegation',
+                  );
+                  reject(error);
+                }
+              }
+            },
+            (transactionMeta) => transactionMeta.id === transactionId,
+          );
+        });
 
-      // Wait 10 seconds for the transaction to be confirmed on the blockchain
-      // This ensures the backend can verify the transaction when we complete delegation
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+        return actualTxHash;
+      } catch (error) {
+        // Check if user denied/cancelled the transaction
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        const userCancelled =
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('User rejected') ||
+          errorMessage.includes('User cancelled') ||
+          errorMessage.includes('User canceled');
 
-      await sdk.completeEVMDelegation({
-        address,
-        network: params.network,
-        currency: params.currency.toLowerCase(),
-        amount: params.amount,
-        txHash: actualTxHash,
-        sigHash: signature,
-        sigMessage: signatureMessage,
-        token: delegationJWTToken,
-      });
+        if (userCancelled) {
+          throw new UserCancelledError(errorMessage);
+        }
+        throw error;
+      }
     },
     [sdk, token, TransactionController, NetworkController],
   );

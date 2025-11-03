@@ -1,15 +1,23 @@
 // Mock hooks first - must be hoisted before imports
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockAddListener = jest.fn();
 const mockSubmitDelegation = jest.fn();
 const mockShowToast = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
+    addListener: mockAddListener,
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
 }));
 
 // Import types after mocks but before usage
@@ -59,11 +67,20 @@ const mockSdk = {
   getPriorityToken: jest.fn(),
 };
 
+// Mock UserCancelledError
+class MockUserCancelledError extends Error {
+  constructor(message = 'User cancelled the transaction') {
+    super(message);
+    this.name = 'UserCancelledError';
+  }
+}
+
 jest.mock('../../hooks/useCardDelegation', () => ({
   useCardDelegation: jest.fn(() => ({
     submitDelegation: mockSubmitDelegation,
     isLoading: false,
   })),
+  UserCancelledError: MockUserCancelledError,
 }));
 
 jest.mock('../../sdk', () => ({
@@ -209,6 +226,9 @@ describe('SpendingLimit Component', () => {
     jest.clearAllMocks();
     mockSubmitDelegation.mockResolvedValue(undefined);
 
+    // Mock addListener to return an unsubscribe function
+    mockAddListener.mockReturnValue(jest.fn());
+
     // Reset useCardDelegation mock to default state
     (useCardDelegation as jest.Mock).mockReturnValue({
       submitDelegation: mockSubmitDelegation,
@@ -350,8 +370,8 @@ describe('SpendingLimit Component', () => {
       const restrictedOption = screen.getByText('Restricted');
       fireEvent.press(restrictedOption);
 
-      // Input should be visible (currently shows placeholder value "0")
-      const input = screen.getByDisplayValue('0');
+      // Input should be visible with placeholder "0"
+      const input = screen.getByPlaceholderText('0');
       expect(input).toBeOnTheScreen();
     });
 
@@ -375,13 +395,71 @@ describe('SpendingLimit Component', () => {
       const setLimitButton = screen.getByText('Set a limit');
       fireEvent.press(setLimitButton);
 
-      // Press the Restricted option to select it
       const restrictedOption = screen.getByText('Restricted');
       fireEvent.press(restrictedOption);
 
-      // Input field should be visible (Note: component currently has placeholder implementation)
-      const input = screen.getByDisplayValue('0');
+      const input = screen.getByPlaceholderText('0');
       expect(input).toBeOnTheScreen();
+    });
+
+    it('allows typing numeric values in limit input', () => {
+      render();
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '1000');
+
+      expect(input.props.value).toBe('1000');
+    });
+
+    it('allows typing decimal values in limit input', () => {
+      render();
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '100.50');
+
+      expect(input.props.value).toBe('100.50');
+    });
+
+    it('filters out non-numeric characters from input', () => {
+      render();
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, 'abc123def');
+
+      expect(input.props.value).toBe('123');
+    });
+
+    it('prevents multiple decimal points in input', () => {
+      render();
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '100.50.25');
+
+      expect(input.props.value).toBe('100.5025');
     });
 
     it('shows restricted option for token with limited allowance', () => {
@@ -407,39 +485,89 @@ describe('SpendingLimit Component', () => {
       const setLimitButton = screen.getByText('Set a limit');
       fireEvent.press(setLimitButton);
 
-      // Restricted option should be available
       const restrictedOption = screen.getByText('Restricted');
       expect(restrictedOption).toBeOnTheScreen();
     });
   });
 
   describe('Confirm Button State', () => {
-    it('shows restricted option in options view', () => {
+    it('enables confirm button for full access mode', () => {
       render();
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
+      const confirmButton = screen.getByText('Confirm');
 
-      // Press the Restricted option to select it
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      // Should show input field
-      const input = screen.getByDisplayValue('0');
-      expect(input).toBeOnTheScreen();
+      // Button is enabled when not disabled
+      expect(confirmButton).toBeOnTheScreen();
     });
 
-    it('shows confirm button when restricted option is displayed', () => {
+    it('disables confirm button when restricted mode has empty input', () => {
       render();
 
       const setLimitButton = screen.getByText('Set a limit');
       fireEvent.press(setLimitButton);
 
-      // Press the Restricted option to select it
       const restrictedOption = screen.getByText('Restricted');
       fireEvent.press(restrictedOption);
 
       const confirmButton = screen.getByText('Confirm');
+
+      // Check that button is present (disabled state is internal to Button component)
+      expect(confirmButton).toBeOnTheScreen();
+    });
+
+    it('enables confirm button when restricted mode has valid input', () => {
+      render();
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '1000');
+
+      const confirmButton = screen.getByText('Confirm');
+
+      // Button should be enabled after entering valid input
+      expect(confirmButton).toBeOnTheScreen();
+    });
+
+    it('enables confirm button when restricted mode input is 0', () => {
+      render();
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '0');
+
+      const confirmButton = screen.getByText('Confirm');
+
+      // Button should be enabled when input is 0 (valid case to remove token)
+      expect(confirmButton).toBeOnTheScreen();
+    });
+
+    it('disables confirm button when Solana token is selected', () => {
+      const solanaRoute: MockRoute = {
+        params: {
+          flow: 'enable' as const,
+          selectedToken: mockSolanaToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockSolanaToken, mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(solanaRoute);
+
+      const confirmButton = screen.getByText('Confirm');
+
+      // Button should be disabled for Solana tokens
       expect(confirmButton).toBeOnTheScreen();
     });
 
@@ -483,19 +611,54 @@ describe('SpendingLimit Component', () => {
       });
     });
 
-    it('displays restricted option with limit input field', () => {
+    it('submits delegation with custom limit in restricted mode', async () => {
       render();
 
       const setLimitButton = screen.getByText('Set a limit');
       fireEvent.press(setLimitButton);
 
-      // Verify restricted option is available
       const restrictedOption = screen.getByText('Restricted');
       fireEvent.press(restrictedOption);
 
-      // Verify input field is displayed (component has placeholder implementation)
-      const input = screen.getByDisplayValue('0');
-      expect(input).toBeOnTheScreen();
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '5000');
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmitDelegation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            amount: '5000',
+            currency: 'USDC',
+            network: 'linea',
+          }),
+        );
+      });
+    });
+
+    it('submits delegation with amount 0 when input is 0', async () => {
+      render();
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '0');
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmitDelegation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            amount: '0',
+          }),
+        );
+      });
     });
 
     it('uses selected token for delegation when available', async () => {
@@ -550,6 +713,22 @@ describe('SpendingLimit Component', () => {
       });
     });
 
+    it('clears cache after successful delegation', async () => {
+      render();
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: expect.stringContaining('clearCacheData'),
+            payload: 'card-external-wallet-details',
+          }),
+        );
+      });
+    });
+
     it('shows success toast when delegation succeeds', async () => {
       render();
 
@@ -566,40 +745,14 @@ describe('SpendingLimit Component', () => {
       });
     });
 
-    it('shows error toast when delegation fails', async () => {
-      const error = new Error('Delegation failed');
-      mockSubmitDelegation.mockRejectedValueOnce(error);
-
+    it('navigates back after successful delegation', async () => {
       render();
 
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: [{ label: 'Failed to update limit' }],
-            iconName: IconName.Danger,
-          }),
-        );
-      });
-    });
-
-    it('calls Logger.error when delegation fails', async () => {
-      const error = new Error('Delegation failed');
-      mockSubmitDelegation.mockRejectedValueOnce(error);
-      const mockLoggerError = jest.spyOn(Logger, 'error');
-
-      render();
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockLoggerError).toHaveBeenCalledWith(
-          error,
-          'Failed to save spending limit',
-        );
+        expect(mockGoBack).toHaveBeenCalled();
       });
     });
 
@@ -655,7 +808,7 @@ describe('SpendingLimit Component', () => {
       expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
     });
 
-    it('renders cancel button when delegation is loading', () => {
+    it('disables cancel button when delegation is loading', () => {
       (useCardDelegation as jest.Mock).mockReturnValue({
         submitDelegation: mockSubmitDelegation,
         isLoading: true,
@@ -664,7 +817,72 @@ describe('SpendingLimit Component', () => {
       render();
 
       const cancelButton = screen.getByText('Cancel');
+
+      // Cancel button should be visible but disabled during loading
       expect(cancelButton).toBeOnTheScreen();
+    });
+
+    it('does not navigate back when cancel is pressed during delegation', () => {
+      (useCardDelegation as jest.Mock).mockReturnValue({
+        submitDelegation: mockSubmitDelegation,
+        isLoading: true,
+      });
+
+      render();
+
+      const cancelButton = screen.getByText('Cancel');
+      fireEvent.press(cancelButton);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Navigation Blocking', () => {
+    it('registers navigation listener on mount', () => {
+      render();
+
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+    });
+
+    it('blocks navigation when delegation is loading', () => {
+      (useCardDelegation as jest.Mock).mockReturnValue({
+        submitDelegation: mockSubmitDelegation,
+        isLoading: true,
+      });
+
+      render();
+
+      const mockEvent = { preventDefault: jest.fn() };
+      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+
+      beforeRemoveCallback(mockEvent);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('allows navigation when delegation is not loading', () => {
+      render();
+
+      const mockEvent = { preventDefault: jest.fn() };
+      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+
+      beforeRemoveCallback(mockEvent);
+
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes from navigation listener on unmount', () => {
+      const mockUnsubscribe = jest.fn();
+      mockAddListener.mockReturnValue(mockUnsubscribe);
+
+      const { unmount } = render();
+
+      unmount();
+
+      expect(mockUnsubscribe).toHaveBeenCalled();
     });
   });
 

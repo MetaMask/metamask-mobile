@@ -320,6 +320,18 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                           "paddingBottom": 32,
                         }
                       }
+                      refreshControl={
+                        <RefreshControlMock
+                          colors={
+                            [
+                              "#4459ff",
+                            ]
+                          }
+                          onRefresh={[Function]}
+                          refreshing={false}
+                          tintColor="#121314"
+                        />
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {
@@ -328,6 +340,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                         }
                       }
                     >
+                      <RCTRefreshControl />
                       <View>
                         <View
                           style={
@@ -1489,6 +1502,18 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                           "paddingBottom": 32,
                         }
                       }
+                      refreshControl={
+                        <RefreshControlMock
+                          colors={
+                            [
+                              "#4459ff",
+                            ]
+                          }
+                          onRefresh={[Function]}
+                          refreshing={false}
+                          tintColor="#121314"
+                        />
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {
@@ -1497,6 +1522,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                         }
                       }
                     >
+                      <RCTRefreshControl />
                       <View>
                         <View
                           style={

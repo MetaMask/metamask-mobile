@@ -46,6 +46,7 @@ const useLoadCardData = () => {
     data: delegationSettings,
     isLoading: isLoadingDelegationSettings,
     error: delegationSettingsError,
+    fetchData: fetchDelegationSettings,
   } = useGetDelegationSettings();
 
   // Authenticated mode: Get all wallet details from API
@@ -153,6 +154,29 @@ const useLoadCardData = () => {
     ],
   );
 
+  // Force refetch function that bypasses cache
+  const refetchAllData = useMemo(
+    () => async () => {
+      if (isAuthenticated) {
+        await Promise.all([
+          fetchDelegationSettings(),
+          fetchExternalWalletDetails(),
+          fetchCardDetails(),
+          fetchPriorityToken(),
+        ]);
+      } else {
+        await Promise.all([fetchPriorityToken()]);
+      }
+    },
+    [
+      isAuthenticated,
+      fetchDelegationSettings,
+      fetchExternalWalletDetails,
+      fetchCardDetails,
+      fetchPriorityToken,
+    ],
+  );
+
   return {
     // Token data
     priorityToken,
@@ -173,6 +197,7 @@ const useLoadCardData = () => {
     isCardholder,
     // Fetch functions
     fetchAllData,
+    refetchAllData,
     fetchPriorityToken,
     fetchCardDetails,
     // Card provisioning

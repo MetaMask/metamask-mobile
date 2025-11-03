@@ -1,11 +1,18 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import Icon, {
   IconName,
@@ -67,6 +74,10 @@ import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomShee
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
 
 /**
  * CardHome Component
@@ -85,8 +96,10 @@ const CardHome = () => {
   const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
     useState(false);
   const [retries, setRetries] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const addFundsSheetRef = useRef<BottomSheetRef>(null);
   const assetSelectionSheetRef = useRef<BottomSheetRef>(null);
+  const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
 
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -190,6 +203,15 @@ const CardHome = () => {
     ),
     [allTokens, delegationSettings, externalWalletDetailsData],
   );
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchAllData();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchAllData]);
 
   // Track event only once after priorityToken and balances are loaded
   const hasTrackedCardHomeView = useRef(false);
@@ -333,19 +355,41 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
-  const enableCardAction = useCallback(async () => {
-    await provisionCard();
-    const isProvisioned = await pollCardStatusUntilProvisioned();
+  const needToEnableCard = useMemo(
+    () => cardDetailsWarning === CardWarning.NoCard,
+    [cardDetailsWarning],
+  );
+  const needToEnableAssets = useMemo(
+    () => priorityTokenWarning === CardWarning.NeedDelegation,
+    [priorityTokenWarning],
+  );
 
-    if (isProvisioned) {
-      fetchPriorityToken();
-      changeAssetAction();
+  const enableCardAction = useCallback(async () => {
+    try {
+      await provisionCard();
+      const isProvisioned = await pollCardStatusUntilProvisioned();
+
+      if (isProvisioned) {
+        fetchPriorityToken();
+        changeAssetAction();
+      }
+    } catch (error) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [{ label: strings('card.card_home.enable_card_error') }],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.error.muted,
+        hasNoTimeout: false,
+      });
     }
   }, [
     provisionCard,
     pollCardStatusUntilProvisioned,
     fetchPriorityToken,
     changeAssetAction,
+    toastRef,
+    theme,
   ]);
 
   const ButtonsSection = useMemo(() => {
@@ -361,7 +405,7 @@ const CardHome = () => {
     }
 
     if (isBaanxLoginEnabled) {
-      if (cardDetailsWarning === CardWarning.NoCard) {
+      if (needToEnableCard) {
         return (
           <Button
             variant={ButtonVariants.Primary}
@@ -385,7 +429,7 @@ const CardHome = () => {
         );
       }
 
-      if (priorityTokenWarning === CardWarning.NeedDelegation) {
+      if (needToEnableAssets) {
         return (
           <Button
             variant={ButtonVariants.Primary}
@@ -528,6 +572,14 @@ const CardHome = () => {
       showsVerticalScrollIndicator={false}
       alwaysBounceVertical={false}
       contentContainerStyle={styles.contentContainer}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={[theme.colors.primary.default]}
+          tintColor={theme.colors.icon.default}
+        />
+      }
     >
       {cardDetailsWarning && <CardWarningBox warning={cardDetailsWarning} />}
       <View style={styles.cardBalanceContainer}>
@@ -535,8 +587,7 @@ const CardHome = () => {
           style={[
             styles.balanceTextContainer,
             styles.defaultHorizontalPadding,
-            priorityTokenWarning === CardWarning.NeedDelegation &&
-              styles.shouldBeHidden,
+            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
           ]}
         >
           <SensitiveText
@@ -620,8 +671,7 @@ const CardHome = () => {
           style={[
             styles.cardAssetItemContainer,
             styles.defaultHorizontalPadding,
-            priorityTokenWarning === CardWarning.NeedDelegation &&
-              styles.shouldBeHidden,
+            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
           ]}
         >
           {isLoading ? (
@@ -645,8 +695,7 @@ const CardHome = () => {
 
       <View
         style={[
-          priorityTokenWarning === CardWarning.NeedDelegation &&
-            styles.shouldBeHidden,
+          (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
         ]}
       >
         {isBaanxLoginEnabled &&
