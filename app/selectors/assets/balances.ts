@@ -293,6 +293,7 @@ export const selectAccountGroupBalanceForEmptyState = createSelector(
     selectTokenRatesStateForBalances,
     selectMultichainAssetsRatesStateForBalances,
     selectMultichainBalancesStateForBalances,
+    selectMultichainAssetsControllerStateForBalances,
     selectTokensStateForBalances,
     selectCurrencyRateStateForBalances,
   ],
@@ -305,6 +306,7 @@ export const selectAccountGroupBalanceForEmptyState = createSelector(
     tokenRatesState,
     multichainRatesState,
     multichainBalancesState,
+    multichainAssetsControllerState,
     tokensState,
     currencyRateState,
   ) => {
@@ -365,6 +367,7 @@ export const selectAccountGroupBalanceForEmptyState = createSelector(
       tokenRatesState,
       multichainRatesState,
       multichainBalancesState,
+      multichainAssetsControllerState,
       tokensState,
       currencyRateState,
       enabledNetworkMap,
