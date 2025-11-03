@@ -11,6 +11,7 @@ import {
   getBridgeInfo,
   getChainId,
   HIP3_ASSET_MARKET_TYPES,
+  HIP3_FEE_CONFIG,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   REFERRAL_CONFIG,
@@ -4351,24 +4352,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * TODO: Fetch user's 14-day rolling volume when API available
-   * @private
-   */
-  private async getUserVolume(): Promise<number> {
-    // Placeholder - return 0 (base tier)
-    return 0;
-  }
-
-  /**
-   * TODO: Fetch user's $HYPE staking info when API available
-   * @private
-   */
-  private async getUserStaking(): Promise<number> {
-    // Placeholder - return 0 (no staking discount)
-    return 0;
-  }
-
-  /**
    * Calculate fees based on HyperLiquid's fee structure
    * Returns fee rate as decimal (e.g., 0.00045 for 0.045%)
    *
@@ -4378,16 +4361,36 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    const { orderType, isMaker = false, amount } = params;
+    const { orderType, isMaker = false, amount, coin } = params;
 
     // Start with base rates from config
     let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
+    // HIP-3 assets have 2× base fees (per fees.md line 9)
+    // Parse coin to detect HIP-3 DEX (e.g., "xyz:TSLA" → dex="xyz")
+    const { dex } = parseAssetName(coin);
+    const isHip3Asset = dex !== null;
+
+    if (isHip3Asset) {
+      const originalRate = feeRate;
+      feeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+
+      DevLogger.log('HIP-3 Fee Multiplier Applied', {
+        coin,
+        dex,
+        originalBaseRate: originalRate,
+        hip3BaseRate: feeRate,
+        multiplier: HIP3_FEE_CONFIG.FEE_MULTIPLIER,
+      });
+    }
+
     DevLogger.log('HyperLiquid Fee Calculation Started', {
       orderType,
       isMaker,
       amount,
+      coin,
+      isHip3Asset,
       baseFeeRate: feeRate,
       baseTakerRate: FEE_RATES.taker,
       baseMakerRate: FEE_RATES.maker,
@@ -4407,10 +4410,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const cached = this.userFeeCache.get(userAddress);
         if (cached) {
           // Market orders always use taker rate, limit orders check isMaker
-          feeRate =
+          let userFeeRate =
             orderType === 'market' || !isMaker
               ? cached.perpsTakerRate
               : cached.perpsMakerRate;
+
+          // Apply HIP-3 multiplier to user-specific rates
+          if (isHip3Asset) {
+            userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+          }
+
+          feeRate = userFeeRate;
 
           DevLogger.log('📦 Using Cached Fee Rates', {
             cacheHit: true,
@@ -4419,6 +4429,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             spotTakerRate: cached.spotTakerRate,
             spotMakerRate: cached.spotMakerRate,
             selectedRate: feeRate,
+            isHip3Asset,
             cacheExpiry: new Date(cached.timestamp + cached.ttl).toISOString(),
             cacheAge: `${Math.round((Date.now() - cached.timestamp) / 1000)}s`,
           });
@@ -4523,15 +4534,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         this.userFeeCache.set(userAddress, rates);
         // Market orders always use taker rate, limit orders check isMaker
-        feeRate =
+        let userFeeRate =
           orderType === 'market' || !isMaker
             ? rates.perpsTakerRate
             : rates.perpsMakerRate;
+
+        // Apply HIP-3 multiplier to API-fetched rates
+        if (isHip3Asset) {
+          userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+        }
+
+        feeRate = userFeeRate;
 
         DevLogger.log('Fee Rates Validated and Cached', {
           selectedRate: feeRate,
           selectedRatePercentage: `${(feeRate * 100).toFixed(4)}%`,
           discountApplied: perpsTakerRate < FEE_RATES.taker,
+          isHip3Asset,
           cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
         });
       }

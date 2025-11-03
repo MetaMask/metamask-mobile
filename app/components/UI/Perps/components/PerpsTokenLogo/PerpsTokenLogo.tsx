@@ -1,18 +1,20 @@
-import React, { memo, useMemo, useState, useEffect } from 'react';
-import { View, ActivityIndicator, ViewStyle, ImageStyle } from 'react-native';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { useTheme } from '../../../../../util/theme';
-import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
 import { Image } from 'expo-image';
-import { getAssetIconUrl } from '../../utils/marketUtils';
+import React, { memo, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ImageStyle, View, ViewStyle } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
 import {
-  ASSETS_REQUIRING_LIGHT_BG,
+  getAssetIconUrl,
+  getPerpsDisplaySymbol,
+} from '../../utils/marketUtils';
+import {
   ASSETS_REQUIRING_DARK_BG,
+  ASSETS_REQUIRING_LIGHT_BG,
   K_PREFIX_ASSETS,
 } from './PerpsAssetBgConfig';
+import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
 
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
@@ -82,6 +84,15 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
     [size],
   );
 
+  const fallbackTextStyle = useMemo(
+    () => ({
+      fontSize: Math.round(size * 0.4),
+      fontWeight: '600' as const,
+      color: colors.text.default,
+    }),
+    [size, colors.text.default],
+  );
+
   // SVG URL - expo-image handles SVG rendering properly
   const imageUri = useMemo(() => {
     if (!symbol) return null;
@@ -102,22 +113,19 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
     setHasError(true);
   };
 
-  // Show Avatar fallback if no symbol or error
+  // Show custom two-letter fallback if no symbol or error
   if (!symbol || !imageUri || hasError) {
+    // Extract display symbol (e.g., "TSLA" from "xyz:TSLA")
+    const displaySymbol = getPerpsDisplaySymbol(symbol || '');
+    // Get first 2 letters, uppercase
+    const fallbackText = displaySymbol.substring(0, 2).toUpperCase();
+
     return (
-      <Avatar
-        variant={AvatarVariant.Token}
-        name={symbol}
-        size={
-          size === 32
-            ? AvatarSize.Md
-            : size === 40
-              ? AvatarSize.Lg
-              : AvatarSize.Md
-        }
-        style={style}
-        testID={testID}
-      />
+      <View style={[containerStyle, style]} testID={testID}>
+        <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
+          {fallbackText}
+        </Text>
+      </View>
     );
   }
 
