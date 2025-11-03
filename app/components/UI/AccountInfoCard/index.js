@@ -1,8 +1,8 @@
 import isUrl from 'is-url';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
+import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -20,6 +20,7 @@ import {
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
+  getInternalAccountByAddress,
 } from '../../../util/address';
 import Device from '../../../util/device';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
@@ -33,6 +34,7 @@ import ApproveTransactionHeader from '../../Views/confirmations/legacy/component
 import Identicon from '../Identicon';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectSignatureRequests } from '../../../selectors/signatureController';
+import { selectAccountToGroupMap } from '../../../selectors/multichainAccounts/accountTreeController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -138,6 +140,7 @@ class AccountInfoCard extends PureComponent {
     transaction: PropTypes.object,
     origin: PropTypes.string,
     signatureRequests: PropTypes.object,
+    accountToGroupMap: PropTypes.object,
   };
 
   render() {
@@ -153,6 +156,7 @@ class AccountInfoCard extends PureComponent {
       transaction,
       origin,
       signatureRequests,
+      accountToGroupMap,
     } = this.props;
 
     const signatureRequest = Object.values(signatureRequests || {})?.[0];
@@ -164,7 +168,13 @@ class AccountInfoCard extends PureComponent {
       ? hexToBN(accounts[fromAddress].balance)
       : 0;
     const balance = `${renderFromWei(weiBalance)} ${getTicker(ticker)}`;
-    const accountLabel = renderAccountName(fromAddress, internalAccounts);
+
+    const account = getInternalAccountByAddress(fromAddress);
+    const accountGroup = account ? accountToGroupMap[account.id] : undefined;
+
+    const accountLabel = accountGroup
+      ? accountGroup.metadata.name
+      : renderAccountName(fromAddress, internalAccounts);
     const address = renderShortAddress(fromAddress);
     const dollarBalance = showFiatBalance
       ? weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase()
@@ -258,6 +268,7 @@ const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
   signatureRequests: selectSignatureRequests(state),
+  accountToGroupMap: selectAccountToGroupMap(state),
 });
 
 AccountInfoCard.contextType = ThemeContext;
