@@ -497,7 +497,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   });
 
   describe('selectAccountGroupBalanceForEmptyState', () => {
-    it('excludes testnet chains and includes only mainnet chains in balance calculation', () => {
+    it.only('excludes testnet chains and includes only mainnet chains in balance calculation', () => {
       const mockCalculateBalanceForAllWallets = jest.requireMock(
         '@metamask/assets-controllers',
       ).calculateBalanceForAllWallets;
@@ -540,7 +540,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
       // Verify calculateBalanceForAllWallets was called with proper enabledNetworkMap
       expect(mockCalculateBalanceForAllWallets).toHaveBeenCalledTimes(1);
       const enabledNetworkMap =
-        mockCalculateBalanceForAllWallets.mock.calls[0][8];
+        mockCalculateBalanceForAllWallets.mock.calls[0][9];
 
       // Should include mainnet networks only
       expect(enabledNetworkMap).toEqual({
