@@ -13,6 +13,7 @@ import {
   defaultPerpsClosePositionValidationMock,
   defaultPerpsEventTrackingMock,
   defaultPerpsLivePricesMock,
+  defaultPerpsTopOfBookMock,
   defaultPerpsOrderFeesMock,
   defaultPerpsPositionMock,
   defaultPerpsRewardsMock,
@@ -51,6 +52,7 @@ jest.mock('../../hooks', () => ({
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
+  usePerpsTopOfBook: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -120,6 +122,9 @@ describe('PerpsClosePositionView', () => {
   const usePerpsLivePricesMock = jest.mocked(
     jest.requireMock('../../hooks/stream').usePerpsLivePrices,
   );
+  const usePerpsTopOfBookMock = jest.mocked(
+    jest.requireMock('../../hooks/stream').usePerpsTopOfBook,
+  );
   const usePerpsOrderFeesMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsOrderFees,
   );
@@ -162,6 +167,7 @@ describe('PerpsClosePositionView', () => {
 
     // Setup hook mocks with default values
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
+    usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
     usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
