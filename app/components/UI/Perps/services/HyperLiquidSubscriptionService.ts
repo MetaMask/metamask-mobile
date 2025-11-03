@@ -11,7 +11,7 @@ import {
   type FrontendOpenOrdersResponse,
 } from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import type {
   PriceUpdate,
   Position,
@@ -97,6 +97,8 @@ export class HyperLiquidSubscriptionService {
   private cachedPositions: Position[] | null = null; // Aggregated positions
   private cachedOrders: Order[] | null = null; // Aggregated orders
   private cachedAccount: AccountState | null = null; // Aggregated account
+  private ordersCacheInitialized = false; // Track if orders cache has received WebSocket data
+  private positionsCacheInitialized = false; // Track if positions cache has received WebSocket data
   // Global price data cache
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
@@ -155,18 +157,31 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Generate standardized error context for Sentry logging
+   * Get error context for logging with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature, provider, and network.
+   *
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields (merged into searchable context.data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @private
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      context: `HyperLiquidSubscriptionService.${method}`,
-      provider: 'hyperliquid',
-      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
-      ...extra,
+      tags: {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        provider: 'hyperliquid',
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      },
+      context: {
+        name: 'HyperLiquidSubscriptionService',
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 
@@ -276,8 +291,8 @@ export class HyperLiquidSubscriptionService {
    * Fast hash function for change detection
    * Uses string concatenation of key fields instead of JSON.stringify()
    * Performance: ~100x faster than JSON.stringify() for typical objects
-   * Only tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
-   * Value-based changes like unrealizedPnl should not trigger notifications
+   * Tracks structural changes (coin, size, entryPrice, leverage, TP/SL prices/counts)
+   * and value changes (unrealizedPnl, returnOnEquity) for live P&L updates
    */
   private hashPositions(positions: Position[]): string {
     if (!positions || positions.length === 0) return '0';
@@ -286,7 +301,9 @@ export class HyperLiquidSubscriptionService {
         (p) =>
           `${p.coin}:${p.size}:${p.entryPrice}:${p.leverage.value}:${
             p.takeProfitPrice || ''
-          }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}`,
+          }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
+            p.unrealizedPnl
+          }:${p.returnOnEquity}`,
       )
       .join('|');
   }
@@ -656,9 +673,8 @@ export class HyperLiquidSubscriptionService {
     accountId?: CaipAccountId,
   ): Promise<void> {
     const enabledDexs = this.getEnabledDexs();
-    const userAddress = await this.walletService.getUserAddressWithDefault(
-      accountId,
-    );
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
 
     // Establish webData2 subscription for main DEX (if not exists)
     if (!this.webData2Subscriptions.has('')) {
@@ -717,9 +733,8 @@ export class HyperLiquidSubscriptionService {
       throw new Error('Subscription client not initialized');
     }
 
-    const userAddress = await this.walletService.getUserAddressWithDefault(
-      accountId,
-    );
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
 
     // Only subscribe to main DEX (webData2 doesn't support dex parameter)
     const dexName = ''; // Main DEX
@@ -784,6 +799,7 @@ export class HyperLiquidSubscriptionService {
           if (positionsChanged) {
             this.cachedPositions = aggregatedPositions;
             this.cachedPositionsHash = positionsHash;
+            this.positionsCacheInitialized = true; // Mark cache as initialized
             this.positionSubscribers.forEach((callback) => {
               callback(aggregatedPositions);
             });
@@ -792,6 +808,7 @@ export class HyperLiquidSubscriptionService {
           if (ordersChanged) {
             this.cachedOrders = aggregatedOrders;
             this.cachedOrdersHash = ordersHash;
+            this.ordersCacheInitialized = true; // Mark cache as initialized
             this.orderSubscribers.forEach((callback) => {
               callback(aggregatedOrders);
             });
@@ -878,6 +895,8 @@ export class HyperLiquidSubscriptionService {
       this.cachedPositions = null;
       this.cachedOrders = null;
       this.cachedAccount = null;
+      this.ordersCacheInitialized = false; // Reset cache initialization flag
+      this.positionsCacheInitialized = false; // Reset cache initialization flag
 
       // Clear hash caches
       this.cachedPositionsHash = '';
@@ -1078,6 +1097,38 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Check if orders cache has been initialized from WebSocket
+   * @returns true if WebSocket has sent at least one update, false otherwise
+   */
+  public isOrdersCacheInitialized(): boolean {
+    return this.ordersCacheInitialized;
+  }
+
+  /**
+   * Check if positions cache has been initialized from WebSocket
+   * @returns true if WebSocket has sent at least one update, false otherwise
+   */
+  public isPositionsCacheInitialized(): boolean {
+    return this.positionsCacheInitialized;
+  }
+
+  /**
+   * Get cached positions from WebSocket subscription
+   * @returns Cached positions array, or null if not initialized
+   */
+  public getCachedPositions(): Position[] | null {
+    return this.cachedPositions;
+  }
+
+  /**
+   * Get cached orders from WebSocket subscription
+   * @returns Cached orders array, or null if not initialized
+   */
+  public getCachedOrders(): Order[] | null {
+    return this.cachedOrders;
+  }
+
+  /**
    * Create subscription with common error handling
    */
   private createSubscription<T>(
@@ -1176,17 +1227,47 @@ export class HyperLiquidSubscriptionService {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
-        // Update cache for ALL available symbols
-        Object.entries(data.mids).forEach(([symbol, price]) => {
-          this.cachedPriceData ??= new Map<string, PriceUpdate>();
+        // Initialize cache if needed
+        this.cachedPriceData ??= new Map<string, PriceUpdate>();
 
-          const priceUpdate = this.createPriceUpdate(symbol, price.toString());
+        const subscribedSymbols = new Set<string>();
+
+        // Collect all symbols that have subscribers
+        for (const [symbol, subscriberSet] of this.priceSubscribers.entries()) {
+          if (subscriberSet.size > 0) {
+            subscribedSymbols.add(symbol);
+          }
+        }
+
+        // Track if any subscribed symbol was updated
+        let hasUpdates = false;
+
+        // Only process symbols that are actually subscribed to
+        for (const symbol in data.mids) {
+          // Skip if nobody is subscribed to this symbol
+          if (!subscribedSymbols.has(symbol)) {
+            continue;
+          }
+
+          const price = data.mids[symbol].toString();
+          const cachedPrice = this.cachedPriceData.get(symbol);
+
+          // Skip if price hasn't changed
+          if (cachedPrice && cachedPrice.price === price) {
+            continue;
+          }
+
+          // Price changed or new symbol - update cache
+          const priceUpdate = this.createPriceUpdate(symbol, price);
           this.cachedPriceData.set(symbol, priceUpdate);
-        });
+          hasUpdates = true;
+        }
 
-        // Always notify price subscribers when we receive price data
-        // This ensures subscribers get updates and the UI can display current prices
-        this.notifyAllPriceSubscribers();
+        // Only notify subscribers if we actually have updates
+        // This prevents unnecessary React re-renders when prices haven't changed
+        if (hasUpdates) {
+          this.notifyAllPriceSubscribers();
+        }
       })
       .then((sub) => {
         this.globalAllMidsSubscription = sub;
@@ -1687,6 +1768,7 @@ export class HyperLiquidSubscriptionService {
             if (positionsChanged) {
               this.cachedPositions = aggregatedPositions;
               this.cachedPositionsHash = positionsHash;
+              this.positionsCacheInitialized = true; // Mark cache as initialized
               this.positionSubscribers.forEach((callback) => {
                 callback(aggregatedPositions);
               });
@@ -1695,6 +1777,7 @@ export class HyperLiquidSubscriptionService {
             if (ordersChanged) {
               this.cachedOrders = aggregatedOrders;
               this.cachedOrdersHash = ordersHash;
+              this.ordersCacheInitialized = true; // Mark cache as initialized
               this.orderSubscribers.forEach((callback) => {
                 callback(aggregatedOrders);
               });
@@ -1870,6 +1953,8 @@ export class HyperLiquidSubscriptionService {
     this.cachedPositions = null;
     this.cachedOrders = null;
     this.cachedAccount = null;
+    this.ordersCacheInitialized = false; // Reset cache initialization flag
+    this.positionsCacheInitialized = false; // Reset cache initialization flag
     this.marketDataCache.clear();
     this.orderBookCache.clear();
     this.symbolSubscriberCounts.clear();

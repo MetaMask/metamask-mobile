@@ -43,6 +43,6 @@ const getSharedStyles = (
       fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.error.default,
     } as TextStyle,
-  } as const);
+  }) as const;
 
 export default getSharedStyles;

@@ -51,6 +51,48 @@ jest.mock(
   }),
 );
 
+jest.mock('./Balance', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  const React = require('react');
+  const { View, Text } = require('react-native');
+  const {
+    BALANCE_TEST_ID,
+    TOKEN_AMOUNT_BALANCE_TEST_ID,
+  } = require('../AssetElement/index.constants');
+  /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  return {
+    __esModule: true,
+    default: ({
+      asset,
+      mainBalance,
+      secondaryBalance,
+      hidePercentageChange,
+    }: {
+      asset: { name?: string; balance?: string | number };
+      mainBalance?: string;
+      secondaryBalance?: string;
+      hidePercentageChange?: boolean;
+    }) => (
+      <View>
+        <Text testID="tokenDetailsName">{asset.name}</Text>
+        <Text testID="tokenDetailsBalance">{asset.balance}</Text>
+
+        {mainBalance != null && (
+          <Text testID={BALANCE_TEST_ID}>{mainBalance}</Text>
+        )}
+        {!hidePercentageChange && secondaryBalance ? (
+          <Text testID={TOKEN_AMOUNT_BALANCE_TEST_ID}>{secondaryBalance}</Text>
+        ) : null}
+      </View>
+    ),
+  };
+});
+
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../selectors/assets/assets-list'),
+  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue([]),
+}));
+
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
   selectSelectedInternalAccountByScope: jest.fn(),
@@ -136,6 +178,11 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      addListener: jest.fn(() => jest.fn()), // Returns unsubscribe function
+    }),
+    useFocusEffect: jest.fn((callback) => {
+      // Call the callback immediately to simulate focus
+      callback();
     }),
   };
 });
@@ -819,6 +866,49 @@ describe('AssetOverview', () => {
     expect(container).toMatchSnapshot();
   });
 
+  it('renders staked TRX details when viewing TRX on Tron', () => {
+    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/assets/assets-list',
+    );
+
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue([
+      { symbol: 'strx-energy', balance: '10' },
+      { symbol: 'strx-bandwidth', balance: '20' },
+    ]);
+
+    const tronAsset = {
+      address: 'tron:mainnet/slip44:195',
+      chainId: 'tron:mainnet',
+      symbol: 'TRX',
+      ticker: 'TRX',
+      name: 'Tron',
+      isNative: true,
+      balance: '0',
+      balanceFiat: '0',
+      decimals: 6,
+      image: '',
+      logo: '',
+      aggregators: [],
+      isETH: false,
+      hasBalanceError: false,
+    };
+
+    const { getAllByTestId } = renderWithProvider(
+      <AssetOverview asset={tronAsset} />,
+      { state: mockInitialState },
+    );
+
+    const names = getAllByTestId('tokenDetailsName').map(
+      (n) => n.props.children,
+    );
+    const balances = getAllByTestId('tokenDetailsBalance').map(
+      (n) => n.props.children,
+    );
+
+    expect(names).toEqual(expect.arrayContaining(['Tron', 'Staked TRX']));
+    expect(balances).toEqual(expect.arrayContaining(['30']));
+  });
+
   it('should swap into the asset when coming from search', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -972,7 +1062,7 @@ describe('AssetOverview', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
+    it('render mainBalance as fiat and secondaryBalance as native', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
         {

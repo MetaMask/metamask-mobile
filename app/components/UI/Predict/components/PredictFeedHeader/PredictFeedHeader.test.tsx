@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
 // Mock SearchBox component
 jest.mock('../SearchBox', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const ReactLocal = require('react');
+  const ReactLocal = jest.requireActual('react');
   return {
     __esModule: true,
     default: jest.fn(({ isVisible, onCancel, onSearch }) => {
@@ -61,6 +61,10 @@ describe('PredictFeedHeader', () => {
     mockCanGoBack.mockClear();
     mockGoBack.mockClear();
     mockCanGoBack.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('default view', () => {

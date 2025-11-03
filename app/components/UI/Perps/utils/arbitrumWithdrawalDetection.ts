@@ -199,8 +199,8 @@ export const detectHyperLiquidWithdrawal = (
         tx.status === 'confirmed'
           ? 'completed'
           : tx.status === 'failed'
-          ? 'failed'
-          : 'pending',
+            ? 'failed'
+            : 'pending',
       blockNumber: tx.blockNumber,
     };
   } catch (error) {

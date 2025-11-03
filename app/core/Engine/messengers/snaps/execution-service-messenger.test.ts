@@ -1,11 +1,29 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import { ExecutionServiceMessenger } from '@metamask/snaps-controllers';
 import { getExecutionServiceMessenger } from './execution-service-messenger';
 
-describe('getExecutionServiceMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const messenger = new Messenger<never, never>();
-    const executionServiceMessenger = getExecutionServiceMessenger(messenger);
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<ExecutionServiceMessenger>,
+  MessengerEvents<ExecutionServiceMessenger>
+>;
 
-    expect(executionServiceMessenger).toBeInstanceOf(RestrictedMessenger);
+const getRootMessenger = (): RootMessenger =>
+  new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+describe('getExecutionServiceMessenger', () => {
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const executionServiceMessenger =
+      getExecutionServiceMessenger(rootMessenger);
+
+    expect(executionServiceMessenger).toBeInstanceOf(Messenger);
   });
 });

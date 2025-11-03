@@ -12,7 +12,9 @@ import Icon, {
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
+import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
+import AlertRow from '../../../UI/info-row/alert-row';
 import styleSheet from './from-to-row.styles';
 
 const FromToRow = () => {
@@ -54,12 +56,15 @@ const FromToRow = () => {
         </View>
 
         <View style={[styles.nameContainer, styles.rightNameContainer]}>
-          <Name
-            type={NameType.EthereumAddress}
-            value={toAddress}
-            variation={chainId}
-            maxCharLength={MAX_CHAR_LENGTH}
-          />
+          {/* Intentional empty label to trigger the alert row without a label */}
+          <AlertRow alertField={RowAlertKey.BurnAddress}>
+            <Name
+              type={NameType.EthereumAddress}
+              value={toAddress as string}
+              variation={chainId}
+              maxCharLength={MAX_CHAR_LENGTH}
+            />
+          </AlertRow>
         </View>
       </View>
     </InfoSection>
