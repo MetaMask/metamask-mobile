@@ -3,7 +3,7 @@ import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 import type { AxiosError } from 'axios';
 import Logger from '../../../../../util/Logger';
-import { trackEvent } from '../../hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 
 export interface UseDepositUserConfig {
   screenLocation?: string;
@@ -27,6 +27,8 @@ export function useDepositUser(config?: UseDepositUserConfig) {
       throws: true,
     });
 
+  const trackEvent = useAnalytics();
+
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
       if (shouldTrackFetch) {
@@ -48,6 +50,7 @@ export function useDepositUser(config?: UseDepositUserConfig) {
       }
     }
   }, [
+    trackEvent,
     fetchUserDetails,
     logoutFromProvider,
     shouldTrackFetch,

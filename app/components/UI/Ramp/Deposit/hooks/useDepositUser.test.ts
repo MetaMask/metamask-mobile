@@ -18,9 +18,7 @@ jest.mock('../sdk', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => ({
-  trackEvent: jest.fn((...args) => mockTrackEvent(...args)),
-}));
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('useDepositUser', () => {
   const mockFetchUserDetails = jest.fn();
