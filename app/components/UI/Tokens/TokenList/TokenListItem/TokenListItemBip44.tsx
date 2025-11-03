@@ -26,10 +26,7 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -84,7 +81,6 @@ export const TokenListItemBip44 = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     // Earn feature flags
-    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
@@ -141,14 +137,14 @@ export const TokenListItemBip44 = React.memo(
       });
     };
 
+    const isStakeable = useSelector((state: RootState) =>
+      selectIsStakeableToken(state, asset as TokenI),
+    );
+
     const renderEarnCta = useCallback(() => {
       if (!asset) {
         return null;
       }
-
-      const isStakeable = useSelector((state: RootState) =>
-        selectIsStakeableToken(state, asset as TokenI),
-      );
 
       const shouldShowStakeCta = isStakeable && !asset?.isStaked;
 
@@ -159,7 +155,7 @@ export const TokenListItemBip44 = React.memo(
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [asset, earnToken, isStablecoinLendingEnabled]);
+    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
 
     if (!asset || !chainId) {
       return null;

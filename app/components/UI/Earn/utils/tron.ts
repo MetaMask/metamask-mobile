@@ -1,6 +1,9 @@
 import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 
-type TronResource = { symbol?: string; balance?: string | number };
+interface TronResource {
+  symbol?: string;
+  balance?: string | number;
+}
 
 /**
  * Returns the total staked TRX (sTRX) amount derived from TRON resources.

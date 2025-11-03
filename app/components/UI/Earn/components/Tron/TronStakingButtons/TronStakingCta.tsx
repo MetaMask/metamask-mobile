@@ -9,6 +9,10 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
 
+const styles = {
+  row: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+} as const;
+
 interface TronStakingCtaProps extends Pick<ViewProps, 'style'> {
   aprText?: string;
   onLearnMore?: () => void;
@@ -18,30 +22,26 @@ const TronStakingCta = ({
   style,
   aprText,
   onLearnMore,
-}: TronStakingCtaProps) => {
-  return (
-    <View style={style}>
-      <Text variant={TextVariant.HeadingMD}>{strings('stake.earn')}</Text>
-      <View
-        style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}
-      >
-        <Text>{strings('stake.stake_your_trx_cta.base')} </Text>
-        {aprText ? (
-          <>
-            <Text color={TextColor.Success}>{aprText}</Text>
-            <Text>{` ${strings('stake.stake_your_trx_cta.annually')} `}</Text>
-          </>
-        ) : null}
-        {onLearnMore ? (
-          <Button
-            label={strings('stake.stake_your_trx_cta.learn_more_with_period')}
-            variant={ButtonVariants.Link}
-            onPress={onLearnMore}
-          />
-        ) : null}
-      </View>
+}: TronStakingCtaProps) => (
+  <View style={style}>
+    <Text variant={TextVariant.HeadingMD}>{strings('stake.earn')}</Text>
+    <View style={styles.row}>
+      <Text>{strings('stake.stake_your_trx_cta.base')} </Text>
+      {aprText ? (
+        <>
+          <Text color={TextColor.Success}>{aprText}</Text>
+          <Text>{` ${strings('stake.stake_your_trx_cta.annually')} `}</Text>
+        </>
+      ) : null}
+      {onLearnMore ? (
+        <Button
+          label={strings('stake.stake_your_trx_cta.learn_more_with_period')}
+          variant={ButtonVariants.Link}
+          onPress={onLearnMore}
+        />
+      ) : null}
     </View>
-  );
-};
+  </View>
+);
 
 export default TronStakingCta;
