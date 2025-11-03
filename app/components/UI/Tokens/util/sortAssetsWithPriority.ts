@@ -1,5 +1,6 @@
-import { CaipChainId, Hex } from '@metamask/utils';
+import type { Asset } from '@metamask/assets-controllers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import {
   BtcScope,
   SolScope,
@@ -7,8 +8,7 @@ import {
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
-import { Asset } from '@metamask/assets-controllers';
-import { sortAssets, SortCriteria } from './sortAssets';
+import { sortAssets, type SortCriteria } from './sortAssets';
 
 // These are the only two options for sorting assets
 // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}

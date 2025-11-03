@@ -1,10 +1,10 @@
-import { Asset } from '@metamask/assets-controllers';
+import type { Asset } from '@metamask/assets-controllers';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import {
   compareFiatBalanceWithPriority,
   sortAssetsWithPriority,
 } from './sortAssetsWithPriority';
-import { CaipChainId, Hex } from '@metamask/utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 function createMockAsset({
   name,

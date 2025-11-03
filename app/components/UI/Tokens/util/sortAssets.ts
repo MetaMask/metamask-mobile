@@ -4,7 +4,7 @@ export type SortOrder = 'asc' | 'dsc';
 
 export interface SortCriteria {
   key: string;
-  order: SortOrder;
+  order: string;
   sortCallback: string;
 }
 
@@ -31,7 +31,10 @@ function getNestedValue<T>(obj: T, keyPath: string): SortingType {
   return get(obj, keyPath) as SortingType;
 }
 
-export function sortAssets<T>(array: T[], criteria: SortCriteria): T[] {
+export function sortAssets<T>(
+  array: T[],
+  criteria: Record<string, string>,
+): T[] {
   const { key, order = 'asc', sortCallback } = criteria;
 
   return [...array].sort((a, b) => {
