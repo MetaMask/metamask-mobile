@@ -429,11 +429,9 @@ describe('PredictTabView', () => {
 
     const { getByTestId } = renderWithProviders(<PredictTabView />);
 
-    // Get the RefreshControl wrapper View and access RefreshControl child
-    const refreshControlWrapper = getByTestId(
-      PredictTabViewSelectorsIDs.REFRESH_CONTROL,
-    );
-    const refreshControl = refreshControlWrapper.props.children;
+    // Get the ScrollView and access RefreshControl through its props
+    const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
+    const refreshControl = scrollView.props.refreshControl;
 
     // Trigger the refresh wrapped in act
     await act(async () => {
@@ -485,11 +483,9 @@ describe('PredictTabView', () => {
 
     const { getByTestId } = renderWithProviders(<PredictTabView />);
 
-    // Get the RefreshControl wrapper View and access RefreshControl child
-    const refreshControlWrapper = getByTestId(
-      PredictTabViewSelectorsIDs.REFRESH_CONTROL,
-    );
-    const refreshControl = refreshControlWrapper.props.children;
+    // Get the ScrollView and access RefreshControl through its props
+    const scrollView = getByTestId(PredictTabViewSelectorsIDs.SCROLL_VIEW);
+    const refreshControl = scrollView.props.refreshControl;
 
     // Initially not refreshing
     expect(refreshControl.props.refreshing).toBe(false);
