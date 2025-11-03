@@ -1,10 +1,9 @@
-import { ControllerInitFunction, EngineState } from '../types';
+import { ControllerInitFunction } from '../types';
 import {
   TokenBalancesController,
   type TokenBalancesControllerMessenger,
 } from '@metamask/assets-controllers';
 import { TokenBalancesControllerInitMessenger } from '../messengers/token-balances-controller-messenger';
-import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 /**
@@ -28,10 +27,17 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
     interval: 180_000,
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     queryMultipleAccounts: preferencesState.isMultiAccountBalancesEnabled,
-    accountsApiChainIds: () =>
-      selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: persistedState as EngineState },
-      }) as `0x${string}`[],
+    accountsApiChainIds: () => [
+      '0x1',
+      '0xe708',
+      '0x38',
+      '0x89',
+      '0x2105',
+      '0xa',
+      '0xa4b1',
+      '0x531',
+      '0x82750',
+    ],
   });
 
   return {
