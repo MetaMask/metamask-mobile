@@ -69,7 +69,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
       testID={testID}
       twClassName={
         isHomepageRedesignV1Enabled
-          ? 'bg-default pt-20 min-h-[200px]'
+          ? 'bg-default pt-20'
           : 'flex-1 bg-default pt-20'
       }
       alignItems={BoxAlignItems.Center}
