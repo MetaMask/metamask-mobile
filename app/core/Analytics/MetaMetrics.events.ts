@@ -145,6 +145,7 @@ enum EVENT_NAME {
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
   PASSWORD_CHANGED = 'Password Changed',
   FORGOT_PASSWORD_CLICKED = 'Forgot Password Clicked',
+  USE_DIFFERENT_LOGIN_METHOD_CLICKED = 'Use Different Login Method Clicked',
   RESET_WALLET = 'Reset Wallet',
 
   // Account
@@ -581,6 +582,9 @@ enum EVENT_NAME {
   PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
   PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
   PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
+
+  // Share
+  SHARE_ACTION = 'Share Action',
 }
 
 enum ACTIONS {
@@ -764,6 +768,9 @@ const events = {
   ),
   PASSWORD_CHANGED: generateOpt(EVENT_NAME.PASSWORD_CHANGED),
   FORGOT_PASSWORD_CLICKED: generateOpt(EVENT_NAME.FORGOT_PASSWORD_CLICKED),
+  USE_DIFFERENT_LOGIN_METHOD_CLICKED: generateOpt(
+    EVENT_NAME.USE_DIFFERENT_LOGIN_METHOD_CLICKED,
+  ),
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
   BROWSER_OPENED: generateOpt(EVENT_NAME.BROWSER_OPENED),
@@ -1453,6 +1460,9 @@ const events = {
   ),
   PREDICT_POSITION_VIEWED: generateOpt(EVENT_NAME.PREDICT_POSITION_VIEWED),
   PREDICT_ACTIVITY_VIEWED: generateOpt(EVENT_NAME.PREDICT_ACTIVITY_VIEWED),
+
+  // Share
+  SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
 };
 
 /**

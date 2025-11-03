@@ -85,7 +85,11 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
-import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
+import {
+  usePerpsLiveAccount,
+  usePerpsLivePrices,
+  usePerpsTopOfBook,
+} from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
@@ -271,6 +275,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   });
   const currentPrice = prices[orderForm.asset];
 
+  // Get top of book data for maker/taker fee determination
+  const currentTopOfBook = usePerpsTopOfBook({
+    symbol: orderForm.asset,
+  });
+
   // Track screen load with unified hook
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
@@ -299,11 +308,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     isClosing: false,
     limitPrice: orderForm.limitPrice,
     direction: orderForm.direction,
-    currentAskPrice: currentPrice?.bestAsk
-      ? Number.parseFloat(currentPrice.bestAsk)
+    currentAskPrice: currentTopOfBook?.bestAsk
+      ? Number.parseFloat(currentTopOfBook.bestAsk)
       : undefined,
-    currentBidPrice: currentPrice?.bestBid
-      ? Number.parseFloat(currentPrice.bestBid)
+    currentBidPrice: currentTopOfBook?.bestBid
+      ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
 
@@ -921,7 +930,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         <Icon
                           name={IconName.Info}
                           size={IconSize.Sm}
-                          color={IconColor.Muted}
+                          color={IconColor.Alternative}
                           testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
                         />
                       </TouchableOpacity>
@@ -992,7 +1001,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         <Icon
                           name={IconName.Info}
                           size={IconSize.Sm}
-                          color={IconColor.Muted}
+                          color={IconColor.Alternative}
                           testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
                         />
                       </TouchableOpacity>
@@ -1046,7 +1055,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                   testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
                 />
               </TouchableOpacity>
@@ -1072,7 +1081,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                   testID={
                     PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
                   }
@@ -1099,7 +1108,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                   testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
                 />
               </TouchableOpacity>
@@ -1134,7 +1143,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   <Icon
                     name={IconName.Info}
                     size={IconSize.Sm}
-                    color={IconColor.Muted}
+                    color={IconColor.Alternative}
                   />
                 </TouchableOpacity>
               </View>
