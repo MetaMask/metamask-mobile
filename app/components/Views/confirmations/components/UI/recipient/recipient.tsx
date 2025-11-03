@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-
+import { KeyringAccountType } from '@metamask/keyring-api';
 import {
   Box,
   FontWeight,
@@ -8,6 +8,7 @@ import {
   ButtonBase,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -16,11 +17,14 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { AccountTypeLabel } from '../account-type-label';
+import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
 
 export interface RecipientType {
   address: string;
   accountName?: string;
   accountGroupName?: string;
+  accountType?: string;
   contactName?: string;
   walletName?: string;
 }
@@ -45,6 +49,9 @@ export function Recipient({
   const handlePressRecipient = useCallback(() => {
     onPress?.(recipient);
   }, [recipient, onPress]);
+
+  const typeLabel =
+    ACCOUNT_TYPE_LABELS[recipient.accountType as KeyringAccountType];
 
   return (
     <ButtonBase
@@ -81,14 +88,17 @@ export function Recipient({
               ? recipient.accountGroupName || recipient.contactName
               : recipient.accountName || recipient.contactName}
           </Text>
-          <Text
-            testID={`recipient-address-${recipient.address}`}
-            variant={TextVariant.BodyMd}
-            style={styles.recipientAddress}
-            numberOfLines={1}
-          >
-            {formatAddress(recipient.address, 'short')}
-          </Text>
+          <Box twClassName="flex-row items-center">
+            <Text
+              testID={`recipient-address-${recipient.address}`}
+              variant={TextVariant.BodyMd}
+              style={styles.recipientAddress}
+              numberOfLines={1}
+            >
+              {formatAddress(recipient.address, 'short')}
+            </Text>
+            <AccountTypeLabel label={typeLabel} />
+          </Box>
         </Box>
       </Box>
     </ButtonBase>

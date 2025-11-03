@@ -523,13 +523,13 @@ class Amount extends PureComponent {
     const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle(
-        'send.amount',
+      getSendFlowTitle({
+        title: 'send.amount',
         navigation,
         route,
-        colors,
+        themeColors: colors,
         resetTransaction,
-      ),
+      }),
     );
   };
 

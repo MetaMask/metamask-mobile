@@ -1,10 +1,10 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
-import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FIXTURE_SERVER_PORT,
+  COMMAND_QUEUE_SERVER_PORT,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -52,14 +52,9 @@ if (isTest) {
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FIXTURE_SERVER_PORT;
-}
-
-if (!global.btoa) {
-  global.btoa = encode;
-}
-
-if (!global.atob) {
-  global.atob = decode;
+  testConfig.commandQueueServerPort = raw?.commandQueueServerPort
+    ? raw.commandQueueServerPort
+    : COMMAND_QUEUE_SERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -82,6 +77,9 @@ if (typeof process === 'undefined') {
   }
 }
 
+// Use faster Buffer implementation for React Native
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+
 // Polyfill crypto after process is polyfilled
 const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
 
@@ -94,7 +92,6 @@ global.crypto = {
 };
 
 process.browser = false;
-if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // EventTarget polyfills for Hyperliquid SDK WebSocket support
 if (
@@ -183,6 +180,25 @@ if (enableApiCallLogs || isTest) {
                 typeof url === 'string' &&
                 (url.startsWith('http://') || url.startsWith('https://'))
               ) {
+                // Bypass proxy for local command queue server (uses adb reverse on Android)
+                try {
+                  const parsed = new URL(url);
+                  const isLocalHost =
+                    parsed.hostname === 'localhost' ||
+                    parsed.hostname === '127.0.0.1';
+                  const isCommandQueue =
+                    isLocalHost &&
+                    parsed.port ===
+                      String(
+                        testConfig.commandQueueServerPort ||
+                          COMMAND_QUEUE_SERVER_PORT,
+                      );
+                  if (isCommandQueue) {
+                    return originalOpen.call(this, method, url, ...openArgs);
+                  }
+                } catch (e) {
+                  // ignore URL parse errors and continue to proxy
+                }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
                   !url.includes('/proxy')

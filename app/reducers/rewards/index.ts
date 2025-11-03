@@ -8,10 +8,10 @@ import {
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
-import { CaipAccountId } from '@metamask/utils';
+import { AccountGroupId } from '@metamask/account-api';
 
 export interface AccountOptInBannerInfoStatus {
-  caipAccountId: CaipAccountId;
+  accountGroupId: AccountGroupId;
   hide: boolean;
 }
 
@@ -160,11 +160,6 @@ const rewardsSlice = createSlice({
         typeof action.payload.balance.total === 'number'
           ? action.payload.balance.total
           : null;
-      state.balanceRefereePortion =
-        action.payload?.balance &&
-        typeof action.payload.balance.refereePortion === 'number'
-          ? action.payload.balance.refereePortion
-          : null;
       state.balanceUpdatedAt = action.payload?.balance?.updatedAt
         ? new Date(action.payload.balance.updatedAt)
         : null;
@@ -181,6 +176,7 @@ const rewardsSlice = createSlice({
       action: PayloadAction<{
         referralCode?: string;
         refereeCount?: number;
+        referralPoints?: number;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -188,6 +184,9 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.refereeCount !== undefined) {
         state.refereeCount = action.payload.refereeCount;
+      }
+      if (action.payload.referralPoints !== undefined) {
+        state.balanceRefereePortion = action.payload.referralPoints;
       }
       state.referralDetailsLoading = false;
     },
@@ -303,10 +302,10 @@ const rewardsSlice = createSlice({
 
     setHideCurrentAccountNotOptedInBanner: (
       state,
-      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
+      action: PayloadAction<{ accountGroupId: AccountGroupId; hide: boolean }>,
     ) => {
       const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
-        (item) => item.caipAccountId === action.payload.accountId,
+        (item) => item.accountGroupId === action.payload.accountGroupId,
       );
 
       if (existingIndex !== -1) {
@@ -316,7 +315,7 @@ const rewardsSlice = createSlice({
       } else {
         // Add new entry
         state.hideCurrentAccountNotOptedInBanner.push({
-          caipAccountId: action.payload.accountId,
+          accountGroupId: action.payload.accountGroupId,
           hide: action.payload.hide,
         });
       }

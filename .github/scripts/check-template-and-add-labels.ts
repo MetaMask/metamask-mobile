@@ -154,6 +154,22 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   } else if (labelable.type === LabelableType.PullRequest) {
+    // Check changelog entry for all PRs (regardless of template match)
+    const hasNoChangelogLabel = labelable.labels?.some(
+      (label) => label.name === "no-changelog"
+    );
+
+    // Require changelog entry
+    if (hasNoChangelogLabel) {
+      console.log(`PR ${labelable.number} has "no-changelog" label. Skipping changelog entry check.`);
+    } else if (!hasChangelogEntry(labelable.body)) {
+      const errorMessage = `PR is missing a valid "CHANGELOG entry:" line.`;
+      console.log(errorMessage);
+
+      core.setFailed(errorMessage);
+      process.exit(1);
+    }
+
     if (templateType === TemplateType.PullRequest) {
       console.log("PR matches 'pull-request-template.md' template.");
       await removeLabelFromLabelableIfPresent(
@@ -161,22 +177,6 @@ async function main(): Promise<void> {
         labelable,
         invalidPullRequestTemplateLabel,
       );
-
-      // Skip changelog check if PR has "no-changelog" label
-      const hasNoChangelogLabel = labelable.labels?.some(
-        (label) => label.name === "no-changelog"
-      );
-
-      // Require changelog entry
-      if (hasNoChangelogLabel) {
-        console.log(`PR ${labelable.number} has "no-changelog" label. Skipping changelog entry check.`);
-      } else if (!hasChangelogEntry(labelable.body)) {
-        const errorMessage = `PR is missing a valid "CHANGELOG entry:" line.`;
-        console.log(errorMessage);
-
-        core.setFailed(errorMessage);
-        process.exit(1);
-      }
     } else {
       const errorMessage =
         `PR body does not match template ('pull-request-template.md').\n\nMake sure PR's body includes all section titles.\n\nSections titles are listed here: https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/template.ts#L40-L47`;

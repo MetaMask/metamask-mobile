@@ -59,7 +59,7 @@ describe('Rewards selectors', () => {
   // Helper function to create mock root state
   const createMockRootState = (
     rewardsState: Partial<RewardsState>,
-  ): RootState => ({ rewards: rewardsState } as RootState);
+  ): RootState => ({ rewards: rewardsState }) as RootState;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -881,7 +881,7 @@ describe('Rewards selectors', () => {
 
     it('returns single account configuration when set', () => {
       const mockAccountConfig: AccountOptInBannerInfoStatus = {
-        caipAccountId: 'eip155:1:0x123456789abcdef',
+        accountGroupId: 'keyring:wallet1/1',
         hide: true,
       };
       const mockState = {
@@ -894,24 +894,22 @@ describe('Rewards selectors', () => {
       );
       expect(result.current).toEqual([mockAccountConfig]);
       expect(result.current).toHaveLength(1);
-      expect(result.current?.[0]?.caipAccountId).toBe(
-        'eip155:1:0x123456789abcdef',
-      );
+      expect(result.current?.[0]?.accountGroupId).toBe('keyring:wallet1/1');
       expect(result.current?.[0]?.hide).toBe(true);
     });
 
     it('returns multiple account configurations when set', () => {
       const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x123456789abcdef',
+          accountGroupId: 'keyring:wallet1/1',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0xabcdef123456789',
+          accountGroupId: 'keyring:wallet1/2',
           hide: false,
         },
         {
-          caipAccountId: 'eip155:137:0x987654321fedcba',
+          accountGroupId: 'keyring:wallet2/1',
           hide: true,
         },
       ];
@@ -933,15 +931,15 @@ describe('Rewards selectors', () => {
     it('handles mixed hide states correctly', () => {
       const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x111111111111111',
+          accountGroupId: 'keyring:wallet1/1',
           hide: false,
         },
         {
-          caipAccountId: 'eip155:1:0x222222222222222',
+          accountGroupId: 'keyring:wallet1/2',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0x333333333333333',
+          accountGroupId: 'keyring:wallet1/3',
           hide: false,
         },
       ];
@@ -975,7 +973,7 @@ describe('Rewards selectors', () => {
       // Change state to have account configs
       const newAccountConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x444444444444444',
+          accountGroupId: 'keyring:wallet1/4',
           hide: true,
         },
       ];
@@ -991,19 +989,19 @@ describe('Rewards selectors', () => {
     it('preserves account configuration order', () => {
       const orderedConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0xaaa',
+          accountGroupId: 'keyring:wallet1/1',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0xbbb',
+          accountGroupId: 'keyring:wallet1/2',
           hide: false,
         },
         {
-          caipAccountId: 'eip155:1:0xccc',
+          accountGroupId: 'keyring:wallet1/3',
           hide: true,
         },
         {
-          caipAccountId: 'eip155:1:0xddd',
+          accountGroupId: 'keyring:wallet1/4',
           hide: false,
         },
       ];
@@ -1016,28 +1014,28 @@ describe('Rewards selectors', () => {
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
       );
       expect(result.current).toEqual(orderedConfigs);
-      expect(result.current?.[0]?.caipAccountId).toBe('eip155:1:0xaaa');
-      expect(result.current?.[1]?.caipAccountId).toBe('eip155:1:0xbbb');
-      expect(result.current?.[2]?.caipAccountId).toBe('eip155:1:0xccc');
-      expect(result.current?.[3]?.caipAccountId).toBe('eip155:1:0xddd');
+      expect(result.current?.[0]?.accountGroupId).toBe('keyring:wallet1/1');
+      expect(result.current?.[1]?.accountGroupId).toBe('keyring:wallet1/2');
+      expect(result.current?.[2]?.accountGroupId).toBe('keyring:wallet1/3');
+      expect(result.current?.[3]?.accountGroupId).toBe('keyring:wallet1/4');
     });
 
-    it('handles different CAIP account ID formats correctly', () => {
+    it('handles different account group ID formats correctly', () => {
       const differentFormatConfigs: AccountOptInBannerInfoStatus[] = [
         {
-          caipAccountId: 'eip155:1:0x123456789abcdef', // Ethereum mainnet
+          accountGroupId: 'keyring:wallet1/ethereum', // Ethereum wallet
           hide: true,
         },
         {
-          caipAccountId: 'eip155:137:0xabcdef123456789', // Polygon
+          accountGroupId: 'keyring:wallet2/polygon', // Polygon wallet
           hide: false,
         },
         {
-          caipAccountId: 'eip155:56:0x987654321fedcba', // BSC
+          accountGroupId: 'keyring:wallet3/bsc', // BSC wallet
           hide: true,
         },
         {
-          caipAccountId: 'eip155:42161:0x555666777888999', // Arbitrum
+          accountGroupId: 'keyring:wallet4/arbitrum', // Arbitrum wallet
           hide: false,
         },
       ];
@@ -1053,7 +1051,7 @@ describe('Rewards selectors', () => {
       expect(result.current).toHaveLength(4);
       expect(
         result.current?.every((config) =>
-          config.caipAccountId.startsWith('eip155:'),
+          config.accountGroupId.startsWith('keyring:'),
         ),
       ).toBe(true);
     });
@@ -1390,11 +1388,11 @@ describe('Rewards selectors', () => {
       it('returns account configurations when set', () => {
         const accountConfigs: AccountOptInBannerInfoStatus[] = [
           {
-            caipAccountId: 'eip155:1:0x123456789abcdef',
+            accountGroupId: 'keyring:wallet1/1',
             hide: true,
           },
           {
-            caipAccountId: 'eip155:1:0xabcdef123456789',
+            accountGroupId: 'keyring:wallet1/2',
             hide: false,
           },
         ];
@@ -1411,7 +1409,7 @@ describe('Rewards selectors', () => {
 
       it('preserves account configuration references', () => {
         const accountConfig: AccountOptInBannerInfoStatus = {
-          caipAccountId: 'eip155:1:0x987654321fedcba',
+          accountGroupId: 'keyring:wallet1/3',
           hide: true,
         };
         const state = createMockRootState({
@@ -1430,7 +1428,9 @@ describe('Rewards selectors', () => {
         const largeAccountConfigs: AccountOptInBannerInfoStatus[] = Array.from(
           { length: 50 },
           (_, i) => ({
-            caipAccountId: `eip155:1:0x${i.toString().padStart(40, '0')}`,
+            accountGroupId: `keyring:wallet${Math.floor(i / 10) + 1}/${
+              (i % 10) + 1
+            }`,
             hide: i % 2 === 0,
           }),
         );
@@ -1766,11 +1766,11 @@ describe('Rewards selectors', () => {
         hideUnlinkedAccountsBanner: true,
         hideCurrentAccountNotOptedInBanner: [
           {
-            caipAccountId: 'eip155:1:0x123456789abcdef',
+            accountGroupId: 'keyring:wallet1/1',
             hide: true,
           },
           {
-            caipAccountId: 'eip155:137:0xabcdef123456789',
+            accountGroupId: 'keyring:wallet2/1',
             hide: false,
           },
         ],
@@ -1820,16 +1820,16 @@ describe('Rewards selectors', () => {
         ).toHaveLength(2);
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
-            .caipAccountId,
-        ).toBe('eip155:1:0x123456789abcdef');
+            .accountGroupId,
+        ).toBe('keyring:wallet1/1');
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
             .hide,
         ).toBe(true);
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
-            .caipAccountId,
-        ).toBe('eip155:137:0xabcdef123456789');
+            .accountGroupId,
+        ).toBe('keyring:wallet2/1');
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
             .hide,

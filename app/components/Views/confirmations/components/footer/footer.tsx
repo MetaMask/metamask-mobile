@@ -30,11 +30,19 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../core/redux/slices/confirmationMetrics';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
-import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+import {
+  MMM_ORIGIN,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../../constants/confirmations';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+
+const HIDE_FOOTER_BY_DEFAULT_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 export const Footer = () => {
   const {
@@ -53,7 +61,10 @@ export const Footer = () => {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
-  const isSendReq = REDESIGNED_TRANSFER_TYPES.includes(transactionType);
+  const isMMSendReq =
+    REDESIGNED_TRANSFER_TYPES.includes(transactionType) &&
+    transactionMetadata?.origin === MMM_ORIGIN;
+  const { isLoading: isPayLoading } = useIsTransactionPayLoading();
 
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
@@ -62,13 +73,6 @@ export const Footer = () => {
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
-
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(
-      state,
-      transactionMetadata?.id ?? '',
-    ),
-  );
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -115,7 +119,7 @@ export const Footer = () => {
       return strings('confirm.qr_get_sign');
     }
 
-    if (isQuotesLoading) {
+    if (isPayLoading) {
       return strings('confirm.confirm');
     }
 
@@ -133,7 +137,7 @@ export const Footer = () => {
   };
 
   const getStartIcon = () => {
-    if (isQuotesLoading) {
+    if (isPayLoading) {
       return undefined;
     }
 
@@ -149,7 +153,7 @@ export const Footer = () => {
     needsCameraPermission ||
     hasBlockingAlerts ||
     isTransactionValueUpdating ||
-    isQuotesLoading;
+    isPayLoading;
 
   const buttons = [
     {
@@ -157,13 +161,13 @@ export const Footer = () => {
       label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
       onPress: () =>
-        onReject(providerErrors.userRejectedRequest(), undefined, isSendReq),
+        onReject(providerErrors.userRejectedRequest(), undefined, isMMSendReq),
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {
       variant: ButtonVariants.Primary,
       isDanger:
-        !isQuotesLoading &&
+        !isPayLoading &&
         (securityAlertResponse?.result_type === ResultType.Malicious ||
           hasDangerAlerts),
       isDisabled: isConfirmDisabled,
@@ -176,10 +180,19 @@ export const Footer = () => {
   ];
 
   const isFooterVisible =
-    isFooterVisibleFlag ?? transactionType !== TransactionType.perpsDeposit;
+    isFooterVisibleFlag ??
+    (!transactionMetadata ||
+      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
 
   if (!isFooterVisible) {
     return null;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
+  ) {
+    return <PredictClaimFooter onPress={onConfirm} />;
   }
 
   return (

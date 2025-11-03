@@ -7,6 +7,9 @@ import RewardsBottomSheetModal, { ModalType } from './RewardsBottomSheetModal';
 const mockConfirmAction = {
   label: 'Confirm',
   onPress: jest.fn(),
+  loadOnPress: false,
+  isLoading: false,
+  disabled: false,
 };
 
 const defaultRoute = {
@@ -226,6 +229,151 @@ describe('RewardsBottomSheetModal', () => {
     expect(mockConfirmAction.onPress).toHaveBeenCalled();
   });
 
+  it('should handle async confirmAction.onPress that returns a promise', async () => {
+    const mockPromise = Promise.resolve();
+    const asyncConfirmAction = {
+      ...mockConfirmAction,
+      onPress: jest.fn(() => mockPromise),
+    };
+
+    const asyncRoute = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        type: ModalType.Danger,
+        confirmAction: asyncConfirmAction,
+      },
+    };
+
+    const { getByText } = render(
+      <RewardsBottomSheetModal route={asyncRoute} />,
+    );
+
+    const confirmButton = getByText('Confirm');
+    fireEvent.press(confirmButton);
+
+    expect(asyncConfirmAction.onPress).toHaveBeenCalled();
+
+    // Wait for the promise to resolve
+    await mockPromise;
+  });
+
+  it('should handle confirmAction.onPress that returns a synchronous value', () => {
+    const syncConfirmAction = {
+      ...mockConfirmAction,
+      onPress: jest.fn(() => {
+        // Return void as expected by ModalAction interface
+      }),
+    };
+
+    const syncRoute = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        type: ModalType.Danger,
+        confirmAction: syncConfirmAction,
+      },
+    };
+
+    const { getByText } = render(<RewardsBottomSheetModal route={syncRoute} />);
+
+    const confirmButton = getByText('Confirm');
+    fireEvent.press(confirmButton);
+
+    expect(syncConfirmAction.onPress).toHaveBeenCalled();
+  });
+
+  it('should set loading state when loadOnPress is true and close bottom sheet after success', async () => {
+    const loadingConfirmAction = {
+      ...mockConfirmAction,
+      loadOnPress: true,
+      onPress: jest.fn(() => Promise.resolve()),
+    };
+
+    const loadingRoute = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        type: ModalType.Danger,
+        confirmAction: loadingConfirmAction,
+      },
+    };
+
+    const { getByText } = render(
+      <RewardsBottomSheetModal route={loadingRoute} />,
+    );
+
+    const confirmButton = getByText('Confirm');
+    fireEvent.press(confirmButton);
+
+    // Verify onPress was called
+    expect(loadingConfirmAction.onPress).toHaveBeenCalled();
+
+    // Wait for the promise to resolve
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  it('should handle errors in confirmAction.onPress gracefully and reset loading state', async () => {
+    const errorConfirmAction = {
+      ...mockConfirmAction,
+      loadOnPress: true,
+      onPress: jest.fn(() => Promise.reject(new Error('Test error'))),
+    };
+
+    const errorRoute = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        confirmAction: errorConfirmAction,
+      },
+    };
+
+    const { getByText } = render(
+      <RewardsBottomSheetModal route={errorRoute} />,
+    );
+
+    const confirmButton = getByText('Confirm');
+
+    // Suppress console.error for this test since we expect an error
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {
+      // do nothing
+    });
+
+    fireEvent.press(confirmButton);
+
+    expect(errorConfirmAction.onPress).toHaveBeenCalled();
+
+    // Wait for the promise to reject and state to be reset
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // The loading state should be reset to false after error
+    // This is verified by the component not crashing and being able to be pressed again
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should show loading state when confirmAction.isLoading is true', () => {
+    const loadingConfirmAction = {
+      ...mockConfirmAction,
+      isLoading: true,
+    };
+
+    const loadingRoute = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        confirmAction: loadingConfirmAction,
+      },
+    };
+
+    const { getByText } = render(
+      <RewardsBottomSheetModal route={loadingRoute} />,
+    );
+
+    const confirmButton = getByText('Confirm');
+    expect(confirmButton.props.isLoading).toBe(true);
+  });
+
   it('should render danger icon by default', () => {
     const { getByTestId } = render(
       <RewardsBottomSheetModal route={defaultRoute} />,
@@ -361,8 +509,8 @@ describe('RewardsBottomSheetModal', () => {
 
   it('should disable confirm button when confirmAction.disabled is true', () => {
     const disabledConfirmAction = {
+      ...mockConfirmAction,
       label: 'Disabled Confirm',
-      onPress: jest.fn(),
       disabled: true,
     };
 

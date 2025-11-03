@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { ethers } from 'ethers';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
@@ -97,10 +96,9 @@ describe('AddFundsBottomSheet', () => {
     symbol: 'USDC',
     decimals: 6,
     name: 'USD Coin',
-    chainId: '0xe708',
+    caipChainId: 'eip155:59144',
     allowanceState: AllowanceState.Enabled,
-    allowance: ethers.BigNumber.from('1000000'), // 1 USDC
-    isStaked: false,
+    allowance: '1000000',
   };
 
   const defaultProps = {
@@ -219,7 +217,6 @@ describe('AddFundsBottomSheet', () => {
     fireEvent.press(getByText('Fund with crypto'));
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
-      chainId: '0xe708',
       beforeNavigate: expect.any(Function),
     });
   });

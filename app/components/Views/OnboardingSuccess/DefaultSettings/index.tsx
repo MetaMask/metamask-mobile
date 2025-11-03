@@ -23,7 +23,7 @@ const DefaultSettings = () => {
   };
 
   return (
-    <ScrollView style={styles.scrollRoot}>
+    <ScrollView style={styles.root}>
       <View style={styles.textContainer}>
         <Text variant={TextVariant.BodyMD}>
           {strings('default_settings.description')}

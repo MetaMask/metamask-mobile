@@ -1,36 +1,19 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import useUserDetailsPolling from './useUserDetailsPolling';
-import {
-  DepositSdkMethodState,
-  useDepositSdkMethod,
-} from './useDepositSdkMethod';
-import { useDepositSDK } from '../sdk';
-import {
-  NativeRampsSdk,
-  NativeTransakAccessToken,
-} from '@consensys/native-ramps-sdk';
-import {
-  MOCK_USDC_TOKEN,
-  MOCK_CREDIT_DEBIT_CARD,
-  MOCK_US_REGION,
-} from '../testUtils/constants';
+import { useDepositUser } from './useDepositUser';
 
-jest.mock('./useDepositSdkMethod');
-jest.mock('../sdk');
+jest.mock('./useDepositUser');
 
-const mockUseDepositSdkMethod = useDepositSdkMethod as jest.MockedFunction<
-  typeof useDepositSdkMethod
->;
-
-const mockUseDepositSDK = useDepositSDK as jest.MockedFunction<
-  typeof useDepositSDK
+const mockUseDepositUser = useDepositUser as jest.MockedFunction<
+  typeof useDepositUser
 >;
 
 const mockFetchUserDetails = jest.fn();
-const mockSdkResponse: DepositSdkMethodState<'getUserDetails'> = {
-  data: null,
-  error: null,
+const mockUserState = {
+  userDetails: null as ReturnType<typeof useDepositUser>['userDetails'],
+  error: null as string | null,
   isFetching: false,
+  fetchUserDetails: mockFetchUserDetails,
 };
 
 jest.useFakeTimers();
@@ -38,36 +21,11 @@ jest.useFakeTimers();
 describe('useUserDetailsPolling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSdkResponse.data = null;
-    mockSdkResponse.error = null;
-    mockSdkResponse.isFetching = false;
-    mockUseDepositSdkMethod.mockReturnValue([
-      mockSdkResponse,
-      mockFetchUserDetails,
-    ]);
-    mockUseDepositSDK.mockReturnValue({
-      sdk: {} as NativeRampsSdk,
-      sdkError: undefined,
-      providerApiKey: 'test-key',
-      isAuthenticated: true,
-      authToken: {
-        accessToken: 'test-token',
-        ttl: 3600,
-        created: new Date(),
-      } as NativeTransakAccessToken,
-      setAuthToken: jest.fn(),
-      checkExistingToken: jest.fn(),
-      logoutFromProvider: jest.fn(),
-      getStarted: true,
-      setGetStarted: jest.fn(),
-      selectedRegion: MOCK_US_REGION,
-      setSelectedRegion: jest.fn(),
-      selectedPaymentMethod: MOCK_CREDIT_DEBIT_CARD,
-      setSelectedPaymentMethod: jest.fn(),
-      selectedCryptoCurrency: MOCK_USDC_TOKEN,
-      setSelectedCryptoCurrency: jest.fn(),
-      selectedWalletAddress: '0x1234567890123456789012345678901234567890',
-    });
+    mockUserState.userDetails = null;
+    mockUserState.error = null;
+    mockUserState.isFetching = false;
+    mockFetchUserDetails.mockResolvedValue(undefined);
+    mockUseDepositUser.mockReturnValue(mockUserState);
   });
 
   afterEach(() => {
@@ -111,7 +69,7 @@ describe('useUserDetailsPolling', () => {
   });
 
   it('should return userDetails and status', () => {
-    mockSdkResponse.data = {
+    mockUserState.userDetails = {
       id: 'id',
       firstName: 'First',
       lastName: 'Last',
@@ -183,7 +141,7 @@ describe('useUserDetailsPolling', () => {
 
     expect(mockFetchUserDetails).toHaveBeenCalledTimes(1);
 
-    mockSdkResponse.data = {
+    mockUserState.userDetails = {
       id: 'id',
       firstName: 'First',
       lastName: 'Last',
@@ -261,8 +219,8 @@ describe('useUserDetailsPolling', () => {
   });
 
   it('should pass through loading and error states', () => {
-    mockSdkResponse.isFetching = true;
-    mockSdkResponse.error = 'Network error';
+    mockUserState.isFetching = true;
+    mockUserState.error = 'Network error';
 
     const { result } = renderHook(() => useUserDetailsPolling(10000, true, 30));
 

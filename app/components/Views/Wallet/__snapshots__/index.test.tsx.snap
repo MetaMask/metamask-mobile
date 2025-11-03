@@ -39,27 +39,9 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -678,7 +660,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={36}
+              handlerTag={32}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1039,7 +1021,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={35}
+                              handlerTag={31}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1240,27 +1222,9 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -1879,7 +1843,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={38}
+              handlerTag={34}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2240,7 +2204,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={37}
+                              handlerTag={33}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -2441,27 +2405,9 @@ exports[`Wallet should render correctly 1`] = `
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -3642,27 +3588,9 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -4843,27 +4771,9 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,

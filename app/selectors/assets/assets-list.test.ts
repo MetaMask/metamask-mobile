@@ -1,12 +1,17 @@
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import {
+  EthAccountType,
+  SolAccountType,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 import type { RootState } from '../../reducers';
 import {
   selectAsset,
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
+  selectTronResourcesBySelectedAccountGroup,
 } from './assets-list';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
-import { TrxScope } from '@metamask/keyring-api';
 
 const mockState = ({
   filterNetwork,
@@ -340,7 +345,7 @@ const mockState = ({
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 describe('selectAssetsBySelectedAccountGroup', () => {
   it('builds the initial state object', () => {
@@ -349,7 +354,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
     expect(result).toEqual({
       '0x1': [
         {
-          type: 'eip155:eoa',
+          accountType: 'eip155:eoa',
           assetId: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
           isNative: false,
           address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
@@ -369,7 +374,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           chainId: '0x1',
         },
         {
-          type: 'eip155:eoa',
+          accountType: 'eip155:eoa',
           assetId: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
           isNative: false,
           address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
@@ -389,7 +394,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           chainId: '0x1',
         },
         {
-          type: 'eip155:eoa',
+          accountType: 'eip155:eoa',
           assetId: '0x0000000000000000000000000000000000000000',
           isNative: true,
           address: '0x0000000000000000000000000000000000000000',
@@ -410,7 +415,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
       ],
       '0xa': [
         {
-          type: 'eip155:eoa',
+          accountType: 'eip155:eoa',
           assetId: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
           isNative: false,
           address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
@@ -430,7 +435,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           chainId: '0xa',
         },
         {
-          type: 'eip155:eoa',
+          accountType: 'eip155:eoa',
           assetId: '0x0000000000000000000000000000000000000000',
           isNative: true,
           address: '0x0000000000000000000000000000000000000000',
@@ -451,6 +456,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
       ],
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': [
         {
+          accountType: 'solana:data-account',
           accountId: '2d89e6a0-b4e6-45a8-a707-f10cef143b42',
           assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
           balance: '10',
@@ -467,9 +473,9 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           name: 'Solana',
           rawBalance: '0x2540be400',
           symbol: 'SOL',
-          type: 'solana:data-account',
         },
         {
+          accountType: 'solana:data-account',
           accountId: '2d89e6a0-b4e6-45a8-a707-f10cef143b42',
           assetId:
             'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
@@ -487,7 +493,6 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           name: 'Jupiter',
           rawBalance: '0xbebc200',
           symbol: 'JUP',
-          type: 'solana:data-account',
         },
       ],
     });
@@ -696,6 +701,7 @@ describe('selectAsset', () => {
       logo: '../images/eth-logo-new.png',
       image: '',
       aggregators: [],
+      accountType: EthAccountType.Eoa,
     });
   });
 
@@ -722,6 +728,7 @@ describe('selectAsset', () => {
       logo: '../images/eth-logo-new.png',
       image: '',
       aggregators: [],
+      accountType: EthAccountType.Eoa,
     });
   });
 
@@ -749,6 +756,7 @@ describe('selectAsset', () => {
       image:
         'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
       aggregators: [],
+      accountType: EthAccountType.Eoa,
     });
   });
 
@@ -776,6 +784,7 @@ describe('selectAsset', () => {
       image:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
       aggregators: [],
+      accountType: SolAccountType.DataAccount,
     });
   });
 
@@ -803,6 +812,7 @@ describe('selectAsset', () => {
       image:
         'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
       aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+      accountType: EthAccountType.Eoa,
     });
   });
 
@@ -820,5 +830,156 @@ describe('selectAsset', () => {
     // Assert - isStaked should be false instead of undefined
     expect(result?.isStaked).toBe(false);
     expect(result?.isStaked).not.toBeUndefined();
+  });
+});
+
+describe('selectTronResourcesBySelectedAccountGroup', () => {
+  it('returns Tron energy and bandwidth resources when Tron network is enabled', () => {
+    const stateWithTronAssets = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          MultichainAssetsController: {
+            accountsAssets: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
+                'tron:728126428/slip44:energy',
+                'tron:728126428/slip44:bandwidth',
+                'tron:728126428/slip44:195',
+              ],
+            },
+            assetsMetadata: {
+              'tron:728126428/slip44:energy': {
+                name: 'Energy',
+                symbol: 'ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'Energy', symbol: 'ENERGY', decimals: 0 }],
+              },
+              'tron:728126428/slip44:bandwidth': {
+                name: 'Bandwidth',
+                symbol: 'BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
+                ],
+              },
+              'tron:728126428/slip44:195': {
+                name: 'TRON',
+                symbol: 'TRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
+              },
+            },
+          },
+          MultichainBalancesController: {
+            balances: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+                'tron:728126428/slip44:energy': {
+                  amount: '400',
+                  unit: 'ENERGY',
+                },
+                'tron:728126428/slip44:bandwidth': {
+                  amount: '604',
+                  unit: 'BANDWIDTH',
+                },
+                'tron:728126428/slip44:195': { amount: '1000', unit: 'TRX' },
+              },
+            },
+          },
+          MultichainAssetsRatesController: {
+            conversionRates: {
+              'tron:728126428/slip44:195': {
+                rate: '0.12',
+                currency: 'swift:0/iso4217:USD',
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result =
+      selectTronResourcesBySelectedAccountGroup(stateWithTronAssets);
+
+    expect(result.map((a) => a.assetId).sort()).toEqual([
+      'tron:728126428/slip44:bandwidth',
+      'tron:728126428/slip44:energy',
+    ]);
+  });
+
+  it('returns empty list when Tron network is disabled', () => {
+    const stateWithTronDisabled = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          MultichainAssetsController: {
+            accountsAssets: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
+                'tron:728126428/slip44:energy',
+                'tron:728126428/slip44:bandwidth',
+              ],
+            },
+            assetsMetadata: {
+              'tron:728126428/slip44:energy': {
+                name: 'Energy',
+                symbol: 'ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'Energy', symbol: 'ENERGY', decimals: 0 }],
+              },
+              'tron:728126428/slip44:bandwidth': {
+                name: 'Bandwidth',
+                symbol: 'BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
+                ],
+              },
+            },
+          },
+          MultichainBalancesController: {
+            balances: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+                'tron:728126428/slip44:energy': {
+                  amount: '400',
+                  unit: 'ENERGY',
+                },
+                'tron:728126428/slip44:bandwidth': {
+                  amount: '604',
+                  unit: 'BANDWIDTH',
+                },
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: false,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectTronResourcesBySelectedAccountGroup(
+      stateWithTronDisabled,
+    );
+
+    expect(result).toEqual([]);
   });
 });

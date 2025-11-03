@@ -32,7 +32,7 @@ describe('SearchTokenAutocomplete', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('renders correctly with selected chain', () => {
     const { toJSON } = renderScreen(
       SearchTokenAutocomplete as FunctionComponent,
       { name: 'SearchTokenAutocomplete' },
@@ -43,7 +43,7 @@ describe('SearchTokenAutocomplete', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should handle search and update results', () => {
+  it('handles search and updates results', () => {
     const { getByTestId, getByText } = renderScreen(
       SearchTokenAutocomplete as FunctionComponent,
       { name: 'SearchTokenAutocomplete' },
@@ -69,7 +69,7 @@ describe('SearchTokenAutocomplete', () => {
     expect(getByText(mockAsset.symbol)).toBeTruthy();
   });
 
-  it('should show token detection banner when detection is disabled', () => {
+  it('displays token detection banner when detection is disabled', () => {
     const stateWithDetectionDisabled = {
       ...mockInitialState,
       engine: {
@@ -93,20 +93,16 @@ describe('SearchTokenAutocomplete', () => {
     expect(getByText(/token detection/i)).toBeTruthy();
   });
 
-  it('should handle select asset', () => {
+  it('navigates to ConfirmAddAsset when asset is selected', () => {
     const mockNavigation = {
       push: jest.fn(),
     };
-
-    const mockOnPress = jest.fn();
 
     const { getByTestId, getByText } = renderWithProvider(
       <SearchTokenAutocomplete
         navigation={mockNavigation}
         tabLabel={''}
-        onPress={mockOnPress}
-        isAllNetworksEnabled={false}
-        allNetworksEnabled={{}}
+        selectedChainId={'0x1'}
       />,
       { state: mockInitialState },
     );
@@ -137,51 +133,26 @@ describe('SearchTokenAutocomplete', () => {
     expect(screenName).toBe('ConfirmAddAsset');
     expect(params).toMatchObject({
       selectedAsset: [mockAsset],
-      chainId: mockAsset.chainId,
+      chainId: '0x1',
       ticker: 'ETH',
       networkName: 'Ethereum Main Network',
     });
   });
 
-  it('should default to PopularNetworks filter when allNetworks are enabled', () => {
+  it('renders with null selectedChainId', () => {
     const mockNavigation = {
       push: jest.fn(),
     };
 
-    const mockOnPress = jest.fn();
-
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <SearchTokenAutocomplete
         navigation={mockNavigation}
         tabLabel={''}
-        onPress={mockOnPress}
-        isAllNetworksEnabled
-        allNetworksEnabled={{}}
+        selectedChainId={null}
       />,
       { state: mockInitialState },
     );
 
-    expect(getByText('Popular networks')).toBeOnTheScreen();
-  });
-
-  it('should default to CurrentNetwork filter when allNetworks are not enabled', () => {
-    const mockNavigation = {
-      push: jest.fn(),
-    };
-
-    const mockOnPress = jest.fn();
-
-    const { getByText } = renderWithProvider(
-      <SearchTokenAutocomplete
-        navigation={mockNavigation}
-        tabLabel={''}
-        onPress={mockOnPress}
-        isAllNetworksEnabled={false}
-        allNetworksEnabled={{}}
-      />,
-      { state: mockInitialState },
-    );
-
-    expect(getByText('Ethereum Main Network')).toBeOnTheScreen();
+    expect(getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR)).toBeTruthy();
   });
 });

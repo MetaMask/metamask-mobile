@@ -60,8 +60,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
   formatPerpsFiat,
-  formatPrice,
-  PRICE_RANGES_DETAILED_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 
@@ -472,8 +471,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     );
     const baseOptions = [2, 5, 10, 20, 40];
     const filtered = baseOptions.filter((option) => option <= maxLeverage);
-    DevLogger.log(`Available leverage options: ${filtered.join(', ')}`);
-    return filtered;
+
+    // Special case: when maxLeverage is 3, show both 2x and 3x buttons
+    const options = maxLeverage === 3 ? [2, 3] : filtered;
+
+    DevLogger.log(`Available leverage options: ${options.join(', ')}`);
+    return options;
   }, [maxLeverage]);
 
   /**
@@ -654,7 +657,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     style={{ color: warningStyles.priceColor }}
                   >
                     {formatPerpsFiat(dynamicLiquidationPrice, {
-                      ranges: PRICE_RANGES_DETAILED_VIEW,
+                      ranges: PRICE_RANGES_UNIVERSAL,
                     })}
                   </Text>
                 )}
@@ -665,7 +668,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 {strings('perps.order.leverage_modal.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(currentPrice)}
+                {formatPerpsFiat(currentPrice, {
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })}
               </Text>
             </View>
           </View>

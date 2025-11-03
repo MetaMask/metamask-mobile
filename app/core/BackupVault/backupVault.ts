@@ -3,8 +3,8 @@ import {
   getInternetCredentials,
   setInternetCredentials,
   resetInternetCredentials,
-  Options,
   ACCESSIBLE,
+  type SetOptions,
 } from 'react-native-keychain';
 import {
   VAULT_BACKUP_FAILED,
@@ -15,7 +15,7 @@ import {
 } from './constants';
 import Logger from '../../util/Logger';
 
-const options: Options = {
+const options: SetOptions = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
@@ -130,9 +130,8 @@ export async function backupVault(
   }
  */
 export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
-  const primaryVaultCredentials = await getInternetCredentials(
-    VAULT_BACKUP_KEY,
-  );
+  const primaryVaultCredentials =
+    await getInternetCredentials(VAULT_BACKUP_KEY);
   if (primaryVaultCredentials) {
     return { success: true, vault: primaryVaultCredentials.password };
   }

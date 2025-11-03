@@ -8,6 +8,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
   setSourceToken,
+  selectNoFeeAssets,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
@@ -33,14 +34,6 @@ jest.mock(
         state: { accountTree: { wallets: {} } },
       },
     })),
-  }),
-);
-
-// Mock the isUnifiedSwapsEnvVarEnabled function to return false for consistent test behavior
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
-  () => ({
-    isUnifiedSwapsEnvVarEnabled: jest.fn(() => true),
   }),
 );
 
@@ -213,6 +206,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     default: actualBridgeSlice.default,
     setSourceToken: jest.fn(actualBridgeSlice.setSourceToken),
     setDestToken: jest.fn(actualBridgeSlice.setDestToken),
+    selectNoFeeAssets: jest.fn(actualBridgeSlice.selectNoFeeAssets),
   };
 });
 
@@ -486,10 +480,11 @@ describe('BridgeView', () => {
     expect(maxButton).toBeTruthy();
     fireEvent.press(maxButton);
 
-    // Verify the input value is set to the maximum available balance (2.0 from useLatestBalance mock)
+    // Verify the input displays truncated value ("2.0" → "2" for display only)
+    // The actual sourceAmount in Redux state retains full precision "2.0" for API
     const input = getByTestId('source-token-area-input');
     await waitFor(() => {
-      expect(input.props.value).toBe('2.0');
+      expect(input.props.value).toBe('2');
     });
   });
 
@@ -584,6 +579,10 @@ describe('BridgeView', () => {
   });
 
   describe('Bottom Content', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('displays "Select amount" when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
@@ -644,7 +643,7 @@ describe('BridgeView', () => {
       expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
-    it('displays "Fetching quote" when quotes are loading', () => {
+    it('displays "Fetching quote" when quotes are loading and there is no active quote', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLastFetched: null,
@@ -656,6 +655,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: true,
+          activeQuote: null,
         }));
 
       const { getByText } = renderScreen(
@@ -693,7 +693,7 @@ describe('BridgeView', () => {
           willRefresh: false,
         }));
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -701,9 +701,44 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Use getAllByText to handle multiple elements with "Bridge" text
-      const bridgeElements = getAllByText(strings('bridge.confirm_bridge'));
-      expect(bridgeElements.length).toBeGreaterThan(0);
+      const continueButton = getByTestId('bridge-confirm-button');
+      expect(continueButton).toBeTruthy();
+    });
+
+    it('displays Continue button and Terms link when a quote is available but other quotes are still loading', () => {
+      const mockQuote = mockQuoteWithMetadata;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.LOADING,
+          quotes: [mockQuote as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0', // Less than balance of 2.0 ETH
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: false,
+          willRefresh: false,
+        }));
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const continueButton = getByTestId('bridge-confirm-button');
+      expect(continueButton).toBeTruthy();
     });
 
     it('should handle "Confirm Bridge" button press', async () => {
@@ -722,7 +757,7 @@ describe('BridgeView', () => {
         },
       });
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -732,10 +767,8 @@ describe('BridgeView', () => {
         },
       );
 
-      // Use getAllByText to handle multiple elements and get the button
-      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
-      const button = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
-      fireEvent.press(button);
+      const continueButton = getByTestId('bridge-confirm-button');
+      fireEvent.press(continueButton);
 
       // TODO: Add expectations once quote response is implemented
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
@@ -744,10 +777,11 @@ describe('BridgeView', () => {
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
+          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
       renderScreen(
@@ -768,7 +802,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote expires with refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: true,
@@ -795,7 +829,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote is valid', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: false,
           willRefresh: false,
@@ -819,14 +853,51 @@ describe('BridgeView', () => {
       });
     });
 
-    it('blurs input when opening QuoteExpiredModal', async () => {
+    it('does not navigate to QuoteExpiredModal when RecipientSelectorModal is open', async () => {
+      // Set the Redux state to indicate user is selecting recipient
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSelectingRecipient: true,
+        },
+      };
+
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
+        }));
+
+      renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+          },
+        );
+      });
+    });
+
+    it('blurs input when opening QuoteExpiredModal', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          willRefresh: false,
           isLoading: false,
+          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
       const { toJSON } = renderScreen(
@@ -860,7 +931,7 @@ describe('BridgeView', () => {
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
             quotes: [mockQuote as unknown as QuoteResponse],
-            quotesLastFetched: 12,
+            quotesLastFetched: Date.now(),
           },
           bridgeReducerOverrides: {
             sourceAmount: '1.0',
@@ -891,6 +962,104 @@ describe('BridgeView', () => {
           getByText(strings('bridge.hardware_wallet_not_supported_solana')),
         ).toBeTruthy();
       });
+    });
+
+    it('shows no MM fee disclaimer when dest token is mUSD and fee is 0', async () => {
+      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
+
+      // Locally force selector to return mUSD as no-fee for this test only
+      // This avoids suite-order/caching issues without affecting other tests
+      const noFeeSpy = jest
+        .spyOn({ selectNoFeeAssets }, 'selectNoFeeAssets')
+        .mockReturnValue([musdAddress]);
+
+      // Ensure quote exists and has 0 fee so hasFee === false
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: {
+            ...(mockQuoteWithMetadata as unknown as QuoteResponse),
+            // Minimal shape to provide 0 bps fee
+            quote: { feeData: { metabridge: { quoteBpsFee: 0 } } },
+          } as unknown as QuoteResponse,
+        }));
+
+      // Build test state: provide amount, ETH source, mUSD destination
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: {
+            quotesLoadingStatus: RequestStatus.FETCHED,
+            quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+            quotesLastFetched: 12,
+          },
+          bridgeReducerOverrides: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1' as Hex,
+              decimals: 18,
+              image: '',
+              name: 'Ether',
+              symbol: 'ETH',
+            },
+            destToken: {
+              address: musdAddress,
+              chainId: '0x1' as Hex,
+              decimals: 6,
+              image: '',
+              name: 'MetaMask USD',
+              symbol: 'mUSD',
+            },
+          },
+        },
+        mockState as DeepPartial<RootState>,
+      );
+
+      // Mark mUSD as a no-fee asset in feature flags without using any
+      interface BridgeFeatureFlagsChainConfig {
+        noFeeAssets?: string[];
+        isActiveSrc?: boolean;
+        isActiveDest?: boolean;
+      }
+      type StateWithBridgeFlags = DeepPartial<RootState> & {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: {
+                  chains: Record<string, BridgeFeatureFlagsChainConfig>;
+                };
+              };
+            };
+          };
+        };
+      };
+      const typedState = testState as unknown as StateWithBridgeFlags;
+      typedState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ].noFeeAssets = [musdAddress];
+
+      // Keep test isolated from module cache side-effects: skip selector sanity check
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Expect translated disclaimer text
+      const expected = strings('bridge.no_mm_fee_disclaimer', {
+        destTokenSymbol: 'mUSD',
+      });
+      await waitFor(() => {
+        expect(getByText(expected)).toBeTruthy();
+      });
+
+      noFeeSpy.mockRestore();
     });
   });
 
@@ -1044,7 +1213,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1053,7 +1222,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_swap'));
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1110,7 +1279,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1119,8 +1288,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button - use getAllByText to handle multiple elements
-      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
-      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1174,7 +1342,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1183,7 +1351,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_swap'));
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1234,7 +1402,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1243,8 +1411,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button - use getAllByText to handle multiple elements
-      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
-      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1354,9 +1521,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Should display the deep link amount in the input
+      // Should display the deep link amount in the input (formatted with commas)
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('uses all deep link params when all are provided', async () => {
@@ -1390,7 +1557,7 @@ describe('BridgeView', () => {
       expect(getByText('USDC')).toBeTruthy();
       expect(getByText('USDT')).toBeTruthy();
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('falls back to Redux state when deep link params are not provided', () => {

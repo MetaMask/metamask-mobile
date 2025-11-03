@@ -1,13 +1,14 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isSolanaChainId,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import {
   Hex,
   CaipAssetType,
   CaipChainId,
   isStrictHexString,
+  isCaipChainId,
 } from '@metamask/utils';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { balanceToFiatNumber } from '../../../../util/number';
@@ -19,7 +20,6 @@ import {
   fetchTokenContractExchangeRates,
 } from '@metamask/assets-controllers';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { SolScope } from '@metamask/keyring-api';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
 import { formatCurrency } from '../../Ramp/Deposit/utils';
 
@@ -52,7 +52,7 @@ export const getDisplayCurrencyValue = ({
 
   let currencyValue = 0;
 
-  if (isSolanaChainId(token.chainId)) {
+  if (isNonEvmChainId(token.chainId)) {
     const assetId = token.address as CaipAssetType;
     // This rate is asset to fiat. Whatever the user selected display fiat currency is.
     // We don't need to have an additional conversion from native token to fiat.
@@ -116,11 +116,11 @@ export const fetchTokenExchangeRates = async (
   try {
     let exchangeRates: Record<string, number | undefined> = {};
 
-    // Solana
-    if (isSolanaChainId(chainId)) {
+    // Non-EVM
+    if (isNonEvmChainId(chainId) && isCaipChainId(chainId)) {
       const queryParams = new URLSearchParams({
         assetIds: tokenAddresses
-          .map((address) => toAssetId(address, SolScope.Mainnet))
+          .map((address) => toAssetId(address, chainId))
           .join(','),
         includeMarketData: 'true',
         vsCurrency: currency,
@@ -183,7 +183,7 @@ export const getTokenExchangeRate = async (request: {
     tokenAddress,
   );
   const assetId = toAssetId(tokenAddress, formatChainIdToCaip(chainId));
-  if (isSolanaChainId(chainId) && assetId) {
+  if (isNonEvmChainId(chainId) && assetId) {
     return exchangeRates?.[assetId];
   }
   // The exchange rate can be checksummed or not, so we need to check both

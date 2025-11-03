@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import PerpsOrderHeader from './PerpsOrderHeader';
+import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -74,7 +75,7 @@ describe('PerpsOrderHeader', () => {
 
   it('should handle navigation back', () => {
     const { getByTestId } = render(<PerpsOrderHeader {...defaultProps} />);
-    const backButton = getByTestId('back-button');
+    const backButton = getByTestId(PerpsHomeViewSelectorsIDs.BACK_BUTTON);
     fireEvent.press(backButton);
     expect(mockGoBack).toHaveBeenCalled();
   });
@@ -84,7 +85,7 @@ describe('PerpsOrderHeader', () => {
     const { getByTestId } = render(
       <PerpsOrderHeader {...defaultProps} onBack={mockOnBack} />,
     );
-    const backButton = getByTestId('back-button');
+    const backButton = getByTestId(PerpsHomeViewSelectorsIDs.BACK_BUTTON);
     fireEvent.press(backButton);
     expect(mockOnBack).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -92,7 +93,8 @@ describe('PerpsOrderHeader', () => {
 
   it('should render with valid price and change', () => {
     const { getByText } = render(<PerpsOrderHeader {...defaultProps} />);
-    expect(getByText('$3,000.00')).toBeTruthy();
+    // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 1 decimal for $1k-$10k, trailing zeros removed
+    expect(getByText('$3,000')).toBeTruthy();
     expect(getByText('+2.50%')).toBeTruthy();
   });
 

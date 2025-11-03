@@ -18,8 +18,12 @@ import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse'
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -34,6 +38,8 @@ jest.mock('@metamask/utils', () => ({
   KnownCaipNamespace: {
     Eip155: 'eip155',
     Solana: 'solana',
+    Bip122: 'bip122',
+    Tron: 'tron',
   },
 }));
 
@@ -68,6 +74,14 @@ jest.mock('../../../component-library/hooks/useStyles', () => ({
 jest.mock('../../../util/networks', () => ({
   isTestNet: jest.fn(),
 }));
+
+jest.mock('../../../util/hideProtocolFromUrl', () =>
+  jest.fn((url: string) => url.replace(/^https?:\/\//, '')),
+);
+
+jest.mock('../../../util/hideKeyFromUrl', () =>
+  jest.fn((url: string) => url.replace(/\/[a-zA-Z0-9]{32,}$/, '')),
+);
 
 jest.mock('../../../constants/navigation/Routes', () => ({
   ADD_NETWORK: 'AddNetwork',
@@ -160,6 +174,7 @@ describe('CustomNetworkSelector', () => {
   const mockNavigate = jest.fn();
   const mockOpenModal = jest.fn();
   const mockDismissModal = jest.fn();
+  const mockOpenRpcModal = jest.fn();
   const mockUseSafeAreaInsets = useSafeAreaInsets as jest.MockedFunction<
     typeof useSafeAreaInsets
   >;
@@ -192,9 +207,10 @@ describe('CustomNetworkSelector', () => {
       id: 'eip155:137',
       name: 'Polygon',
       caipChainId: 'eip155:137',
-      networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+      networkTypeOrRpcUrl: 'https://polygon-rpc.com/v3/abc123',
       isSelected: true,
       imageSource: { uri: 'polygon.png' },
+      hasMultipleRpcs: true,
     },
     {
       id: 'eip155:80001',
@@ -203,6 +219,7 @@ describe('CustomNetworkSelector', () => {
       networkTypeOrRpcUrl: 'https://mumbai-rpc.com',
       isSelected: false,
       imageSource: { uri: 'mumbai.png' },
+      hasMultipleRpcs: false,
     },
   ];
 
@@ -261,9 +278,15 @@ describe('CustomNetworkSelector', () => {
       networksToUse: [...mockNetworks, ...mockNetworks], // Combined EVM and Solana networks
       evmNetworks: mockNetworks,
       solanaNetworks: mockNetworks,
+      bitcoinNetworks: mockNetworks,
       isMultichainAccountsState2Enabled: true,
       selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
+      selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
+      selectedTronAccount: { id: 'tron-account' } as InternalAccount,
+      tronNetworks: mockNetworks,
+      areAllBitcoinNetworksSelected: false,
+      areAllTronNetworksSelected: false,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
@@ -369,6 +392,7 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
+          openRpcModal={mockOpenRpcModal}
         />,
       );
 
@@ -438,6 +462,119 @@ describe('CustomNetworkSelector', () => {
       // The actual callback passing happens in the renderNetworkItem function
       // which is tested implicitly through the component rendering
       expect(mockSelectCustomNetwork).toBeDefined();
+    });
+  });
+
+  describe('RPC Selection', () => {
+    it('calls openRpcModal when network text is clicked', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomNetworkSelector
+          openModal={mockOpenModal}
+          dismissModal={mockDismissModal}
+          openRpcModal={mockOpenRpcModal}
+        />,
+      );
+
+      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(mockOpenRpcModal).toBeDefined();
+    });
+
+    it('displays secondary text when network has multiple RPCs', () => {
+      const networkWithMultipleRpcs: CustomNetworkItem = {
+        id: 'eip155:137',
+        name: 'Polygon',
+        caipChainId: 'eip155:137',
+        networkTypeOrRpcUrl: 'https://polygon-rpc.com/v3/abc123',
+        isSelected: false,
+        imageSource: { uri: 'polygon.png' },
+        hasMultipleRpcs: true,
+      };
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [networkWithMultipleRpcs],
+        selectedNetworks: [],
+        selectedCount: 0,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: false,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue({
+        networksToUse: [networkWithMultipleRpcs],
+        evmNetworks: [networkWithMultipleRpcs],
+        solanaNetworks: [],
+        bitcoinNetworks: [],
+        isMultichainAccountsState2Enabled: false,
+        selectedEvmAccount: null,
+        selectedSolanaAccount: null,
+        selectedBitcoinAccount: null,
+        selectedTronAccount: null,
+        tronNetworks: [],
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        areAllNetworksSelectedCombined: false,
+        areAllEvmNetworksSelected: false,
+        areAllSolanaNetworksSelected: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <CustomNetworkSelector
+          openModal={mockOpenModal}
+          dismissModal={mockDismissModal}
+          openRpcModal={mockOpenRpcModal}
+        />,
+      );
+
+      expect(getByTestId('mock-flash-list')).toBeTruthy();
+    });
+
+    it('does not display secondary text when network has single RPC', () => {
+      const networkWithSingleRpc: CustomNetworkItem = {
+        id: 'eip155:80001',
+        name: 'Mumbai Testnet',
+        caipChainId: 'eip155:80001',
+        networkTypeOrRpcUrl: 'https://mumbai-rpc.com',
+        isSelected: false,
+        imageSource: { uri: 'mumbai.png' },
+        hasMultipleRpcs: false,
+      };
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [networkWithSingleRpc],
+        selectedNetworks: [],
+        selectedCount: 0,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: false,
+        networkCount: 1,
+      });
+
+      mockUseNetworksToUse.mockReturnValue({
+        networksToUse: [networkWithSingleRpc],
+        evmNetworks: [networkWithSingleRpc],
+        solanaNetworks: [],
+        bitcoinNetworks: [],
+        isMultichainAccountsState2Enabled: false,
+        selectedEvmAccount: null,
+        selectedSolanaAccount: null,
+        selectedBitcoinAccount: null,
+        selectedTronAccount: null,
+        tronNetworks: [],
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        areAllNetworksSelectedCombined: false,
+        areAllEvmNetworksSelected: false,
+        areAllSolanaNetworksSelected: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <CustomNetworkSelector
+          openModal={mockOpenModal}
+          dismissModal={mockDismissModal}
+          openRpcModal={mockOpenRpcModal}
+        />,
+      );
+
+      expect(getByTestId('mock-flash-list')).toBeTruthy();
     });
   });
 });

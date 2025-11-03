@@ -382,7 +382,15 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -395,7 +403,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
-                            "paddingBottom": 16,
                             "paddingHorizontal": 16,
                           }
                         }
@@ -606,6 +613,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onKeyPress={[Function]}
+                                          onSelectionChange={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Add a space between each word and make sure no one is watching."
                                           placeholderTextColor="#686e7d"
@@ -711,7 +719,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         </View>
                       </RCTScrollView>
                       <View />
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

@@ -2,16 +2,13 @@ import {
   PublishHook,
   PublishHookResult,
   TransactionMeta,
+  TransactionStatus,
 } from '@metamask/transaction-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { StatusTypes } from '@metamask/bridge-controller';
-import {
-  BridgeHistoryItem,
-  BridgeStatusControllerEvents,
-} from '@metamask/bridge-status-controller';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { store } from '../../../store';
-import { ExtractEventHandler } from '@metamask/base-controller';
 import {
   TransactionBridgeQuote,
   refreshQuote,
@@ -115,16 +112,20 @@ export class PayHook {
       sourceChainId,
     );
 
+    const requiredTransactionIds: string[] = [];
+
     const bridgeTransactionIdCollector = this.#collectTransactionIds(
       sourceChainId,
       from,
+      (id) => {
+        requiredTransactionIds.push(id);
 
-      (id) =>
         updateRequiredTransactionIds({
           transactionId,
           requiredTransactionIds: [id],
           append: true,
-        }),
+        });
+      },
     );
 
     const result = await this.#messenger.call(
@@ -136,7 +137,18 @@ export class PayHook {
 
     bridgeTransactionIdCollector.end();
 
-    log('Bridge transaction submitted', result);
+    log('Bridge transaction submitted', {
+      requiredTransactionIds,
+      result,
+    });
+
+    await Promise.all(
+      requiredTransactionIds.map((id) =>
+        this.#waitForTransactionCompletion(id),
+      ),
+    );
+
+    log('All required transactions confirmed', requiredTransactionIds);
 
     const { id: bridgeTransactionId } = result;
 
@@ -145,37 +157,100 @@ export class PayHook {
     await this.#waitForBridgeCompletion(bridgeTransactionId);
   }
 
+  async #waitForTransactionCompletion(transactionId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const isConfirmed = (tx?: TransactionMeta, fn?: () => void) => {
+        log('Checking transaction status', tx?.status, tx?.type);
+
+        if (tx?.status === TransactionStatus.confirmed) {
+          fn?.();
+          resolve();
+          return true;
+        }
+
+        if (
+          [TransactionStatus.dropped, TransactionStatus.failed].includes(
+            tx?.status as TransactionStatus,
+          )
+        ) {
+          fn?.();
+          reject(
+            new Error(
+              `Required transaction failed - ${tx?.type} - ${tx?.error?.message}`,
+            ),
+          );
+          return true;
+        }
+      };
+
+      const initialState = this.#messenger.call(
+        'TransactionController:getState',
+      );
+
+      const initialTx = initialState.transactions.find(
+        (t) => t.id === transactionId,
+      );
+
+      if (isConfirmed(initialTx)) {
+        return;
+      }
+
+      const handler = (tx?: TransactionMeta) => {
+        const unsubscribe = () =>
+          this.#messenger.unsubscribe(
+            'TransactionController:stateChange',
+            handler,
+          );
+
+        isConfirmed(tx, unsubscribe);
+      };
+
+      this.#messenger.subscribe(
+        'TransactionController:stateChange',
+        handler,
+        (state) => state.transactions.find((tx) => tx.id === transactionId),
+      );
+    });
+  }
+
   async #waitForBridgeCompletion(transactionId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const handler = (bridgeHistory: BridgeHistoryItem) => {
+      const isComplete = (item?: BridgeHistoryItem, fn?: () => void) => {
+        const status = item?.status?.status;
+
+        log('Checking bridge status', status ?? 'missing');
+
+        if (status === StatusTypes.COMPLETE) {
+          fn?.();
+          resolve();
+          return true;
+        }
+
+        if (status === StatusTypes.FAILED) {
+          fn?.();
+          reject(new Error('Bridge failed'));
+          return true;
+        }
+      };
+
+      const initialState = this.#messenger.call(
+        'BridgeStatusController:getState',
+      );
+
+      const initialTx = initialState.txHistory[transactionId];
+
+      if (isComplete(initialTx)) {
+        return;
+      }
+
+      const handler = (bridgeHistory?: BridgeHistoryItem) => {
         const unsubscribe = () =>
           this.#messenger.unsubscribe(
             'BridgeStatusController:stateChange',
-            handler as unknown as ExtractEventHandler<
-              BridgeStatusControllerEvents,
-              'BridgeStatusController:stateChange'
-            >,
+            handler,
           );
 
-        try {
-          const status = bridgeHistory?.status?.status;
-
-          log('Checking bridge status', status);
-
-          if (status === StatusTypes.COMPLETE) {
-            unsubscribe();
-            resolve();
-          }
-
-          if (status === StatusTypes.FAILED) {
-            unsubscribe();
-            reject(new Error('Bridge transaction failed'));
-          }
-        } catch (error) {
-          log('Error checking bridge status', error);
-          unsubscribe();
-          reject(error);
-        }
+        isComplete(bridgeHistory, unsubscribe);
       };
 
       this.#messenger.subscribe(
