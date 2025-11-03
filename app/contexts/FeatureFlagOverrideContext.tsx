@@ -158,9 +158,12 @@ export const FeatureFlagOverrideProvider: React.FC<
     a.key.localeCompare(b.key),
   );
 
-  const getFeatureFlagSnapshots = useCallback(() => ({
+  const getFeatureFlagSnapshots = useCallback(
+    () => ({
       relatedFlags: featureFlagSnapshots,
-    }), [featureFlagSnapshots]);
+    }),
+    [featureFlagSnapshots],
+  );
 
   const validateMinimumVersion = useCallback(
     (flagKey: string, flagValue: MinimumVersionFlagValue) => {
