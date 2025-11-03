@@ -178,6 +178,11 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      addListener: jest.fn(() => jest.fn()), // Returns unsubscribe function
+    }),
+    useFocusEffect: jest.fn((callback) => {
+      // Call the callback immediately to simulate focus
+      callback();
     }),
   };
 });
@@ -1057,7 +1062,7 @@ describe('AssetOverview', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
+    it('render mainBalance as fiat and secondaryBalance as native', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
         {
