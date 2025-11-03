@@ -293,6 +293,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
         expect(controller.state.eligibility).toEqual({});
+        expect(controller.state.isAgreementAccepted).toEqual({});
       });
     });
 
@@ -4429,6 +4430,230 @@ describe('PredictController', () => {
           },
         },
       );
+    });
+  });
+
+  describe('acceptAgreement', () => {
+    it('accepts agreement successfully for provider and address', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        const result = controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(result).toBe(true);
+        expect(controller.state.isAgreementAccepted[providerId][address]).toBe(
+          true,
+        );
+      });
+    });
+
+    it('updates state correctly when accepting agreement', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        expect(controller.state.isAgreementAccepted).toEqual({});
+
+        controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(controller.state.isAgreementAccepted).toEqual({
+          [providerId]: {
+            [address]: true,
+          },
+        });
+      });
+    });
+
+    it('replaces address when accepting agreement for different address with same provider', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address1 = '0x1234567890123456789012345678901234567890';
+        const address2 = '0x9876543210987654321098765432109876543210';
+
+        controller.acceptAgreement({
+          providerId,
+          address: address1,
+        });
+
+        expect(controller.state.isAgreementAccepted[providerId][address1]).toBe(
+          true,
+        );
+
+        controller.acceptAgreement({
+          providerId,
+          address: address2,
+        });
+
+        // Note: Current implementation replaces the entire address object
+        expect(
+          controller.state.isAgreementAccepted[providerId][address1],
+        ).toBeUndefined();
+        expect(controller.state.isAgreementAccepted[providerId][address2]).toBe(
+          true,
+        );
+      });
+    });
+
+    it('accepts agreement for same address with different providers', () => {
+      withController(({ controller }) => {
+        const provider1 = 'polymarket';
+        const provider2 = 'other-provider';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        // Add second provider
+        const mockSecondProvider = { ...mockPolymarketProvider };
+        controller.updateStateForTesting(() => {
+          const providers = (controller as any).providers;
+          providers.set(provider2, mockSecondProvider);
+        });
+
+        controller.acceptAgreement({
+          providerId: provider1,
+          address,
+        });
+
+        controller.acceptAgreement({
+          providerId: provider2,
+          address,
+        });
+
+        expect(controller.state.isAgreementAccepted[provider1][address]).toBe(
+          true,
+        );
+        expect(controller.state.isAgreementAccepted[provider2][address]).toBe(
+          true,
+        );
+      });
+    });
+
+    it('throws error when provider is not available', () => {
+      withController(({ controller }) => {
+        const providerId = 'nonexistent-provider';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        expect(() =>
+          controller.acceptAgreement({
+            providerId,
+            address,
+          }),
+        ).toThrow('Provider not available');
+
+        expect(
+          controller.state.isAgreementAccepted[providerId],
+        ).toBeUndefined();
+      });
+    });
+
+    it('overwrites existing agreement when accepting again', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(controller.state.isAgreementAccepted[providerId][address]).toBe(
+          true,
+        );
+
+        // Accept again
+        const result = controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(result).toBe(true);
+        expect(controller.state.isAgreementAccepted[providerId][address]).toBe(
+          true,
+        );
+      });
+    });
+
+    it('returns true on successful agreement acceptance', () => {
+      withController(({ controller }) => {
+        const result = controller.acceptAgreement({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        });
+
+        expect(result).toBe(true);
+      });
+    });
+
+    it('does not affect other state properties when accepting agreement', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.eligibility = { polymarket: true };
+          state.lastError = 'Previous error';
+        });
+
+        const originalEligibility = controller.state.eligibility;
+        const originalLastError = controller.state.lastError;
+
+        controller.acceptAgreement({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        });
+
+        expect(controller.state.eligibility).toEqual(originalEligibility);
+        expect(controller.state.lastError).toBe(originalLastError);
+      });
+    });
+
+    it('replaces previous address when accepting agreement for new address', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address1 = '0x1111111111111111111111111111111111111111';
+        const address2 = '0x2222222222222222222222222222222222222222';
+
+        controller.acceptAgreement({
+          providerId,
+          address: address1,
+        });
+
+        expect(controller.state.isAgreementAccepted[providerId][address1]).toBe(
+          true,
+        );
+        expect(
+          controller.state.isAgreementAccepted[providerId][address2],
+        ).toBeUndefined();
+
+        controller.acceptAgreement({
+          providerId,
+          address: address2,
+        });
+
+        // Note: Current implementation replaces the entire address object
+        expect(
+          controller.state.isAgreementAccepted[providerId][address1],
+        ).toBeUndefined();
+        expect(controller.state.isAgreementAccepted[providerId][address2]).toBe(
+          true,
+        );
+      });
+    });
+
+    it('handles errors during agreement acceptance gracefully', () => {
+      withController(({ controller }) => {
+        const providerId = 'invalid-provider';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        expect(() =>
+          controller.acceptAgreement({
+            providerId,
+            address,
+          }),
+        ).toThrow();
+      });
     });
   });
 });

@@ -7,6 +7,8 @@ import {
   selectPredictWinPnl,
   selectPredictBalances,
   selectPredictBalanceByAddress,
+  selectPredictIsAgreementAccepted,
+  selectPredictIsAgreementAcceptedByAddress,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
@@ -892,6 +894,310 @@ describe('Predict Controller Selectors', () => {
       const result = selector(mockState as any);
 
       expect(result).toBe(0);
+    });
+  });
+
+  describe('selectPredictIsAgreementAccepted', () => {
+    it('returns agreement accepted object when it exists', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': true,
+        },
+        kalshi: {
+          '0xabc': false,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictIsAgreementAccepted(mockState as any);
+
+      expect(result).toEqual(isAgreementAccepted);
+    });
+
+    it('returns empty object when isAgreementAccepted does not exist', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted: {},
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictIsAgreementAccepted(mockState as any);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns empty object when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictIsAgreementAccepted(mockState as any);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns multiple provider agreements', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': true,
+          '0x456': false,
+        },
+        kalshi: {
+          '0xabc': true,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictIsAgreementAccepted(mockState as any);
+
+      expect(result).toEqual(isAgreementAccepted);
+    });
+  });
+
+  describe('selectPredictIsAgreementAcceptedByAddress', () => {
+    it('returns true when agreement is accepted for provider and address', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': true,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when agreement is not accepted for provider and address', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': false,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when provider does not exist', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': true,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'kalshi',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when address does not exist for provider', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': true,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'polymarket',
+        address: '0xNonExistent',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      const selector = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns correct value for different provider and address combinations', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': true,
+          '0x456': false,
+        },
+        kalshi: {
+          '0xabc': true,
+          '0xdef': false,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      const selector1 = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'polymarket',
+        address: '0x456',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result1 = selector1(mockState as any);
+
+      const selector2 = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'kalshi',
+        address: '0xabc',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result2 = selector2(mockState as any);
+
+      expect(result1).toBe(false);
+      expect(result2).toBe(true);
+    });
+
+    it('returns false when agreement is explicitly set to false', () => {
+      const isAgreementAccepted = {
+        polymarket: {
+          '0x123': false,
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toBe(false);
+    });
+
+    it('handles empty isAgreementAccepted object', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              isAgreementAccepted: {},
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictIsAgreementAcceptedByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toBe(false);
     });
   });
 });

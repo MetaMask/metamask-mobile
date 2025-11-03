@@ -230,6 +230,7 @@ describe('Engine', () => {
         pendingDeposits: {},
         withdrawTransaction: null,
         isOnboarded: {},
+        isAgreementAccepted: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({

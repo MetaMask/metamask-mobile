@@ -73,6 +73,24 @@ const selectPredictPendingDepositByAddress = ({
     (pendingDeposits) => pendingDeposits[providerId]?.[address] || false,
   );
 
+const selectPredictIsAgreementAccepted = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.isAgreementAccepted || {},
+);
+
+const selectPredictIsAgreementAcceptedByAddress = ({
+  providerId,
+  address,
+}: {
+  providerId: string;
+  address: string;
+}) =>
+  createSelector(
+    selectPredictIsAgreementAccepted,
+    (isAgreementAccepted) =>
+      isAgreementAccepted[providerId]?.[address] || false,
+  );
+
 export {
   selectPredictControllerState,
   selectPredictPendingDeposits,
@@ -84,4 +102,6 @@ export {
   selectPredictBalances,
   selectPredictBalanceByAddress,
   selectPredictPendingDepositByAddress,
+  selectPredictIsAgreementAccepted,
+  selectPredictIsAgreementAcceptedByAddress,
 };

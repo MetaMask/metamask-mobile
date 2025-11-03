@@ -71,6 +71,7 @@ describe('predict controller init', () => {
       pendingDeposits: {},
       withdrawTransaction: null,
       isOnboarded: {},
+      isAgreementAccepted: {},
     };
 
     initRequestMock.persistedState = {

@@ -51,6 +51,7 @@ import {
   Signer,
 } from '../providers/types';
 import {
+  AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
   PredictActivity,
@@ -98,6 +99,9 @@ export type PredictControllerState = {
   // --------------
   // Setup
   isOnboarded: { [address: string]: boolean };
+
+  // Aggreement management
+  isAgreementAccepted: { [providerId: string]: { [address: string]: boolean } };
 };
 
 /**
@@ -112,6 +116,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   pendingDeposits: {},
   withdrawTransaction: null,
   isOnboarded: {},
+  isAgreementAccepted: {},
 });
 
 /**
@@ -161,6 +166,12 @@ const metadata: StateMetadata<PredictControllerState> = {
     usedInUi: false,
   },
   isOnboarded: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  isAgreementAccepted: {
     persist: true,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -1708,5 +1719,28 @@ export class PredictController extends BaseController<
     this.update((state) => {
       state.withdrawTransaction = null;
     });
+  }
+
+  public acceptAgreement(params: AcceptAgreementParams): boolean {
+    try {
+      const provider = this.providers.get(params.providerId);
+      if (!provider) {
+        throw new Error('Provider not available');
+      }
+      this.update((state) => {
+        state.isAgreementAccepted[params.providerId] = {
+          [params.address]: true,
+        };
+      });
+      return true;
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('acceptAgreement', {
+          providerId: params.providerId,
+        }),
+      );
+      throw error;
+    }
   }
 }

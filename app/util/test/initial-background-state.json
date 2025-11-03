@@ -733,5 +733,6 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "isOnboarded": {}
+    "isAgreementAccepted": {}
   }
 }

@@ -295,3 +295,8 @@ export type PredictWithdraw = {
   transactionId: string;
   amount: number;
 };
+
+export interface AcceptAgreementParams {
+  providerId: string;
+  address: string;
+}
