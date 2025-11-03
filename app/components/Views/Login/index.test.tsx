@@ -135,7 +135,9 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
 
-jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () => jest.fn());
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
+  jest.fn(),
+);
 
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
@@ -865,7 +867,9 @@ describe('Login', () => {
           oauthLoginSuccess: true,
         },
       });
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
         currentAuthType: 'password',
         oauth2Login: true,
       });
@@ -913,7 +917,9 @@ describe('Login', () => {
           oauthLoginSuccess: true,
         },
       });
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
         currentAuthType: 'password',
         oauth2Login: true,
       });
@@ -963,7 +969,9 @@ describe('Login', () => {
           oauthLoginSuccess: true,
         },
       });
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
         currentAuthType: 'password',
         oauth2Login: true,
       });
@@ -1011,7 +1019,9 @@ describe('Login', () => {
           oauthLoginSuccess: true,
         },
       });
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
         currentAuthType: 'password',
         oauth2Login: true,
       });
