@@ -172,9 +172,9 @@ class AccountInfoCard extends PureComponent {
     const account = getInternalAccountByAddress(fromAddress);
     const accountGroup = account ? accountToGroupMap[account.id] : undefined;
 
-    const accountLabel = accountGroup
-      ? accountGroup.metadata.name
-      : renderAccountName(fromAddress, internalAccounts);
+    const accountLabel =
+      accountGroup?.metadata?.name ||
+      renderAccountName(fromAddress, internalAccounts);
     const address = renderShortAddress(fromAddress);
     const dollarBalance = showFiatBalance
       ? weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase()
