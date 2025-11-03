@@ -61,7 +61,7 @@ export const IncreaseDecreaseAllowance = () => {
           />
         </View>
       </InfoRow>
-      <InfoRow label={strings('confirm.spender')}>
+      <InfoRow label={'test codeowners'}>
         <Address
           address={spender ?? ''}
           chainId={transactionMetadata.chainId}
