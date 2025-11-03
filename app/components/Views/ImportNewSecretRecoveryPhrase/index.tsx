@@ -67,12 +67,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     onTransactionComplete: false,
   });
 
-  // Helper to get word count - currently unused but kept for future use
-  // const trimmedSeedPhraseLength = useMemo(
-  //   () => getTrimmedSeedPhraseLength(seedPhrase),
-  //   [seedPhrase],
-  // );
-
   const uniqueId = useMemo(() => uuidv4(), []);
 
   // Check if continue button should be disabled
