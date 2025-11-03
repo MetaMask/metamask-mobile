@@ -84,8 +84,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     cashOutButton: {
       width: '100%',
-      height: 48,
-      opacity: 1,
     },
     cashOutButtonText: {
       textAlign: 'center',

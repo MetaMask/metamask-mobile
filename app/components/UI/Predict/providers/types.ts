@@ -42,6 +42,7 @@ export interface PlaceOrderParams {
     marketId?: string;
     marketTitle?: string;
     marketCategory?: string;
+    marketTags?: string[];
     entryPoint?: string;
     transactionType?: string;
     sharePrice?: number;

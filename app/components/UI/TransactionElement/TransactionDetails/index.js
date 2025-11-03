@@ -443,11 +443,11 @@ class TransactionDetails extends PureComponent {
                       this.props.avatarAccountType || AvatarAccountType.Maskicon
                     }
                     accountAddress={updatedTransactionDetails.renderFrom}
-                    size={AvatarSize.Md}
+                    size={AvatarSize.Sm}
                     style={styles.accountAvatar}
                   />
                   <Text
-                    small
+                    variant={TextVariant.BodySM}
                     primary
                     testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                   >
@@ -473,11 +473,11 @@ class TransactionDetails extends PureComponent {
                       this.props.avatarAccountType || AvatarAccountType.Maskicon
                     }
                     accountAddress={updatedTransactionDetails.renderTo}
-                    size={AvatarSize.Md}
+                    size={AvatarSize.Sm}
                     style={styles.accountAvatar}
                   />
                   <Text
-                    small
+                    variant={TextVariant.BodySM}
                     primary
                     testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                   >
