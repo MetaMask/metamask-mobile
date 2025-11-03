@@ -150,6 +150,7 @@ __metadata:
     "@actions/github": "npm:^6.0.0"
     "@lavamoat/allow-scripts": "npm:^3.2.0"
     "@lavamoat/preinstall-always-fail": "npm:^2.1.0"
+    "@types/micromatch": "npm:^4.0.9"
     "@types/node": "npm:^20.16.2"
     axios: "npm:^1.7.4"
     micromatch: "npm:^4.0.5"
@@ -395,6 +396,22 @@ __metadata:
   version: 1.0.4
   resolution: "@tsconfig/node16@npm:1.0.4"
   checksum: 10/202319785901f942a6e1e476b872d421baec20cf09f4b266a1854060efbf78cde16a4d256e8bc949d31e6cd9a90f1e8ef8fb06af96a65e98338a2b6b0de0a0ff
+  languageName: node
+  linkType: hard
+
+"@types/braces@npm:*":
+  version: 3.0.5
+  resolution: "@types/braces@npm:3.0.5"
+  checksum: 10/1c0091921cf7429f95404ee2a7fd7e52e52ddd160cf2eb3b1b841649debf47b062386209388877a7548d8aae906346a0832e41bae143f8e576710fd22314b69d
+  languageName: node
+  linkType: hard
+
+"@types/micromatch@npm:^4.0.9":
+  version: 4.0.10
+  resolution: "@types/micromatch@npm:4.0.10"
+  dependencies:
+    "@types/braces": "npm:*"
+  checksum: 10/192b53ffb6c74349c91bdc4d8a38de3d240e919a69525c12415f658d9844e413550e6e676f42e3cd787679c200f4250a746044c8d81d0b716eeaefbb60d120c8
   languageName: node
   linkType: hard
 
