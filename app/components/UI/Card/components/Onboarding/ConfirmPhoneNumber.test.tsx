@@ -249,30 +249,37 @@ jest.mock('../../../../../component-library/hooks', () => ({
 
 // Mock i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: { [key: string]: string }) => {
-    const mockStrings: { [key: string]: string } = {
-      'card.card_onboarding.confirm_phone_number.title':
-        'Confirm your phone number',
-      'card.card_onboarding.confirm_phone_number.description':
-        'We sent a 6-digit code to {phoneNumber}. Enter it below to verify your phone number.',
-      'card.card_onboarding.confirm_phone_number.confirm_code_label':
-        'Confirmation code',
-      'card.card_onboarding.continue_button': 'Continue',
-    };
+  strings: jest.fn(
+    (key: string, params?: { [key: string]: string | number }) => {
+      const mockStrings: { [key: string]: string } = {
+        'card.card_onboarding.confirm_phone_number.title':
+          'Confirm your phone number',
+        'card.card_onboarding.confirm_phone_number.description':
+          'We sent a 6-digit code to {phoneNumber}. Enter it below to verify your phone number.',
+        'card.card_onboarding.confirm_phone_number.confirm_code_label':
+          'Confirmation code',
+        'card.card_onboarding.confirm_phone_number.resend_verification':
+          'Resend verification code',
+        'card.card_onboarding.confirm_phone_number.resend_cooldown':
+          'Resend in {seconds}s',
+        'card.card_onboarding.continue_button': 'Continue',
+      };
 
-    let result = mockStrings[key] || key;
-    if (params) {
-      Object.keys(params).forEach((param) => {
-        result = result.replace(`{${param}}`, params[param]);
-      });
-    }
-    return result;
-  }),
+      let result = mockStrings[key] || key;
+      if (params) {
+        Object.keys(params).forEach((param) => {
+          result = result.replace(`{${param}}`, String(params[param]));
+        });
+      }
+      return result;
+    },
+  ),
 }));
 
 // Mock hooks
 const mockUsePhoneVerificationVerify = jest.fn();
 const mockUsePhoneVerificationSend = jest.fn();
+const mockSetUser = jest.fn();
 
 jest.mock('../../hooks/usePhoneVerificationVerify', () => ({
   __esModule: true,
@@ -282,6 +289,17 @@ jest.mock('../../hooks/usePhoneVerificationVerify', () => ({
 jest.mock('../../hooks/usePhoneVerificationSend', () => ({
   __esModule: true,
   default: () => mockUsePhoneVerificationSend(),
+}));
+
+// Mock SDK
+jest.mock('../../sdk', () => ({
+  useCardSDK: jest.fn(() => ({
+    sdk: {},
+    isLoading: false,
+    user: { id: 'user-123', email: 'test@example.com' },
+    setUser: mockSetUser,
+    logoutFromProvider: jest.fn(),
+  })),
 }));
 
 // Create test store
@@ -325,6 +343,7 @@ describe('ConfirmPhoneNumber Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
 
     store = createTestStore();
 
@@ -332,7 +351,7 @@ describe('ConfirmPhoneNumber Component', () => {
       navigate: mockNavigate,
     } as never);
     mockUseParams.mockReturnValue({
-      phoneCountryCode: '+1',
+      phoneCountryCode: '1',
       phoneNumber: '1234567890',
     });
 
@@ -358,6 +377,13 @@ describe('ConfirmPhoneNumber Component', () => {
       error: null,
       reset: jest.fn(),
     });
+  });
+
+  afterEach(() => {
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+    jest.useRealTimers();
   });
 
   describe('Component Rendering', () => {
@@ -576,8 +602,10 @@ describe('ConfirmPhoneNumber Component', () => {
       const codeFieldInput = getByTestId('confirm-phone-number-code-field');
       fireEvent.changeText(codeFieldInput, '12345');
 
-      // Wait a bit to ensure no navigation happens
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Flush any pending timers/effects and assert no navigation
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -614,7 +642,7 @@ describe('ConfirmPhoneNumber Component', () => {
   describe('Phone Number Integration', () => {
     it('should display phone number from params in description', () => {
       mockUseParams.mockReturnValue({
-        phoneCountryCode: '+44',
+        phoneCountryCode: '44',
         phoneNumber: '7700900123',
       });
 
@@ -994,7 +1022,7 @@ describe('ConfirmPhoneNumber Component', () => {
 
       expect(mockVerifyPhoneVerification).toHaveBeenCalledWith({
         onboardingId: 'onboarding-123',
-        phoneCountryCode: '+1',
+        phoneCountryCode: '1',
         phoneNumber: '1234567890',
         verificationCode: '123456',
         contactVerificationId: 'contact-123',
@@ -1103,12 +1131,24 @@ describe('ConfirmPhoneNumber Component', () => {
         'confirm-phone-number-resend-verification',
       );
 
+      // Expire cooldown before pressing by stepping timers per second
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      // Ensure UI reflects expired cooldown
+      await waitFor(() => {
+        expect(resendElement).toHaveTextContent('Resend verification code');
+      });
+
       await act(async () => {
         fireEvent.press(resendElement);
       });
 
       expect(mockSendPhoneVerification).toHaveBeenCalledWith({
-        phoneCountryCode: '+1',
+        phoneCountryCode: '1',
         phoneNumber: '1234567890',
         contactVerificationId: 'contact-123',
       });
@@ -1213,12 +1253,20 @@ describe('ConfirmPhoneNumber Component', () => {
         </Provider>,
       );
 
-      const resendElement = getByTestId(
+      // Expire initial cooldown before attempting resend
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      const resendElementAfterCooldown = getByTestId(
         'confirm-phone-number-resend-verification',
       );
 
       await act(async () => {
-        fireEvent.press(resendElement);
+        fireEvent.press(resendElementAfterCooldown);
+        await Promise.resolve();
       });
 
       expect(mockSendPhoneVerification).toHaveBeenCalled();
@@ -1275,7 +1323,7 @@ describe('ConfirmPhoneNumber Component', () => {
     it('displays phone number in description from route parameters', () => {
       const store = createTestStore();
       (mockUseParams as jest.Mock).mockReturnValue({
-        phoneCountryCode: '+1',
+        phoneCountryCode: '1',
         phoneNumber: '1234567890',
       });
 
@@ -1303,6 +1351,360 @@ describe('ConfirmPhoneNumber Component', () => {
       const onboardingStep = getByTestId('onboarding-step');
       expect(onboardingStep).toBeTruthy();
       // Component should render without crashing even with missing params
+    });
+  });
+
+  describe('Resend Cooldown Timer', () => {
+    it('shows cooldown timer after successful resend', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      const resendElement = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Trigger resend and wait for state updates
+      await act(async () => {
+        fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete
+        await Promise.resolve();
+        // Allow one timer tick to process
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should show cooldown timer
+      expect(resendElement).toHaveTextContent('Resend in 60s');
+    });
+
+    it('shows "Resend verification code" when cooldown expires', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      const resendElement = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Trigger resend and wait for state updates
+      await act(async () => {
+        fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete
+        await Promise.resolve();
+        // Allow one timer tick to process
+        jest.advanceTimersByTime(0);
+      });
+
+      // Should start at 60 seconds
+      expect(resendElement).toHaveTextContent('Resend in 60s');
+
+      // Advance timer by 60 seconds to expire cooldown (step per second)
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      expect(resendElement).toHaveTextContent('Resend verification code');
+    });
+
+    it('allows resend after cooldown expires', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      const resendElement = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Expire initial cooldown and perform first resend
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+      await act(async () => {
+        fireEvent.press(resendElement);
+        await Promise.resolve();
+      });
+      expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1);
+
+      // Should be in cooldown
+      expect(resendElement).toHaveTextContent('Resend in 60s');
+
+      // Advance timer to end of cooldown (step per second)
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      // Should be able to resend again
+      expect(resendElement).toHaveTextContent('Resend verification code');
+      await act(async () => {
+        fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete
+        await Promise.resolve();
+      });
+      expect(mockSendPhoneVerification).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not allow resend during cooldown', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      const resendElement = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Expire initial cooldown and perform first resend
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+      await act(async () => {
+        fireEvent.press(resendElement);
+        await Promise.resolve();
+      });
+      expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1);
+
+      // Try to resend during cooldown
+      await act(async () => {
+        fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete
+        await Promise.resolve();
+      });
+      expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1); // Should not increase
+    });
+
+    it('resets cooldown timer when component unmounts', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId, unmount } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      const resendElement = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Trigger resend to start cooldown
+      await act(async () => {
+        fireEvent.press(resendElement);
+      });
+
+      // Advance timer partway through cooldown
+      act(() => {
+        jest.advanceTimersByTime(15000);
+      });
+
+      // Unmount component
+      unmount();
+
+      // Advance timer past original cooldown time
+      act(() => {
+        jest.advanceTimersByTime(20000);
+      });
+
+      // No errors should occur from timer cleanup
+      expect(true).toBe(true);
+    });
+
+    it('handles multiple rapid resend attempts correctly', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      // Expire initial cooldown, step second by second
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+      // Re-query element after re-render
+      const resendElementAfterCooldown = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Multiple rapid presses
+      await act(async () => {
+        fireEvent.press(resendElementAfterCooldown);
+        fireEvent.press(resendElementAfterCooldown);
+        fireEvent.press(resendElementAfterCooldown);
+        await Promise.resolve();
+      });
+
+      // Should only send once
+      expect(mockSendPhoneVerification).toHaveBeenCalledTimes(1);
+      expect(resendElementAfterCooldown).toHaveTextContent('Resend in 60s');
+    });
+
+    it('maintains cooldown state during loading', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: true,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      // Advance timer to end initial cooldown, second by second
+      for (let i = 0; i < 60; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+      // Re-query element after re-render
+      const resendElementAfterCooldownLoading = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Should show original text when loading (no cooldown)
+      expect(resendElementAfterCooldownLoading).toHaveTextContent(
+        'Resend verification code',
+      );
+
+      // Should not be able to press during loading
+      await act(async () => {
+        fireEvent.press(resendElementAfterCooldownLoading);
+        await Promise.resolve();
+      });
+
+      expect(mockSendPhoneVerification).not.toHaveBeenCalled();
+    });
+
+    it('shows cooldown with correct formatting for single digit seconds', async () => {
+      const mockSendPhoneVerification = jest.fn().mockResolvedValue({});
+      (mockUsePhoneVerificationSend as jest.Mock).mockReturnValue({
+        sendPhoneVerification: mockSendPhoneVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      const resendElement = getByTestId(
+        'confirm-phone-number-resend-verification',
+      );
+
+      // Trigger resend and wait for state updates
+      await act(async () => {
+        fireEvent.press(resendElement);
+        // Allow the async sendPhoneVerification to complete and cooldown to be set
+        await Promise.resolve();
+      });
+
+      // Advance to single digit seconds (advance to 9 seconds remaining)
+      for (let i = 0; i < 51; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      expect(resendElement).toHaveTextContent('Resend in 9s');
+
+      for (let i = 0; i < 4; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      expect(resendElement).toHaveTextContent('Resend in 5s');
+
+      for (let i = 0; i < 4; i++) {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      }
+
+      expect(resendElement).toHaveTextContent('Resend in 1s');
     });
   });
 });

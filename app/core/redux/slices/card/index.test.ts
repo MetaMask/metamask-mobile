@@ -27,7 +27,6 @@ import cardReducer, {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
-  setUser,
   resetOnboardingState,
   setCacheData,
   clearCacheData,
@@ -35,12 +34,10 @@ import cardReducer, {
   selectOnboardingId,
   selectSelectedCountry,
   selectContactVerificationId,
-  selectUser,
 } from '.';
 import {
   CardTokenAllowance,
   AllowanceState,
-  UserResponse,
 } from '../../../../components/UI/Card/types';
 
 // Mock the multichain selectors
@@ -107,8 +104,7 @@ const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
 
 const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
   address: '0xToken1',
-  chainId: '1',
-  isStaked: false,
+  caipChainId: 'eip155:1' as const,
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
@@ -138,7 +134,6 @@ const CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
-    user: null,
   },
   cache: {
     data: {},
@@ -162,7 +157,6 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
-    user: null,
   },
   cache: {
     data: {},
@@ -421,67 +415,6 @@ describe('Card Selectors', () => {
         );
       });
     });
-
-    describe('selectUser', () => {
-      const mockUser: UserResponse = {
-        id: 'user-789',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane.smith@example.com',
-        verificationState: 'VERIFIED',
-        addressLine1: '456 Oak Ave',
-        city: 'Los Angeles',
-        usState: 'CA',
-        zip: '90210',
-        countryOfResidence: 'US',
-      };
-
-      it('should return null by default from initial state', () => {
-        const mockRootState = { card: initialState } as unknown as RootState;
-        expect(selectUser(mockRootState)).toBe(null);
-      });
-
-      it('should return the user when set', () => {
-        const stateWithUser: CardSliceState = {
-          ...initialState,
-          onboarding: {
-            ...initialState.onboarding,
-            user: mockUser,
-          },
-        };
-        const mockRootState = { card: stateWithUser } as unknown as RootState;
-        expect(selectUser(mockRootState)).toEqual(mockUser);
-      });
-
-      it('should return the complete user object with all properties', () => {
-        const stateWithUser: CardSliceState = {
-          ...initialState,
-          onboarding: {
-            ...initialState.onboarding,
-            user: mockUser,
-          },
-        };
-        const mockRootState = { card: stateWithUser } as unknown as RootState;
-        const result = selectUser(mockRootState);
-
-        expect(result).toHaveProperty('id', mockUser.id);
-        expect(result).toHaveProperty('firstName', mockUser.firstName);
-        expect(result).toHaveProperty('lastName', mockUser.lastName);
-        expect(result).toHaveProperty('email', mockUser.email);
-        expect(result).toHaveProperty(
-          'verificationState',
-          mockUser.verificationState,
-        );
-        expect(result).toHaveProperty('addressLine1', mockUser.addressLine1);
-        expect(result).toHaveProperty('city', mockUser.city);
-        expect(result).toHaveProperty('usState', mockUser.usState);
-        expect(result).toHaveProperty('zip', mockUser.zip);
-        expect(result).toHaveProperty(
-          'countryOfResidence',
-          mockUser.countryOfResidence,
-        );
-      });
-    });
   });
 });
 
@@ -593,7 +526,6 @@ describe('Card Reducer', () => {
           onboardingId: null,
           selectedCountry: null,
           contactVerificationId: null,
-          user: null,
         },
         cache: {
           data: {},
@@ -640,7 +572,6 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.selectedCountry).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
-          expect(state.onboarding.user).toBe(null);
         });
 
         it('should update onboardingId when previously set', () => {
@@ -677,7 +608,6 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
-          expect(state.onboarding.user).toBe(null);
         });
 
         it('should update selectedCountry when previously set', () => {
@@ -717,7 +647,6 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.selectedCountry).toBe(null);
-          expect(state.onboarding.user).toBe(null);
         });
 
         it('should update contactVerificationId when previously set', () => {
@@ -751,87 +680,14 @@ describe('Card Reducer', () => {
         });
       });
 
-      describe('setUser', () => {
-        const mockUser: UserResponse = {
-          id: 'user-123',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-          verificationState: 'VERIFIED',
-          addressLine1: '123 Main St',
-          city: 'New York',
-          usState: 'NY',
-          zip: '10001',
-          countryOfResidence: 'US',
-        };
-
-        it('should set user', () => {
-          const state = cardReducer(initialState, setUser(mockUser));
-          expect(state.onboarding.user).toEqual(mockUser);
-          // ensure other parts of state untouched
-          expect(state.onboarding.onboardingId).toBe(null);
-          expect(state.onboarding.selectedCountry).toBe(null);
-          expect(state.onboarding.contactVerificationId).toBe(null);
-        });
-
-        it('should update user when previously set', () => {
-          const oldUser: UserResponse = {
-            id: 'old-user',
-            firstName: 'Jane',
-            lastName: 'Smith',
-            email: 'jane.smith@example.com',
-            verificationState: 'PENDING',
-            addressLine1: '456 Oak Ave',
-            city: 'Los Angeles',
-            usState: 'CA',
-            zip: '90210',
-            countryOfResidence: 'US',
-          };
-          const current: CardSliceState = {
-            ...initialState,
-            onboarding: {
-              ...initialState.onboarding,
-              user: oldUser,
-            },
-          };
-          const state = cardReducer(current, setUser(mockUser));
-          expect(state.onboarding.user).toEqual(mockUser);
-        });
-
-        it('should set user to null', () => {
-          const current: CardSliceState = {
-            ...initialState,
-            onboarding: {
-              ...initialState.onboarding,
-              user: mockUser,
-            },
-          };
-          const state = cardReducer(current, setUser(null));
-          expect(state.onboarding.user).toBe(null);
-        });
-      });
-
       describe('resetOnboardingState', () => {
         it('should reset all onboarding state to initial values', () => {
-          const mockUser: UserResponse = {
-            id: 'user-123',
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john.doe@example.com',
-            verificationState: 'VERIFIED',
-            addressLine1: '123 Main St',
-            city: 'New York',
-            usState: 'NY',
-            zip: '10001',
-            countryOfResidence: 'US',
-          };
           const current: CardSliceState = {
             ...initialState,
             onboarding: {
               onboardingId: 'test-id',
               selectedCountry: 'US',
               contactVerificationId: 'verification-123',
-              user: mockUser,
             },
           };
           const state = cardReducer(current, resetOnboardingState());
@@ -839,7 +695,6 @@ describe('Card Reducer', () => {
             onboardingId: null,
             selectedCountry: null,
             contactVerificationId: null,
-            user: null,
           });
           // ensure other parts of state untouched
           expect(state.cardholderAccounts).toEqual(current.cardholderAccounts);
@@ -852,7 +707,6 @@ describe('Card Reducer', () => {
             onboardingId: null,
             selectedCountry: null,
             contactVerificationId: null,
-            user: null,
           });
         });
       });

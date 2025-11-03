@@ -53,7 +53,7 @@ import {
 export * from './types';
 
 const dappsWithType: FuseSearchResult[] = dappUrlList.map(
-  (i) => ({ ...i, category: UrlAutocompleteCategory.Sites } as const),
+  (i) => ({ ...i, category: UrlAutocompleteCategory.Sites }) as const,
 );
 
 const TOKEN_SEARCH_LIMIT = 10;

@@ -1,6 +1,7 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { default as React, useRef, useState, useCallback } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import PredictPositionsHeader, {
   PredictPositionsHeaderHandle,
 } from '../../components/PredictPositionsHeader';
@@ -8,24 +9,42 @@ import PredictPositions, {
   PredictPositionsHandle,
 } from '../../components/PredictPositions/PredictPositions';
 import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
+import PredictOffline from '../../components/PredictOffline';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
-interface PredictTabViewProps {}
+interface PredictTabViewProps {
+  isVisible?: boolean;
+}
 
-const PredictTabView: React.FC<PredictTabViewProps> = () => {
+const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [positionsError, setPositionsError] = useState<string | null>(null);
+  const [headerError, setHeaderError] = useState<string | null>(null);
 
   const predictPositionsRef = useRef<PredictPositionsHandle>(null);
   const predictPositionsHeaderRef = useRef<PredictPositionsHeaderHandle>(null);
 
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
+
   usePredictDepositToasts();
   usePredictClaimToasts();
+  usePredictWithdrawToasts();
+
+  const hasError = Boolean(positionsError || headerError);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    // Clear errors before refreshing
+    setPositionsError(null);
+    setHeaderError(null);
     try {
       await Promise.all([
         predictPositionsRef.current?.refresh(),
@@ -36,18 +55,53 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     }
   }, []);
 
+  const handlePositionsError = useCallback((error: string | null) => {
+    setPositionsError(error);
+  }, []);
+
+  const handleHeaderError = useCallback((error: string | null) => {
+    setHeaderError(error);
+  }, []);
+
+  const content = (
+    <>
+      <PredictPositionsHeader
+        ref={predictPositionsHeaderRef}
+        onError={handleHeaderError}
+      />
+      <PredictPositions
+        ref={predictPositionsRef}
+        onError={handlePositionsError}
+        isVisible={isVisible}
+      />
+      <PredictAddFundsSheet />
+    </>
+  );
+
   return (
-    <View style={tw.style('flex-1 bg-default')}>
-      <ScrollView
-        testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-      >
-        <PredictPositionsHeader ref={predictPositionsHeaderRef} />
-        <PredictPositions ref={predictPositionsRef} />
-        <PredictAddFundsSheet />
-      </ScrollView>
+    <View
+      style={tw.style(
+        isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+      )}
+    >
+      {hasError ? (
+        <PredictOffline onRetry={handleRefresh} />
+      ) : (
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
+            refreshControl: (
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            ),
+          }}
+        >
+          {content}
+        </ConditionalScrollView>
+      )}
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import { FlashListAssetKey } from '../Tokens/TokenList';
+import { CaipChainId } from '@metamask/utils';
 
 /**
  * Enum for asset delegation status
@@ -36,28 +36,34 @@ export interface CardToken {
   decimals: number | null;
   symbol: string | null;
   name: string | null;
+  delegationContract?: string | null;
+  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 // Card token data interface
 // Used on Keychain storage
+// Note: refreshToken and refreshTokenExpiresAt are optional to support
+// the onboarding flow where we only receive a short-lived accessToken
 export interface CardTokenData {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   accessTokenExpiresAt: number;
-  refreshTokenExpiresAt: number;
+  refreshTokenExpiresAt?: number;
   location: CardLocation;
 }
 
 export interface AuthenticatedCardTokenAllowanceData {
   availableBalance?: string;
   walletAddress?: string;
+  priority?: number; // Lower number = higher priority (1 is highest)
 }
 
 export type CardTokenAllowance = {
+  caipChainId: CaipChainId;
   allowanceState: AllowanceState;
   allowance: string;
-} & FlashListAssetKey &
-  CardToken &
+  totalAllowance?: string;
+} & CardToken &
   AuthenticatedCardTokenAllowanceData;
 
 export interface CardLoginInitiateResponse {
@@ -66,6 +72,8 @@ export interface CardLoginInitiateResponse {
 }
 
 export type CardLocation = 'us' | 'international';
+
+export type CardNetwork = 'linea' | 'linea-us' | 'solana';
 
 export interface CardLoginResponse {
   phase: CardUserPhase | null;
@@ -126,14 +134,14 @@ export interface CardWalletExternalResponse {
   currency: string;
   balance: string;
   allowance: string;
-  network: 'linea' | 'solana';
+  network: CardNetwork;
 }
 
 export interface CardWalletExternalPriorityResponse {
   id: number;
   address: string; // This is the wallet address;
   currency: string;
-  network: 'linea' | 'solana';
+  network: CardNetwork;
   priority: number;
 }
 
@@ -142,10 +150,13 @@ export interface CardExternalWalletDetail {
   walletAddress: string;
   currency: string;
   balance: string;
-  allowance: string;
+  allowance: string; // Remaining allowance for the token
   priority: number;
   tokenDetails: CardToken;
-  chainId: string;
+  caipChainId: CaipChainId;
+  network: CardNetwork;
+  delegationContractAddress?: string;
+  stagingTokenAddress?: string;
 }
 
 export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
@@ -300,6 +311,7 @@ export interface RegistrationSettingsResponse {
       termsAndConditions: string;
       accountOpeningDisclosure: string;
       noticeOfPrivacy: string;
+      eSignConsentDisclosure: string;
     };
     intl: {
       termsAndConditions: string;
@@ -324,18 +336,26 @@ export interface ConsentMetadata {
   ipAddress?: string;
   userAgent?: string;
   timestamp?: string;
+  clientId?: string;
+  version?: string;
+}
+
+export interface Consent {
+  consentType:
+    | 'eSignAct'
+    | 'termsAndPrivacy'
+    | 'marketingNotifications'
+    | 'smsNotifications'
+    | 'emailNotifications';
+  consentStatus: 'granted' | 'denied';
+  metadata: ConsentMetadata;
 }
 
 export interface CreateOnboardingConsentRequest {
+  policyType: 'US' | 'global';
   onboardingId: string;
-  policy: string;
-  consents: {
-    eSignAct?: string;
-    termsAndPrivacy: string;
-    marketingNotifications: string;
-    smsNotifications: string;
-    emailNotifications: string;
-  };
+  tenantId: string;
+  consents: Consent[];
   metadata?: ConsentMetadata;
 }
 
@@ -350,4 +370,26 @@ export interface LinkUserToConsentRequest {
 export interface LinkUserToConsentResponse {
   useId: string;
   consentSetId: string;
+}
+
+export interface ChainConfigToken {
+  symbol: string;
+  decimals: number;
+  address: string;
+}
+
+export interface DelegationSettingsNetwork {
+  network: string;
+  environment: string;
+  chainId: string;
+  delegationContract: string;
+  tokens: Record<string, ChainConfigToken>;
+}
+
+export interface DelegationSettingsResponse {
+  networks: DelegationSettingsNetwork[];
+  count: number;
+  _links: {
+    self: string;
+  };
 }

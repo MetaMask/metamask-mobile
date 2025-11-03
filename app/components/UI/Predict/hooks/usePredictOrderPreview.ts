@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { captureException } from '@sentry/react-native';
 import { OrderPreview, PreviewOrderParams } from '../providers/types';
 import { usePredictTrading } from './usePredictTrading';
+import { parseErrorMessage } from '../utils/predictErrorHandler';
+import { PREDICT_ERROR_CODES } from '../constants/errors';
 
 interface OrderPreviewResult {
   preview?: OrderPreview | null;
@@ -61,8 +64,30 @@ export function usePredictOrderPreview(
       }
     } catch (err) {
       console.error('Failed to preview order:', err);
+
+      // Capture exception with order preview context (no sensitive amounts)
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        tags: {
+          component: 'usePredictOrderPreview',
+          action: 'order_preview',
+          operation: 'order_management',
+        },
+        extra: {
+          previewContext: {
+            providerId,
+            side,
+            marketId,
+            outcomeId,
+          },
+        },
+      });
+
       if (operationId === currentOperationRef.current && isMountedRef.current) {
-        setError(err instanceof Error ? err.message : String(err));
+        const parsedErrorMessage = parseErrorMessage({
+          error: err,
+          defaultCode: PREDICT_ERROR_CODES.PREVIEW_FAILED,
+        });
+        setError(parsedErrorMessage);
       }
     } finally {
       if (operationId === currentOperationRef.current && isMountedRef.current) {

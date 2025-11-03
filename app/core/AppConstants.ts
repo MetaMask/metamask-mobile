@@ -104,7 +104,7 @@ export default {
     POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
     DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
-    DEFAULT_SLIPPAGE_BRIDGE: 0.5,
+    DEFAULT_SLIPPAGE_BRIDGE: 2,
     DEFAULT_SLIPPAGE_SOLANA: undefined,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
@@ -170,7 +170,7 @@ export default {
   },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',
-    UAT: 'https://foxuat2-ag.foxcard.io',
+    UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
   },
   ERRORS: {
