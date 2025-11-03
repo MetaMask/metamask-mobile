@@ -168,6 +168,14 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
     [seedPhrase, onSeedPhraseChange],
   );
 
+  const handleSeedPhraseChangeAtIndexRef = useRef(
+    handleSeedPhraseChangeAtIndex,
+  );
+
+  useEffect(() => {
+    handleSeedPhraseChangeAtIndexRef.current = handleSeedPhraseChangeAtIndex;
+  }, [handleSeedPhraseChangeAtIndex]);
+
   // Handle seed phrase change in first input (textarea mode)
   const handleSeedPhraseChange = useCallback(
     (seedPhraseText: string) => {
@@ -186,10 +194,10 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
           Keyboard.dismiss();
         }, 100);
       } else {
-        handleSeedPhraseChangeAtIndex(text, 0);
+        handleSeedPhraseChangeAtIndexRef.current?.(text, 0);
       }
     },
-    [handleSeedPhraseChangeAtIndex, onSeedPhraseChange],
+    [onSeedPhraseChange],
   );
 
   // Handle focus change with validation
@@ -240,9 +248,9 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
 
   const handleEnterKeyPress = useCallback(
     (index: number) => {
-      handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
+      handleSeedPhraseChangeAtIndexRef.current(`${seedPhrase[index]} `, index);
     },
-    [seedPhrase, handleSeedPhraseChangeAtIndex],
+    [seedPhrase],
   );
 
   // Validate seed phrase and show errors
