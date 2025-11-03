@@ -38,7 +38,6 @@ function getDepositAnalyticsPayload(
   const chainId =
     order?.network?.chainId || order?.cryptoCurrency?.chainId || '';
 
-  // Get network name with fallbacks
   const getNetworkName = (depositOrder: typeof order) => {
     if (!depositOrder?.network) {
       return 'Unknown Network';

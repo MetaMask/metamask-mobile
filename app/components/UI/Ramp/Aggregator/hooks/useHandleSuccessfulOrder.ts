@@ -58,12 +58,11 @@ function useHandleSuccessfulOrder() {
         };
 
         if (order.orderType === OrderOrderTypeEnum.Sell) {
-          const chainIdSource = (order?.data as Order)?.cryptoCurrency?.network
-            ?.chainId;
           trackEvent('OFFRAMP_PURCHASE_SUBMITTED', {
             ...payload,
             provider_offramp: (order?.data as Order)?.provider?.name,
-            chain_id_source: chainIdSource,
+            chain_id_source: (order?.data as Order)?.cryptoCurrency?.network
+              ?.chainId,
             currency_source: (order?.data as Order)?.cryptoCurrency?.symbol,
             currency_source_symbol: (order?.data as Order)?.cryptoCurrency
               ?.symbol,
