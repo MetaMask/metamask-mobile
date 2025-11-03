@@ -151,6 +151,7 @@ const PredictPositions = forwardRef<
   const isTrulyEmpty =
     positions.length === 0 && claimablePositions.length === 0;
 
+  // TODO: Sort positions in the controller (business logic)
   return (
     <>
       <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>

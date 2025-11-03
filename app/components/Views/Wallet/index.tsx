@@ -14,7 +14,6 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
-  ScrollView,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -50,6 +49,7 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CustomText, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import {
   ToastContext,
   ToastVariants,
@@ -1323,96 +1323,57 @@ const Wallet = ({
     [styles.wrapper, isHomepageRedesignV1Enabled],
   );
 
-  const renderContent = useCallback(() => {
-    const content = (
-      <>
-        <AssetPollingProvider />
-        <View style={styles.banner}>
-          {!basicFunctionalityEnabled ? (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('wallet.banner.title')}
-              description={
-                <CustomText
-                  color={TextColor.Info}
-                  onPress={turnOnBasicFunctionality}
-                >
-                  {strings('wallet.banner.link')}
-                </CustomText>
-              }
-            />
-          ) : null}
-          <NetworkConnectionBanner />
-        </View>
-        <>
-          {isMultichainAccountsState2Enabled ? (
-            <AccountGroupBalance />
-          ) : (
-            <PortfolioBalance />
-          )}
-
-          <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
-            displaySwapsButton={displaySwapsButton}
-            goToSwaps={goToSwaps}
-            onReceive={onReceive}
-            onSend={onSend}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+  const content = (
+    <>
+      <AssetPollingProvider />
+      <View style={styles.banner}>
+        {!basicFunctionalityEnabled ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            title={strings('wallet.banner.title')}
+            description={
+              <CustomText
+                color={TextColor.Info}
+                onPress={turnOnBasicFunctionality}
+              >
+                {strings('wallet.banner.link')}
+              </CustomText>
+            }
           />
-
-          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-          <WalletTokensTabView
-            navigation={navigation}
-            onChangeTab={onChangeTab}
-            defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
-            navigationParams={route.params}
-          />
-        </>
-      </>
-    );
-
-    return isHomepageRedesignV1Enabled ? (
-      <ScrollView
-        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-        contentContainerStyle={scrollViewContentStyle}
-        showsVerticalScrollIndicator={false}
-      >
-        {content}
-      </ScrollView>
-    ) : (
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-      >
-        {content}
+        ) : null}
+        <NetworkConnectionBanner />
       </View>
-    );
-  }, [
-    styles.banner,
-    styles.carousel,
-    styles.wrapper,
-    scrollViewContentStyle,
-    basicFunctionalityEnabled,
-    defiEnabled,
-    isMultichainAccountsState2Enabled,
-    isHomepageRedesignV1Enabled,
-    turnOnBasicFunctionality,
-    onChangeTab,
-    navigation,
-    goToSwaps,
-    displayBuyButton,
-    displaySwapsButton,
-    onReceive,
-    onSend,
-    route.params,
-    isCarouselBannersEnabled,
-    collectiblesEnabled,
-  ]);
+      <>
+        {isMultichainAccountsState2Enabled ? (
+          <AccountGroupBalance />
+        ) : (
+          <PortfolioBalance />
+        )}
+
+        <AssetDetailsActions
+          displayBuyButton={displayBuyButton}
+          displaySwapsButton={displaySwapsButton}
+          goToSwaps={goToSwaps}
+          onReceive={onReceive}
+          onSend={onSend}
+          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        />
+
+        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
+        <WalletTokensTabView
+          navigation={navigation}
+          onChangeTab={onChangeTab}
+          defiEnabled={defiEnabled}
+          collectiblesEnabled={collectiblesEnabled}
+          navigationParams={route.params}
+        />
+      </>
+    </>
+  );
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>
@@ -1425,7 +1386,24 @@ const Wallet = ({
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
-        {selectedInternalAccount ? renderContent() : renderLoader()}
+        {selectedInternalAccount ? (
+          <View
+            style={styles.wrapper}
+            testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+          >
+            <ConditionalScrollView
+              isScrollEnabled={isHomepageRedesignV1Enabled}
+              scrollViewProps={{
+                contentContainerStyle: scrollViewContentStyle,
+                showsVerticalScrollIndicator: false,
+              }}
+            >
+              {content}
+            </ConditionalScrollView>
+          </View>
+        ) : (
+          renderLoader()
+        )}
       </View>
     </ErrorBoundary>
   );

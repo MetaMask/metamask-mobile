@@ -548,7 +548,7 @@ describe('DeFiPositionsList', () => {
   });
 
   describe('Homepage Redesign V1 Feature', () => {
-    it('applies fixed height when isHomepageRedesignV1Enabled is true with positions', async () => {
+    it('removes scrolling container in favour of global scroll container when isHomepageRedesignV1Enabled is true', async () => {
       const { findByTestId, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
         {
@@ -589,7 +589,7 @@ describe('DeFiPositionsList', () => {
       expect(scrollView).toBeNull();
     });
 
-    it('calculates correct list height for empty state when isHomepageRedesignV1Enabled is true', async () => {
+    it('renders empty state without scroll container when isHomepageRedesignV1Enabled is true', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -628,7 +628,7 @@ describe('DeFiPositionsList', () => {
       expect(container).toBeOnTheScreen();
     });
 
-    it('renders multiple items without ScrollView when isHomepageRedesignV1Enabled is true', async () => {
+    it('renders multiple positions without scroll container when isHomepageRedesignV1Enabled is true', async () => {
       const { findByTestId, findByText, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
         {
@@ -675,7 +675,7 @@ describe('DeFiPositionsList', () => {
       expect(scrollView).toBeNull();
     });
 
-    it('does not apply fixed height when isHomepageRedesignV1Enabled is false', async () => {
+    it('renders scroll container when isHomepageRedesignV1Enabled is false', async () => {
       const { findByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
         {

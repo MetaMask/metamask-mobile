@@ -1,6 +1,6 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { default as React, useRef, useState, useCallback } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import PredictPositionsHeader, {
   PredictPositionsHeaderHandle,
@@ -15,6 +15,7 @@ import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
 interface PredictTabViewProps {
   isVisible?: boolean;
@@ -85,21 +86,23 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
     >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />
-      ) : isHomepageRedesignV1Enabled ? (
-        <View testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}>{content}</View>
       ) : (
-        <ScrollView
-          testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}
-          refreshControl={
-            <RefreshControl
-              testID={PredictTabViewSelectorsIDs.REFRESH_CONTROL}
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-            />
-          }
-        >
-          {content}
-        </ScrollView>
+        <View testID={PredictTabViewSelectorsIDs.SCROLL_VIEW}>
+          <ConditionalScrollView
+            isScrollEnabled={!isHomepageRedesignV1Enabled}
+            scrollViewProps={{
+              refreshControl: (
+                <RefreshControl
+                  testID={PredictTabViewSelectorsIDs.REFRESH_CONTROL}
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                />
+              ),
+            }}
+          >
+            {content}
+          </ConditionalScrollView>
+        </View>
       )}
     </View>
   );

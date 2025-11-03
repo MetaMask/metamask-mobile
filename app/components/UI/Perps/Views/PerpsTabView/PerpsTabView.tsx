@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
@@ -42,6 +42,8 @@ import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
+import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
+
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -245,40 +247,23 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        {}
-        {isHomepageRedesignV1Enabled ? (
-          <>
-            {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <PerpsEmptyState
-                onAction={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
-              />
-            ) : (
-              <View style={styles.tradeInfoContainer}>
-                <View>{renderPositionsSection()}</View>
-                <View>{renderOrdersSection()}</View>
-              </View>
-            )}
-          </>
-        ) : (
-          <ScrollView style={styles.content}>
-            <View style={styles.contentContainer}>
-              {!isInitialLoading && hasNoPositionsOrOrders ? (
-                <PerpsEmptyState
-                  onAction={handleNewTrade}
-                  testID="perps-empty-state"
-                  twClassName="mx-auto"
-                />
-              ) : (
-                <View style={styles.tradeInfoContainer}>
-                  <View>{renderPositionsSection()}</View>
-                  <View>{renderOrdersSection()}</View>
-                </View>
-              )}
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{ style: styles.content }}
+        >
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
+            <PerpsEmptyState
+              onAction={handleNewTrade}
+              testID="perps-empty-state"
+              twClassName="mx-auto"
+            />
+          ) : (
+            <View style={styles.tradeInfoContainer}>
+              <View>{renderPositionsSection()}</View>
+              <View>{renderOrdersSection()}</View>
             </View>
-          </ScrollView>
-        )}
+          )}
+        </ConditionalScrollView>
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>

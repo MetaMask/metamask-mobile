@@ -45,6 +45,11 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   })),
 }));
 
+// Mock homepage redesign selector
+jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(),
+}));
+
 // Mock PerpsConnectionProvider
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
@@ -205,6 +210,17 @@ describe('PerpsTabView', () => {
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
   const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
 
+  // Mock selectors
+  const mockSelectPerpsEligibility = jest.requireMock(
+    '../../selectors/perpsController',
+  ).selectPerpsEligibility;
+  const mockSelectHomepageRedesignV1Enabled = jest.requireMock(
+    '../../../../../selectors/featureFlagController/homepage',
+  ).selectHomepageRedesignV1Enabled;
+  const mockSelectSelectedInternalAccountByScope = jest.requireMock(
+    '../../../../../selectors/multichainAccounts/accounts',
+  ).selectSelectedInternalAccountByScope;
+
   const mockPosition: Position = {
     coin: 'ETH',
     size: '2.5',
@@ -261,16 +277,15 @@ describe('PerpsTabView', () => {
 
     mockUsePerpsAccount.mockReturnValue(null);
 
-    // Default eligibility mock
-    const mockSelectPerpsEligibility = jest.requireMock(
-      '../../selectors/perpsController',
-    ).selectPerpsEligibility;
+    // Setup selector mocks
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
-      // Handle the multichain selector
-      if (typeof selector === 'function') {
+      if (selector === mockSelectHomepageRedesignV1Enabled) {
+        return false; // Default: V1 disabled
+      }
+      if (selector === mockSelectSelectedInternalAccountByScope) {
         return () => ({
           address: '0x1234567890123456789012345678901234567890',
           id: 'mock-account-id',
@@ -658,12 +673,13 @@ describe('PerpsTabView', () => {
   describe('Homepage Redesign V1 Feature', () => {
     it('renders content without ScrollView when isHomepageRedesignV1Enabled is true', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        // selectHomepageRedesignV1Enabled
-        if (typeof selector === 'function') {
-          const selectorString = selector.toString();
-          if (selectorString.includes('homepageRedesign')) {
-            return true;
-          }
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === mockSelectHomepageRedesignV1Enabled) {
+          return true;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
           return () => ({
             address: '0x1234567890123456789012345678901234567890',
             id: 'mock-account-id',
@@ -688,12 +704,13 @@ describe('PerpsTabView', () => {
 
     it('renders content with ScrollView when isHomepageRedesignV1Enabled is false', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        // selectHomepageRedesignV1Enabled returns false
-        if (typeof selector === 'function') {
-          const selectorString = selector.toString();
-          if (selectorString.includes('homepageRedesign')) {
-            return false;
-          }
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === mockSelectHomepageRedesignV1Enabled) {
+          return false;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
           return () => ({
             address: '0x1234567890123456789012345678901234567890',
             id: 'mock-account-id',
@@ -718,11 +735,13 @@ describe('PerpsTabView', () => {
 
     it('displays empty state when homepage redesign is enabled and no positions or orders', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        if (typeof selector === 'function') {
-          const selectorString = selector.toString();
-          if (selectorString.includes('homepageRedesign')) {
-            return true;
-          }
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === mockSelectHomepageRedesignV1Enabled) {
+          return true;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
           return () => ({
             address: '0x1234567890123456789012345678901234567890',
             id: 'mock-account-id',

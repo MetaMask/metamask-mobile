@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
@@ -35,6 +35,8 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { DefiEmptyState } from '../DefiEmptyState';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
@@ -136,7 +138,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     }
   }
 
-  const flatListContent = (
+  const content = (
     <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
       {formattedDeFiPositions.map(
         ({ chainId, protocolId, protocolAggregate }) => (
@@ -159,15 +161,14 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     >
       <DeFiPositionsControlBar />
       {formattedDeFiPositions.length > 0 ? (
-        isHomepageRedesignV1Enabled ? (
-          flatListContent
-        ) : (
-          <ScrollView
-            testID={WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW}
-          >
-            {flatListContent}
-          </ScrollView>
-        )
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+          }}
+        >
+          {content}
+        </ConditionalScrollView>
       ) : (
         <DefiEmptyState twClassName="mx-auto mt-4" />
       )}
