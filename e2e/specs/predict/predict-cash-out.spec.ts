@@ -10,7 +10,6 @@ import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_CASH_OUT_MOCKS,
-  POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS,
   POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
@@ -66,16 +65,16 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectTextDisplayed(positionDetails.initialBalance);
 
         await WalletView.tapOnPredictionsPosition(positionDetails.name);
+        await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await PredictDetailsPage.tapPositionsTab();
         // Set up cash out mocks before tapping cash out
+        // POLYMARKET_POST_CASH_OUT_MOCKS handles both the transaction API and balance refresh
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
-        await POLYMARKET_FORCE_BALANCE_REFRESH_MOCKS(mockServer);
         await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
 
         await PredictDetailsPage.tapCashOutButton();
-
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(
@@ -83,6 +82,7 @@ describe(SmokePredictions('Predictions'), () => {
         );
 
         await PredictCashOutPage.tapCashOutButton();
+        await device.enableSynchronization();
 
         await PredictDetailsPage.tapBackButton();
         await TabBarComponent.tapActivity();
