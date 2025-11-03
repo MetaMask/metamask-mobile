@@ -218,6 +218,13 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
             [seedPhraseInputFocusedIndex]: false,
           }));
         }
+
+        if (seedPhraseInputFocusedIndex !== index) {
+          const prevInputRef = seedPhraseInputRefs.current?.get(
+            seedPhraseInputFocusedIndex,
+          );
+          prevInputRef?.blur();
+        }
       }
       setSeedPhraseInputFocusedIndex(index);
       setNextSeedPhraseInputFocusedIndex(index);
@@ -313,7 +320,7 @@ const SrpInputGrid: React.FC<SrpInputGridProps> = ({
           <View style={styles.seedPhraseInputContainer}>
             {seedPhrase.map((item, index) => (
               <SrpInput
-                key={`seed-phrase-item-${uniqueId}-${index}`}
+                key={`seed-phrase-item-${uniqueId}-${index}-${index === 0 && isFirstInput ? 'textarea' : 'grid'}`}
                 ref={(ref) => {
                   const inputRefs = getSeedPhraseInputRef();
                   if (ref) {
