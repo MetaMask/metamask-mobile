@@ -305,9 +305,8 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
@@ -440,9 +439,8 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
@@ -815,9 +813,8 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            const keyringMetadata = await this.importSeedlessMnemonicToVault(
-              mnemonicToRestore,
-            );
+            const keyringMetadata =
+              await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
             if (isMultichainAccountsState2Enabled()) {
@@ -1000,9 +997,8 @@ class AuthenticationService {
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
-          password,
-        );
+        allSRPs =
+          await SeedlessOnboardingController.fetchAllSecretData(password);
         fetchSrpsSuccess = true;
       } catch (error) {
         const errorMessage =

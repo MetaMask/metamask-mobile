@@ -80,7 +80,9 @@ export interface PerpsNavigationParamList extends ParamListBase {
       | 'equity'
       | 'commodity'
       | 'forex'
-      | 'all';
+      | 'all'
+      | 'stocks_and_commodities';
+    fromHome?: boolean;
   };
 
   PerpsMarketDetails: {
@@ -147,6 +149,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
       stopLossPrice?: string,
       trackingData?: TPSLTrackingData,
     ) => Promise<void>;
+  };
+
+  // PnL Hero Card screen
+  PerpsPnlHeroCard: {
+    position: Position;
+    marketPrice?: string;
   };
 
   // Root perps view

@@ -13,7 +13,6 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
-import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -21,6 +20,7 @@ import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
+import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
@@ -202,11 +202,6 @@ const WalletTabStackFlow = () => (
       name="Collectible"
       component={Collectible}
       options={Collectible.navigationOptions}
-    />
-    <Stack.Screen
-      name="ConfirmAddAsset"
-      component={ConfirmAddAsset}
-      options={ConfirmAddAsset.navigationOptions}
     />
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -393,11 +388,6 @@ const SettingsFlow = () => (
       name="ExperimentalSettings"
       component={ExperimentalSettings}
       options={ExperimentalSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name="NetworksSettings"
-      component={NetworksSettings}
-      options={NetworksSettings.navigationOptions}
     />
     <Stack.Screen
       name="CompanySettings"
@@ -950,6 +940,11 @@ const MainNavigator = () => {
         component={AddAsset}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="ConfirmAddAsset"
+        component={ConfirmAddAsset}
+        options={{ headerShown: true }}
+      />
       {isRewardsEnabled && (
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
@@ -1132,6 +1127,15 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
+      {process.env.NODE_ENV !== 'production' && (
+        <Stack.Screen
+          name={Routes.FEATURE_FLAG_OVERRIDE}
+          component={FeatureFlagOverride}
+          options={{
+            headerShown: true,
+          }}
+        />
+      )}
       <Stack.Screen
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}
