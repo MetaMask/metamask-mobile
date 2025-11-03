@@ -53,15 +53,15 @@ main().catch((error: Error): void => {
 });
 
 async function main(): Promise<void> {
-  const PR_COMMENT_TOKEN = process.env.PR_COMMENT_TOKEN;
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
-  if (!PR_COMMENT_TOKEN) {
-    core.setFailed('PR_COMMENT_TOKEN not found');
+  if (!GITHUB_TOKEN) {
+    core.setFailed('GITHUB_TOKEN not found');
     process.exit(1);
   }
 
   // Initialise octokit, required to call Github API
-  const octokit: InstanceType<typeof GitHub> = getOctokit(PR_COMMENT_TOKEN);
+  const octokit: InstanceType<typeof GitHub> = getOctokit(GITHUB_TOKEN);
 
   const owner = context.repo.owner;
   const repo = context.repo.repo;
