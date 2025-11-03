@@ -5,6 +5,7 @@ import { useERC20Tokens } from './useERC20Tokens';
 import { useNftNames } from './useNftName';
 import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
+import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -99,8 +100,9 @@ export function useDisplayNames(
   const nftNames = useNftNames(requests);
   const accountNames = useAccountNames(requests);
   const accountWalletNames = useAccountWalletNames(requests);
+  const { getResolvedENSName } = useSendFlowEnsResolutions();
 
-  return requests.map((_request, index) => {
+  return requests.map(({ value, variation }, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
     const erc20Token = erc20Tokens[index];
@@ -108,9 +110,11 @@ export function useDisplayNames(
       nftNames[index] || {};
     const accountName = accountNames[index];
     const subtitle = accountWalletNames[index];
+    const ensName = getResolvedENSName(variation, value);
 
     const name =
       accountName ||
+      ensName ||
       firstPartyContractName ||
       watchedNftName ||
       erc20Token?.name ||
