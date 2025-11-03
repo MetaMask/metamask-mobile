@@ -321,7 +321,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             <View style={styles.seedPhraseInputContainer}>
               {seedPhrase.map((item, index) => (
                 <SrpInput
-                  key={`seed-phrase-item-${uniqueId}-${index}`}
+                  key={`seed-phrase-item-${uniqueId}-${index}-${index === 0 && isFirstInput ? 'textarea' : 'grid'}`}
                   ref={(ref) => {
                     const inputRefs = getSeedPhraseInputRef();
                     if (ref) {

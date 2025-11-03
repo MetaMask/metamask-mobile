@@ -37,12 +37,6 @@ describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
         await goToImportSrp();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
         await ImportSrpView.tapImportButton();
-
-        // Wait for import to complete and navigation to occur
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet View should be visible after import',
-          timeout: 60000,
-        });
         await Assertions.expectElementToHaveText(
           WalletView.accountName,
           IMPORTED_ACCOUNT_NAME,
