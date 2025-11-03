@@ -167,6 +167,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               newSeedPhrase[index] = text;
               return newSeedPhrase;
             });
+
+            if (text.trim() === '') {
+              setErrorWordIndexes((prev) => ({
+                ...prev,
+                [index]: false,
+              }));
+            }
           }
         } catch (err) {
           Logger.error(err as Error, 'Error handling seed phrase change');
@@ -183,7 +190,24 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       handleSeedPhraseChangeAtIndexRef.current = handleSeedPhraseChangeAtIndex;
     }, [handleSeedPhraseChangeAtIndex]);
 
-    // Handle seed phrase change in first input (textarea mode)
+    // Validate all words for paste/QR scan
+    const validateAllWords = useCallback(() => {
+      const errorsMap: Record<number, boolean> = {};
+      seedPhrase.forEach((word, index) => {
+        const trimmedWord = word.trim();
+        if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
+          errorsMap[index] = true;
+        }
+      });
+      setErrorWordIndexes(errorsMap);
+    }, [seedPhrase]);
+
+    const validateAllWordsRef = useRef(validateAllWords);
+    useEffect(() => {
+      validateAllWordsRef.current = validateAllWords;
+    }, [validateAllWords]);
+
+    // Handle seed phrase change in first input
     const handleSeedPhraseChange = useCallback(
       (seedPhraseText: string) => {
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
@@ -194,14 +218,23 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
         if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
           onSeedPhraseChange(updatedTrimmedText);
+
+          // Validate complete phrases that might have invalid words
           setTimeout(() => {
+            validateAllWordsRef.current();
             setSeedPhraseInputFocusedIndex(null);
             setNextSeedPhraseInputFocusedIndex(null);
             seedPhraseInputRefs.current?.get(0)?.blur();
             Keyboard.dismiss();
-          }, 100);
+          }, 150);
         } else {
           handleSeedPhraseChangeAtIndexRef.current?.(text, 0);
+
+          if (updatedTrimmedText.length > 1) {
+            setTimeout(() => {
+              validateAllWordsRef.current();
+            }, 150);
+          }
         }
       },
       [onSeedPhraseChange],
@@ -279,18 +312,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       return '';
     }, [errorWordIndexes]);
 
-    // Update error word indexes when seed phrase changes
-    useEffect(() => {
-      const errorsMap: Record<number, boolean> = {};
-      seedPhrase.forEach((word, index) => {
-        const trimmedWord = word.trim();
-        if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
-          errorsMap[index] = true;
-        }
-      });
-      setErrorWordIndexes(errorsMap);
-    }, [seedPhrase]);
-
     useEffect(() => {
       onError?.(error);
     }, [error, onError]);
@@ -299,6 +320,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       const text = await Clipboard.getString();
       if (text.trim() !== '') {
         handleSeedPhraseChange(text);
+
+        setTimeout(() => {
+          validateAllWordsRef.current();
+        }, 150);
       }
     }, [handleSeedPhraseChange]);
 

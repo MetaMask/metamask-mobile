@@ -540,6 +540,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(input, invalidMnemonic);
       });
 
+      // Run all timers to execute validation setTimeout (for programmatic multi-word input)
+      act(() => {
+        jest.runAllTimers();
+      });
+
       await waitFor(() => {
         const errorMessage = getByText(
           strings('import_from_seed.spellcheck_error'),

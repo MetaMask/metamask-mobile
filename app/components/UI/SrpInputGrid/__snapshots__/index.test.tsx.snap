@@ -535,7 +535,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#ca3542",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
@@ -666,7 +666,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#ca3542",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
@@ -797,7 +797,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#ca3542",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
@@ -926,20 +926,6 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
     }
   >
     Clear all
-  </Text>
-  <Text
-    accessibilityRole="text"
-    style={
-      {
-        "color": "#ca3542",
-        "fontFamily": "Geist Medium",
-        "fontSize": 14,
-        "letterSpacing": 0,
-        "lineHeight": 22,
-      }
-    }
-  >
-    Use only lowercase letters, check your spelling, and put the words in the original order.
   </Text>
 </View>
 `;
