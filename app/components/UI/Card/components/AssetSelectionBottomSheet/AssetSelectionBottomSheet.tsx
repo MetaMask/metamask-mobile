@@ -11,7 +11,6 @@ import {
 } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectIsAuthenticatedCard,
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   clearCacheData,
@@ -107,7 +106,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const userCardLocation = useSelector(selectUserCardLocation);
@@ -407,27 +405,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       if (a.priority !== undefined && a.priority !== null) return -1;
       if (b.priority !== undefined && b.priority !== null) return 1;
 
-      // If neither has priority (unauthenticated mode), check if either matches priorityToken
-      const aIsPriority =
-        cardExternalWalletDetails?.priorityWalletDetail &&
-        a.address?.toLowerCase() ===
-          cardExternalWalletDetails.priorityWalletDetail.address?.toLowerCase() &&
-        a.caipChainId ===
-          cardExternalWalletDetails.priorityWalletDetail.caipChainId &&
-        a.walletAddress?.toLowerCase() ===
-          cardExternalWalletDetails.priorityWalletDetail.walletAddress?.toLowerCase();
-      const bIsPriority =
-        cardExternalWalletDetails?.priorityWalletDetail &&
-        b.address?.toLowerCase() ===
-          cardExternalWalletDetails.priorityWalletDetail.address?.toLowerCase() &&
-        b.caipChainId ===
-          cardExternalWalletDetails.priorityWalletDetail.caipChainId &&
-        b.walletAddress?.toLowerCase() ===
-          cardExternalWalletDetails.priorityWalletDetail.walletAddress?.toLowerCase();
-
-      if (aIsPriority) return -1;
-      if (bIsPriority) return 1;
-
       if (
         a.allowanceState === AllowanceState.Enabled &&
         b.allowanceState !== AllowanceState.Enabled
@@ -443,7 +420,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     });
   }, [
     tokensWithAllowances,
-    cardExternalWalletDetails,
     sdk,
     hideSolanaAssets,
     delegationSettings,
@@ -647,10 +623,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           // Just close the bottom sheet
           setOpenAssetSelectionBottomSheet(false);
         }
-      } else if (
-        token.allowanceState === AllowanceState.Enabled &&
-        isAuthenticated
-      ) {
+      } else if (token.allowanceState === AllowanceState.Enabled) {
         // Token is already delegated, update priority directly
         await updatePriority(token);
       } else {
@@ -672,7 +645,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
       selectionOnly,
       onTokenSelect,
       isPriorityToken,
-      isAuthenticated,
       navigateToCardHomeOnPriorityToken,
       closeBottomSheetAndNavigate,
       navigation,
@@ -773,7 +745,10 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
                     : ''
                 }
               >
-                <ListItemSelect onPress={() => handleTokenPress(item)}>
+                <ListItemSelect
+                  onPress={() => handleTokenPress(item)}
+                  testID={`asset-select-item-${item.symbol}-${item.caipChainId}`}
+                >
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
