@@ -989,7 +989,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                BSC Mainnet
+                                                BNB Chain
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1170,7 +1170,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Sei Mainnet
+                                                Sei
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1351,7 +1351,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Polygon Mainnet
+                                                Polygon
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1532,7 +1532,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Optimism Mainnet
+                                                OP
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1713,7 +1713,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Arbitrum One
+                                                Arbitrum
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
