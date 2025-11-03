@@ -52,7 +52,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('42161'),
-    nickname: 'Arbitrum One',
+    nickname: 'Arbitrum',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
     ticker: 'ETH',
@@ -64,7 +64,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('56'),
-    nickname: 'BSC Mainnet',
+    nickname: 'BNB Chain',
     rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
     ticker: 'BNB',
@@ -90,7 +90,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('10'),
-    nickname: 'Optimism Mainnet',
+    nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
     ticker: 'ETH',
@@ -113,7 +113,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('137'),
-    nickname: 'Polygon Mainnet',
+    nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
     ticker: 'POL',
@@ -137,7 +137,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('1329'),
-    nickname: 'Sei Mainnet',
+    nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'SEI',
