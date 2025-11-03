@@ -34,6 +34,7 @@ import {
   updateOnRampNetworks,
   setFiatSellTxHash,
   removeFiatSellTxHash,
+  setDetectedGeolocation,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -103,6 +104,7 @@ export interface FiatOrdersState {
   getStartedDeposit: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
+  detectedGeolocation?: string;
 }
 
 export const ACTIONS = {
@@ -131,6 +133,7 @@ export const ACTIONS = {
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
   FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
+  FIAT_SET_DETECTED_GEOLOCATION: 'FIAT_SET_DETECTED_GEOLOCATION',
 } as const;
 
 export type Action =
@@ -156,7 +159,8 @@ export type Action =
   | ReturnType<typeof removeActivationKey>
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
-  | ReturnType<typeof removeFiatSellTxHash>;
+  | ReturnType<typeof removeFiatSellTxHash>
+  | ReturnType<typeof setDetectedGeolocation>;
 
 export type Region = Country & State;
 

@@ -37,7 +37,7 @@ describe('removeEvmToken', () => {
       ({
         addProperties: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue('mockEvent'),
-      } as unknown as MetricsEventBuilder),
+      }) as unknown as MetricsEventBuilder,
   );
 
   const mockProps = {

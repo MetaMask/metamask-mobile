@@ -66,7 +66,8 @@ const mockMarket: PredictMarket = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [mockOutcome],
   liquidity: 1000000,
   volume: 1000000,
@@ -115,8 +116,8 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    expect(getByText('Yes • 65.00¢')).toBeOnTheScreen();
-    expect(getByText('No • 35.00¢')).toBeOnTheScreen();
+    expect(getByText(/65\.00¢/)).toBeOnTheScreen();
+    expect(getByText(/35\.00¢/)).toBeOnTheScreen();
   });
 
   it('handles button press events', () => {
@@ -125,8 +126,8 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText('Yes • 65.00¢');
-    const noButton = getByText('No • 35.00¢');
+    const yesButton = getByText(/65\.00¢/);
+    const noButton = getByText(/35\.00¢/);
 
     fireEvent.press(yesButton);
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -209,7 +210,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText('Yes • 65.00¢');
+    const yesButton = getByText(/65\.00¢/);
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -228,7 +229,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText('No • 35.00¢');
+    const noButton = getByText(/35\.00¢/);
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -248,7 +249,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText('Yes • 65.00¢');
+    const yesButton = getByText(/65\.00¢/);
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -268,7 +269,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText('No • 35.00¢');
+    const noButton = getByText(/35\.00¢/);
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -291,7 +292,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText('Yes • 65.00¢');
+    const yesButton = getByText(/65\.00¢/);
     fireEvent.press(yesButton);
 
     // Should navigate to unavailable (not add funds sheet)
@@ -318,7 +319,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText('No • 35.00¢');
+    const noButton = getByText(/35\.00¢/);
     fireEvent.press(noButton);
 
     // Should navigate to unavailable (not add funds sheet)
@@ -339,7 +340,7 @@ describe('PredictMarketOutcome', () => {
       ],
     };
 
-    const { getByText } = renderWithProvider(
+    const { getByText, getAllByText } = renderWithProvider(
       <PredictMarketOutcome
         outcome={outcomeWithZeroPriceTokens}
         market={mockMarket}
@@ -348,9 +349,8 @@ describe('PredictMarketOutcome', () => {
     );
 
     expect(getByText('0%')).toBeOnTheScreen();
-    // Should show buttons with 0.00¢ prices
-    expect(getByText('Yes • 0.00¢')).toBeOnTheScreen();
-    expect(getByText('No • 0.00¢')).toBeOnTheScreen();
+    // Should show two buttons with 0.00¢ prices
+    expect(getAllByText(/0\.00¢/)).toHaveLength(2);
   });
 
   it('displays empty title when groupItemTitle is missing', () => {
@@ -436,8 +436,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(queryByText('Yes • 65.00¢')).not.toBeOnTheScreen();
-      expect(queryByText('No • 35.00¢')).not.toBeOnTheScreen();
+      expect(queryByText(/65\.00¢/)).not.toBeOnTheScreen();
+      expect(queryByText(/35\.00¢/)).not.toBeOnTheScreen();
     });
 
     it('shows action buttons when market is not closed', () => {
@@ -450,8 +450,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(getByText('Yes • 65.00¢')).toBeOnTheScreen();
-      expect(getByText('No • 35.00¢')).toBeOnTheScreen();
+      expect(getByText(/65\.00¢/)).toBeOnTheScreen();
+      expect(getByText(/35\.00¢/)).toBeOnTheScreen();
     });
 
     it('uses outcomeToken title when market is closed and outcomeToken is provided', () => {

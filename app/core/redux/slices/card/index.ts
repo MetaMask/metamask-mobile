@@ -148,6 +148,12 @@ const slice = createSlice({
         contactVerificationId: null,
       };
     },
+    resetAuthenticatedData: (state) => {
+      state.authenticatedPriorityToken = null;
+      state.authenticatedPriorityTokenLastFetched = null;
+      state.userCardLocation = 'international';
+      state.isAuthenticated = false;
+    },
     setCacheData: (
       state,
       action: PayloadAction<{ key: string; data: unknown; timestamp: number }>,
@@ -222,8 +228,8 @@ export const selectCardPriorityToken = (
     authenticated
       ? card.authenticatedPriorityToken
       : address
-      ? card.priorityTokensByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.priorityTokensByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectCardPriorityTokenLastFetched = (
@@ -234,8 +240,8 @@ export const selectCardPriorityTokenLastFetched = (
     authenticated
       ? card.authenticatedPriorityTokenLastFetched
       : address
-      ? card.lastFetchedByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.lastFetchedByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectIsCardCacheValid = (
@@ -372,4 +378,5 @@ export const {
   setCacheData,
   clearCacheData,
   clearAllCache,
+  resetAuthenticatedData,
 } = actions;

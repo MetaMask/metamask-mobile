@@ -174,9 +174,8 @@ const Settings: React.FC = () => {
   }, [colors, navigation]);
 
   const handleHintText = useCallback(async () => {
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
@@ -243,9 +242,8 @@ const Settings: React.FC = () => {
   const saveHint = async () => {
     if (!hintText) return;
     toggleHint();
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     if (currentSeedphraseHints) {
       const parsedHints = JSON.parse(currentSeedphraseHints);
       await StorageWrapper.setItem(
