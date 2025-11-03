@@ -1,5 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { checkForUpdateAsync, fetchUpdateAsync, reloadAsync } from 'expo-updates';
+import {
+  checkForUpdateAsync,
+  fetchUpdateAsync,
+  reloadAsync,
+} from 'expo-updates';
 import { useSelector } from 'react-redux';
 import { selectOTAUpdatesEnabled } from '../../selectors/featureFlagController/otaUpdatesEnabled';
 import Logger from '../../util/Logger';
@@ -15,15 +19,15 @@ export const useOTAUpdates = () => {
 
   useEffect(() => {
     const checkForUpdates = async () => {
-      if (!otaUpdatesEnabled) {
-        Logger.log('OTA Updates: Feature flag disabled, skipping update check');
-        return;
-      }
+      // if (!otaUpdatesEnabled) {
+      //   Logger.log('OTA Updates: Feature flag disabled, skipping update check');
+      //   return;
+      // }
 
-      if (__DEV__) {
-        Logger.log('OTA Updates: Skipping in development mode');
-        return;
-      }
+      // if (__DEV__) {
+      //   Logger.log('OTA Updates: Skipping in development mode');
+      //   return;
+      // }
 
       try {
         const update = await checkForUpdateAsync();
