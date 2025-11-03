@@ -33,9 +33,8 @@ jobs:
         run: yarn install --immutable
 
       - name: Identify codeowners
-        if: ${{ env.PR_COMMENT_TOKEN }}
+        if: ${{ secrets.PR_COMMENT_TOKEN }}
         env:
           PR_COMMENT_TOKEN: ${{ secrets.PR_COMMENT_TOKEN }}
         working-directory: .github/scripts
         run: yarn ts-node ./identify-codeowners.ts
-
