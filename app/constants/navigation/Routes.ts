@@ -257,6 +257,7 @@ const Routes = {
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
+    PNL_HERO_CARD: 'PerpsPnlHeroCard',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
@@ -359,6 +360,7 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    NOTIFICATION: 'CardNotification',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     ONBOARDING: {
