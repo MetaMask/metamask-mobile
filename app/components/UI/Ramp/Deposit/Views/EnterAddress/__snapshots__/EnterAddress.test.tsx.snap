@@ -1616,6 +1616,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -3221,6 +3222,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -4834,6 +4836,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -6467,6 +6470,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                 loading={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",

@@ -822,6 +822,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       activeOpacity={1}
                                       onPress={[Function]}
                                       onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -1788,6 +1789,7 @@ exports[`BridgeView renders 1`] = `
                                       activeOpacity={1}
                                       onPress={[Function]}
                                       onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",

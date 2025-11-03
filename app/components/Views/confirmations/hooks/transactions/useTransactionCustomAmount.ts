@@ -19,6 +19,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectPredictBalanceByAddress } from '../../components/predict-confirmations/predict-temp';
 import { RootState } from '../../../../../reducers';
 import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -174,9 +175,10 @@ function getTokenAddress(transactionMeta: TransactionMeta | undefined): Hex {
 function useTokenBalance() {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const from = (transactionMeta?.txParams?.from ?? '0x0') as Hex;
+  const { convertFiat } = useTransactionPayFiat();
 
   const { payToken } = useTransactionPayToken();
-  const payTokenBalance = payToken?.tokenFiatAmount ?? 0;
+  const payTokenBalance = convertFiat(payToken?.tokenFiatAmount ?? 0);
 
   const predictBalance = useSelector((state: RootState) =>
     selectPredictBalanceByAddress(state, from),

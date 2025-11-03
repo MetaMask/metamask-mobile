@@ -349,6 +349,9 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    NOTIFICATION: 'CardNotification',
+    SPENDING_LIMIT: 'CardSpendingLimit',
+    CHANGE_ASSET: 'CardChangeAsset',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -362,6 +365,7 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
+      WEBVIEW: 'CardOnboardingWebview',
     },
   },
   SEND: {

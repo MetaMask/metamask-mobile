@@ -221,6 +221,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -258,6 +259,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -293,6 +295,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1906,6 +1909,7 @@ exports[`OrdersList renders correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1941,6 +1945,7 @@ exports[`OrdersList renders correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -1978,6 +1983,7 @@ exports[`OrdersList renders correctly 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -3718,6 +3724,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -3755,6 +3762,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -3790,6 +3798,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -3963,6 +3972,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4000,6 +4010,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4037,6 +4048,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4234,6 +4246,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4271,6 +4284,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4308,6 +4322,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4742,6 +4757,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4779,6 +4795,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -4816,6 +4833,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -5363,6 +5381,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -5398,6 +5417,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -5435,6 +5455,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               activeOpacity={1}
               onPress={[Function]}
               onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",

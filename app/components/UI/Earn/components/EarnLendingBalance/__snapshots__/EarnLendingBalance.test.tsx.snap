@@ -19,6 +19,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -488,6 +489,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -527,6 +529,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",

@@ -1,4 +1,25 @@
 {
+  "sample_feature": {
+    "title": "Sample Feature",
+    "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
+    "counter": {
+      "title": "Counter",
+      "value": "Value: {{value}}",
+      "increment": "Increment Redux Counter"
+    },
+    "pet_name": {
+      "list_count_text": "Pet Names on this network",
+      "add_pet_name_button": "Add Pet Name",
+      "address": "Address",
+      "address_placeholder": "0x...",
+      "name": "Name",
+      "name_placeholder": "Name",
+      "duplicate_title": "Address already exists",
+      "duplicate_message": "This address already has a pet name. Do you want to update it?",
+      "cancel": "Cancel",
+      "update": "Update"
+    }
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
@@ -74,6 +95,10 @@
     "perps_hardware_account": {
       "title": "Wallet not supported",
       "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+    },
+    "burn_address": {
+      "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
+      "title": "Sending Assets to Burn Address"
     }
   },
   "blockaid_banner": {
@@ -1196,6 +1221,7 @@
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
       "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
+      "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
       "no_amount_selected": "Please select an amount to close",
       "order_type_reverted_to_market_order": "Changed to market order",
       "you_need_set_price_limit_order": "You need to set a price for a limit order."
@@ -5899,6 +5925,7 @@
   },
   "card": {
     "card": "MetaMask Card",
+    "card_button_enabled_toast": "You can now sign up for MetaMask Card!",
     "add_funds_bottomsheet": {
       "deposit": "Fund with cash",
       "deposit_description": "Low-cost card or bank transfer",
@@ -5907,31 +5934,40 @@
       "select_method": "Select method"
     },
     "card_onboarding": {
-      "title": "Welcome to Card",
-      "description": "To use card features, you’ll need to verify your account with our partner.",
-      "verify_account_button": "Verify account",
+      "title": "Enable MetaMask Card features",
+      "description": "Change your spending token and network by signing in with your Crypto Life email and password.",
+      "verify_account_button": "Sign in",
+      "non_cardholder_title": "Welcome to MetaMask Card",
+      "non_cardholder_description": "MetaMask Card is the free and easy way to spend your crypto, with rich onchain rewards.",
+      "non_cardholder_verify_account_button": "Get started",
       "sign_up": {
-        "title": "Sign-up",
-        "description": "Register your details with Crypto Life, the provider of MetaMask Card. You'll use this account to access and manage your card.",
+        "title": "Sign up",
+        "description": "Register with Crypto Life, the provider for MetaMask Card. Use these credentials to manage your card.",
+        "i_already_have_an_account": "I already have an account",
         "email_label": "Email",
         "password_label": "Password",
-        "confirm_password_label": "Confirm password",
+        "confirm_password_label": "Re-enter your password",
         "country_label": "Country of Residence",
         "email_placeholder": "Enter your email address",
-        "password_placeholder": "Enter your password",
+        "password_placeholder": "Must be 15+ characters long",
+        "confirm_password_placeholder": "Re-enter your password",
         "country_placeholder": "Select your country",
         "password_mismatch": "Passwords do not match",
-        "invalid_email": "Invalid email address"
+        "invalid_email": "Invalid email address",
+        "invalid_password": "Password must be at least 15 characters long and not contain non-printable characters or consecutive spaces"
       },
       "confirm_email": {
         "title": "Confirm your email",
         "description": "We've sent a confirmation code to: {{email}}",
         "confirm_code_label": "Confirmation code",
-        "confirm_code_placeholder": "Enter the confirmation code"
+        "confirm_code_placeholder": "Enter the 6-digit code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend code in {{seconds}}s",
+        "account_exists": "Please log in to proceed with your onboarding"
       },
       "set_phone_number": {
         "title": "Phone number",
-        "description": "Enter your phone number",
+        "description": "We'll send your confirmation code to this number",
         "phone_number_label": "Phone number",
         "phone_number_placeholder": "Enter your phone number",
         "country_area_code_label": "Country area code",
@@ -5940,24 +5976,28 @@
       },
       "confirm_phone_number":{
         "title": "Confirm your phone number",
-        "description": "We've sent a confirmation code to: {{phoneNumber}}",
-        "confirm_code_label": "Confirmation code"
+        "description": "We've sent a confirmation code to:\n{{phoneNumber}}",
+        "confirm_code_label": "Confirmation code",
+        "resend_verification": "Resend verification code",
+        "resend_cooldown": "Resend code in {{seconds}}s"
       },
       "verify_identity": {
-        "title": "Verifying your identity to get your card",
-        "description": "To keep your account secure and comply with regulations, we need to verify your identity.\n\nYou'll need a government-issued ID and a proof of address (like a utility bill or bank statement).\n\nVerification usually takes 5-30 minutes, and we'll notify you as soon as it's complete.",
-        "verify_button": "Verify now with Veriff"
+        "title": "Next, verify your identity",
+        "description": "To keep your account secure, Crypto Life needs to verify your identity through Veriff.\n\nYour info goes directly to Veriff and Crypto Life, MetaMask never sees or stores it.\n\nHave your ID and proof of address ready. This usually takes 5 minutes.",
+        "verify_button": "Start verification",
+        "start_verification_error": "Error starting verification. Please try again shortly."
       },
       "validating_kyc": {
-        "title": "Validating your KYC..."
+        "title": "Validating your KYC...",
+        "timeout_button": "Restart verification"
       },
       "kyc_failed": {
         "title": "Rejected",
         "description": "Your KYC was rejected. Please try again."
       },
       "personal_details": {
-        "title": "Personal details",
-        "description": "Enter your personal details",
+        "title": "Now, our partner needs some info about you",
+        "description": "Don't worry, this info is private and we never see it",
         "first_name_label": "First name",
         "last_name_label": "Last name",
         "date_of_birth_label": "Date of birth",
@@ -5969,24 +6009,35 @@
         "nationality_placeholder": "Select your nationality",
         "ssn_placeholder": "Enter your SSN",
         "invalid_ssn": "Invalid SSN",
-        "invalid_date_of_birth":"Invalid date of birth",
-        "invalid_date_of_birth_underage": "You must be at least 18 years old"
+        "invalid_date_of_birth":"Invalid date of birth. You must be at least 18 years old"
       },
       "physical_address": {
-        "title": "Physical address",
-        "description": "Please provide your physical address",
+        "title": "Residential address",
+        "description": "Please provide your physical residence address to Crypto Life",
         "address_line_1_label": "Address line 1",
         "address_line_2_label": "Address line 2",
         "city_label": "City",
         "state_label": "State",
-        "zip_code_label": "ZIP code",
-        "address_line_1_placeholder": "Enter your address line 1",
-        "address_line_2_placeholder": "Enter your address line 2",
+        "zip_code_label": "ZIP or Postal code",
+        "address_line_1_placeholder": "Street address",
+        "address_line_2_placeholder": "Floor, apartment or suite number",
         "city_placeholder": "Enter your city",
         "state_placeholder": "Enter your state",
-        "zip_code_placeholder": "Enter your ZIP code",
-        "same_mailing_address_label": "Physical address is the same as mailing address",
-        "electronic_consent":"I agree to the E-Sign Act Consent and Disclosure and to receive all communictions electronically."
+        "zip_code_placeholder": "Enter your ZIP code or postal code",
+        "same_mailing_address_label": "Residential address is the same as mailing address",
+        "electronic_consent_1": "I agree to the ",
+        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
+        "electronic_consent_3": " and to receive all communications electronically",
+        "terms_and_conditions_1": "I agree to the ",
+        "terms_and_conditions_2": "Terms and Conditions",
+        "terms_and_conditions_3": " of MetaMask Card",
+        "privacy_policy_1": "I agree to the data practices described in the ",
+        "privacy_policy_2": "Privacy Policy",
+        "right_to_information_1": "I have been informed of my ",
+        "right_to_information_2": "Right to Information",
+        "right_to_information_3": " as provided by law",
+        "account_opening_disclosure_1": "I agree to the terms, conditions, fees, and features outlined in the ",
+        "account_opening_disclosure_2": "Account Opening Disclosure"
       },
       "mailing_address": {
         "title": "Mailing address",
@@ -5994,19 +6045,43 @@
       },
       "complete": {
         "title": "Approved!",
-        "description": "Your KYC was approved. You can now use your Card."
+        "description": "Your KYC was approved. You can now use MetaMask Card."
       },
        "continue_button": "Next",
        "confirm_button": "Confirm",
-       "retry_button":"Try again"
+       "retry_button":"Try again",
+       "errors": {
+        "email_already_exists": "Email already exists. Please use a different email.",
+        "invalid_email_format": "Invalid email format. Please check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Please request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
+        "create_user_failed": "Failed to create user. Please try again."
+      }
     },
     "card_home": {
-      "error_title": "Can’t fetch data",
+      "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
+      "enable_card_button_label": "Enable Card",
+      "enable_assets_button_label": "Enable Assets",
+      "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
+      "logout": "Log out",
+      "logout_description": "Log out from your MetaMask Card account",
+      "logout_confirmation_title": "Log out of Card?",
+      "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
+      "logout_confirmation_cancel": "Cancel",
+      "logout_confirmation_confirm": "Log out",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6014,21 +6089,75 @@
           "confirm_button_label": "Set new limit"
         },
         "need_delegation": {
-          "title": "You need to delegate assets",
-          "description": "Delegate assets to your Card to start spending",
-          "confirm_button_label": "Delegate assets"
+          "title": "You need to enable your card",
+          "description": "Choose an asset to start spending",
+          "confirm_button_label": "Enable card"
+        },
+        "no_card": {
+          "title": "You need to enable your card",
+          "description": "Please enable your card to start spending"
+        },
+        "frozen": {
+          "title": "Your card is frozen",
+          "description": "Please contact support to unfreeze your card"
+        },
+        "blocked": {
+          "title": "Your card is blocked",
+          "description": "Please contact support to unblock your card"
         }
       },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
-        "manage_spending_limit_description_restricted": "Restricted spending limit is on",
-        "manage_spending_limit_description_full": "Full spending access is on",
+        "manage_spending_limit_description_restricted": "Limited spending is on",
+        "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "Detailed transactions, freeze card, and more"
+        "advanced_card_management_description": "See card details, transactions and more"
       }
     },
+    "card_spending_limit": {
+      "title_change_token": "Change token and network",
+      "title_enable_token": "Enable token",
+      "full_access_title": "Full access",
+      "full_access_description": "Your card can use your funds automatically, without asking for approval each time.",
+      "restricted_limit_title": "Limited spending",
+      "restricted_limit_description": "You'll need to come back and pay a network fee every time you want to increase the limit.",
+      "edit_limit": "Edit limit",
+      "confirm_new_limit": "Confirm",
+      "cancel": "Cancel",
+      "set_new_limit": "Set a limit",
+      "dismiss": "Dismiss",
+      "update_success": "Spending limit updated successfully",
+      "update_error": "Failed to update spending limit",
+      "solana_not_supported": "Enable Solana tokens on card.metamask.io"
+    },
+    "change_asset": {
+      "title": "Change token and network",
+      "full_spending_access": "Full spending access",
+      "full_spending_description": "Your card can use your funds automatically, without asking for approval each time.",
+      "edit_limit": "Edit limit",
+      "enable_token": "Enable token",
+      "cancel": "Cancel",
+      "done": "Done",
+      "confirm": "Confirm",
+      "checking_allowance": "Checking token allowance...",
+      "token_not_enabled": "This token needs to be enabled for card spending",
+      "token_enabled": "Token is enabled for card spending"
+    },
+    "select_asset": "Select token and network",
+    "search_tokens": "Search tokens",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_available": "No tokens available",
+    "asset_selection": {
+      "enabled": "Enabled",
+      "limited": "Limited",
+      "not_enabled": "Not enabled",
+      "update_success": "Spend priority updated successfully",
+      "update_error": "Failed to update spend priority",
+      "solana_not_supported_button_title": "Others tokens on Solana",
+      "solana_not_supported_button_description": "Enable on card.metamask.io"
+    },
     "card_authentication": {
-      "title": "Log in to your Card account",
+      "title": "Log in to your MetaMask Card account",
       "location_button_text": "International",
       "location_button_text_us": "US account",
       "email_label": "Email",
@@ -6036,6 +6165,7 @@
       "email_placeholder": "Enter your email address",
       "password_placeholder": "Enter your password",
       "login_button": "Log in",
+      "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "unknown_error": "Unknown error, please try again later",

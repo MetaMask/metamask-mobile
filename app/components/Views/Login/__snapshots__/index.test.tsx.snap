@@ -270,6 +270,9 @@ exports[`Login renders matching snapshot 1`] = `
             activeOpacity={1}
             disabled={true}
             loading={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -308,6 +311,7 @@ exports[`Login renders matching snapshot 1`] = `
             disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -632,6 +636,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             loading={false}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -669,6 +674,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",

@@ -32,7 +32,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
     outputs:
@@ -84,7 +84,7 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      # # Generate fingerprint AFTER setup but BEFORE any build modifications
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
