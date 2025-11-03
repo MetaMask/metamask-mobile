@@ -249,8 +249,8 @@ describe('TokenList', () => {
   });
 
   it('applies contentContainerStyle when isFullView is true', () => {
-    const { getByTestId } = renderComponent({ 
-      isFullView: true 
+    const { getByTestId } = renderComponent({
+      isFullView: true,
     });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
@@ -296,7 +296,9 @@ describe('TokenList', () => {
   });
 
   it('handles undefined tokenKeys gracefully', () => {
-    const { getByTestId, queryByTestId } = renderComponent({ tokenKeys: undefined });
+    const { getByTestId, queryByTestId } = renderComponent({
+      tokenKeys: undefined,
+    });
 
     expect(
       getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
@@ -316,7 +318,10 @@ describe('TokenList', () => {
   });
 
   it('shows refreshing state correctly', () => {
-    const { getByTestId } = renderComponent({ refreshing: true, isFullView: true });
+    const { getByTestId } = renderComponent({
+      refreshing: true,
+      isFullView: true,
+    });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const refreshControl = flashList.props.refreshControl;

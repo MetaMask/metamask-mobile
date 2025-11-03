@@ -181,13 +181,10 @@ const PredictPositions = forwardRef<
             {claimablePositions
               .sort(
                 (a, b) =>
-                  new Date(b.endDate).getTime() -
-                  new Date(a.endDate).getTime(),
+                  new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
               )
               .map((item) => (
-                <React.Fragment
-                  key={`${item.outcomeId}:${item.outcomeIndex}`}
-                >
+                <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
                   {renderResolvedPosition({ item })}
                 </React.Fragment>
               ))}
