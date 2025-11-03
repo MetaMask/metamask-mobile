@@ -190,22 +190,17 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       handleSeedPhraseChangeAtIndexRef.current = handleSeedPhraseChangeAtIndex;
     }, [handleSeedPhraseChangeAtIndex]);
 
-    // Validate all words for paste/QR scan
-    const validateAllWords = useCallback(() => {
+    // Helper to validate words
+    const validateWords = useCallback((words: string[]) => {
       const errorsMap: Record<number, boolean> = {};
-      seedPhrase.forEach((word, index) => {
+      words.forEach((word, index) => {
         const trimmedWord = word.trim();
         if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
           errorsMap[index] = true;
         }
       });
-      setErrorWordIndexes(errorsMap);
-    }, [seedPhrase]);
-
-    const validateAllWordsRef = useRef(validateAllWords);
-    useEffect(() => {
-      validateAllWordsRef.current = validateAllWords;
-    }, [validateAllWords]);
+      return errorsMap;
+    }, []);
 
     // Handle seed phrase change in first input
     const handleSeedPhraseChange = useCallback(
@@ -221,7 +216,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
           // Validate complete phrases that might have invalid words
           setTimeout(() => {
-            validateAllWordsRef.current();
+            setErrorWordIndexes(validateWords(updatedTrimmedText));
             setSeedPhraseInputFocusedIndex(null);
             setNextSeedPhraseInputFocusedIndex(null);
             seedPhraseInputRefs.current?.get(0)?.blur();
@@ -232,12 +227,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
           if (updatedTrimmedText.length > 1) {
             setTimeout(() => {
-              validateAllWordsRef.current();
+              setErrorWordIndexes(validateWords(updatedTrimmedText));
             }, 150);
           }
         }
       },
-      [onSeedPhraseChange],
+      [onSeedPhraseChange, validateWords],
     );
 
     // Handle focus change with validation
@@ -320,10 +315,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       const text = await Clipboard.getString();
       if (text.trim() !== '') {
         handleSeedPhraseChange(text);
-
-        setTimeout(() => {
-          validateAllWordsRef.current();
-        }, 150);
       }
     }, [handleSeedPhraseChange]);
 
