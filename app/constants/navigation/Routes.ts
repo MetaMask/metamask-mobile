@@ -321,6 +321,7 @@ const Routes = {
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',
+    SNAP_DIALOG_APPROVAL: 'SnapDialogApproval',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',

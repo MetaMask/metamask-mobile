@@ -23,6 +23,7 @@ export async function sendMultichainTransactionForReview(
     request: {
       method: 'confirmSend',
       params,
+      // isSendFlowRequest: true,
     },
   });
 }
