@@ -90,6 +90,7 @@ const mockPriorityToken = {
   decimals: 6,
   balance: '1000000000',
   allowance: '500000000',
+  totalAllowance: '1000',
   name: 'USD Coin',
   chainId: 1,
   caipChainId: 'eip155:1',
@@ -1580,6 +1581,142 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByText('Limited spending allowance'),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('SpendingLimitProgressBar', () => {
+    it('renders when authenticated and allowance is limited', () => {
+      // Given: authenticated with limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display spending limit progress bar
+      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
+      expect(screen.getByText('500/1000 USDC')).toBeOnTheScreen();
+    });
+
+    it('does not render when not authenticated', () => {
+      // Given: not authenticated with limited allowance
+      setupMockSelectors({ isAuthenticated: false });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: false,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('does not render when allowance is enabled', () => {
+      // Given: authenticated with enabled allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const enabledAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Enabled,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: enabledAllowanceToken,
+        allTokens: [enabledAllowanceToken],
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('displays correct consumed and total amounts', () => {
+      // Given: authenticated with specific allowance values
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '200',
+        allowance: '150',
+        symbol: 'USDC',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display correct consumed amount (50/200)
+      expect(screen.getByText('50/200 USDC')).toBeOnTheScreen();
+    });
+
+    it('handles zero remaining allowance', () => {
+      // Given: authenticated with zero remaining allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '0',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display fully consumed allowance
+      expect(screen.getByText('1000/1000 USDC')).toBeOnTheScreen();
+    });
+
+    it('handles undefined allowance values', () => {
+      // Given: authenticated with undefined allowance values
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: undefined as unknown as string,
+        allowance: undefined as unknown as string,
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display zero values as fallback
+      expect(screen.getByText('0/0 USDC')).toBeOnTheScreen();
     });
   });
 });

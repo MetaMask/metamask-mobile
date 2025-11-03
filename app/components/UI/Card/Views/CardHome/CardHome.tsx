@@ -731,8 +731,8 @@ const CardHome = () => {
           priorityToken?.allowanceState === AllowanceState.Limited && (
             <SpendingLimitProgressBar
               decimals={priorityToken?.decimals ?? 6}
-              totalAllowance={'1000'}
-              remainingAllowance={'899'}
+              totalAllowance={priorityToken?.totalAllowance ?? '0'}
+              remainingAllowance={priorityToken?.allowance ?? '0'}
               symbol={priorityToken?.symbol ?? ''}
             />
           )}
