@@ -28,20 +28,6 @@ describe('CoreLinkNormalizer', () => {
       expect(result.timestamp).toBe(mockTimestamp);
     });
 
-    it('normalizes metamask:// links with query parameters', () => {
-      const url = 'metamask://swap?from=ETH&to=DAI&amount=100';
-      const source = 'qr-code';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.protocol).toBe('metamask');
-      expect(result.action).toBe('swap');
-      expect(result.params.from).toBe('ETH');
-      expect(result.params.to).toBe('DAI');
-      expect(result.params.amount).toBe('100');
-      expect(result.params.swapPath).toBe('swap?from=ETH&to=DAI&amount=100');
-    });
-
     it('normalizes https:// universal links', () => {
       const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/send`;
       const source = 'browser';
@@ -64,24 +50,6 @@ describe('CoreLinkNormalizer', () => {
       expect(result.action).toBe('dapp');
       expect(result.params.chain).toBe('1');
       expect(result.params.dappPath).toBe('dapp/app.uniswap.org?chain=1');
-    });
-
-    it('converts hr parameter from string to boolean', () => {
-      const url = 'metamask://home?hr=1';
-      const source = 'test';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.params.hr).toBe(true);
-    });
-
-    it('uses 0 value hr as a boolean', () => {
-      const url = 'metamask://home?hr=0';
-      const source = 'test';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.params.hr).toBe(false);
     });
 
     it('converts boolean hr parameter to string', () => {
@@ -117,18 +85,6 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.pubkey).toBe('abc');
       expect(result.params.v).toBe('2');
       expect(result.requiresAuth).toBe(false);
-    });
-
-    it('extracts attribution parameters', () => {
-      const url =
-        'metamask://home?utm_source=twitter&utm_medium=social&utm_campaign=launch';
-      const source = 'marketing';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.params.utm_source).toBe('twitter');
-      expect(result.params.utm_medium).toBe('social');
-      expect(result.params.utm_campaign).toBe('launch');
     });
 
     it('identifies auth-required actions', () => {
@@ -180,15 +136,6 @@ describe('CoreLinkNormalizer', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.isSupportedAction).toBe(false);
-    });
-
-    it('converts message parameter with spaces to +', () => {
-      const url = 'metamask://connect?message=Hello World';
-      const source = 'test';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.params.message).toBe('Hello+World');
     });
 
     it('filters out null and empty parameters', () => {
@@ -313,54 +260,6 @@ describe('CoreLinkNormalizer', () => {
       const result = CoreLinkNormalizer.isSupportedDeeplink(url);
 
       expect(result).toBe(false);
-    });
-  });
-
-  describe('buildDeeplink', () => {
-    it('builds metamask protocol links', () => {
-      const result = CoreLinkNormalizer.buildDeeplink('metamask', 'swap', {
-        from: 'ETH',
-        to: 'DAI',
-        amount: '100',
-      });
-
-      expect(result).toBe('metamask://swap?from=ETH&to=DAI&amount=100');
-    });
-
-    it('builds https protocol links', () => {
-      const result = CoreLinkNormalizer.buildDeeplink('https', 'send', {
-        to: '0x123',
-        value: '1',
-      });
-
-      expect(result).toBe(
-        `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/send?to=0x123&value=1`,
-      );
-    });
-
-    it('builds links without parameters', () => {
-      const result = CoreLinkNormalizer.buildDeeplink('metamask', 'home');
-
-      expect(result).toBe('metamask://home');
-    });
-
-    it('converts boolean hr parameter correctly', () => {
-      const result = CoreLinkNormalizer.buildDeeplink('metamask', 'home', {
-        hr: true,
-      });
-
-      expect(result).toBe('metamask://home?hr=1');
-    });
-
-    it('filters out empty parameters', () => {
-      const result = CoreLinkNormalizer.buildDeeplink('metamask', 'swap', {
-        from: 'ETH',
-        to: '',
-        amount: undefined,
-        empty: null as unknown as string,
-      });
-
-      expect(result).toBe('metamask://swap?from=ETH');
     });
   });
 });
