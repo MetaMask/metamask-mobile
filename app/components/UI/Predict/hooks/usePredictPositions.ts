@@ -205,7 +205,7 @@ export function usePredictPositions(
     // Get claimable positions from controller state if claimable is true.
     // This will ensure that we can refresh claimable positions when the user
     // performs a claim operation.
-    positions: claimable ? claimablePositions : positions,
+    positions: claimable ? [...claimablePositions] : positions,
     isLoading,
     isRefreshing,
     error,
