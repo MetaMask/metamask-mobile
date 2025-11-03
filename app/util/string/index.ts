@@ -93,5 +93,5 @@ export const formatSeedPhraseToSingleLine = (seedPhrase: string) =>
 
 export const toSentenceCase = (str: string): string => {
   if (!str) return '';
-  return str.charAt(0).toLocaleUpperCase() + str.slice(1).toLocaleLowerCase();
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
