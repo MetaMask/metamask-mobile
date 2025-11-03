@@ -505,6 +505,9 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
 
+  // Track when Tokens tab is selected to reset TokenBalancesLoadMarker
+  const [tokensTabResetKey, setTokensTabResetKey] = useState(0);
+
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
@@ -1222,6 +1225,8 @@ const Wallet = ({
           : '';
       if (tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+        // Increment reset key to trigger TokenBalancesLoadMarker reset for performance testing
+        setTokensTabResetKey((prev) => prev + 1);
       } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
@@ -1326,7 +1331,7 @@ const Wallet = ({
           )}
 
           {/* Performance marker for measuring token balances load time (without prices) */}
-          <TokenBalancesLoadMarker />
+          <TokenBalancesLoadMarker resetKey={tokensTabResetKey} />
 
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
@@ -1370,6 +1375,7 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
+      tokensTabResetKey,
     ],
   );
   const renderLoader = useCallback(

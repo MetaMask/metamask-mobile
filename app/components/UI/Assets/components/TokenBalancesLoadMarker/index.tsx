@@ -12,6 +12,15 @@ const styles = StyleSheet.create({
   },
 });
 
+interface TokenBalancesLoadMarkerProps {
+  /**
+   * Key that triggers a reset of the marker's internal state.
+   * When this value changes, the marker will reset and wait for a new balance update.
+   * Useful for measuring fresh polling cycles when switching between tabs.
+   */
+  resetKey?: string | number;
+}
+
 /**
  * Performance marker component to track when a fresh token balances polling cycle completes.
  * This component tracks when balance data CHANGES (not just exists), indicating a new
@@ -20,11 +29,22 @@ const styles = StyleSheet.create({
  * Use this for performance testing to measure TokenBalancesController polling
  * independently from price fetching.
  */
-const TokenBalancesLoadMarker: React.FC = () => {
+const TokenBalancesLoadMarker: React.FC<TokenBalancesLoadMarkerProps> = ({
+  resetKey,
+}) => {
   const contractBalances = useSelector(selectContractBalances);
   const [hasUpdated, setHasUpdated] = useState(false);
   const initialBalancesRef = useRef<string | null>(null);
   const hasSetInitialRef = useRef(false);
+
+  // Reset internal state when resetKey changes
+  useEffect(() => {
+    if (resetKey !== undefined) {
+      setHasUpdated(false);
+      initialBalancesRef.current = JSON.stringify(contractBalances);
+      hasSetInitialRef.current = true;
+    }
+  }, [resetKey, contractBalances]);
 
   useEffect(() => {
     const currentBalancesString = JSON.stringify(contractBalances);
