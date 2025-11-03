@@ -55,6 +55,7 @@ export const createStyles = (colors: Colors) =>
       display: 'flex' as const,
       height: 66,
       color: colors.text.alternative,
+      backgroundColor: commonColors.transparent,
       ...fontStyles.normal,
       fontSize: 16,
       lineHeight: 20,
@@ -66,14 +67,7 @@ export const createStyles = (colors: Colors) =>
       minWidth: 0,
       maxWidth: '100%',
       paddingRight: 8,
-      color: colors.text.default,
-      ...fontStyles.normal,
-      fontSize: 16,
-      lineHeight: 20,
-      textAlign: 'left' as const,
-      textAlignVertical: 'center' as const,
-      height: 40,
-    } as TextStyle,
+    },
     input: {
       paddingVertical: Platform.select({
         ios: 4,
