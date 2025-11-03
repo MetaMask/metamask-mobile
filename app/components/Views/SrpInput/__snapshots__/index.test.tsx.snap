@@ -56,6 +56,7 @@ exports[`SrpInput renders default settings correctly 1`] = `
       onSelectionChange={[Function]}
       style={
         {
+          "backgroundColor": "#ffffff",
           "borderColor": "transparent",
           "borderWidth": 1,
           "color": "#121314",

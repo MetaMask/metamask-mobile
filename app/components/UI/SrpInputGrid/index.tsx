@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard } from 'react-native';
+import { View, Keyboard, Platform } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
@@ -321,7 +321,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             <View style={styles.seedPhraseInputContainer}>
               {seedPhrase.map((item, index) => (
                 <SrpInput
-                  key={`seed-phrase-item-${uniqueId}-${index}-${index === 0 && isFirstInput ? 'textarea' : 'grid'}`}
+                  key={
+                    Platform.OS === 'android'
+                      ? `seed-phrase-item-${uniqueId}-${index}`
+                      : `seed-phrase-item-${uniqueId}-${index}-${index === 0 && isFirstInput ? 'textarea' : 'grid'}`
+                  }
                   ref={(ref) => {
                     const inputRefs = getSeedPhraseInputRef();
                     if (ref) {
