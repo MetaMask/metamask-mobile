@@ -89,11 +89,12 @@ class CommandQueueServer implements Resource {
         reject(new Error('Failed to start command queue server'));
         return;
       }
-      const onListening = () => {
-        this._serverStatus = ServerStatus.STARTED;
-        resolve();
-      };
-      const onError = (err: Error) => {
+      let onError: ((err: Error) => void) | null = null;
+      let onListening: (() => void) | null = null;
+      onError = (err: Error) => {
+        if (onListening) {
+          this._server?.removeListener('listening', onListening);
+        }
         logger.error(
           '❌ Failed to start command queue server on port',
           this._serverPort,
@@ -107,6 +108,13 @@ class CommandQueueServer implements Resource {
         }
         this._server = undefined;
         reject(err);
+      };
+      onListening = () => {
+        if (onError) {
+          this._server?.removeListener('error', onError);
+        }
+        this._serverStatus = ServerStatus.STARTED;
+        resolve();
       };
       this._server.once('error', onError);
       this._server.once('listening', onListening);
