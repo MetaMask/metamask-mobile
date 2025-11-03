@@ -12,9 +12,14 @@ import { AddressSelectorParams } from './AddressSelector.types';
 import { setReloadAccounts } from '../../../actions/accounts';
 import Engine from '../../../core/Engine';
 import {
+  ARBITRUM_DISPLAY_NAME,
   BASE_DISPLAY_NAME,
+  BNB_DISPLAY_NAME,
   LINEA_MAINNET_DISPLAY_NAME,
   MAINNET_DISPLAY_NAME,
+  OPTIMISM_DISPLAY_NAME,
+  POLYGON_DISPLAY_NAME,
+  SEI_DISPLAY_NAME,
 } from '../../../core/Engine/constants';
 
 jest.mock('../../../core/Engine', () => ({
@@ -132,12 +137,11 @@ describe('AccountSelector', () => {
 
     expect(networkNames).toEqual([
       MAINNET_DISPLAY_NAME,
-      // TODO: They need to be updated to the new names
-      'BSC Mainnet',
-      'Sei Mainnet',
-      'Polygon Mainnet',
-      'Optimism Mainnet',
-      'Arbitrum One',
+      BNB_DISPLAY_NAME,
+      SEI_DISPLAY_NAME,
+      POLYGON_DISPLAY_NAME,
+      OPTIMISM_DISPLAY_NAME,
+      ARBITRUM_DISPLAY_NAME,
       LINEA_MAINNET_DISPLAY_NAME,
       BASE_DISPLAY_NAME,
     ]);
