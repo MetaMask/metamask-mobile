@@ -6913,6 +6913,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/analytics-controller@file:../core/packages/analytics-controller::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/analytics-controller@file:../core/packages/analytics-controller#../core/packages/analytics-controller::hash=e955e8&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.8.1"
+  checksum: 10/8ca235bfd49dbbe4f100d49c0624be80dbbe1ba30a2549557327c25f6c565db31e06681902a8de7187a2fcae158e1c365d4cb303aad5a5adf1db1818f62b62b1
+  languageName: node
+  linkType: hard
+
 "@metamask/api-specs@npm:^0.14.0":
   version: 0.14.0
   resolution: "@metamask/api-specs@npm:0.14.0"
@@ -34273,6 +34284,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^2.0.0"
     "@metamask/accounts-controller": "npm:^34.0.0"
     "@metamask/address-book-controller": "npm:^7.0.0"
+    "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/assets-controllers": "npm:^84.0.0"

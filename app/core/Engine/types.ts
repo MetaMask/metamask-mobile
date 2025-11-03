@@ -114,6 +114,14 @@ import {
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
+  AnalyticsController,
+  getDefaultAnalyticsControllerState,
+} from '@metamask/analytics-controller';
+
+type AnalyticsControllerState = ReturnType<
+  typeof getDefaultAnalyticsControllerState
+>;
+import {
   TransactionController,
   TransactionControllerActions,
   TransactionControllerEvents,
@@ -665,6 +673,7 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  AnalyticsController: AnalyticsController;
 };
 
 /**
@@ -739,6 +748,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  AnalyticsController: AnalyticsControllerState;
 };
 
 /** Controller names */
@@ -838,7 +848,8 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController';
+  | 'SelectedNetworkController'
+  | 'AnalyticsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
