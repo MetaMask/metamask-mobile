@@ -30,7 +30,10 @@ export default function useRampsUnifiedV1Enabled() {
     process.env.MM_RAMPS_UNIFIED_BUY_V1_ENABLED;
 
   // if build flag is defined, it takes precedence over remote feature flag
-  if (rampsUnifiedBuyV1BuildFlag !== undefined) {
+  if (
+    rampsUnifiedBuyV1BuildFlag === 'true' ||
+    rampsUnifiedBuyV1BuildFlag === 'false'
+  ) {
     return rampsUnifiedBuyV1BuildFlag === 'true';
   }
 
