@@ -119,9 +119,10 @@ class NetworkManager {
 
   /**
    * Get token element by symbol
+   * Note: Gets the first instance in case of duplicates during render cycles
    */
   getTokenBySymbol(symbol: string): DetoxElement {
-    return Matchers.getElementByID(`asset-${symbol}`);
+    return Matchers.getElementByID(`asset-${symbol}`, 0);
   }
 
   /**
