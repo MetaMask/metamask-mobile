@@ -101,7 +101,6 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
   isRemoveGlobalNetworkSelectorEnabled,
   isTestNet,
 } from '../../../util/networks';
@@ -184,7 +183,7 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NftGrid from '../../UI/NftGrid';
+import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
@@ -343,6 +342,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
+  // Calculate Predict tab visibility
+  const predictTabIndex =
+    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
+  const isPredictTabVisible = currentTabIndex === predictTabIndex;
+
   // Store the visibility update callback from PerpsTabView
   const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
     null,
@@ -409,7 +413,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
     if (isPredictEnabled) {
       tabs.push(
-        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
+        <PredictTabView
+          {...predictTabProps}
+          key={predictTabProps.key}
+          isVisible={isPredictTabVisible}
+        />,
       );
     }
 
@@ -438,6 +446,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsTabVisible,
     isPredictEnabled,
     predictTabProps,
+    isPredictTabVisible,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
@@ -922,9 +931,7 @@ const Wallet = ({
     selectAllDetectedTokensFlat,
   ) as TokenI[];
   const currentDetectedTokens =
-    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
-      ? allDetectedTokens
-      : detectedTokens;
+    isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
@@ -1125,41 +1132,34 @@ const Wallet = ({
         Array.isArray(currentDetectedTokens) &&
         currentDetectedTokens.length > 0
       ) {
-        if (isPortfolioViewEnabled()) {
-          // Group tokens by their `chainId` using a plain object
-          const tokensByChainId: Record<Hex, Token[]> = {};
+        // Group tokens by their `chainId` using a plain object
+        const tokensByChainId: Record<Hex, Token[]> = {};
 
-          for (const token of currentDetectedTokens) {
-            // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-            const tokenChainId: Hex =
-              (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+        for (const token of currentDetectedTokens) {
+          // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+          const tokenChainId: Hex =
+            (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
-            if (!tokensByChainId[tokenChainId]) {
-              tokensByChainId[tokenChainId] = [];
-            }
-
-            tokensByChainId[tokenChainId].push(token);
+          if (!tokensByChainId[tokenChainId]) {
+            tokensByChainId[tokenChainId] = [];
           }
 
-          // Process grouped tokens in parallel
-          const importPromises = Object.entries(tokensByChainId).map(
-            async ([networkId, allTokens]) => {
-              const chainConfig = evmNetworkConfigurations[networkId as Hex];
-              const { defaultRpcEndpointIndex } = chainConfig;
-              const { networkClientId: networkInstanceId } =
-                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
-
-              await TokensController.addTokens(allTokens, networkInstanceId);
-            },
-          );
-
-          await Promise.all(importPromises);
-        } else {
-          await TokensController.addTokens(
-            currentDetectedTokens,
-            selectedNetworkClientId,
-          );
+          tokensByChainId[tokenChainId].push(token);
         }
+
+        // Process grouped tokens in parallel
+        const importPromises = Object.entries(tokensByChainId).map(
+          async ([networkId, allTokens]) => {
+            const chainConfig = evmNetworkConfigurations[networkId as Hex];
+            const { defaultRpcEndpointIndex } = chainConfig;
+            const { networkClientId: networkInstanceId } =
+              chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+            await TokensController.addTokens(allTokens, networkInstanceId);
+          },
+        );
+
+        await Promise.all(importPromises);
 
         currentDetectedTokens.forEach(
           ({ address, symbol }: { address: string; symbol: string }) => {
