@@ -233,6 +233,34 @@ describe('OAuth login service', () => {
     expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
   });
+
+  it('throws error when login handler returns null', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse = jest.fn().mockImplementation(() => null);
+
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler),
+      OAuthErrorType.LoginError,
+    );
+
+    expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
+    expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
+    expect(mockAuthenticate).toHaveBeenCalledTimes(0);
+  });
+
+  it('throws error when login handler returns undefined', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse = jest.fn().mockImplementation(() => undefined);
+
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler),
+      OAuthErrorType.LoginError,
+    );
+
+    expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
+    expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
+    expect(mockAuthenticate).toHaveBeenCalledTimes(0);
+  });
 });
 
 describe('updateMarketingOptInStatus', () => {

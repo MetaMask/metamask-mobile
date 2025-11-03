@@ -460,5 +460,107 @@ describe('BaseLoginHandler', () => {
 
       expect(result).toEqual(mockResponse);
     });
+
+    it('throws error when id_token is missing from response', async () => {
+      const mockResponse = {
+        success: true,
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+        message: 'Success',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
+
+      await expect(
+        getAuthTokens(
+          mockHandler.getAuthTokenRequestData(params),
+          mockPathname,
+          mockAuthServerUrl,
+        ),
+      ).rejects.toMatchObject({
+        message: 'Auth server error - Invalid auth response',
+        code: OAuthErrorType.AuthServerError,
+      });
+    });
+
+    it('throws error when refresh_token is missing from response', async () => {
+      const mockResponse = {
+        success: true,
+        id_token: 'mock-id-token',
+        revoke_token: 'mock-revoke-token',
+        message: 'Success',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
+
+      await expect(
+        getAuthTokens(
+          mockHandler.getAuthTokenRequestData(params),
+          mockPathname,
+          mockAuthServerUrl,
+        ),
+      ).rejects.toMatchObject({
+        message: 'Auth server error - Invalid auth response',
+        code: OAuthErrorType.AuthServerError,
+      });
+    });
+
+    it('throws error when revoke_token is missing from response', async () => {
+      const mockResponse = {
+        success: true,
+        id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        message: 'Success',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
+
+      await expect(
+        getAuthTokens(
+          mockHandler.getAuthTokenRequestData(params),
+          mockPathname,
+          mockAuthServerUrl,
+        ),
+      ).rejects.toMatchObject({
+        message: 'Auth server error - Invalid auth response',
+        code: OAuthErrorType.AuthServerError,
+      });
+    });
   });
 });
