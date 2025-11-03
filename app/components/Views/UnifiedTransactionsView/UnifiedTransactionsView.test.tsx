@@ -98,6 +98,7 @@ jest.mock('../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(),
   selectProviderType: jest.fn(),
   selectRpcUrl: jest.fn(),
+  selectProviderConfig: jest.fn(),
 }));
 jest.mock('../../../selectors/networkEnablementController', () => ({
   selectEVMEnabledNetworks: jest.fn(),
@@ -144,6 +145,16 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   }),
 }));
 
+const mockGetBlockExplorerUrl = jest.fn(() => undefined);
+const mockGetBlockExplorerName = jest.fn(() => 'Explorer');
+jest.mock('../../hooks/useBlockExplorer', () => ({
+  __esModule: true,
+  default: () => ({
+    getBlockExplorerUrl: mockGetBlockExplorerUrl,
+    getBlockExplorerName: mockGetBlockExplorerName,
+  }),
+}));
+
 const mockTransactionsFooter = jest.fn((props: unknown) => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -182,6 +193,7 @@ jest.mock('../../../core/Multichain/utils', () => ({
   __esModule: true,
   getAddressUrl: (address: string, chainId: string) =>
     mockGetAddressUrl(address, chainId),
+  isNonEvmChainId: jest.fn((chainId: string) => chainId.includes(':')),
 }));
 
 // Mock refresh util
@@ -291,6 +303,7 @@ const {
   selectNetworkConfigurations,
   selectProviderType,
   selectRpcUrl,
+  selectProviderConfig,
 } = jest.requireMock('../../../selectors/networkController');
 const { selectEVMEnabledNetworks, selectNonEVMEnabledNetworks } =
   jest.requireMock('../../../selectors/networkEnablementController');
@@ -310,6 +323,10 @@ describe('UnifiedTransactionsView', () => {
     mockTransactionsFooter.mockClear();
     mockMultichainTransactionsFooter.mockClear();
     mockGetAddressUrl.mockClear();
+    mockGetBlockExplorerUrl.mockClear();
+    mockGetBlockExplorerUrl.mockReturnValue(undefined);
+    mockGetBlockExplorerName.mockClear();
+    mockGetBlockExplorerName.mockReturnValue('Explorer');
     mockGetAddressUrl.mockImplementation(
       (address?: string) => `https://solscan.io/account/${address}`,
     );
@@ -347,6 +364,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectNetworkConfigurations) return {};
       if (selector === selectProviderType) return 'rpc';
       if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectProviderConfig)
+        return { type: 'rpc', rpcUrl: 'https://rpc.example' };
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
@@ -407,8 +426,10 @@ describe('UnifiedTransactionsView', () => {
 
   it('pull-to-refresh calls updateIncomingTransactions', async () => {
     const { UNSAFE_getAllByType } = render(<UnifiedTransactionsView />);
+
     const [rc] = UNSAFE_getAllByType(RefreshControl);
-    rc.props.onRefresh();
+    await rc.props.onRefresh();
+
     expect(updateIncomingTransactions).toHaveBeenCalled();
   });
 
@@ -496,7 +517,7 @@ describe('UnifiedTransactionsView', () => {
   });
 
   describe('block explorer url', () => {
-    it('uses selected chain block explorer when global selector is enabled with a single chain', () => {
+    it('uses selected chain block explorer when a single chain is enabled', () => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
           return [];
@@ -546,11 +567,7 @@ describe('UnifiedTransactionsView', () => {
       expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledTimes(1);
     });
 
-    it('omits block explorer when multiple EVM chains are selected with global selector enabled', () => {
-      networksMock.getBlockExplorerAddressUrl.mockImplementationOnce(() => ({
-        url: undefined,
-        title: 'explorer.example',
-      }));
+    it('omits block explorer when multiple EVM chains are selected', () => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
           return [];
@@ -577,6 +594,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectNetworkConfigurations) return {};
         if (selector === selectProviderType) return 'rpc';
         if (selector === selectRpcUrl) return 'https://rpc.example';
+        if (selector === selectProviderConfig)
+          return { type: 'rpc', rpcUrl: 'https://rpc.example' };
         if (selector === selectEVMEnabledNetworks) return ['0x1', '0x5'];
         if (selector === selectNonEVMEnabledNetworks) return [];
         if (selector === selectCurrentCurrency) return 'USD';
@@ -590,15 +609,12 @@ describe('UnifiedTransactionsView', () => {
         rpcBlockExplorer?: string;
         onViewBlockExplorer?: () => void;
       };
+
+      // When multiple chains are selected, block explorer should be omitted
       expect(footerProps.rpcBlockExplorer).toBeUndefined();
 
-      footerProps.onViewBlockExplorer?.();
-      expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledWith(
-        'rpc',
-        '0xabc',
-        undefined,
-      );
-      expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledTimes(1);
+      // Block explorer address URL should not be called since no single chain is selected
+      expect(networksMock.getBlockExplorerAddressUrl).not.toHaveBeenCalled();
     });
   });
 
@@ -628,6 +644,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectNetworkConfigurations) return {};
       if (selector === selectProviderType) return 'rpc';
       if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectProviderConfig)
+        return { type: 'rpc', rpcUrl: 'https://rpc.example' };
       if (selector === selectEVMEnabledNetworks) return [];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
@@ -675,6 +693,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectNetworkConfigurations) return {};
       if (selector === selectProviderType) return 'rpc';
       if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectProviderConfig)
+        return { type: 'rpc', rpcUrl: 'https://rpc.example' };
       if (selector === selectEVMEnabledNetworks) return [];
       if (selector === selectNonEVMEnabledNetworks)
         return ['bip122:000000000019d6689c085ae165831e93'];
@@ -713,6 +733,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectTokens) return [];
         if (selector === selectChainId) return '0x1';
         if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectProviderConfig)
+          return { type: 'rpc', rpcUrl: 'https://rpc.example' };
         if (selector === selectEVMEnabledNetworks) return [];
         if (selector === selectNonEVMEnabledNetworks) return [];
         if (selector === selectCurrentCurrency) return 'USD';
@@ -747,6 +769,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectTokens) return [];
         if (selector === selectChainId) return '0x1';
         if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectProviderConfig)
+          return { type: 'rpc', rpcUrl: 'https://rpc.example' };
         if (selector === selectEVMEnabledNetworks) return [];
         if (selector === selectNonEVMEnabledNetworks) return [];
         if (selector === selectCurrentCurrency) return 'USD';

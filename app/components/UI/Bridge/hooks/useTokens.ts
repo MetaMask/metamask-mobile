@@ -6,6 +6,8 @@ import {
   formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { zeroAddress } from 'ethereumjs-util';
+import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 
 interface UseTokensProps {
   topTokensChainId?: Hex | CaipChainId;
@@ -43,7 +45,7 @@ export function useTokens({
     chainId: Hex | CaipChainId;
   }) => {
     // Use the shared utility for non-EVM normalization to ensure consistent deduplication
-    const normalizedAddress = isNonEvmChainId(token.chainId)
+    let normalizedAddress = isNonEvmChainId(token.chainId)
       ? formatAddressToAssetId(token.address, token.chainId)
       : token.address.toLowerCase();
 
@@ -51,6 +53,13 @@ export function useTokens({
       throw new Error(
         `Invalid token address: ${token.address} for chain ID: ${token.chainId}`,
       );
+    }
+
+    // Normalize the native token address for Polygon
+    // Prevents duplicate tokens with different addresses from
+    // rendering in the UI
+    if (normalizedAddress === POLYGON_NATIVE_TOKEN) {
+      normalizedAddress = zeroAddress();
     }
 
     return `${normalizedAddress}-${token.chainId}`;

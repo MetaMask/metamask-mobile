@@ -10,7 +10,6 @@ import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
   isWhitelistedSymbol,
@@ -664,18 +663,16 @@ export class NetworkSettings extends PureComponent {
     }
 
     // Set tokenNetworkFilter
-    if (isPortfolioViewEnabled()) {
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetworks) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      } else {
-        PreferencesController.setTokenNetworkFilter({
-          ...tokenNetworkFilter,
-          [chainId]: true,
-        });
-      }
+    const { PreferencesController } = Engine.context;
+    if (!isAllNetworks) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    } else {
+      PreferencesController.setTokenNetworkFilter({
+        ...tokenNetworkFilter,
+        [chainId]: true,
+      });
     }
 
     const { NetworkEnablementController } = Engine.context;

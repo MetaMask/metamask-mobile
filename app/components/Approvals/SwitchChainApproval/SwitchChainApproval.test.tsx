@@ -4,8 +4,6 @@ import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import SwitchChainApproval from './SwitchChainApproval';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -102,7 +100,6 @@ const mockApprovalRequestData = {
 describe('SwitchChainApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
   });
 
   it('renders', () => {
@@ -148,8 +145,7 @@ describe('SwitchChainApproval', () => {
     });
   });
 
-  it('sets token network filter when portfolio view is enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+  it('sets token network filter', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
       requestData: mockApprovalRequestData,
@@ -166,8 +162,6 @@ describe('SwitchChainApproval', () => {
   });
 
   it('calls selectNetwork when portfolio view is enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
       requestData: mockApprovalRequestData,

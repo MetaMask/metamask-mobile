@@ -1,8 +1,6 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useTokenListPolling from './useTokenListPolling';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 
@@ -73,8 +71,6 @@ describe('useTokenListPolling', () => {
   } as unknown as RootState;
 
   it('Should poll by selected chain id, and stop polling on dismount', async () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
     const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
       state,
     });
@@ -82,10 +78,7 @@ describe('useTokenListPolling', () => {
     const mockedTokenListController = jest.mocked(
       Engine.context.TokenListController,
     );
-    const calledAmount = networks.isPortfolioViewEnabled() ? 2 : 1;
-    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(
-      calledAmount,
-    );
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(2);
     expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
       chainId: selectedChainId,
     });
@@ -96,12 +89,10 @@ describe('useTokenListPolling', () => {
     unmount();
     expect(
       mockedTokenListController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(calledAmount);
+    ).toHaveBeenCalledTimes(2);
   });
 
-  it('polls enabled EVM networks when portfolio view is enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
+  it('polls enabled EVM networks', () => {
     const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
       state,
     });
@@ -125,8 +116,6 @@ describe('useTokenListPolling', () => {
   });
 
   it('Should not poll when evm is not selected', async () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
     renderHookWithProvider(() => useTokenListPolling(), {
       state: {
         ...state,
@@ -150,8 +139,6 @@ describe('useTokenListPolling', () => {
   });
 
   it('polls with provided chain ids', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
     renderHookWithProvider(
       () => useTokenListPolling({ chainIds: ['0x1', '0x89'] }),
       {
@@ -173,8 +160,6 @@ describe('useTokenListPolling', () => {
   });
 
   it('handles empty enabled networks gracefully', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
     const stateWithEmptyNetworks = {
       ...state,
       engine: {
