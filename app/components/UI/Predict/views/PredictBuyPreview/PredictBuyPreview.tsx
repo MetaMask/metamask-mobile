@@ -101,11 +101,7 @@ const PredictBuyPreview = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
 
-  const {
-    preview,
-    isCalculating,
-    error: previewError,
-  } = usePredictOrderPreview({
+  const { preview, error: previewError } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
@@ -145,7 +141,6 @@ const PredictBuyPreview = () => {
     currentValue >= MINIMUM_BET &&
     !hasInsufficientFunds &&
     preview &&
-    !isCalculating &&
     !isLoading &&
     !isBalanceLoading &&
     !isRateLimited;
