@@ -101,7 +101,6 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
   isRemoveGlobalNetworkSelectorEnabled,
   isTestNet,
 } from '../../../util/networks';
@@ -937,9 +936,7 @@ const Wallet = ({
     selectAllDetectedTokensFlat,
   ) as TokenI[];
   const currentDetectedTokens =
-    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
-      ? allDetectedTokens
-      : detectedTokens;
+    isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
@@ -1140,41 +1137,34 @@ const Wallet = ({
         Array.isArray(currentDetectedTokens) &&
         currentDetectedTokens.length > 0
       ) {
-        if (isPortfolioViewEnabled()) {
-          // Group tokens by their `chainId` using a plain object
-          const tokensByChainId: Record<Hex, Token[]> = {};
+        // Group tokens by their `chainId` using a plain object
+        const tokensByChainId: Record<Hex, Token[]> = {};
 
-          for (const token of currentDetectedTokens) {
-            // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-            const tokenChainId: Hex =
-              (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+        for (const token of currentDetectedTokens) {
+          // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+          const tokenChainId: Hex =
+            (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
-            if (!tokensByChainId[tokenChainId]) {
-              tokensByChainId[tokenChainId] = [];
-            }
-
-            tokensByChainId[tokenChainId].push(token);
+          if (!tokensByChainId[tokenChainId]) {
+            tokensByChainId[tokenChainId] = [];
           }
 
-          // Process grouped tokens in parallel
-          const importPromises = Object.entries(tokensByChainId).map(
-            async ([networkId, allTokens]) => {
-              const chainConfig = evmNetworkConfigurations[networkId as Hex];
-              const { defaultRpcEndpointIndex } = chainConfig;
-              const { networkClientId: networkInstanceId } =
-                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
-
-              await TokensController.addTokens(allTokens, networkInstanceId);
-            },
-          );
-
-          await Promise.all(importPromises);
-        } else {
-          await TokensController.addTokens(
-            currentDetectedTokens,
-            selectedNetworkClientId,
-          );
+          tokensByChainId[tokenChainId].push(token);
         }
+
+        // Process grouped tokens in parallel
+        const importPromises = Object.entries(tokensByChainId).map(
+          async ([networkId, allTokens]) => {
+            const chainConfig = evmNetworkConfigurations[networkId as Hex];
+            const { defaultRpcEndpointIndex } = chainConfig;
+            const { networkClientId: networkInstanceId } =
+              chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+            await TokensController.addTokens(allTokens, networkInstanceId);
+          },
+        );
+
+        await Promise.all(importPromises);
 
         currentDetectedTokens.forEach(
           ({ address, symbol }: { address: string; symbol: string }) => {
