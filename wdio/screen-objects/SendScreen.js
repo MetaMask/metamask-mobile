@@ -44,7 +44,7 @@ class SendScreen {
   }
 
   get reviewButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'review-button-send');
+    return AppwrightSelectors.getElementByID(this._device, 'review-button');
   }
 
   get sendAddressInputField() {
@@ -94,7 +94,7 @@ class SendScreen {
     }
   }
 
-  async typeAddressInSendAddressField(address) {
+  async typeAddressInSendAddressField(address, waitingForReviewButton = true) {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
@@ -106,7 +106,11 @@ class SendScreen {
   }
 
   async clickOnReviewButton() {
-    const reviewButton = await this.reviewButton;
+    await AppwrightGestures.wait(10000); // workaround to wait for the button spinner to disappear
+    const reviewButton = await AppwrightSelectors.getElementByID(this._device, 'review-button');
+    await appwrightExpect(reviewButton).toBeVisible({timeout: 30000});
+
+    console.log('Review button visible, tapping');
     await reviewButton.tap();
   }
 
