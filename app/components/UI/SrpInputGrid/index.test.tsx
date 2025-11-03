@@ -11,14 +11,11 @@ jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
 describe('SrpInputGrid', () => {
   const mockOnSeedPhraseChange = jest.fn();
   const mockOnError = jest.fn();
-  const mockOnExternalSeedPhraseProcessed = jest.fn();
 
   const defaultProps = {
     seedPhrase: [''],
     onSeedPhraseChange: mockOnSeedPhraseChange,
     onError: mockOnError,
-    externalSeedPhrase: null,
-    onExternalSeedPhraseProcessed: mockOnExternalSeedPhraseProcessed,
     testIDPrefix: ImportSRPIDs.SEED_PHRASE_INPUT_ID,
     placeholderText: 'Enter your Secret Recovery Phrase',
   };
@@ -58,37 +55,5 @@ describe('SrpInputGrid', () => {
       <SrpInputGrid {...defaultProps} uniqueId="custom-id" />,
     );
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('processes external seed phrase when provided', () => {
-    const externalSeedPhrase = 'word1 word2 word3';
-
-    renderWithProvider(
-      <SrpInputGrid
-        {...defaultProps}
-        externalSeedPhrase={externalSeedPhrase}
-      />,
-    );
-
-    // Fast-forward timers to allow setTimeout to complete
-    jest.runAllTimers();
-
-    expect(mockOnExternalSeedPhraseProcessed).toHaveBeenCalled();
-  });
-
-  it('does not process when external seed phrase is empty', () => {
-    renderWithProvider(
-      <SrpInputGrid {...defaultProps} externalSeedPhrase="" />,
-    );
-
-    expect(mockOnExternalSeedPhraseProcessed).not.toHaveBeenCalled();
-  });
-
-  it('does not process when external seed phrase is null', () => {
-    renderWithProvider(
-      <SrpInputGrid {...defaultProps} externalSeedPhrase={null} />,
-    );
-
-    expect(mockOnExternalSeedPhraseProcessed).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useContext,
   useEffect,
+  useRef,
 } from 'react';
 import { Alert, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -40,7 +41,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
-import SrpInputGrid from '../../UI/SrpInputGrid';
+import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import { isSRPLengthValid } from '../../../util/srp/srpInputUtils';
 
 /**
@@ -52,14 +53,12 @@ const ImportNewSecretRecoveryPhrase = () => {
   const { colors } = useAppTheme();
   const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
+  const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
   // State
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [externalSeedPhrase, setExternalSeedPhrase] = useState<string | null>(
-    null,
-  );
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -82,10 +81,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     [seedPhrase],
   );
 
-  const handleExternalSeedPhraseProcessed = useCallback(() => {
-    setExternalSeedPhrase(null);
-  }, []);
-
   const dismiss = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -102,7 +97,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         const seed = data?.seed || content;
 
         if (seed) {
-          setExternalSeedPhrase(seed);
+          srpInputGridRef.current?.handleSeedPhraseChange(seed);
         } else {
           Alert.alert(
             strings('import_new_secret_recovery_phrase.invalid_qr_code_title'),
@@ -272,11 +267,10 @@ const ImportNewSecretRecoveryPhrase = () => {
           </View>
 
           <SrpInputGrid
+            ref={srpInputGridRef}
             seedPhrase={seedPhrase}
             onSeedPhraseChange={setSeedPhrase}
             onError={setError}
-            externalSeedPhrase={externalSeedPhrase}
-            onExternalSeedPhraseProcessed={handleExternalSeedPhraseProcessed}
             testIDPrefix={ImportSRPIDs.SEED_PHRASE_INPUT_ID}
             placeholderText={strings(
               'import_new_secret_recovery_phrase.textarea_placeholder',

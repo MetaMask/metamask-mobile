@@ -108,6 +108,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               spellCheck={false}
               style={
                 {
+                  "backgroundColor": "transparent",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#686e7d",
@@ -265,6 +266,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               spellCheck={false}
               style={
                 {
+                  "backgroundColor": "transparent",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#686e7d",
@@ -422,6 +424,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               spellCheck={false}
               style={
                 {
+                  "backgroundColor": "transparent",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#686e7d",
@@ -615,6 +618,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               spellCheck={false}
               style={
                 {
+                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#121314",
@@ -622,16 +626,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
                   "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
-                  "height": 40,
+                  "height": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
                   "maxWidth": "100%",
                   "minWidth": 0,
                   "opacity": 1,
                   "paddingRight": 8,
                   "paddingVertical": 0,
-                  "textAlign": "left",
-                  "textAlignVertical": "center",
                 }
               }
               submitBehavior="submit"
@@ -748,6 +749,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               spellCheck={false}
               style={
                 {
+                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#121314",
@@ -755,16 +757,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
                   "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
-                  "height": 40,
+                  "height": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
                   "maxWidth": "100%",
                   "minWidth": 0,
                   "opacity": 1,
                   "paddingRight": 8,
                   "paddingVertical": 0,
-                  "textAlign": "left",
-                  "textAlignVertical": "center",
                 }
               }
               submitBehavior="submit"
@@ -881,6 +880,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               spellCheck={false}
               style={
                 {
+                  "backgroundColor": "#ffffff",
                   "borderColor": "transparent",
                   "borderWidth": 1,
                   "color": "#121314",
@@ -888,16 +888,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
                   "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "fontWeight": "400",
-                  "height": 40,
+                  "height": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 20,
                   "maxWidth": "100%",
                   "minWidth": 0,
                   "opacity": 1,
                   "paddingRight": 8,
                   "paddingVertical": 0,
-                  "textAlign": "left",
-                  "textAlignVertical": "center",
                 }
               }
               submitBehavior="submit"

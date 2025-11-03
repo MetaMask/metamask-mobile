@@ -111,10 +111,11 @@ const ImportFromSecretRecoveryPhrase = ({
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState(['']);
-  const [externalSeedPhrase, setExternalSeedPhrase] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
+
+  const srpInputGridRef = useRef(null);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -137,10 +138,6 @@ const ImportFromSecretRecoveryPhrase = ({
     trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
 
-  const handleExternalSeedPhraseProcessed = useCallback(() => {
-    setExternalSeedPhrase(null);
-  }, []);
-
   const onQrCodePress = useCallback(() => {
     let shouldHideSRP = true;
     if (!hideSeedPhraseInput) {
@@ -153,7 +150,7 @@ const ImportFromSecretRecoveryPhrase = ({
       disableTabber: true,
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
-          setExternalSeedPhrase(seed);
+          srpInputGridRef.current?.handleSeedPhraseChange(seed);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -553,13 +550,10 @@ const ImportFromSecretRecoveryPhrase = ({
                 </TouchableOpacity>
               </View>
               <SrpInputGrid
+                ref={srpInputGridRef}
                 seedPhrase={seedPhrase}
                 onSeedPhraseChange={setSeedPhrase}
                 onError={setError}
-                externalSeedPhrase={externalSeedPhrase}
-                onExternalSeedPhraseProcessed={
-                  handleExternalSeedPhraseProcessed
-                }
                 testIDPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}
