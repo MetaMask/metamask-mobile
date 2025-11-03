@@ -14,6 +14,7 @@ import {
   POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS,
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
+  POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -21,7 +22,6 @@ import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
-// import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
@@ -60,7 +60,7 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictHelpers.setPortugalLocation();
         await loginToApp();
 
-        // Claim button is animated - disabling sync to prevent test hang
+        // Claim button is animated - disabling sync on iOS to prevent test hang
         await device.disableSynchronization();
 
         await WalletView.tapOnPredictionsTab();
@@ -72,15 +72,18 @@ describe(SmokePredictions('Predictions'), () => {
         await WalletView.tapClaimButton();
         await Assertions.expectElementToBeVisible(PredictClaimPage.container);
 
-        // Set up mocks to remove claimed positions after tapping claim button
-        await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
-
         await PredictClaimPage.tapClaimConfirmButton();
-        await device.enableSynchronization();
+
+        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
+        await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
+        await POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS(mockServer);
 
         await Assertions.expectElementToBeVisible(WalletView.container);
+        await device.enableSynchronization();
 
+        await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
+          description: 'Claim button should not be visible',
+        });
         /*
         Verify that all resolved positions (lost positions + winning positions) are removed after claiming
         Resolved positions include both:
@@ -97,10 +100,6 @@ describe(SmokePredictions('Predictions'), () => {
             description: `Resolved position "${position.title}" should not be visible after claiming`,
           });
         }
-
-        await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
-          description: 'Claim button should not be visible',
-        });
 
         await TabBarComponent.tapActivity();
 
@@ -123,9 +122,11 @@ describe(SmokePredictions('Predictions'), () => {
         }
 
         await TabBarComponent.tapWallet();
-        // await TabBarComponent.tapActions();
-        // await WalletActionsBottomSheet.tapPredictButton();
-        // await Assertions.expectTextDisplayed('$48.16');
+
+        // Verify balance on iOS only. Android balances take a while to refresh.
+        if (device.getPlatform() === 'ios') {
+          await Assertions.expectTextDisplayed('$48.16');
+        }
       },
     );
   });
