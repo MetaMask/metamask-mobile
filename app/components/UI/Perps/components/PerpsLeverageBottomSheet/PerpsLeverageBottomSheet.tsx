@@ -376,9 +376,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     setShouldShowSkeleton(isCalculating);
   }, [isCalculating]);
 
-  const dynamicLiquidationPrice = isCalculating
-    ? 0
-    : Number.parseFloat(apiLiquidationPrice) || 0;
+  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
 
   useEffect(() => {
     if (isVisible) {
@@ -612,7 +610,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              {shouldShowSkeleton ? (
+              {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
                 <Skeleton height={16} width={200} />
               ) : (
                 strings('perps.order.leverage_modal.liquidation_warning', {
@@ -644,7 +642,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   color={warningStyles.priceColor}
                   style={styles.priceIcon}
                 />
-                {shouldShowSkeleton ? (
+                {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
                   <Skeleton height={20} width={80} />
                 ) : (
                   <Text
@@ -686,14 +684,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <LeverageSlider
             value={isDragging ? draggingLeverage : tempLeverage}
             onValueChange={(newValue) => {
+              setShouldShowSkeleton(true);
+
               if (isDragging) {
                 setDraggingLeverage(newValue);
-                if (!shouldShowSkeleton) {
-                  setShouldShowSkeleton(true);
-                }
               } else {
                 setTempLeverage(newValue);
               }
+              setShouldShowSkeleton(true);
             }}
             onDragStart={() => {
               setIsDragging(true);
