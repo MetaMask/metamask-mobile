@@ -48,10 +48,10 @@ import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
-import parseAmount from '../../utils/parseAmount';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
 import { zeroAddress } from 'ethereumjs-util';
+import parseAmount from '../../../../../util/parseAmount';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;

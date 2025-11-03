@@ -42,7 +42,7 @@ import TagBase, {
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { RootState } from '../../../../reducers';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
-import parseAmount from '../utils/parseAmount';
+import parseAmount from '../../../../util/parseAmount';
 
 const createStyles = ({
   theme,
