@@ -16,9 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
     },
-    contentContainer: {
-      flexGrow: 1,
-    },
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
