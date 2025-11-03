@@ -2,11 +2,6 @@ import '../../UI/Bridge/_mocks_/initialState';
 import { getIsSwapsAssetAllowed } from './utils';
 import { SolScope } from '@metamask/keyring-api';
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
-}));
-
 describe('getIsSwapsAssetAllowed', () => {
   const mockSwapsTokens = {
     '0xtoken1': { symbol: 'TOKEN1' },

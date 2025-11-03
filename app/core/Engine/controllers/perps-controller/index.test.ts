@@ -135,7 +135,7 @@ describe('perps controller init', () => {
       withdrawalProgress: {
         progress: 0,
         lastUpdated: Date.now(),
-        activeWithdrawalId: undefined,
+        activeWithdrawalId: null,
       },
       depositRequests: [],
     };

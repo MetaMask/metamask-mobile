@@ -14,6 +14,7 @@ export type ScreenLocation =
 interface RampButtonClicked {
   text: 'Buy' | 'Buy Native Token' | 'Sell' | 'Get Started';
   location: string;
+  region?: string;
 }
 
 interface BuyButtonClicked extends RampButtonClicked {

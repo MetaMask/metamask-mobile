@@ -7,7 +7,11 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
+  selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -16,6 +20,7 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
+import BalanceEmptyState from '../../../BalanceEmptyState';
 
 const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
@@ -23,9 +28,16 @@ const AccountGroupBalance = () => {
   const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
   const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
+  const accountGroupBalance = useSelector(
+    selectAccountGroupBalanceForEmptyState,
+  );
   const balanceChange1d = useSelector(
     selectBalanceChangeBySelectedAccountGroup('1d'),
   );
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
+  const selectedChainId = useSelector(selectEvmChainId);
 
   const togglePrivacy = useCallback(
     (value: boolean) => {
@@ -38,10 +50,30 @@ const AccountGroupBalance = () => {
   const userCurrency = groupBalance?.userCurrency ?? '';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
+  // Check if account group balance (across all mainnet networks) is zero for empty state
+  const hasZeroAccountGroupBalance =
+    accountGroupBalance && accountGroupBalance.totalBalanceInUserCurrency === 0;
+
+  // Check if current network is a testnet
+  const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
+
+  // Show empty state on accounts with an aggregated mainnet balance of zero
+  const shouldShowEmptyState =
+    hasZeroAccountGroupBalance &&
+    isHomepageRedesignV1Enabled &&
+    !isCurrentNetworkTestnet;
+
   return (
     <View style={styles.accountGroupBalance}>
       <View>
-        {groupBalance ? (
+        {!groupBalance ? (
+          <View style={styles.skeletonContainer}>
+            <Skeleton width={100} height={40} />
+            <Skeleton width={100} height={20} />
+          </View>
+        ) : shouldShowEmptyState ? (
+          <BalanceEmptyState testID="account-group-balance-empty-state" />
+        ) : (
           <TouchableOpacity
             onPress={() => togglePrivacy(!privacyMode)}
             testID="balance-container"
@@ -66,11 +98,6 @@ const AccountGroupBalance = () => {
               />
             )}
           </TouchableOpacity>
-        ) : (
-          <View style={styles.skeletonContainer}>
-            <Skeleton width={100} height={40} />
-            <Skeleton width={100} height={20} />
-          </View>
         )}
       </View>
     </View>

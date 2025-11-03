@@ -930,7 +930,8 @@ describe('polymarket utils', () => {
         status: 'open',
         recurrence: 'daily',
         endDate: undefined,
-        categories: [mockCategory],
+        category: mockCategory,
+        tags: [],
         outcomes: [
           {
             id: 'market-1',

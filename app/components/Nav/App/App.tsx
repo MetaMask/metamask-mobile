@@ -72,6 +72,7 @@ import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
@@ -572,6 +573,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
       component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
+    />
+    <Stack.Screen
+      name={Routes.CARD.NOTIFICATION}
+      component={CardNotification}
     />
   </Stack.Navigator>
 );
