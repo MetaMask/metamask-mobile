@@ -87,7 +87,7 @@ jobs:
       semver-version: ${{ inputs.semver-version }}
       previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
       mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-      github-tools-version: 7fe185fdb0e60981c898e88d82e44ff33f604daa
+      github-tools-version: 68474d2d55056233fb8e98c43048899c3fe8101e
     secrets:
       # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
       # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
