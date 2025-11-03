@@ -94,19 +94,17 @@ class SendScreen {
     }
   }
 
-  async typeAddressInSendAddressField(address, waitingForReviewButton = true) {
+  async typeAddressInSendAddressField(address) {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
       console.log('Typing address in send address field');
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
-      console.log('element got found', address);
       await AppwrightGestures.typeText(element, address);
     }
   }
 
   async clickOnReviewButton() {
-    await AppwrightGestures.wait(10000); // workaround to wait for the button spinner to disappear
     const reviewButton = await AppwrightSelectors.getElementByID(this._device, 'review-button');
     await appwrightExpect(reviewButton).toBeVisible({timeout: 30000});
 
