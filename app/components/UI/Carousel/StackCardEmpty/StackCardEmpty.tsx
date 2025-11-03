@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import {
@@ -39,6 +39,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
   const riveRef = useRef<RiveRef>(null);
   const hasTriggeredAnimation = useRef(false);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+  const [riveError, setRiveError] = useState(false);
 
   // Fire the confetti animation when the card transitions to full visibility (becomes current)
   useEffect(() => {
@@ -111,24 +112,30 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
         )}
       >
         {/* Confetti animation background layer */}
-        <Box
-          style={tw.style('absolute inset-0 rounded-xl overflow-hidden', {
-            height: BANNER_HEIGHT,
-            width: BANNER_WIDTH,
-          })}
-        >
-          <Rive
-            ref={riveRef}
-            source={CarouselConfetti}
-            artboardName="Artboard"
-            fit={Fit.Cover}
-            alignment={Alignment.Center}
-            style={{
-              width: BANNER_WIDTH,
+        {!riveError && (
+          <Box
+            style={tw.style('absolute inset-0 rounded-xl overflow-hidden', {
               height: BANNER_HEIGHT,
-            }}
-          />
-        </Box>
+              width: BANNER_WIDTH,
+            })}
+          >
+            <Rive
+              ref={riveRef}
+              source={CarouselConfetti}
+              artboardName="Artboard"
+              fit={Fit.Cover}
+              alignment={Alignment.Center}
+              style={{
+                width: BANNER_WIDTH,
+                height: BANNER_HEIGHT,
+              }}
+              onError={(error) => {
+                console.warn('Rive animation failed to load:', error);
+                setRiveError(true);
+              }}
+            />
+          </Box>
+        )}
 
         {/* Animated pressed background overlay */}
         <Animated.View
