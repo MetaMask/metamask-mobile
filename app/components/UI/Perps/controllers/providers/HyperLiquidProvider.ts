@@ -280,16 +280,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
         '✅ HyperLiquidProvider: DEX abstraction enabled successfully',
       );
     } catch (error) {
-      // Disable DEX abstraction flag to trigger automatic fallback to manual transfer
-      // This handles cases where the backend restricts DEX abstraction (e.g., gradual rollout)
-      this.useDexAbstraction = false;
-
+      // Don't blindly disable the flag on any error
+      // Network errors or unknown issues shouldn't trigger fallback to manual transfer
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureDexAbstractionEnabled', {
-          note: 'Disabled DEX abstraction, will use manual auto-transfer',
+          note: 'Could not enable DEX abstraction (may already be enabled or network error), will verify on first order',
         }),
       );
+      // Keep useDexAbstraction flag as-is, let placeOrder() verify actual status if needed
     }
   }
 
@@ -1491,10 +1490,32 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Transfer funds to reach required TOTAL margin in available balance
         // autoTransferForHip3Order checks current balance and only transfers shortfall
-        transferInfo = await this.autoTransferForHip3Order({
-          targetDex: dexName,
-          requiredMargin: requiredMarginWithBuffer,
-        });
+        try {
+          transferInfo = await this.autoTransferForHip3Order({
+            targetDex: dexName,
+            requiredMargin: requiredMarginWithBuffer,
+          });
+        } catch (transferError) {
+          // Reactive fix: Check if transfer failed because DEX abstraction is actually enabled
+          const errorMsg = (transferError as Error)?.message || '';
+
+          if (
+            errorMsg.includes('Cannot transfer with DEX abstraction enabled')
+          ) {
+            DevLogger.log(
+              'HyperLiquidProvider: Detected DEX abstraction is enabled, switching to abstraction mode',
+            );
+
+            // Update flag to prevent this issue on future orders
+            this.useDexAbstraction = true;
+
+            // Continue without manual transfer - let DEX abstraction handle it
+            transferInfo = null;
+          } else {
+            // Different error - rethrow
+            throw transferError;
+          }
+        }
       } else if (isHip3Order && this.useDexAbstraction) {
         DevLogger.log(
           'HyperLiquidProvider: Using DEX abstraction (no manual transfer)',

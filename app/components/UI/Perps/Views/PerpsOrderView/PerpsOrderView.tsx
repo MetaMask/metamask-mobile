@@ -354,7 +354,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Show error toast if market data is not available
   useEffect(() => {
-    if (marketDataError) {
+    // Don't show error during initial load - only for persistent failures
+    if (marketDataError && !isLoadingMarketData) {
       showToast(
         PerpsToastOptions.dataFetching.market.error.marketDataUnavailable(
           orderForm.asset,
@@ -363,6 +364,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     }
   }, [
     marketDataError,
+    isLoadingMarketData,
     orderForm.asset,
     navigation,
     showToast,
