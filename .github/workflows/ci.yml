@@ -252,9 +252,9 @@ jobs:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr-number: ${{ github.event.pull_request.number || '' }}
           repository: ${{ github.repository }}
-          post-comment: 'false'
+          post-comment: 'true'
 
   build-android-apks:
     name: 'Build Android APKs'

@@ -78,7 +78,7 @@ runs:
         # Only run AI analysis for pull_request events
         if [[ "$EVENT_NAME" == "pull_request" ]]; then
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          node .github/scripts/ai-e2e-analysis.mjs 
+          node .github/scripts/e2e-ai-analysis.mjs 
         else
           echo "⏭️ Skipping AI analysis - only runs on PRs)"
           echo "test_matrix=[]" >> "$GITHUB_OUTPUT"
