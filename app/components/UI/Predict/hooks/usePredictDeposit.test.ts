@@ -135,7 +135,9 @@ const mockToastRef: React.RefObject<{
 };
 
 // Typed mock for Logger.error
-const mockLoggerError = Logger.error as jest.MockedFunction<typeof Logger.error>;
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
+>;
 
 // Helper to setup test
 function setupUsePredictDepositTest(
@@ -583,21 +585,18 @@ describe('usePredictDeposit', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        new Error('String error'),
-        {
-          tags: {
-            component: 'usePredictDeposit',
-            action: 'deposit_initialization',
-            operation: 'financial_operations',
-          },
-          extra: {
-            depositContext: {
-              providerId: 'polymarket',
-            },
+      expect(mockLoggerError).toHaveBeenCalledWith(new Error('String error'), {
+        tags: {
+          component: 'usePredictDeposit',
+          action: 'deposit_initialization',
+          operation: 'financial_operations',
+        },
+        extra: {
+          depositContext: {
+            providerId: 'polymarket',
           },
         },
-      );
+      });
 
       consoleErrorSpy.mockRestore();
     });

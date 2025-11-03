@@ -26,7 +26,9 @@ jest.mock('react-redux', () => ({
 
 const mockEnableNetwork = jest.fn();
 const mockAddNetwork = jest.fn();
-const mockLoggerError = Logger.error as jest.MockedFunction<typeof Logger.error>;
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
+>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 interface MockEngineContext {
