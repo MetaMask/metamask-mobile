@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { resetTransaction } from '../../../../../actions/transaction';
@@ -25,8 +24,8 @@ import { toHex } from '@metamask/controller-utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { type TxData } from '@metamask/bridge-controller';
 import { hasTransactionType } from '../../utils/transaction';
-import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -54,12 +53,10 @@ export function useTransactionConfirm() {
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
-  // const shouldUseSmartTransaction = useSelector((state: RootState) =>
-  //   selectShouldUseSmartTransaction(state, chainId),
-  // );
+  const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
+    useGaslessSupportedSmartTransactions();
 
-  const { isSupported: isGaslessSupported, isSmartTransaction } =
-    useIsGaslessSupported();
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
   const quotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId ?? ''),
@@ -110,11 +107,6 @@ export function useTransactionConfirm() {
     ],
   );
 
-  const { value: chainSupportsSendBundle } = useAsyncResult(
-    async () => (chainId ? isSendBundleSupported(chainId) : false),
-    [chainId],
-  );
-
   const handleGasless7702 = useCallback(
     (updatedMetadata: TransactionMeta) => {
       if (!selectedGasFeeToken) {
@@ -150,7 +142,7 @@ export function useTransactionConfirm() {
       updatedMetadata.batchTransactionsOptions = {};
     }
 
-    if (isSmartTransaction && chainSupportsSendBundle) {
+    if (isGaslessSupportedSTX) {
       handleSmartTransaction(updatedMetadata);
     } else if (selectedGasFeeToken) {
       handleGasless7702(updatedMetadata);
@@ -193,19 +185,18 @@ export function useTransactionConfirm() {
   }, [
     batchTransactions,
     bridgeFeeFiat,
-    chainSupportsSendBundle,
     chainId,
     dispatch,
     handleGasless7702,
     handleSmartTransaction,
     isFullScreenConfirmation,
+    isGaslessSupportedSTX,
     navigation,
     networkFeeFiat,
     onRequestConfirm,
     payToken?.address,
     payToken?.chainId,
     selectedGasFeeToken,
-    isSmartTransaction,
     totalFiat,
     transactionMetadata,
     tryEnableEvmNetwork,

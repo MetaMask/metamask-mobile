@@ -14,7 +14,6 @@ import {
   transactionIdMock,
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { ConfirmationMetricsState } from '../../../../../core/redux/slices/confirmationMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -26,9 +25,9 @@ import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/use
 import { flushPromises } from '../../../../../util/test/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
-import { useAsyncResult as useAsyncResultHook } from '../../../../hooks/useAsyncResult';
 import { act } from '@testing-library/react-hooks';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -44,9 +43,7 @@ jest.mock('../../../../../util/networks');
 jest.mock('../../../../hooks/useNetworkEnablement/useNetworkEnablement');
 jest.mock('../gas/useGasFeeToken');
 jest.mock('../gas/useIsGaslessSupported');
-jest.mock('../../../../hooks/useAsyncResult', () => ({
-  useAsyncResult: jest.fn(),
-}));
+jest.mock('../gas/useGaslessSupportedSmartTransactions');
 jest.mock('../../../../../util/transactions/sentinel-api');
 
 jest.mock('@react-navigation/native', () => ({
@@ -116,15 +113,13 @@ describe('useTransactionConfirm', () => {
   const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
   const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
-  const useAsyncResultMock = jest.mocked(useAsyncResultHook);
   const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
+  const useGaslessSupportedSmartTransactionsMock = jest.mocked(
+    useGaslessSupportedSmartTransactions,
+  );
 
   const isRemoveGlobalNetworkSelectorEnabledMock = jest.mocked(
     isRemoveGlobalNetworkSelectorEnabled,
-  );
-
-  const selectShouldUseSmartTransactionMock = jest.mocked(
-    selectShouldUseSmartTransaction,
   );
 
   const useTransactionMetadataRequestMock = jest.mocked(
@@ -133,10 +128,15 @@ describe('useTransactionConfirm', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    useAsyncResultMock.mockReturnValue({ pending: false, value: false });
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: true,
       isSupported: true,
+    });
+
+    useGaslessSupportedSmartTransactionsMock.mockReturnValue({
+      isSupported: false,
+      isSmartTransaction: false,
+      pending: false,
     });
 
     useApprovalRequestMock.mockReturnValue({
@@ -164,8 +164,6 @@ describe('useTransactionConfirm', () => {
       totalNativeEstimatedFormatted: NETWORK_FEE_MOCK,
     } as ReturnType<typeof useTransactionTotalFiat>);
 
-    selectShouldUseSmartTransactionMock.mockReturnValue(false);
-
     useFullScreenConfirmationMock.mockReturnValue({
       isFullScreenConfirmation: true,
     });
@@ -190,6 +188,9 @@ describe('useTransactionConfirm', () => {
   });
 
   it('sets waitForResult true when not smart tx, no quotes, no fee token', async () => {
+    useSelectedGasFeeTokenMock.mockReturnValue(
+      undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+    );
     const { result } = renderHook();
 
     await act(async () => {
@@ -205,7 +206,11 @@ describe('useTransactionConfirm', () => {
   });
 
   it('does not wait for result if smart transaction', async () => {
-    selectShouldUseSmartTransactionMock.mockReturnValue(true);
+    useGaslessSupportedSmartTransactionsMock.mockReturnValue({
+      isSupported: true,
+      isSmartTransaction: true,
+      pending: false,
+    });
 
     const { result } = renderHook();
 
@@ -368,9 +373,10 @@ describe('useTransactionConfirm', () => {
 
     isSendBundleSupportedMock.mockResolvedValue(true);
 
-    useAsyncResultMock.mockImplementation((fn) => {
-      fn();
-      return { pending: false, value: false };
+    useGaslessSupportedSmartTransactionsMock.mockReturnValue({
+      isSupported: false,
+      isSmartTransaction: false,
+      pending: false,
     });
 
     const { result } = renderHook();
@@ -449,8 +455,11 @@ describe('useTransactionConfirm', () => {
 
   describe('handleSmartTransaction', () => {
     beforeEach(() => {
-      selectShouldUseSmartTransactionMock.mockReturnValue(true);
-      useAsyncResultMock.mockReturnValue({ pending: false, value: true });
+      useGaslessSupportedSmartTransactionsMock.mockReturnValue({
+        isSupported: true,
+        isSmartTransaction: true,
+        pending: false,
+      });
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(true));
       useSelectedGasFeeTokenMock.mockReturnValue({
         transferTransaction: { data: '0xabc', to: '0xdef', value: '0x0' },
@@ -501,7 +510,6 @@ describe('useTransactionConfirm', () => {
 
   describe('handleGasless7702', () => {
     it('sets isExternalSign when selectedGasFeeToken is present and not smart transaction', async () => {
-      selectShouldUseSmartTransactionMock.mockReturnValue(false);
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
@@ -522,7 +530,6 @@ describe('useTransactionConfirm', () => {
     });
 
     it('sets isExternalSign when selectedGasFeeToken is present and smart transaction but the chain does not support send bundle', async () => {
-      selectShouldUseSmartTransactionMock.mockReturnValue(true);
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
@@ -543,7 +550,6 @@ describe('useTransactionConfirm', () => {
     });
 
     it('does nothing if selectedGasFeeToken is missing', async () => {
-      selectShouldUseSmartTransactionMock.mockReturnValue(false);
       useSelectedGasFeeTokenMock.mockReturnValue(
         undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
       );
