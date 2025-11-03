@@ -101,6 +101,96 @@ describe('useDepositUser', () => {
       expect(result.current.userDetails).toBeNull();
     });
 
+    it('calls useDepositSdkMethod with correct parameters', () => {
+      renderHook(() => useDepositUser());
+
+      expect(mockUseDepositSdkMethod).toHaveBeenCalledWith({
+        method: 'getUserDetails',
+        onMount: false,
+        throws: true,
+      });
+    });
+
+    it('returns fetchUserDetails function', () => {
+      const { result } = renderHook(() => useDepositUser());
+
+      expect(result.current.fetchUserDetails).toBeDefined();
+      expect(typeof result.current.fetchUserDetails).toBe('function');
+    });
+  });
+  describe('authentication-based fetching', () => {
+    it('fetches user details when authenticated and no user details exist', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      setupMockSdkMethod();
+
+      renderHook(() => useDepositUser({ fetchOnMount: true }));
+
+      expect(mockFetchUserDetails).toHaveBeenCalled();
+    });
+
+    it('does not fetch user details when not authenticated', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: false,
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      renderHook(() => useDepositUser());
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch user details when already exists', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      setupMockSdkMethod({ data: mockUserDetails });
+
+      renderHook(() => useDepositUser());
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch user details when already fetching', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      setupMockSdkMethod({ isFetching: true });
+
+      renderHook(() => useDepositUser());
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch user details when there is an error', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      setupMockSdkMethod({ error: 'Some error' });
+
+      renderHook(() => useDepositUser());
+
+      expect(mockFetchUserDetails).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('loading and error states', () => {
     it('returns loading state when fetching', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
@@ -133,6 +223,24 @@ describe('useDepositUser', () => {
       expect(result.current.userDetails).toBeNull();
       expect(result.current.error).toBe(mockError);
       expect(result.current.isFetching).toBe(false);
+    });
+
+    it('handles multiple hook renders correctly', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          logoutFromProvider: mockLogoutFromProvider,
+        }),
+      );
+      setupMockSdkMethod();
+
+      const { rerender } = renderHook(() =>
+        useDepositUser({ fetchOnMount: true }),
+      );
+      rerender({});
+      rerender({});
+
+      expect(mockFetchUserDetails).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -17,8 +17,8 @@ export function useDepositUser(config?: UseDepositUserConfig) {
     shouldTrackFetch = false,
     fetchOnMount = false,
   } = config || {};
-  const { isAuthenticated, logoutFromProvider } = useDepositSDK();
-  const { selectedRegion } = useDepositSDK();
+  const { isAuthenticated, logoutFromProvider, selectedRegion } =
+    useDepositSDK();
 
   const [{ data: userDetails, error, isFetching }, fetchUserDetails] =
     useDepositSdkMethod({
