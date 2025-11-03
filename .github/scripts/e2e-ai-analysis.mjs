@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execSync } from 'child_process';
-import { appendFileSync } from 'fs';
+import { appendFileSync, writeFileSync } from 'fs';
 
 /**
  * AI E2E Analysis Script
@@ -169,5 +169,60 @@ if (parsedResult.testFileBreakdown && parsedResult.testFileBreakdown.length > 0)
 
 appendStepSummary('');
 appendStepSummary('</details>');
+
+// Generate PR comment file if PR number is available
+const PR_COMMENT_FILE = process.env.PR_COMMENT_FILE || 'pr_comment.md';
+if (PR_NUMBER) {
+  console.log(`📝 Generating PR comment file: ${PR_COMMENT_FILE}`);
+
+  let commentContent = '## 🔍 AI E2E Analysis Report\n\n';
+
+  // Add risk level and tags header
+  commentContent += `**Risk Level:** ${riskLevel} | **Selected Tags:** ${tagDisplay}\n\n`;
+
+  // Add AI analysis reasoning
+  commentContent += '**🤖 AI Analysis:**\n';
+  commentContent += `> ${reasoning}\n\n`;
+
+  // Add analysis results
+  commentContent += '**📊 Analysis Results:**\n';
+  commentContent += `- **Confidence:** ${confidence}%\n\n`;
+
+  // Add test recommendation
+  if (tagCount === 0) {
+    commentContent += '**🏷️ Test Recommendation:**\n';
+    commentContent += 'Based on the code changes, the AI determined that no E2E tests are required.\n\n';
+  } else {
+    commentContent += '**🏷️ Test Recommendation:**\n';
+    commentContent += `Based on the code changes, the AI recommends testing the following areas: **${tagDisplay}**\n\n`;
+
+    // Add test file breakdown if available
+    if (parsedResult.testFileBreakdown && parsedResult.testFileBreakdown.length > 0) {
+      const breakdown = parsedResult.testFileBreakdown
+        .map(item => `  - ${item.tag}: ${item.fileCount} files → ${item.recommendedSplits} splits`)
+        .join('\n');
+
+      commentContent += '**📊 Test File Breakdown:**\n';
+      commentContent += breakdown + '\n\n';
+    }
+  }
+
+  // Add footer with link to workflow run
+  const repository = process.env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile';
+  const runId = process.env.GITHUB_RUN_ID || '';
+  const runUrl = runId
+    ? `https://github.com/${repository}/actions/runs/${runId}`
+    : '#';
+
+  commentContent += `_🔍 [View complete analysis](${runUrl}) • AI E2E Analysis_\n\n`;
+  commentContent += '<!-- ai-e2e-analysis -->\n';
+
+  // Write comment file
+  writeFileSync(PR_COMMENT_FILE, commentContent, 'utf8');
+  console.log(`✅ PR comment file written to ${PR_COMMENT_FILE}`);
+
+  // Also set as output for the action to know the file location
+  setOutput('pr_comment_file', PR_COMMENT_FILE);
+}
 
 console.log('✅ AI analysis script completed successfully');
