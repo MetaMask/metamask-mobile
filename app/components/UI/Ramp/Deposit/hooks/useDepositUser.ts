@@ -42,11 +42,13 @@ export function useDepositUser(config?: UseDepositUserConfig) {
       return result;
     } catch (error) {
       if ((error as AxiosError).status === 401) {
-        trackEvent('RAMPS_USER_DETAILS_FETCHED', {
-          logged_in: false,
-          region: selectedRegion?.isoCode || '',
-          location: screenLocation,
-        });
+        if (shouldTrackFetch) {
+          trackEvent('RAMPS_USER_DETAILS_FETCHED', {
+            logged_in: false,
+            region: selectedRegion?.isoCode || '',
+            location: screenLocation,
+          });
+        }
         Logger.log('useDepositUser: 401 error, clearing authentication');
         await logoutFromProvider(false);
       } else {
