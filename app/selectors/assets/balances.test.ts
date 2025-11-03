@@ -497,7 +497,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   });
 
   describe('selectAccountGroupBalanceForEmptyState', () => {
-    it.only('excludes testnet chains and includes only mainnet chains in balance calculation', () => {
+    it('excludes testnet chains and includes only mainnet chains in balance calculation', () => {
       const mockCalculateBalanceForAllWallets = jest.requireMock(
         '@metamask/assets-controllers',
       ).calculateBalanceForAllWallets;
