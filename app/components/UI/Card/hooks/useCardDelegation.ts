@@ -87,6 +87,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       signatureMessage: string,
       delegationJWTToken: string,
     ) => {
+      Logger.log('executeApprovalTransaction', token);
       if (!sdk || !token?.delegationContract) {
         throw new Error('Missing token configuration');
       }

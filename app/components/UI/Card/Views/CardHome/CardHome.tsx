@@ -78,6 +78,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 
 /**
  * CardHome Component
@@ -101,6 +102,10 @@ const CardHome = () => {
   const assetSelectionSheetRef = useRef<BottomSheetRef>(null);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const [
+    isCloseSpendingLimitWarningShown,
+    setIsCloseSpendingLimitWarningShown,
+  ] = useState(true);
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
@@ -527,6 +532,26 @@ const CardHome = () => {
     handleAuthenticationError();
   }, [cardError, isAuthenticated, dispatch, navigation]);
 
+  /**
+   * This warning is shown when the user is close to their spending limit.
+   * We should show when the user has consumed 80% or more of their total allowance.
+   * This matches the progress bar color change threshold.
+   */
+  const isCloseSpendingLimitWarning = useMemo(() => {
+    if (!isAuthenticated) {
+      return false;
+    }
+
+    const totalAllowance = Number(priorityToken?.totalAllowance) || 0;
+    const remainingAllowance = Number(priorityToken?.allowance) || 0;
+
+    // Show warning when remaining allowance is 20% or less of total (consumed >= 80%)
+    return (
+      priorityToken?.allowanceState === AllowanceState.Limited &&
+      remainingAllowance <= totalAllowance * 0.2
+    );
+  }, [isAuthenticated, priorityToken]);
+
   if (cardError) {
     return (
       <View style={styles.errorContainer}>
@@ -581,7 +606,23 @@ const CardHome = () => {
         />
       }
     >
-      {cardDetailsWarning && <CardWarningBox warning={cardDetailsWarning} />}
+      {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
+        <CardWarningBox
+          warning={CardWarning.CloseSpendingLimit}
+          onConfirm={() => {
+            navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+              flow: 'enable',
+              priorityToken,
+              allTokens,
+              delegationSettings,
+              externalWalletDetailsData,
+            });
+          }}
+          onDismiss={() => {
+            setIsCloseSpendingLimitWarningShown(false);
+          }}
+        />
+      )}
       <View style={styles.cardBalanceContainer}>
         <View
           style={[
@@ -685,6 +726,16 @@ const CardHome = () => {
             <CardAssetItem asset={asset} privacyMode={privacyMode} />
           )}
         </View>
+
+        {isAuthenticated &&
+          priorityToken?.allowanceState === AllowanceState.Limited && (
+            <SpendingLimitProgressBar
+              decimals={priorityToken?.decimals ?? 6}
+              totalAllowance={'1000'}
+              remainingAllowance={'899'}
+              symbol={priorityToken?.symbol ?? ''}
+            />
+          )}
 
         <View
           style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
