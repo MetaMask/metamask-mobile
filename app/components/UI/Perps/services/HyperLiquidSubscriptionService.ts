@@ -706,6 +706,20 @@ export class HyperLiquidSubscriptionService {
 
           // Process data from each DEX in perpDexStates array
           data.perpDexStates.forEach((dexState, index) => {
+            // Defensive validation: Ensure perpDexStates array doesn't exceed enabledDexs
+            if (index >= enabledDexs.length) {
+              Logger.error(
+                new Error('perpDexStates array length exceeds enabledDexs'),
+                this.getErrorContext('subscribeToWebData3', {
+                  perpDexStatesLength: data.perpDexStates.length,
+                  enabledDexsLength: enabledDexs.length,
+                  index,
+                  issue: 'Array index out of bounds - skipping unknown DEX',
+                }),
+              );
+              return; // Skip this DEX state to prevent data corruption
+            }
+
             const currentDexName = enabledDexs[index] || ''; // null -> ''
 
             // Extract and process positions for this DEX
@@ -746,6 +760,21 @@ export class HyperLiquidSubscriptionService {
           // Extract OI caps from all DEXs (main + HIP-3)
           const allOICaps: string[] = [];
           data.perpDexStates.forEach((dexState, index) => {
+            // Defensive validation: Ensure perpDexStates array doesn't exceed enabledDexs
+            if (index >= enabledDexs.length) {
+              Logger.error(
+                new Error('perpDexStates array length exceeds enabledDexs'),
+                this.getErrorContext('subscribeToWebData3:OICaps', {
+                  perpDexStatesLength: data.perpDexStates.length,
+                  enabledDexsLength: enabledDexs.length,
+                  index,
+                  issue:
+                    'Array index out of bounds - skipping OI caps for unknown DEX',
+                }),
+              );
+              return; // Skip this DEX state to prevent incorrect OI cap attribution
+            }
+
             const currentDexName = enabledDexs[index];
             const oiCaps = dexState.perpsAtOpenInterestCap || [];
 
