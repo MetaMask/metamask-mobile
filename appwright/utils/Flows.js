@@ -117,7 +117,7 @@ export async function login(device, options = {}) {
   LoginScreen.device = device;
   const { skipIntro = false, scenarioType = 'login' } = options;
 
-  const password = 'MetaMaskQA123';
+  const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
   await LoginScreen.typePassword(password);

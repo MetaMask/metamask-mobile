@@ -61,7 +61,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
-      testMatch: 'appwright/tests/performance/login/asset-balances.spec.js',
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -69,7 +69,7 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: 'bs://0064de30f8fa1caea32e8c76d4cfb6c281102c12',
+        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
