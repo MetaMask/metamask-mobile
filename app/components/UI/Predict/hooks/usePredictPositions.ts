@@ -1,12 +1,14 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 
 interface UsePredictPositionsOptions {
   /**
@@ -128,15 +130,18 @@ export function usePredictPositions(
         setError(errorMessage);
         DevLogger.log('usePredictPositions: Error loading positions', err);
 
-        // Capture exception with positions loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        // Log error with positions loading context (no user address)
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictPositions',
-            action: 'positions_load',
-            operation: 'data_fetching',
           },
-          extra: {
-            positionsContext: {
+          context: {
+            name: 'usePredictPositions',
+            data: {
+              method: 'loadPositions',
+              action: 'positions_load',
+              operation: 'data_fetching',
               providerId,
               claimable,
               marketId,
