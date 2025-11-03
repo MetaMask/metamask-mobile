@@ -497,7 +497,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
         key={tabsKey}
         ref={tabsListRef}
         onChangeTab={handleTabChange}
-        autoHeight={isHomepageRedesignV1Enabled}
         tabsListContentTwClassName={
           isHomepageRedesignV1Enabled ? '!flex-initial' : ''
         }

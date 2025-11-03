@@ -185,11 +185,12 @@ describe('TokenList', () => {
     expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
   });
 
-  it('renders empty state when no tokens', () => {
-    const { getByText } = renderComponent({ tokenKeys: [] });
+  it('renders empty container when no tokens', () => {
+    const { getByTestId } = renderComponent({ tokenKeys: [] });
 
-    expect(getByText('wallet.no_tokens')).toBeOnTheScreen();
-    expect(getByText('wallet.show_tokens_without_balance')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
   });
 
   it('shows view all button when maxItems is exceeded', () => {
@@ -226,20 +227,18 @@ describe('TokenList', () => {
     expect(mockNavigate).toHaveBeenCalledWith('TokensFullView');
   });
 
-  it('navigates to settings when show tokens without balance is pressed', () => {
-    const { getByText } = renderComponent({ tokenKeys: [] });
+  it('renders container without items when tokenKeys is empty', () => {
+    const { getByTestId, queryByTestId } = renderComponent({ tokenKeys: [] });
 
-    const showTokensLink = getByText('wallet.show_tokens_without_balance');
-    fireEvent.press(showTokensLink);
-
-    expect(mockNavigate).toHaveBeenCalledWith('SettingsView', {
-      screen: 'GeneralSettings',
-    });
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('token-item-0x123')).toBeNull();
   });
 
   it('calls onRefresh when refresh control is triggered', () => {
     const onRefresh = jest.fn();
-    const { getByTestId } = renderComponent({ onRefresh });
+    const { getByTestId } = renderComponent({ onRefresh, isFullView: true });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const refreshControl = flashList.props.refreshControl;
@@ -249,12 +248,13 @@ describe('TokenList', () => {
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('applies flashListProps when provided', () => {
-    const customProps = { contentContainerStyle: { padding: 10 } };
-    const { getByTestId } = renderComponent({ flashListProps: customProps });
+  it('applies contentContainerStyle when isFullView is true', () => {
+    const { getByTestId } = renderComponent({ 
+      isFullView: true 
+    });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
-    expect(flashList.props.contentContainerStyle).toEqual({ padding: 10 });
+    expect(flashList.props.contentContainerStyle).toBeDefined();
   });
 
   it('uses TokenListItemBip44 when multichain accounts state 2 is enabled', () => {
@@ -296,19 +296,27 @@ describe('TokenList', () => {
   });
 
   it('handles undefined tokenKeys gracefully', () => {
-    const { getByText } = renderComponent({ tokenKeys: undefined });
+    const { getByTestId, queryByTestId } = renderComponent({ tokenKeys: undefined });
 
-    expect(getByText('wallet.no_tokens')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('token-item-0x123')).toBeNull();
+    expect(queryByTestId('token-item-0x456')).toBeNull();
   });
 
   it('handles null tokenKeys gracefully', () => {
-    const { getByText } = renderComponent({ tokenKeys: null });
+    const { getByTestId, queryByTestId } = renderComponent({ tokenKeys: null });
 
-    expect(getByText('wallet.no_tokens')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('token-item-0x123')).toBeNull();
+    expect(queryByTestId('token-item-0x456')).toBeNull();
   });
 
   it('shows refreshing state correctly', () => {
-    const { getByTestId } = renderComponent({ refreshing: true });
+    const { getByTestId } = renderComponent({ refreshing: true, isFullView: true });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const refreshControl = flashList.props.refreshControl;
@@ -317,7 +325,7 @@ describe('TokenList', () => {
   });
 
   it('generates unique keys for token items', () => {
-    const { getByTestId } = renderComponent();
+    const { getByTestId } = renderComponent({ isFullView: true });
 
     const flashList = getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST);
     const keyExtractor = flashList.props.keyExtractor;

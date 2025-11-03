@@ -82,7 +82,7 @@ const TokenListComponent = ({
 
   // Apply maxItems limit if specified
   const displayTokenKeys = useMemo(
-    () => tokenKeys?.slice(0, maxItems || undefined),
+    () => (tokenKeys || []).slice(0, maxItems || undefined),
     [tokenKeys, maxItems],
   );
 
@@ -113,7 +113,10 @@ const TokenListComponent = ({
 
   const tokenList =
     isHomepageRedesignV1Enabled && !isFullView ? (
-      <Box twClassName={'bg-default'}>
+      <Box
+        twClassName={'bg-default'}
+        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+      >
         {displayTokenKeys.map((item, index) => (
           <TokenListItemComponent
             key={`${item.address}-${item.chainId}-${item.isStaked ? 'staked' : 'unstaked'}-${index}`}

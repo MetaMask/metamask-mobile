@@ -153,47 +153,45 @@ const PredictPositions = forwardRef<
 
   return (
     <>
-      {isTrulyEmpty ? (
-        <PredictPositionEmpty />
-      ) : (
-        <>
-          <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
+      <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
+        {isTrulyEmpty ? (
+          <PredictPositionEmpty />
+        ) : (
+          <>
             {positions.map((item) => (
               <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
                 {renderPosition({ item })}
               </React.Fragment>
             ))}
-          </View>
-          <PredictNewButton />
-          {claimablePositions.length > 0 && (
-            <>
-              <Box>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-alternative mb-4"
+          </>
+        )}
+      </View>
+      {!isTrulyEmpty && <PredictNewButton />}
+      {claimablePositions.length > 0 && (
+        <>
+          <Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-alternative mb-4"
+            >
+              {strings('predict.tab.resolved_markets')}
+            </Text>
+          </Box>
+          <View testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
+            {claimablePositions
+              .sort(
+                (a, b) =>
+                  new Date(b.endDate).getTime() -
+                  new Date(a.endDate).getTime(),
+              )
+              .map((item) => (
+                <React.Fragment
+                  key={`${item.outcomeId}:${item.outcomeIndex}`}
                 >
-                  {strings('predict.tab.resolved_markets')}
-                </Text>
-              </Box>
-              <View
-                testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}
-              >
-                {claimablePositions
-                  .sort(
-                    (a, b) =>
-                      new Date(b.endDate).getTime() -
-                      new Date(a.endDate).getTime(),
-                  )
-                  .map((item) => (
-                    <React.Fragment
-                      key={`${item.outcomeId}:${item.outcomeIndex}`}
-                    >
-                      {renderResolvedPosition({ item })}
-                    </React.Fragment>
-                  ))}
-              </View>
-            </>
-          )}
+                  {renderResolvedPosition({ item })}
+                </React.Fragment>
+              ))}
+          </View>
         </>
       )}
     </>

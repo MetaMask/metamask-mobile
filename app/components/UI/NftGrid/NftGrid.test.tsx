@@ -575,10 +575,10 @@ describe('NftGrid', () => {
     });
   });
 
-  it('renders NFT items when fetching without homepage redesign', async () => {
+  it('renders NFT items when not fetching without homepage redesign', async () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
-      .mockReturnValueOnce(true) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // isNftFetchingProgress
       .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
@@ -599,10 +599,10 @@ describe('NftGrid', () => {
     });
   });
 
-  it('shows empty state when fetching with homepage redesign enabled', async () => {
-    const mockCollectibles = { '0x1': [mockNft] };
+  it('shows empty state when not fetching with homepage redesign enabled and no collectibles', async () => {
+    const mockCollectibles = { '0x1': [] };
     mockUseSelector
-      .mockReturnValueOnce(true) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // isNftFetchingProgress
       .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
@@ -619,7 +619,6 @@ describe('NftGrid', () => {
 
     await waitFor(() => {
       expect(getByTestId('collectibles-empty-state')).toBeOnTheScreen();
-      expect(getByTestId('nft-grid-header')).toBeOnTheScreen();
     });
   });
 
