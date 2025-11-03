@@ -4,6 +4,7 @@ import {
   getTestDappLocalUrl,
   getMockServerPort,
   getTestDappLocalUrlByDappCounter,
+  AnvilPort,
 } from './FixtureUtils';
 import { merge } from 'lodash';
 import { encryptVault } from './helpers';
@@ -1267,7 +1268,13 @@ class FixtureBuilder {
     return this;
   }
 
-  withGanacheNetwork(chainId = '0x539') {
+  /**
+   * @deprecated Use withNetworkController instead
+   * @param chainId
+   * @param port
+   * @returns
+   */
+  withGanacheNetwork(chainId = '0x539', port = AnvilPort()) {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
@@ -1282,7 +1289,7 @@ class FixtureBuilder {
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: `http://localhost:${getGanachePort()}`,
+          url: `http://localhost:${port}`,
           type: 'custom',
           name: 'Localhost',
         },
