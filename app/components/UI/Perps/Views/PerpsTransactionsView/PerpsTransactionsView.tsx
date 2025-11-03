@@ -343,12 +343,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(
-    () =>
-      // Show loading if we're connecting or if transaction data is loading
-      isConnecting || transactionsLoading,
-    [isConnecting, transactionsLoading],
-  );
+  // Show loading if we're connecting or if transaction data is loading
+  const isInitialLoading = isConnecting || transactionsLoading;
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
   // Only measures once per session (no reset on refresh/tab switch)
