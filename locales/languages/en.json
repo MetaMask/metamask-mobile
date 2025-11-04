@@ -1154,7 +1154,7 @@
         "set_leverage": "Set {{leverage}}x"
       },
       "type": {
-        "title": "Order Type",
+        "title": "Order type",
         "market": {
           "title": "Market",
           "description": "Execute immediately at current market price"
@@ -1680,7 +1680,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Powered by {{source}}. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -1786,6 +1786,8 @@
     },
     "outcomes_singular": "outcome",
     "outcomes_plural": "outcomes",
+    "outcome_winner": "Winner",
+    "outcome_loser": "Loser",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
@@ -2956,6 +2958,8 @@
     "deposit_description": "Low-fee bank or card transfer",
     "buy": "Buy",
     "buy_description": "Good for buying a specific token",
+    "buy_unified": "Buy",
+    "buy_unified_description": "Buy crypto with cash",
     "sell": "Withdraw",
     "sell_description": "Sell crypto for cash"
   },
@@ -5780,13 +5784,13 @@
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
-    "network_fee": "Network Fee",
+    "network_fee": "Network fee",
     "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
     "rate": "Rate",
     "quote_details": "Quote Details",
-    "price_impact": "Price Impact",
+    "price_impact": "Price impact",
     "time": "Time",
     "quote_info_content": "The best rate we found from providers, including provider fees and a 0.875% MetaMask fee.",
     "quote_info_title": "Rate",
@@ -5830,7 +5834,7 @@
     "approval_needed": "Approves token for swap.",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
-    "minimum_received": "Minimum Received",
+    "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum Received",
     "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
     "verified_token": "Verified token",
