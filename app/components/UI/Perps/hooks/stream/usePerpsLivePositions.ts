@@ -95,7 +95,7 @@ export function usePerpsLivePositions(
   // Enrich and update positions whenever raw positions or prices change
   const updateEnrichedPositions = useCallback(() => {
     if (rawPositionsRef.current.length === 0) {
-      setPositions((p) => (p.length === 0 ? EMPTY_POSITIONS : p));
+      setPositions(EMPTY_POSITIONS);
       return;
     }
 
