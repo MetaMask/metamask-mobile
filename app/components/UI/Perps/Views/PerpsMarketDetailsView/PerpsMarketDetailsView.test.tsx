@@ -218,6 +218,7 @@ jest.mock('../../hooks/usePerpsPositionData', () => ({
     isLoadingHistory: false,
     error: null,
     refreshCandleData: mockRefreshCandleData,
+    hasHistoricalData: true,
   }),
 }));
 
