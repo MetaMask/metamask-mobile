@@ -15,11 +15,6 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
   it('should send USDC amount 5 to an address', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
         fixture: ({ localNodes }) => {
           const node = localNodes?.[0] as unknown as AnvilManager;
           const rpcPort =
@@ -63,7 +58,6 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
       },
       async () => {
         await loginToApp();
-        await device.disableSynchronization();
 
         // send 5 USDC
         await WalletView.tapWalletSendButton();
@@ -128,7 +122,6 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
       },
       async () => {
         await loginToApp();
-        await device.disableSynchronization();
 
         // send 50% USDC
         await WalletView.tapWalletSendButton();
@@ -193,7 +186,6 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
       },
       async () => {
         await loginToApp();
-        await device.disableSynchronization();
 
         // send Max USDC
         await WalletView.tapWalletSendButton();

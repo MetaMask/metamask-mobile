@@ -162,7 +162,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
 
         await Assertions.expectElementToBeVisible(WalletView.container);
         await WalletView.tapIdenticon();
-        await device.enableSynchronization();
+        // await device.enableSynchronization();
         const visibleAccounts = [
           DEFAULT_ACCOUNT_NAME,
           SECOND_ACCOUNT_NAME,

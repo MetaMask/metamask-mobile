@@ -50,6 +50,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { isE2E } from '../../../util/test/utils';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
@@ -120,7 +121,13 @@ function TradeWalletActions() {
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     setIsVisible(false);
-  }, [onDismiss]);
+    if (isE2E) {
+      setIsVisible(false);
+      navigation.goBack();
+      postCallback.current?.();
+      return;
+    }
+  }, [onDismiss, navigation]);
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
@@ -233,7 +240,7 @@ function TradeWalletActions() {
       </MaskedView>
 
       {visible && (
-        <Animated.View exiting={exitingWithNavigateBack}>
+        <Animated.View exiting={isE2E ? undefined : exitingWithNavigateBack}>
           <MaskedView
             maskElement={
               <View style={tw.style('flex-1 bg-transparent px-4')}>
@@ -254,11 +261,13 @@ function TradeWalletActions() {
             }
           >
             <Animated.View
-              entering={FadeInDown.duration(
-                animationDuration,
-              ).withInitialValues({
-                transform: [{ translateY: 50 }],
-              })}
+              entering={
+                isE2E
+                  ? undefined
+                  : FadeInDown.duration(animationDuration).withInitialValues({
+                      transform: [{ translateY: 50 }],
+                    })
+              }
             >
               <Box
                 style={tw.style(

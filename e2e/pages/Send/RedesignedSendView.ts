@@ -18,7 +18,7 @@ class SendView {
   }
 
   get amountFiveButton(): DetoxElement {
-    return Matchers.getElementByText('5');
+    return Matchers.getElementByLabel('5');
   }
 
   get fiftyPercentButton(): DetoxElement {
