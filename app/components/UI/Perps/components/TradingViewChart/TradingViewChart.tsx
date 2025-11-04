@@ -86,13 +86,11 @@ const TradingViewChart = React.forwardRef<
     const { marketData, isLoading } = usePerpsMarketData(symbol || '');
 
     const priceDecimals = useMemo(() => {
-      if (!marketData?.szDecimals) return undefined;
+      const decimals = marketData?.szDecimals ?? null;
+      if (decimals === null) return undefined;
       return Math.max(
         0,
-        Math.min(
-          marketData.szDecimals,
-          DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
-        ),
+        Math.min(decimals, DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS),
       );
     }, [marketData?.szDecimals]);
 
