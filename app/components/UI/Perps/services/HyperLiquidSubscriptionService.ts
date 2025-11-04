@@ -52,6 +52,7 @@ export class HyperLiquidSubscriptionService {
   private enabledDexs: string[]; // DEX identification (maps webData3 indices to DEX names)
   private enabledMarkets: string[]; // Market filtering (whitelist)
   private blockedMarkets: string[]; // Market filtering (blacklist)
+  private discoveredDexNames: string[] = []; // DEX order for mapping webData3 perpDexStates indices
 
   // Subscriber collections
   private readonly priceSubscribers = new Map<
@@ -234,6 +235,22 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Check if a DEX is enabled in our configuration
+   * Used to filter webData3 callback data to only process DEXs we care about
+   * @param dex - DEX name (null for main DEX, string for HIP-3)
+   * @returns true if this DEX should be processed
+   */
+  private isDexEnabled(dex: string | null): boolean {
+    if (dex === null) {
+      return true; // Main DEX always enabled
+    }
+    if (!this.equityEnabled) {
+      return false; // HIP-3 disabled entirely
+    }
+    return this.enabledDexs.includes(dex);
+  }
+
+  /**
    * Update feature flags for HIP-3 support
    * Called when provider configuration changes at runtime
    * Note: Market filtering is NOT applied in subscription service - only in Provider
@@ -253,6 +270,7 @@ export class HyperLiquidSubscriptionService {
     this.enabledDexs = enabledDexs;
     this.enabledMarkets = enabledMarkets;
     this.blockedMarkets = blockedMarkets;
+    this.discoveredDexNames = enabledDexs; // Store DEX order for webData3 index mapping
 
     DevLogger.log('Feature flags updated:', {
       previousEquityEnabled,
@@ -744,25 +762,21 @@ export class HyperLiquidSubscriptionService {
     return new Promise<void>((resolve, reject) => {
       subscriptionClient
         .webData3({ user: userAddress }, (data: WsWebData3Event) => {
-          const enabledDexs = this.getEnabledDexs();
-
           // Process data from each DEX in perpDexStates array
+          // webData3 returns data for ALL protocol DEXs, but we only process the ones we care about
           data.perpDexStates.forEach((dexState, index) => {
-            // Defensive validation: Ensure perpDexStates array doesn't exceed enabledDexs
-            if (index >= enabledDexs.length) {
-              Logger.error(
-                new Error('perpDexStates array length exceeds enabledDexs'),
-                this.getErrorContext('subscribeToWebData3', {
-                  perpDexStatesLength: data.perpDexStates.length,
-                  enabledDexsLength: enabledDexs.length,
-                  index,
-                  issue: 'Array index out of bounds - skipping unknown DEX',
-                }),
-              );
-              return; // Skip this DEX state to prevent data corruption
+            // Map webData3 index to DEX name
+            // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
+            const dexIdentifier =
+              index === 0 ? null : (this.discoveredDexNames[index - 1] ?? null);
+
+            // Only process DEXs we care about (skip others silently)
+            // webData3 API returns all protocol DEXs regardless of our config
+            if (!this.isDexEnabled(dexIdentifier)) {
+              return; // Skip this DEX - not enabled in our configuration
             }
 
-            const currentDexName = enabledDexs[index] || ''; // null -> ''
+            const currentDexName = dexIdentifier === null ? '' : dexIdentifier; // null -> '' for Map keys
 
             // Extract and process positions for this DEX
             const positions = dexState.clearinghouseState.assetPositions
@@ -802,22 +816,17 @@ export class HyperLiquidSubscriptionService {
           // Extract OI caps from all DEXs (main + HIP-3)
           const allOICaps: string[] = [];
           data.perpDexStates.forEach((dexState, index) => {
-            // Defensive validation: Ensure perpDexStates array doesn't exceed enabledDexs
-            if (index >= enabledDexs.length) {
-              Logger.error(
-                new Error('perpDexStates array length exceeds enabledDexs'),
-                this.getErrorContext('subscribeToWebData3:OICaps', {
-                  perpDexStatesLength: data.perpDexStates.length,
-                  enabledDexsLength: enabledDexs.length,
-                  index,
-                  issue:
-                    'Array index out of bounds - skipping OI caps for unknown DEX',
-                }),
-              );
-              return; // Skip this DEX state to prevent incorrect OI cap attribution
+            // Map webData3 index to DEX name
+            // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
+            const dexIdentifier =
+              index === 0 ? null : (this.discoveredDexNames[index - 1] ?? null);
+
+            // Only process DEXs we care about (skip others silently)
+            if (!this.isDexEnabled(dexIdentifier)) {
+              return; // Skip this DEX - not enabled in our configuration
             }
 
-            const currentDexName = enabledDexs[index];
+            const currentDexName = dexIdentifier === null ? '' : dexIdentifier;
             const oiCaps = dexState.perpsAtOpenInterestCap || [];
 
             // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
