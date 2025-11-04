@@ -34,25 +34,25 @@ function getKeyData() {
 function canonicalize(url: URL): string {
   const params = new URLSearchParams(url.searchParams);
 
+  const canonicalParams = new URLSearchParams();
+
   // If sig_params is present, only include the
   // parameters listed in it for sig verification
   if (params.has('sig_params')) {
-    const sigParamsList = params.get('sig_params') || '';
-    // filter out any empty strings
-    const signedParams = sigParamsList.split(',').filter(Boolean);
-    const canonicalParams = new URLSearchParams();
+    const stringifiedSigParams = params.get('sig_params') || '';
 
-    // Include the listed params
-    signedParams.forEach((paramName) => {
-      const value = params.get(paramName);
-      // remove null values, this will cause verification to fail gracefully
+    // Filter to only valid, existing params with non-null values
+    stringifiedSigParams.split(',').forEach((paramName) => {
+      if (!paramName) return; // Skip empty strings
+
+      const value = params.get(paramName); // can be string or null
       if (value !== null) {
+        // remove null
         canonicalParams.set(paramName, value);
       }
     });
 
-    // Include sig_params itself
-    canonicalParams.set('sig_params', sigParamsList);
+    canonicalParams.set('sig_params', stringifiedSigParams);
     canonicalParams.sort();
 
     const queryString = canonicalParams.toString();
