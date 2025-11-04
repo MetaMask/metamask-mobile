@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTest , isE2E } from '../../../util/test/utils';
+import { isTest, isE2E } from '../../../util/test/utils';
 import FontLoadingGate from './FontLoadingGate';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
