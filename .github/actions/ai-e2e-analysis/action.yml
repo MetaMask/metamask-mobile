@@ -100,9 +100,9 @@ runs:
       run: |
         echo "🗑️ Deleting all existing AI E2E comments..."
 
-        # Get all AI E2E comment IDs (both analysis-only and test mode comments)
+        # Get all AI E2E comment IDs
         ALL_COMMENT_IDS=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}/comments" \
-          --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis|🔍 AI E2E Analysis Report")) | .id')
+          --jq '.[] | select(.body | test("🔍 Smart E2E Test Selection")) | .id')
 
         COMMENT_COUNT=$(echo "$ALL_COMMENT_IDS" | wc -l | tr -d ' ')
         echo "📊 Found $COMMENT_COUNT existing AI E2E comments"
