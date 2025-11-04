@@ -105,8 +105,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
-  const titleLineCount = useMemo(() => estimateLineCount(title), [title]);
-
   const { executeGuardedAction } = usePredictActionGuard({
     providerId,
     navigation,
@@ -121,6 +119,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     providerId,
     enabled: Boolean(resolvedMarketId),
   });
+
+  const titleLineCount = useMemo(
+    () => estimateLineCount(title ?? market?.title),
+    [title, market?.title],
+  );
 
   const claimable = market?.status === PredictMarketStatus.CLOSED;
 
