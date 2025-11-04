@@ -44,6 +44,7 @@ export default function useRampsSmartRouting() {
       }
 
       try {
+        // TODO: Remove this once the API is ready and use the actual API route instead
         const response = await fetch(
           `/endpoint-coming-soon?region=${rampGeodetectedRegion}`,
         );
