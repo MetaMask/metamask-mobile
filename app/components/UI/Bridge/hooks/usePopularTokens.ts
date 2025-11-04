@@ -24,8 +24,71 @@ interface UsePopularTokensResult {
   isLoading: boolean;
 }
 
+interface CacheEntry {
+  data: PopularToken[];
+  timestamp: number;
+}
+
+// Cache for popular tokens with 15-minute TTL
+const popularTokensCache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+// Cleanup throttling - runs at most once every 5 minutes
+let lastCleanupTime = 0;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
- * Custom hook to fetch popular tokens from the Bridge API
+ * Clears the popular tokens cache. Exposed for testing purposes.
+ * @internal
+ */
+export const clearPopularTokensCache = (): void => {
+  popularTokensCache.clear();
+  lastCleanupTime = 0;
+};
+
+/**
+ * Removes expired entries from the cache (throttled to once every 5 minutes).
+ * With a 15-minute TTL, this ensures stale entries are cleaned up 3 times per
+ * cache lifetime while minimizing unnecessary iterations.
+ */
+const cleanupExpiredEntries = (): void => {
+  const now = Date.now();
+
+  // Skip if cleaned up within the last 5 minutes
+  if (now - lastCleanupTime < CLEANUP_INTERVAL_MS) {
+    return;
+  }
+
+  lastCleanupTime = now;
+
+  for (const [key, entry] of popularTokensCache.entries()) {
+    if (now - entry.timestamp >= CACHE_TTL_MS) {
+      popularTokensCache.delete(key);
+    }
+  }
+};
+
+/**
+ * Generates a cache key from request parameters
+ */
+const getCacheKey = (
+  chainIds: CaipChainId[],
+  excludeAssetIds: string,
+): string => {
+  const sortedChainIds = [...chainIds].sort();
+  return `${sortedChainIds.join(',')}_${excludeAssetIds}`;
+};
+
+/**
+ * Checks if a cache entry is still valid
+ */
+const isCacheValid = (entry: CacheEntry): boolean => {
+  const now = Date.now();
+  return now - entry.timestamp < CACHE_TTL_MS;
+};
+
+/**
+ * Custom hook to fetch popular tokens from the Bridge API with caching
  * @param params - Configuration object containing chainIds and excludeAssetIds
  * @returns Object containing popularTokens array and isLoading state
  */
@@ -38,6 +101,19 @@ export const usePopularTokens = ({
 
   useEffect(() => {
     const fetchPopularTokens = async () => {
+      // Cleanup expired entries before checking cache
+      cleanupExpiredEntries();
+
+      const cacheKey = getCacheKey(chainIds, excludeAssetIds);
+      const cachedEntry = popularTokensCache.get(cacheKey);
+
+      // Check if we have a valid cached response
+      if (cachedEntry && isCacheValid(cachedEntry)) {
+        setPopularTokens(cachedEntry.data);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
 
       try {
@@ -58,6 +134,12 @@ export const usePopularTokens = ({
           },
         );
         const popularAssets: PopularToken[] = await response.json();
+
+        // Store in cache with current timestamp
+        popularTokensCache.set(cacheKey, {
+          data: popularAssets,
+          timestamp: Date.now(),
+        });
 
         setPopularTokens(popularAssets);
       } catch (error) {
