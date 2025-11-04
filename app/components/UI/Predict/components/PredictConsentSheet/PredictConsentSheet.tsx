@@ -73,7 +73,7 @@ const PredictConsentSheet = forwardRef<
           variant={TextVariant.BodyMD}
           style={tw.style('text-info-default')}
           onPress={() => {
-            Linking.openURL('https://polymarket.com/terms');
+            Linking.openURL('https://polymarket.com/tos');
           }}
           suppressHighlighting
         >
