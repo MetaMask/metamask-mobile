@@ -84,6 +84,7 @@
     "test": "yarn test:unit",
     "test:unit": "jest ./app/ ./locales/ ./e2e/**/*.test.ts .github/**/*.test.ts",
     "test:unit:update": "time jest -u ./app/",
+    "test:timing": "node scripts/generate-test-timing.js",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
     "test:e2e:android:main:ci": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.main.ci --headless",
     "test:e2e:android:flask:ci": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.flask.ci --headless",
