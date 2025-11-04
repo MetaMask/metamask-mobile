@@ -58,6 +58,7 @@ import {
   usePerpsNetworkManagement,
   usePerpsNavigation,
 } from '../../hooks';
+import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import {
   usePerpsDataMonitor,
   type DataMonitorParams,
@@ -66,6 +67,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
+import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import PerpsNavigationCard, {
   type NavigationItem,
@@ -91,6 +93,8 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import Engine from '../../../../../core/Engine';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -182,6 +186,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
+  // Check if market is at open interest cap
+  const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
 
   // Programmatic tab control state for data-driven navigation
   const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
@@ -317,7 +324,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoadingHistory, refreshCandleData } =
+  const { candleData, isLoadingHistory, refreshCandleData, hasHistoricalData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
       selectedDuration: TimeDuration.YEAR_TO_DATE,
@@ -330,6 +337,29 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       asset: market?.symbol || '',
       loadOnMount: true,
     });
+
+  // Compute TP/SL lines for the chart based on existing position and selected orders
+  const tpslLines = useMemo(() => {
+    if (existingPosition) {
+      return {
+        entryPrice: existingPosition.entryPrice,
+        takeProfitPrice:
+          selectedOrderTPSL.takeProfitPrice || existingPosition.takeProfitPrice,
+        stopLossPrice:
+          selectedOrderTPSL.stopLossPrice || existingPosition.stopLossPrice,
+        liquidationPrice: existingPosition.liquidationPrice || undefined,
+      };
+    }
+
+    if (selectedOrderTPSL.takeProfitPrice || selectedOrderTPSL.stopLossPrice) {
+      return {
+        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+        stopLossPrice: selectedOrderTPSL.stopLossPrice,
+      };
+    }
+
+    return undefined;
+  }, [existingPosition, selectedOrderTPSL]);
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
@@ -636,34 +666,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            <TradingViewChart
-              ref={chartRef}
-              candleData={candleData}
-              height={350}
-              visibleCandleCount={visibleCandleCount}
-              tpslLines={
-                existingPosition
-                  ? {
-                      entryPrice: existingPosition.entryPrice,
-                      takeProfitPrice:
-                        selectedOrderTPSL.takeProfitPrice ||
-                        existingPosition.takeProfitPrice,
-                      stopLossPrice:
-                        selectedOrderTPSL.stopLossPrice ||
-                        existingPosition.stopLossPrice,
-                      liquidationPrice:
-                        existingPosition.liquidationPrice || undefined,
-                    }
-                  : selectedOrderTPSL.takeProfitPrice ||
-                      selectedOrderTPSL.stopLossPrice
-                    ? {
-                        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
-                        stopLossPrice: selectedOrderTPSL.stopLossPrice,
-                      }
-                    : undefined
-              }
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-            />
+            {hasHistoricalData ? (
+              <TradingViewChart
+                ref={chartRef}
+                candleData={candleData}
+                height={350}
+                visibleCandleCount={visibleCandleCount}
+                tpslLines={tpslLines}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+              />
+            ) : (
+              <Skeleton
+                height={350}
+                width="100%"
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+              />
+            )}
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
@@ -741,31 +759,40 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {hasLongShortButtons && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Success}
-                  onPress={handleLongPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </ButtonSemantic>
-              </View>
+            <>
+              {/* OI Cap Warning - Shows when market is at capacity */}
+              {market?.symbol && (
+                <PerpsOICapWarning symbol={market.symbol} variant="inline" />
+              )}
 
-              <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Danger}
-                  onPress={handleShortPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </ButtonSemantic>
+              <View style={styles.actionsContainer}>
+                <View style={styles.actionButtonWrapper}>
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Success}
+                    onPress={handleLongPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                  >
+                    {strings('perps.market.long')}
+                  </ButtonSemantic>
+                </View>
+
+                <View style={styles.actionButtonWrapper}>
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Danger}
+                    onPress={handleShortPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                  >
+                    {strings('perps.market.short')}
+                  </ButtonSemantic>
+                </View>
               </View>
-            </View>
+            </>
           )}
         </View>
       )}
