@@ -34685,6 +34685,7 @@ __metadata:
     react-native-view-shot: "npm:^3.1.2"
     react-native-vision-camera: "npm:^4.6.4"
     react-native-webview-invoke: "npm:^0.6.2"
+    react-native-worklets-core: "npm:^1.6.2"
     react-redux: "npm:^8.1.3"
     react-test-renderer: "npm:18.3.1"
     reactotron-react-native: "npm:^5.1.14"
@@ -39745,6 +39746,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-worklets-core@npm:^1.6.2":
+  version: 1.6.2
+  resolution: "react-native-worklets-core@npm:1.6.2"
+  dependencies:
+    string-hash-64: "npm:^1.0.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/beeb767ac1fe8229d1bd31890253320b0c05df61a9a2498f274f2752429eb2a8c23491a355100c344ea1d988424b6ee61b723c264c134240039fec38a9d7df38
+  languageName: node
+  linkType: hard
+
 "react-native@npm:0.76.9":
   version: 0.76.9
   resolution: "react-native@npm:0.76.9"
@@ -42584,6 +42597,13 @@ __metadata:
   version: 0.3.1
   resolution: "string-argv@npm:0.3.1"
   checksum: 10/47c637e3f47b3f5a6430036315e65564483fcf7745341d474943f0c2046f188681275fc1f2948db75c7a7e68134b1446e0dcceda60a7be1ee0c3fb026c0d90c4
+  languageName: node
+  linkType: hard
+
+"string-hash-64@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "string-hash-64@npm:1.0.3"
+  checksum: 10/39aab30e05dfe2effe9a0807a4987cedb6c04f4dfcda3c4915add5b90d68676a6c583d2ad51683932ac3546a4f64a5e99136521b8f2eb1956d581bd2947a96a9
   languageName: node
   linkType: hard
 
