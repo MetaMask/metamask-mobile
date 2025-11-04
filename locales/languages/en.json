@@ -1038,10 +1038,10 @@
       "max": "Max",
       "percentage_10": "10%",
       "percentage_25": "25%",
-      "available_balance": "Available perps balance: {{amount}}",
+      "available_balance": "Available Perps balance: {{amount}}",
       "receive": "Receive",
       "provider_fee": "Provider fee",
-      "you_will_receive": "You'll receive",
+      "you_will_receive": "You receive",
       "continue": "Continue",
       "funds_received": "{{amount}} {{symbol}} received"
     },
