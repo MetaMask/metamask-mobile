@@ -16,18 +16,17 @@ import Logger from '../../util/Logger';
 export const useOTAUpdates = () => {
   const otaUpdatesEnabled = useSelector(selectOTAUpdatesEnabled);
   const [updateAvailable, setUpdateAvailable] = useState(false);
-
   useEffect(() => {
     const checkForUpdates = async () => {
-      // if (!otaUpdatesEnabled) {
-      //   Logger.log('OTA Updates: Feature flag disabled, skipping update check');
-      //   return;
-      // }
+      if (!otaUpdatesEnabled) {
+        Logger.log('OTA Updates: Feature flag disabled, skipping update check');
+        return;
+      }
 
-      // if (__DEV__) {
-      //   Logger.log('OTA Updates: Skipping in development mode');
-      //   return;
-      // }
+      if (__DEV__) {
+        Logger.log('OTA Updates: Skipping in development mode');
+        return;
+      }
 
       try {
         const update = await checkForUpdateAsync();
