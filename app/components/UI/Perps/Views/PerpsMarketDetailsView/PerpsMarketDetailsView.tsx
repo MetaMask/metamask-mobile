@@ -93,6 +93,8 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import Engine from '../../../../../core/Engine';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -322,7 +324,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoadingHistory, refreshCandleData } =
+  const { candleData, isLoadingHistory, refreshCandleData, hasHistoricalData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
       selectedDuration: TimeDuration.YEAR_TO_DATE,
@@ -335,6 +337,29 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       asset: market?.symbol || '',
       loadOnMount: true,
     });
+
+  // Compute TP/SL lines for the chart based on existing position and selected orders
+  const tpslLines = useMemo(() => {
+    if (existingPosition) {
+      return {
+        entryPrice: existingPosition.entryPrice,
+        takeProfitPrice:
+          selectedOrderTPSL.takeProfitPrice || existingPosition.takeProfitPrice,
+        stopLossPrice:
+          selectedOrderTPSL.stopLossPrice || existingPosition.stopLossPrice,
+        liquidationPrice: existingPosition.liquidationPrice || undefined,
+      };
+    }
+
+    if (selectedOrderTPSL.takeProfitPrice || selectedOrderTPSL.stopLossPrice) {
+      return {
+        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+        stopLossPrice: selectedOrderTPSL.stopLossPrice,
+      };
+    }
+
+    return undefined;
+  }, [existingPosition, selectedOrderTPSL]);
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
@@ -641,34 +666,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            <TradingViewChart
-              ref={chartRef}
-              candleData={candleData}
-              height={350}
-              visibleCandleCount={visibleCandleCount}
-              tpslLines={
-                existingPosition
-                  ? {
-                      entryPrice: existingPosition.entryPrice,
-                      takeProfitPrice:
-                        selectedOrderTPSL.takeProfitPrice ||
-                        existingPosition.takeProfitPrice,
-                      stopLossPrice:
-                        selectedOrderTPSL.stopLossPrice ||
-                        existingPosition.stopLossPrice,
-                      liquidationPrice:
-                        existingPosition.liquidationPrice || undefined,
-                    }
-                  : selectedOrderTPSL.takeProfitPrice ||
-                      selectedOrderTPSL.stopLossPrice
-                    ? {
-                        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
-                        stopLossPrice: selectedOrderTPSL.stopLossPrice,
-                      }
-                    : undefined
-              }
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-            />
+            {hasHistoricalData ? (
+              <TradingViewChart
+                ref={chartRef}
+                candleData={candleData}
+                height={350}
+                visibleCandleCount={visibleCandleCount}
+                tpslLines={tpslLines}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+              />
+            ) : (
+              <Skeleton
+                height={350}
+                width="100%"
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+              />
+            )}
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
