@@ -2020,12 +2020,7 @@
     "add_to_get_started": "Zum Anfangen Krypto hinzufügen",
     "token_is_needed_to_continue": "{{tokenSymbol}} ist erforderlich, um fortzufahren",
     "fund_your_wallet": "Zahlen Sie Mittel auf Ihre Wallet ein",
-<<<<<<< HEAD
-    "get_ready_for_web3": "Get your wallet ready to use web3",
-    "fund_your_wallet_to_get_started": "Zahlen Sie Gelder auf Ihre Wallet ein, um bei web3 loszulegen.",
-=======
     "get_ready_for_web3": "Bereiten Sie Ihre Wallet für die Nutzung von web3 vor",
->>>>>>> 9f14e3ea4a (New Crowdin translations by Github Action cp-7.58.0 (#21920))
     "add_funds": "Gelder hinzufügen",
     "next": "Weiter",
     "buy_asset": "{{asset}} kaufen",
