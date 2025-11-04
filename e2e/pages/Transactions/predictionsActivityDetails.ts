@@ -15,6 +15,12 @@ class PredictActivityDetails {
     );
   }
 
+  get amountDisplay(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY,
+    );
+  }
+
   async tapBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton);
   }
