@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard, Platform } from 'react-native';
+import { View, Keyboard } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
@@ -63,8 +63,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const styles = createStyles(colors);
 
     // Internal state
-    const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-      useState<number | null>(null);
     const [
       nextSeedPhraseInputFocusedIndex,
       setNextSeedPhraseInputFocusedIndex,
@@ -149,7 +147,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
             if (isCompleteAndValid || hasReachedMax) {
               Keyboard.dismiss();
-              setSeedPhraseInputFocusedIndex(null);
               setNextSeedPhraseInputFocusedIndex(null);
               return;
             }
@@ -218,54 +215,33 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           // Validate complete phrases that might have invalid words
           setTimeout(() => {
             setErrorWordIndexes(validateWords(updatedTrimmedText));
-            setSeedPhraseInputFocusedIndex(null);
             setNextSeedPhraseInputFocusedIndex(null);
             seedPhraseInputRefs.current?.get(0)?.blur();
             Keyboard.dismiss();
           }, 150);
         } else {
           handleSeedPhraseChangeAtIndexRef.current?.(text, 0);
-
-          if (updatedTrimmedText.length > 1) {
-            setTimeout(() => {
-              setErrorWordIndexes(validateWords(updatedTrimmedText));
-            }, 150);
-          }
         }
       },
       [onSeedPhraseChange, validateWords],
     );
 
     // Handle focus change with validation
-    const handleOnFocus = useCallback(
+    const handleOnFocus = useCallback((index: number) => {
+      setNextSeedPhraseInputFocusedIndex(index);
+    }, []);
+
+    const handleOnBlur = useCallback(
       (index: number) => {
-        if (seedPhraseInputFocusedIndex !== null) {
-          const currentWord = seedPhrase[seedPhraseInputFocusedIndex];
-          const trimmedWord = currentWord ? currentWord.trim() : '';
-
-          if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
-            setErrorWordIndexes((prev) => ({
-              ...prev,
-              [seedPhraseInputFocusedIndex]: true,
-            }));
-          } else {
-            setErrorWordIndexes((prev) => ({
-              ...prev,
-              [seedPhraseInputFocusedIndex]: false,
-            }));
-          }
-
-          if (seedPhraseInputFocusedIndex !== index) {
-            const prevInputRef = seedPhraseInputRefs.current?.get(
-              seedPhraseInputFocusedIndex,
-            );
-            prevInputRef?.blur();
-          }
-        }
-        setSeedPhraseInputFocusedIndex(index);
-        setNextSeedPhraseInputFocusedIndex(index);
+        const currentWord = seedPhrase[index];
+        const trimmedWord = currentWord ? currentWord.trim() : '';
+        const checkValid = checkValidSeedWord(trimmedWord);
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [index]: !checkValid,
+        }));
       },
-      [seedPhraseInputFocusedIndex, seedPhrase],
+      [seedPhrase],
     );
 
     const handleKeyPress = useCallback(
@@ -322,9 +298,18 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const handleClear = useCallback(() => {
       onSeedPhraseChange(['']);
       setErrorWordIndexes({});
-      setSeedPhraseInputFocusedIndex(null);
       setNextSeedPhraseInputFocusedIndex(null);
     }, [onSeedPhraseChange]);
+
+    useEffect(() => {
+      if (nextSeedPhraseInputFocusedIndex === null) return;
+
+      const refElement = seedPhraseInputRefs.current?.get(
+        nextSeedPhraseInputFocusedIndex,
+      );
+
+      refElement?.focus();
+    }, [nextSeedPhraseInputFocusedIndex]);
 
     React.useImperativeHandle(ref, () => ({
       handleSeedPhraseChange,
@@ -337,15 +322,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             <View style={styles.seedPhraseInputContainer}>
               {seedPhrase.map((item, index) => (
                 <SrpInput
-                  key={
-                    Platform.OS === 'android'
-                      ? `seed-phrase-item-${uniqueId}-${index}`
-                      : `seed-phrase-item-${uniqueId}-${index}-${index === 0 && isFirstInput ? 'textarea' : 'grid'}`
-                  }
-                  ref={(ref) => {
+                  key={`seed-phrase-item-${uniqueId}-${index}`}
+                  ref={(itemRef) => {
                     const inputRefs = getSeedPhraseInputRef();
-                    if (ref) {
-                      inputRefs.set(index, ref);
+                    if (itemRef) {
+                      inputRefs.set(index, itemRef);
                     } else {
                       inputRefs.delete(index);
                     }
@@ -365,8 +346,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   onFocus={() => {
                     handleOnFocus(index);
                   }}
-                  onInputFocus={() => {
-                    setNextSeedPhraseInputFocusedIndex(index);
+                  onBlur={() => {
+                    handleOnBlur(index);
                   }}
                   onChangeText={(text) => {
                     isFirstInput
@@ -402,7 +383,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   showSoftInputOnFocus
                   isError={errorWordIndexes[index]}
                   autoCapitalize="none"
-                  numberOfLines={1}
                   testID={
                     isFirstInput ? testIDPrefix : `${testIDPrefix}_${index}`
                   }
@@ -414,7 +394,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                     autoFocus &&
                     (isFirstInput || index === nextSeedPhraseInputFocusedIndex)
                   }
-                  multiline={isFirstInput}
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   isDisabled={disabled}
                 />
