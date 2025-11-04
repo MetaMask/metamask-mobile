@@ -6,6 +6,7 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 import { hasProperty } from '@metamask/utils';
 import type { RootState } from '../../../../../reducers';
+import { parseCommaSeparatedString } from '../../utils/stringParseUtils';
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -91,12 +92,8 @@ export const selectPerpsEnabledMarkets = createSelector(
 
     // LaunchDarkly always returns comma-separated strings for list values
     if (typeof enabledMarkets === 'string') {
-      const parsed = enabledMarkets
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
       // Remote empty string intentionally returns [] (discovery mode = allow all)
-      return parsed;
+      return parseCommaSeparatedString(enabledMarkets);
     }
 
     // Invalid format - use fallback
@@ -133,12 +130,8 @@ export const selectPerpsBlockedMarkets = createSelector(
 
     // LaunchDarkly always returns comma-separated strings for list values
     if (typeof blockedMarkets === 'string') {
-      const parsed = blockedMarkets
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
       // Remote empty string intentionally returns [] (block nothing)
-      return parsed;
+      return parseCommaSeparatedString(blockedMarkets);
     }
 
     // Invalid format - use fallback
