@@ -100,6 +100,10 @@ export const PerpsEventProperties = {
   RETRY_ATTEMPTS: 'retry_attempts',
   SHOW_BACK_BUTTON: 'show_back_button',
   ATTEMPT_NUMBER: 'attempt_number',
+
+  // PnL Hero Card properties
+  IMAGE_SELECTED: 'image_selected',
+  TAB_NUMBER: 'tab_number',
 } as const;
 
 /**
@@ -197,6 +201,7 @@ export const PerpsEventValues = {
     EXECUTED: 'executed',
     PARTIALLY_FILLED: 'partially_filled',
     FAILED: 'failed',
+    SUCCESS: 'success',
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',
@@ -218,10 +223,12 @@ export const PerpsEventValues = {
   },
   SCREEN_NAME: {
     CONNECTION_ERROR: 'connection_error',
+    PERPS_HERO_CARD: 'perps_hero_card',
     PERPS_ACTIVITY_HISTORY: 'perps_activity_history',
   },
   ACTION: {
     CONNECTION_RETRY: 'connection_retry',
+    SHARE: 'share',
   },
   PERPS_HISTORY_TABS: {
     TRADES: 'trades',

@@ -158,6 +158,7 @@ describe('PerpsController', () => {
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.connectionStatus).toBe('disconnected');
       expect(controller.state.isEligible).toBe(false);
+      expect(controller.state.isTestnet).toBe(false); // Default to mainnet
     });
 
     it('should read current RemoteFeatureFlagController state during construction', () => {
@@ -1859,9 +1860,10 @@ describe('PerpsController', () => {
   describe('fee calculations', () => {
     it('should calculate fees', async () => {
       const feeParams = {
-        coin: 'BTC',
-        size: '0.1',
         orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+        coin: 'BTC',
       };
 
       const mockFees = {

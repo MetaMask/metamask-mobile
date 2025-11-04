@@ -5,7 +5,7 @@ import {
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
-  getPredictPositionSelector,
+  PredictPositionSelectorsIDs,
 } from '../../selectors/Predict/Predict.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -163,7 +163,14 @@ class WalletView {
   }
   getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
     return Matchers.getElementByID(
-      getPredictPositionSelector.currentPositionCard,
+      PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
+      index,
+    );
+  }
+
+  getPredictResolvedPositionCardByIndex(index: number = 0): DetoxElement {
+    return Matchers.getElementByID(
+      PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD,
       index,
     );
   }
@@ -437,6 +444,11 @@ class WalletView {
       WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
     );
   }
+  get claimButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
+    );
+  }
 
   get defiPositionDetailsContainer(): DetoxElement {
     return Matchers.getElementByID(
@@ -495,10 +507,7 @@ class WalletView {
   }
 
   async tapClaimButton(): Promise<void> {
-    const elem = Matchers.getElementByID(
-      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
-    );
-    await Gestures.waitAndTap(elem, {
+    await Gestures.waitAndTap(this.claimButton, {
       elemDescription: 'Claim Button',
     });
   }
@@ -628,6 +637,25 @@ class WalletView {
         description: `token network filter should display "${expectedText}"`,
       },
     );
+  }
+
+  // Balance Empty State - displayed when account group has zero balance across all networks
+  get balanceEmptyStateContainer(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
+    );
+  }
+
+  get balanceEmptyStateActionButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
+    );
+  }
+
+  async tapBalanceEmptyStateActionButton(): Promise<void> {
+    await Gestures.waitAndTap(this.balanceEmptyStateActionButton, {
+      elemDescription: 'Balance Empty State Action Button',
+    });
   }
 }
 
