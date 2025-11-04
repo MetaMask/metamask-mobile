@@ -108,14 +108,20 @@ export const usePerpsPositionData = ({
     const loadHistoricalData = async () => {
       try {
         const historicalData = await fetchHistoricalCandles();
-        setCandleData((prev) => {
-          // Prevent re-render if data is identical
-          if (isEqual(prev, historicalData)) {
-            return prev;
-          }
-          return historicalData;
-        });
-        setHasHistoricalData(true);
+        // Only set data and flag if we received valid data
+        if (historicalData && historicalData.candles?.length > 0) {
+          setCandleData((prev) => {
+            // Prevent re-render if data is identical
+            if (isEqual(prev, historicalData)) {
+              return prev;
+            }
+            return historicalData;
+          });
+          setHasHistoricalData(true);
+        } else {
+          // No valid data received
+          setHasHistoricalData(false);
+        }
       } catch (err) {
         console.error('Error loading historical candles:', err);
         setHasHistoricalData(false);
@@ -283,17 +289,19 @@ export const usePerpsPositionData = ({
     setIsLoadingHistory(true);
     try {
       const historicalData = await fetchHistoricalCandles();
-      setCandleData((prev) => {
-        // Prevent re-render if data is identical
-        if (isEqual(prev, historicalData)) {
-          return prev;
-        }
-        return historicalData;
-      });
-      setHasHistoricalData(true);
+      // Only update data and flag if we received valid data
+      if (historicalData && historicalData.candles?.length > 0) {
+        setCandleData((prev) => {
+          // Prevent re-render if data is identical
+          if (isEqual(prev, historicalData)) {
+            return prev;
+          }
+          return historicalData;
+        });
+        setHasHistoricalData(true);
+      }
     } catch (err) {
       console.error('Error refreshing candle data:', err);
-      setHasHistoricalData(false);
     } finally {
       setIsLoadingHistory(false);
     }
