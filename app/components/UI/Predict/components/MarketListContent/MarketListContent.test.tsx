@@ -53,7 +53,8 @@ const mockPredictMarket: PredictMarket = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [
     {
       id: 'outcome-1',
@@ -74,6 +75,8 @@ const mockPredictMarket: PredictMarket = {
       groupItemTitle: 'Bitcoin Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockPredictMarketMultiple: PredictMarket = {
@@ -85,7 +88,8 @@ const mockPredictMarketMultiple: PredictMarket = {
   image: 'https://example.com/crypto.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [
     {
       id: 'outcome-3',
@@ -124,6 +128,8 @@ const mockPredictMarketMultiple: PredictMarket = {
       groupItemTitle: 'Ethereum Prediction',
     },
   ],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockRefetch = jest.fn();

@@ -202,6 +202,9 @@ const actionKeys = {
   [TransactionType.predictClaim]: strings(
     'transactions.tx_review_predict_claim',
   ),
+  [TransactionType.predictWithdraw]: strings(
+    'transactions.tx_review_predict_withdraw',
+  ),
 };
 
 /**
@@ -544,6 +547,10 @@ export async function getTransactionActionKey(transaction, chainId) {
     return TransactionType.predictClaim;
   }
 
+  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+    return TransactionType.predictWithdraw;
+  }
+
   if (!to) {
     return CONTRACT_METHOD_DEPLOY;
   }
@@ -623,11 +630,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+          ? strings('transactions.received_unit', { unit: currencySymbol })
+          : strings('transactions.received_ether')
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+        ? strings('transactions.sent_unit', { unit: currencySymbol })
+        : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 

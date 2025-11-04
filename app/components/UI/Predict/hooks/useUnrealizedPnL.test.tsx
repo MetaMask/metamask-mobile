@@ -2,7 +2,25 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useUnrealizedPnL } from './useUnrealizedPnL';
 import { UnrealizedPnL } from '../types';
 
+// Mock react-redux
+const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockSelectedAddress),
+}));
+
+// Mock react-navigation
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 const mockGetUnrealizedPnL = jest.fn();
+
+// Mock DevLogger
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: {
+    log: jest.fn(),
+  },
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -41,13 +59,19 @@ describe('useUnrealizedPnL', () => {
     };
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns initial state when disabled', () => {
-    const { result } = renderHook(() => useUnrealizedPnL({ enabled: false }));
+    const { result } = renderHook(() =>
+      useUnrealizedPnL({ loadOnMount: false }),
+    );
 
     expect(result.current.unrealizedPnL).toBeNull();
-    expect(result.current.isFetching).toBe(false);
+    expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBeNull();
-    expect(typeof result.current.refetch).toBe('function');
+    expect(typeof result.current.loadUnrealizedPnL).toBe('function');
     expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
   });
 
@@ -57,13 +81,13 @@ describe('useUnrealizedPnL', () => {
     const { result } = renderHook(() => useUnrealizedPnL());
 
     await waitFor(() => {
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
       expect(result.current.unrealizedPnL).toEqual(basePnL);
       expect(result.current.error).toBeNull();
     });
 
     expect(mockGetUnrealizedPnL).toHaveBeenCalledWith({
-      address: undefined,
+      address: mockSelectedAddress,
       providerId: undefined,
     });
   });
@@ -96,7 +120,7 @@ describe('useUnrealizedPnL', () => {
     await waitFor(() => {
       expect(result.current.unrealizedPnL).toBeNull();
       expect(result.current.error).toBeNull();
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -108,7 +132,7 @@ describe('useUnrealizedPnL', () => {
     await waitFor(() => {
       expect(result.current.error).toBe('Network error');
       expect(result.current.unrealizedPnL).toBeNull();
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -120,34 +144,6 @@ describe('useUnrealizedPnL', () => {
     await waitFor(() => {
       expect(result.current.error).toBe('Failed to fetch unrealized P&L');
     });
-  });
-
-  it('returns engine initialization error when context is missing', async () => {
-    engine.context = null;
-
-    const { result } = renderHook(() => useUnrealizedPnL());
-
-    await waitFor(() => {
-      expect(result.current.error).toBe('Engine not initialized');
-      expect(result.current.isFetching).toBe(false);
-    });
-
-    expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
-  });
-
-  it('returns controller availability error when controller is missing', async () => {
-    engine.context = {
-      PredictController: undefined,
-    } as unknown as MockEngine['context'];
-
-    const { result } = renderHook(() => useUnrealizedPnL());
-
-    await waitFor(() => {
-      expect(result.current.error).toBe('Predict controller not available');
-      expect(result.current.unrealizedPnL).toBeNull();
-    });
-
-    expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
   });
 
   it('supports manual refetching', async () => {
@@ -168,7 +164,7 @@ describe('useUnrealizedPnL', () => {
     mockGetUnrealizedPnL.mockResolvedValue(updatedPnL);
 
     await act(async () => {
-      await result.current.refetch();
+      await result.current.loadUnrealizedPnL();
     });
 
     await waitFor(() => {
@@ -179,30 +175,23 @@ describe('useUnrealizedPnL', () => {
     expect(mockGetUnrealizedPnL).toHaveBeenCalledTimes(2);
   });
 
-  it('honors enabled flag changes', async () => {
+  it('loads data when loadOnMount changes from false to true', async () => {
     mockGetUnrealizedPnL.mockResolvedValue(basePnL);
 
     const { result, rerender } = renderHook(
-      ({ enabled }) => useUnrealizedPnL({ enabled }),
+      ({ loadOnMount }) => useUnrealizedPnL({ loadOnMount }),
       {
-        initialProps: { enabled: false },
+        initialProps: { loadOnMount: false },
       },
     );
 
     expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
 
-    rerender({ enabled: true });
+    rerender({ loadOnMount: true });
 
     await waitFor(() => {
       expect(result.current.unrealizedPnL).toEqual(basePnL);
-    });
-
-    rerender({ enabled: false });
-
-    await waitFor(() => {
-      expect(result.current.unrealizedPnL).toBeNull();
-      expect(result.current.error).toBeNull();
-      expect(result.current.isFetching).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 

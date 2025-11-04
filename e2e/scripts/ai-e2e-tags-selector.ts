@@ -49,13 +49,13 @@ export class AIE2ETagsSelector {
 
   private readonly pipelineTags = [
     'SmokeAccounts',
-    'SmokeConfirmations',
     'SmokeConfirmationsRedesigned',
     'SmokeIdentity',
     'SmokeNetworkAbstractions',
     'SmokeNetworkExpansion',
     'SmokeTrade',
-    'SmokeWalletPlatform'
+    'SmokeWalletPlatform',
+    'SmokeRewards'
   ];
 
   private readonly availableTags = smokeTags
@@ -667,14 +667,14 @@ AVAILABLE TAGS:
 ${this.pipelineTags.map(tag => `- ${tag}`).join('\n')}
 
 TAG COVERAGE:
-- SmokeConfirmations: Transaction confirmations, send/receive, signatures
-- SmokeConfirmationsRedesigned: New confirmation UI as well as all confirmation flows
+- SmokeConfirmationsRedesigned: All confirmation flows including transaction confirmations, send/receive, signatures etc.
 - SmokeTrade: Token swaps, DEX trading
 - SmokeWalletPlatform: Core wallet, accounts, network switching
 - SmokeIdentity: User identity, authentication
 - SmokeAccounts: Multi-account, account management
 - SmokeNetworkAbstractions: Network layer, multi-chain
 - SmokeNetworkExpansion: New networks, network config (Solana, Bitcoin, etc)
+- SmokeRewards: Rewards system, points, levels, boosts
 
 TOOLS AVAILABLE:
 - read_file: Read actual file content

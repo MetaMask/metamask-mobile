@@ -623,12 +623,14 @@ export const initialState = {
   bridge: {
     sourceAmount: undefined,
     destAmount: undefined,
-    destChainId: undefined,
+    destAddress: undefined,
     sourceToken: undefined,
     destToken: undefined,
     selectedSourceChainIds: undefined,
     selectedDestChainId: undefined,
     slippage: '0.5',
+    isSubmittingTx: false,
     bridgeViewMode: undefined,
+    isSelectingRecipient: false,
   },
 };

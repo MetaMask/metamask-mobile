@@ -134,6 +134,7 @@ This document describes the complete state management flow in MetaMask Mobile, f
 ## Detailed Step-by-Step Flow
 
 ### 1. **Redux Store Creation & Rehydration Phase**
+
 ```typescript
 // Location: app/store/index.ts
 const pReducer = persistReducer(persistConfig, rootReducer);
@@ -142,6 +143,7 @@ persistor = persistStore(store, null, onPersistComplete);
 ```
 
 **What happens:**
+
 - **Redux store is created FIRST** with `persistReducer` wrapper (but empty/default state)
 - **`persistStore()` is called** which triggers rehydration process
 - **During rehydration**: Migrations run if version mismatch detected
@@ -150,35 +152,40 @@ persistor = persistStore(store, null, onPersistComplete);
 - **`onPersistComplete` callback fires** when rehydration is done
 
 **Important Files:**
+
 - `app/store/index.ts` - Store creation and persistence setup
 - `app/store/migrations/index.ts` - Migration orchestration
 - `app/store/migrations/104.ts` - **THE CRITICAL MIGRATION** that splits persistence from redux-persist to individual controller files
 - `app/store/persistConfig/index.ts` - Redux-persist configuration
 
 ### 2. **Redux Rehydration**
+
 ```typescript
 // The rehydrated state is now available in Redux store
 const reduxState = ReduxService.store.getState();
 ```
 
 **What happens:**
+
 - Redux store is populated with migrated/loaded state
 - State is available for UI components
 - Engine initialization can begin
 
 ### 3. **Engine Service Startup**
+
 ```typescript
 // Location: app/core/EngineService/EngineService.ts - start()
 ```
 
 **What happens:**
+
 ```typescript
 const reduxState = ReduxService.store.getState();
 const persistedState = await ControllerStorage.getAllPersistedState();
 
 // Choose state source based on environment
-const state = isE2E 
-  ? reduxState?.engine?.backgroundState 
+const state = isE2E
+  ? reduxState?.engine?.backgroundState
   : persistedState?.backgroundState ?? {};
 ```
 
@@ -188,11 +195,13 @@ const state = isE2E
 - **Combines the states** to initialize Engine
 
 ### 4. **Engine Initialization**
+
 ```typescript
 // Location: app/core/Engine/Engine.ts - init()
 ```
 
 **What happens:**
+
 ```typescript
 Engine.init(state, null, metaMetricsId);
 ```
@@ -203,11 +212,13 @@ Engine.init(state, null, metaMetricsId);
 - Controllers are now live and functional
 
 ### 5. **Controller Integration Setup**
+
 ```typescript
 // Location: app/core/EngineService/EngineService.ts - initializeControllers()
 ```
 
 **What happens:**
+
 ```typescript
 engine.controllerMessenger.subscribeOnceIf(
   'ComposableController:stateChange',
@@ -215,7 +226,7 @@ engine.controllerMessenger.subscribeOnceIf(
     this.updateBatcher.add(INIT_BG_STATE_KEY);
     this.updateBatcher.flush(); // Initial Redux sync
     this.engineInitialized = true;
-  }
+  },
 );
 ```
 
@@ -224,25 +235,27 @@ engine.controllerMessenger.subscribeOnceIf(
 - **Marks engine as initialized** - UI can now safely access controller data
 
 ### 6. **New Persistence System Setup**
+
 ```typescript
 // Location: app/core/EngineService/EngineService.ts - setupEnginePersistence()
 ```
 
 **What happens:**
+
 ```typescript
 BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
   const controllerName = eventName.split(':')[0];
   const persistController = createPersistController(200);
-  
+
   UntypedEngine.controllerMessenger.subscribe(
     eventName,
     async (controllerState) => {
       // 1. Update Redux store
       this.updateBatcher.add(controllerName);
-      
+
       // 2. Persist to individual controller file
       await persistController(filteredState, controllerName);
-    }
+    },
   );
 });
 ```
@@ -266,11 +279,13 @@ BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
 ## Architecture Overview
 
 ### **Legacy System (Pre-Migration 103)**
+
 - Single large Redux-persist file
 - Engine state stored in `engine.backgroundState`
 - Single point of failure
 
 ### **New System (Post-Migration 103+)**
+
 - **Dual Persistence**: Redux + Individual controller files
 - **Controller-per-file**: Each controller has its own storage file
 - **Resilient**: Failure in one controller doesn't affect others
@@ -278,11 +293,11 @@ BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
 
 ### **Key Components**
 
-| Component | Purpose | Location |
-|-----------|---------|----------|
-| **Migration System** | Version management & state transformation | `app/store/migrations/` |
-| **Redux-Persist** | Legacy state hydration | `app/store/persistConfig/` |
-| **EngineService** | Orchestrates Engine lifecycle | `app/core/EngineService/` |
-| **Engine** | Controller management & business logic | `app/core/Engine/` |
-| **ControllerStorage** | New file-based persistence | Controller Storage System |
-| **updateBatcher** | Efficient Redux updates | Batching system |
+| Component             | Purpose                                   | Location                   |
+| --------------------- | ----------------------------------------- | -------------------------- |
+| **Migration System**  | Version management & state transformation | `app/store/migrations/`    |
+| **Redux-Persist**     | Legacy state hydration                    | `app/store/persistConfig/` |
+| **EngineService**     | Orchestrates Engine lifecycle             | `app/core/EngineService/`  |
+| **Engine**            | Controller management & business logic    | `app/core/Engine/`         |
+| **ControllerStorage** | New file-based persistence                | Controller Storage System  |
+| **updateBatcher**     | Efficient Redux updates                   | Batching system            |

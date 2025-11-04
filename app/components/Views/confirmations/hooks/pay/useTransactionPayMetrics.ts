@@ -15,6 +15,7 @@ import { BigNumber } from 'bignumber.js';
 import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
+import { hasTransactionType } from '../../utils/transaction';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -61,6 +62,14 @@ export function useTransactionPayMetrics() {
 
   if (payToken && type === TransactionType.perpsDeposit) {
     properties.mm_pay_use_case = 'perps_deposit';
+    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+  }
+
+  if (
+    payToken &&
+    hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
+  ) {
+    properties.mm_pay_use_case = 'predict_deposit';
     properties.simulation_sending_assets_total_value = amountPrecise ?? null;
   }
 

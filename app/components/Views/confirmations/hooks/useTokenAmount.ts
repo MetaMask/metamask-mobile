@@ -35,6 +35,7 @@ import useNetworkInfo from './useNetworkInfo';
 import { useCallback } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
+import { getTokenTransferData } from '../utils/transaction-pay';
 
 interface TokenAmountProps {
   /**
@@ -118,9 +119,10 @@ export const useTokenAmount = ({
   const usdConversionRateFromCurrencyRates =
     currencyRates?.[networkNativeCurrency as string]?.usdConversionRate;
   const usdConversionRate = usdConversionRateFromCurrencyRates ?? 0;
+  const tokenData = getTokenTransferData(transaction);
 
   const tokenAddress =
-    safeToChecksumAddress(txParams?.to) || NATIVE_TOKEN_ADDRESS;
+    safeToChecksumAddress(tokenData?.to) || NATIVE_TOKEN_ADDRESS;
 
   const { value: decimals, pending } = useTokenDecimals(
     tokenAddress,
@@ -128,7 +130,7 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
-  const transactionData = parseStandardTokenTransactionData(txParams?.data);
+  const transactionData = parseStandardTokenTransactionData(tokenData?.data);
   const recipient = transactionData?.args?._to;
 
   const updateTokenAmount = useCallback(

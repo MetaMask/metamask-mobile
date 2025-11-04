@@ -37,6 +37,13 @@ jest.mock('@metamask/bridge-controller', () => {
   return {
     ...actual,
     selectBridgeQuotes: jest.fn(),
+    selectBridgeFeatureFlags: jest.fn().mockImplementation(() => ({
+      minimumVersion: '7.58.0',
+      priceImpactThreshold: {
+        gasless: 0.4,
+        normal: 0.19,
+      },
+    })),
   };
 });
 
@@ -124,10 +131,55 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
+      shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: null,
     });
   });
+
+  it.each([
+    [true, false],
+    [false, true],
+  ])(
+    'returns shouldShowPriceImpactWarning=true when priceImpact exceeds threshold and gasIncluded=%s',
+    (gasIncluded, shouldShowPriceImpactWarning) => {
+      // Set up mock for this specific test
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(
+        () => ({
+          recommendedQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              priceData: { priceImpact: '0.20' },
+              gasIncluded,
+            },
+          },
+          alternativeQuotes: [],
+        }),
+      );
+
+      const bridgeControllerOverrides = {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      };
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.activeQuote?.quote.priceData?.priceImpact).toEqual(
+        '0.20',
+      );
+      expect(result.current.shouldShowPriceImpactWarning).toEqual(
+        shouldShowPriceImpactWarning,
+      );
+    },
+  );
 
   it('returns empty state when no quotes exist', () => {
     // Set up mock for this specific test
@@ -162,6 +214,8 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      shouldShowPriceImpactWarning: false,
+      quotesLoadingStatus: RequestStatus.FETCHED,
     });
   });
 
@@ -196,9 +250,11 @@ describe('useBridgeQuoteData', () => {
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
+      shouldShowPriceImpactWarning: false,
       isExpired: true,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: null,
     });
   });
 
@@ -230,8 +286,10 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
+      shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: RequestStatus.LOADING,
     });
   });
 
@@ -260,12 +318,14 @@ describe('useBridgeQuoteData', () => {
       bestQuote: null,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
+      shouldShowPriceImpactWarning: false,
       isLoading: false,
       quoteFetchError: error,
       isNoQuotesAvailable: false,
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      quotesLoadingStatus: null,
     });
   });
 
@@ -596,6 +656,7 @@ describe('useBridgeQuoteData', () => {
 
     expect(mockValidateBridgeTx).toHaveBeenCalledWith({
       quoteResponse: mockQuote,
+      signal: expect.any(AbortSignal),
     });
   });
 

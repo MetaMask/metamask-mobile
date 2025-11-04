@@ -30,7 +30,7 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByCatchAll(this._device, 'Create account');
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Add account');
     }
   }
 

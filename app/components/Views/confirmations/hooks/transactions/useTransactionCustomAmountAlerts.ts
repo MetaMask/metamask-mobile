@@ -6,6 +6,7 @@ import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
+  AlertKeys.InsufficientPredictBalance,
 ];
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
@@ -13,11 +14,13 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.SignedOrSubmitted,
   AlertKeys.PerpsHardwareAccount,
+  AlertKeys.InsufficientPredictBalance,
 ];
 
 export const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
+  AlertKeys.InsufficientPredictBalance,
 ];
 
 export function useTransactionCustomAmountAlerts({
@@ -54,7 +57,7 @@ export function useTransactionCustomAmountAlerts({
       isInputChanged);
 
   const keyboardAlertMessage = hasAlert
-    ? firstAlert?.title ?? (firstAlert?.message as string | undefined)
+    ? (firstAlert?.title ?? (firstAlert?.message as string | undefined))
     : undefined;
 
   const alertMessage =

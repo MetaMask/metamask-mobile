@@ -36,7 +36,6 @@ describe('usePredictAccountState', () => {
     address: '0x1234567890abcdef1234567890abcdef12345678',
     isDeployed: true,
     hasAllowances: true,
-    balance: 150.5,
   };
 
   beforeEach(() => {
@@ -83,7 +82,6 @@ describe('usePredictAccountState', () => {
         providerId: 'polymarket',
       });
       expect(result.current.address).toEqual(mockAccountState.address);
-      expect(result.current.balance).toEqual(mockAccountState.balance);
     });
 
     it('does not load account state on mount when loadOnMount is false', async () => {
@@ -102,7 +100,6 @@ describe('usePredictAccountState', () => {
 
       expect(mockGetAccountState).not.toHaveBeenCalled();
       expect(result.current.address).toBeUndefined();
-      expect(result.current.balance).toBe(0);
     });
   });
 
@@ -247,7 +244,6 @@ describe('usePredictAccountState', () => {
       // Assert
       expect(result.current.error).toBeNull();
       expect(result.current.address).toEqual(mockAccountState.address);
-      expect(result.current.balance).toEqual(mockAccountState.balance);
     });
   });
 
@@ -431,33 +427,6 @@ describe('usePredictAccountState', () => {
       expect(result.current.hasAllowances).toBe(false);
     });
 
-    it('returns balance from account state', async () => {
-      // Arrange
-      mockGetAccountState.mockResolvedValue(mockAccountState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.balance).toBe(150.5);
-    });
-
-    it('returns 0 for balance when account state is null', () => {
-      // Arrange & Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      // Assert
-      expect(result.current.balance).toBe(0);
-    });
-
     it('returns undefined for address when account state is null', () => {
       // Arrange & Act
       const { result } = renderHook(() =>
@@ -512,48 +481,6 @@ describe('usePredictAccountState', () => {
       expect(result.current.hasAllowances).toBe(false);
     });
 
-    it('handles account state with zero balance', async () => {
-      // Arrange
-      const zeroBalanceState = {
-        ...mockAccountState,
-        balance: 0,
-      };
-      mockGetAccountState.mockResolvedValue(zeroBalanceState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.balance).toBe(0);
-    });
-
-    it('handles account state with negative balance', async () => {
-      // Arrange
-      const negativeBalanceState = {
-        ...mockAccountState,
-        balance: -50,
-      };
-      mockGetAccountState.mockResolvedValue(negativeBalanceState);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePredictAccountState({ loadOnMount: false }),
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      // Assert
-      expect(result.current.balance).toBe(-50);
-    });
-
     it('handles multiple rapid calls to loadAccountState', async () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
@@ -598,12 +525,14 @@ describe('usePredictAccountState', () => {
 
     it('computed values update when account state changes', async () => {
       // Arrange
+      const updatedAccountState = {
+        ...mockAccountState,
+        address: '0x9876543210987654321098765432109876543210',
+      };
+
       mockGetAccountState
         .mockResolvedValueOnce(mockAccountState)
-        .mockResolvedValueOnce({
-          ...mockAccountState,
-          balance: 200.75,
-        });
+        .mockResolvedValueOnce(updatedAccountState);
 
       // Act
       const { result } = renderHook(() =>
@@ -614,17 +543,17 @@ describe('usePredictAccountState', () => {
         await result.current.loadAccountState();
       });
 
-      const initialBalance = result.current.balance;
+      const initialAddress = result.current.address;
 
       await act(async () => {
         await result.current.loadAccountState();
       });
 
-      const updatedBalance = result.current.balance;
+      const updatedAddress = result.current.address;
 
       // Assert
-      expect(initialBalance).toBe(150.5);
-      expect(updatedBalance).toBe(200.75);
+      expect(initialAddress).toBe(mockAccountState.address);
+      expect(updatedAddress).toBe(updatedAccountState.address);
     });
   });
 

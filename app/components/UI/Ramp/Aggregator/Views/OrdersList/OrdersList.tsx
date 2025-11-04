@@ -87,8 +87,8 @@ function OrdersList() {
         item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
           ? () => handleNavigateToAggregatorTxDetails(item.id)
           : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
-          ? () => handleNavigateToDepositTxDetails(item.id)
-          : undefined
+            ? () => handleNavigateToDepositTxDetails(item.id)
+            : undefined
       }
       underlayColor={colors.background.alternative}
       activeOpacity={1}

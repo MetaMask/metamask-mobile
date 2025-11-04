@@ -5,6 +5,12 @@ exports[`SwitchChainApproval renders 1`] = `
   isVisible={true}
 >
   <SwitchCustomNetwork
+    customNetworkInformation={
+      {
+        "chainId": "0x1",
+        "chainName": "Ethereum Mainnet",
+      }
+    }
     onConfirm={[Function]}
   />
 </ApprovalModal>

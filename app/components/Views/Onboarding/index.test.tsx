@@ -155,19 +155,18 @@ jest.mock(
   '../../hooks/useMetrics/withMetricsAwareness',
   () =>
     <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
-    (props: P) =>
-      (
-        <Component
-          {...props}
-          metrics={{
-            isEnabled: mockMetricsIsEnabled,
-            trackEvent: mockTrackEvent,
-            enable: mockEnable,
-            enableSocialLogin: mockEnableSocialLogin,
-            createEventBuilder: mockCreateEventBuilder,
-          }}
-        />
-      ),
+    (props: P) => (
+      <Component
+        {...props}
+        metrics={{
+          isEnabled: mockMetricsIsEnabled,
+          trackEvent: mockTrackEvent,
+          enable: mockEnable,
+          enableSocialLogin: mockEnableSocialLogin,
+          createEventBuilder: mockCreateEventBuilder,
+        }}
+      />
+    ),
 );
 
 const mockSeedlessOnboardingEnabled = jest.fn();
@@ -218,6 +217,16 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
+
+// Mock React Navigation hooks
+const mockRoute = {
+  params: {},
+};
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNav,
+  useRoute: () => mockRoute,
+}));
 
 describe('Onboarding', () => {
   beforeEach(() => {

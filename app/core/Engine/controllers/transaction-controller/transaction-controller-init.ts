@@ -6,6 +6,7 @@ import {
   type PublishBatchHookRequest,
   type PublishBatchHookTransaction,
   type PublishBatchHookResult,
+  TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { ApprovalController } from '@metamask/approval-controller';
@@ -42,6 +43,7 @@ import {
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
 import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
+import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 
@@ -115,6 +117,8 @@ export const TransactionControllerInit: ControllerInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
+          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
+            beforeSign(_request, request),
         },
         incomingTransactions: {
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
@@ -124,7 +128,17 @@ export const TransactionControllerInit: ControllerInitFunction<
           const { chainId } = transactionMeta;
           const state = getState();
 
-          return !selectShouldUseSmartTransaction(state, chainId);
+          const isSmartTransactionEnabled = selectShouldUseSmartTransaction(
+            state,
+            chainId,
+          );
+          const isSendBundleSupportedChain =
+            await isSendBundleSupported(chainId);
+
+          // EIP7702 gas fee tokens are enabled when:
+          // - Smart transactions are NOT enabled, OR
+          // - Send bundle is NOT supported
+          return !isSmartTransactionEnabled || !isSendBundleSupportedChain;
         },
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
@@ -135,6 +149,8 @@ export const TransactionControllerInit: ControllerInitFunction<
         // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
+        // Expected type mismatch with TransactionControllerOptions['trace']
+        trace: trace as unknown as TransactionControllerOptions['trace'],
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
 
@@ -174,7 +190,11 @@ async function publishHook({
     messenger: initMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
-  if (!shouldUseSmartTransaction || !sendBundleSupport) {
+  if (
+    !shouldUseSmartTransaction ||
+    !sendBundleSupport ||
+    transactionMeta.isGasFeeSponsored
+  ) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,
@@ -298,6 +318,17 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function beforeSign(
+  hookRequest: { transactionMeta: TransactionMeta },
+  request: ControllerInitRequest<
+    TransactionControllerMessenger,
+    TransactionControllerInitMessenger
+  >,
+) {
+  const predictController = request.getController('PredictController');
+  return predictController.beforeSign(hookRequest);
 }
 
 function addTransactionControllerListeners(

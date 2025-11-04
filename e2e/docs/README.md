@@ -193,9 +193,6 @@ new FixtureBuilder().build();
 // With popular networks
 new FixtureBuilder().withPopularNetworks().build();
 
-// With Ganache network
-new FixtureBuilder().withGanacheNetwork().build();
-
 // With connected test dapp
 new FixtureBuilder()
   .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
@@ -319,7 +316,7 @@ await Utilities.executeWithRetry(
 
 **Predefined Job Coverage** (update when new tags are added):
 
-- `SmokeConfirmations` (3 splits) / `SmokeConfirmationsRedesigned` (2 splits)
+- `SmokeConfirmationsRedesigned` (2 splits)
 - `SmokeTrade` (2 splits) / `SmokeWalletPlatform` (2 splits) / `SmokeIdentity` (2 splits)
 - `SmokeAccounts` (2 splits) / `SmokeNetworkAbstractions` (2 splits) / `SmokeNetworkExpansion` (2 splits)
 - `SmokeCore` (2 splits) / `SmokeWalletUX` (2 splits) / `SmokeSwaps` (2 splits)
