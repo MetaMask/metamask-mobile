@@ -8860,7 +8860,7 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
-    it('should return subscription ID from sids array when available', async () => {
+    it('performs silent auth when subscription from sids does not exist in state', async () => {
       // Arrange
       const mockInternalAccounts = [
         {
@@ -8876,30 +8876,28 @@ describe('RewardsController', () => {
           scopes: ['eip155:1' as const],
           methods: [],
         },
-        {
-          address: '0x456',
-          type: 'eip155:eoa' as const,
-          id: 'account2',
-          options: {},
-          metadata: {
-            name: 'Account 2',
-            importTime: Date.now(),
-            keyring: { type: 'HD Key Tree' },
-          },
-          scopes: ['eip155:1' as const],
-          methods: [],
-        },
       ];
       const mockOptInResponse = {
-        ois: [true, false],
-        sids: ['sub-from-sids-123', null], // First account has subscription ID in sids
+        ois: [true],
+        sids: ['sub-from-sids-123'], // Subscription ID present but not in state
       };
+      const newSubscriptionId = 'new-sub-from-silent-auth-456';
+
+      // Create a test controller WITHOUT the subscription in state
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {}, // Empty subscriptions
+        },
+        isDisabled: () => false,
+      });
 
       mockMessenger.call.mockReturnValueOnce(mockInternalAccounts); // listMultichainAccounts
 
       // Mock the getOptInStatus method to return our test response
       jest
-        .spyOn(controller, 'getOptInStatus')
+        .spyOn(testController, 'getOptInStatus')
         .mockResolvedValueOnce(mockOptInResponse);
 
       // Mock getSubscriptionToken to return a valid session token
@@ -8908,15 +8906,22 @@ describe('RewardsController', () => {
         token: 'valid-session-token',
       });
 
+      // Mock performSilentAuth to return a new subscription ID
+      const performSilentAuthSpy = jest
+        .spyOn(testController, 'performSilentAuth')
+        .mockResolvedValueOnce(newSubscriptionId);
+
       // Act
-      const result = await controller.getCandidateSubscriptionId();
+      const result = await testController.getCandidateSubscriptionId();
 
       // Assert
-      expect(result).toBe('sub-from-sids-123');
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'AccountsController:listMultichainAccounts',
-      );
+      expect(result).toBe(newSubscriptionId);
       expect(getSubscriptionToken).toHaveBeenCalledWith('sub-from-sids-123');
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        mockInternalAccounts[0],
+        false,
+        false,
+      );
     });
 
     it('should return active account subscription ID when available', async () => {

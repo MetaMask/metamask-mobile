@@ -2361,7 +2361,8 @@ export class RewardsController extends BaseController<
         if (
           subscriptionId &&
           Boolean(sessionToken?.token) &&
-          Boolean(sessionToken?.success)
+          Boolean(sessionToken?.success) &&
+          Boolean(this.state.subscriptions[subscriptionId])
         ) {
           return subscriptionId;
         }
