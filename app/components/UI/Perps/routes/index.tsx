@@ -17,6 +17,7 @@ import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCan
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
+import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
@@ -65,6 +66,10 @@ const PerpsModalStack = () => (
             title: strings('perps.cancel_all_modal.title'),
           }}
         />
+        <ModalStack.Screen
+          name={Routes.PERPS.MODALS.TOOLTIP}
+          component={PerpsTooltipView}
+        />
       </ModalStack.Navigator>
     </PerpsStreamProvider>
   </PerpsConnectionProvider>
@@ -74,7 +79,12 @@ const PerpsScreenStack = () => (
   <PerpsConnectionProvider isFullScreen>
     <PerpsStreamProvider>
       <PerpsStreamBridge />
-      <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
+      <Stack.Navigator
+        initialRouteName={Routes.PERPS.PERPS_TAB}
+        screenOptions={{
+          detachPreviousScreen: false,
+        }}
+      >
         {/* Redirect to wallet perps tab */}
         <Stack.Screen
           name={Routes.PERPS.PERPS_TAB}

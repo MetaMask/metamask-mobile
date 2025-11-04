@@ -265,6 +265,7 @@ const Routes = {
       GTM_MODAL: 'PerpsGTMModal',
       CLOSE_ALL_POSITIONS: 'PerpsCloseAllPositions',
       CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
+      TOOLTIP: 'PerpsTooltip',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
