@@ -32,7 +32,7 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 
-import { usePerpsFirstTimeUser, usePerpsNetworkManagement } from '../../hooks';
+import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import createStyles from './PerpsTutorialCarousel.styles';
@@ -132,7 +132,6 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
 const PerpsTutorialCarousel: React.FC = () => {
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -286,12 +285,6 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Mark tutorial as completed
       markTutorialCompleted();
-
-      // We need to enable Arbitrum for deposits to work
-      // Arbitrum One is already added for all users as a default network
-      // For devs on testnet, Arbitrum Sepolia will be added/enabled
-      await ensureArbitrumNetworkExists();
-
       // Navigate all users to perps home screen for a more natural experience
       navigateToMarketsList();
     } else {
@@ -335,7 +328,6 @@ const PerpsTutorialCarousel: React.FC = () => {
     currentTab,
     tutorialScreens,
     markTutorialCompleted,
-    ensureArbitrumNetworkExists,
     navigateToMarketsList,
   ]);
 

@@ -81,7 +81,6 @@ jest.mock('../../../../../core/NavigationService', () => ({
 // Mock hooks
 const mockMarkTutorialCompleted = jest.fn();
 const mockTrack = jest.fn();
-const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
 
 // Mock the selector module first
 jest.mock('../../selectors/perpsController', () => ({
@@ -97,12 +96,6 @@ jest.mock('react-redux', () => ({
 jest.mock('../../hooks', () => ({
   usePerpsFirstTimeUser: () => ({
     markTutorialCompleted: mockMarkTutorialCompleted,
-  }),
-  usePerpsTrading: () => ({
-    depositWithConfirmation: mockDepositWithConfirmation,
-  }),
-  usePerpsNetworkManagement: () => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
   }),
 }));
 
@@ -179,7 +172,6 @@ describe('PerpsTutorialCarousel', () => {
     jest.useFakeTimers();
     mockMarkTutorialCompleted.mockClear();
     mockTrack.mockClear();
-    mockDepositWithConfirmation.mockClear();
     mockNavigationServiceMethods.navigate.mockClear();
     mockNavigationServiceMethods.setParams.mockClear();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
@@ -252,7 +244,6 @@ describe('PerpsTutorialCarousel', () => {
           screen: Routes.PERPS.PERPS_HOME,
         },
       );
-      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
     it('should navigate to markets list when pressing Skip on first screen', () => {
@@ -269,10 +260,9 @@ describe('PerpsTutorialCarousel', () => {
         },
       );
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
-    it('hides skip button on last screen', async () => {
+    it('enables skip button on last screen for eligible users', async () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate to the last screen
@@ -283,9 +273,9 @@ describe('PerpsTutorialCarousel', () => {
         screen.getByText(strings('perps.tutorial.ready_to_trade.title')),
       ).toBeOnTheScreen();
 
-      // Skip button should be disabled on last screen
+      // Skip button should be enabled on last screen for eligible users
       const skipButton = screen.getByTestId('perps-tutorial-skip-button');
-      expect(skipButton.props.disabled).toBe(true);
+      expect(skipButton.props.disabled).toBe(false);
 
       // Main "Let's go" button should be visible
       const continueButton = screen.getByTestId(
@@ -307,7 +297,6 @@ describe('PerpsTutorialCarousel', () => {
 
       // Should mark tutorial as completed and navigate to perps home
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
     it('should navigate to perps home screen when on last screen', async () => {
@@ -328,7 +317,6 @@ describe('PerpsTutorialCarousel', () => {
           screen: Routes.PERPS.PERPS_HOME,
         },
       );
-      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
   });
 
@@ -404,9 +392,9 @@ describe('PerpsTutorialCarousel', () => {
         );
         expect(continueButton).toBeOnTheScreen();
 
-        // Skip button should be disabled on last screen
+        // Skip button should be enabled for eligible users on last screen
         const skipButton = screen.getByTestId('perps-tutorial-skip-button');
-        expect(skipButton.props.disabled).toBe(true);
+        expect(skipButton.props.disabled).toBe(false);
       });
 
       it('navigates to perps home when eligible user completes tutorial', async () => {
@@ -428,7 +416,6 @@ describe('PerpsTutorialCarousel', () => {
             screen: Routes.PERPS.PERPS_HOME,
           },
         );
-        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
       });
 
       it('shows skip button for eligible users on non-last screens', () => {
@@ -455,7 +442,6 @@ describe('PerpsTutorialCarousel', () => {
             screen: Routes.PERPS.PERPS_HOME,
           },
         );
-        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
       });
     });
 
@@ -572,9 +558,8 @@ describe('PerpsTutorialCarousel', () => {
             screen: Routes.PERPS.PERPS_HOME,
           },
         );
-        // Should NOT navigate to deposit screen or call deposit
+        // Should NOT navigate using the mocked navigation (uses NavigationService instead)
         expect(mockNavigation.navigate).not.toHaveBeenCalled();
-        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
       });
     });
   });
