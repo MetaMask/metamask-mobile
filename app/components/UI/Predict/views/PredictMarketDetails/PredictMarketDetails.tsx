@@ -105,9 +105,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
-  const [titleLineCount, setTitleLineCount] = useState<number>(
-    estimateLineCount(title),
-  );
+  const titleLineCount = useMemo(() => estimateLineCount(title), [title]);
 
   const { executeGuardedAction } = usePredictActionGuard({
     providerId,
@@ -142,13 +140,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
     }
   }, [market?.status]);
-
-  // Update estimated line count when market data loads (if title wasn't passed in params)
-  useEffect(() => {
-    if (!title && market?.title) {
-      setTitleLineCount(estimateLineCount(market.title));
-    }
-  }, [market?.title, title]);
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
@@ -509,14 +500,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         }
         style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
       >
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          //style={tw.style('mb-1')}
-          onTextLayout={(e) => {
-            setTitleLineCount(e.nativeEvent.lines.length);
-          }}
-        >
+        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {title ||
             market?.title ||
             (isMarketFetching ? strings('predict.loading') : '')}
