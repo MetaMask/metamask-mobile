@@ -20,6 +20,11 @@ export interface SrpInputGridProps {
   onError?: (error: string) => void;
 
   /**
+   * External error message to display from parent
+   */
+  externalError?: string;
+
+  /**
    * Prefix for test IDs (e.g., 'seed-phrase-input' or 'import-from-seed-input')
    */
   testIDPrefix: string;

@@ -130,6 +130,13 @@ const ImportFromSecretRecoveryPhrase = ({
     return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
   }, [seedPhrase]);
 
+  useEffect(() => {
+    if (error) {
+      setError('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedPhrase]);
+
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const track = (event, properties) => {
@@ -554,6 +561,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 seedPhrase={seedPhrase}
                 onSeedPhraseChange={setSeedPhrase}
                 onError={setError}
+                externalError={error}
                 testIDPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}

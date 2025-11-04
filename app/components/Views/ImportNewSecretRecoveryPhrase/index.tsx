@@ -43,6 +43,7 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import { isSRPLengthValid } from '../../../util/srp/srpInputUtils';
+import { isValidMnemonic } from '../../../util/validators';
 
 /**
  * View that's displayed when the user is trying to import a new secret recovery phrase
@@ -74,6 +75,13 @@ const ImportNewSecretRecoveryPhrase = () => {
     () => !isSRPLengthValid(seedPhrase),
     [seedPhrase],
   );
+
+  useEffect(() => {
+    if (error) {
+      setError('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedPhrase]);
 
   const dismiss = useCallback(() => {
     navigation.goBack();
@@ -161,6 +169,18 @@ const ImportNewSecretRecoveryPhrase = () => {
   };
 
   const onSubmit = async () => {
+    const phrase = seedPhrase
+      .map((item) => item.trim())
+      .filter((item) => item !== '')
+      .join(' ');
+
+    // Validate the mnemonic checksum before proceeding
+    if (!isValidMnemonic(phrase)) {
+      setError(strings('import_from_seed.invalid_seed_phrase'));
+      return;
+    }
+
+    setError('');
     setLoading(true);
     try {
       // check if seedless pwd is outdated skip cache before importing SRP
@@ -168,14 +188,9 @@ const ImportNewSecretRecoveryPhrase = () => {
         await Authentication.checkIsSeedlessPasswordOutdated(true);
       if (isSeedlessPwdOutdated) {
         // no need to handle error here, password outdated state will trigger modal that force user to log out
+        setLoading(false);
         return;
       }
-
-      // Parse SRP from array to string
-      const phrase = seedPhrase
-        .map((item) => item.trim())
-        .filter((item) => item !== '')
-        .join(' ');
 
       // In case state 2 is enabled, discoverAccounts will be 0 because accounts are synced and then discovered
       // in a non-blocking way. So we rely on the callback to track the event when the discovery is done.
@@ -265,6 +280,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             seedPhrase={seedPhrase}
             onSeedPhraseChange={setSeedPhrase}
             onError={setError}
+            externalError={error}
             testIDPrefix={ImportSRPIDs.SEED_PHRASE_INPUT_ID}
             placeholderText={strings(
               'import_new_secret_recovery_phrase.textarea_placeholder',

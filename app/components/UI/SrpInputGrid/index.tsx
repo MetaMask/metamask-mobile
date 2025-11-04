@@ -50,6 +50,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       seedPhrase,
       onSeedPhraseChange,
       onError,
+      externalError = '',
       testIDPrefix,
       placeholderText,
       uniqueId = uuidv4(),
@@ -441,9 +442,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         </Text>
 
         {/* Error Text */}
-        {Boolean(error) && (
+        {Boolean(externalError || error) && (
           <Text variant={TextVariant.BodySMMedium} color={TextColor.Error}>
-            {error}
+            {externalError || error}
           </Text>
         )}
       </View>
