@@ -745,7 +745,7 @@ describe('MetaMetrics', () => {
         const metricsId = await metaMetrics.getMetaMetricsId();
         expect(metricsId).not.toEqual('""');
         expect(metricsId).not.toEqual('');
-        expect(metricsId.length).toBeGreaterThan(10);
+        expect(metricsId?.length).toBeGreaterThan(10);
         expect(StorageWrapper.setItem).toHaveBeenCalledWith(
           METAMETRICS_ID,
           metricsId,
@@ -762,7 +762,7 @@ describe('MetaMetrics', () => {
 
         const metricsId = await metaMetrics.getMetaMetricsId();
         expect(metricsId).not.toEqual('abc');
-        expect(metricsId.length).toBeGreaterThan(10);
+        expect(metricsId?.length).toBeGreaterThan(10);
         expect(StorageWrapper.setItem).toHaveBeenCalledWith(
           METAMETRICS_ID,
           metricsId,
