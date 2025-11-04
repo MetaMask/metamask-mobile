@@ -81,7 +81,7 @@ export interface CoreUniversalLink {
 /**
  * Actions that require authentication/signature verification
  */
-export const AUTH_REQUIRED_ACTIONS = [
+export const AUTH_REQUIRED_ACTIONS: string[] = [
   ACTIONS.SEND,
   ACTIONS.APPROVE,
   ACTIONS.PAYMENT,
@@ -91,7 +91,7 @@ export const AUTH_REQUIRED_ACTIONS = [
 /**
  * MetaMask SDK specific actions
  */
-export const SDK_ACTIONS = [
+export const SDK_ACTIONS: string[] = [
   ACTIONS.ANDROID_SDK,
   ACTIONS.CONNECT,
   ACTIONS.MMSDK,
@@ -100,12 +100,12 @@ export const SDK_ACTIONS = [
 /**
  * Actions that should bypass the deep link modal
  */
-export const WHITELISTED_ACTIONS = [ACTIONS.WC] as const;
+export const WHITELISTED_ACTIONS: string[] = [ACTIONS.WC] as const;
 
 /**
  * Ramp-related actions
  */
-export const RAMP_ACTIONS = [
+export const RAMP_ACTIONS: string[] = [
   ACTIONS.BUY,
   ACTIONS.BUY_CRYPTO,
   ACTIONS.SELL,
@@ -117,7 +117,7 @@ export const RAMP_ACTIONS = [
 /**
  * Perpetuals-related actions
  */
-export const PERPS_ACTIONS = [
+export const PERPS_ACTIONS: string[] = [
   ACTIONS.PERPS,
   ACTIONS.PERPS_MARKETS,
   ACTIONS.PERPS_ASSET,
@@ -126,7 +126,7 @@ export const PERPS_ACTIONS = [
 /**
  * Supported protocol types
  */
-export const SUPPORTED_PROTOCOLS = [
+export const SUPPORTED_PROTOCOLS: string[] = [
   'metamask',
   'https',
   'http',
@@ -138,27 +138,4 @@ export const SUPPORTED_PROTOCOLS = [
 /**
  * Default action when none is specified
  */
-export const DEFAULT_ACTION = ACTIONS.HOME;
-
-/**
- * Type guards
- */
-export const isAuthRequiredAction = (action: string): boolean =>
-  (AUTH_REQUIRED_ACTIONS as readonly string[]).includes(action);
-
-export const isSDKAction = (action: string): boolean =>
-  (SDK_ACTIONS as readonly string[]).includes(action);
-
-export const isWhitelistedAction = (action: string): boolean =>
-  (WHITELISTED_ACTIONS as readonly string[]).includes(action);
-
-export const isRampAction = (action: string): boolean =>
-  (RAMP_ACTIONS as readonly string[]).includes(action);
-
-export const isPerpsAction = (action: string): boolean =>
-  (PERPS_ACTIONS as readonly string[]).includes(action);
-
-export const isSupportedProtocol = (
-  protocol: string,
-): protocol is CoreUniversalLink['protocol'] =>
-  (SUPPORTED_PROTOCOLS as readonly string[]).includes(protocol);
+export const DEFAULT_ACTION: string = ACTIONS.HOME;

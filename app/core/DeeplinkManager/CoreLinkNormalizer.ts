@@ -9,10 +9,10 @@ import {
   CoreUniversalLink,
   CoreLinkParams,
   DEFAULT_ACTION,
-  isSupportedProtocol,
-  isAuthRequiredAction,
-  isRampAction,
-  isPerpsAction,
+  RAMP_ACTIONS,
+  PERPS_ACTIONS,
+  AUTH_REQUIRED_ACTIONS,
+  SUPPORTED_PROTOCOLS,
 } from './types/CoreUniversalLink';
 
 export class CoreLinkNormalizer {
@@ -76,7 +76,7 @@ export class CoreLinkNormalizer {
         isValid: true,
         isSupportedAction,
         isPrivateLink: false, // Will be determined by signature verification
-        requiresAuth: isAuthRequiredAction(action),
+        requiresAuth: AUTH_REQUIRED_ACTIONS.includes(action),
       };
     } catch (_error) {
       // for some reason SonarQube doesn't think this
@@ -162,7 +162,10 @@ export class CoreLinkNormalizer {
 
   private static extractProtocol(urlObj: URL): CoreUniversalLink['protocol'] {
     const protocol = urlObj.protocol.replace(':', '');
-    return isSupportedProtocol(protocol) ? protocol : 'https';
+    const isSupportedProtocol = SUPPORTED_PROTOCOLS.includes(protocol);
+    return isSupportedProtocol
+      ? (protocol as CoreUniversalLink['protocol'])
+      : 'https';
   }
 
   private static convertToHttpsIfNeeded(url: string, urlObj: URL): string {
@@ -277,9 +280,9 @@ export class CoreLinkNormalizer {
 
     // note that ramp and perps actions are special cases because they have
     // multiple actions associated with them
-    if (isRampAction(action)) {
+    if (RAMP_ACTIONS.includes(action)) {
       params.rampPath = actionPath;
-    } else if (isPerpsAction(action)) {
+    } else if (PERPS_ACTIONS.includes(action)) {
       params.perpsPath = actionPath;
     } else {
       const pathKey = this.ACTION_PATH_MAP[action];

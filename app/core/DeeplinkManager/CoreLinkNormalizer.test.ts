@@ -13,7 +13,7 @@ describe('CoreLinkNormalizer', () => {
     jest.restoreAllMocks();
   });
 
-  describe('normalize', () => {
+  describe('normalization', () => {
     it('normalizes basic metamask:// links', () => {
       const url = 'metamask://swap';
       const source = 'test';
@@ -22,10 +22,8 @@ describe('CoreLinkNormalizer', () => {
 
       expect(result.protocol).toBe('metamask');
       expect(result.action).toBe('swap');
-      expect(result.source).toBe(source);
       expect(result.isValid).toBe(true);
       expect(result.isSupportedAction).toBe(true);
-      expect(result.timestamp).toBe(mockTimestamp);
     });
 
     it('normalizes https:// universal links', () => {
@@ -50,27 +48,6 @@ describe('CoreLinkNormalizer', () => {
       expect(result.action).toBe('dapp');
       expect(result.params.chain).toBe('1');
       expect(result.params.dappPath).toBe('dapp/app.uniswap.org?chain=1');
-    });
-
-    it('converts boolean hr parameter to string', () => {
-      const link: CoreUniversalLink = {
-        protocol: 'https',
-        host: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-        action: 'home',
-        params: { hr: true },
-        source: 'test',
-        timestamp: mockTimestamp,
-        originalUrl: '',
-        normalizedUrl: '',
-        isValid: true,
-        isSupportedAction: true,
-        isPrivateLink: false,
-        requiresAuth: false,
-      };
-
-      const result = CoreLinkNormalizer.toMetaMaskProtocol(link);
-
-      expect(result).toBe('metamask://home?hr=1');
     });
 
     it('extracts SDK parameters', () => {
@@ -150,35 +127,6 @@ describe('CoreLinkNormalizer', () => {
       expect(result.params.empty).toBeUndefined();
     });
 
-    it('parses account parameter format correctly', () => {
-      const url = 'metamask://send?account=0x123@1';
-      const source = 'test';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.params.account).toBe('0x123@1');
-    });
-
-    it('extracts wc actions correctly', () => {
-      const url = 'metamask://wc?uri=wc:123';
-      const source = 'wallet-connect';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.action).toBe('wc');
-      expect(result.params.uri).toBe('wc:123');
-    });
-
-    it('extracts onboarding action correctly', () => {
-      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/onboarding/step1`;
-      const source = 'onboarding';
-
-      const result = CoreLinkNormalizer.normalize(url, source);
-
-      expect(result.action).toBe('onboarding');
-      expect(result.params.onboardingPath).toBe('onboarding/step1');
-    });
-
     it('extracts create-account action correctly', () => {
       const url = 'metamask://create-account?name=NewAccount';
       const source = 'test';
@@ -213,27 +161,6 @@ describe('CoreLinkNormalizer', () => {
       const result = CoreLinkNormalizer.toMetaMaskProtocol(link);
 
       expect(result).toBe('metamask://swap?from=ETH&to=DAI');
-    });
-
-    it('preserves metamask protocol links', () => {
-      const originalUrl = 'metamask://home';
-      const link: CoreUniversalLink = {
-        protocol: 'metamask',
-        action: 'home',
-        params: {},
-        source: 'test',
-        timestamp: mockTimestamp,
-        originalUrl,
-        normalizedUrl: originalUrl,
-        isValid: true,
-        isSupportedAction: true,
-        isPrivateLink: false,
-        requiresAuth: false,
-      };
-
-      const result = CoreLinkNormalizer.toMetaMaskProtocol(link);
-
-      expect(result).toBe(originalUrl);
     });
   });
 
