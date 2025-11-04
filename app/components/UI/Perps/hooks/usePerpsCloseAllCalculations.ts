@@ -63,13 +63,10 @@ interface PerPositionResult {
  * Hook to aggregate fee calculations and points estimation across multiple positions
  *
  * This hook:
- * - Calculates fees PER POSITION for accuracy (coin-specific rewards)
- * - Aggregates points estimation per position
+ * - Fetches account-level fee discount (applies uniformly to all positions)
+ * - Calculates fees PER POSITION for accuracy (coin-specific parameters)
+ * - Uses BATCH points estimation API for performance (single API call for all positions)
  * - Handles loading states and errors across all calculations
- *
- * TODO(rewards-batch-api): Replace per-position loop with single batch call when
- * https://github.com/consensys-vertical-apps/va-mmcx-rewards/pull/247 is merged.
- * The backend will support `payload | payload[]` for batch estimation.
  *
  * @example
  * ```tsx
@@ -107,6 +104,9 @@ export function usePerpsCloseAllCalculations({
   const [isCalculating, setIsCalculating] = useState(false);
   const [hasCalculationError, setHasCalculationError] = useState(false);
 
+  // State for account-level fee discount (applies uniformly to all positions)
+  const [feeDiscountBips, setFeeDiscountBips] = useState<number>(0);
+
   // Prevent slow points computation from retriggering on WebSocket position updates
   // Once we have valid results, freeze them to avoid recalculation failures showing 0 points
   const hasValidResultsRef = useRef(false);
@@ -132,9 +132,45 @@ export function usePerpsCloseAllCalculations({
     [positions],
   );
 
+  // Fetch account-level fee discount (applies uniformly to all positions)
+  // This runs once per account change and is cached by RewardsController
+  useEffect(() => {
+    async function fetchFeeDiscount() {
+      if (!selectedAddress || !currentChainId) {
+        return;
+      }
+
+      try {
+        const caipAccountId = formatAccountToCaipAccountId(
+          selectedAddress,
+          currentChainId,
+        );
+        if (!caipAccountId) {
+          return;
+        }
+
+        const discountBips =
+          await Engine.context.RewardsController.getPerpsDiscountForAccount(
+            caipAccountId,
+          );
+        setFeeDiscountBips(discountBips);
+      } catch (error) {
+        console.warn('Failed to fetch fee discount:', error);
+        setFeeDiscountBips(0);
+      }
+    }
+
+    fetchFeeDiscount().catch((error) => {
+      console.error('Unhandled error in fetchFeeDiscount:', error);
+    });
+  }, [selectedAddress, currentChainId]);
+
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation
   useEffect(() => {
+    // Reset valid results flag when dependencies change (positions, account, or discount)
+    hasValidResultsRef.current = false;
+
     // Skip recalculation if we already have valid results
     // Prevents slow points API calls from retriggering on WebSocket position updates
     if (hasValidResultsRef.current) {
@@ -166,8 +202,9 @@ export function usePerpsCloseAllCalculations({
           throw new Error('Failed to format account to CAIP ID');
         }
 
-        const results = await Promise.all(
-          positions.map(async (pos): Promise<PerPositionResult> => {
+        // Step 1: Calculate fees for all positions in parallel
+        const feeResults = await Promise.all(
+          positions.map(async (pos) => {
             try {
               // Calculate position value using current market price for accurate fee estimation
               // Fees must reflect the actual USD value being closed at current market conditions
@@ -178,45 +215,47 @@ export function usePerpsCloseAllCalculations({
               const size = Math.abs(parseFloat(pos.size));
               const positionValue = size * currentPrice;
 
-              // Calculate fees via PerpsController
-              const fees = await Engine.context.PerpsController.calculateFees({
-                orderType: 'market',
-                isMaker: false, // Market close orders are always taker
-                amount: positionValue.toString(),
-                coin: pos.coin,
-              });
+              // Calculate base fees via PerpsController (before discount)
+              const baseFees =
+                await Engine.context.PerpsController.calculateFees({
+                  orderType: 'market',
+                  isMaker: false, // Market close orders are always taker
+                  amount: positionValue.toString(),
+                  coin: pos.coin,
+                });
 
-              // Calculate rewards points per position with coin-specific parameters
-              let points: EstimatedPointsDto | null = null;
-              try {
-                const estimateBody: EstimatePointsDto = {
-                  activityType: 'PERPS',
-                  account: caipAccountId,
-                  activityContext: {
-                    perpsContext: {
-                      type: 'CLOSE_POSITION',
-                      usdFeeValue: (fees.feeAmount ?? 0).toString(),
-                      coin: pos.coin, // ✅ Accurate per-position coin
-                    },
-                  },
-                };
+              // Apply account-level discount to MetaMask fee
+              // Discount formula: adjusted_rate = original_rate * (1 - discount_bips/10000)
+              const discountMultiplier =
+                feeDiscountBips > 0 ? 1 - feeDiscountBips / 10000 : 1;
+              const adjustedMetamaskFeeRate =
+                baseFees.metamaskFeeRate * discountMultiplier;
 
-                points =
-                  await Engine.context.RewardsController.estimatePoints(
-                    estimateBody,
-                  );
-              } catch (pointsError) {
-                // Log but don't fail the entire calculation if rewards estimation fails
-                console.warn(
-                  `Failed to estimate points for ${pos.coin}:`,
-                  pointsError,
-                );
-              }
+              // Preserve undefined state if base fees are undefined - don't default to 0
+              // Undefined indicates error/unavailable state, which should be handled at UI layer
+              const adjustedMetamaskFeeAmount =
+                baseFees.metamaskFeeAmount !== undefined
+                  ? baseFees.metamaskFeeAmount * discountMultiplier
+                  : undefined;
+
+              // Recalculate total fee with discount applied only if both values are defined
+              const adjustedTotalFee =
+                baseFees.protocolFeeAmount !== undefined &&
+                adjustedMetamaskFeeAmount !== undefined
+                  ? baseFees.protocolFeeAmount + adjustedMetamaskFeeAmount
+                  : undefined;
+
+              const fees = {
+                ...baseFees,
+                metamaskFeeRate: adjustedMetamaskFeeRate,
+                metamaskFeeAmount: adjustedMetamaskFeeAmount,
+                feeAmount: adjustedTotalFee,
+              };
 
               return {
                 position: pos,
                 fees,
-                points,
+                error: undefined,
               };
             } catch (error) {
               return {
@@ -229,12 +268,46 @@ export function usePerpsCloseAllCalculations({
                   metamaskFeeRate: 0,
                   metamaskFeeAmount: 0,
                 },
-                points: null,
                 error: error instanceof Error ? error.message : 'Unknown error',
               };
             }
           }),
         );
+
+        // Step 2: Batch points estimation for all positions in a single API call
+        // Using batch API to improve performance (N+1 → 2 API calls)
+        let batchPoints: EstimatedPointsDto | null = null;
+        try {
+          const perpsContextArray = feeResults.map((result) => ({
+            type: 'CLOSE_POSITION' as const,
+            usdFeeValue: (result.fees.feeAmount ?? 0).toString(),
+            coin: result.position.coin,
+          }));
+
+          const batchEstimateBody: EstimatePointsDto = {
+            activityType: 'PERPS',
+            account: caipAccountId,
+            activityContext: {
+              perpsContext: perpsContextArray, // Batch API: array of positions
+            },
+          };
+
+          batchPoints =
+            await Engine.context.RewardsController.estimatePoints(
+              batchEstimateBody,
+            );
+        } catch (pointsError) {
+          console.warn('Failed to estimate batch points:', pointsError);
+        }
+
+        // Step 3: Combine fee results with batch points
+        // Batch API returns aggregated points (sum) and average bonus
+        const results = feeResults.map((result) => ({
+          position: result.position,
+          fees: result.fees,
+          points: batchPoints, // Same batch result for all positions (aggregated)
+          error: result.error,
+        }));
 
         setPerPositionResults(results);
 
@@ -259,9 +332,9 @@ export function usePerpsCloseAllCalculations({
       console.error('Unhandled error in calculatePerPosition:', error);
       setHasCalculationError(true);
     });
-  }, [positions, selectedAddress, currentChainId]);
+  }, [positions, selectedAddress, currentChainId, feeDiscountBips]);
   // Note: priceData intentionally excluded from deps to prevent recalculation on every price update
-  // Calculations use the latest priceData reference but only re-run when positions/account changes
+  // Calculations use the latest priceData reference but only re-run when positions/account/discount changes
 
   // Aggregate results from per-position calculations
   const aggregatedResults = useMemo(() => {
@@ -308,12 +381,18 @@ export function usePerpsCloseAllCalculations({
     const avgProtocolFeeRate =
       totalWeight > 0 ? weightedProtocolFeeRate / totalWeight : 0;
 
-    // For fee discount calculation, we need original rates from breakdown if available
-    // Otherwise avgOriginalMetamaskFeeRate equals avgMetamaskFeeRate (no discount)
-    const avgOriginalMetamaskFeeRate = avgMetamaskFeeRate; // Simplified for now
+    // Calculate original MetaMask fee rate (before discount was applied)
+    // The discount is applied as: discounted_rate = original_rate * (1 - discount_bips/10000)
+    // Therefore: original_rate = discounted_rate / (1 - discount_bips/10000)
+    const avgOriginalMetamaskFeeRate =
+      feeDiscountBips > 0 && avgMetamaskFeeRate > 0
+        ? avgMetamaskFeeRate / (1 - feeDiscountBips / 10000)
+        : avgMetamaskFeeRate;
 
-    // Calculate average fee discount percentage (currently 0 as we don't have original rates)
-    const avgFeeDiscountPercentage = 0;
+    // Convert discount from basis points to percentage for display
+    // e.g., 6500 bips = 65%
+    const avgFeeDiscountPercentage =
+      feeDiscountBips > 0 ? feeDiscountBips / 100 : 0;
 
     // Calculate average bonus bips (weighted by points)
     let weightedBonusBips = 0;
@@ -343,7 +422,7 @@ export function usePerpsCloseAllCalculations({
       avgOriginalMetamaskFeeRate,
       shouldShowRewards,
     };
-  }, [perPositionResults]);
+  }, [perPositionResults, feeDiscountBips]);
 
   // Calculate final receive amount
   const receiveAmount = useMemo(
