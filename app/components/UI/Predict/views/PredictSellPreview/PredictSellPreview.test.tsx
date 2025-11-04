@@ -88,6 +88,64 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   },
 }));
 
+// Mock usePredictAgreement hook
+const mockAcceptAgreement = jest.fn();
+let mockIsAgreementAccepted = true; // Default to true to not break existing tests
+
+jest.mock('../../hooks/usePredictAgreement', () => ({
+  usePredictAgreement: () => ({
+    isAgreementAccepted: mockIsAgreementAccepted,
+    acceptAgreement: mockAcceptAgreement,
+  }),
+}));
+
+// Mock PredictConsentSheet component
+let mockConsentSheetRef: {
+  onOpenBottomSheet: jest.Mock;
+  onCloseBottomSheet: jest.Mock;
+} | null = null;
+let mockConsentSheetOnAgree: (() => void) | null = null;
+let mockConsentSheetProviderId: string | null = null;
+
+jest.mock('../../components/PredictConsentSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (
+        {
+          providerId,
+          onAgree,
+        }: {
+          providerId: string;
+          onDismiss?: () => void;
+          onAgree?: () => void;
+        },
+        ref: React.Ref<{
+          onOpenBottomSheet: () => void;
+          onCloseBottomSheet: () => void;
+        }>,
+      ) => {
+        mockConsentSheetRef = {
+          onOpenBottomSheet: jest.fn(),
+          onCloseBottomSheet: jest.fn(),
+        };
+        mockConsentSheetOnAgree = onAgree || null;
+        mockConsentSheetProviderId = providerId;
+
+        ReactActual.useImperativeHandle(ref, () => mockConsentSheetRef);
+
+        return ReactActual.createElement(
+          View,
+          { testID: 'predict-consent-sheet' },
+          null,
+        );
+      },
+    ),
+  };
+});
+
 // Mock usePredictOrderPreview hook
 let mockPreview = {
   marketId: 'market-1',
@@ -326,6 +384,10 @@ describe('PredictSellPreview', () => {
     mockLoadingState = false;
     mockPlaceOrderResult = null;
     mockPlaceOrderError = undefined;
+    mockIsAgreementAccepted = true; // Reset to default
+    mockConsentSheetRef = null;
+    mockConsentSheetOnAgree = null;
+    mockConsentSheetProviderId = null;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -616,6 +678,82 @@ describe('PredictSellPreview', () => {
       });
 
       expect(mockUseStyles).toHaveBeenCalled();
+    });
+  });
+
+  describe('consent check', () => {
+    it('proceeds with cash out immediately when agreement is already accepted', async () => {
+      mockIsAgreementAccepted = true;
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
+
+      await fireEvent.press(cashOutButton);
+
+      // Should place order immediately without opening consent sheet
+      expect(mockPlaceOrder).toHaveBeenCalled();
+      expect(mockConsentSheetRef?.onOpenBottomSheet).not.toHaveBeenCalled();
+    });
+
+    it('opens consent sheet when agreement is not accepted', async () => {
+      mockIsAgreementAccepted = false;
+
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
+
+      await fireEvent.press(cashOutButton);
+
+      // Should not place order yet
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      // Should open consent sheet
+      expect(mockConsentSheetRef?.onOpenBottomSheet).toHaveBeenCalled();
+    });
+
+    it('places order after user agrees to consent', async () => {
+      mockIsAgreementAccepted = false;
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      // Simulate user agreeing to consent
+      if (mockConsentSheetOnAgree) {
+        await mockConsentSheetOnAgree();
+      }
+
+      // Should place order after consent
+      expect(mockPlaceOrder).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+        analyticsProperties: expect.objectContaining({
+          marketId: 'market-123',
+          transactionType: 'mm_predict_sell',
+        }),
+        preview: expect.objectContaining({
+          side: 'SELL',
+        }),
+      });
+    });
+
+    it('renders PredictConsentSheet with correct providerId', () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(mockConsentSheetProviderId).toBe('polymarket');
     });
   });
 });
