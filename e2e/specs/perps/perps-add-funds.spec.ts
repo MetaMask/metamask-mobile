@@ -26,7 +26,7 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
     jest.setTimeout(150000);
   });
 
-  it.skip('deposits $80 from Add funds and verifies updated balance', async () => {
+  it('deposits $80 from Add funds and verifies updated balance', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
