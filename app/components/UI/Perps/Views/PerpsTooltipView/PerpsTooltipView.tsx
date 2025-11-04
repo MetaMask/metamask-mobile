@@ -19,6 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import createStyles from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip/content/contentRegistry';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { View } from 'react-native';
 
 interface PerpsTooltipViewRouteParams {
@@ -26,10 +27,6 @@ interface PerpsTooltipViewRouteParams {
   data?: Record<string, unknown>;
 }
 
-/**
- * Navigation-based wrapper for PerpsBottomSheetTooltip
- * This component follows the StackNavigator pattern like PerpsCloseAllPositionsView
- */
 const PerpsTooltipView: React.FC = () => {
   const route =
     useRoute<RouteProp<Record<string, PerpsTooltipViewRouteParams>, string>>();
@@ -52,7 +49,12 @@ const PerpsTooltipView: React.FC = () => {
     const CustomRenderer = tooltipContentRegistry[contentKey];
 
     if (CustomRenderer) {
-      return <CustomRenderer data={data} />;
+      return (
+        <CustomRenderer
+          testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
+          data={data}
+        />
+      );
     }
 
     return (
@@ -76,11 +78,7 @@ const PerpsTooltipView: React.FC = () => {
     contentKey === 'market_hours' || contentKey === 'after_hours_trading';
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack
-      onClose={handleClose}
-    >
+    <BottomSheet ref={bottomSheetRef} shouldNavigateBack onClose={handleClose}>
       {!hasCustomHeader && (
         <BottomSheetHeader>
           <Text variant={TextVariant.HeadingMD}>{title}</Text>
