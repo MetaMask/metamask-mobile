@@ -60,6 +60,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+// Mock Perps hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePositions: () => ({
+    positions: [],
+    isInitialLoading: false,
+  }),
+  usePerpsLiveOrders: () => ({
+    orders: [],
+    isInitialLoading: false,
+  }),
+}));
+
 describe('PerpsWatchlistMarkets', () => {
   const mockNavigate = jest.fn();
   const mockMarkets: PerpsMarketData[] = [
