@@ -2110,7 +2110,7 @@ describe('HyperLiquidSubscriptionService', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Now update feature flags to enable new DEXs
-      await service.updateFeatureFlags(true, ['newdex1', 'newdex2']);
+      await service.updateFeatureFlags(true, ['newdex1', 'newdex2'], [], []);
 
       expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'newdex1' });
       expect(mockInfoClient.meta).toHaveBeenCalledWith({ dex: 'newdex2' });
@@ -2142,7 +2142,7 @@ describe('HyperLiquidSubscriptionService', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Update feature flags - should handle error gracefully without throwing
-      await service.updateFeatureFlags(true, ['failingdex']);
+      await service.updateFeatureFlags(true, ['failingdex'], [], []);
 
       // Wait for async error handling
       await new Promise((resolve) => setTimeout(resolve, 20));
@@ -2166,7 +2166,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Update feature flags - should handle error gracefully
       await expect(
-        service.updateFeatureFlags(true, ['failingdex2']),
+        service.updateFeatureFlags(true, ['failingdex2'], [], []),
       ).resolves.not.toThrow();
     });
 
@@ -2185,7 +2185,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Update feature flags - should handle wallet error gracefully
       await expect(
-        service.updateFeatureFlags(true, ['newdex']),
+        service.updateFeatureFlags(true, ['newdex'], [], []),
       ).resolves.not.toThrow();
 
       // Reset mock for other tests
@@ -2207,7 +2207,7 @@ describe('HyperLiquidSubscriptionService', () => {
         : 0;
 
       // Update with same DEXs (no new ones)
-      await service.updateFeatureFlags(false, []);
+      await service.updateFeatureFlags(false, [], [], []);
 
       // Should not create new subscriptions
       const finalCallCount = mockSubscriptionClient.assetCtxs
