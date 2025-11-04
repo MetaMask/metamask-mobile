@@ -31,7 +31,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import Logger from '../../../util/Logger';
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { BridgeToken } from '../Bridge/types';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -184,63 +184,54 @@ const SearchTokenAutocomplete = ({
     [selectedAssets, setSelectedAssets],
   );
 
-  const addToken = useCallback(
-    async ({
-      address,
-      symbol,
-      decimals,
-      name,
-      chainId,
-      image,
-    }: BridgeToken) => {
-      if (isNonEvmChainId(chainId)) {
-        const selectedNonEvmAccount = selectInternalAccountByScope(
-          chainId as SupportedCaipChainId,
-        );
+  const addTokens = useCallback(async () => {
+    if (!selectedChainId) {
+      return;
+    }
 
-        if (!selectedNonEvmAccount) {
-          Logger.log('SearchTokenAutoComplete: No account ID found');
-          return;
-        }
+    const addresses = selectedAssets.map((asset) => asset.address);
+    if (isNonEvmChainId(selectedChainId)) {
+      const selectedNonEvmAccount = selectInternalAccountByScope(
+        selectedChainId as SupportedCaipChainId,
+      );
 
-        const { MultichainAssetsController } = Engine.context;
-        await MultichainAssetsController.addAsset(
-          address as CaipAssetType,
-          selectedNonEvmAccount.id,
-        );
-      } else {
-        const networkConfig =
-          Engine.context.NetworkController.state
-            ?.networkConfigurationsByChainId?.[chainId as Hex];
-
-        if (!networkConfig) {
-          return;
-        }
-
-        const networkClient =
-          networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
-            ?.networkClientId;
-
-        if (!networkClient) {
-          return;
-        }
-
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { TokensController } = Engine.context as any;
-        await TokensController.addToken({
-          address,
-          symbol,
-          decimals,
-          image,
-          name,
-          networkClientId: networkClient,
-        });
+      if (!selectedNonEvmAccount) {
+        Logger.log('SearchTokenAutoComplete: No account ID found');
+        return;
       }
 
+      const { MultichainAssetsController } = Engine.context;
+      await MultichainAssetsController.addAssets(
+        addresses,
+        selectedNonEvmAccount.id,
+      );
+    } else {
+      const networkConfig =
+        Engine.context.NetworkController.state
+          ?.networkConfigurationsByChainId?.[selectedChainId as Hex];
+
+      if (!networkConfig) {
+        return;
+      }
+
+      const networkClient =
+        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
+          ?.networkClientId;
+
+      if (!networkClient) {
+        return;
+      }
+
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { TokensController } = Engine.context;
+      await TokensController.addTokens(selectedAssets, networkClient);
+    }
+
+    selectedAssets.forEach((asset) => {
       const analyticsParams = getTokenAddedAnalyticsParams({
-        address: address as Hex,
-        symbol,
+        address: asset.address as Hex,
+        symbol: asset.symbol,
       });
 
       if (analyticsParams) {
@@ -250,14 +241,15 @@ const SearchTokenAutocomplete = ({
             .build(),
         );
       }
-    },
-    [
-      getTokenAddedAnalyticsParams,
-      trackEvent,
-      createEventBuilder,
-      selectInternalAccountByScope,
-    ],
-  );
+    });
+  }, [
+    getTokenAddedAnalyticsParams,
+    trackEvent,
+    createEventBuilder,
+    selectInternalAccountByScope,
+    selectedAssets,
+    selectedChainId,
+  ]);
 
   /**
    * Go to wallet page
@@ -272,9 +264,7 @@ const SearchTokenAutocomplete = ({
   }, [navigation]);
 
   const addTokenList = useCallback(async () => {
-    for (const asset of selectedAssets) {
-      await addToken({ ...asset });
-    }
+    await addTokens();
 
     setSearchResults([]);
     setSelectedAssets([]);
@@ -293,7 +283,7 @@ const SearchTokenAutocomplete = ({
             : strings('wallet.token_toast.token_imported_desc_1'),
       });
     });
-  }, [addToken, selectedAssets, goToWalletPage]);
+  }, [addTokens, selectedAssets, goToWalletPage]);
 
   const networkName = useSelector(selectNetworkName);
 
