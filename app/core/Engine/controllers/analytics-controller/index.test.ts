@@ -4,22 +4,12 @@ import { ControllerInitRequest } from '../../types';
 import {
   AnalyticsController,
   type AnalyticsControllerMessenger,
-  getDefaultAnalyticsControllerState,
   type AnalyticsControllerState,
 } from '@metamask/analytics-controller';
 import { analyticsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('@metamask/analytics-controller', () => {
-  const actualAnalyticsController = jest.requireActual(
-    '@metamask/analytics-controller',
-  );
-
-  return {
-    ...actualAnalyticsController,
-    AnalyticsController: jest.fn(),
-  };
-});
+jest.mock('@metamask/analytics-controller');
 
 const mockPlatformAdapter = {
   trackEvent: jest.fn(),
@@ -38,7 +28,8 @@ describe('analyticsControllerInit', () => {
   >;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    analyticsControllerClassMock.mockReset();
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -46,46 +37,31 @@ describe('analyticsControllerInit', () => {
   });
 
   it('returns controller instance', () => {
-    analyticsControllerClassMock.mockImplementation((options) => ({
-        state: options.state,
-        messenger: options.messenger,
-        platformAdapter: options.platformAdapter,
-      } as unknown as AnalyticsController));
-
     const result = analyticsControllerInit(initRequestMock);
 
     expect(result.controller).toBeDefined();
+    expect(result.controller).toBeInstanceOf(AnalyticsController);
+    expect(analyticsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
-  it('uses default state when no persisted state is provided', () => {
-    const defaultState = getDefaultAnalyticsControllerState();
-
-    analyticsControllerInit(initRequestMock);
-
-    expect(analyticsControllerClassMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        state: defaultState,
-      }),
-    );
-  });
-
-  it('uses persisted state when provided', () => {
-    const persistedState: AnalyticsControllerState = {
+  it('uses custom state when provided', () => {
+    // state not similar to default state from mock analytics controller
+    const customState: AnalyticsControllerState = {
       enabled: false,
       optedIn: true,
-      analyticsId: 'test-analytics-id',
+      analyticsId: 'dcc3154e-7440-4b18-81b6-d5cd1abd7a6b',
     };
 
     initRequestMock.persistedState = {
       ...initRequestMock.persistedState,
-      AnalyticsController: persistedState,
+      AnalyticsController: customState,
     };
 
     analyticsControllerInit(initRequestMock);
 
     expect(analyticsControllerClassMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        state: persistedState,
+        state: customState,
       }),
     );
   });

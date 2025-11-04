@@ -6913,14 +6913,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/analytics-controller@file:../core/packages/analytics-controller::locator=metamask%40workspace%3A.":
-  version: 0.0.0
-  resolution: "@metamask/analytics-controller@file:../core/packages/analytics-controller#../core/packages/analytics-controller::hash=e955e8&locator=metamask%40workspace%3A."
+"@metamask/analytics-controller@npm:@metamask-previews/analytics-controller@0.0.0-preview-81bccf77":
+  version: 0.0.0-preview-81bccf77
+  resolution: "@metamask-previews/analytics-controller@npm:0.0.0-preview-81bccf77"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
-  checksum: 10/8ca235bfd49dbbe4f100d49c0624be80dbbe1ba30a2549557327c25f6c565db31e06681902a8de7187a2fcae158e1c365d4cb303aad5a5adf1db1818f62b62b1
+    uuid: "npm:^8.3.2"
+  checksum: 10/02826261b9a4edf3b3fd6d8f6f40ee8b3ddae96949dced3ae70fed517abac4315b06ebb3a807f6821195e69b181e58ca365608aa9784ee3c70b8f5aecbdfa6b7
   languageName: node
   linkType: hard
 

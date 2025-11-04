@@ -30,6 +30,11 @@
   "AddressBookController": {
     "addressBook": {}
   },
+  "AnalyticsController": {
+    "analyticsId": "f2673eb8-db32-40bb-88a5-97cf5107d31d",
+    "enabled": false,
+    "optedIn": false
+  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},

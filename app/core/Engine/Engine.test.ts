@@ -81,6 +81,8 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
   }),
 }));
 
+jest.mock('@metamask/analytics-controller');
+
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
   rejectOriginApprovals: jest.fn(),
@@ -109,6 +111,7 @@ describe('Engine', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
+    expect(engine.context).toHaveProperty('AnalyticsController');
     expect(engine.context).toHaveProperty('AssetsContractController');
     expect(engine.context).toHaveProperty('TokenListController');
     expect(engine.context).toHaveProperty('TokenDetectionController');
