@@ -6,7 +6,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return {
     useTailwind: () => ({
       // Return a minimal style function used in components
-      style: (..._args: unknown[]) => ({} as Record<string, unknown>),
+      style: (..._args: unknown[]) => ({}) as Record<string, unknown>,
     }),
     ThemeProvider: ({ children }: { children: React.ReactNode }) =>
       ReactActual.createElement(ReactActual.Fragment, null, children),
@@ -71,6 +71,7 @@ jest.mock('../OnboardingIntroStep', () => {
 });
 import { renderWithProviders, createMockDispatch } from '../testUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../../constants/storage';
 // Use the mocked component with no required props to avoid TS errors
 const OnboardingIntroStep = jest.requireMock('../OnboardingIntroStep')
   .default as unknown as React.ComponentType<Record<string, never>>;
@@ -121,6 +122,7 @@ const defaultAccountGroupAccounts = createMockAccountGroupAccounts([
 
 // Import the actual selectors to identify them in mocks
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import storageWrapper from '../../../../../../store/storage-wrapper';
 
 // Mock redux
 const mockDispatch = createMockDispatch();
@@ -194,9 +196,22 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => `mocked_${key}`,
 }));
 
+// Mock storage wrapper
+jest.mock('../../../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
+
 describe('OnboardingIntroStep', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset storage mock to default (resolved promise)
+    (storageWrapper.setItem as jest.Mock).mockResolvedValue(undefined);
 
     // Reset hardware account mock to default (false)
     const mockIsHardwareAccount = jest.requireMock(
@@ -295,6 +310,25 @@ describe('OnboardingIntroStep', () => {
 
       const introImage = screen.getByTestId('intro-image');
       expect(introImage).toBeDefined();
+    });
+  });
+
+  describe('storage behavior', () => {
+    it('should set REWARDS_GTM_MODAL_SHOWN flag in storage when component mounts', async () => {
+      // Arrange - storageWrapper.setItem is already configured in beforeEach
+
+      // Act
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Assert
+      // Wait for the async storage operation to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(storageWrapper.setItem).toHaveBeenCalledWith(
+        REWARDS_GTM_MODAL_SHOWN,
+        'true',
+      );
+      expect(storageWrapper.setItem).toHaveBeenCalledTimes(1);
     });
   });
 

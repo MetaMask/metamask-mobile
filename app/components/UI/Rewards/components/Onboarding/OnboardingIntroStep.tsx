@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,6 +39,9 @@ import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Device from '../../../../../util/device';
+import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
+import storageWrapper from '../../../../../store/storage-wrapper';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 /**
  * OnboardingIntroStep Component
@@ -56,6 +59,14 @@ const OnboardingIntroStep: React.FC<{
   const dispatch = useDispatch();
   const tw = useTailwind();
   const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
+
+  const setHasSeenRewardsIntroModal = useCallback(async () => {
+    await storageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true');
+  }, []);
+
+  useEffect(() => {
+    setHasSeenRewardsIntroModal();
+  }, [setHasSeenRewardsIntroModal]);
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
@@ -181,7 +192,7 @@ const OnboardingIntroStep: React.FC<{
           'RewardsController:isOptInSupported',
           account,
         );
-      } catch (error) {
+      } catch {
         return false;
       }
     });
@@ -323,6 +334,7 @@ const OnboardingIntroStep: React.FC<{
         loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
+        testID={REWARDS_VIEW_SELECTORS.CLAIM_BUTTON}
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {confirmLabel}
@@ -334,6 +346,7 @@ const OnboardingIntroStep: React.FC<{
         isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
+        testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}

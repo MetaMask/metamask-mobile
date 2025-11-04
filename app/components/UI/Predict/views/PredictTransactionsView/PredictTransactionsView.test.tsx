@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
-import { PredictActivityType } from '../../components/PredictActivity/PredictActivity';
+import { PredictActivityType } from '../../types';
 
 // Shared mocks
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -69,6 +69,10 @@ const { usePredictActivity } = jest.requireMock(
 
 describe('PredictTransactionsView', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

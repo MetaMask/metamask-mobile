@@ -78,11 +78,52 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: {
       Secondary: 'secondary',
     },
+    ButtonSize: {
+      Lg: 'lg',
+      Md: 'md',
+      Sm: 'sm',
+    },
+    TextColor: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+      PrimaryInverse: 'primary-inverse',
+      Alternative: 'alternative',
+      Muted: 'muted',
+      Success: 'success',
+      Error: 'error',
+      Warning: 'warning',
+      Info: 'info',
+    },
     IconColor: {
       Alternative: '#8A8A8A',
     },
   };
 });
+
+jest.mock(
+  '../../../../../component-library/components-temp/Buttons/ButtonHero',
+  () => {
+    const { TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        onPress,
+        testID,
+        children,
+        ...props
+      }: {
+        onPress?: () => void;
+        testID?: string;
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => (
+        <TouchableOpacity testID={testID} onPress={onPress} {...props}>
+          {children}
+        </TouchableOpacity>
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -193,6 +234,16 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockBalanceResult,
 }));
 
+// Mock usePredictActionGuard hook
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+    isEligible: true,
+    hasNoBalance: false,
+  }),
+}));
+
 // Mock usePredictClaimablePositions hook
 const mockLoadClaimablePositions = jest.fn();
 const mockClaimablePositionsResult: {
@@ -292,29 +343,6 @@ function setupMarketsWonCardTest(
   }
   mockBalanceResult.isLoading = props.isLoading ?? false;
 
-  // Configure claimable positions mock based on props and overrides
-  if (claimablePositionsOverrides.positions !== undefined) {
-    mockClaimablePositionsResult.positions =
-      claimablePositionsOverrides.positions as unknown as PredictPosition[];
-  } else {
-    mockClaimablePositionsResult.positions = props.totalClaimableAmount
-      ? ([
-          {
-            id: 'position-1',
-            status: 'won', // Note: This should match PredictPositionStatus.WON
-            cashPnl: props.totalClaimableAmount,
-            marketId: 'market-1',
-            tokenId: 'token-1',
-            outcome: 'Yes',
-            shares: '100',
-            avgPrice: 0.5,
-            currentValue: props.totalClaimableAmount,
-          },
-        ] as unknown as typeof mockClaimablePositionsResult.positions)
-      : [];
-  }
-  mockClaimablePositionsResult.isLoading = props.isLoading ?? false;
-
   // Mock the useUnrealizedPnL hook
   const mockUseUnrealizedPnL = useUnrealizedPnL as jest.MockedFunction<
     typeof useUnrealizedPnL
@@ -333,8 +361,40 @@ function setupMarketsWonCardTest(
   });
 
   const ref = React.createRef<{ refresh: () => Promise<void> }>();
+
+  // Build claimable positions for Redux state
+  const claimablePositions =
+    claimablePositionsOverrides.positions !== undefined
+      ? (claimablePositionsOverrides.positions as unknown as PredictPosition[])
+      : props.totalClaimableAmount
+        ? ([
+            {
+              id: 'position-1',
+              status: PredictPositionStatus.WON,
+              cashPnl: props.totalClaimableAmount,
+              marketId: 'market-1',
+              tokenId: 'token-1',
+              outcome: 'Yes',
+              shares: '100',
+              avgPrice: 0.5,
+              currentValue: props.totalClaimableAmount,
+            },
+          ] as unknown as PredictPosition[])
+        : [];
+
+  // Create Redux state
+  const state = {
+    engine: {
+      backgroundState: {
+        PredictController: {
+          claimablePositions,
+        },
+      },
+    },
+  };
+
   return {
-    ...renderWithProvider(<MarketsWonCard ref={ref} />),
+    ...renderWithProvider(<MarketsWonCard ref={ref} />, { state }),
     props,
     defaultProps,
     mockUseUnrealizedPnL,
@@ -354,6 +414,10 @@ describe('MarketsWonCard', () => {
     mockClaimResult.loading = false;
     mockClaimResult.completed = false;
     mockClaimResult.error = false;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Component Rendering', () => {
@@ -461,9 +525,9 @@ describe('MarketsWonCard', () => {
     });
 
     it('formats available balance to 2 decimal places', () => {
-      setupMarketsWonCardTest({ availableBalance: 123.456 });
+      setupMarketsWonCardTest({ availableBalance: 123.4321 });
 
-      expect(screen.getByText('$123.456')).toBeOnTheScreen();
+      expect(screen.getByText('$123.43')).toBeOnTheScreen();
     });
 
     it('formats claimable amount to 2 decimal places', () => {

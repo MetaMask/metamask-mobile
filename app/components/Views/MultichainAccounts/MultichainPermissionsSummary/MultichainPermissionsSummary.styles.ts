@@ -135,8 +135,8 @@ const createStyles = (params: { theme: Theme }) => {
     walletIcon: { alignSelf: 'flex-start' },
     dataIcon: { alignSelf: 'flex-start' },
     disconnectAllContainer: {
-      marginHorizontal: 24,
-      marginTop: 8,
+      marginHorizontal: 16,
+      marginVertical: 8,
       flexDirection: 'row',
     },
     disconnectButton: { flex: 1 },

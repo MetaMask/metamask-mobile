@@ -15,6 +15,11 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
+// Mock @react-navigation/stack
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: jest.fn(),
+}));
+
 // Mock useConfirmNavigation
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(() => ({
@@ -26,6 +31,18 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('./usePredictEligibility', () => ({
   usePredictEligibility: jest.fn(() => ({
     isEligible: true,
+  })),
+}));
+
+// Mock usePredictBalance
+jest.mock('./usePredictBalance', () => ({
+  usePredictBalance: jest.fn(() => ({
+    balance: 100,
+    hasNoBalance: false,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadBalance: jest.fn(),
   })),
 }));
 
@@ -61,7 +78,7 @@ jest.mock('../../../../util/theme', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      clearDepositTransaction: jest.fn(),
+      clearPendingDeposit: jest.fn(),
       depositWithConfirmation: jest.fn(() => Promise.resolve()),
     },
   },
@@ -77,7 +94,17 @@ let mockState: any = {
   engine: {
     backgroundState: {
       PredictController: {
-        depositTransaction: null,
+        pendingDeposits: {},
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: 'account1',
+          accounts: {
+            account1: {
+              address: '0x1234567890123456789012345678901234567890',
+            },
+          },
+        },
       },
     },
   },
@@ -113,10 +140,7 @@ describe('usePredictDepositToasts', () => {
     jest.clearAllMocks();
     mockToastRef.current.showToast.mockClear();
     (
-      Engine.context.PredictController.clearDepositTransaction as jest.Mock
-    ).mockClear();
-    (
-      Engine.context.PredictController.clearDepositTransaction as jest.Mock
+      Engine.context.PredictController.clearPendingDeposit as jest.Mock
     ).mockClear();
 
     // Capture the subscribe callback
@@ -132,11 +156,25 @@ describe('usePredictDepositToasts', () => {
       engine: {
         backgroundState: {
           PredictController: {
-            depositTransaction: null,
+            pendingDeposits: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'account1',
+              accounts: {
+                account1: {
+                  address: '0x1234567890123456789012345678901234567890',
+                },
+              },
+            },
           },
         },
       },
     };
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('initialization', () => {
@@ -178,7 +216,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearDepositTransaction,
+        Engine.context.PredictController.clearPendingDeposit,
       ).not.toHaveBeenCalled();
       expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
     });
@@ -196,7 +234,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearDepositTransaction,
+        Engine.context.PredictController.clearPendingDeposit,
       ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -224,7 +262,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearDepositTransaction,
+        Engine.context.PredictController.clearPendingDeposit,
       ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -247,7 +285,7 @@ describe('usePredictDepositToasts', () => {
       });
 
       expect(
-        Engine.context.PredictController.clearDepositTransaction,
+        Engine.context.PredictController.clearPendingDeposit,
       ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({

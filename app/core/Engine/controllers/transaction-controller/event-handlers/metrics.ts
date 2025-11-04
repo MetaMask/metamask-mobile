@@ -5,7 +5,7 @@ import { merge } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { MetaMetrics } from '../../../../Analytics';
-import { BaseControllerMessenger } from '../../../types';
+import { RootExtendedMessenger } from '../../../types';
 import {
   generateDefaultTransactionMetrics,
   generateEvent,
@@ -14,6 +14,7 @@ import {
 } from '../utils';
 import type {
   TransactionEventHandlerRequest,
+  TransactionMetrics,
   TransactionMetricsBuilder,
 } from '../types';
 import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
@@ -41,37 +42,11 @@ const createTransactionEventHandler =
           transactionEventHandlerRequest,
         );
 
-      const metrics = {
-        properties: defaultTransactionMetricProperties.properties,
-        sensitiveProperties:
-          defaultTransactionMetricProperties.sensitiveProperties,
-      };
-
-      const allTransactions =
-        transactionEventHandlerRequest.getState()?.engine?.backgroundState
-          ?.TransactionController?.transactions ?? [];
-
-      const getUIMetrics = getConfirmationMetricProperties.bind(
-        null,
-        transactionEventHandlerRequest.getState,
-      );
-
-      const getState = transactionEventHandlerRequest.getState;
-
-      for (const builder of METRICS_BUILDERS) {
-        try {
-          const currentMetrics = builder({
-            transactionMeta,
-            allTransactions,
-            getUIMetrics,
-            getState,
-          });
-
-          merge(metrics, currentMetrics);
-        } catch (error) {
-          // Intentionally empty
-        }
-      }
+      const metrics = getBuilderMetrics({
+        defaultMetrics: defaultTransactionMetricProperties,
+        request: transactionEventHandlerRequest,
+        transactionMeta,
+      });
 
       const event = generateEvent({
         ...defaultTransactionMetricProperties,
@@ -159,6 +134,7 @@ export async function handleTransactionFinalizedEventForMetrics(
       properties: {},
       sensitiveProperties: {},
     };
+
     try {
       const { getState, initMessenger, smartTransactionsController } =
         transactionEventHandlerRequest;
@@ -171,7 +147,7 @@ export async function handleTransactionFinalizedEventForMetrics(
           smartTransactionsController,
           transactionMeta,
           true,
-          initMessenger as unknown as BaseControllerMessenger,
+          initMessenger as unknown as RootExtendedMessenger,
         );
         smartTransactionProperties = {
           properties: smartMetrics,
@@ -196,8 +172,13 @@ export async function handleTransactionFinalizedEventForMetrics(
       },
     );
 
-    // Generate and track the event
-    const event = generateEvent(mergedEventProperties);
+    const metrics = getBuilderMetrics({
+      defaultMetrics: mergedEventProperties,
+      request: transactionEventHandlerRequest,
+      transactionMeta,
+    });
+
+    const event = generateEvent({ ...mergedEventProperties, ...metrics });
 
     log('Finalized event', event);
 
@@ -221,4 +202,47 @@ function retryIfEngineNotInitialized(fn: () => void): boolean {
 
     return true;
   }
+}
+
+function getBuilderMetrics({
+  defaultMetrics,
+  request,
+  transactionMeta,
+}: {
+  defaultMetrics: TransactionMetrics;
+  request: TransactionEventHandlerRequest;
+  transactionMeta: TransactionMeta;
+}) {
+  const metrics = {
+    properties: { ...defaultMetrics.properties },
+    sensitiveProperties: { ...defaultMetrics.sensitiveProperties },
+  };
+
+  const allTransactions =
+    request.getState()?.engine?.backgroundState?.TransactionController
+      ?.transactions ?? [];
+
+  const getUIMetrics = getConfirmationMetricProperties.bind(
+    null,
+    request.getState,
+  );
+
+  const getState = request.getState;
+
+  for (const builder of METRICS_BUILDERS) {
+    try {
+      const currentMetrics = builder({
+        transactionMeta,
+        allTransactions,
+        getUIMetrics,
+        getState,
+      });
+
+      merge(metrics, currentMetrics);
+    } catch (error) {
+      // Intentionally empty
+    }
+  }
+
+  return metrics;
 }

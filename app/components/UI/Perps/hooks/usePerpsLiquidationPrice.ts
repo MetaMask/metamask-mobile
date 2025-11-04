@@ -1,6 +1,7 @@
 import { debounce } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface LiquidationPriceParams {
@@ -65,7 +66,7 @@ export const usePerpsLiquidationPrice = (
 
           // For invalid leverage errors, show a clear message instead of 0.00
           if (errorMessage.includes('Invalid leverage')) {
-            setLiquidationPrice('N/A');
+            setLiquidationPrice(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY);
           } else {
             setLiquidationPrice('0.00');
           }

@@ -7,6 +7,8 @@ export const CardHomeSelectors = {
   ADD_FUNDS_BUTTON: 'add-funds-button',
   CHANGE_ASSET_BUTTON: 'change-asset-button',
   ADVANCED_CARD_MANAGEMENT_ITEM: 'advanced-card-management-item',
+  ENABLE_CARD_BUTTON: 'enable-card-button',
+  ENABLE_ASSETS_BUTTON: 'enable-assets-button',
   MANAGE_SPENDING_LIMIT_ITEM: 'manage-spending-limit-item',
   CARD_VIEW_TITLE: 'card-view-title',
   ADD_FUNDS_BOTTOM_SHEET: 'add-funds-bottom-sheet',

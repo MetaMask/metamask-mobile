@@ -10,12 +10,29 @@ import {
   getDefaultPerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
+import {
+  createMockHyperLiquidProvider,
+  createMockOrder,
+  createMockPosition,
+} from '../__mocks__/providerMocks';
 import { MetaMetrics } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 
 // Mock the HyperLiquidProvider
 jest.mock('./providers/HyperLiquidProvider');
+
+// Mock stream manager
+const mockStreamManager = {
+  positions: { pause: jest.fn(), resume: jest.fn() },
+  account: { pause: jest.fn(), resume: jest.fn() },
+  orders: { pause: jest.fn(), resume: jest.fn() },
+  prices: { pause: jest.fn(), resume: jest.fn() },
+  orderFills: { pause: jest.fn(), resume: jest.fn() },
+};
+
+jest.mock('../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: jest.fn(() => mockStreamManager),
+}));
 
 // Mock Logger
 jest.mock('../../../../util/Logger', () => ({
@@ -101,23 +118,29 @@ describe('PerpsController', () => {
       HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
     ).mockImplementation(() => mockProvider);
 
+    // Create mock messenger call function that handles RemoteFeatureFlagController:getState
+    const mockCall = jest.fn().mockImplementation((action: string) => {
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return {
+          remoteFeatureFlags: {
+            perpsPerpTradingGeoBlockedCountriesV2: {
+              blockedRegions: [],
+            },
+          },
+        };
+      }
+      return undefined;
+    });
+
     // Create a new controller instance
     controller = new PerpsController({
       messenger: {
-        call: jest.fn(),
+        call: mockCall,
         publish: jest.fn(),
         subscribe: jest.fn(),
         registerActionHandler: jest.fn(),
         registerEventHandler: jest.fn(),
         registerInitialEventPayload: jest.fn(),
-        getRestricted: jest.fn().mockReturnValue({
-          call: jest.fn(),
-          publish: jest.fn(),
-          subscribe: jest.fn(),
-          registerActionHandler: jest.fn(),
-          registerEventHandler: jest.fn(),
-          registerInitialEventPayload: jest.fn(),
-        }),
       } as unknown as any,
       state: getDefaultPerpsControllerState(),
     });
@@ -135,6 +158,219 @@ describe('PerpsController', () => {
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.connectionStatus).toBe('disconnected');
       expect(controller.state.isEligible).toBe(false);
+      expect(controller.state.isTestnet).toBe(false); // Default to mainnet
+    });
+
+    it('should read current RemoteFeatureFlagController state during construction', () => {
+      // Given: A mock messenger that tracks calls
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US', 'CA'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+      });
+
+      // Then: Should have called to get RemoteFeatureFlagController state
+      expect(testController).toBeDefined();
+      expect(mockCall).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:getState',
+      );
+    });
+
+    it('should apply remote blocked regions when available during construction', () => {
+      // Given: Remote feature flags with blocked regions
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US-NY', 'CA-ON'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-REGION'],
+        },
+      });
+
+      // Then: Should have used remote regions (not fallback)
+      // Verify by checking the internal blockedRegionList
+      expect((testController as any).blockedRegionList.source).toBe('remote');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'US-NY',
+        'CA-ON',
+      ]);
+    });
+
+    it('should use fallback regions when remote flags are not available', () => {
+      // Given: Remote feature flags without blocked regions
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {},
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed with fallback regions
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
+        },
+      });
+
+      // Then: Should have used fallback regions
+      expect((testController as any).blockedRegionList.source).toBe('fallback');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'FALLBACK-US',
+        'FALLBACK-CA',
+      ]);
+    });
+
+    it('should never downgrade from remote to fallback regions', () => {
+      // Given: Remote feature flags with blocked regions
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['REMOTE-US'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      // When: Controller is constructed with both remote and fallback
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-US'],
+        },
+      });
+
+      // Then: Should use remote (set after fallback)
+      expect((testController as any).blockedRegionList.source).toBe('remote');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'REMOTE-US',
+      ]);
+
+      // When: Attempt to set fallback again (simulating what setBlockedRegionList does)
+      (testController as any).setBlockedRegionList(
+        ['NEW-FALLBACK'],
+        'fallback',
+      );
+
+      // Then: Should still use remote (no downgrade)
+      expect((testController as any).blockedRegionList.source).toBe('remote');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'REMOTE-US',
+      ]);
+    });
+
+    it('continues initialization when RemoteFeatureFlagController state call throws error', () => {
+      // Arrange: Mock messenger that throws error for RemoteFeatureFlagController:getState
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          throw new Error('RemoteFeatureFlagController not ready');
+        }
+        return undefined;
+      });
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+
+      // Act: Construct controller with fallback regions
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+        clientConfig: {
+          fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
+        },
+      });
+
+      // Assert: Controller initializes successfully and uses fallback
+      expect(testController).toBeDefined();
+      expect((testController as any).blockedRegionList.source).toBe('fallback');
+      expect((testController as any).blockedRegionList.list).toEqual([
+        'FALLBACK-US',
+        'FALLBACK-CA',
+      ]);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'perps',
+          }),
+          context: expect.objectContaining({
+            name: 'PerpsController',
+            data: expect.objectContaining({
+              method: 'constructor',
+              operation: 'readRemoteFeatureFlags',
+            }),
+          }),
+        }),
+      );
+
+      mockLoggerError.mockRestore();
     });
   });
 
@@ -226,11 +462,10 @@ describe('PerpsController', () => {
     it('should get account state successfully', async () => {
       const mockAccountState = {
         availableBalance: '1000',
-        totalBalance: '1500',
         marginUsed: '500',
         unrealizedPnl: '100',
         returnOnEquity: '20.0',
-        totalValue: '1600',
+        totalBalance: '1600',
       };
 
       (controller as any).isInitialized = true;
@@ -444,6 +679,130 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('cancelOrders', () => {
+    beforeEach(() => {
+      (controller as any).isInitialized = true;
+      (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
+      (controller as any).isCancelingOrders = false;
+      jest.clearAllMocks();
+    });
+
+    it('cancels all orders when cancelAll is true', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({ cancelAll: true });
+
+      expect(mockProvider.getOpenOrders).toHaveBeenCalled();
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(result.successCount).toBe(2);
+      expect(result.failureCount).toBe(0);
+      expect(result.success).toBe(true);
+    });
+
+    it('cancels specific order IDs when provided', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+        createMockOrder({ orderId: 'order-3', symbol: 'SOL' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({
+        orderIds: ['order-1', 'order-3'],
+      });
+
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'BTC',
+        orderId: 'order-1',
+      });
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'SOL',
+        orderId: 'order-3',
+      });
+      expect(result.successCount).toBe(2);
+    });
+
+    it('cancels orders for specific coins when provided', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+        createMockOrder({ orderId: 'order-3', symbol: 'BTC' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({ coins: ['BTC'] });
+
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(result.successCount).toBe(2);
+    });
+
+    it('returns empty results when no orders match filters', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+
+      const result = await controller.cancelOrders({ coins: ['ETH'] });
+
+      expect(mockProvider.cancelOrder).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        success: false,
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+    });
+
+    it('handles partial failures gracefully', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+        createMockOrder({ orderId: 'order-2', symbol: 'ETH' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder
+        .mockResolvedValueOnce({ success: true })
+        .mockResolvedValueOnce({ success: false, error: 'Network error' });
+
+      const result = await controller.cancelOrders({ cancelAll: true });
+
+      expect(result.successCount).toBe(1);
+      expect(result.failureCount).toBe(1);
+      expect(result.success).toBe(true);
+    });
+
+    it('pauses and resumes streams during batch cancellation', async () => {
+      const mockOrders = [
+        createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      await controller.cancelOrders({ cancelAll: true });
+
+      expect(mockStreamManager.orders.pause).toHaveBeenCalled();
+      expect(mockStreamManager.orders.resume).toHaveBeenCalled();
+    });
+
+    it('resumes streams even when operation throws error', async () => {
+      mockProvider.getOpenOrders.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        controller.cancelOrders({ cancelAll: true }),
+      ).rejects.toThrow('Network error');
+
+      expect(mockStreamManager.orders.pause).toHaveBeenCalled();
+      expect(mockStreamManager.orders.resume).toHaveBeenCalled();
+    });
+  });
+
   describe('closePosition', () => {
     it('should close position successfully', async () => {
       const closeParams = {
@@ -566,6 +925,82 @@ describe('PerpsController', () => {
         expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
         expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
       });
+    });
+  });
+
+  describe('closePositions', () => {
+    beforeEach(() => {
+      (controller as any).isInitialized = true;
+      (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
+    });
+
+    it('closes all positions when closeAll is true', async () => {
+      const mockPositions = [
+        createMockPosition({ coin: 'BTC' }),
+        createMockPosition({ coin: 'ETH' }),
+      ];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+      mockProvider.closePosition.mockResolvedValue({ success: true });
+
+      const result = await controller.closePositions({ closeAll: true });
+
+      expect(mockProvider.getPositions).toHaveBeenCalled();
+      expect(mockProvider.closePosition).toHaveBeenCalledTimes(2);
+      expect(result.successCount).toBe(2);
+      expect(result.failureCount).toBe(0);
+      expect(result.success).toBe(true);
+    });
+
+    it('closes specific coins when provided', async () => {
+      const mockPositions = [
+        createMockPosition({ coin: 'BTC' }),
+        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ coin: 'SOL' }),
+      ];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+      mockProvider.closePosition.mockResolvedValue({ success: true });
+
+      const result = await controller.closePositions({ coins: ['BTC', 'SOL'] });
+
+      expect(mockProvider.closePosition).toHaveBeenCalledTimes(2);
+      expect(mockProvider.closePosition).toHaveBeenCalledWith({ coin: 'BTC' });
+      expect(mockProvider.closePosition).toHaveBeenCalledWith({ coin: 'SOL' });
+      expect(result.successCount).toBe(2);
+    });
+
+    it('returns empty results when no positions match', async () => {
+      const mockPositions = [createMockPosition({ coin: 'BTC' })];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+
+      const result = await controller.closePositions({ coins: ['ETH'] });
+
+      expect(mockProvider.closePosition).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        success: false,
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+    });
+
+    it('handles partial failures gracefully', async () => {
+      const mockPositions = [
+        createMockPosition({ coin: 'BTC' }),
+        createMockPosition({ coin: 'ETH' }),
+      ];
+      mockProvider.getPositions.mockResolvedValue(mockPositions);
+      mockProvider.closePosition
+        .mockResolvedValueOnce({ success: true })
+        .mockResolvedValueOnce({
+          success: false,
+          error: 'Insufficient margin',
+        });
+
+      const result = await controller.closePositions({ closeAll: true });
+
+      expect(result.successCount).toBe(1);
+      expect(result.failureCount).toBe(1);
+      expect(result.success).toBe(true);
     });
   });
 
@@ -733,9 +1168,8 @@ describe('PerpsController', () => {
         mockLiquidationPrice,
       );
 
-      const result = await controller.calculateLiquidationPrice(
-        liquidationParams,
-      );
+      const result =
+        await controller.calculateLiquidationPrice(liquidationParams);
 
       expect(result).toBe(mockLiquidationPrice);
       expect(mockProvider.calculateLiquidationPrice).toHaveBeenCalledWith(
@@ -1124,6 +1558,72 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('watchlist markets', () => {
+    it('should return empty array by default', () => {
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).toEqual([]);
+    });
+
+    it('should toggle watchlist market (add)', () => {
+      controller.toggleWatchlistMarket('BTC');
+
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).toContain('BTC');
+      expect(controller.isWatchlistMarket('BTC')).toBe(true);
+    });
+
+    it('should toggle watchlist market (remove)', () => {
+      controller.toggleWatchlistMarket('BTC');
+      controller.toggleWatchlistMarket('BTC');
+
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).not.toContain('BTC');
+      expect(controller.isWatchlistMarket('BTC')).toBe(false);
+    });
+
+    it('should handle multiple watchlist markets', () => {
+      controller.toggleWatchlistMarket('BTC');
+      controller.toggleWatchlistMarket('ETH');
+      controller.toggleWatchlistMarket('SOL');
+
+      const watchlist = controller.getWatchlistMarkets();
+      expect(watchlist).toHaveLength(3);
+      expect(watchlist).toContain('BTC');
+      expect(watchlist).toContain('ETH');
+      expect(watchlist).toContain('SOL');
+    });
+
+    it('should persist watchlist per network', () => {
+      // Add to watchlist on mainnet (default is testnet in dev, so set to false)
+      (controller as any).update((state: any) => {
+        state.isTestnet = false;
+      });
+      controller.toggleWatchlistMarket('BTC');
+
+      const mainnetWatchlist = controller.getWatchlistMarkets();
+      expect(mainnetWatchlist).toContain('BTC');
+
+      // Switch to testnet
+      (controller as any).update((state: any) => {
+        state.isTestnet = true;
+      });
+      const testnetWatchlist = controller.getWatchlistMarkets();
+      expect(testnetWatchlist).toEqual([]);
+
+      // Add to watchlist on testnet
+      controller.toggleWatchlistMarket('ETH');
+      expect(controller.getWatchlistMarkets()).toContain('ETH');
+      expect(controller.isWatchlistMarket('ETH')).toBe(true);
+
+      // Switch back to mainnet
+      (controller as any).update((state: any) => {
+        state.isTestnet = false;
+      });
+      expect(controller.getWatchlistMarkets()).toContain('BTC');
+      expect(controller.getWatchlistMarkets()).not.toContain('ETH');
+    });
+  });
+
   describe('additional subscriptions', () => {
     it('should subscribe to orders', () => {
       const mockUnsubscribe = jest.fn();
@@ -1360,9 +1860,10 @@ describe('PerpsController', () => {
   describe('fee calculations', () => {
     it('should calculate fees', async () => {
       const feeParams = {
-        coin: 'BTC',
-        size: '0.1',
         orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+        coin: 'BTC',
       };
 
       const mockFees = {
@@ -1402,22 +1903,27 @@ describe('PerpsController', () => {
 
     it('should skip data lake reporting for testnet', async () => {
       // Arrange - create a new controller with testnet state
+      const mockCallTestnet = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: [],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
       const testnetController = new PerpsController({
         messenger: {
-          call: jest.fn(),
+          call: mockCallTestnet,
           publish: jest.fn(),
           subscribe: jest.fn(),
           registerActionHandler: jest.fn(),
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
-          getRestricted: jest.fn().mockReturnValue({
-            call: jest.fn(),
-            publish: jest.fn(),
-            subscribe: jest.fn(),
-            registerActionHandler: jest.fn(),
-            registerEventHandler: jest.fn(),
-            registerInitialEventPayload: jest.fn(),
-          }),
         } as unknown as any,
         state: { ...getDefaultPerpsControllerState(), isTestnet: true },
       });
@@ -1479,16 +1985,17 @@ describe('PerpsController', () => {
       expect(result.orderId).toBe('order123');
 
       // Verify that Logger.error was called for the data lake failure
-      // The new implementation uses getErrorContext() which has different structure
+      // The new implementation uses LoggerErrorOptions format
       const errorCalls = (Logger.error as jest.Mock).mock.calls;
 
       const hasDataLakeError = errorCalls.some((call) => {
         const secondArg = call[1];
         return (
           typeof secondArg === 'object' &&
-          secondArg.context === 'PerpsController.reportOrderToDataLake' &&
-          secondArg.coin === 'BTC' &&
-          secondArg.action === 'open'
+          secondArg.context?.name === 'PerpsController' &&
+          secondArg.context?.data?.method === 'reportOrderToDataLake' &&
+          secondArg.context?.data?.coin === 'BTC' &&
+          secondArg.context?.data?.action === 'open'
         );
       });
       expect(hasDataLakeError).toBe(true);
@@ -1522,6 +2029,43 @@ describe('PerpsController', () => {
 
       // Check that MetaMetrics was called (the mock might be called with empty object)
       expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('getAvailableDexs', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(controller, 'getActiveProvider').mockReturnValue(mockProvider);
+    });
+
+    it('returns available HIP-3 DEXs from provider', async () => {
+      const mockDexs = ['dex1', 'dex2', 'dex3'];
+      mockProvider.getAvailableDexs = jest.fn().mockResolvedValue(mockDexs);
+
+      const result = await controller.getAvailableDexs();
+
+      expect(result).toEqual(mockDexs);
+      expect(mockProvider.getAvailableDexs).toHaveBeenCalledWith(undefined);
+    });
+
+    it('passes filter parameters to provider', async () => {
+      const mockDexs = ['dex1'];
+      const filterParams = { validated: true };
+      mockProvider.getAvailableDexs = jest.fn().mockResolvedValue(mockDexs);
+
+      const result = await controller.getAvailableDexs(filterParams);
+
+      expect(result).toEqual(mockDexs);
+      expect(mockProvider.getAvailableDexs).toHaveBeenCalledWith(filterParams);
+    });
+
+    it('throws error when provider does not support HIP-3', async () => {
+      // Cast to any to test undefined case
+      (mockProvider.getAvailableDexs as any) = undefined;
+
+      await expect(controller.getAvailableDexs()).rejects.toThrow(
+        'Provider does not support HIP-3 DEXs',
+      );
     });
   });
 });

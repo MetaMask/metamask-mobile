@@ -366,8 +366,8 @@ class Confirm extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -396,14 +396,14 @@ class Confirm extends PureComponent {
     const { navigation, route, resetTransaction, transaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle(
-        'send.confirm',
+      getSendFlowTitle({
+        title: 'send.confirm',
         navigation,
         route,
-        colors,
+        themeColors: colors,
         resetTransaction,
         transaction,
-      ),
+      }),
     );
   };
 

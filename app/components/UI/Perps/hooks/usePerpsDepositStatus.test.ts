@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { usePerpsDepositStatus } from './usePerpsDepositStatus';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsTrading } from './usePerpsTrading';
-import usePerpsToasts, { PerpsToastOptionsConfig } from './usePerpsToasts';
+import usePerpsToasts, {
+  PerpsToastOptions,
+  PerpsToastOptionsConfig,
+} from './usePerpsToasts';
 import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import {
@@ -97,7 +100,6 @@ describe('usePerpsDepositStatus', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
-        totalValue: '10100.00',
       },
       isInitialLoading: false,
     });
@@ -125,7 +127,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Your deposit could not be processed' },
             ],
             hapticsType: NotificationFeedbackType.Error,
-          },
+          } as PerpsToastOptions,
           inProgress: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.Loading,
@@ -147,7 +149,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Processing your withdrawal...' },
             ],
             hapticsType: NotificationFeedbackType.Success,
-          },
+          } as PerpsToastOptions,
           withdrawalSuccess: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.CheckBold,
@@ -179,6 +181,8 @@ describe('usePerpsDepositStatus', () => {
       formValidation: {} as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dataFetching: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      contentSharing: {} as any,
     };
 
     mockUsePerpsToasts.mockReturnValue({
@@ -436,11 +440,10 @@ describe('usePerpsDepositStatus', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '1500.00', // Increased from 1000.00
-          totalBalance: '10500.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalValue: '10600.00',
+          totalBalance: '10600.00',
         },
         isInitialLoading: false,
       });
@@ -486,11 +489,10 @@ describe('usePerpsDepositStatus', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '500.00', // Decreased from 1000.00
-          totalBalance: '9500.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalValue: '9600.00',
+          totalBalance: '9600.00',
         },
         isInitialLoading: false,
       });
@@ -507,11 +509,10 @@ describe('usePerpsDepositStatus', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           availableBalance: '1500.00',
-          totalBalance: '10500.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
-          totalValue: '10600.00',
+          totalBalance: '10600.00',
         },
         isInitialLoading: false,
       });

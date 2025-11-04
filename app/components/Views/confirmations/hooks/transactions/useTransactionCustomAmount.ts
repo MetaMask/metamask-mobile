@@ -1,24 +1,36 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
-import { getTokenTransferData } from '../../utils/transaction-pay';
+import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
+import { useSelector } from 'react-redux';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
+import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
 
-export function useTransactionCustomAmount() {
+export function useTransactionCustomAmount({
+  currency,
+}: { currency?: string } = {}) {
   const { amount: defaultAmount } = useParams<{ amount?: string }>();
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
+  const maxPercentage = useMaxPercentage();
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -32,9 +44,8 @@ export function useTransactionCustomAmount() {
   const { chainId } = transactionMeta;
 
   const tokenAddress = getTokenAddress(transactionMeta);
-  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
-  const { payToken } = useTransactionPayToken();
-  const { tokenFiatAmount } = payToken || {};
+  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
+  const tokenBalanceFiat = useTokenBalance();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -77,19 +88,21 @@ export function useTransactionCustomAmount() {
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number) => {
-      if (!tokenFiatAmount) {
+      if (!tokenBalanceFiat) {
         return;
       }
 
-      const newAmount = new BigNumber(percentage)
+      const finalPercentage = percentage === 100 ? maxPercentage : percentage;
+
+      const newAmount = new BigNumber(finalPercentage)
         .dividedBy(100)
-        .multipliedBy(tokenFiatAmount)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+        .multipliedBy(tokenBalanceFiat)
+        .decimalPlaces(2, BigNumber.ROUND_DOWN)
         .toString(10);
 
-      updatePendingAmount(newAmount);
+      setAmountFiat(newAmount);
     },
-    [tokenFiatAmount, updatePendingAmount],
+    [maxPercentage, tokenBalanceFiat],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -108,12 +121,56 @@ export function useTransactionCustomAmount() {
   };
 }
 
-function getTokenAddress(transactionMeta: TransactionMeta | undefined): Hex {
-  const nestedCall = transactionMeta && getTokenTransferData(transactionMeta);
+function useMaxPercentage() {
+  const featureFlags = useSelector(selectMetaMaskPayFlags);
+  const requiredTokens = useTransactionRequiredTokens();
+  const { payToken } = useTransactionPayToken();
+  const { chainId } = useTransactionMetadataRequest() ?? { chainId: '0x0' };
 
-  if (nestedCall) {
-    return nestedCall.to;
-  }
+  return useMemo(() => {
+    // Assumes we're not targetting native tokens.
+    if (
+      payToken?.chainId === chainId &&
+      payToken?.address.toLowerCase() ===
+        requiredTokens[0]?.address?.toLowerCase()
+    ) {
+      return 100;
+    }
 
-  return transactionMeta?.txParams?.to as Hex;
+    const requiredQuoteCount = requiredTokens.filter(
+      (token) =>
+        !token.skipIfBalance ||
+        new BigNumber(token.balanceRaw).lt(token.amountRaw),
+    ).length;
+
+    let bufferPercentage =
+      requiredQuoteCount > 0 ? featureFlags.bufferInitial : 0;
+
+    if (requiredQuoteCount > 1) {
+      bufferPercentage +=
+        featureFlags.bufferSubsequent * (requiredQuoteCount - 1);
+    }
+
+    if (
+      payToken?.address === getNativeTokenAddress(payToken?.chainId ?? '0x0')
+    ) {
+      // Cannot calculate gas cost yet so just add an additional buffer if pay token is native
+      bufferPercentage += featureFlags.bufferInitial;
+    }
+
+    return 100 - bufferPercentage * 100;
+  }, [chainId, featureFlags, payToken, requiredTokens]);
+}
+
+function useTokenBalance() {
+  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { convertFiat } = useTransactionPayFiat();
+
+  const { payToken } = useTransactionPayToken();
+  const payTokenBalance = convertFiat(payToken?.tokenFiatAmount ?? 0);
+  const { balance: predictBalance } = usePredictBalance({ loadOnMount: true });
+
+  return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
+    ? predictBalance
+    : payTokenBalance;
 }

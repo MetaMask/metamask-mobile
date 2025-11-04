@@ -34,6 +34,7 @@ jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
+  validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
 
 jest.mock(
@@ -983,10 +984,13 @@ describe('Wallet', () => {
             ...mockInitialState.engine.backgroundState
               .NetworkEnablementController,
             enabledNetworkMap: {
-              eip155: enabledNetworks.reduce((acc, network) => {
-                acc[network] = true;
-                return acc;
-              }, {} as Record<string, boolean>),
+              eip155: enabledNetworks.reduce(
+                (acc, network) => {
+                  acc[network] = true;
+                  return acc;
+                },
+                {} as Record<string, boolean>,
+              ),
             },
           },
         },

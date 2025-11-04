@@ -12,7 +12,19 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
+  const mockLogger = {
+    log: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    DevLogger: mockLogger,
+    default: mockLogger,
+  };
+});
+
 import Engine from '../../../../../core/Engine';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   PredictPositionStatus,
   PredictPriceHistoryInterval,
@@ -23,24 +35,23 @@ import { PolymarketProvider } from './PolymarketProvider';
 import {
   createApiKey,
   encodeClaim,
+  getBalance,
   getContractConfig,
   getL2Headers,
   getMarketDetailsFromGammaApi,
-  getOrderBook,
   getOrderTypedData,
   getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  previewOrder,
   priceValid,
   submitClobOrder,
-  getMarketPositions,
-  getBalance,
 } from './utils';
-import { PlaceOrderParams } from '../types';
+import { OrderPreview, PlaceOrderParams } from '../types';
 import { query } from '@metamask/controller-utils';
 import {
-  computeSafeAddress,
+  computeProxyAddress,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
@@ -90,17 +101,22 @@ jest.mock('./utils', () => {
     submitClobOrder: jest.fn(),
     getMarketPositions: jest.fn(),
     getBalance: jest.fn(),
+    previewOrder: jest.fn(),
     POLYGON_MAINNET_CHAIN_ID: 137,
   };
 });
 
 jest.mock('./safe/utils', () => ({
-  computeSafeAddress: jest.fn(),
+  computeProxyAddress: jest.fn(),
   createSafeFeeAuthorization: jest.fn(),
   getClaimTransaction: jest.fn(),
   getDeployProxyWalletTransaction: jest.fn(),
   getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
+  getWithdrawTransactionCallData: jest
+    .fn()
+    .mockResolvedValue('0xsignedcalldata'),
+  getSafeUsdcAmount: jest.fn().mockReturnValue(1000000),
 }));
 
 jest.mock('../../../../../util/transactions', () => ({
@@ -122,7 +138,6 @@ const mockGetMarketDetailsFromGammaApi =
   getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetContractConfig = getContractConfig as jest.Mock;
 const mockGetL2Headers = getL2Headers as jest.Mock;
-const mockGetOrderBook = getOrderBook as jest.Mock;
 const mockGetOrderTypedData = getOrderTypedData as jest.Mock;
 const mockParsePolymarketEvents = parsePolymarketEvents as jest.Mock;
 const mockParsePolymarketPositions = parsePolymarketPositions as jest.Mock;
@@ -130,11 +145,12 @@ const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
-const mockComputeSafeAddress = computeSafeAddress as jest.Mock;
+const mockComputeProxyAddress = computeProxyAddress as jest.Mock;
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 const mockGetClaimTransaction = getClaimTransaction as jest.Mock;
 const mockHasAllowances = hasAllowances as jest.Mock;
 const mockQuery = query as jest.Mock;
+const mockPreviewOrder = previewOrder as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const createProvider = () => new PolymarketProvider();
@@ -221,6 +237,15 @@ describe('PolymarketProvider', () => {
     expect(mockGetMarketsFromPolymarketApi).toHaveBeenCalledWith(undefined);
   });
 
+  it('getMarkets returns empty array when non-Error exception is thrown', async () => {
+    const provider = createProvider();
+    mockGetMarketsFromPolymarketApi.mockRejectedValue('String error');
+
+    const result = await provider.getMarkets();
+
+    expect(result).toEqual([]);
+  });
+
   it('getPositions returns an empty array when API returns none', async () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
@@ -235,7 +260,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -319,7 +344,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -357,7 +382,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -397,7 +422,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -430,7 +455,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -442,6 +467,38 @@ describe('PolymarketProvider', () => {
         address: '0x3333333333333333333333333333333333333333',
       }),
     ).rejects.toThrow('network failure');
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
+  it('throws error when address is missing in getPositions', async () => {
+    const provider = createProvider();
+
+    await expect(provider.getPositions({ address: '' })).rejects.toThrow(
+      'Address is required',
+    );
+  });
+
+  it('throws error when API response is not ok in getPositions', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+      .fn()
+      .mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+
+    mockComputeProxyAddress.mockReturnValue(
+      '0x9999999999999999999999999999999999999999',
+    );
+
+    await expect(
+      provider.getPositions({
+        address: '0x1234567890123456789012345678901234567890',
+      }),
+    ).rejects.toThrow('Failed to get positions');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -460,7 +517,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -479,6 +536,39 @@ describe('PolymarketProvider', () => {
       originalFetch;
   });
 
+  it('getPositions includes marketId in query when provided', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
+
+    mockFindNetworkClientIdByChainId.mockReturnValue('polygon-network-client');
+    mockGetNetworkClientById.mockReturnValue({
+      provider: {},
+    });
+    mockComputeProxyAddress.mockReturnValue(
+      '0x9999999999999999999999999999999999999999',
+    );
+    mockQuery.mockResolvedValue(
+      '0x0000000000000000000000000000000000000000000000000000000000000001',
+    );
+
+    const userAddress = '0x5555555555555555555555555555555555555555';
+    await provider.getPositions({
+      address: userAddress,
+      marketId: 'market-123',
+    });
+
+    const calledWithUrl = mockFetch.mock.calls[0][0] as string;
+    expect(calledWithUrl).toContain('eventId=market-123');
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
   it('getPositions filters out claimable positions when claimable parameter is false', async () => {
     // Arrange
     const provider = createProvider();
@@ -488,7 +578,7 @@ describe('PolymarketProvider', () => {
     mockGetNetworkClientById.mockReturnValue({
       provider: {},
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockQuery.mockResolvedValue(
@@ -597,6 +687,32 @@ describe('PolymarketProvider', () => {
       originalFetch;
   });
 
+  // Helper function to create a mock OrderPreview
+  function createMockOrderPreview(
+    overrides?: Partial<OrderPreview>,
+  ): OrderPreview {
+    return {
+      marketId: 'market-1',
+      outcomeId: 'outcome-456',
+      outcomeTokenId: '0',
+      timestamp: Date.now(),
+      side: Side.BUY,
+      sharePrice: 0.5,
+      maxAmountSpent: 1,
+      minAmountReceived: 2,
+      slippage: 0.005,
+      tickSize: 0.01,
+      minOrderSize: 0.01,
+      negRisk: false,
+      fees: {
+        metamaskFee: 0.02,
+        providerFee: 0.02,
+        totalFee: 0.04,
+      },
+      ...overrides,
+    };
+  }
+
   // Helper function to setup place order test environment
   function setupPlaceOrderTest() {
     const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -621,40 +737,6 @@ describe('PolymarketProvider', () => {
       outcomes: [],
     };
 
-    // Mock the private buildOrderArtifacts method
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mockBuildOrderArtifacts = jest.spyOn(
-      provider,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      'buildOrderArtifacts' as any,
-    );
-    mockBuildOrderArtifacts.mockResolvedValue({
-      chainId: 137,
-      price: 0.5,
-      negRisk: false,
-      tickSize: '0.01',
-      order: {
-        makerAmount: '1000000',
-        signature: '',
-        salt: '12345',
-        maker: mockAddress,
-        taker: '0x0000000000000000000000000000000000000000',
-        price: '500000000000000000',
-        size: '1000000',
-        side: 0,
-        orderType: 'FOK',
-      },
-      contractConfig: {
-        exchange: '0x1234567890123456789012345678901234567890',
-        negRiskExchange: '0x0987654321098765432109876543210987654321',
-        collateral: '0xCollateralAddress',
-        conditionalTokens: '0xConditionalTokensAddress',
-        negRiskAdapter: '0xNegRiskAdapterAddress',
-      },
-      exchangeContract: '0x1234567890123456789012345678901234567890',
-      verifyingContract: '0x1234567890123456789012345678901234567890',
-    });
-
     // Setup default mocks
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
     mockGetNetworkClientById.mockReturnValue({
@@ -667,7 +749,7 @@ describe('PolymarketProvider', () => {
       secret: 'test-secret',
       passphrase: 'test-passphrase',
     });
-    mockComputeSafeAddress.mockResolvedValue(
+    mockComputeProxyAddress.mockReturnValue(
       '0x9999999999999999999999999999999999999999',
     );
     mockCreateSafeFeeAuthorization.mockResolvedValue({
@@ -684,6 +766,14 @@ describe('PolymarketProvider', () => {
     });
 
     mockPriceValid.mockReturnValue(true);
+
+    mockGetContractConfig.mockReturnValue({
+      exchange: '0x1234567890123456789012345678901234567890',
+      negRiskExchange: '0x0987654321098765432109876543210987654321',
+      collateral: '0xCollateralAddress',
+      conditionalTokens: '0xConditionalTokensAddress',
+      negRiskAdapter: '0xNegRiskAdapterAddress',
+    });
 
     mockGetOrderTypedData.mockReturnValue({
       types: {},
@@ -716,23 +806,23 @@ describe('PolymarketProvider', () => {
       provider,
       mockAddress,
       mockSigner,
-      mockBuildOrderArtifacts,
       mockMarket,
     };
   }
 
   describe('placeOrder', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('successfully places a buy order and returns correct result', async () => {
       // Arrange
-      const { provider, mockSigner, mockBuildOrderArtifacts } =
-        setupPlaceOrderTest();
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.BUY,
-        size: 1,
         providerId: 'polymarket',
+        preview,
       };
 
       // Act
@@ -744,29 +834,16 @@ describe('PolymarketProvider', () => {
         response: expect.any(Object),
         error: undefined,
       });
-      expect(mockBuildOrderArtifacts).toHaveBeenCalledWith({
-        address: mockSigner.address,
-        orderParams: {
-          outcomeId: 'outcome-456',
-          outcomeTokenId: '0',
-          side: Side.BUY,
-          size: 1,
-        },
-      });
-      expect(mockPriceValid).toHaveBeenCalledWith(0.5, '0.01');
     });
 
     it('successfully places a sell order and returns correct result', async () => {
       // Arrange
-      const { provider, mockSigner, mockBuildOrderArtifacts } =
-        setupPlaceOrderTest();
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.SELL });
       const orderParams = {
         signer: mockSigner,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.SELL,
-        size: 1,
         providerId: 'polymarket',
+        preview,
       };
 
       // Act
@@ -778,34 +855,6 @@ describe('PolymarketProvider', () => {
         response: expect.any(Object),
         error: undefined,
       });
-      expect(mockBuildOrderArtifacts).toHaveBeenCalledWith({
-        address: mockSigner.address,
-        orderParams: {
-          outcomeId: 'outcome-456',
-          outcomeTokenId: '0',
-          side: Side.SELL,
-          size: 1,
-        },
-      });
-    });
-
-    it('throws error when price is invalid', async () => {
-      // Arrange
-      const { provider, mockSigner } = setupPlaceOrderTest();
-      mockPriceValid.mockReturnValue(false);
-      const orderParams = {
-        signer: mockSigner,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.BUY,
-        size: 1,
-        providerId: 'polymarket',
-      };
-
-      // Act & Assert
-      await expect(provider.placeOrder(orderParams)).rejects.toThrow(
-        'invalid price (0.5), min: 0.01 - max: 0.99',
-      );
     });
 
     it('handles order submission failure', async () => {
@@ -816,13 +865,11 @@ describe('PolymarketProvider', () => {
         response: undefined,
         error: 'Submission failed',
       });
+      const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.BUY,
-        size: 1,
         providerId: 'polymarket',
+        preview,
       };
 
       // Act
@@ -833,35 +880,178 @@ describe('PolymarketProvider', () => {
       expect(result.error).toBe('Submission failed');
     });
 
-    it('calls all required utility functions with correct parameters', async () => {
+    it('catches exceptions and returns error result instead of throwing', async () => {
       // Arrange
-      const { provider, mockSigner, mockBuildOrderArtifacts } =
-        setupPlaceOrderTest();
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      mockSignTypedMessage.mockRejectedValue(new Error('Signature rejected'));
+      const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.BUY,
-        size: 2,
         providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Signature rejected');
+    });
+
+    it('catches non-Error exceptions and returns error result', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      mockSignTypedMessage.mockRejectedValue('String error');
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to place order');
+    });
+
+    it('logs error details when exception occurs', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const mockError = new Error('Network error');
+      mockSignTypedMessage.mockRejectedValue(mockError);
+      const preview = createMockOrderPreview({ side: Side.SELL });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
       };
 
       // Act
       await provider.placeOrder(orderParams);
 
       // Assert
-      expect(mockBuildOrderArtifacts).toHaveBeenCalledWith({
-        address: mockSigner.address,
-        orderParams: {
-          outcomeId: 'outcome-456',
-          outcomeTokenId: '0',
-          side: Side.BUY,
-          size: 2,
-        },
-      });
-      expect(mockPriceValid).toHaveBeenCalledWith(0.5, '0.01');
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'PolymarketProvider: Place order failed',
+        expect.objectContaining({
+          error: 'Network error',
+          side: Side.SELL,
+          outcomeTokenId: preview.outcomeTokenId,
+        }),
+      );
+    });
+
+    it('calls all required utility functions with correct parameters', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const orderParams = {
+        signer: mockSigner,
+        providerId: 'polymarket',
+        preview,
+      };
+
+      // Act
+      await provider.placeOrder(orderParams);
+
+      // Assert
       expect(mockSignTypedMessage).toHaveBeenCalled();
       expect(mockSubmitClobOrder).toHaveBeenCalled();
+    });
+
+    it('returns error result when maker address is not found', async () => {
+      // Arrange
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: mockSignTypedMessage,
+        signPersonalMessage: mockSignPersonalMessage,
+      };
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      mockComputeProxyAddress.mockReturnValue('');
+      mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+      mockGetNetworkClientById.mockReturnValue({ provider: {} });
+      mockQuery.mockResolvedValue('0x0');
+
+      // Act
+      const result = await provider.placeOrder({ signer: mockSigner, preview });
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Maker address not found');
+    });
+
+    it('fetches account state when not cached during placeOrder', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      mockComputeProxyAddress.mockReturnValue(
+        '0x9999999999999999999999999999999999999999',
+      );
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockComputeProxyAddress).toHaveBeenCalled();
+    });
+
+    it('uses negRiskExchange contract for negRisk orders', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        negRisk: true,
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockGetOrderTypedData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          verifyingContract: '0x0987654321098765432109876543210987654321',
+        }),
+      );
+    });
+
+    it('uses exchange contract for non-negRisk orders', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        negRisk: false,
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockGetOrderTypedData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          verifyingContract: '0x1234567890123456789012345678901234567890',
+        }),
+      );
+    });
+  });
+
+  describe('previewOrder', () => {
+    it('calls previewOrder utility function with correct parameters', async () => {
+      const provider = createProvider();
+      const mockParams = {
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        amount: 100,
+        size: 100,
+      };
+
+      await provider.previewOrder(mockParams);
+
+      expect(mockPreviewOrder).toHaveBeenCalledWith(mockParams);
     });
   });
 
@@ -885,43 +1075,17 @@ describe('PolymarketProvider', () => {
 
       const provider = createProvider();
 
-      // Mock the private buildOrderArtifacts method
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mockBuildOrderArtifacts = jest.spyOn(
-        provider,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        'buildOrderArtifacts' as any,
-      );
-      mockBuildOrderArtifacts.mockResolvedValue({
-        chainId: 137,
-        price: 0.5,
-        negRisk: false,
-        tickSize: '0.01',
-        order: {
-          makerAmount: '1000000',
-          signature: '',
-          salt: '12345',
-          maker: mockAddress1,
-          taker: '0x0000000000000000000000000000000000000000',
-          price: '500000000000000000',
-          size: '1000000',
-          side: 0,
-          orderType: 'FOK',
-        },
-        contractConfig: {
-          exchange: '0x1234567890123456789012345678901234567890',
-          negRiskExchange: '0x0987654321098765432109876543210987654321',
-          collateral: '0xCollateralAddress',
-          conditionalTokens: '0xConditionalTokensAddress',
-          negRiskAdapter: '0xNegRiskAdapterAddress',
-        },
-        exchangeContract: '0x1234567890123456789012345678901234567890',
-        verifyingContract: '0x1234567890123456789012345678901234567890',
-      });
-
       // Setup minimal mocks needed for placeOrder
       mockSignTypedMessage.mockResolvedValue('0xsignature');
+      mockSignPersonalMessage.mockResolvedValue('0xpersonalsignature');
       mockPriceValid.mockReturnValue(true);
+      mockGetContractConfig.mockReturnValue({
+        exchange: '0x1234567890123456789012345678901234567890',
+        negRiskExchange: '0x0987654321098765432109876543210987654321',
+        collateral: '0xCollateralAddress',
+        conditionalTokens: '0xConditionalTokensAddress',
+        negRiskAdapter: '0xNegRiskAdapterAddress',
+      });
       mockGetOrderTypedData.mockReturnValue({
         types: {},
         primaryType: 'Order',
@@ -940,6 +1104,18 @@ describe('PolymarketProvider', () => {
         response: { orderId: 'test-order' },
         error: undefined,
       });
+      mockCreateApiKey.mockResolvedValue({
+        apiKey: 'test-api-key',
+        secret: 'test-secret',
+        passphrase: 'test-passphrase',
+      });
+      mockComputeProxyAddress.mockReturnValue(
+        '0x9999999999999999999999999999999999999999',
+      );
+      mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+      mockGetNetworkClientById.mockReturnValue({
+        provider: {},
+      });
 
       return {
         provider,
@@ -953,13 +1129,11 @@ describe('PolymarketProvider', () => {
     it('caches API keys by address and reuses them', async () => {
       // Arrange
       const { provider, mockSigner1 } = setupApiKeyCachingTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner1,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.BUY,
-        size: 1,
         providerId: 'polymarket',
+        preview,
       };
 
       // Act - First call
@@ -979,22 +1153,18 @@ describe('PolymarketProvider', () => {
       // Arrange
       const { provider, mockSigner1, mockSigner2 } = setupApiKeyCachingTest();
 
+      const preview1 = createMockOrderPreview({ side: Side.BUY });
       const orderParams1 = {
         signer: mockSigner1,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.BUY,
-        size: 1,
         providerId: 'polymarket',
+        preview: preview1,
       };
 
+      const preview2 = createMockOrderPreview({ side: Side.SELL });
       const orderParams2 = {
         signer: mockSigner2,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        side: Side.SELL,
-        size: 1,
         providerId: 'polymarket',
+        preview: preview2,
       };
 
       // Act
@@ -1015,32 +1185,34 @@ describe('PolymarketProvider', () => {
   describe('placeOrder with Safe fee authorization', () => {
     it('computes Safe address before creating order', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
-      const orderParams: PlaceOrderParams = {
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
+      const preview = createMockOrderPreview({
         side: Side.BUY,
-        size: 1,
+        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+      });
+      const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
+        preview,
       };
 
       await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
-      expect(mockComputeSafeAddress).toHaveBeenCalledWith(mockSigner.address);
+      expect(mockComputeProxyAddress).toHaveBeenCalledWith(mockSigner.address);
     });
 
     it('calculates 4% fee from maker amount', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
-      const orderParams: PlaceOrderParams = {
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
+      const preview = createMockOrderPreview({
         side: Side.BUY,
-        size: 1,
+        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+      });
+      const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
+        preview,
       };
 
       await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
-      const expectedFeeAmount = (BigInt(1000000) * BigInt(4)) / BigInt(100);
+      const expectedFeeAmount = BigInt(40000);
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
         expect.objectContaining({
           amount: expectedFeeAmount,
@@ -1050,12 +1222,13 @@ describe('PolymarketProvider', () => {
 
     it('creates fee authorization with correct parameters', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
-      const orderParams: PlaceOrderParams = {
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
+      const preview = createMockOrderPreview({
         side: Side.BUY,
-        size: 1,
+        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+      });
+      const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
+        preview,
       };
 
       await provider.placeOrder({ ...orderParams, signer: mockSigner });
@@ -1064,18 +1237,19 @@ describe('PolymarketProvider', () => {
         safeAddress: '0x9999999999999999999999999999999999999999',
         signer: mockSigner,
         amount: expect.any(BigInt),
-        to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+        to: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
       });
     });
 
     it('includes feeAuthorization when submitting order', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
-      const orderParams: PlaceOrderParams = {
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
+      const preview = createMockOrderPreview({
         side: Side.BUY,
-        size: 1,
+        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+      });
+      const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
+        preview,
       };
 
       await provider.placeOrder({ ...orderParams, signer: mockSigner });
@@ -1100,35 +1274,110 @@ describe('PolymarketProvider', () => {
 
     it('uses FEE_COLLECTOR_ADDRESS as recipient', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest();
-      const orderParams: PlaceOrderParams = {
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
+      const preview = createMockOrderPreview({
         side: Side.BUY,
-        size: 1,
+        fees: { metamaskFee: 0.02, providerFee: 0.02, totalFee: 0.04 },
+      });
+      const orderParams: PlaceOrderParams = {
         providerId: 'polymarket',
+        preview,
       };
 
       await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
         expect.objectContaining({
-          to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+          to: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
         }),
       );
+    });
+  });
+
+  describe('placeOrder edge cases', () => {
+    it('places order without fee authorization when totalFee is zero', async () => {
+      // Clear mock to ensure clean state for this test
+      mockCreateSafeFeeAuthorization.mockClear();
+
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: { metamaskFee: 0, providerFee: 0, totalFee: 0 },
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.any(Object),
+          headers: expect.any(Object),
+          feeAuthorization: undefined,
+        }),
+      );
+    });
+
+    it('places order without fee authorization when fees is undefined', async () => {
+      mockCreateSafeFeeAuthorization.mockClear();
+
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: undefined,
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          feeAuthorization: undefined,
+        }),
+      );
+    });
+
+    it('returns error result when submitClobOrder returns no response', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      mockSubmitClobOrder.mockResolvedValue({
+        success: false,
+        response: null,
+        error: 'Submission failed',
+      });
+
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Submission failed');
+      expect(result.response).toBeUndefined();
     });
   });
 
   describe('getActivity', () => {
     it('fetches activity and resolves without throwing', async () => {
       const provider = createProvider();
-      // Mock network and account state used internally
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (global as any).fetch = jest
-        .fn()
-        .mockResolvedValue({ ok: true, json: () => [] });
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => [] });
       const getAccountStateSpy = jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(provider as any, 'getAccountState')
+        .spyOn(
+          provider as unknown as {
+            getAccountState: (p: { ownerAddress: string }) => Promise<{
+              address: string;
+              isDeployed: boolean;
+              hasAllowances: boolean;
+              balance: number;
+            }>;
+          },
+          'getAccountState',
+        )
         .mockResolvedValue({
           address: '0xSAFE',
           isDeployed: true,
@@ -1144,6 +1393,21 @@ describe('PolymarketProvider', () => {
 
       expect(getAccountStateSpy).toHaveBeenCalled();
     });
+
+    it('fetches account state when not cached', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => [] });
+
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+
+      await provider.getActivity({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+
+      expect(mockComputeProxyAddress).toHaveBeenCalled();
+    });
   });
 
   describe('claimWinnings', () => {
@@ -1151,198 +1415,6 @@ describe('PolymarketProvider', () => {
       const provider = createProvider();
 
       expect(() => provider.claimWinnings()).toThrow('Method not implemented.');
-    });
-  });
-
-  describe('calculateBetAmounts', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('calculates expected share quantity for BUY side', async () => {
-      // Arrange
-      const provider = createProvider();
-      const mockOrderBook = {
-        asks: [
-          { price: '0.6', size: '100' }, // 100 shares at $0.60 = $60
-          { price: '0.55', size: '200' }, // 200 shares at $0.55 = $110
-          { price: '0.5', size: '300' }, // 300 shares at $0.50 = $150
-        ],
-        bids: [],
-      };
-      mockGetOrderBook.mockResolvedValue(mockOrderBook);
-
-      // Act - Buy $150 worth of shares
-      const result = await provider.calculateBetAmounts({
-        providerId: 'polymarket',
-        outcomeTokenId: 'token-123',
-        userBetAmount: 150, // USD amount to spend
-      });
-
-      // Assert - Should fill from best prices first (lowest prices)
-      // i=2: price 0.5, value = 300 * 0.5 = 150, exactly matches amount, so quantity = 300, sum = 150
-      // i=1: price 0.55, remaining = 0, so partial = 0, returns with sharePrice = 0.55
-      expect(result.toWin).toBe(300);
-      expect(result.sharePrice).toBe(0.55);
-    });
-
-    it('calculates expected share quantity for larger BUY amount', async () => {
-      // Arrange
-      const provider = createProvider();
-      const mockOrderBook = {
-        asks: [
-          { price: '0.4', size: '100' }, // 100 shares at $0.40 = $40
-          { price: '0.45', size: '200' }, // 200 shares at $0.45 = $90
-          { price: '0.5', size: '300' }, // 300 shares at $0.50 = $150
-        ],
-        bids: [],
-      };
-      mockGetOrderBook.mockResolvedValue(mockOrderBook);
-
-      // Act - Buy $250 worth of shares
-      const result = await provider.calculateBetAmounts({
-        providerId: 'polymarket',
-        outcomeTokenId: 'token-123',
-        userBetAmount: 250, // USD amount to spend
-      });
-
-      // Assert - Should fill from best prices first (lowest prices)
-      // i=2: price 0.5, value = 300 * 0.5 = 150, sum = 0 + 150 = 150 <= 250, quantity = 300, sum = 150
-      // i=1: price 0.45, value = 200 * 0.45 = 90, sum + value = 150 + 90 = 240 <= 250, quantity = 300 + 200 = 500, sum = 240
-      // i=0: price 0.4, value = 100 * 0.4 = 40, sum + value = 240 + 40 = 280 > 250, remaining = 250 - 240 = 10, partial = 10 / 0.4 = 25, total quantity = 500 + 25 = 525
-      expect(result.toWin).toBe(525);
-      expect(result.sharePrice).toBe(0.4);
-    });
-
-    it('throws error when not enough liquidity for BUY amount', async () => {
-      // Arrange
-      const provider = createProvider();
-      const mockOrderBook = {
-        asks: [
-          { price: '0.6', size: '50' }, // Only 50 shares available at $0.60 = $30 total
-        ],
-        bids: [],
-      };
-      mockGetOrderBook.mockResolvedValue(mockOrderBook);
-
-      // Act & Assert - Try to buy $100 worth but only $30 available
-      await expect(
-        provider.calculateBetAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-123',
-          userBetAmount: 100, // USD amount to spend
-        }),
-      ).rejects.toThrow('not enough shares to match user bet amount');
-    });
-
-    it('returns result when sufficient liquidity exists for BUY', async () => {
-      // Arrange
-      const provider = createProvider();
-      const mockOrderBook = {
-        asks: [
-          { price: '0.6', size: '100' }, // 100 shares at $0.60 = $60
-          { price: '0.55', size: '200' }, // 200 shares at $0.55 = $110
-        ],
-        bids: [],
-      };
-      mockGetOrderBook.mockResolvedValue(mockOrderBook);
-
-      // Act - Buy $150 worth of shares (sufficient liquidity)
-      const result = await provider.calculateBetAmounts({
-        providerId: 'polymarket',
-        outcomeTokenId: 'token-123',
-        userBetAmount: 150, // USD amount to spend
-      });
-
-      // Assert - Should return result with calculated shares and price
-      // i=1: price 0.55, value = 200 * 0.55 = 110, sum = 0 + 110 = 110 <= 150, quantity = 200, sum = 110
-      // i=0: price 0.6, value = 100 * 0.6 = 60, sum + value = 110 + 60 = 170 > 150, remaining = 150 - 110 = 40, partial = 40 / 0.6 = 66.666..., total quantity = 200 + 66.666... = 266.666...
-      expect(result.toWin).toBeCloseTo(266.66666666666663, 10);
-      expect(result.sharePrice).toBe(0.6);
-    });
-
-    it('calculates partial shares when BUY amount exceeds some positions', async () => {
-      // Arrange
-      const provider = createProvider();
-      const mockOrderBook = {
-        asks: [
-          { price: '0.55', size: '200' }, // 200 shares at $0.55 = $110
-          { price: '0.6', size: '100' }, // 100 shares at $0.60 = $60, total $170
-        ],
-        bids: [],
-      };
-      mockGetOrderBook.mockResolvedValue(mockOrderBook);
-
-      // Act - Buy $150 worth of shares
-      const result = await provider.calculateBetAmounts({
-        providerId: 'polymarket',
-        outcomeTokenId: 'token-123',
-        userBetAmount: 150, // USD amount to spend
-      });
-
-      // Assert - Should fill from best available prices (lowest first)
-      // i=1: price 0.6, value = 100 * 0.6 = 60, sum = 0 + 60 = 60 <= 150, quantity = 100, sum = 60
-      // i=0: price 0.55, value = 200 * 0.55 = 110, sum + value = 60 + 110 = 170 > 150, remaining = 150 - 60 = 90, partial = 90 / 0.55 = 163.636..., total quantity = 100 + 163.636... = 263.636...
-      expect(result.toWin).toBeCloseTo(263.6363636363636, 10);
-      expect(result.sharePrice).toBe(0.55);
-    });
-
-    it('returns result when BUY amount exactly matches total available liquidity', async () => {
-      // Arrange
-      const provider = createProvider();
-      const mockOrderBook = {
-        asks: [
-          { price: '0.45', size: '200' }, // 200 shares at $0.45 = $90
-          { price: '0.4', size: '100' }, // 100 shares at $0.4 = $40, total $130
-        ],
-        bids: [],
-      };
-      mockGetOrderBook.mockResolvedValue(mockOrderBook);
-
-      // Act - Buy exactly $130 worth of shares (all available liquidity)
-      const result = await provider.calculateBetAmounts({
-        providerId: 'polymarket',
-        outcomeTokenId: 'token-123',
-        userBetAmount: 130, // USD amount to spend
-      });
-
-      // Assert - Should return all available shares, sharePrice is the last price processed
-      expect(result.toWin).toBe(300); // 200 + 100 shares
-      expect(result.sharePrice).toBe(0.45); // Price of the last position processed
-    });
-
-    it('throws error when order book is not available', async () => {
-      // Arrange
-      const provider = createProvider();
-      mockGetOrderBook.mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(
-        provider.calculateBetAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-123',
-          userBetAmount: 100,
-        }),
-      ).rejects.toThrow('no orderbook');
-    });
-
-    it('throws error when order book has no asks positions', async () => {
-      // Arrange
-      const provider = createProvider();
-      const mockOrderBook = {
-        asks: [], // No asks for BUY
-        bids: [],
-      };
-      mockGetOrderBook.mockResolvedValue(mockOrderBook);
-
-      // Act & Assert
-      await expect(
-        provider.calculateBetAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-123',
-          userBetAmount: 100,
-        }),
-      ).rejects.toThrow('not enough shares to match user bet amount');
     });
   });
 
@@ -1365,10 +1437,9 @@ describe('PolymarketProvider', () => {
 
       // Mock getAccountState to return a safe address
       const mockAccountState = {
-        address: '0xSafeAddress123456789012345678901234567890',
+        address: '0xSafeAddress123456789012345678901234567890' as const,
         isDeployed: true,
         hasAllowances: true,
-        balance: 1000000000000000000, // 1 ETH in wei
       };
       jest
         .spyOn(PolymarketProvider.prototype, 'getAccountState')
@@ -1422,7 +1493,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137, // POLYGON_MAINNET_CHAIN_ID
-        transactionParams: {
+        transactions: {
           data: '0xencodedclaim',
           to: '0xConditionalTokensAddress',
           value: '0x0',
@@ -1470,7 +1541,7 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137,
-        transactionParams: {
+        transactions: {
           data: '0xencodedclaim',
           to: '0xConditionalTokensAddress',
           value: '0x0',
@@ -1515,6 +1586,107 @@ describe('PolymarketProvider', () => {
 
       // encodeClaim is called internally by getClaimTransaction
       // The exact call verification depends on the implementation details
+    });
+
+    it('throws error when signer address is missing', async () => {
+      jest.clearAllMocks();
+      const provider = createProvider();
+      const mockSigner = {
+        address: '',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await expect(
+        provider.prepareClaim({
+          positions: [position],
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Signer address is required');
+    });
+
+    it('throws error when no positions provided', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      await expect(
+        provider.prepareClaim({
+          positions: [],
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('No positions provided for claim');
+    });
+
+    it('throws error when getClaimTransaction returns empty array', async () => {
+      const { provider, signer } = setupPrepareClaimTest();
+      mockGetClaimTransaction.mockResolvedValue([]);
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await expect(
+        provider.prepareClaim({
+          positions: [position],
+          signer,
+        }),
+      ).rejects.toThrow('No claim transaction generated');
     });
   });
 
@@ -1743,7 +1915,7 @@ describe('PolymarketProvider', () => {
         },
       ];
 
-      (computeSafeAddress as jest.Mock).mockResolvedValue(
+      (computeProxyAddress as jest.Mock).mockReturnValue(
         '0x9999999999999999999999999999999999999999',
       );
       (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
@@ -1784,7 +1956,7 @@ describe('PolymarketProvider', () => {
       ).rejects.toThrow('Failed to fetch unrealized P&L');
     });
 
-    it('throws error when API returns empty array', async () => {
+    it('returns undefined when API returns empty array', async () => {
       const provider = createProvider();
 
       (globalThis.fetch as jest.Mock).mockResolvedValue({
@@ -1792,11 +1964,11 @@ describe('PolymarketProvider', () => {
         json: jest.fn().mockResolvedValue([]),
       });
 
-      await expect(
-        provider.getUnrealizedPnL({
-          address: '0x1234567890123456789012345678901234567890',
-        }),
-      ).rejects.toThrow('No unrealized P&L data found');
+      const result = await provider.getUnrealizedPnL({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+
+      expect(result).toBeUndefined();
     });
 
     it('throws error when API returns non-array response', async () => {
@@ -1853,7 +2025,7 @@ describe('PolymarketProvider', () => {
         },
       ];
 
-      (computeSafeAddress as jest.Mock).mockResolvedValue(
+      (computeProxyAddress as jest.Mock).mockReturnValue(
         '0x9999999999999999999999999999999999999999',
       );
       (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
@@ -1876,6 +2048,34 @@ describe('PolymarketProvider', () => {
           },
         },
       );
+    });
+
+    it('fetches account state when not cached', async () => {
+      const provider = createProvider();
+      const mockUnrealizedPnL = [
+        {
+          user: '0x9999999999999999999999999999999999999999',
+          cashUpnl: 5.5,
+          percentUpnl: 10.5,
+        },
+      ];
+
+      (computeProxyAddress as jest.Mock).mockReturnValue(
+        '0x9999999999999999999999999999999999999999',
+      );
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (globalThis.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUnrealizedPnL),
+      });
+
+      const result = await provider.getUnrealizedPnL({
+        address: '0xNewAddress',
+      });
+
+      expect(result).toEqual(mockUnrealizedPnL[0]);
+      expect(computeProxyAddress).toHaveBeenCalled();
     });
   });
 
@@ -2149,75 +2349,14 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual([]);
     });
-  });
 
-  describe('calculateCashOutAmounts', () => {
-    it('successfully calculates cash out amounts for a position', async () => {
-      // Given a market with positions
+    it('returns empty array when non-Error exception is thrown', async () => {
       const provider = createProvider();
-      const mockPosition = {
-        outcomeTokenId: 'token-123',
-        currentValue: 150,
-        cashPnl: 50,
-        percentPnl: 33.33,
-      };
+      (global.fetch as jest.Mock).mockRejectedValue('String error');
 
-      (getMarketPositions as jest.Mock).mockResolvedValue([mockPosition]);
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
 
-      // When calculating cash out amounts
-      const result = await provider.calculateCashOutAmounts({
-        providerId: 'polymarket',
-        outcomeTokenId: 'token-123',
-        marketId: 'market-1',
-        address: '0x123',
-      });
-
-      // Then correct amounts are returned
-      expect(result).toEqual({
-        currentValue: 150,
-        cashPnl: 50,
-        percentPnl: 33.33,
-      });
-      expect(getMarketPositions).toHaveBeenCalledWith({
-        marketId: 'market-1',
-        address: '0x123',
-      });
-    });
-
-    it('throws error when position is not found', async () => {
-      // Given no matching position
-      const provider = createProvider();
-      (getMarketPositions as jest.Mock).mockResolvedValue([
-        { outcomeTokenId: 'token-456', currentValue: 100 },
-      ]);
-
-      // When calculating cash out amounts for non-existent position
-      // Then it throws an error
-      await expect(
-        provider.calculateCashOutAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-123',
-          marketId: 'market-1',
-          address: '0x123',
-        }),
-      ).rejects.toThrow('position not found');
-    });
-
-    it('handles empty positions array', async () => {
-      // Given no positions
-      const provider = createProvider();
-      (getMarketPositions as jest.Mock).mockResolvedValue([]);
-
-      // When calculating cash out amounts
-      // Then it throws an error
-      await expect(
-        provider.calculateCashOutAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-123',
-          marketId: 'market-1',
-          address: '0x123',
-        }),
-      ).rejects.toThrow('position not found');
+      expect(result).toEqual([]);
     });
   });
 
@@ -2229,7 +2368,7 @@ describe('PolymarketProvider', () => {
     };
 
     beforeEach(() => {
-      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
       (generateTransferData as jest.Mock).mockReturnValue('0xtransferData');
     });
 
@@ -2340,12 +2479,295 @@ describe('PolymarketProvider', () => {
         amount: '0x0',
       });
     });
+
+    it('throws error when signer address is missing', async () => {
+      const provider = createProvider();
+      const mockSignerWithoutAddress = {
+        address: '',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      await expect(
+        provider.prepareDeposit({
+          providerId: 'polymarket',
+          signer: mockSignerWithoutAddress,
+        }),
+      ).rejects.toThrow('Signer address is required');
+    });
+
+    it('throws error when deploy transaction has no params', async () => {
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      (getDeployProxyWalletTransaction as jest.Mock).mockResolvedValue({});
+
+      await expect(
+        provider.prepareDeposit({
+          providerId: 'polymarket',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Invalid deploy transaction: missing params');
+    });
+
+    it('throws error when allowance transaction has no params', async () => {
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({});
+
+      await expect(
+        provider.prepareDeposit({
+          providerId: 'polymarket',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Invalid allowance transaction: missing params');
+    });
+
+    it('throws error when generateTransferData returns undefined', async () => {
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (generateTransferData as jest.Mock).mockReturnValue(undefined);
+
+      await expect(
+        provider.prepareDeposit({
+          providerId: 'polymarket',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow(
+        'Failed to generate transfer data for deposit transaction',
+      );
+    });
+  });
+
+  describe('Rate Limiting', () => {
+    describe('previewOrder with rate limiting', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      const setupPreviewOrderMock = () => {
+        mockPreviewOrder.mockResolvedValue({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          timestamp: Date.now(),
+          side: Side.BUY,
+          sharePrice: 0.5,
+          maxAmountSpent: 100,
+          minAmountReceived: 200,
+          slippage: 0.005,
+          tickSize: 0.01,
+          minOrderSize: 1,
+          negRisk: false,
+          fees: {
+            metamaskFee: 0.5,
+            providerFee: 0.5,
+            totalFee: 1,
+          },
+        });
+      };
+
+      it('does not set rateLimited for SELL orders', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        // Place a BUY order first to set rate limit state
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        // Now try to preview a SELL order - should NOT be rate limited
+        const sellPreview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.SELL,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(sellPreview.rateLimited).toBeUndefined();
+      });
+
+      it('does not set rateLimited when signer is not provided', async () => {
+        setupPreviewOrderMock();
+        const { provider } = setupPlaceOrderTest();
+
+        const preview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+        });
+
+        expect(preview.rateLimited).toBeUndefined();
+      });
+
+      it('does not set rateLimited when address has never placed an order', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        const preview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(preview.rateLimited).toBeUndefined();
+      });
+
+      it('sets rateLimited to true when BUY order is rate limited', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        // Place a BUY order first to set rate limit state
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        // Try to preview another BUY order immediately - should be rate limited
+        const secondPreview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(secondPreview.rateLimited).toBe(true);
+      });
+
+      it('sets rateLimited to true when BUY order is in progress', async () => {
+        setupPreviewOrderMock();
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        mockSubmitClobOrder.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              setTimeout(() => {
+                resolve({
+                  success: true,
+                  response: {
+                    makingAmount: '1000000',
+                    orderID: 'order-123',
+                    status: 'success',
+                    takingAmount: '0',
+                    transactionsHashes: [],
+                  },
+                  error: undefined,
+                });
+              }, 100);
+            }),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const placeOrderPromise = provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        const secondPreview = await provider.previewOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: '0',
+          side: Side.BUY,
+          size: 10,
+          signer: mockSigner,
+        });
+
+        expect(secondPreview.rateLimited).toBe(true);
+
+        await placeOrderPromise;
+      });
+    });
+
+    describe('placeOrder rate limiting behavior', () => {
+      it('successfully places BUY order', async () => {
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const result = await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        expect(result.success).toBe(true);
+      });
+
+      it('successfully places SELL order', async () => {
+        const { provider, mockSigner } = setupPlaceOrderTest();
+
+        const preview = createMockOrderPreview({ side: Side.SELL });
+        const result = await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        expect(result.success).toBe(true);
+      });
+
+      it('handles failed BUY orders', async () => {
+        const { provider, mockSigner } = setupPlaceOrderTest();
+        mockSubmitClobOrder.mockResolvedValue({
+          success: false,
+          response: undefined,
+          error: 'Order submission failed',
+        });
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const result = await provider.placeOrder({
+          signer: mockSigner,
+          preview,
+        });
+
+        expect(result.success).toBe(false);
+      });
+
+      it('handles different addresses independently', async () => {
+        const { provider } = setupPlaceOrderTest();
+        const mockSigner1 = {
+          address: '0x1111111111111111111111111111111111111111',
+          signTypedMessage: mockSignTypedMessage,
+          signPersonalMessage: mockSignPersonalMessage,
+        };
+        const mockSigner2 = {
+          address: '0x2222222222222222222222222222222222222222',
+          signTypedMessage: mockSignTypedMessage,
+          signPersonalMessage: mockSignPersonalMessage,
+        };
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const result1 = await provider.placeOrder({
+          signer: mockSigner1,
+          preview,
+        });
+
+        const result2 = await provider.placeOrder({
+          signer: mockSigner2,
+          preview,
+        });
+
+        expect(result1.success).toBe(true);
+        expect(result2.success).toBe(true);
+      });
+    });
   });
 
   describe('getAccountState', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
     });
 
     it('returns account state for an undeployed wallet', async () => {
@@ -2397,7 +2819,7 @@ describe('PolymarketProvider', () => {
       await provider.getAccountState({ ownerAddress: '0x123' });
 
       // Then Safe address is only computed once
-      expect(computeSafeAddress).toHaveBeenCalledTimes(1);
+      expect(computeProxyAddress).toHaveBeenCalledTimes(1);
     });
 
     it('computes Safe address for each unique owner', async () => {
@@ -2411,9 +2833,9 @@ describe('PolymarketProvider', () => {
       await provider.getAccountState({ ownerAddress: '0x456' });
 
       // Then Safe address is computed for each owner
-      expect(computeSafeAddress).toHaveBeenCalledTimes(2);
-      expect(computeSafeAddress).toHaveBeenCalledWith('0x123');
-      expect(computeSafeAddress).toHaveBeenCalledWith('0x456');
+      expect(computeProxyAddress).toHaveBeenCalledTimes(2);
+      expect(computeProxyAddress).toHaveBeenCalledWith('0x123');
+      expect(computeProxyAddress).toHaveBeenCalledWith('0x456');
     });
 
     it('calls all required functions in parallel', async () => {
@@ -2437,13 +2859,53 @@ describe('PolymarketProvider', () => {
         address: '0xSafeAddress',
       });
     });
+
+    it('throws error when ownerAddress is missing', async () => {
+      const provider = createProvider();
+
+      await expect(
+        provider.getAccountState({ ownerAddress: '' }),
+      ).rejects.toThrow('Owner address is required');
+    });
+
+    it('throws error when computeProxyAddress fails', async () => {
+      const provider = createProvider();
+      (computeProxyAddress as jest.Mock).mockImplementation(() => {
+        throw new Error('Failed to compute');
+      });
+
+      await expect(
+        provider.getAccountState({ ownerAddress: '0x123' }),
+      ).rejects.toThrow('Failed to compute safe address');
+    });
+
+    it('throws error when computeProxyAddress returns empty string', async () => {
+      const provider = createProvider();
+      (computeProxyAddress as jest.Mock).mockReturnValue('');
+
+      await expect(
+        provider.getAccountState({ ownerAddress: '0x123' }),
+      ).rejects.toThrow('Failed to get safe address');
+    });
+
+    it('throws error when checking account state fails', async () => {
+      const provider = createProvider();
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      await expect(
+        provider.getAccountState({ ownerAddress: '0x123' }),
+      ).rejects.toThrow('Failed to check account state');
+    });
   });
 
   describe('getBalance', () => {
     it('returns balance for the given address', async () => {
       // Given a provider
       const provider = createProvider();
-      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
       (getBalance as jest.Mock).mockResolvedValue(123.45);
 
       // When getting balance
@@ -2456,9 +2918,220 @@ describe('PolymarketProvider', () => {
       expect(result).toBe(123.45);
       expect(getBalance).toHaveBeenCalledWith({ address: '0xSafeAddress' });
     });
+
+    it('throws error when address is missing', async () => {
+      const provider = createProvider();
+
+      await expect(
+        provider.getBalance({ address: '', providerId: 'polymarket' }),
+      ).rejects.toThrow('address is required');
+    });
+
+    it('uses cached address when available', async () => {
+      const provider = createProvider();
+      (computeProxyAddress as jest.Mock).mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (getBalance as jest.Mock).mockResolvedValue(100);
+
+      const userAddress = '0x1234567890123456789012345678901234567890';
+
+      await provider.getAccountState({ ownerAddress: userAddress });
+      jest.clearAllMocks();
+
+      await provider.getBalance({
+        address: userAddress,
+        providerId: 'polymarket',
+      });
+
+      expect(computeProxyAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('prepareWithdraw', () => {
+    it('prepares withdraw transaction successfully', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+      jest
+        .spyOn(PolymarketProvider.prototype, 'getAccountState')
+        .mockResolvedValue({
+          address: '0xSafeAddress',
+          isDeployed: true,
+          hasAllowances: true,
+        });
+
+      const result = await provider.prepareWithdraw({
+        signer: mockSigner,
+        providerId: 'polymarket',
+      });
+
+      expect(result).toHaveProperty('chainId');
+      expect(result).toHaveProperty('transaction');
+      expect(result).toHaveProperty('predictAddress');
+      expect(result.predictAddress).toBe('0xSafeAddress');
+    });
+
+    it('throws error when signer address is missing in prepareWithdraw', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      await expect(
+        provider.prepareWithdraw({
+          signer: mockSigner,
+          providerId: 'polymarket',
+        }),
+      ).rejects.toThrow('Signer address is required');
+    });
+
+    it('fetches account state when not cached', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+
+      const result = await provider.prepareWithdraw({
+        signer: mockSigner,
+        providerId: 'polymarket',
+      });
+
+      expect(result.predictAddress).toBe('0xSafeAddress');
+      expect(mockComputeProxyAddress).toHaveBeenCalled();
+    });
+  });
+
+  describe('prepareWithdrawConfirmation', () => {
+    it('prepares withdraw confirmation successfully', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '0x1234567890123456789012345678901234567890',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+
+      const result = await provider.signWithdraw({
+        callData: '0xcalldata',
+        signer: mockSigner,
+      });
+
+      expect(result).toHaveProperty('callData');
+      expect(result).toHaveProperty('amount');
+    });
+
+    it('throws error when signer address is missing in signWithdraw', async () => {
+      const provider = createProvider();
+      const mockSigner = {
+        address: '',
+        signTypedMessage: jest.fn(),
+        signPersonalMessage: jest.fn(),
+      };
+
+      await expect(
+        provider.signWithdraw({
+          callData: '0xcalldata',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Signer address is required');
+    });
   });
 
   describe('fetchActivity', () => {
+    const provider = createProvider();
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    it('throws when address is missing', async () => {
+      await expect(provider.getActivity({ address: '' })).rejects.toThrow();
+    });
+
+    it('calls fetch with derived predictAddress and parses activity', async () => {
+      const jsonData = [{ id: 'x1' }];
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: () => jsonData,
+      });
+
+      // Mock getAccountState used to derive predict address
+      const spy = jest
+        .spyOn(
+          provider as unknown as {
+            getAccountState: (p: { ownerAddress: string }) => Promise<{
+              address: string;
+              isDeployed: boolean;
+              hasAllowances: boolean;
+              balance: number;
+            }>;
+          },
+          'getAccountState',
+        )
+        .mockResolvedValue({
+          address: '0xSAFE',
+          isDeployed: true,
+          hasAllowances: true,
+          balance: 0,
+        });
+
+      const result = await provider.getActivity({ address: '0xuser' });
+
+      expect(spy).toHaveBeenCalledWith({ ownerAddress: '0xuser' });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('user=0xSAFE'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('returns empty array on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        json: () => ({}),
+      });
+      const spy = jest
+        .spyOn(
+          provider as unknown as {
+            getAccountState: (p: { ownerAddress: string }) => Promise<{
+              address: string;
+              isDeployed: boolean;
+              hasAllowances: boolean;
+              balance: number;
+            }>;
+          },
+          'getAccountState',
+        )
+        .mockResolvedValue({
+          address: '0xSAFE',
+          isDeployed: true,
+          hasAllowances: true,
+          balance: 0,
+        });
+
+      const result = await provider.getActivity({ address: '0xuser' });
+      expect(spy).toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('Activity', () => {
     const provider = createProvider();
 
     beforeEach(() => {
