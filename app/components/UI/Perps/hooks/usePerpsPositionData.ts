@@ -24,6 +24,7 @@ export const usePerpsPositionData = ({
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [hasHistoricalData, setHasHistoricalData] = useState(false);
 
   // Helper function to get the current candle's start time based on interval
   const getCurrentCandleStartTime = useCallback(
@@ -101,19 +102,28 @@ export const usePerpsPositionData = ({
   // Load historical candles
   useEffect(() => {
     setIsLoadingHistory(true);
+    setHasHistoricalData(false);
     const loadHistoricalData = async () => {
       try {
         setCandleData(null);
         const historicalData = await fetchHistoricalCandles();
-        setCandleData((prev) => {
-          // Prevent re-render if data is identical
-          if (isEqual(prev, historicalData)) {
-            return prev;
-          }
-          return historicalData;
-        });
+        // Only set data and flag if we received valid data
+        if (historicalData && historicalData.candles?.length > 0) {
+          setCandleData((prev) => {
+            // Prevent re-render if data is identical
+            if (isEqual(prev, historicalData)) {
+              return prev;
+            }
+            return historicalData;
+          });
+          setHasHistoricalData(true);
+        } else {
+          // No valid data received
+          setHasHistoricalData(false);
+        }
       } catch (err) {
         console.error('Error loading historical candles:', err);
+        setHasHistoricalData(false);
       } finally {
         setIsLoadingHistory(false);
       }
@@ -258,7 +268,10 @@ export const usePerpsPositionData = ({
 
   // Merge historical candles with live candle for chart display
   useEffect(() => {
-    const candles = candleData?.candles ?? [];
+    // Don't merge until we have successfully loaded historical candles
+    if (!hasHistoricalData || !candleData) return;
+
+    const candles = candleData.candles;
     if (!liveCandle || candles.length === 0) return;
 
     const liveCandleIndex = candles.findIndex(
@@ -290,22 +303,30 @@ export const usePerpsPositionData = ({
       };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveCandle]);
+  }, [liveCandle, hasHistoricalData, candleData]);
 
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
       setCandleData(null);
       const historicalData = await fetchHistoricalCandles();
-      setCandleData((prev) => {
-        // Prevent re-render if data is identical
-        if (isEqual(prev, historicalData)) {
-          return prev;
-        }
-        return historicalData;
-      });
+
+      if (historicalData && historicalData.candles?.length > 0) {
+        setCandleData((prev) => {
+          // Prevent re-render if data is identical
+          if (isEqual(prev, historicalData)) {
+            return prev;
+          }
+          return historicalData;
+        });
+        setHasHistoricalData(true);
+      } else {
+        // No valid data received on refresh
+        setHasHistoricalData(false);
+      }
     } catch (err) {
       console.error('Error refreshing candle data:', err);
+      setHasHistoricalData(false);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -316,5 +337,6 @@ export const usePerpsPositionData = ({
     priceData,
     isLoadingHistory,
     refreshCandleData,
+    hasHistoricalData,
   };
 };

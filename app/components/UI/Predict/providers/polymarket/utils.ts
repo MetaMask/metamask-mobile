@@ -1197,6 +1197,7 @@ export const previewOrder = async (
     outcomeTokenId,
     timestamp: new Date(book.timestamp).getTime(),
     side: Side.SELL,
+    positionId: params.positionId,
     sharePrice: bestPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
