@@ -202,13 +202,13 @@ describe('Critical Error Handling', () => {
       );
 
       const testMigrationList = {
-        105: (state: unknown) => state, // Migration > 104 triggers inflation logic
+        106: (state: unknown) => state, // Migration > 105 triggers inflation logic
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act & Assert
-      await expect(asyncMigrations['105'](initialState)).rejects.toThrow(
+      await expect(asyncMigrations['106'](initialState)).rejects.toThrow(
         'Critical: Failed to load controller data for migration. Cannot continue safely as migrations may corrupt data without complete state. App will restart to attempt recovery. Error: Error: Storage access failed',
       );
 
@@ -225,13 +225,13 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
 
       const testMigrationList = {
-        105: (state: unknown) => ({ ...(state as object), test: 'passed' }),
+        106: (state: unknown) => ({ ...(state as object), test: 'passed' }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act
-      const result = await asyncMigrations['105'](initialState);
+      const result = await asyncMigrations['106'](initialState);
 
       // Assert
       expect((result as Record<string, unknown>).test).toEqual('passed');
@@ -413,6 +413,7 @@ describe('Critical Error Handling', () => {
         103: (state: unknown) => ({ ...(state as object), step103: true }),
         104: (state: unknown) => ({ ...(state as object), step104: true }),
         105: (state: unknown) => ({ ...(state as object), step105: true }),
+        106: (state: unknown) => ({ ...(state as object), step106: true }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
@@ -421,14 +422,16 @@ describe('Critical Error Handling', () => {
       let state = stateWithoutControllers;
       state = (await asyncMigrations['103'](state)) as PersistedState;
       state = (await asyncMigrations['104'](state)) as PersistedState;
-      const finalState = await asyncMigrations['105'](state);
+      state = (await asyncMigrations['105'](state)) as PersistedState;
+      const finalState = await asyncMigrations['106'](state);
 
       // Assert
       expect((finalState as Record<string, unknown>).step103).toBe(true);
       expect((finalState as Record<string, unknown>).step104).toBe(true);
       expect((finalState as Record<string, unknown>).step105).toBe(true);
+      expect((finalState as Record<string, unknown>).step106).toBe(true);
 
-      // Inflation should only be called once for migration 105
+      // Inflation should only be called once for migration 106
       expect(
         mockedControllerStorage.getAllPersistedState,
       ).toHaveBeenCalledTimes(1);

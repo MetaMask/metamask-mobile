@@ -110,6 +110,7 @@ import migration105 from './105';
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
+import Logger from '../../util/Logger';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -244,7 +245,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    * for migrations to process.
    *
    * - Individual controller files are created automatically by EngineService.setupEnginePersistence()
-   * - Migrations 105+ still expect to work with the old engine.backgroundState format
+   * - Migrations 106+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
    * - "unpacking" distributed files back into a single object
    *
