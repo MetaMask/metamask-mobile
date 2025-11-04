@@ -62,6 +62,7 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { toTokenMinimalUnit, normalizeToDotDecimal } from '../../../../../util/number';
 ///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
@@ -88,10 +89,16 @@ const EarnWithdrawInputView = () => {
 
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTrxStakingEnabled && isTronAsset) {
+      const normalized = normalizeToDotDecimal(token.balance);
+      const balanceMinimalUnit = toTokenMinimalUnit(
+        normalized,
+        token.decimals ?? 0,
+      ).toString();
+
       return {
         ...token,
         isETH: false,
-        balanceMinimalUnit: '0',
+        balanceMinimalUnit,
         balanceFormatted: token.balance ?? '0',
         balanceFiat: token.balanceFiat ?? '0',
         tokenUsdExchangeRate: 0,

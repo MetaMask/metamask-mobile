@@ -2922,6 +2922,9 @@
     "bridge": "Bridge",
     "earn": "Earn",
     "tron": {
+      "daily_resource_new_energy": "New daily energy",
+      "sufficient_to_cover": "Sufficient to cover",
+      "transactions": "transactions",
       "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
@@ -5316,7 +5319,10 @@
     "earn": "Earn",
     "tron": {
       "bandwidth": "Bandwidth",
-      "energy": "Energy"
+      "energy": "Energy",
+      "estimated_annual_reward": "Estimated annual reward",
+      "trx_locked_for": "TRX locked for",
+      "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
