@@ -33,7 +33,7 @@ const PerpsTooltipView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const { contentKey, data } = route.params;
+  const { contentKey, data } = route.params || {};
 
   const handleClose = useCallback(() => {
     // BottomSheet will handle navigation.goBack() when shouldNavigateBack is true
