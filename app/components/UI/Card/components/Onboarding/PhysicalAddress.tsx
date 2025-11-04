@@ -451,6 +451,7 @@ const PhysicalAddress = () => {
           })
           .build(),
       );
+      await registerUserConsent(onboardingId, user.id);
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -460,7 +461,6 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
-      await registerUserConsent(onboardingId, user.id);
 
       if (updatedUser) {
         setUser(updatedUser);
