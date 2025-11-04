@@ -280,7 +280,7 @@ export class Engine {
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
     };
-
+    // @ts-expect-error - metametrics id is required, this will be addressed on a follow up PR
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
