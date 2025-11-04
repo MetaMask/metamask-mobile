@@ -76,7 +76,7 @@ const PredictSellPreview = () => {
     error: placeOrderError,
   } = usePredictPlaceOrder();
 
-  const { preview, isCalculating } = usePredictOrderPreview({
+  const { preview } = usePredictOrderPreview({
     providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -84,7 +84,7 @@ const PredictSellPreview = () => {
     side: Side.SELL,
     size: position.amount,
     positionId: position.id,
-    autoRefreshTimeout: 5000,
+    autoRefreshTimeout: 1000,
   });
 
   // Track Predict Action Initiated when screen mounts
@@ -150,7 +150,7 @@ const PredictSellPreview = () => {
     return (
       <ButtonHero
         testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
-        disabled={!preview || isCalculating || isLoading}
+        disabled={!preview || isLoading}
         onPress={onCashOut}
         style={{
           ...styles.cashOutButton,
