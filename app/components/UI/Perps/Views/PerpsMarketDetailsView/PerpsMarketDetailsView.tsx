@@ -646,6 +646,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               candleData={candleData}
               height={350}
               visibleCandleCount={visibleCandleCount}
+              symbol={market?.symbol}
               tpslLines={
                 existingPosition
                   ? {

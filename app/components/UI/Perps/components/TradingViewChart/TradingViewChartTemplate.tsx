@@ -1,9 +1,24 @@
 import { Theme } from '../../../../../util/theme/models';
 
+/**
+ * Creates TradingView chart HTML template with dynamic decimal precision
+ * @param theme - Theme configuration for styling
+ * @param lightweightChartsLib - TradingView Lightweight Charts library code
+ * @param priceDecimals - Number of decimal places for price display (calculated from szDecimals)
+ * @returns HTML string for WebView
+ */
 export const createTradingViewChartTemplate = (
   theme: Theme,
   lightweightChartsLib: string,
-): string => `<!DOCTYPE html>
+  priceDecimals?: number,
+): string => {
+  // Generate JavaScript config for price decimals
+  // If provided, use fixed decimals for chart Y-axis
+  // Otherwise, fall back to price-based logic
+  const decimalConfigJS =
+    priceDecimals !== undefined ? priceDecimals.toString() : 'null';
+
+  return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -50,6 +65,10 @@ export const createTradingViewChartTemplate = (
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
         window.visibleCandleCount = 45; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
+        
+        // Price decimal precision (injected from React Native, calculated from szDecimals)
+        // null = use fallback price-based logic
+        window.priceDecimals = ${decimalConfigJS};
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
         window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
@@ -247,17 +266,24 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Specialized chart Y-axis formatter with space constraints
-                            // Different rules than price displays to keep axis labels compact
-                            // Rules:
-                            // - ≥$100: No decimals (e.g., BTC: 121,613 not 121,612.50 - too long)
-                            // - $10-$100: 2 decimals (e.g., 56.12)
-                            // - $1-$10: 3 decimals for 4 sig figs (e.g., XRP: 2.801)
-                            // - <$1: 4 sig figs (e.g., 0.1234)
-
+                            // Dynamic chart Y-axis formatter with asset-specific decimal precision
+                            // Priority:
+                            // 1. Use window.priceDecimals if available (calculated from szDecimals)
+                            // 2. Fall back to price-based logic for unknown assets
+                            
                             if (price === 0) return '0.00';
 
                             const absPrice = Math.abs(price);
+                            
+                            // Use asset-specific decimals if provided (from szDecimals)
+                            if (window.priceDecimals !== null && window.priceDecimals !== undefined) {
+                                const decimals = window.priceDecimals;
+                                
+                                return new Intl.NumberFormat('en-US', {
+                                    // minimumFractionDigits: decimals,
+                                    maximumFractionDigits: decimals
+                                }).format(price);
+                            }
 
                             // For values >= 1, calculate decimals based on magnitude with chart space constraints
                             if (absPrice >= 1) {
@@ -991,3 +1017,4 @@ export const createTradingViewChartTemplate = (
     </script>
 </body>
 </html>`;
+};

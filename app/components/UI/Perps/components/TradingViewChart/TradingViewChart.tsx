@@ -23,6 +23,8 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { usePerpsMarketData } from '../../hooks/usePerpsMarketData';
+import { DECIMAL_PRECISION_CONFIG } from '../../constants/perpsConfig';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -46,6 +48,7 @@ interface TradingViewChartProps {
   onChartReady?: () => void;
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
   testID?: string;
+  symbol?: string; // Asset symbol for decimal precision configuration (e.g., 'BTC', 'ETH', 'xyz:TSLA')
 }
 
 // ATTRIBUTION NOTICE:
@@ -63,6 +66,7 @@ const TradingViewChart = React.forwardRef<
       onChartReady,
       visibleCandleCount = 45, // Default to 45 visible candles
       testID,
+      symbol,
     },
     ref,
   ) => {
@@ -77,6 +81,21 @@ const TradingViewChart = React.forwardRef<
       close: string;
       time: number;
     } | null>(null);
+
+    // Fetch market metadata to get szDecimals for dynamic price decimal calculation
+    const { marketData, isLoading } = usePerpsMarketData(symbol || '');
+
+    const priceDecimals = useMemo(() => {
+      if (!marketData?.szDecimals) return undefined;
+      return Math.max(
+        0,
+        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+        Math.min(
+          marketData.szDecimals,
+          DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+        ),
+      );
+    }, [marketData?.szDecimals]);
 
     // Format OHLC values using the same formatting as the header
     const formattedOhlcData = useMemo(() => {
@@ -142,10 +161,19 @@ const TradingViewChart = React.forwardRef<
       }
     }, []);
 
-    const htmlContent = useMemo(
-      () => createTradingViewChartTemplate(theme, LIGHTWEIGHT_CHARTS_LIBRARY),
-      [theme],
-    );
+    // Only create HTML content when market data is loaded (or if no symbol provided)
+    // This prevents chart from rendering with incorrect decimals during loading
+    const htmlContent = useMemo(() => {
+      // If we have a symbol, wait for market data to load
+      if (symbol && isLoading) {
+        return '';
+      }
+      return createTradingViewChartTemplate(
+        theme,
+        LIGHTWEIGHT_CHARTS_LIBRARY,
+        priceDecimals,
+      );
+    }, [theme, priceDecimals, symbol, isLoading]);
 
     // Send message to WebView - simplified to avoid loops
     const sendMessage = useCallback(
@@ -379,22 +407,24 @@ const TradingViewChart = React.forwardRef<
       );
     }
 
-    const webViewElement = (
-      <WebView
-        ref={webViewRef}
-        source={{ html: htmlContent }}
-        style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
-        onMessage={handleWebViewMessage}
-        onError={handleWebViewError}
-        onHttpError={(syntheticEvent) => {
-          const { nativeEvent } = syntheticEvent;
-          console.error('TradingViewChart: HTTP Error:', nativeEvent);
-        }}
-        testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
-        {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}
-        {...platformSpecificProps}
-      />
-    );
+    // Don't render WebView until market data is loaded (if symbol provided)
+    const webViewElement =
+      symbol && isLoading ? null : (
+        <WebView
+          ref={webViewRef}
+          source={{ html: htmlContent }}
+          style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
+          onMessage={handleWebViewMessage}
+          onError={handleWebViewError}
+          onHttpError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.error('TradingViewChart: HTTP Error:', nativeEvent);
+          }}
+          testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
+          {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}
+          {...platformSpecificProps}
+        />
+      );
 
     return (
       <Box
@@ -406,8 +436,8 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
-          {/* Show skeleton while chart is loading */}
-          {!isChartReady && (
+          {/* Show skeleton while market data or chart is loading */}
+          {(isLoading || !isChartReady) && (
             <Skeleton
               height={height}
               width="100%"

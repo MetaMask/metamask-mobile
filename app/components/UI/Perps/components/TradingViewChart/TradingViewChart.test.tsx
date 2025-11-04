@@ -57,6 +57,16 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
   },
 }));
 
+// Mock usePerpsMarketData hook
+jest.mock('../../hooks/usePerpsMarketData', () => ({
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: null,
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
 describe('TradingViewChart', () => {
   const mockCandleData: CandleData = {
     coin: 'BTC',
