@@ -37,7 +37,19 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 // Mock PerpsStreamManager
-jest.mock('../../providers/PerpsStreamManager');
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    prices: { subscribeToSymbols: jest.fn(() => jest.fn()) },
+    positions: { subscribe: jest.fn(() => jest.fn()) },
+    orders: { subscribe: jest.fn(() => jest.fn()) },
+    fills: { subscribe: jest.fn(() => jest.fn()) },
+    account: { subscribe: jest.fn(() => jest.fn()) },
+    marketData: { subscribe: jest.fn(() => jest.fn()), getMarkets: jest.fn() },
+    oiCaps: { subscribe: jest.fn(() => jest.fn()) },
+  })),
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 // Mock Redux selectors for chart preferences
 jest.mock('../../selectors/chartPreferences', () => ({
@@ -206,6 +218,7 @@ jest.mock('../../hooks/usePerpsPositionData', () => ({
     isLoadingHistory: false,
     error: null,
     refreshCandleData: mockRefreshCandleData,
+    hasHistoricalData: true,
   }),
 }));
 
@@ -1410,8 +1423,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
       // Verify Linking.openURL was called with correct URL
@@ -1440,8 +1453,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
       // Wait for the error to be logged
