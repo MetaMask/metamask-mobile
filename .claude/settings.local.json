@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": ["Bash(npx jest:*)", "Bash(cat:*)", "Bash(npx eslint:*)"],
-    "deny": [],
-    "ask": []
-  }
-}
