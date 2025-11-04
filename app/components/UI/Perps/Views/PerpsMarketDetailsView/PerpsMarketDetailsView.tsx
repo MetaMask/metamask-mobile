@@ -58,6 +58,7 @@ import {
   usePerpsNetworkManagement,
   usePerpsNavigation,
 } from '../../hooks';
+import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import {
   usePerpsDataMonitor,
   type DataMonitorParams,
@@ -66,6 +67,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
+import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import PerpsNavigationCard, {
   type NavigationItem,
@@ -183,6 +185,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
 
+  // Check if market is at open interest cap
+  const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
+
   // Programmatic tab control state for data-driven navigation
   const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
     string | null
@@ -248,6 +253,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [openOrders],
   );
 
+  const orderChildOrderIds = useMemo(
+    () =>
+      openOrders
+        .filter((order) => order.takeProfitOrderId || order.stopLossOrderId)
+        .reduce((acc, order) => {
+          if (order.takeProfitOrderId) {
+            acc.push(order.takeProfitOrderId);
+          }
+          if (order.stopLossOrderId) {
+            acc.push(order.stopLossOrderId);
+          }
+          return acc;
+        }, [] as string[]),
+    [openOrders],
+  );
+
   // Determine which TP/SL lines to show on the chart
   const selectedOrderTPSL = useMemo(() => {
     // Find the active TP order
@@ -257,10 +278,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only use default TP if no TP has ever been explicitly selected
     if (!activeTPOrder && activeTPOrderId === null) {
       activeTPOrder = ordersWithTPSL.find((order) => {
-        if (order.takeProfitPrice) return true;
         if (
           order.isTrigger &&
-          order.detailedOrderType?.toLowerCase().includes('take profit')
+          order.detailedOrderType?.toLowerCase().includes('take profit') &&
+          !orderChildOrderIds.includes(order.orderId)
         )
           return true;
         return false;
@@ -274,10 +295,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only use default SL if no SL has ever been explicitly selected
     if (!activeSLOrder && activeSLOrderId === null) {
       activeSLOrder = ordersWithTPSL.find((order) => {
-        if (order.stopLossPrice) return true;
         if (
           order.isTrigger &&
-          order.detailedOrderType?.toLowerCase().includes('stop')
+          order.detailedOrderType?.toLowerCase().includes('stop') &&
+          !orderChildOrderIds.includes(order.orderId)
         )
           return true;
         return false;
@@ -291,7 +312,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       activeSLOrderId: activeSLOrder?.orderId,
     };
     return result;
-  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId]);
+  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId, orderChildOrderIds]);
 
   const hasZeroBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0') === 0,
@@ -574,7 +595,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   );
 
   // Simplified styles - no complex calculations needed
-  const { styles, theme } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles, {});
 
   if (!market) {
     return (
@@ -615,12 +636,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           showsVerticalScrollIndicator={false}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme.colors.icon.default}
-              colors={[theme.colors.icon.default]} // Android
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
           {/* TradingView Chart Section */}
@@ -730,31 +746,40 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {hasLongShortButtons && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Success}
-                  onPress={handleLongPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </ButtonSemantic>
-              </View>
+            <>
+              {/* OI Cap Warning - Shows when market is at capacity */}
+              {market?.symbol && (
+                <PerpsOICapWarning symbol={market.symbol} variant="inline" />
+              )}
 
-              <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Danger}
-                  onPress={handleShortPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </ButtonSemantic>
+              <View style={styles.actionsContainer}>
+                <View style={styles.actionButtonWrapper}>
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Success}
+                    onPress={handleLongPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                  >
+                    {strings('perps.market.long')}
+                  </ButtonSemantic>
+                </View>
+
+                <View style={styles.actionButtonWrapper}>
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Danger}
+                    onPress={handleShortPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                  >
+                    {strings('perps.market.short')}
+                  </ButtonSemantic>
+                </View>
               </View>
-            </View>
+            </>
           )}
         </View>
       )}

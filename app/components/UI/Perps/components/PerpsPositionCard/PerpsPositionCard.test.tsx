@@ -84,7 +84,6 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
   usePerpsLivePositions: jest.fn(() => ({})),
 }));
 
@@ -98,6 +97,7 @@ jest.mock('../../hooks', () => ({
       {
         name: 'ETH',
         symbol: 'ETH',
+        price: '$2,000.00',
         priceDecimals: 2,
         sizeDecimals: 4,
         maxLeverage: 50,
@@ -116,6 +116,7 @@ jest.mock('../../hooks', () => ({
     handleClosePosition: jest.fn().mockResolvedValue(undefined),
     isClosing: false,
   }),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock PerpsTPSLView to avoid PerpsConnectionProvider requirement
@@ -217,6 +218,36 @@ describe('PerpsPositionCard', () => {
       '../../utils/pnlCalculations',
     );
     calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
+
+    // Reset the usePerpsMarkets mock to include price
+    const { usePerpsMarkets } = jest.requireMock('../../hooks');
+    usePerpsMarkets.mockReturnValue({
+      markets: [
+        {
+          name: 'ETH',
+          symbol: 'ETH',
+          price: '$2,000.00',
+          priceDecimals: 2,
+          sizeDecimals: 4,
+          maxLeverage: 50,
+          minSize: 0.01,
+          sizeIncrement: 0.01,
+        },
+      ],
+      error: null,
+      isLoading: false,
+    });
+
+    // Mock usePerpsLivePrices to return live price data for ETH
+    const { usePerpsLivePrices } = jest.requireMock('../../hooks');
+    usePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '2100.50',
+        timestamp: Date.now(),
+        percentChange24h: '2.5',
+      },
+    });
 
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
@@ -1099,6 +1130,68 @@ describe('PerpsPositionCard', () => {
 
       // Should not call onTpslCountPress due to missing market data
       expect(mockOnTpslCountPress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('share button functionality', () => {
+    it('renders share button when expanded is true', () => {
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+
+      expect(shareButton).toBeOnTheScreen();
+    });
+
+    it('does not render share button when expanded is false', () => {
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+
+      const shareButton = screen.queryByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+
+      expect(shareButton).toBeNull();
+    });
+
+    it('navigates to PNL_HERO_CARD route when share button pressed', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PNL_HERO_CARD,
+        expect.objectContaining({
+          position: mockPosition,
+          marketPrice: '2100.50',
+        }),
+      );
+    });
+
+    it('passes position and marketPrice to route params', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          position: mockPosition,
+          marketPrice: '2100.50', // Live price from usePerpsLivePrices, not market data
+        }),
+      );
     });
   });
 });

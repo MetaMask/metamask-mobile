@@ -1062,7 +1062,7 @@ describe('AssetOverview', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
+    it('render mainBalance as fiat and secondaryBalance as native', async () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
         {

@@ -345,18 +345,21 @@ const PerpsMarketListView = ({
   // Use navigation hook for back button
   const handleBackPressed = perpsNavigation.navigateBack;
 
-  const handleSearchToggle = () => {
+  const handleSearchToggle = useCallback(() => {
+    // Toggle search visibility
     toggleSearchVisibility();
 
     if (isSearchVisible) {
+      // When disabling search, clear the query
       clearSearch();
     } else {
+      // When enabling search, track the event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
           PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
       });
     }
-  };
+  }, [isSearchVisible, toggleSearchVisibility, clearSearch, track]);
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
