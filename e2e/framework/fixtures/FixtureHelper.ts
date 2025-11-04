@@ -11,6 +11,7 @@ import {
   getGanachePort,
   getDappServerPortByIndex,
   startResourceWithRetry,
+  getCommandQueueServerPort,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
@@ -485,14 +486,22 @@ export async function withFixtures(
     }
 
     // Start fixture server
-    await fixtureServer.start();
+    await startResourceWithRetry(
+      ResourceId.FIXTURE_SERVER,
+      fixtureServer,
+      getFixturesServerPort(),
+    );
     await loadFixture(fixtureServer, { fixture: resolvedFixture });
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
 
     if (useCommandQueueServer) {
-      await commandQueueServer.start();
+      await startResourceWithRetry(
+        ResourceId.COMMAND_QUEUE_SERVER,
+        commandQueueServer,
+        getCommandQueueServerPort(),
+      );
     }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
