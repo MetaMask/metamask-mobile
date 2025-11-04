@@ -2,6 +2,10 @@ import {
   calculateFundingCountdown,
   calculate24hHighLow,
   getAssetIconUrl,
+  escapeRegex,
+  compileMarketPattern,
+  matchesMarketPattern,
+  shouldIncludeMarket,
 } from './marketUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
@@ -408,6 +412,176 @@ describe('marketUtils', () => {
       expect(result).toBe(
         'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3%3Axyz_TSLA.svg',
       );
+    });
+  });
+
+  describe('Pattern Matching Utilities', () => {
+    describe('escapeRegex', () => {
+      it('escapes regex special characters', () => {
+        expect(escapeRegex('xyz.*')).toBe('xyz\\.\\*');
+        expect(escapeRegex('test+value')).toBe('test\\+value');
+        expect(escapeRegex('value?')).toBe('value\\?');
+        expect(escapeRegex('[test]')).toBe('\\[test\\]');
+        expect(escapeRegex('(group)')).toBe('\\(group\\)');
+        expect(escapeRegex('test|or')).toBe('test\\|or');
+      });
+
+      it('returns unchanged string if no special characters', () => {
+        expect(escapeRegex('xyz')).toBe('xyz');
+        expect(escapeRegex('BTC')).toBe('BTC');
+      });
+    });
+
+    describe('compileMarketPattern', () => {
+      it('compiles wildcard pattern to RegExp', () => {
+        const matcher = compileMarketPattern('xyz:*');
+        expect(matcher).toBeInstanceOf(RegExp);
+        expect((matcher as RegExp).test('xyz:TSLA')).toBe(true);
+        expect((matcher as RegExp).test('xyz:AAPL')).toBe(true);
+        expect((matcher as RegExp).test('abc:TSLA')).toBe(false);
+        expect((matcher as RegExp).test('BTC')).toBe(false);
+      });
+
+      it('compiles DEX shorthand to RegExp', () => {
+        const matcher = compileMarketPattern('xyz');
+        expect(matcher).toBeInstanceOf(RegExp);
+        expect((matcher as RegExp).test('xyz:TSLA')).toBe(true);
+        expect((matcher as RegExp).test('xyz:AAPL')).toBe(true);
+        expect((matcher as RegExp).test('abc:TSLA')).toBe(false);
+        expect((matcher as RegExp).test('xyz')).toBe(false); // Must have colon
+      });
+
+      it('compiles DEX-only pattern to RegExp (treats as shorthand)', () => {
+        // NOTE: "BTC" without colon is treated as DEX shorthand "BTC:*"
+        const matcher = compileMarketPattern('BTC');
+        expect(matcher).toBeInstanceOf(RegExp);
+        expect((matcher as RegExp).test('BTC:ASSET')).toBe(true);
+        expect((matcher as RegExp).test('BTC')).toBe(false); // Must have colon
+      });
+
+      it('compiles exact HIP-3 symbol to string', () => {
+        const matcher = compileMarketPattern('xyz:TSLA');
+        expect(typeof matcher).toBe('string');
+        expect(matcher).toBe('xyz:TSLA');
+      });
+
+      it('handles special regex characters in DEX name', () => {
+        const matcher = compileMarketPattern('test.dex:*');
+        expect(matcher).toBeInstanceOf(RegExp);
+        expect((matcher as RegExp).test('test.dex:ASSET')).toBe(true);
+        expect((matcher as RegExp).test('testXdex:ASSET')).toBe(false);
+      });
+    });
+
+    describe('matchesMarketPattern', () => {
+      it('matches exact string patterns', () => {
+        expect(matchesMarketPattern('BTC', 'BTC')).toBe(true);
+        expect(matchesMarketPattern('ETH', 'BTC')).toBe(false);
+        expect(matchesMarketPattern('xyz:TSLA', 'xyz:TSLA')).toBe(true);
+        expect(matchesMarketPattern('xyz:AAPL', 'xyz:TSLA')).toBe(false);
+      });
+
+      it('matches RegExp patterns', () => {
+        const pattern = /^xyz:/;
+        expect(matchesMarketPattern('xyz:TSLA', pattern)).toBe(true);
+        expect(matchesMarketPattern('xyz:AAPL', pattern)).toBe(true);
+        expect(matchesMarketPattern('abc:TSLA', pattern)).toBe(false);
+        expect(matchesMarketPattern('BTC', pattern)).toBe(false);
+      });
+    });
+
+    describe('shouldIncludeMarket', () => {
+      it('always includes main DEX markets (dex=null)', () => {
+        const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
+        const blocked = [{ pattern: 'BTC', matcher: 'BTC' }];
+
+        expect(shouldIncludeMarket('BTC', null, enabled, blocked)).toBe(true);
+        expect(shouldIncludeMarket('ETH', null, enabled, blocked)).toBe(true);
+        expect(shouldIncludeMarket('SOL', null, [], blocked)).toBe(true);
+      });
+
+      it('includes all HIP-3 markets when whitelist is empty', () => {
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', [], [])).toBe(true);
+        expect(shouldIncludeMarket('abc:AAPL', 'abc', [], [])).toBe(true);
+      });
+
+      it('applies whitelist when non-empty', () => {
+        const enabled = [
+          { pattern: 'xyz:*', matcher: /^xyz:/ },
+          { pattern: 'BTC', matcher: 'BTC' },
+        ];
+
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, [])).toBe(true);
+        expect(shouldIncludeMarket('xyz:AAPL', 'xyz', enabled, [])).toBe(true);
+        expect(shouldIncludeMarket('abc:TSLA', 'abc', enabled, [])).toBe(false);
+      });
+
+      it('applies blacklist after whitelist', () => {
+        const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
+        const blocked = [{ pattern: 'xyz:SCAM', matcher: 'xyz:SCAM' }];
+
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, blocked)).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('xyz:SCAM', 'xyz', enabled, blocked)).toBe(
+          false,
+        );
+      });
+
+      it('applies blacklist when whitelist is empty', () => {
+        const blocked = [
+          { pattern: 'xyz:SCAM', matcher: 'xyz:SCAM' },
+          { pattern: 'abc:*', matcher: /^abc:/ },
+        ];
+
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', [], blocked)).toBe(true);
+        expect(shouldIncludeMarket('xyz:SCAM', 'xyz', [], blocked)).toBe(false);
+        expect(shouldIncludeMarket('abc:ANYTHING', 'abc', [], blocked)).toBe(
+          false,
+        );
+        expect(shouldIncludeMarket('def:ASSET', 'def', [], blocked)).toBe(true);
+      });
+
+      it('handles complex whitelist + blacklist combinations', () => {
+        const enabled = [
+          { pattern: 'xyz:*', matcher: /^xyz:/ },
+          { pattern: 'abc:GOOD', matcher: 'abc:GOOD' },
+        ];
+        const blocked = [
+          { pattern: 'xyz:SCAM', matcher: 'xyz:SCAM' },
+          { pattern: 'xyz:RISKY', matcher: 'xyz:RISKY' },
+        ];
+
+        // xyz markets whitelisted but specific ones blocked
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, blocked)).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('xyz:SCAM', 'xyz', enabled, blocked)).toBe(
+          false,
+        );
+        expect(shouldIncludeMarket('xyz:RISKY', 'xyz', enabled, blocked)).toBe(
+          false,
+        );
+
+        // abc market specifically whitelisted
+        expect(shouldIncludeMarket('abc:GOOD', 'abc', enabled, blocked)).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('abc:BAD', 'abc', enabled, blocked)).toBe(
+          false,
+        ); // Not whitelisted
+
+        // def not whitelisted at all
+        expect(shouldIncludeMarket('def:ASSET', 'def', enabled, blocked)).toBe(
+          false,
+        );
+      });
+
+      it('returns true immediately when blacklist is empty', () => {
+        const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
+
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, [])).toBe(true);
+      });
     });
   });
 });

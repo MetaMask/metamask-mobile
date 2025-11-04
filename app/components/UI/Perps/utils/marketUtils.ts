@@ -7,6 +7,139 @@ import {
 } from '../constants/hyperLiquidConfig';
 
 /**
+ * Pattern matcher type - either string (exact match) or RegExp (wildcard)
+ */
+export type MarketPatternMatcher = RegExp | string;
+
+/**
+ * Pre-compiled pattern with original pattern string and matcher
+ */
+export interface CompiledMarketPattern {
+  pattern: string;
+  matcher: MarketPatternMatcher;
+}
+
+/**
+ * Escape special regex characters in a string
+ * @param str - String to escape
+ * @returns Escaped string safe for regex
+ */
+export const escapeRegex = (str: string): string =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Compile market filter pattern into optimized matcher
+ * Supports wildcards ("xyz:*"), DEX shorthand ("xyz"), and exact matches ("xyz:TSLA", "BTC")
+ *
+ * @param pattern - Pattern string (e.g., "xyz:*", "BTC", "xyz")
+ * @returns Compiled matcher (RegExp for wildcards, string for exact match)
+ *
+ * @example Wildcard
+ * compileMarketPattern("xyz:*") // → /^xyz:/
+ *
+ * @example DEX shorthand
+ * compileMarketPattern("xyz") // → /^xyz:/
+ *
+ * @example Exact match
+ * compileMarketPattern("BTC") // → "BTC"
+ * compileMarketPattern("xyz:TSLA") // → "xyz:TSLA"
+ */
+export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {
+  if (pattern.endsWith(':*')) {
+    // Wildcard: "xyz:*" → regex /^xyz:/
+    const prefix = pattern.slice(0, -2);
+    return new RegExp(`^${escapeRegex(prefix)}:`);
+  }
+
+  if (!pattern.includes(':')) {
+    // DEX shorthand: "xyz" → regex /^xyz:/
+    return new RegExp(`^${escapeRegex(pattern)}:`);
+  }
+
+  // Exact match: just use string (fastest)
+  return pattern;
+};
+
+/**
+ * Check if a symbol matches a compiled pattern matcher
+ * @param symbol - Market symbol (e.g., "BTC", "xyz:TSLA")
+ * @param matcher - Compiled matcher (string or RegExp)
+ * @returns true if symbol matches the pattern
+ */
+export const matchesMarketPattern = (
+  symbol: string,
+  matcher: MarketPatternMatcher,
+): boolean => {
+  if (typeof matcher === 'string') {
+    // Exact match - fastest
+    return symbol === matcher;
+  }
+
+  // RegExp match - still very fast
+  return matcher.test(symbol);
+};
+
+/**
+ * Check if a market should be included based on whitelist/blacklist patterns
+ * Main DEX markets (null dex) are ALWAYS included (no filtering)
+ *
+ * Logic: Start with all markets → apply whitelist (if non-empty) → apply blacklist
+ *
+ * @param symbol - Market symbol (e.g., "BTC", "xyz:TSLA")
+ * @param dex - DEX identifier (null for main DEX, "xyz" for HIP-3 DEX)
+ * @param compiledEnabledPatterns - Pre-compiled whitelist patterns (empty = allow all)
+ * @param compiledBlockedPatterns - Pre-compiled blacklist patterns (empty = block none)
+ * @returns true if market should be shown to users
+ *
+ * @example Main DEX market (always included)
+ * shouldIncludeMarket("BTC", null, [...], [...]) // → true
+ *
+ * @example HIP-3 with empty whitelist (discovery mode)
+ * shouldIncludeMarket("xyz:TSLA", "xyz", [], []) // → true (allow all)
+ *
+ * @example HIP-3 with whitelist
+ * shouldIncludeMarket("xyz:TSLA", "xyz",
+ *   [{pattern: "xyz:*", matcher: /^xyz:/}], []) // → true (matches whitelist)
+ *
+ * @example HIP-3 with blacklist
+ * shouldIncludeMarket("xyz:SCAM", "xyz", [],
+ *   [{pattern: "xyz:SCAM", matcher: "xyz:SCAM"}]) // → false (blocked)
+ */
+export const shouldIncludeMarket = (
+  symbol: string,
+  dex: string | null,
+  compiledEnabledPatterns: CompiledMarketPattern[],
+  compiledBlockedPatterns: CompiledMarketPattern[],
+): boolean => {
+  // ALWAYS include main DEX markets (no filtering)
+  if (dex === null) {
+    return true;
+  }
+
+  // Step 1: Apply whitelist only if non-empty
+  if (compiledEnabledPatterns.length > 0) {
+    const whitelisted = compiledEnabledPatterns.some(({ matcher }) =>
+      matchesMarketPattern(symbol, matcher),
+    );
+    if (!whitelisted) {
+      return false;
+    }
+  }
+
+  // Step 2: Apply blacklist ONLY if non-empty (early return optimization)
+  if (compiledBlockedPatterns.length === 0) {
+    return true; // No blacklist to check - accept immediately
+  }
+
+  // Only reach here if blacklist has values
+  const blacklisted = compiledBlockedPatterns.some(({ matcher }) =>
+    matchesMarketPattern(symbol, matcher),
+  );
+
+  return !blacklisted;
+};
+
+/**
  * Extract the display symbol from a full symbol string
  * Strips DEX prefix for HIP-3 markets (e.g., "xyz:XYZ100" -> "XYZ100")
  * Returns the symbol unchanged if no DEX prefix is present

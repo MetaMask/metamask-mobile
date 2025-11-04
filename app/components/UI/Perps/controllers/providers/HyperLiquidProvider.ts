@@ -39,6 +39,11 @@ import {
   parseAssetName,
   type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
+import {
+  compileMarketPattern,
+  shouldIncludeMarket,
+  type CompiledMarketPattern,
+} from '../../utils/marketUtils';
 import type {
   SDKOrderParams,
   MetaResponse,
@@ -114,21 +119,6 @@ import type {
 import { PERPS_ERROR_CODES } from '../PerpsController';
 
 /**
- * Compiled pattern matcher type for market filtering
- * - string: exact match (fastest)
- * - RegExp: wildcard/prefix match
- */
-type CompiledPatternMatcher = RegExp | string;
-
-/**
- * Pre-compiled pattern with original pattern and compiled matcher
- */
-interface CompiledPattern {
-  pattern: string;
-  matcher: CompiledPatternMatcher;
-}
-
-/**
  * HyperLiquid provider implementation
  *
  * Implements the IPerpsProvider interface for HyperLiquid protocol.
@@ -174,14 +164,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
     string, // DEX name (empty string for main DEX)
     { data: MarketInfo[]; timestamp: number }
   >();
-  private readonly MARKET_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
 
-  // Cache for compiled market filter patterns (for performance)
-  private patternCache = new Map<string, CompiledPatternMatcher>();
-
-  // Pre-compiled patterns for fast filtering (avoid Map lookups on every check)
-  private compiledEnabledPatterns: CompiledPattern[] = [];
-  private compiledBlockedPatterns: CompiledPattern[] = [];
+  // Pre-compiled patterns for fast filtering
+  private compiledEnabledPatterns: CompiledMarketPattern[] = [];
+  private compiledBlockedPatterns: CompiledMarketPattern[] = [];
 
   // Fee discount context for MetaMask reward discounts (in basis points)
   private userFeeDiscountBips?: number;
@@ -245,7 +231,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // when first needed. This avoids accessing Engine.context before it's ready.
 
     // Pre-compile filter patterns for performance
-    this.recompileAllPatterns();
+    this.compiledEnabledPatterns = this.enabledMarkets.map((pattern) => ({
+      pattern,
+      matcher: compileMarketPattern(pattern),
+    }));
+    this.compiledBlockedPatterns = this.blockedMarkets.map((pattern) => ({
+      pattern,
+      matcher: compileMarketPattern(pattern),
+    }));
 
     // Debug: Confirm batch methods exist and show HIP-3 config
     DevLogger.log('[HyperLiquidProvider] Constructor complete', {
@@ -503,118 +496,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Escape special regex characters
-   * @param str - String to escape
-   * @returns Escaped string safe for regex
-   */
-  private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
-  /**
-   * Compile pattern into optimized matcher (cached)
-   * @param pattern - e.g., "xyz:*", "BTC", "xyz"
-   * @returns Compiled matcher for fast checking
-   */
-  private compilePattern(pattern: string): CompiledPatternMatcher {
-    // Check cache first
-    const cached = this.patternCache.get(pattern);
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    let matcher: CompiledPatternMatcher;
-
-    if (pattern.endsWith(':*')) {
-      // Wildcard: "xyz:*" → regex /^xyz:/
-      const prefix = pattern.slice(0, -2);
-      matcher = new RegExp(`^${this.escapeRegex(prefix)}:`);
-    } else if (!pattern.includes(':')) {
-      // DEX shorthand: "xyz" → regex /^xyz:/
-      matcher = new RegExp(`^${this.escapeRegex(pattern)}:`);
-    } else {
-      // Exact match: just use string
-      matcher = pattern;
-    }
-
-    this.patternCache.set(pattern, matcher);
-    return matcher;
-  }
-
-  /**
-   * Pre-compile all filter patterns for performance
-   * Called once in constructor to avoid Map lookups on every market check
-   */
-  private recompileAllPatterns(): void {
-    this.compiledEnabledPatterns = this.enabledMarkets.map((pattern) => ({
-      pattern,
-      matcher: this.compilePattern(pattern),
-    }));
-    this.compiledBlockedPatterns = this.blockedMarkets.map((pattern) => ({
-      pattern,
-      matcher: this.compilePattern(pattern),
-    }));
-  }
-
-  /**
-   * Fast pattern matching using pre-compiled matcher
-   * @param symbol - Market symbol (e.g., "BTC", "xyz:XYZ100")
-   * @param matcher - Pre-compiled matcher (string or RegExp)
-   * @returns true if matches
-   */
-  private matchesCompiledPattern(
-    symbol: string,
-    matcher: CompiledPatternMatcher,
-  ): boolean {
-    if (typeof matcher === 'string') {
-      // Exact match - fastest
-      return symbol === matcher;
-    }
-
-    // RegExp match - still very fast
-    return matcher.test(symbol);
-  }
-
-  /**
-   * Check if HIP-3 market should be included based on whitelist + blacklist
-   * Main DEX markets are ALWAYS included (no filtering)
-   *
-   * Logic: Start with all → apply whitelist (if non-empty) → apply blacklist
-   * Uses pre-compiled patterns for performance (no Map lookups)
-   * @param symbol - Market symbol (e.g., "BTC", "xyz:XYZ100")
-   * @param dex - DEX name (null for main DEX, "xyz" for HIP-3 DEX)
-   * @returns true if market should be shown
-   */
-  private shouldIncludeMarket(symbol: string, dex: string | null): boolean {
-    // ALWAYS include main DEX markets (no filtering)
-    if (dex === null) {
-      return true;
-    }
-
-    // Step 1: Apply whitelist only if non-empty
-    if (this.compiledEnabledPatterns.length > 0) {
-      const whitelisted = this.compiledEnabledPatterns.some(({ matcher }) =>
-        this.matchesCompiledPattern(symbol, matcher),
-      );
-      if (!whitelisted) {
-        return false;
-      }
-    }
-
-    // Step 2: Apply blacklist ONLY if non-empty (early return optimization)
-    if (this.compiledBlockedPatterns.length === 0) {
-      return true; // No blacklist to check - accept immediately
-    }
-
-    // Only reach here if blacklist has values
-    const blacklisted = this.compiledBlockedPatterns.some(({ matcher }) =>
-      this.matchesCompiledPattern(symbol, matcher),
-    );
-
-    return !blacklisted;
-  }
-
-  /**
    * Check if cached market data is still valid (not expired)
    * @param dex - DEX name (empty string for main DEX)
    * @returns true if cache exists and is not expired
@@ -626,13 +507,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     const age = Date.now() - cached.timestamp;
-    const isValid = age < this.MARKET_CACHE_TTL_MS;
+    const isValid = age < PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
 
     if (!isValid) {
       DevLogger.log('HyperLiquidProvider: Market cache expired', {
         dex: dex || 'main',
         ageMs: age,
-        ttlMs: this.MARKET_CACHE_TTL_MS,
+        ttlMs: PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS,
       });
     }
 
@@ -685,7 +566,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       skipFilters || dex === null
         ? markets // Skip filtering if requested or for main DEX
         : markets.filter((market) =>
-            this.shouldIncludeMarket(market.name, dex),
+            shouldIncludeMarket(
+              market.name,
+              dex,
+              this.compiledEnabledPatterns,
+              this.compiledBlockedPatterns,
+            ),
           );
 
     // Store filtered markets in cache
@@ -697,7 +583,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     DevLogger.log('HyperLiquidProvider: Cached market data', {
       dex: dex || 'main',
       marketCount: filteredMarkets.length,
-      ttlMs: this.MARKET_CACHE_TTL_MS,
+      ttlMs: PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS,
     });
 
     return filteredMarkets;
@@ -3759,7 +3645,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
           result.dex === null
             ? marketsFromDex // Main DEX: no filtering
             : marketsFromDex.filter((asset) =>
-                this.shouldIncludeMarket(asset.name, result.dex),
+                shouldIncludeMarket(
+                  asset.name,
+                  result.dex,
+                  this.compiledEnabledPatterns,
+                  this.compiledBlockedPatterns,
+                ),
               );
 
         combinedUniverse.push(...filteredMarkets);
