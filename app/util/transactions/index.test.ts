@@ -1487,21 +1487,26 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
-  it('returns `Unknown Method` review action key when transaction action key exists', async () => {
-    const expectedReviewActionKey = 'Unknown Method';
+
+  it('returns "Confirm" review action key for ETH send transaction', async () => {
+    const expectedReviewActionKey = 'Confirm';
+
     const result = await getTransactionReviewActionKey(
       { transaction },
       chainId,
     );
+
     expect(result).toEqual(expectedReviewActionKey);
   });
 
-  it('returns correct review action key', async () => {
+  it('returns "Increase Allowance" review action key for increase allowance transaction', async () => {
     const expectedReviewActionKey = 'Increase Allowance';
+
     const result = await getTransactionReviewActionKey(
       { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
+
     expect(result).toEqual(expectedReviewActionKey);
   });
 });
