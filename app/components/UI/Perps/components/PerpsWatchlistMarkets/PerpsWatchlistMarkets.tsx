@@ -30,8 +30,8 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Subscribe to positions and orders to determine initialTab
-  const { positions } = usePerpsLivePositions();
-  const { orders } = usePerpsLiveOrders();
+  const { positions } = usePerpsLivePositions({ throttleMs: 1000 });
+  const { orders } = usePerpsLiveOrders({ throttleMs: 1000 });
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
