@@ -8,7 +8,10 @@ import React, {
 import { ScrollView, TouchableOpacity, View, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import { useCardDelegation } from '../../hooks/useCardDelegation';
+import {
+  useCardDelegation,
+  UserCancelledError,
+} from '../../hooks/useCardDelegation';
 import { useCardSDK } from '../../sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { BAANX_MAX_LIMIT, ARBITRARY_ALLOWANCE } from '../../constants';
@@ -22,7 +25,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import createStyles from './SpendingLimit.styles';
-import useLoadCardData from '../../hooks/useLoadCardData';
 import { SolScope } from '@metamask/keyring-api';
 import {
   ToastContext,
@@ -32,20 +34,25 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { AllowanceState } from '../../types';
-import AssetSelectionBottomSheet, {
-  type SupportedTokenWithChain,
-} from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import {
+  AllowanceState,
+  CardTokenAllowance,
+  DelegationSettingsResponse,
+  CardExternalWalletDetailsResponse,
+  CardNetwork,
+} from '../../types';
+import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
+import { clearCacheData } from '../../../../../core/redux/slices/card';
+import { useDispatch } from 'react-redux';
 
-const getNetworkFromCaipChainId = (
-  caipChainId: string,
-): 'linea' | 'linea-us' | 'solana' => {
+const getNetworkFromCaipChainId = (caipChainId: string): CardNetwork => {
   if (caipChainId === SolScope.Mainnet || caipChainId.startsWith('solana:')) {
     return 'solana';
   }
@@ -58,7 +65,22 @@ const SpendingLimit = ({
   route?: {
     params?: {
       flow?: 'manage' | 'enable';
-      selectedToken?: SupportedTokenWithChain;
+      selectedToken?: CardTokenAllowance;
+      priorityToken?: CardTokenAllowance | null;
+      allTokens?: CardTokenAllowance[];
+      delegationSettings?: DelegationSettingsResponse | null;
+      externalWalletDetailsData?:
+        | {
+            walletDetails: never[];
+            mappedWalletDetails: never[];
+            priorityWalletDetail: null;
+          }
+        | {
+            walletDetails: CardExternalWalletDetailsResponse;
+            mappedWalletDetails: CardTokenAllowance[];
+            priorityWalletDetail: CardTokenAllowance | undefined;
+          }
+        | null;
     };
   };
 }) => {
@@ -67,9 +89,29 @@ const SpendingLimit = ({
   const styles = createStyles(theme);
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { sdk } = useCardSDK();
+  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
+    useState(false);
+  const assetSelectionSheetRef = React.useRef<BottomSheetRef>(null);
 
   const flow = route?.params?.flow || 'manage';
   const selectedTokenFromRoute = route?.params?.selectedToken;
+  const priorityToken = route?.params?.priorityToken;
+  const allTokens = route?.params?.allTokens;
+  const delegationSettings = route?.params?.delegationSettings ?? null;
+  const externalWalletDetailsData = route?.params?.externalWalletDetailsData;
+  const [showOptions, setShowOptions] = useState(false);
+  const [selectedToken, setSelectedToken] = useState<CardTokenAllowance | null>(
+    null,
+  );
+  const [tempSelectedOption, setTempSelectedOption] = useState<
+    'full' | 'restricted'
+  >('full');
+  const [customLimit, setCustomLimit] = useState<string>('');
+  const [allowNavigation, setAllowNavigation] = useState(false);
+  const { submitDelegation, isLoading: isDelegationLoading } =
+    useCardDelegation(selectedToken);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     trackEvent(
@@ -84,18 +126,21 @@ const SpendingLimit = ({
     );
   }, [trackEvent, createEventBuilder, flow]);
 
-  const {
-    priorityToken,
-    allTokens,
-    isLoading: isPriorityTokenLoading,
-    delegationSettings,
-    externalWalletDetailsData,
-  } = useLoadCardData();
-  const { sdk } = useCardSDK();
+  // Block back navigation while delegation is loading
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (!isDelegationLoading || allowNavigation) {
+        // If not loading or we're explicitly allowing navigation, allow it
+        return;
+      }
+      Logger.log('Blocking back navigation while delegation is loading');
 
-  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
-    useState(false);
-  const assetSelectionSheetRef = React.useRef<BottomSheetRef>(null);
+      // Prevent default navigation behavior
+      e.preventDefault();
+    });
+
+    return unsubscribe;
+  }, [navigation, isDelegationLoading, allowNavigation]);
 
   // Derive spending limit settings from priority token
   const spendingLimitSettings = useMemo(() => {
@@ -118,126 +163,37 @@ const SpendingLimit = ({
     };
   }, [priorityToken]);
 
-  const [showOptions, setShowOptions] = useState(false);
-  const [selectedToken, setSelectedToken] =
-    useState<SupportedTokenWithChain | null>(null);
-  const [tempSelectedOption, setTempSelectedOption] = useState<
-    'full' | 'restricted'
-  >('full');
-
-  // Create a token object for the delegation hook from selectedToken or priorityToken
-  const tokenForDelegation = useMemo(() => {
-    if (selectedToken) {
-      return {
-        address: selectedToken.address,
-        symbol: selectedToken.symbol,
-        decimals: selectedToken.decimals,
-        caipChainId: selectedToken.caipChainId,
-        name: selectedToken.name,
-        allowance: selectedToken.allowance,
-        allowanceState: selectedToken.allowanceState,
-        walletAddress: priorityToken?.walletAddress, // Keep wallet address from priority token
-        delegationContract:
-          selectedToken.delegationContract || priorityToken?.delegationContract,
-      };
-    }
-    return priorityToken;
-  }, [selectedToken, priorityToken]);
-
-  const { submitDelegation, isLoading: isDelegationLoading } =
-    useCardDelegation(tokenForDelegation);
-  const [tempLimitAmount, setTempLimitAmount] = useState(() => {
-    // Use the stored spending limit settings as the primary source
-    if (!spendingLimitSettings.isFullAccess) {
-      return spendingLimitSettings.limitAmount || '0';
-    }
-    return spendingLimitSettings.limitAmount || '0';
-  });
-
   useEffect(() => {
-    // For 'enable' flow, use the token passed from AssetSelectionBottomSheet
-    if (flow === 'enable' && selectedTokenFromRoute) {
+    // If a token was passed from AssetSelectionBottomSheet (any flow), use it
+    if (selectedTokenFromRoute) {
       setSelectedToken(selectedTokenFromRoute);
       return;
     }
 
-    // For 'manage' flow, determine the best token to pre-select
-    if (flow === 'manage' && !selectedToken) {
+    // For both flows, pre-select the priority token if no token is selected yet
+    // and no token was passed from the route
+    if (!selectedToken && priorityToken) {
       // Check if priority token is Solana
       const isPriorityTokenSolana =
         priorityToken?.caipChainId === SolScope.Mainnet ||
         priorityToken?.caipChainId?.startsWith('solana:');
 
-      // If priority token exists and is NOT Solana, use it
-      if (priorityToken && !isPriorityTokenSolana) {
-        setSelectedToken({
-          address: priorityToken.address ?? '',
-          symbol: priorityToken.symbol ?? '',
-          name: priorityToken.name ?? '',
-          decimals: priorityToken.decimals ?? 0,
-          enabled: true,
-          caipChainId: priorityToken.caipChainId,
-          chainName: 'Linea',
-          allowanceState: priorityToken.allowanceState,
-          allowance: priorityToken.allowance,
-        });
+      // Only pre-select if it's NOT Solana (Solana delegation is not supported)
+      if (!isPriorityTokenSolana) {
+        // Spread the entire priorityToken to preserve all fields including delegationContract
+        setSelectedToken(priorityToken);
       }
     }
   }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
 
-  // Update limit amount when spending limit settings change
-  useEffect(() => {
-    if (
-      tempSelectedOption === 'restricted' &&
-      spendingLimitSettings.limitAmount
-    ) {
-      setTempLimitAmount(spendingLimitSettings.limitAmount);
+  const handleOptionSelect = useCallback((option: 'full' | 'restricted') => {
+    setTempSelectedOption(option);
+
+    // If switching to full access, return to initial view
+    if (option === 'full') {
+      setShowOptions(false);
     }
-  }, [spendingLimitSettings.limitAmount, tempSelectedOption]);
-
-  // Also update when spending limit settings become available for the first time
-  useEffect(() => {
-    if (
-      spendingLimitSettings.limitAmount &&
-      tempSelectedOption === 'restricted' &&
-      tempLimitAmount === '0'
-    ) {
-      setTempLimitAmount(spendingLimitSettings.limitAmount);
-    }
-  }, [spendingLimitSettings.limitAmount, tempSelectedOption, tempLimitAmount]);
-
-  // Handle initial load when spending limit settings become available
-  useEffect(() => {
-    if (
-      !isPriorityTokenLoading &&
-      spendingLimitSettings.limitAmount &&
-      tempSelectedOption === 'restricted'
-    ) {
-      setTempLimitAmount(spendingLimitSettings.limitAmount);
-    }
-  }, [
-    isPriorityTokenLoading,
-    spendingLimitSettings.limitAmount,
-    tempSelectedOption,
-  ]);
-
-  const handleOptionSelect = useCallback(
-    (option: 'full' | 'restricted') => {
-      setTempSelectedOption(option);
-
-      // If switching to full access, return to initial view
-      if (option === 'full') {
-        setShowOptions(false);
-      }
-      // If switching to restricted, set the limit amount to stored spending limit or priority token allowance
-      else if (option === 'restricted') {
-        const limitValue =
-          spendingLimitSettings.limitAmount || priorityToken?.allowance || '0';
-        setTempLimitAmount(limitValue);
-      }
-    },
-    [spendingLimitSettings.limitAmount, priorityToken],
-  );
+  }, []);
 
   const handleEditLimit = useCallback(() => {
     trackEvent(
@@ -249,14 +205,8 @@ const SpendingLimit = ({
     );
     // When "Set a limit" is clicked, show both options and default to restricted
     setTempSelectedOption('restricted');
-
-    // Use stored spending limit settings or priority token allowance
-    const limitValue =
-      spendingLimitSettings.limitAmount || priorityToken?.allowance || '0';
-    setTempLimitAmount(limitValue);
-
     setShowOptions(true);
-  }, [spendingLimitSettings, priorityToken, trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder]);
 
   const handleConfirm = useCallback(async () => {
     trackEvent(
@@ -267,34 +217,26 @@ const SpendingLimit = ({
         .build(),
     );
     const isFullAccess = tempSelectedOption === 'full';
-    const newSpendingLimit = {
-      isFullAccess,
-      limitAmount: isFullAccess ? undefined : tempLimitAmount,
-    };
+    const isRestricted = tempSelectedOption === 'restricted';
 
     try {
-      if (
-        sdk &&
-        (newSpendingLimit.isFullAccess ||
-          (newSpendingLimit.limitAmount && !newSpendingLimit.isFullAccess))
-      ) {
+      if (sdk && (isFullAccess || isRestricted)) {
         const currentLimit = parseFloat(
           spendingLimitSettings.limitAmount || '0',
         );
-        const newLimit = newSpendingLimit.isFullAccess
-          ? parseFloat(BAANX_MAX_LIMIT)
-          : parseFloat(newSpendingLimit.limitAmount || '0');
+        const newLimit = parseFloat(BAANX_MAX_LIMIT);
 
         const isSwitchingFromFullAccess =
-          spendingLimitSettings.isFullAccess && !newSpendingLimit.isFullAccess;
+          spendingLimitSettings.isFullAccess && !isFullAccess;
 
         const isLimitChange = Math.abs(newLimit - currentLimit) > 0.01;
 
-        if (isSwitchingFromFullAccess || isLimitChange) {
-          const amount = newSpendingLimit.isFullAccess
-            ? BAANX_MAX_LIMIT
-            : newSpendingLimit.limitAmount || '0';
+        // Determine the amount to use based on selected option
+        const delegationAmount = isFullAccess
+          ? BAANX_MAX_LIMIT
+          : customLimit || '0';
 
+        if (isSwitchingFromFullAccess || isLimitChange || isRestricted) {
           // Use selectedToken if available, otherwise fall back to priorityToken
           const tokenToUse = selectedToken || priorityToken;
           const currency = tokenToUse?.symbol;
@@ -303,10 +245,13 @@ const SpendingLimit = ({
             : 'linea';
 
           await submitDelegation({
-            amount,
+            amount: delegationAmount,
             currency: currency || '',
             network,
           });
+
+          // Invalidate external wallet details cache to force refetch
+          dispatch(clearCacheData('card-external-wallet-details'));
 
           // Show success toast
           toastRef?.current?.showToast({
@@ -319,14 +264,30 @@ const SpendingLimit = ({
             backgroundColor: theme.colors.success.muted,
             hasNoTimeout: false,
           });
+
+          // Allow navigation and go back
+          setAllowNavigation(true);
+          // Use setTimeout to ensure the state update is processed
+          setTimeout(() => {
+            navigation.goBack();
+          }, 0);
         }
       }
 
       setShowOptions(false);
     } catch (error) {
+      // Reset navigation flag on error
+      setAllowNavigation(false);
+
+      // Don't show error toast if user cancelled the transaction
+      if (error instanceof UserCancelledError) {
+        Logger.log('User cancelled the delegation transaction');
+        return;
+      }
+
       Logger.error(error as Error, 'Failed to save spending limit');
 
-      // Show error toast
+      // Show error toast only for actual errors
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -341,24 +302,35 @@ const SpendingLimit = ({
       setTempSelectedOption(
         spendingLimitSettings.isFullAccess ? 'full' : 'restricted',
       );
-      setTempLimitAmount(spendingLimitSettings.limitAmount || '0');
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tempSelectedOption,
-    tempLimitAmount,
+    customLimit,
     sdk,
     spendingLimitSettings.isFullAccess,
     spendingLimitSettings.limitAmount,
     submitDelegation,
     selectedToken,
-    priorityToken?.symbol,
-    priorityToken?.caipChainId,
-    priorityToken?.walletAddress,
+    priorityToken,
+    trackEvent,
+    createEventBuilder,
+    toastRef,
+    theme.colors.success.default,
+    theme.colors.success.muted,
+    theme.colors.error.default,
+    theme.colors.error.muted,
+    dispatch,
+    navigation,
   ]);
 
   const handleCancel = useCallback(() => {
+    // Don't allow cancel while delegation is loading
+    if (isDelegationLoading) {
+      return;
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -372,9 +344,15 @@ const SpendingLimit = ({
     } else {
       navigation.goBack();
     }
-  }, [navigation, showOptions, trackEvent, createEventBuilder]);
+  }, [
+    navigation,
+    showOptions,
+    trackEvent,
+    createEventBuilder,
+    isDelegationLoading,
+  ]);
 
-  const handleTokenSelection = useCallback((token: SupportedTokenWithChain) => {
+  const handleTokenSelection = useCallback((token: CardTokenAllowance) => {
     setSelectedToken(token);
     setOpenAssetSelectionBottomSheet(false);
   }, []);
@@ -409,7 +387,7 @@ const SpendingLimit = ({
             {selectedToken.symbol}
           </Text>
           <Text variant={TextVariant.BodySM} style={styles.selectedChainName}>
-            {selectedToken.chainName}
+            {mapCaipChainIdToChainName(selectedToken.caipChainId)}
           </Text>
         </View>
         <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
@@ -422,12 +400,16 @@ const SpendingLimit = ({
     selectedToken?.caipChainId === SolScope.Mainnet ||
     selectedToken?.caipChainId?.startsWith('solana:');
 
-  const isConfirmDisabled = useMemo(
-    () =>
-      (tempSelectedOption === 'restricted' && !tempLimitAmount) ||
-      isSolanaSelected,
-    [tempSelectedOption, tempLimitAmount, isSolanaSelected],
-  );
+  const isConfirmDisabled = useMemo(() => {
+    if (isSolanaSelected) return true;
+    // For restricted mode, require a valid custom limit to be entered
+    if (tempSelectedOption === 'restricted') {
+      const limitNum = parseFloat(customLimit);
+      // Allow 0 (to remove token) or any positive number
+      return customLimit === '' || isNaN(limitNum) || limitNum < 0;
+    }
+    return false;
+  }, [tempSelectedOption, isSolanaSelected, customLimit]);
 
   return (
     <ScrollView
@@ -530,9 +512,21 @@ const SpendingLimit = ({
                 <View style={styles.limitInputContainer}>
                   <TextInput
                     style={styles.limitInput}
-                    value={tempLimitAmount}
-                    onChangeText={setTempLimitAmount}
-                    keyboardType="numeric"
+                    value={customLimit}
+                    onChangeText={(text) => {
+                      // Allow only numbers and decimal point
+                      const sanitized = text.replace(/[^0-9.]/g, '');
+                      // Prevent multiple decimal points
+                      const parts = sanitized.split('.');
+                      const formatted =
+                        parts.length > 2
+                          ? parts[0] + '.' + parts.slice(1).join('')
+                          : sanitized;
+                      setCustomLimit(formatted);
+                    }}
+                    placeholder="0"
+                    placeholderTextColor={theme.colors.text.muted}
+                    keyboardType="decimal-pad"
                     returnKeyType="done"
                   />
                 </View>
@@ -589,8 +583,7 @@ const SpendingLimit = ({
         <AssetSelectionBottomSheet
           sheetRef={assetSelectionSheetRef}
           setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
-          priorityToken={priorityToken}
-          tokensWithAllowances={allTokens}
+          tokensWithAllowances={allTokens ?? []}
           delegationSettings={delegationSettings}
           cardExternalWalletDetails={externalWalletDetailsData}
           selectionOnly

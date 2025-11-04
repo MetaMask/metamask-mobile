@@ -205,6 +205,7 @@ const BridgeView = () => {
   });
 
   const isSubmitDisabled =
+    isLoading ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
