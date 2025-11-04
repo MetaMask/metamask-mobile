@@ -198,6 +198,10 @@ export interface SignWithdrawResponse {
 }
 
 export interface PredictProvider {
+  readonly providerId: string;
+  readonly name: string;
+  readonly chainId: number;
+
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
