@@ -28,6 +28,12 @@ import styleSheet from './AddressCopy.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import type { AddressCopyProps } from './AddressCopy.types';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
 
 const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -84,12 +90,25 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   ]);
 
   const navigateToAddressList = useCallback(() => {
+    // Start the trace before navigating to the address list to include the
+    // navigation and render times in the trace.
+    trace({
+      name: TraceName.ShowAccountAddressList,
+      op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'navbar.copy_address',
+      },
+    });
+
     navigate(
       ...createAddressListNavigationDetails({
         groupId: selectedAccountGroupId as AccountGroupId,
         title: `${strings(
           'multichain_accounts.address_list.receiving_address',
         )}`,
+        onLoad: () => {
+          endTrace({ name: TraceName.ShowAccountAddressList });
+        },
       }),
     );
   }, [navigate, selectedAccountGroupId]);

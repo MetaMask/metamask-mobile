@@ -26,6 +26,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.tokenMethodSetApprovalForAll,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
+  TransactionType.tokenMethodSafeTransferFrom,
 ];
 
 export const REDESIGNED_APPROVE_TYPES = [
@@ -38,23 +39,28 @@ export const REDESIGNED_TRANSFER_TYPES = [
   TransactionType.simpleSend,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
+  TransactionType.tokenMethodSafeTransferFrom,
 ];
 
 export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
   TransactionType.contractInteraction,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
-  'perpsDeposit',
+  TransactionType.perpsDeposit,
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  'perpsDeposit',
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictClaim,
+  TransactionType.predictWithdraw,
   TransactionType.simpleSend,
   TransactionType.stakingClaim,
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
+  TransactionType.tokenMethodSafeTransferFrom,
 ];
 
 export const EARN_CONTRACT_INTERACTION_TYPES = [

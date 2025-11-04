@@ -5,6 +5,7 @@ import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetw
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain/multichain';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 
 /**
  * Returns the 1 day price percentage change for a given asset.
@@ -16,6 +17,9 @@ export const useTokenPricePercentageChange = (
 ): number | undefined => {
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -29,6 +33,13 @@ export const useTokenPricePercentageChange = (
         getNativeTokenAddress(asset?.chainId as Hex) as Hex
       ]?.pricePercentChange1d
     : tokenPercentageChange;
+
+  if (isMultichainAccountsState2Enabled) {
+    return (
+      allMultichainAssetsRates?.[asset?.address as CaipAssetType]?.marketData
+        ?.pricePercentChange?.P1D ?? evmPricePercentChange1d
+    );
+  }
   if (isEvmNetworkSelected) {
     return evmPricePercentChange1d;
   }

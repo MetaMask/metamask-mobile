@@ -15,6 +15,7 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
   selectPendingSmartTransactionsBySender: () => [],
+  selectPendingSmartTransactionsForSelectedAccountGroup: () => [],
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -32,10 +33,6 @@ jest.mock('../../../../../util/dappTransactions', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
   context: {
-    KeyringController: {
-      resetQRKeyringState: jest.fn(),
-      getOrAddQRKeyring: jest.fn(),
-    },
     GasFeeController: {
       getGasFeeEstimatesAndStartPolling: jest.fn().mockResolvedValue(null),
       stopPolling: jest.fn(),

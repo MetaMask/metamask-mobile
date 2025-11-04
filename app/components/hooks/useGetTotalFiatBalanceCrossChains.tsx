@@ -1,9 +1,6 @@
 import { useSelector } from 'react-redux';
 import { toHexadecimal, weiToFiatNumber } from '../../util/number';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../selectors/networkController';
 import { selectAccountsByChainId } from '../../selectors/accountTrackerController';
 import { hexToBN, toChecksumHexAddress } from '@metamask/controller-utils';
 import { TokensWithBalances } from './useGetFormattedTokensPerChain';
@@ -15,6 +12,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { isTestNet } from '../../util/networks';
 import { useMemo } from 'react';
+import { selectEVMEnabledNetworks } from '../../selectors/networkEnablementController';
 
 interface TokenFiatBalancesCrossChains {
   chainId: string;
@@ -45,12 +43,17 @@ export const useGetTotalFiatBalanceCrossChains = (
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-  const currentChainId = useSelector(selectChainId);
+  const enabledChains = useSelector(selectEVMEnabledNetworks);
 
   return useMemo(() => {
     const validAccounts =
       accounts.length > 0 && accounts.every((item) => item !== undefined);
-    if (!validAccounts || (isTestNet(currentChainId) && !showFiatOnTestnets)) {
+    if (
+      !validAccounts ||
+      (enabledChains.length === 1 &&
+        isTestNet(enabledChains[0]) &&
+        !showFiatOnTestnets)
+    ) {
       return {};
     }
 
@@ -165,6 +168,6 @@ export const useGetTotalFiatBalanceCrossChains = (
     currentCurrency,
     accountsByChainId,
     showFiatOnTestnets,
-    currentChainId,
+    enabledChains,
   ]);
 };

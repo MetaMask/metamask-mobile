@@ -2,10 +2,14 @@ import { LendingPositionHistory } from '@metamask/stake-sdk';
 import { act } from '@testing-library/react-hooks';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
 import useEarningsHistory from './useEarningsHistory';
+import { RootState } from '../../../../reducers';
 
 // Mock the stakingApiService
 jest.mock('../../Stake/sdk/stakeSdkProvider', () => ({
@@ -27,6 +31,48 @@ describe('useEarningsHistory', () => {
   const mockSelectedAddress = '0x123';
   const mockChainId = '0x1';
   const mockLimitDays = 365;
+  const accountId = `account-${mockSelectedAddress}`;
+  const groupId = `keyring:test-wallet/ethereum`;
+  const walletId = `keyring:test-wallet`;
+
+  const mockInitialState: DeepPartial<RootState> = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: {
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+          internalAccounts: {
+            accounts: {
+              [accountId]: {
+                id: accountId,
+                address: mockSelectedAddress,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+            },
+            selectedAccount: accountId,
+          },
+        },
+        AccountTreeController: {
+          accountTree: {
+            selectedAccountGroup: groupId,
+            wallets: {
+              [walletId]: {
+                id: walletId,
+                metadata: { name: 'Test Wallet' },
+                groups: {
+                  [groupId]: {
+                    id: groupId,
+                    accounts: [accountId],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
 
   const mockPooledStakingAsset = {
     chainId: mockChainId,
@@ -126,25 +172,7 @@ describe('useEarningsHistory', () => {
           limitDays: mockLimitDays,
         }),
       {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-              AccountsController: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-                internalAccounts: {
-                  accounts: {
-                    [mockSelectedAddress]: {
-                      address: mockSelectedAddress,
-                      type: 'eip155:eoa',
-                    },
-                  },
-                  selectedAccount: mockSelectedAddress,
-                },
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 
@@ -182,25 +210,7 @@ describe('useEarningsHistory', () => {
           limitDays: mockLimitDays,
         }),
       {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-              AccountsController: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-                internalAccounts: {
-                  accounts: {
-                    [mockSelectedAddress]: {
-                      address: mockSelectedAddress,
-                      type: 'eip155:eoa',
-                    },
-                  },
-                  selectedAccount: mockSelectedAddress,
-                },
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 
@@ -250,25 +260,7 @@ describe('useEarningsHistory', () => {
           limitDays: mockLimitDays,
         }),
       {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-              AccountsController: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-                internalAccounts: {
-                  accounts: {
-                    [mockSelectedAddress]: {
-                      address: mockSelectedAddress,
-                      type: 'eip155:eoa',
-                    },
-                  },
-                  selectedAccount: mockSelectedAddress,
-                },
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 
@@ -296,25 +288,7 @@ describe('useEarningsHistory', () => {
           limitDays: mockLimitDays,
         }),
       {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-              AccountsController: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-                internalAccounts: {
-                  accounts: {
-                    [mockSelectedAddress]: {
-                      address: mockSelectedAddress,
-                      type: 'eip155:eoa',
-                    },
-                  },
-                  selectedAccount: mockSelectedAddress,
-                },
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 
@@ -342,25 +316,7 @@ describe('useEarningsHistory', () => {
           limitDays: mockLimitDays,
         }),
       {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-              AccountsController: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-                internalAccounts: {
-                  accounts: {
-                    [mockSelectedAddress]: {
-                      address: mockSelectedAddress,
-                      type: 'eip155:eoa',
-                    },
-                  },
-                  selectedAccount: mockSelectedAddress,
-                },
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 

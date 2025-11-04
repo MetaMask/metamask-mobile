@@ -1,19 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useLayoutEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import HeaderBase from '../../../../component-library/components/HeaderBase';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { IconName } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -28,6 +21,7 @@ import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { strings } from '../../../../../locales/i18n';
+import { getAddressListNavbarOptions } from '../../../UI/Navbar';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -43,7 +37,7 @@ export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { groupId, title } = useParams<AddressListProps>();
+  const { groupId, title, onLoad } = useParams<AddressListProps>();
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -51,55 +45,68 @@ export const AddressList = () => {
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
 
-  const renderAddressItem = useCallback(({ item }: { item: AddressItem }) => {
-    const copyAddressToClipboard = async () => {
-      await ClipboardManager.setString(item.account.address);
-    };
-
-    return (
-      <MultichainAddressRow
-        chainId={item.scope}
-        networkName={item.networkName}
-        address={item.account.address}
-        copyParams={{
-          successMessage: strings('multichain_accounts.address_list.copied'),
-          callback: copyAddressToClipboard,
-        }}
-        icons={[
-          {
-            name: IconName.QrCode,
-            callback: () => {
-              // TODO: Implement navigation to QR code screen when it is ready
+  const renderAddressItem = useCallback(
+    ({ item }: { item: AddressItem }) => {
+      const copyAddressToClipboard = async () => {
+        await ClipboardManager.setString(item.account.address);
+      };
+      return (
+        <MultichainAddressRow
+          chainId={item.scope}
+          networkName={item.networkName}
+          address={item.account.address}
+          copyParams={{
+            successMessage: strings('multichain_accounts.address_list.copied'),
+            callback: copyAddressToClipboard,
+          }}
+          icons={[
+            {
+              name: IconName.QrCode,
+              callback: () => {
+                navigation.navigate(
+                  Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+                  {
+                    screen:
+                      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+                    params: {
+                      address: item.account.address,
+                      networkName: item.networkName,
+                      chainId: item.scope,
+                      groupId,
+                    },
+                  },
+                );
+              },
+              testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
             },
-            testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
-          },
-        ]}
-      />
-    );
-  }, []);
+          ]}
+        />
+      );
+    },
+    [navigation, groupId],
+  );
+
+  useLayoutEffect(() => {
+    if (title) {
+      navigation.setOptions({
+        ...getAddressListNavbarOptions(
+          navigation,
+          title,
+          AddressListIds.GO_BACK,
+        ),
+        headerShown: true,
+      });
+    }
+  }, [navigation, title]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <HeaderBase
-        style={styles.header}
-        startAccessory={
-          <ButtonLink
-            testID={AddressListIds.GO_BACK}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => navigation.goBack()}
-          />
-        }
-      >
-        {title}
-      </HeaderBase>
-      <View style={styles.container}>
-        <FlashList
-          data={internalAccountsSpreadByScopes}
-          keyExtractor={(item) => item.scope}
-          renderItem={renderAddressItem}
-        />
-      </View>
-    </SafeAreaView>
+    <View style={styles.safeArea}>
+      <FlashList
+        data={internalAccountsSpreadByScopes}
+        keyExtractor={(item) => item.scope}
+        renderItem={renderAddressItem}
+        onLoad={onLoad}
+      />
+    </View>
   );
 };

@@ -1,4 +1,16 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
+import { isEvmAccountType } from '@metamask/keyring-api';
+
+import { selectWallets } from '../../../../../selectors/multichainAccounts/wallets';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import {
+  isSolanaAccount,
+  isBtcAccount,
+  isTronAccount,
+} from '../../../../../core/Multichain/utils';
+import { useSendContext } from '../../context/send-context';
+import { useSendType } from './useSendType';
 import { useAccounts } from './useAccounts';
 
 jest.mock('react-redux', () => ({
@@ -15,10 +27,12 @@ jest.mock('@metamask/keyring-api', () => ({
 
 jest.mock('../../../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(),
+  isBtcAccount: jest.fn(),
+  isTronAccount: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/wallets', () => ({
-  selectMultichainWallets: jest.fn(),
+  selectWallets: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/accountsController', () => ({
@@ -29,15 +43,6 @@ jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
 
-import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-
-import { useSelector } from 'react-redux';
-import { useSendType } from './useSendType';
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
-import { useSendContext } from '../../context/send-context';
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseSendType = useSendType as jest.MockedFunction<typeof useSendType>;
 const mockIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
@@ -45,6 +50,12 @@ const mockIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
 >;
 const mockIsSolanaAccount = isSolanaAccount as jest.MockedFunction<
   typeof isSolanaAccount
+>;
+const mockIsBtcAccount = isBtcAccount as jest.MockedFunction<
+  typeof isBtcAccount
+>;
+const mockIsTronAccount = isTronAccount as jest.MockedFunction<
+  typeof isTronAccount
 >;
 const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
@@ -75,6 +86,30 @@ describe('useAccounts', () => {
     },
   };
 
+  const mockBitcoinAccount = {
+    id: 'bitcoin-account-1',
+    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    type: 'bip122:p2wpkh',
+    metadata: {
+      name: 'Bitcoin Account 1',
+      keyring: {
+        type: 'Bitcoin Keyring',
+      },
+    },
+  };
+
+  const mockTronAccount = {
+    id: 'tron-account-1',
+    address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    type: 'tron:eoa',
+    metadata: {
+      name: 'Tron Account 1',
+      keyring: {
+        type: 'Tron Keyring',
+      },
+    },
+  };
+
   const mockWallet = {
     id: 'wallet-1',
     metadata: {
@@ -95,18 +130,34 @@ describe('useAccounts', () => {
           name: 'Group 2',
         },
       },
+      'group-3': {
+        id: 'group-3',
+        accounts: ['bitcoin-account-1'],
+        metadata: {
+          name: 'Group 3',
+        },
+      },
+      'group-4': {
+        id: 'group-4',
+        accounts: ['tron-account-1'],
+        metadata: {
+          name: 'Group 4',
+        },
+      },
     },
   };
 
   const mockInternalAccountsById = {
     'evm-account-1': mockEvmAccount,
     'solana-account-1': mockSolanaAccount,
+    'bitcoin-account-1': mockBitcoinAccount,
+    'tron-account-1': mockTronAccount,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [mockWallet];
       }
       if (selector === selectInternalAccountsById) {
@@ -121,18 +172,22 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
 
     mockUseSendContext.mockReturnValue({
       from: undefined,
+      maxValueMode: false,
       updateAsset: jest.fn(),
-
       updateTo: jest.fn(),
       updateValue: jest.fn(),
     });
 
     mockIsEvmAccountType.mockReturnValue(true);
     mockIsSolanaAccount.mockReturnValue(false);
+    mockIsBtcAccount.mockReturnValue(false);
+    mockIsTronAccount.mockReturnValue(false);
   });
 
   describe('when isEvmSendType is true', () => {
@@ -143,6 +198,8 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
       mockIsEvmAccountType.mockImplementation(
         (accountType) => accountType === 'eip155:eoa',
@@ -155,8 +212,11 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Group 1',
+          accountGroupName: 'Group 1',
+          accountName: 'Account 1',
+          accountType: 'eip155:eoa',
           address: '0x1234567890123456789012345678901234567890',
+          walletName: 'Wallet 1',
         },
       ]);
     });
@@ -179,8 +239,8 @@ describe('useAccounts', () => {
     it('filters out account when from address matches account address', () => {
       mockUseSendContext.mockReturnValue({
         from: '0x1234567890123456789012345678901234567890',
+        maxValueMode: false,
         updateAsset: jest.fn(),
-
         updateTo: jest.fn(),
         updateValue: jest.fn(),
       });
@@ -199,6 +259,8 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
       mockIsEvmAccountType.mockReturnValue(false);
       mockIsSolanaAccount.mockImplementation(
@@ -211,8 +273,11 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Group 2',
+          accountGroupName: 'Group 2',
+          accountName: 'Solana Account 1',
+          accountType: 'solana:data-account',
           address: 'Sol1234567890123456789012345678901234567890',
+          walletName: 'Wallet 1',
         },
       ]);
     });
@@ -229,6 +294,127 @@ describe('useAccounts', () => {
     });
   });
 
+  describe('when isBitcoinSendType is true', () => {
+    beforeEach(() => {
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: true,
+        isTronSendType: false,
+      });
+      mockIsEvmAccountType.mockReturnValue(false);
+      mockIsSolanaAccount.mockReturnValue(false);
+      mockIsBtcAccount.mockImplementation(
+        (account) => account.type === 'bip122:p2wpkh',
+      );
+    });
+
+    it('returns Bitcoin compatible accounts', () => {
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([
+        {
+          accountGroupName: 'Group 3',
+          accountName: 'Bitcoin Account 1',
+          accountType: 'bip122:p2wpkh',
+          address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+          walletName: 'Wallet 1',
+        },
+      ]);
+    });
+
+    it('filters out non-Bitcoin accounts', () => {
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].address).toBe(
+        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(mockEvmAccount);
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(mockSolanaAccount);
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(mockBitcoinAccount);
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(mockTronAccount);
+    });
+
+    it('filters out account when from address matches Bitcoin account address', () => {
+      mockUseSendContext.mockReturnValue({
+        from: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+        maxValueMode: false,
+        updateAsset: jest.fn(),
+        updateTo: jest.fn(),
+        updateValue: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([]);
+    });
+  });
+
+  describe('when isTronSendType is true', () => {
+    beforeEach(() => {
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: true,
+      });
+      mockIsEvmAccountType.mockReturnValue(false);
+      mockIsSolanaAccount.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsTronAccount.mockImplementation(
+        (account) => account.type === 'tron:eoa',
+      );
+    });
+
+    it('returns Tron compatible accounts', () => {
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([
+        {
+          accountGroupName: 'Group 4',
+          accountName: 'Tron Account 1',
+          accountType: 'tron:eoa',
+          address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+          walletName: 'Wallet 1',
+        },
+      ]);
+    });
+
+    it('filters out non-Tron accounts', () => {
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].address).toBe(
+        'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+      );
+      expect(mockIsTronAccount).toHaveBeenCalledWith(mockEvmAccount);
+      expect(mockIsTronAccount).toHaveBeenCalledWith(mockSolanaAccount);
+      expect(mockIsTronAccount).toHaveBeenCalledWith(mockBitcoinAccount);
+      expect(mockIsTronAccount).toHaveBeenCalledWith(mockTronAccount);
+    });
+
+    it('filters out account when from address matches Tron account address', () => {
+      mockUseSendContext.mockReturnValue({
+        from: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+        maxValueMode: false,
+        updateAsset: jest.fn(),
+        updateTo: jest.fn(),
+        updateValue: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([]);
+    });
+  });
+
   describe('when neither EVM nor Solana send type is active', () => {
     beforeEach(() => {
       mockUseSendType.mockReturnValue({
@@ -237,6 +423,8 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
     });
 
@@ -249,7 +437,7 @@ describe('useAccounts', () => {
 
   it('handles empty wallets array', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [];
       }
       if (selector === selectInternalAccountsById) {
@@ -265,7 +453,7 @@ describe('useAccounts', () => {
 
   it('handles missing internal accounts', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [mockWallet];
       }
       if (selector === selectInternalAccountsById) {
@@ -286,6 +474,8 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
     mockIsEvmAccountType.mockReturnValue(false);
 
@@ -301,7 +491,7 @@ describe('useAccounts', () => {
     };
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [walletWithEmptyGroups];
       }
       if (selector === selectInternalAccountsById) {
@@ -330,7 +520,7 @@ describe('useAccounts', () => {
     };
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [walletWithEmptyAccountGroups];
       }
       if (selector === selectInternalAccountsById) {
@@ -380,13 +570,15 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
       mockIsEvmAccountType.mockImplementation(
         (accountType) => accountType === 'eip155:eoa',
       );
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainWallets) {
+        if (selector === selectWallets) {
           return [mockWallet, mockSecondWallet];
         }
         if (selector === selectInternalAccountsById) {
@@ -406,12 +598,18 @@ describe('useAccounts', () => {
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
-            name: 'Group 1',
+            accountGroupName: 'Group 1',
+            accountName: 'Account 1',
+            accountType: 'eip155:eoa',
             address: '0x1234567890123456789012345678901234567890',
+            walletName: 'Wallet 1',
           },
           {
-            name: 'Group 3',
+            accountGroupName: 'Group 3',
+            accountName: 'Account 2',
+            accountType: 'eip155:eoa',
             address: '0x9876543210987654321098765432109876543210',
+            walletName: 'Wallet 2',
           },
         ]),
       );
@@ -425,6 +623,8 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
 
     renderHook(() => useAccounts());
@@ -440,6 +640,8 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
 
     renderHook(() => useAccounts());

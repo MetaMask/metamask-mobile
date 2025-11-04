@@ -2,6 +2,10 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { AssetType, Nft } from '../../../types/token';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
+import { useEVMNfts } from '../../../hooks/send/useNfts';
+import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { Asset } from './asset';
 
 const mockTokens: AssetType[] = [
@@ -62,8 +66,8 @@ const mockNfts: Nft[] = [
   },
 ];
 
-jest.mock('../../../hooks/send/evm/useSelectedEVMAccountTokens', () => ({
-  useSelectedEVMAccountTokens: jest.fn(),
+jest.mock('../../../hooks/send/useAccountTokens', () => ({
+  useAccountTokens: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/useTokenSearch', () => ({
@@ -194,14 +198,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   }),
 }));
 
-import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
-import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
-import { useEVMNfts } from '../../../hooks/send/useNfts';
-import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
-
-const mockUseSelectedEVMAccountTokens = jest.mocked(
-  useSelectedEVMAccountTokens,
-);
+const mockUseAccountTokens = jest.mocked(useAccountTokens);
 const mockUseTokenSearch = jest.mocked(useTokenSearch);
 const mockUseEVMNfts = jest.mocked(useEVMNfts);
 const mockUseAssetSelectionMetrics = jest.mocked(useAssetSelectionMetrics);
@@ -215,7 +212,7 @@ describe('Asset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelectedEVMAccountTokens.mockReturnValue(mockTokens);
+    mockUseAccountTokens.mockReturnValue(mockTokens);
     mockUseEVMNfts.mockReturnValue(mockNfts);
 
     mockUseTokenSearch.mockReturnValue({

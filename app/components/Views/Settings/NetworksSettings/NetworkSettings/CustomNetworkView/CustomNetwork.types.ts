@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { TabBarProps } from 'react-native-scrollable-tab-view';
+import { TabBarProps } from '@tommasini/react-native-scrollable-tab-view';
 
 export interface Network {
   chainId: string;
@@ -56,7 +56,7 @@ export interface CustomNetworkProps {
    * Switch tab between popular and custom networks
    */
   // TODO - The name for this type is not accurate. It should be a ref of the ScrollableTabView's tab.
-  switchTab?: TabBarProps;
+  switchTab?: typeof TabBarProps;
   /**
    * should navigation return to wallet after network change
    */

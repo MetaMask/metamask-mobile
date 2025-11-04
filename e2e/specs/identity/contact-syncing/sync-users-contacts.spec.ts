@@ -1,8 +1,6 @@
-import {
-  IDENTITY_TEAM_PASSWORD,
-  IDENTITY_TEAM_SEED_PHRASE,
-} from '../utils/constants';
-import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
+// We are using a wrapped `withFixtures` - `withIdentityFixtures`
+// eslint-disable-next-line no-restricted-syntax
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { SmokeIdentity } from '../../../tags';
@@ -13,7 +11,6 @@ import Assertions from '../../../framework/Assertions';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { createUserStorageController } from '../utils/mocks';
 
@@ -34,14 +31,10 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
           USER_STORAGE_FEATURE_NAMES.addressBook,
           USER_STORAGE_FEATURE_NAMES.accounts,
         ],
-        fixture: new FixtureBuilder().withOnboardingFixture().build(),
         sharedUserStorageController,
       },
       async ({ userStorageMockttpController }) => {
-        await importWalletWithRecoveryPhrase({
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        });
+        await loginToApp();
 
         await TabBarComponent.tapSettings();
         await Assertions.expectElementToBeVisible(
@@ -76,14 +69,10 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
           USER_STORAGE_FEATURE_NAMES.addressBook,
           USER_STORAGE_FEATURE_NAMES.accounts,
         ],
-        fixture: new FixtureBuilder().withOnboardingFixture().build(),
         sharedUserStorageController,
       },
       async () => {
-        await importWalletWithRecoveryPhrase({
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        });
+        await loginToApp();
 
         await TabBarComponent.tapSettings();
         await Assertions.expectElementToBeVisible(

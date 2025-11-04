@@ -34,13 +34,10 @@ const Template = (args: AssetDetailsActionsProps) => (
 export const Default = Template.bind(
   {},
   {
-    displayFundButton: true,
+    displayBuyButton: true,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    swapsIsLive: true,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -49,13 +46,10 @@ export const Default = Template.bind(
 export const NoBuyButton = Template.bind(
   {},
   {
-    displayFundButton: false,
+    displayBuyButton: false,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    swapsIsLive: true,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -64,28 +58,10 @@ export const NoBuyButton = Template.bind(
 export const NoSwapsButton = Template.bind(
   {},
   {
-    displayFundButton: true,
+    displayBuyButton: true,
     displaySwapsButton: false,
-    displayBridgeButton: true,
-    swapsIsLive: false,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
-    onSend: () => null,
-    onReceive: () => null,
-  },
-);
-
-export const NoBridgeButton = Template.bind(
-  {},
-  {
-    displayFundButton: true,
-    displaySwapsButton: true,
-    displayBridgeButton: false,
-    swapsIsLive: false,
-    onBuy: () => null,
-    goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -94,13 +70,10 @@ export const NoBridgeButton = Template.bind(
 export const NoButtons = Template.bind(
   {},
   {
-    displayFundButton: false,
+    displayBuyButton: false,
     displaySwapsButton: false,
-    displayBridgeButton: false,
-    swapsIsLive: false,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -109,13 +82,10 @@ export const NoButtons = Template.bind(
 export const FundActionMenuNavigation = Template.bind(
   {},
   {
-    displayFundButton: true,
+    displayBuyButton: true,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    swapsIsLive: true,
     // No onBuy prop - will navigate to FundActionMenu
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },

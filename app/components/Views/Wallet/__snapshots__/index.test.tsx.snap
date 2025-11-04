@@ -39,27 +39,9 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -167,7 +149,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
           <View
             style={
               {
-                "alignItems": "center",
+                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
@@ -193,6 +175,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                   "borderRadius": 4,
                   "borderWidth": 0,
                   "flexDirection": "row",
+                  "marginRight": 16,
                   "padding": 16,
                 }
               }
@@ -353,6 +336,93 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           />
                         </View>
                       </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
                     </View>
                   </View>
                   <View
@@ -1152,27 +1222,9 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -1280,7 +1332,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
           <View
             style={
               {
-                "alignItems": "center",
+                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
@@ -1306,6 +1358,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                   "borderRadius": 4,
                   "borderWidth": 0,
                   "flexDirection": "row",
+                  "marginRight": 16,
                   "padding": 16,
                 }
               }
@@ -1466,6 +1519,93 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           />
                         </View>
                       </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
                     </View>
                   </View>
                   <View
@@ -2265,27 +2405,9 @@ exports[`Wallet should render correctly 1`] = `
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -2393,7 +2515,7 @@ exports[`Wallet should render correctly 1`] = `
           <View
             style={
               {
-                "alignItems": "center",
+                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
@@ -2419,6 +2541,7 @@ exports[`Wallet should render correctly 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 0,
                   "flexDirection": "row",
+                  "marginRight": 16,
                   "padding": 16,
                 }
               }
@@ -2579,6 +2702,93 @@ exports[`Wallet should render correctly 1`] = `
                           />
                         </View>
                       </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
                     </View>
                   </View>
                   <View
@@ -3378,27 +3588,9 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -3506,7 +3698,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
           <View
             style={
               {
-                "alignItems": "center",
+                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
@@ -3532,6 +3724,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 0,
                   "flexDirection": "row",
+                  "marginRight": 16,
                   "padding": 16,
                 }
               }
@@ -3692,6 +3885,93 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           />
                         </View>
                       </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
                     </View>
                   </View>
                   <View
@@ -3929,7 +4209,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4290,7 +4570,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={13}
+                              handlerTag={15}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -4491,27 +4771,9 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
+                "backgroundColor": "#ffffff",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 72,
               },
               {
                 "marginTop": 0,
@@ -4619,7 +4881,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
           <View
             style={
               {
-                "alignItems": "center",
+                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
@@ -4645,6 +4907,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   "borderRadius": 4,
                   "borderWidth": 0,
                   "flexDirection": "row",
+                  "marginRight": 16,
                   "padding": 16,
                 }
               }
@@ -4805,6 +5068,93 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           />
                         </View>
                       </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
                     </View>
                   </View>
                   <View

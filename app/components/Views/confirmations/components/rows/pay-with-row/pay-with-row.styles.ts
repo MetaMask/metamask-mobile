@@ -14,6 +14,23 @@ const styleSheet = (_params: { theme: Theme }) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+
+    skeleton: {
+      marginBottom: 7,
+      marginLeft: -2,
+    },
+
+    skeletonTop: {
+      marginTop: 6,
+      marginBottom: 7,
+      marginLeft: -2,
+    },
+
+    skeletonCircle: {
+      marginLeft: -1,
+      marginTop: 6,
+      borderRadius: 99,
+    },
   });
 
 export default styleSheet;

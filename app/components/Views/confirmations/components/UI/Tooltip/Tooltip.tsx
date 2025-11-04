@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { View } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
@@ -15,6 +15,9 @@ import styleSheet from './Tooltip.styles';
 interface TooltipProps {
   content: string | ReactNode;
   iconColor?: IconColor;
+  iconName?: IconName;
+  iconSize?: ButtonIconSizes;
+  iconStyle?: ViewStyle;
   onPress?: () => void;
   title?: string;
   tooltipTestId?: string;
@@ -68,7 +71,10 @@ const Tooltip = ({
   title,
   tooltipTestId = 'info-row-tooltip',
   onPress,
+  iconName = IconName.Info,
   iconColor = IconColor.Muted,
+  iconSize = ButtonIconSizes.Sm,
+  iconStyle = {},
 }: TooltipProps) => {
   const [open, setOpen] = useState(false);
 
@@ -81,10 +87,11 @@ const Tooltip = ({
     <View>
       <ButtonIcon
         iconColor={iconColor}
-        iconName={IconName.Info}
+        iconName={iconName}
         onPress={handlePress}
-        size={ButtonIconSizes.Sm}
+        size={iconSize}
         testID={`${tooltipTestId}-open-btn`}
+        style={iconStyle}
       />
       <TooltipModal
         open={open}

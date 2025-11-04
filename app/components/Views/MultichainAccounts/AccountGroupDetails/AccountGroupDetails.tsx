@@ -1,5 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
-import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  BackHandler,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
 import Text, {
@@ -19,7 +24,6 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
@@ -28,17 +32,42 @@ import { useStyles } from '../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
-import { selectWalletById } from '../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectWalletById,
+  selectAccountGroupById,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   selectInternalAccountListSpreadByScopesByGroupId,
   getWalletIdFromAccountGroup,
+  selectIconSeedAddressByAccountGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
 import { AccountGroupType } from '@metamask/account-api';
-import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
+import {
+  isHDOrFirstPartySnapAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import Routes from '../../../../constants/navigation/Routes';
+import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
+
+const createEditAccountNameNavigationDetails = (
+  accountGroup: AccountGroupObject,
+) =>
+  createMultichainAccountDetailActionsModalNavigationDetails({
+    screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+    params: { accountGroup },
+  });
 
 interface AccountGroupDetailsProps {
   route: {
@@ -50,22 +79,36 @@ interface AccountGroupDetailsProps {
 
 export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const navigation = useNavigation();
-  const {
-    accountGroup: { id, metadata, type, accounts },
-  } = props.route.params;
-  const name = useMemo(() => metadata.name, [metadata.name]);
+  const { accountGroup: initialAccountGroup } = props.route.params;
+  const { id } = initialAccountGroup;
+
+  // Use selector to get current account group data from Redux store
+  const accountGroup =
+    useSelector((state: RootState) => selectAccountGroupById(state, id)) ||
+    initialAccountGroup;
+
+  const { metadata, type, accounts } = accountGroup;
+  const groupName = useMemo(() => metadata.name, [metadata.name]);
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarAccountType);
+  const selectIconSeedAddress = React.useMemo(
+    () => selectIconSeedAddressByAccountGroupId(id),
+    [id],
+  );
+  const iconSeedAddress = useSelector(selectIconSeedAddress);
 
   const selectWallet = useSelector(selectWalletById);
   const wallet = selectWallet?.(walletId);
   const internalAccountsById = useSelector(selectInternalAccountsById);
+
+  /**
+   * Seedless onboarding flow does not support removing private key accounts
+   */
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -83,16 +126,56 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
     [account],
   );
 
+  const isHardwareWallet = useMemo(
+    () => (account ? isHardwareAccount(account.address) : false),
+    [account],
+  );
+
   const navigateToAddressList = useCallback(() => {
+    // Start the trace before navigating to the address list to include the
+    // navigation and render times in the trace.
+    trace({
+      name: TraceName.ShowAccountAddressList,
+      op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'account.details',
+      },
+    });
+
     navigation.navigate(
       ...createAddressListNavigationDetails({
         groupId: id,
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           metadata.name
         }`,
+        onLoad: () => {
+          endTrace({ name: TraceName.ShowAccountAddressList });
+        },
       }),
     );
   }, [id, metadata.name, navigation]);
+
+  const navigateToSmartAccount = useCallback(() => {
+    navigation.navigate('SmartAccountDetails', { account });
+  }, [navigation, account]);
+
+  const handleEditAccountName = useCallback(() => {
+    navigation.navigate(
+      ...createEditAccountNameNavigationDetails(accountGroup),
+    );
+  }, [navigation, accountGroup]);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.goBack();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -107,7 +190,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
           />
         }
       >
-        {name}
+        {groupName}
       </HeaderBase>
       <ScrollView
         style={styles.container}
@@ -121,13 +204,15 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
           <Avatar
             variant={AvatarVariant.Account}
             size={AvatarSize.Xl}
-            accountAddress={id}
+            accountAddress={iconSeedAddress}
             type={accountAvatarType}
+            testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR}
           />
         </Box>
         <TouchableOpacity
           style={styles.accountName}
           testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
+          onPress={handleEditAccountName}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.account_name')}
@@ -137,9 +222,19 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
             alignItems={AlignItems.center}
             gap={8}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {name}
+            <Text
+              style={styles.groupNameText}
+              variant={TextVariant.BodyMDMedium}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {groupName}
             </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
           </Box>
         </TouchableOpacity>
         <TouchableOpacity
@@ -167,41 +262,46 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
             />
           </Box>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.privateKeys}
-          testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
-          onPress={() => {
-            navigation.navigate(
-              ...createPrivateKeyListNavigationDetails({
-                groupId: id,
-                title: strings(
-                  'multichain_accounts.account_details.private_keys',
-                ),
-              }),
-            );
-          }}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.private_keys')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
+        {!isHardwareWallet && (
+          <TouchableOpacity
+            style={styles.privateKeys}
+            testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
+            onPress={() => {
+              navigation.navigate(
+                ...createPrivateKeyListNavigationDetails({
+                  groupId: id,
+                  title: strings(
+                    'multichain_accounts.account_details.private_keys',
+                  ),
+                }),
+              );
+            }}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {strings('multichain_accounts.account_details.unlock_to_reveal')}
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('multichain_accounts.account_details.private_keys')}
             </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                {strings(
+                  'multichain_accounts.account_details.unlock_to_reveal',
+                )}
+              </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Md}
+                color={colors.text.alternative}
+              />
+            </Box>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={styles.smartAccount}
           testID={AccountDetailsIds.SMART_ACCOUNT_LINK}
+          onPress={navigateToSmartAccount}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.smart_account')}
@@ -223,7 +323,8 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         </TouchableOpacity>
         <Wallet wallet={wallet} />
         {canExportMnemonic && <SecretRecoveryPhrase account={account} />}
-        {type === AccountGroupType.SingleAccount ? (
+        {type === AccountGroupType.SingleAccount &&
+        !isSeedlessOnboardingLoginFlow ? (
           <RemoveAccount account={account} />
         ) : null}
       </ScrollView>

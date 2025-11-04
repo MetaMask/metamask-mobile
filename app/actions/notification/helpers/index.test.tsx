@@ -7,11 +7,13 @@ import {
   enableAccounts,
   resetNotifications,
   toggleFeatureAnnouncements,
-  togglePerpsNotifications,
   fetchNotifications,
   markNotificationsAsRead,
   enablePushNotifications,
   disablePushNotifications,
+  type setContentPreviewToken as setContentPreviewTokenFn,
+  type getContentPreviewToken as getContentPreviewTokenFn,
+  type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
 
@@ -146,28 +148,63 @@ describe('helpers - disablePushNotifications()', () => {
   });
 });
 
-describe('helpers - togglePerpsNotifications()', () => {
+describe('Content Preview Token', () => {
+  let setContentPreviewToken: typeof setContentPreviewTokenFn;
+  let getContentPreviewToken: typeof getContentPreviewTokenFn;
+  let subscribeToContentPreviewToken: typeof subscribeToContentPreviewTokenFn;
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Reset module per test as we are modifying a local variable in this module
+    jest.isolateModules(() => {
+      const HelpersModule = jest.requireActual('./index');
+      setContentPreviewToken = HelpersModule.setContentPreviewToken;
+      getContentPreviewToken = HelpersModule.getContentPreviewToken;
+      subscribeToContentPreviewToken =
+        HelpersModule.subscribeToContentPreviewToken;
+    });
   });
 
-  it('should enable perps notifications when passed true', async () => {
-    const NotificationServicesController =
-      Engine.context.NotificationServicesController;
-    await togglePerpsNotifications(true);
-    expect(
-      // @ts-expect-error - setPerpsNotificationsEnabled not yet implemented in @metamask/notification-services-controller
-      NotificationServicesController.setPerpsNotificationsEnabled,
-    ).toHaveBeenCalledWith(true);
+  it('sets the preview token when given a valid string', () => {
+    const token = 'preview-token-123';
+    setContentPreviewToken(token);
+    expect(getContentPreviewToken()).toBe(token);
   });
 
-  it('should disable perps notifications when passed false', async () => {
-    const NotificationServicesController =
-      Engine.context.NotificationServicesController;
-    await togglePerpsNotifications(false);
-    expect(
-      // @ts-expect-error - setPerpsNotificationsEnabled not yet implemented in @metamask/notification-services-controller
-      NotificationServicesController.setPerpsNotificationsEnabled,
-    ).toHaveBeenCalledWith(false);
+  it('does not set the preview token when given null', () => {
+    setContentPreviewToken('initial-token');
+    setContentPreviewToken(null);
+    expect(getContentPreviewToken()).toBe('initial-token');
+  });
+
+  it('does not set the preview token when given undefined', () => {
+    setContentPreviewToken('initial-token');
+    setContentPreviewToken(undefined);
+    expect(getContentPreviewToken()).toBe('initial-token');
+  });
+
+  it('initial get token will return undefined', () => {
+    expect(getContentPreviewToken()).toBeUndefined();
+  });
+
+  it('emits event when token is updated, and event is not received when unsubscribing', () => {
+    const mockCallback = jest.fn();
+    const unsubscribe = subscribeToContentPreviewToken(mockCallback);
+
+    // Call 1 - assert token update
+    setContentPreviewToken('token1');
+    expect(mockCallback).toHaveBeenCalledWith('token1');
+
+    // Call 2 - assert no token update
+    mockCallback.mockClear();
+    setContentPreviewToken(null);
+    expect(getContentPreviewToken()).toBe('token1'); // previous token not removed
+    expect(mockCallback).not.toHaveBeenCalled();
+
+    // Call 2 - assert listener removed
+    mockCallback.mockClear();
+    unsubscribe();
+    setContentPreviewToken('token2');
+    expect(getContentPreviewToken()).toBe('token2'); // new token added
+    expect(mockCallback).not.toHaveBeenCalled();
   });
 });

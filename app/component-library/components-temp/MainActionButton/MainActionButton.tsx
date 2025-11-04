@@ -70,7 +70,7 @@ const MainActionButton = ({
         <View style={styles.container}>
           <Icon
             name={iconName}
-            size={IconSize.Md}
+            size={IconSize.Lg}
             color={IconColor.Alternative}
           />
           <Text
@@ -78,6 +78,7 @@ const MainActionButton = ({
             color={TextColor.Default}
             style={styles.label}
             numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {label}
           </Text>

@@ -1,5 +1,11 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
+import {
+  selectIsFirstTimeUser,
+  selectWatchlistMarkets,
+  selectIsWatchlistMarket,
+  selectMarketFilterPreferences,
+} from '../../controllers/selectors';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -42,10 +48,40 @@ const selectPerpsNetwork = createSelector(
     perpsControllerState?.isTestnet ? 'testnet' : 'mainnet',
 );
 
+const selectPerpsBalances = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.perpsBalances || {},
+);
+
+const selectIsFirstTimePerpsUser = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => selectIsFirstTimeUser(perpsControllerState),
+);
+
+const selectPerpsWatchlistMarkets = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => selectWatchlistMarkets(perpsControllerState),
+);
+
+const selectPerpsMarketFilterPreferences = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => selectMarketFilterPreferences(perpsControllerState),
+);
+
+// Factory function to create selector for specific market
+export const createSelectIsWatchlistMarket = (symbol: string) =>
+  createSelector(selectPerpsControllerState, (perpsControllerState) =>
+    selectIsWatchlistMarket(perpsControllerState, symbol),
+  );
+
 export {
   selectPerpsProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,
   selectPerpsNetwork,
+  selectPerpsBalances,
+  selectIsFirstTimePerpsUser,
+  selectPerpsWatchlistMarkets,
+  selectPerpsMarketFilterPreferences,
 };

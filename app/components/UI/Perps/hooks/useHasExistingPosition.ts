@@ -1,6 +1,6 @@
-import { useMemo, useCallback } from 'react';
-import { usePerpsLivePositions } from './stream';
+import { useCallback, useMemo } from 'react';
 import type { Position } from '../controllers/types';
+import { usePerpsLivePositions } from './stream';
 
 interface UseHasExistingPositionParams {
   /** Asset symbol to check for existing position */
@@ -35,7 +35,8 @@ export function useHasExistingPosition(
   // loadOnMount is ignored since WebSocket subscriptions load from cache immediately
 
   // Get real-time positions via WebSocket
-  const { positions } = usePerpsLivePositions();
+  const { positions, isInitialLoading } = usePerpsLivePositions();
+
   // Check if user has an existing position for this asset
   const existingPosition = useMemo(
     () => (positions || []).find((position) => position.coin === asset) || null,
@@ -49,16 +50,13 @@ export function useHasExistingPosition(
 
   // No-op refresh function for compatibility
   // Positions update automatically via WebSocket
-  const refreshPosition = useCallback(
-    async () =>
-      // WebSocket positions update automatically, no manual refresh needed
-      Promise.resolve(),
-    [],
-  );
+  // WebSocket positions update automatically, no manual refresh needed
+  const refreshPosition = useCallback(async () => undefined, []);
+  // WebSocket positions update automatically, no manual refresh needed
 
   return {
     hasPosition,
-    isLoading: false, // WebSocket data loads immediately from cache
+    isLoading: isInitialLoading,
     error: null, // WebSocket subscriptions handle errors internally
     existingPosition,
     refreshPosition,

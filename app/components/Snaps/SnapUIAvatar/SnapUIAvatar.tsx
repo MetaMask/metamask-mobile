@@ -1,16 +1,12 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  CaipAccountAddress,
-  CaipAccountId,
-  CaipNamespace,
-  KnownCaipNamespace,
-  parseCaipAccountId,
-  stringToBytes,
-} from '@metamask/utils';
-import { Image } from 'react-native';
-import Jazzicon from 'react-native-jazzicon';
-import { toDataUrl } from '../../../util/blockies';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { selectAvatarAccountType } from '../../../selectors/settings';
+import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { selectAccountGroupsByAddress } from '../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../reducers';
 
 export const DIAMETERS: Record<string, number> = {
@@ -20,55 +16,44 @@ export const DIAMETERS: Record<string, number> = {
   lg: 40,
 };
 
+export const SNAP_UI_AVATAR_TEST_ID = 'snap-ui-avatar';
+
 export interface SnapUIAvatarProps {
   // The address must be a CAIP-10 string.
   address: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
-}
-
-function getJazziconSeed(
-  namespace: CaipNamespace,
-  address: CaipAccountAddress,
-) {
-  if (namespace === KnownCaipNamespace.Eip155) {
-    // Default behaviour for EIP155 namespace to match existing Jazzicons
-    return parseInt(address.slice(2, 10), 16);
-  }
-  return Array.from(stringToBytes(address.normalize('NFKC').toLowerCase()));
+  size?: AvatarSize;
 }
 
 export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
-  address,
-  size = 'md',
+  address: caipAddress,
+  size = AvatarSize.Md,
 }) => {
-  const parsed = useMemo(
-    () => parseCaipAccountId(address as CaipAccountId),
-    [address],
+  const { address } = useMemo(
+    () => parseCaipAccountId(caipAddress as CaipAccountId),
+    [caipAddress],
   );
-  const useBlockie = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+
+  const useAccountGroups = useSelector(selectMultichainAccountsState2Enabled);
+
+  const accountGroups = useSelector((state: RootState) =>
+    selectAccountGroupsByAddress(state, [address]),
   );
 
-  const diameter = DIAMETERS[size];
+  const accountGroupAddress = accountGroups[0]?.accounts.find((account) =>
+    isEvmAccountType(account.type),
+  )?.address;
 
-  if (useBlockie) {
-    return (
-      <Image
-        source={{ uri: toDataUrl(parsed.address) }}
-        height={diameter}
-        width={diameter}
-        borderRadius={diameter / 2}
-      />
-    );
-  }
-
-  const seed = getJazziconSeed(parsed.chain.namespace, parsed.address);
+  // Display the account group address if it exists as the default.
+  const displayAddress =
+    useAccountGroups && accountGroupAddress ? accountGroupAddress : address;
 
   return (
-    <Jazzicon
-      // @ts-expect-error The underlying PRNG supports the seed being an array but the component is typed wrong.
-      seed={seed}
-      size={diameter}
+    <AvatarAccount
+      type={avatarAccountType}
+      accountAddress={displayAddress}
+      size={size}
+      testID={SNAP_UI_AVATAR_TEST_ID}
     />
   );
 };

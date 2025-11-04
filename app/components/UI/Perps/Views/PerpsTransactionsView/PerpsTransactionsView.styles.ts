@@ -13,23 +13,14 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     filterContainer: {
       paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingVertical: 12,
       backgroundColor: colors.background.default,
-      zIndex: 1000, // iOS
-      elevation: 1000, // Android
-      position: 'relative' as const,
     },
     filterScrollView: {
-      flexDirection: 'row' as const,
+      flexGrow: 0,
     },
-    filterTab: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      marginRight: 8,
-      borderRadius: 20,
-      backgroundColor: colors.background.default,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
+    filterTabContainer: {
+      gap: 8,
     },
     filterTabActive: {
       backgroundColor: colors.background.defaultPressed,
@@ -37,6 +28,10 @@ export const styleSheet = (params: { theme: Theme }) => {
     transactionList: {
       flex: 1,
       minHeight: 1, // Prevents FlashList layout issues
+    },
+    tabDescription: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
     },
     sectionHeader: {
       paddingTop: 12,
@@ -46,7 +41,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     sectionHeaderText: {
       fontSize: 16,
       fontWeight: '600' as const,
-      color: colors.text.muted,
+      color: colors.text.alternative,
     },
     transactionItem: {
       flexDirection: 'row' as const,
@@ -54,11 +49,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       paddingHorizontal: 16,
       minHeight: 72, // Consistent height for FlashList
-    },
-    transactionIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
     },
     tokenIconContainer: {
       width: 36,
@@ -120,6 +110,11 @@ export const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center' as const,
       marginTop: 16,
       color: colors.text.muted,
+    },
+    fillTag: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 10,
     },
   };
 };

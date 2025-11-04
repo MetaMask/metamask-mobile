@@ -17,13 +17,13 @@ class MetaMetricsOptIn {
 
   get iAgreeButton(): DetoxElement {
     return Matchers.getElementByID(
-      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID,
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
     );
   }
 
-  get noThanksButton(): DetoxElement {
+  get metricsCheckbox(): DetoxElement {
     return Matchers.getElementByID(
-      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID,
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX,
     );
   }
 
@@ -38,14 +38,13 @@ class MetaMetricsOptIn {
   async tapAgreeButton(): Promise<void> {
     await this.swipeContentUp();
     await Gestures.waitAndTap(this.iAgreeButton, {
-      elemDescription: 'Opt-in Metrics I Agree Button',
+      elemDescription: 'Opt-in Metrics Continue Button',
     });
   }
 
-  async tapNoThanksButton(): Promise<void> {
-    await this.swipeContentUp();
-    await Gestures.waitAndTap(this.noThanksButton, {
-      elemDescription: 'Opt-in Metrics No Thanks Button',
+  async tapMetricsCheckbox(): Promise<void> {
+    await Gestures.waitAndTap(this.metricsCheckbox, {
+      elemDescription: 'Opt-in Metrics Metrics Checkbox',
     });
   }
 }

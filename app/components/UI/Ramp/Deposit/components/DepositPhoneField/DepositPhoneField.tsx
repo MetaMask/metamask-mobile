@@ -1,4 +1,4 @@
-import React, { useCallback, forwardRef } from 'react';
+import React, { useCallback, forwardRef, useState } from 'react';
 import { TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -6,7 +6,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { formatNumberToTemplate } from './formatNumberToTemplate.ts';
-import { DepositRegion } from '../../constants';
+import { DepositRegion } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../../Views/Modals/RegionSelectorModal';
 import DepositTextField from '../DepositTextField/DepositTextField';
@@ -18,6 +18,7 @@ interface PhoneFieldProps {
   onChangeText: (text: string) => void;
   error?: string;
   onSubmitEditing?: () => void;
+  regions: DepositRegion[];
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -40,17 +41,23 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
-  ({ label, value = '', onChangeText, error, onSubmitEditing }, ref) => {
+  (
+    { label, value = '', onChangeText, error, onSubmitEditing, regions },
+    ref,
+  ) => {
     const { styles } = useStyles(styleSheet, {});
-    const { selectedRegion, setSelectedRegion } = useDepositSDK();
-    const navigation = useNavigation();
-    const template = selectedRegion?.phone?.template ?? '(XXX) XXX-XXXX';
+    const { selectedRegion } = useDepositSDK();
 
-    const rawDigits = selectedRegion?.phone?.prefix
+    const [phoneRegion, setPhoneRegion] = useState(selectedRegion);
+
+    const navigation = useNavigation();
+    const template = phoneRegion?.phone?.template ?? '(XXX) XXX-XXXX';
+
+    const rawDigits = phoneRegion?.phone?.prefix
       ? value
           .replace(/\D/g, '')
           .replace(
-            new RegExp(`^${selectedRegion.phone.prefix.replace(/\D/g, '')}`),
+            new RegExp(`^${phoneRegion.phone.prefix.replace(/\D/g, '')}`),
             '',
           )
       : value.replace(/\D/g, '');
@@ -60,32 +67,28 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
       (text: string) => {
         const digits = text.replace(/\D/g, '');
 
-        if (selectedRegion?.phone?.prefix) {
-          const fullNumber = selectedRegion.phone.prefix + digits;
+        if (phoneRegion?.phone?.prefix) {
+          const fullNumber = phoneRegion.phone.prefix + digits;
           onChangeText(fullNumber);
         } else {
           onChangeText(digits);
         }
       },
-      [onChangeText, selectedRegion],
-    );
-
-    const handleRegionSelect = useCallback(
-      (newRegion: DepositRegion) => {
-        onChangeText('');
-        setSelectedRegion(newRegion);
-      },
-      [setSelectedRegion, onChangeText],
+      [onChangeText, phoneRegion],
     );
 
     const handleFlagPress = useCallback(() => {
       navigation.navigate(
         ...createRegionSelectorModalNavigationDetails({
-          selectedRegionCode: selectedRegion?.isoCode,
-          handleSelectRegion: handleRegionSelect,
+          regions,
+          onRegionSelect: setPhoneRegion,
+          selectedRegion: phoneRegion,
+          allRegionsSelectable: true,
+          updateGlobalRegion: false,
+          trackSelection: false,
         }),
       );
-    }, [navigation, selectedRegion, handleRegionSelect]);
+    }, [navigation, regions, setPhoneRegion, phoneRegion]);
 
     const countryPrefixAccessory = (
       <TouchableOpacity
@@ -94,9 +97,9 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         accessible
         style={styles.countryPrefix}
       >
-        <Text style={styles.countryFlag}>{selectedRegion?.flag ?? '🌍'}</Text>
+        <Text style={styles.countryFlag}>{phoneRegion?.flag ?? '🌍'}</Text>
         <Text style={styles.countryCallingCode}>
-          {selectedRegion?.phone?.prefix ??
+          {phoneRegion?.phone?.prefix ??
             strings('deposit.basic_info.select_region')}
         </Text>
       </TouchableOpacity>
@@ -109,7 +112,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         value={formattedValue}
         onChangeText={handleChangeText}
         placeholder={
-          selectedRegion?.phone?.placeholder ??
+          phoneRegion?.phone?.placeholder ??
           strings('deposit.basic_info.enter_phone_number')
         }
         keyboardType="phone-pad"

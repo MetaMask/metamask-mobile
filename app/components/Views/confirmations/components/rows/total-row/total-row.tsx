@@ -3,31 +3,22 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
 import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
-import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../../core/redux/slices/confirmationMetrics';
-import { RootState } from '../../../../../../reducers';
-import AnimatedSpinner, {
-  SpinnerSize,
-} from '../../../../../UI/AnimatedSpinner';
 import { View } from 'react-native';
+import { SkeletonRow } from '../skeleton-row';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
 
 export function TotalRow() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
-  const { formatted: totalFiat } = useTransactionTotalFiat();
+  const { totalFormatted } = useTransactionTotalFiat({ log: true });
+  const { isLoading } = useIsTransactionPayLoading();
 
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
-  );
+  if (isLoading) {
+    return <SkeletonRow testId="total-row-skeleton" />;
+  }
 
   return (
     <View testID="total-row">
       <InfoRow label={strings('confirm.label.total')}>
-        {isQuotesLoading ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
-          <Text>{totalFiat}</Text>
-        )}
+        <Text>{totalFormatted}</Text>
       </InfoRow>
     </View>
   );

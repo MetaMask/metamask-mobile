@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { handleFetch } from '@metamask/controller-utils';
-import { DepositCryptoCurrency, DepositFiatCurrency } from '../constants';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 interface UseFetchTokenRatesMultiResult {
   rates: Record<string, number | null>;
@@ -14,8 +14,8 @@ export const useFetchTokenRatesMulti = ({
   tokens,
   fiatCurrency,
 }: {
-  tokens: DepositCryptoCurrency[];
-  fiatCurrency: DepositFiatCurrency;
+  tokens: DepositCryptoCurrency[] | null;
+  fiatCurrency: string | null;
 }): UseFetchTokenRatesMultiResult => {
   const [rates, setRates] = useState<Record<string, number | null>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -25,11 +25,15 @@ export const useFetchTokenRatesMulti = ({
     const fetchTokenRates = async () => {
       setIsLoading(true);
       try {
+        if (!tokens || !fiatCurrency) {
+          return;
+        }
+
         const assetIds = tokens.map((token) => token.assetId).join(',');
         const url = new URL(PRICE_API_URL);
         const params = new URLSearchParams({
           assetIds,
-          vsCurrency: fiatCurrency.id,
+          vsCurrency: fiatCurrency,
         });
         url.search = params.toString();
 
@@ -46,7 +50,7 @@ export const useFetchTokenRatesMulti = ({
             (key) => key.toLowerCase() === token.assetId.toLowerCase(),
           );
           newRates[token.assetId] = responseKey
-            ? response[responseKey][fiatCurrency.id.toLowerCase()]
+            ? response[responseKey][fiatCurrency.toLowerCase()]
             : null;
         });
 
@@ -61,7 +65,7 @@ export const useFetchTokenRatesMulti = ({
     };
 
     fetchTokenRates();
-  }, [tokens, fiatCurrency.id]);
+  }, [tokens, fiatCurrency]);
 
   return { rates, isLoading, error };
 };

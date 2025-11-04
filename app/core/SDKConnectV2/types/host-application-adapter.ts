@@ -1,4 +1,5 @@
-import { Connection } from './connection';
+import { Connection } from '../services/connection';
+import { ConnectionInfo } from './connection-info';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.
@@ -9,33 +10,25 @@ import { Connection } from './connection';
  */
 export interface IHostApplicationAdapter {
   /**
-   * Triggers the UI flow to ask the user to approve or reject a new
-   * dApp connection request.
-   * @param connectionId The unique ID of the connection being requested.
-   * @param dappMetadata Metadata about the dApp to display to the user.
-   * @returns A promise that resolves when the user has made a choice.
-   */
-  showConnectionApproval(
-    connectionId: string,
-    dappMetadata: Connection['dappMetadata'],
-  ): Promise<void>;
-
-  /**
    * Displays a global, non-interactive loading modal. Used to indicate
-   * background activity, such as the cryptographic handshake.
+   * background activity, such as establishing a connection.
    */
-  showLoading(): void;
+  showConnectionLoading(conninfo: ConnectionInfo): void;
 
   /**
    * Hides the global loading modal.
    */
-  hideLoading(): void;
+  hideConnectionLoading(conninfo: ConnectionInfo): void;
 
   /**
-   * Displays a modal for the user to enter a One-Time Password (OTP).
-   * @returns A promise that resolves when the user has entered the OTP.
+   * Displays a global, non-interactive error modal.
    */
-  showOTPModal(): Promise<void>;
+  showConnectionError(): void;
+
+  /**
+   * Displays a "Return to App" toast notification.
+   */
+  showReturnToApp(conninfo: ConnectionInfo): void;
 
   /**
    * Syncs the full list of active v2 connections with the application's
@@ -43,4 +36,12 @@ export interface IHostApplicationAdapter {
    * @param connections The complete array of active Connection objects.
    */
   syncConnectionList(connections: Connection[]): void;
+
+  /**
+   * Revokes all permissions associated with a given connection.
+   * This is the host application's responsibility, as it owns the PermissionController.
+   * The connection.id is the unique identifier for the connection, equivalent to the origin/channelId.
+   * @param id The ID of the connection to revoke permissions for.
+   */
+  revokePermissions(id: string): void;
 }

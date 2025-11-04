@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { initialState as mockRootState } from '../../../../components/UI/Bridge/_mocks_/initialState';
 import reducer, {
   initialState,
@@ -7,8 +8,8 @@ import reducer, {
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
-  selectIsUnifiedSwapsEnabled,
   setDestToken,
+  selectBip44DefaultPair,
 } from '.';
 import {
   BridgeToken,
@@ -16,13 +17,7 @@ import {
 } from '../../../../components/UI/Bridge/types';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { cloneDeep } from 'lodash';
-
-jest.mock('./utils/isUnifiedSwapsEnvVarEnabled', () => ({
-  isUnifiedSwapsEnvVarEnabled: jest.fn(),
-}));
 
 describe('bridge slice', () => {
   const mockToken: BridgeToken = {
@@ -60,6 +55,8 @@ describe('bridge slice', () => {
         selectedDestChainId: undefined,
         slippage: '0.5',
         isSubmittingTx: false,
+        isSelectingRecipient: false,
+        isMaxSourceAmount: false,
       });
     });
   });
@@ -197,99 +194,194 @@ describe('bridge slice', () => {
     });
   });
 
-  describe('selectIsUnifiedSwapsEnabled', () => {
-    const mockChainId = '0x1' as Hex;
-    const mockIsUnifiedSwapsEnvVarEnabled =
-      isUnifiedSwapsEnvVarEnabled as jest.MockedFunction<
-        typeof isUnifiedSwapsEnvVarEnabled
-      >;
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    const createMockState = (
-      isUnifiedUIEnabled: boolean,
-      chainId = mockChainId,
-    ): RootState => {
-      const state = cloneDeep(mockRootState);
-      const caipChainId = formatChainIdToCaip(chainId);
-
-      // Directly modify the field we need
-      const chain =
-        state.engine.backgroundState.RemoteFeatureFlagController
-          .remoteFeatureFlags.bridgeConfigV2.chains[caipChainId];
-      if (chain) {
-        chain.isUnifiedUIEnabled = isUnifiedUIEnabled;
-      }
-
-      return state as unknown as RootState;
-    };
-
-    it('should return true when MM_UNIFIED_SWAPS_ENABLED is true and isUnifiedUIEnabled is true', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = createMockState(true);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(true);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is true but isUnifiedUIEnabled is false', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = createMockState(false);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is false even if isUnifiedUIEnabled is true', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(false);
-      const mockState = createMockState(true);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is false and isUnifiedUIEnabled is false', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(false);
-      const mockState = createMockState(false);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is undefined', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(false);
-      const mockState = createMockState(true);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when chain is not configured in bridge feature flags', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = cloneDeep(mockRootState);
-      // @ts-expect-error - we want to test the case where the chain is not configured
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
-        formatChainIdToCaip('0x1')
-      ] = undefined;
-
-      const result = selectIsUnifiedSwapsEnabled(
-        mockState as unknown as RootState,
+  describe('selectBip44DefaultPair', () => {
+    it('should return sourceAsset and destAsset when valid bip44DefaultPairs exist for eip155', () => {
+      const result = selectBip44DefaultPair(
+        mockRootState as unknown as RootState,
       );
-      expect(result).toBe(false);
+
+      expect(result).toEqual({
+        sourceAsset: {
+          symbol: 'ETH',
+          name: 'Ethereum',
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+          chainId: '0x1',
+        },
+        destAsset: {
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+          chainId: '0x1',
+        },
+      });
     });
 
-    it('should return false when bridge feature flags are missing', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = JSON.parse(JSON.stringify(mockRootState));
+    it('should return sourceAsset and destAsset for solana namespace', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as unknown as any;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
-      // Directly modify to remove bridge config
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2 =
-        undefined;
+      expect(result).toEqual({
+        sourceAsset: {
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          symbol: 'SOL',
+          decimals: 9,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          name: 'Solana',
+        },
+        destAsset: {
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          symbol: 'USDC',
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          name: 'USD Coin',
+        },
+      });
+    });
 
-      const result = selectIsUnifiedSwapsEnabled(mockState as RootState);
-      expect(result).toBe(false);
+    it('should return sourceAsset and destAsset for bip122 namespace', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        'bip122:000000000019d6689c085ae165831e93' as unknown as any;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
+
+      expect(result).toEqual({
+        sourceAsset: {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 8,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
+          chainId: 'bip122:000000000019d6689c085ae165831e93',
+        },
+        destAsset: {
+          symbol: 'ETH',
+          name: 'Ethereum',
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+          chainId: '0x1',
+        },
+      });
+    });
+
+    it('should return undefined when bip44DefaultPairs is undefined', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
+        undefined as unknown as any;
+
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when namespace does not exist in bip44DefaultPairs', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        'bip122:000000000019d6689c085ae165831e93' as unknown as any;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
+        {
+          eip155: {
+            other: {},
+            standard: {
+              'eip155:1/slip44:60':
+                'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            },
+          },
+          solana: {
+            other: {},
+            standard: {
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501':
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            },
+          },
+        } as unknown as any;
+
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when standard property does not exist for namespace', () => {
+      const bip44DefaultPairs = {
+        eip155: {
+          // missing standard property
+        },
+      };
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
+        bip44DefaultPairs as unknown as any;
+
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when standard object is empty', () => {
+      const bip44DefaultPairs = {
+        eip155: {
+          standard: {},
+        },
+      };
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
+        bip44DefaultPairs as unknown as any;
+
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when sourceAsset is not found in Bip44TokensForDefaultPairs', () => {
+      const bip44DefaultPairs = {
+        eip155: {
+          standard: {
+            'eip155:1/invalid:source':
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          },
+        },
+      };
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
+        bip44DefaultPairs as unknown as any;
+
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when destAsset is not found in Bip44TokensForDefaultPairs', () => {
+      const bip44DefaultPairs = {
+        eip155: {
+          standard: {
+            'eip155:1/slip44:60': 'eip155:1/invalid:dest',
+          },
+        },
+      };
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
+        bip44DefaultPairs as unknown as any;
+
+      const result = selectBip44DefaultPair(mockState as unknown as RootState);
+
+      expect(result).toBeUndefined();
     });
   });
 });

@@ -11,13 +11,29 @@ import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectEvmTicker } from '../selectors/networkController';
 import { store } from '../store';
-import { getTicker } from '../../app/util/transactions';
-import { updateTransaction } from '../../app/util/transaction-controller';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 
 import Logger from '../util/Logger';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
+import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
+
+export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictClaim,
+  TransactionType.predictWithdraw,
+];
+
+export const IN_PROGRESS_SKIP_STATUS = [
+  TransactionStatus.unapproved,
+  TransactionStatus.approved,
+  TransactionStatus.signed,
+  TransactionStatus.submitted,
+];
 
 export const constructTitleAndMessage = (notification) => {
   let title, message;
@@ -189,12 +205,14 @@ class NotificationManager {
       transaction.length &&
       setTimeout(() => {
         // Then we show the error notification
-        this._showNotification({
-          type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
-          autoHide: true,
-          transaction: { id: transactionMeta.id },
-          duration: 5000,
-        });
+        !this.#shouldSkipNotification(transactionMeta) &&
+          this._showNotification({
+            type:
+              transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
+            autoHide: true,
+            transaction: { id: transactionMeta.id },
+            duration: 5000,
+          });
         // Clean up
         this._removeListeners(transactionMeta.id);
         delete this._transactionsWatchTable[transactionMeta.txParams.nonce];
@@ -207,15 +225,16 @@ class NotificationManager {
     this._transactionsWatchTable[transactionMeta.txParams.nonce].length &&
       setTimeout(() => {
         // Then we show the success notification
-        this._showNotification({
-          type: 'success',
-          autoHide: true,
-          transaction: {
-            id: transactionMeta.id,
-            nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
-          },
-          duration: 5000,
-        });
+        !this.#shouldSkipNotification(transactionMeta) &&
+          this._showNotification({
+            type: 'success',
+            autoHide: true,
+            transaction: {
+              id: transactionMeta.id,
+              nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
+            },
+            duration: 5000,
+          });
         // Clean up
         this._removeListeners(transactionMeta.id);
 
@@ -278,14 +297,15 @@ class NotificationManager {
   _speedupCallback = (transactionMeta) => {
     this.watchSubmittedTransaction(transactionMeta, true);
     setTimeout(() => {
-      this._showNotification({
-        autoHide: false,
-        type: 'speedup',
-        transaction: {
-          id: transactionMeta.id,
-          nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
-        },
-      });
+      !this.#shouldSkipNotification(transactionMeta) &&
+        this._showNotification({
+          autoHide: false,
+          type: 'speedup',
+          transaction: {
+            id: transactionMeta.id,
+            nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
+          },
+        });
     }, 2000);
   };
 
@@ -369,6 +389,7 @@ class NotificationManager {
     const nonce = transactionMeta.txParams.nonce;
     // First we show the pending tx notification if is not an speed up tx
     !speedUp &&
+      !this.#shouldSkipNotification(transactionMeta) &&
       this._showNotification({
         type: 'pending',
         autoHide: false,
@@ -426,12 +447,13 @@ class NotificationManager {
       const foundTransaction = transactions.find(
         (tx) => tx.id === smartTransaction.transactionId,
       );
-      this._showNotification({
-        type: 'cancelled',
-        autoHide: true,
-        transaction: { id: foundTransaction?.id },
-        duration: 5000,
-      });
+      !this.#shouldSkipNotification(foundTransaction) &&
+        this._showNotification({
+          type: 'cancelled',
+          autoHide: true,
+          transaction: { id: foundTransaction?.id },
+          duration: 5000,
+        });
     };
 
     Engine.controllerMessenger.subscribe(
@@ -478,24 +500,6 @@ class NotificationManager {
         return;
       }
 
-      const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
-      const amount = renderFromWei(
-        hexToBN(filteredTransactions[0].txParams.value),
-      );
-      const id = filteredTransactions[0]?.id;
-
-      this._showNotification({
-        type: 'received',
-        transaction: {
-          nonce,
-          amount,
-          id,
-          assetType: getTicker(ticker),
-        },
-        autoHide: true,
-        duration: 7000,
-      });
-
       const txChainId = filteredTransactions[0]?.chainId;
       if (txChainId) {
         const networkClientId =
@@ -512,6 +516,24 @@ class NotificationManager {
       );
     }
   };
+
+  #shouldSkipNotification(transactionMeta) {
+    const { TransactionController } = Engine.context;
+
+    if (
+      hasTransactionType(transactionMeta, SKIP_NOTIFICATION_TRANSACTION_TYPES)
+    ) {
+      return true;
+    }
+
+    const isSkippedInProgress = TransactionController.state.transactions.some(
+      (tx) =>
+        hasTransactionType(tx, SKIP_NOTIFICATION_TRANSACTION_TYPES) &&
+        IN_PROGRESS_SKIP_STATUS.includes(tx.status),
+    );
+
+    return isSkippedInProgress;
+  }
 }
 
 let instance;

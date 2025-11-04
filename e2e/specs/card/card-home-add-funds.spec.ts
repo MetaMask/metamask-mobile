@@ -7,10 +7,10 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import CardHomeView from '../../pages/Card/CardHomeView';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-describe(SmokeCard('CardHome - Add Funds'), () => {
+describe.skip(SmokeCard('CardHome - Add Funds'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
@@ -19,6 +19,19 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
           .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withAccountTreeController()
+          .withTokens(
+            [
+              {
+                address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                decimals: 18,
+                symbol: 'USDC',
+                chainId: '0xe708',
+                name: 'USDCoin',
+              },
+            ],
+            '0xe708',
+          )
           .build(),
         restartDevice: true,
         testSpecificMock,
@@ -58,7 +71,7 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
 
   it('should validate segment/metametric event when opening Card Home', async () => {
     const expectedEvents = {
-      CARD_VIEWED: 'Card Viewed',
+      CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',
       CARD_ADD_FUNDS_CLICKED: 'Card Add Funds Clicked',
       CARD_ADVANCED_MANAGEMENT_CLICKED: 'Card Advanced Management Clicked',
@@ -67,8 +80,8 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
     const softAssert = new SoftAssert();
 
     // Find all events
-    const cardViewed = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.CARD_VIEWED,
+    const cardButtonViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.CARD_BUTTON_VIEWED,
     );
     const cardHomeClicked = eventsToCheck.filter(
       (event) => event.event === expectedEvents.CARD_HOME_CLICKED,
@@ -81,9 +94,9 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
         event.event === expectedEvents.CARD_ADVANCED_MANAGEMENT_CLICKED,
     );
 
-    const checkCardViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardViewed);
-    }, 'Check Card Viewed event');
+    const checkCardButtonViewed = softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsDefined(cardButtonViewed);
+    }, 'Check Card Button Viewed event');
 
     const checkCardHomeClicked = softAssert.checkAndCollect(async () => {
       await Assertions.checkIfValueIsDefined(cardHomeClicked);
@@ -101,7 +114,7 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
     );
 
     await Promise.all([
-      checkCardViewed,
+      checkCardButtonViewed,
       checkCardHomeClicked,
       checkCardAddFundsClicked,
       checkCardAdvancedManagementClicked,

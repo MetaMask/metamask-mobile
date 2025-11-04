@@ -10,6 +10,16 @@ jest.mock('../../constants/chartConfig', () => {
   };
 });
 
+// Mock locales
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const mockStrings = {
+      'perps.chart.candle_intervals': 'Candle intervals',
+    };
+    return mockStrings[key as keyof typeof mockStrings] || key;
+  },
+}));
+
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
@@ -141,7 +151,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         screen.getByTestId('candle-period-bottom-sheet'),
       ).toBeOnTheScreen();
       expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
-      expect(screen.getByText('Select Candle Period')).toBeOnTheScreen();
+      expect(screen.getByText('Candle intervals')).toBeOnTheScreen();
     });
 
     it('does not render when not visible', () => {
@@ -178,7 +188,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
       );
 
       // Should render content even without testID
-      expect(screen.getByText('Select Candle Period')).toBeOnTheScreen();
+      expect(screen.getByText('Candle intervals')).toBeOnTheScreen();
     });
   });
 
@@ -228,29 +238,6 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         'candle-period-bottom-sheet-period-2h',
       );
       expect(selectedPeriodOption).toBeOnTheScreen();
-    });
-
-    it('shows check icon only for selected period', () => {
-      render(
-        <TestWrapper>
-          <PerpsCandlePeriodBottomSheet
-            {...defaultProps}
-            selectedPeriod={CandlePeriod.ONE_HOUR}
-          />
-        </TestWrapper>,
-      );
-
-      // Selected period should have two children (Text + SvgMock)
-      const selectedPeriod = screen.getByTestId(
-        'candle-period-bottom-sheet-period-1h',
-      );
-      expect(selectedPeriod.children).toHaveLength(2);
-
-      // Unselected periods should have only one child (just Text)
-      const unselectedPeriod = screen.getByTestId(
-        'candle-period-bottom-sheet-period-2h',
-      );
-      expect(unselectedPeriod.children).toHaveLength(1);
     });
 
     it('updates periods when selectedDuration changes', () => {
@@ -359,7 +346,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
       expect(
         screen.getByTestId('candle-period-bottom-sheet'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Select Candle Period')).toBeOnTheScreen();
+      expect(screen.getByText('Candle intervals')).toBeOnTheScreen();
     });
 
     it('handles selectedPeriod not in available periods', () => {
@@ -490,7 +477,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByText('Select Candle Period')).toBeOnTheScreen();
+      expect(screen.getByText('Candle intervals')).toBeOnTheScreen();
 
       mockPeriods.forEach((period) => {
         const periodButton = screen.getByTestId(

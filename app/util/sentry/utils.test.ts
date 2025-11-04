@@ -20,6 +20,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { getTraceTags } from './tags';
+import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
@@ -56,7 +57,7 @@ jest.mock('./tags', () => ({
 }));
 
 describe('deriveSentryEnvironment', () => {
-  it('returns production-flask for non-dev production environment and flask build type', async () => {
+  it('returns flask-production for non-dev production environment and flask build type', async () => {
     const METAMASK_ENVIRONMENT = 'production';
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
@@ -66,20 +67,20 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('production-flask');
+    expect(env).toBe('flask-production');
   });
 
-  it('returns local-flask for non-dev undefined environment and flask build type', async () => {
+  it('returns flask-dev for non-dev undefined environment and flask build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev, undefined, METAMASK_BUILD_TYPE);
-    expect(env).toBe('local-flask');
+    expect(env).toBe(`flask-dev`);
   });
 
-  it('returns debug-flask for non-dev flask environment debug build type', async () => {
+  it('returns flask-main for non-dev flask environment main build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
-    const METAMASK_ENVIRONMENT = 'debug';
+    const METAMASK_ENVIRONMENT = 'main';
     const isDev = false;
 
     const env = deriveSentryEnvironment(
@@ -87,22 +88,22 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('debug-flask');
+    expect(env).toBe(`flask-main`);
   });
 
-  it('returns local for non-dev local environment and undefined build type', async () => {
+  it('returns dev for non-dev dev environment and undefined build type', async () => {
     const isDev = false;
-    const METAMASK_ENVIRONMENT = 'local';
+    const METAMASK_ENVIRONMENT = 'dev';
 
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT);
-    expect(env).toBe('local');
+    expect(env).toBe('development');
   });
 
-  it('returns local for non-dev with both undefined environment and build type', async () => {
+  it('returns development for non-dev with both undefined environment and build type', async () => {
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev);
-    expect(env).toBe('local');
+    expect(env).toBe('development');
   });
 
   it('returns production for non-dev production environment and undefined  build type', async () => {
@@ -432,7 +433,7 @@ describe('captureSentryFeedback', () => {
         lockTime: 30000,
         primaryCurrency: 'ETH',
         searchEngine: 'Google',
-        useBlockieIcon: true,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       alert: {
         autodismiss: null,
@@ -820,8 +821,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.url).toBe('https:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.url).toBe('https:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should rewrite breadcrumb to field to protocol only', () => {
@@ -834,8 +835,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.to).toBe('http:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.to).toBe('http:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should rewrite breadcrumb from field to protocol only', () => {
@@ -848,8 +849,8 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.from).toBe('https:');
-    expect(result.data.otherData).toBe('should remain');
+    expect(result.data?.from).toBe('https:');
+    expect(result.data?.otherData).toBe('should remain');
   });
 
   it('should handle breadcrumb with multiple URL fields', () => {
@@ -863,9 +864,9 @@ describe('rewriteBreadcrumb', () => {
 
     const result = rewriteBreadcrumb(breadcrumb);
 
-    expect(result.data.url).toBe('https:');
-    expect(result.data.to).toBe('http:');
-    expect(result.data.from).toBe('ftp:');
+    expect(result.data?.url).toBe('https:');
+    expect(result.data?.to).toBe('http:');
+    expect(result.data?.from).toBe('ftp:');
   });
 
   it('should handle breadcrumb without data', () => {
@@ -915,10 +916,10 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].stacktrace.frames).toHaveLength(1);
-    expect(result.exception.values[0].stacktrace.frames[0].filename).toBe(
-      'app:///main.js',
-    );
+    expect(result.exception?.values?.[0]?.stacktrace?.frames).toHaveLength(1);
+    expect(
+      result.exception?.values?.[0]?.stacktrace?.frames?.[0]?.filename,
+    ).toBe('app:///main.js');
   });
 
   it('should simplify complex error messages', () => {
@@ -1004,7 +1005,7 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].value).toBe('Exception with URL **');
+    expect(result.exception?.values?.[0]?.value).toBe('Exception with URL **');
   });
 
   it('should sanitize Ethereum addresses from error messages', () => {
@@ -1039,7 +1040,9 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.exception.values[0].value).toBe('Transaction failed for **');
+    expect(result.exception?.values?.[0]?.value).toBe(
+      'Transaction failed for **',
+    );
   });
 
   it('should sanitize multiple addresses from error messages', () => {
@@ -1082,9 +1085,9 @@ describe('rewriteReport', () => {
 
     const result = rewriteReport(report);
 
-    expect(result.contexts.device.timezone).toBe(null);
-    expect(result.contexts.device.name).toBe(null);
-    expect(result.contexts.device.other).toBe('should remain');
+    expect(result.contexts?.device?.timezone).toBe(null);
+    expect(result.contexts?.device?.name).toBe(null);
+    expect(result.contexts?.device?.other).toBe('should remain');
   });
 
   it('should handle report without device context', () => {

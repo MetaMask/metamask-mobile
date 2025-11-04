@@ -15,10 +15,11 @@ import styleSheet from './info-row.styles';
 import CopyIcon from './copy-icon/copy-icon';
 
 export interface InfoRowProps {
-  label: string;
+  label?: string;
   children?: ReactNode | string;
   onTooltipPress?: () => void;
-  tooltip?: string;
+  tooltip?: ReactNode;
+  tooltipTitle?: string;
   style?: Record<string, unknown>;
   labelChildren?: React.ReactNode;
   testID?: string;
@@ -39,6 +40,7 @@ const InfoRow = ({
   style = {},
   labelChildren = null,
   tooltip,
+  tooltipTitle,
   testID,
   variant = TextColor.Alternative,
   copyText,
@@ -46,6 +48,7 @@ const InfoRow = ({
   withIcon,
 }: InfoRowProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const hasLabel = Boolean(label);
 
   const ValueComponent =
     typeof children === 'string' ? (
@@ -60,7 +63,7 @@ const InfoRow = ({
         style={{ ...styles.container, ...style }}
         testID={testID ?? 'info-row'}
       >
-        {Boolean(label) && (
+        {hasLabel && (
           <View style={styles.labelContainer}>
             <Text variant={TextVariant.BodyMDMedium} color={variant}>
               {label}
@@ -70,9 +73,19 @@ const InfoRow = ({
               <Tooltip
                 content={tooltip}
                 onPress={onTooltipPress}
-                title={label}
+                title={tooltipTitle ?? label}
               />
             )}
+          </View>
+        )}
+        {!hasLabel && labelChildren && (
+          <View
+            style={{
+              ...styles.labelContainer,
+              ...styles.labelContainerWithoutLabel,
+            }}
+          >
+            {labelChildren}
           </View>
         )}
         {valueOnNewLine ? null : ValueComponent}

@@ -67,7 +67,7 @@ describe('chartCalculations', () => {
       expect(getCandleCount(TimeDuration.ONE_HOUR, CandlePeriod.ONE_DAY)).toBe(
         10,
       );
-      expect(getCandleCount(TimeDuration.ONE_DAY, CandlePeriod.ONE_MONTH)).toBe(
+      expect(getCandleCount(TimeDuration.ONE_DAY, CandlePeriod.ONE_WEEK)).toBe(
         10,
       );
     });
@@ -81,7 +81,7 @@ describe('chartCalculations', () => {
         500,
       );
       expect(
-        getCandleCount(TimeDuration.ONE_MONTH, CandlePeriod.ONE_MINUTE),
+        getCandleCount(TimeDuration.YEAR_TO_DATE, CandlePeriod.ONE_MINUTE),
       ).toBe(500);
     });
 

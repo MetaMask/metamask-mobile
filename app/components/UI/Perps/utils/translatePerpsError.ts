@@ -10,6 +10,8 @@ import {
 const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED]:
     'perps.errors.clientNotInitialized',
+  [PERPS_ERROR_CODES.CLIENT_REINITIALIZING]:
+    'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
     'perps.errors.providerNotAvailable',
   [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
@@ -20,18 +22,26 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
+  [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
+    'perps.errors.orderLeverageReductionFailed',
+  [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
 };
 
 /**
  * Translates an error code to a localized message
- * @param error - Error code string, Error object, or any error
+ * @param error - Error code string, Error object, or any other value
  * @param data - Optional data for interpolation in error messages
  * @returns Localized error message
  */
 export function translatePerpsError(
-  error: string | Error | unknown,
+  error: unknown,
   data?: Record<string, unknown>,
 ): string {
+  // Handle null or undefined
+  if (error === null || error === undefined) {
+    return strings('perps.errors.unknownError');
+  }
+
   // Handle error code strings
   if (typeof error === 'string' && error in ERROR_CODE_TO_I18N_KEY) {
     const i18nKey = ERROR_CODE_TO_I18N_KEY[error as PerpsErrorCode];
@@ -53,7 +63,7 @@ export function translatePerpsError(
     return error;
   }
 
-  // Default fallback
+  // Handle objects, numbers, and other types
   return strings('perps.errors.unknownError');
 }
 

@@ -10,6 +10,7 @@ import {
   TypeTextOptions,
 } from './types';
 import { createLogger } from './logger';
+import { sleep } from '../../app/util/testUtils';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -334,6 +335,11 @@ export default class Gestures {
 
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
+        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
+
+        // small delay to prevent the app not registering text input
+        // the action is too fast
+        await sleep(500);
 
         logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
@@ -347,6 +353,40 @@ export default class Gestures {
         elemDescription,
       },
     );
+  }
+
+  /**
+   * Type text into a web element within a webview using JavaScript injection.
+   * @param {Promise<Detox.IndexableWebElement>} element - The web element to type into.
+   * @param {string} text - The text to type.
+   */
+  static async typeInWebElement(
+    elem: Promise<IndexableWebElement>,
+    text: string,
+  ): Promise<void> {
+    try {
+      await (
+        await elem
+      ).runScript(
+        (
+          el: {
+            focus: () => void;
+            value: string;
+            _valueTracker?: { setValue: (v: string) => void };
+            dispatchEvent: (event: { bubbles?: boolean }) => void;
+          },
+          value: string,
+        ) => {
+          el.focus();
+          el.value = value;
+          el._valueTracker && el._valueTracker.setValue('');
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        },
+        [text],
+      );
+    } catch {
+      await this.typeText(elem, text);
+    }
   }
 
   /**
@@ -380,6 +420,7 @@ export default class Gestures {
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
         );
         await el.replaceText(text);
+        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
       },
       {
         timeout,

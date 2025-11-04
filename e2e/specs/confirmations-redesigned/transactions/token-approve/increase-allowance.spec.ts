@@ -5,17 +5,23 @@ import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
-import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
 import Assertions from '../../../../framework/Assertions';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
+import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { LocalNode } from '../../../../framework/types';
+import { AnvilManager } from '../../../../seeder/anvil-manager';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
@@ -23,20 +29,16 @@ describe(
     const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
 
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
         url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
         response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
         responseCode: 200,
       });
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
     };
 
     it('creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it', async () => {
@@ -47,20 +49,35 @@ describe(
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(['0x539']),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
           smartContracts: [ERC_20_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc20Address = await contractRegistry?.getContractAddress(
-            ERC_20_CONTRACT,
-          );
+          const erc20Address =
+            await contractRegistry?.getContractAddress(ERC_20_CONTRACT);
 
           await loginToApp();
 
@@ -81,7 +98,9 @@ describe(
             RowComponents.AccountNetwork,
           );
           await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
-          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
+          await Assertions.expectElementToBeVisible(
+            RowComponents.NetworkAndOrigin,
+          );
           await Assertions.expectElementToBeVisible(
             RowComponents.GasFeesDetails,
           );

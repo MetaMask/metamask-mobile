@@ -30,9 +30,19 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../core/redux/slices/confirmationMetrics';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
+import { TransactionType } from '@metamask/transaction-controller';
+import {
+  MMM_ORIGIN,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../../constants/confirmations';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+
+const HIDE_FOOTER_BY_DEFAULT_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 export const Footer = () => {
   const {
@@ -42,35 +52,27 @@ export const Footer = () => {
     hasDangerAlerts,
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
-
-  const { isQRSigningInProgress, needsCameraPermission } =
-    useQRHardwareContext();
-
   const { onConfirm, onReject } = useConfirmActions();
+  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const transactionType = transactionMetadata?.type as TransactionType;
+  const isStakingConfirmationBool = isStakingConfirmation(transactionType);
+  const isMMSendReq =
+    REDESIGNED_TRANSFER_TYPES.includes(transactionType) &&
+    transactionMetadata?.origin === MMM_ORIGIN;
+  const { isLoading: isPayLoading } = useIsTransactionPayLoading();
 
-  const isStakingConfirmationBool = isStakingConfirmation(
-    transactionMetadata?.type as string,
-  );
-
-  const { isFooterVisible, isTransactionValueUpdating } =
+  const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
 
   const navigation = useNavigation();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
-
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(
-      state,
-      transactionMetadata?.id ?? '',
-    ),
-  );
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -89,7 +91,7 @@ export const Footer = () => {
     hideConfirmAlertModal();
     try {
       await onConfirm();
-    } catch (error) {
+    } catch {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   }, [hideConfirmAlertModal, onConfirm, navigation]);
@@ -113,21 +115,32 @@ export const Footer = () => {
   });
 
   const confirmButtonLabel = () => {
-    if (isQRSigningInProgress) {
+    if (isSigningQRObject) {
       return strings('confirm.qr_get_sign');
     }
+
+    if (isPayLoading) {
+      return strings('confirm.confirm');
+    }
+
     if (hasUnconfirmedDangerAlerts) {
       return fieldAlerts.length > 1
         ? strings('alert_system.review_alerts')
         : strings('alert_system.review_alert');
     }
+
     if (hasBlockingAlerts) {
       return strings('alert_system.review_alerts');
     }
+
     return strings('confirm.confirm');
   };
 
   const getStartIcon = () => {
+    if (isPayLoading) {
+      return undefined;
+    }
+
     if (hasUnconfirmedDangerAlerts) {
       return IconName.SecuritySearch;
     }
@@ -140,21 +153,23 @@ export const Footer = () => {
     needsCameraPermission ||
     hasBlockingAlerts ||
     isTransactionValueUpdating ||
-    isQuotesLoading;
+    isPayLoading;
 
   const buttons = [
     {
       variant: ButtonVariants.Secondary,
       label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
-      onPress: () => onReject(providerErrors.userRejectedRequest()),
+      onPress: () =>
+        onReject(providerErrors.userRejectedRequest(), undefined, isMMSendReq),
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {
       variant: ButtonVariants.Primary,
       isDanger:
-        securityAlertResponse?.result_type === ResultType.Malicious ||
-        hasDangerAlerts,
+        !isPayLoading &&
+        (securityAlertResponse?.result_type === ResultType.Malicious ||
+          hasDangerAlerts),
       isDisabled: isConfirmDisabled,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
@@ -164,8 +179,20 @@ export const Footer = () => {
     },
   ];
 
+  const isFooterVisible =
+    isFooterVisibleFlag ??
+    (!transactionMetadata ||
+      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
+
   if (!isFooterVisible) {
     return null;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
+  ) {
+    return <PredictClaimFooter onPress={onConfirm} />;
   }
 
   return (

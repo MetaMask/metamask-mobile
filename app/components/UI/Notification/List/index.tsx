@@ -2,11 +2,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
-import ScrollableTabView, {
-  TabBarProps,
-} from 'react-native-scrollable-tab-view';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
-import { strings } from '../../../../../locales/i18n';
 import {
   hasNotificationComponents,
   hasNotificationModal,
@@ -24,8 +20,6 @@ import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
 import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
-import TabBar from '../../../../component-library/components-temp/TabBar/TabBar';
-
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
   allNotifications: INotification[];
@@ -156,7 +150,7 @@ function useNotificationListProps(props: {
           />
         ),
         onRefresh: async () => await listNotifications(),
-        refreshing: isLoading,
+        refreshing: isLoading ?? false,
         initialNumToRender: 10,
         maxToRenderPerBatch: 2,
         onEndReachedThreshold: 0.5,
@@ -177,86 +171,12 @@ function SingleNotificationList(props: NotificationsListProps) {
   return <FlatList {...getListProps(props.allNotifications)} />;
 }
 
-function TabbedNotificationList(props: NotificationsListProps) {
-  const { trackEvent, createEventBuilder } = useMetrics();
-
-  const getListProps = useNotificationListProps(props);
-
-  const onTabClick = useCallback(
-    (tabLabel: string) => {
-      switch (tabLabel) {
-        case strings('notifications.list.0'):
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.ALL_NOTIFICATIONS).build(),
-          );
-          break;
-        case strings('notifications.list.1'):
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.WALLET_NOTIFICATIONS).build(),
-          );
-          break;
-        case strings('notifications.list.2'):
-          // trackEvent(
-          //   createEventBuilder(MetaMetricsEvents.WEB3_NOTIFICATIONS).build(),
-          // );
-          break;
-        default:
-          break;
-      }
-    },
-    [trackEvent, createEventBuilder],
-  );
-
-  return (
-    <ScrollableTabView
-      renderTabBar={(tabProps: TabBarProps) => (
-        <View>
-          <TabBar {...tabProps} />
-        </View>
-      )}
-      onChangeTab={(val) => onTabClick(val.ref.props.tabLabel)}
-    >
-      {/* Tab 1 - All Notifications */}
-      <FlatList
-        {...getListProps(
-          props.allNotifications,
-          strings(`notifications.list.0`),
-        )}
-      />
-
-      {/* Tab 2 - Wallet Notifications */}
-      <FlatList
-        {...getListProps(
-          props.allNotifications,
-          strings(`notifications.list.1`),
-        )}
-      />
-
-      {/* Tab 3 - Web 3 Notifications */}
-      <FlatList
-        {...getListProps(
-          props.web3Notifications,
-          strings(`notifications.list.2`),
-        )}
-      />
-    </ScrollableTabView>
-  );
-}
-
 const Notifications = (props: NotificationsListProps) => {
   const { styles } = useStyles();
   if (props.loading) {
     return (
       <View style={styles.container}>
         <Loading />
-      </View>
-    );
-  }
-
-  if (props.web3Notifications.length > 0) {
-    return (
-      <View style={styles.container}>
-        <TabbedNotificationList {...props} />
       </View>
     );
   }

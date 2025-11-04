@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -13,17 +14,19 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import RemoteImage from '../../../../Base/RemoteImage';
 import type { PerpsMarketData } from '../../controllers/types';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import { styleSheet } from './PerpsMarketHeader.styles';
-import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import { styleSheet } from './PerpsMarketHeader.styles';
+import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
   onBackPress?: () => void;
   onMorePress?: () => void;
+  onFavoritePress?: () => void;
+  isFavorite?: boolean;
   testID?: string;
 }
 
@@ -31,14 +34,14 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   market,
   onBackPress,
   onMorePress,
+  onFavoritePress,
+  isFavorite = false,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Back Button */}
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
@@ -51,13 +54,13 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </View>
       )}
 
-      {/* Icon Section */}
+      {/* Icon Section - Smaller size for better spacing */}
       <View style={styles.perpIcon}>
-        {assetUrl ? (
-          <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
-        ) : (
-          <Icon name={IconName.Coin} size={IconSize.Lg} />
-        )}
+        <PerpsTokenLogo
+          symbol={market.symbol}
+          size={32}
+          style={styles.tokenIcon}
+        />
       </View>
 
       {/* Left Section */}
@@ -68,17 +71,14 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             color={TextColor.Default}
             style={styles.assetName}
           >
-            {market.symbol}-USD
+            {getPerpsDisplaySymbol(market.symbol)}-USD
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {market.maxLeverage}
-          </Text>
+          <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
-        <View style={styles.positionValueRow}>
+        <View style={styles.secondRow}>
           <LivePriceHeader
             symbol={market.symbol}
             fallbackPrice={market.price || '0'}
-            fallbackChange={market.change24hPercent || '0'}
             testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
             testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
             throttleMs={1000}
@@ -86,15 +86,25 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </View>
       </View>
 
-      {/* More Button */}
-      {onMorePress && (
-        <TouchableOpacity onPress={onMorePress} style={styles.moreButton}>
+      {/* Right Action Button */}
+      {onFavoritePress ? (
+        <TouchableOpacity onPress={onFavoritePress} style={styles.moreButton}>
           <Icon
-            name={IconName.MoreVertical}
+            name={isFavorite ? IconName.StarFilled : IconName.Star}
             size={IconSize.Lg}
             color={IconColor.Default}
           />
         </TouchableOpacity>
+      ) : (
+        onMorePress && (
+          <TouchableOpacity onPress={onMorePress} style={styles.moreButton}>
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Lg}
+              color={IconColor.Default}
+            />
+          </TouchableOpacity>
+        )
       )}
     </View>
   );

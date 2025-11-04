@@ -101,9 +101,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 20,
-                  "fontWeight": "600",
                   "textAlign": "center",
                 }
               }
@@ -175,9 +174,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 24,
-                          "fontWeight": "400",
                           "textAlign": "center",
                           "textTransform": "uppercase",
                         },
@@ -201,9 +199,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "600",
                       "marginBottom": 4,
                     }
                   }
@@ -430,9 +427,8 @@ exports[`TypedSign onReject rejects message 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 20,
-                  "fontWeight": "600",
                   "textAlign": "center",
                 }
               }
@@ -504,9 +500,8 @@ exports[`TypedSign onReject rejects message 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 24,
-                          "fontWeight": "400",
                           "textAlign": "center",
                           "textTransform": "uppercase",
                         },
@@ -530,9 +525,8 @@ exports[`TypedSign onReject rejects message 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "600",
                       "marginBottom": 4,
                     }
                   }

@@ -69,6 +69,10 @@ const WalletAction = ({
       title: strings('asset_overview.perps_button'),
       description: strings('asset_overview.perps_description'),
     },
+    [WalletActionType.Predict]: {
+      title: strings('asset_overview.predict_button'),
+      description: strings('asset_overview.predict_description'),
+    },
   };
 
   const actionStrings = actionType ? walletActionDetails[actionType] : null;
@@ -93,6 +97,8 @@ const WalletAction = ({
     >
       <Avatar
         variant={AvatarVariant.Icon}
+        // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+        // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
         style={iconStyle}
         size={iconSize}
         name={iconName}

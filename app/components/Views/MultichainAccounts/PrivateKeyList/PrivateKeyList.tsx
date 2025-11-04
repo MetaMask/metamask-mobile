@@ -4,8 +4,9 @@ import React, {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from 'react';
-import { View, TextInput } from 'react-native';
+import { View, TextInput, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -44,10 +45,17 @@ import {
   createNavigationDetails,
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import { PRIVATE_KEY_GUIDE_URL } from '../../../../constants/urls';
 import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
 
 import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 export const createPrivateKeyListNavigationDetails =
   createNavigationDetails<PrivateKeyListParams>(
@@ -102,6 +110,17 @@ export const PrivateKeyList = () => {
     },
     [],
   );
+
+  // Start tracing the private key list display only after the password is
+  // entered and verified.
+  useEffect(() => {
+    if (reveal) {
+      trace({
+        name: TraceName.ShowAccountPrivateKeyList,
+        op: TraceOperation.AccountUi,
+      });
+    }
+  }, [reveal]);
 
   const onPasswordChange = useCallback((pswd: string) => {
     setPassword(pswd);
@@ -196,6 +215,7 @@ export const PrivateKeyList = () => {
               'multichain_accounts.private_key_list.password_placeholder',
             )}
             secureTextEntry
+            autoCapitalize="none"
             testID={PrivateKeyListIds.PASSWORD_INPUT}
           />
 
@@ -249,10 +269,30 @@ export const PrivateKeyList = () => {
           keyExtractor={(item) => item.scope}
           renderItem={renderAddressItem}
           testID={PrivateKeyListIds.LIST}
+          onLoad={() => {
+            endTrace({ name: TraceName.ShowAccountPrivateKeyList });
+          }}
         />
       </View>
     ),
     [filteredAccounts, renderAddressItem, styles.container],
+  );
+
+  const privateKeyBannerDescription = useMemo(
+    () => (
+      <Text>
+        {`${strings(
+          'multichain_accounts.private_key_list.warning_description',
+        )} `}
+        <Text
+          color={TextColor.Primary}
+          onPress={() => Linking.openURL(PRIVATE_KEY_GUIDE_URL)}
+        >
+          {strings('reveal_credential.learn_more')}
+        </Text>
+      </Text>
+    ),
+    [],
   );
 
   return (
@@ -263,9 +303,7 @@ export const PrivateKeyList = () => {
           variant={BannerVariant.Alert}
           severity={BannerAlertSeverity.Error}
           title={strings('multichain_accounts.private_key_list.warning_title')}
-          description={`${strings(
-            'multichain_accounts.private_key_list.warning_description',
-          )}`}
+          description={privateKeyBannerDescription}
           style={styles.banner}
           testID={PrivateKeyListIds.BANNER}
         />

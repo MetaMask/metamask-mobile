@@ -6,6 +6,7 @@ import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
@@ -15,6 +16,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { removePermittedAccounts } from '../../../../core/Permissions';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import SDKConnectV2 from '../../../../core/SDKConnectV2';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
@@ -22,7 +24,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
-import { toHex } from '@metamask/controller-utils';
+import { RootState } from '../../../../reducers';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -48,14 +50,17 @@ interface SDKDisconnectModalProps {
       accountName?: string;
       dapp?: string;
       accountsLength?: number;
+      isV2?: boolean;
     };
   };
 }
 
 const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   const { params } = route;
-  const { channelId, account, accountsLength, accountName, dapp } =
+  const { channelId, account, accountsLength, accountName, dapp, isV2 } =
     params ?? {};
+
+  const { v2Connections } = useSelector((state: RootState) => state.sdk);
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const safeAreaInsets = useSafeAreaInsets();
@@ -81,28 +86,49 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   }, [channelId, account]);
 
   const onConfirm = async () => {
-    if (account && channelId) {
-      removePermittedAccounts(channelId, [toHex(account)]);
-    } else if (!account && channelId) {
-      SDKConnect.getInstance().removeChannel({
-        channelId,
-        sendTerminate: true,
-      });
-    }
+    try {
+      const isGlobalDisconnect = !account && !channelId; // Disconnect all sessions.
+      const isSessionDisconnect = !account && channelId; // Disconnect a specific session.
+      const isAccountDisconnect = account && channelId; // Disconnect a specific account under a session.
 
-    DevLogger.log(
-      `OnConfirm: accountsLength=${accountsLength} channelId: ${channelId}, account: ${account}`,
-    );
-    if (account && accountsLength && accountsLength <= 1 && channelId) {
-      SDKConnect.getInstance().removeChannel({
-        channelId,
-        sendTerminate: true,
-      });
-    } else if (!account && !channelId) {
-      SDKConnect.getInstance().removeAll();
+      if (isGlobalDisconnect) {
+        // Disconnect all V1 sessions.
+        SDKConnect.getInstance().removeAll();
+        // Disconnect all V2 sessions.
+        const v2ConnectionIds = Object.keys(v2Connections || {});
+        const promises = v2ConnectionIds.map((connId) =>
+          SDKConnectV2.disconnect(connId),
+        );
+        await Promise.all(promises);
+      } else if (isSessionDisconnect) {
+        if (isV2) {
+          await SDKConnectV2.disconnect(channelId as string);
+        } else {
+          SDKConnect.getInstance().removeChannel({
+            channelId: channelId as string,
+            sendTerminate: true,
+          });
+        }
+      } else if (isAccountDisconnect) {
+        // This is a pure permission management action.
+        removePermittedAccounts(channelId as string, [account]);
+        // If it's the last account, escalate to a full session termination.
+        if (accountsLength && accountsLength <= 1) {
+          if (isV2) {
+            await SDKConnectV2.disconnect(channelId as string);
+          } else {
+            SDKConnect.getInstance().removeChannel({
+              channelId: channelId as string,
+              sendTerminate: true,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      DevLogger.log('Failed to perform disconnect action', error);
+    } finally {
+      navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
     }
-
-    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
   };
 
   const onCancel = () => {

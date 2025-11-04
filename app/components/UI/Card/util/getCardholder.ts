@@ -1,11 +1,7 @@
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
-import {
-  isValidHexAddress,
-  safeToChecksumAddress,
-} from '../../../../util/address';
+import { isValidHexAddress } from '../../../../util/address';
 import { isCaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 export const getCardholder = async ({
@@ -14,18 +10,24 @@ export const getCardholder = async ({
 }: {
   caipAccountIds: `${string}:${string}:${string}`[];
   cardFeatureFlag: CardFeatureFlag | null;
-}) => {
+}): Promise<{
+  cardholderAddresses: string[];
+  geoLocation: string;
+}> => {
   try {
     if (!cardFeatureFlag || !caipAccountIds?.length) {
-      return [];
+      return {
+        cardholderAddresses: [],
+        geoLocation: 'UNKNOWN',
+      };
     }
 
     const cardSDK = new CardSDK({
       cardFeatureFlag,
-      rawChainId: LINEA_CHAIN_ID,
     });
 
     const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
+    const geoLocation = await cardSDK.getGeoLocation();
 
     const cardholderAddresses = cardCaipAccountIds.map((cardCaipAccountId) => {
       if (!isCaipAccountId(cardCaipAccountId)) return null;
@@ -34,15 +36,21 @@ export const getCardholder = async ({
 
       if (!isValidHexAddress(address)) return null;
 
-      return safeToChecksumAddress(address);
+      return address.toLowerCase();
     });
 
-    return cardholderAddresses.filter(Boolean) as string[];
+    return {
+      cardholderAddresses: cardholderAddresses.filter(Boolean) as string[],
+      geoLocation,
+    };
   } catch (error) {
     Logger.error(
       error instanceof Error ? error : new Error(String(error)),
       'getCardholder::Error loading cardholder accounts',
     );
-    return [];
+    return {
+      cardholderAddresses: [],
+      geoLocation: 'UNKNOWN',
+    };
   }
 };

@@ -1,24 +1,22 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import SelectorButton from '../../../../Base/SelectorButton';
-import Avatar, {
-  AvatarAccountType,
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Avatar, {
+  AvatarVariant,
+  AvatarSize,
+} from '../../../../../component-library/components/Avatars/Avatar';
 
-import { useAccountName } from '../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { formatAddress } from '../../../../../util/address';
-import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
-import { type RootState } from '../../../../../reducers';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 const styles = StyleSheet.create({
   selector: {
@@ -31,41 +29,23 @@ const styles = StyleSheet.create({
   },
 });
 
-const AccountSelector = () => {
+const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const navigation = useNavigation();
+  const accountName = useAccountGroupName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const accountName = useAccountName();
-
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
-
-  const selectedFormattedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const openAccountSelector = useCallback(
     () =>
       navigation.navigate(
         ...createAccountSelectorNavDetails({
-          disablePrivacyMode: true,
+          isEvmOnly,
         }),
       ),
-    [navigation],
+    [isEvmOnly, navigation],
   );
-
-  const shortenedAddress = formatAddress(
-    selectedFormattedAddress || '',
-    'short',
-  );
-
-  const displayedAddress = accountName
-    ? `(${shortenedAddress})`
-    : shortenedAddress;
 
   return (
     <SelectorButton
@@ -73,13 +53,13 @@ const AccountSelector = () => {
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
     >
-      {selectedAddress && selectedFormattedAddress ? (
+      {selectedAddress ? (
         <>
           <Avatar
             variant={AvatarVariant.Account}
-            type={accountAvatarType}
-            accountAddress={selectedAddress}
             size={AvatarSize.Xs}
+            accountAddress={selectedAddress}
+            type={accountAvatarType}
           />
           <Text
             variant={TextVariant.BodyMDMedium}
@@ -87,7 +67,7 @@ const AccountSelector = () => {
             numberOfLines={1}
             ellipsizeMode="middle"
           >
-            {accountName} {displayedAddress}
+            {accountName}
           </Text>
         </>
       ) : (

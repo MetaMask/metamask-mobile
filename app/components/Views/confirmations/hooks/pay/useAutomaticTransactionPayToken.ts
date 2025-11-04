@@ -2,14 +2,17 @@ import { useSelector } from 'react-redux';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
-import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { orderBy } from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import { BridgeToken } from '../../../../UI/Bridge/types';
+import { isHardwareAccount } from '../../../../../util/address';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { getRequiredBalance } from '../../utils/transaction-pay';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -20,68 +23,92 @@ export interface BalanceOverride {
 }
 
 export function useAutomaticTransactionPayToken({
-  balanceOverrides,
+  countOnly = false,
+  disable = false,
 }: {
-  balanceOverrides?: BalanceOverride[];
+  countOnly?: boolean;
+  disable?: boolean;
 } = {}) {
-  const [isUpdated, setIsUpdated] = useState(false);
-
-  const supportedChainIds = useSelector(selectEnabledSourceChains).map(
-    (chain) => chain.chainId,
-  );
-
-  const { totalFiat } = useTransactionRequiredFiat();
-  const tokens = useTokensWithBalance({ chainIds: supportedChainIds });
-  const requiredTokens = useTransactionRequiredTokens();
-  const { chainId } = useTransactionMetadataRequest() ?? {};
+  const isUpdated = useRef(false);
+  const supportedChains = useSelector(selectEnabledSourceChains);
   const { setPayToken } = useTransactionPayToken();
+  const requiredTokens = useTransactionRequiredTokens({ log: true });
 
-  const targetToken =
-    requiredTokens.find((token) => token.address !== NATIVE_TOKEN_ADDRESS) ??
-    requiredTokens[0];
+  const transactionMeta =
+    useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
 
-  const balanceOverride = balanceOverrides?.find(
-    (token) =>
-      token.address.toLowerCase() === targetToken?.address?.toLowerCase() &&
-      token.chainId === chainId,
+  const {
+    chainId,
+    txParams: { from },
+  } = transactionMeta;
+
+  const chainIds = useMemo(
+    () => (!isUpdated.current ? supportedChains.map((c) => c.chainId) : []),
+    [supportedChains],
   );
 
-  const requiredBalance = balanceOverride?.balance ?? totalFiat;
+  const tokens = useTokensWithBalance({ chainIds });
+  const isHardwareWallet = isHardwareAccount(from ?? '');
+  const requiredBalance = getRequiredBalance(transactionMeta);
 
-  const sufficientBalanceTokens = orderBy(
-    tokens.filter((token) => (token.tokenFiatAmount ?? 0) >= requiredBalance),
-    (token) => token?.tokenFiatAmount ?? 0,
-    'desc',
-  );
+  let automaticToken: { address: string; chainId?: string } | undefined;
+  let count = 0;
 
-  const requiredToken = sufficientBalanceTokens.find(
-    (token) =>
-      token.address === targetToken?.address && token.chainId === chainId,
-  );
+  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
 
-  const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
-    (token) => token.chainId === chainId,
-  );
+  if (!disable && (!isUpdated.current || countOnly)) {
+    const targetToken =
+      requiredTokens.find((token) => token.address !== nativeTokenAddress) ??
+      requiredTokens[0];
 
-  const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
-    (token) => token.chainId !== chainId,
-  );
+    const sufficientBalanceTokens = orderBy(
+      tokens.filter((token) =>
+        isTokenSupported(token, tokens, requiredBalance),
+      ),
+      (token) => token?.tokenFiatAmount ?? 0,
+      'desc',
+    );
 
-  const targetTokenFallback = targetToken
-    ? {
-        address: targetToken.address,
-        chainId,
-      }
-    : undefined;
+    count = sufficientBalanceTokens.length;
 
-  const automaticToken =
-    requiredToken ??
-    sameChainHighestBalanceToken ??
-    alternateChainHighestBalanceToken ??
-    targetTokenFallback;
+    const requiredToken = sufficientBalanceTokens.find(
+      (token) =>
+        token.address === targetToken?.address && token.chainId === chainId,
+    );
+
+    const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
+      (token) => token.chainId === chainId,
+    );
+
+    const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
+      (token) => token.chainId !== chainId,
+    );
+
+    const targetTokenFallback = targetToken
+      ? {
+          address: targetToken.address,
+          chainId,
+        }
+      : undefined;
+
+    automaticToken =
+      requiredToken ??
+      sameChainHighestBalanceToken ??
+      alternateChainHighestBalanceToken ??
+      targetTokenFallback;
+
+    if (isHardwareWallet) {
+      automaticToken = targetTokenFallback;
+    }
+  }
 
   useEffect(() => {
-    if (isUpdated || !automaticToken || !requiredTokens?.length) {
+    if (
+      isUpdated.current ||
+      !automaticToken ||
+      !requiredTokens?.length ||
+      countOnly
+    ) {
       return;
     }
 
@@ -90,8 +117,33 @@ export function useAutomaticTransactionPayToken({
       chainId: automaticToken.chainId as Hex,
     });
 
-    setIsUpdated(true);
+    isUpdated.current = true;
 
     log('Automatically selected pay token', automaticToken);
-  }, [automaticToken, isUpdated, requiredTokens, setPayToken]);
+  }, [automaticToken, countOnly, isUpdated, requiredTokens, setPayToken]);
+
+  return { count };
+}
+
+function isTokenSupported(
+  token: BridgeToken,
+  tokens: BridgeToken[],
+  requiredBalance: number | undefined,
+): boolean {
+  const nativeTokenAddress = getNativeTokenAddress(token.chainId as Hex);
+
+  const nativeToken = tokens.find(
+    (t) => t.address === nativeTokenAddress && t.chainId === token.chainId,
+  );
+
+  const tokenAmount = token?.tokenFiatAmount ?? 0;
+
+  const isTokenBalanceSufficient =
+    requiredBalance === undefined
+      ? tokenAmount > 0
+      : tokenAmount >= requiredBalance;
+
+  const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
+
+  return isTokenBalanceSufficient && hasNativeBalance;
 }

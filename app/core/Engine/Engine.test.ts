@@ -9,14 +9,17 @@ import {
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
-import { Hex } from '@metamask/utils';
+import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
+import { NetworkController } from '@metamask/network-controller';
+import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -45,6 +48,9 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
   selectSmartTransactionsEnabled: jest.fn().mockReturnValue(false),
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
+  selectPendingSmartTransactionsForSelectedAccountGroup: jest
+    .fn()
+    .mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
   ...jest.requireActual('../../selectors/settings'),
@@ -67,10 +73,20 @@ jest.mock('@metamask/assets-controllers', () => {
   };
 });
 
+jest.mock('@metamask/remote-feature-flag-controller', () => ({
+  ...jest.requireActual('@metamask/remote-feature-flag-controller'),
+  ClientConfigApiService: jest.fn().mockReturnValue({
+    remoteFeatureFlags: {},
+    cacheTimestamp: 0,
+  }),
+}));
+
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
   rejectOriginApprovals: jest.fn(),
 }));
+
+const ClientConfigApiServiceMock = jest.mocked(ClientConfigApiService);
 
 describe('Engine', () => {
   // Create a shared mock account for tests
@@ -82,9 +98,11 @@ describe('Engine', () => {
     ReduxService.store = configureStore({});
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
+    await Engine.destroyEngine();
+    await EngineClass.instance?.destroyEngineInstance();
   });
 
   it('should expose an API', () => {
@@ -115,7 +133,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
-    expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -124,6 +141,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('DeFiPositionsController');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
+    expect(engine.context).toHaveProperty('GatorPermissionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -140,7 +158,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: 'vault',
@@ -158,7 +177,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: undefined,
@@ -189,11 +209,58 @@ describe('Engine', () => {
     // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
+      AccountTrackerController: {
+        ...backgroundState.AccountTrackerController,
+        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
+        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
+        accountsByChainId: {},
+      },
       AppMetadataController: {
         currentAppVersion,
         previousAppVersion: '', // This will be managed by the controller
         previousMigrationVersion: 0, // This will be managed by the controller
         currentMigrationVersion,
+      },
+      PredictController: {
+        eligibility: {},
+        lastError: null,
+        lastUpdateTimestamp: 0,
+        balances: {},
+        claimablePositions: [],
+        pendingDeposits: {},
+        withdrawTransaction: null,
+        isOnboarded: {},
+      },
+      GatorPermissionsController: {
+        gatorPermissionsMapSerialized: JSON.stringify({
+          'native-token-stream': {},
+          'native-token-periodic': {},
+          'erc20-token-stream': {},
+          'erc20-token-periodic': {},
+          other: {},
+        }),
+        gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
+        isFetchingGatorPermissions: false,
+        isGatorPermissionsEnabled: false,
+      },
+      PerpsController: {
+        ...backgroundState.PerpsController,
+        depositRequests: [],
+        withdrawalRequests: [],
+        withdrawalProgress: {
+          progress: 0,
+          lastUpdated: 0,
+          activeWithdrawalId: null,
+        },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
+        },
       },
     };
 
@@ -266,7 +333,7 @@ describe('Engine', () => {
 
   it('getSnapKeyring gets or creates a snap keyring', async () => {
     const engine = new EngineClass(backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' };
+    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
     jest
       .spyOn(engine.keyringController, 'getKeyringsByType')
       .mockImplementation(() => [mockSnapKeyring]);
@@ -282,7 +349,7 @@ describe('Engine', () => {
 
   it('getSnapKeyring creates a new snap keyring if none exists', async () => {
     const engine = new EngineClass(backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' };
+    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
 
     jest
       .spyOn(engine.keyringController, 'getKeyringsByType')
@@ -326,24 +393,133 @@ describe('Engine', () => {
     });
   });
 
-  it('does not pass initial RemoteFeatureFlagController state to the controller', () => {
+  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
     const state = {
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {},
-        cacheTimestamp: 20000000000000,
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: true,
+        },
+        cacheTimestamp: 0,
       },
     };
-    const engine = Engine.init(state);
-    expect(engine.datamodel.state.RemoteFeatureFlagController).toStrictEqual({
-      remoteFeatureFlags: {},
-      cacheTimestamp: 0,
-    });
+    const enableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'enableRpcFailover',
+    );
+
+    Engine.init(state);
+
+    expect(enableRpcFailoverSpy).toHaveBeenCalled();
+  });
+
+  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already disabled', () => {
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: false,
+        },
+        cacheTimestamp: 0,
+      },
+    };
+    const disableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'disableRpcFailover',
+    );
+
+    Engine.init(state);
+
+    expect(disableRpcFailoverSpy).toHaveBeenCalled();
+  });
+
+  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is enabled later', async () => {
+    (Date.now as jest.Mock).mockReturnValue(1000000);
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: false,
+        },
+        cacheTimestamp: 0,
+      },
+    };
+    const keyringState = null;
+    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
+    const enableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'enableRpcFailover',
+    );
+    ClientConfigApiServiceMock
+      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
+      // all we need to override is `fetchRemoteFeatureFlags`
+      .mockReturnValue({
+        async fetchRemoteFeatureFlags() {
+          return {
+            remoteFeatureFlags: {
+              walletFrameworkRpcFailoverEnabled: true,
+            },
+            cacheTimestamp: 1,
+          };
+        },
+      });
+
+    Engine.init(state, keyringState, metaMetricsId);
+
+    // We can't await RemoteFeatureFlagController:stateChange because can't
+    // guarantee it hasn't been called already, so this is the next best option
+    while (enableRpcFailoverSpy.mock.calls.length === 0) {
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 100);
+      });
+    }
+    expect(enableRpcFailoverSpy).toHaveBeenCalled();
+  });
+
+  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is disabled later', async () => {
+    (Date.now as jest.Mock).mockReturnValue(1000000);
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          walletFrameworkRpcFailoverEnabled: true,
+        },
+        cacheTimestamp: 0,
+      },
+    };
+    const keyringState = null;
+    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
+    const disableRpcFailoverSpy = jest.spyOn(
+      NetworkController.prototype,
+      'disableRpcFailover',
+    );
+    ClientConfigApiServiceMock
+      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
+      // all we need to override is `fetchRemoteFeatureFlags`
+      .mockReturnValue({
+        async fetchRemoteFeatureFlags() {
+          return {
+            remoteFeatureFlags: {
+              walletFrameworkRpcFailoverEnabled: false,
+            },
+            cacheTimestamp: 1,
+          };
+        },
+      });
+
+    Engine.init(state, keyringState, metaMetricsId);
+
+    // We can't await RemoteFeatureFlagController:stateChange because can't
+    // guarantee it hasn't been called already, so this is the next best option
+    while (disableRpcFailoverSpy.mock.calls.length === 0) {
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 100);
+      });
+    }
+    expect(disableRpcFailoverSpy).toHaveBeenCalled();
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
-    let engine: EngineClass;
-    afterEach(() => engine?.destroyEngineInstance());
-
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const selectedAccountId = 'test-account-id';
     const chainId: Hex = '0x1';
@@ -394,14 +570,26 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      engine = Engine.init(state);
+      const engine = Engine.init({
+        ...state,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: {
+                balance: '0',
+                stakedBalance: '0',
+              },
+            },
+          },
+        },
+      });
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
         ethFiat1dAgo: 0,
         tokenFiat: 0,
         tokenFiat1dAgo: 0,
-        ticker: '',
+        ticker: 'ETH',
         totalNativeTokenBalance: '0',
       });
     });
@@ -409,7 +597,7 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokenRatesController: {
           marketData: {
@@ -460,7 +648,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokensController: {
           allTokens: {
@@ -556,7 +744,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         AccountTrackerController: {
           accountsByChainId: {
@@ -644,7 +832,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to active
@@ -663,7 +859,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to background
@@ -692,5 +896,342 @@ describe('Engine', () => {
       'SnapController:setClientActive',
       expect.anything(),
     );
+  });
+
+  it('does not call `SnapController:setClientActive` when the app is locked', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
+      },
+    });
+
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to active
+    mockAppStateListener('active');
+
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      expect.anything(),
+    );
+  });
+
+  it('ensures network names are updated for new users', () => {
+    // Create a state without NetworkController to simulate first-time setup
+    const initState = { ...backgroundState };
+    delete (initState as Partial<EngineState>).NetworkController;
+
+    const engine = Engine.init(initState);
+
+    const networkState = engine.context.NetworkController.state;
+    const networks = networkState.networkConfigurationsByChainId;
+
+    // Verify that network names have been updated for new users
+    expect(networks['0x1'].name).toBe('Ethereum');
+    expect(networks['0x2105'].name).toBe('Base');
+    expect(networks['0xe708'].name).toBe('Linea');
+  });
+
+  it('does not update network names for existing users', () => {
+    // Arrange - Create state with existing NetworkController that has original names
+    const initState = {
+      ...backgroundState,
+      NetworkController: mockNetworkState(
+        {
+          chainId: '0x1',
+          nickname: 'Ethereum Mainnet',
+        },
+        {
+          chainId: '0xe708',
+          nickname: 'Linea Mainnet', // Original name from API
+        },
+        {
+          chainId: '0x2105',
+          nickname: 'Base Mainnet', // Original name from API
+        },
+      ),
+    };
+
+    // Act - Initialize engine with existing NetworkController state
+    const engine = Engine.init(initState);
+    const networkState = engine.context.NetworkController.state;
+
+    // Assert - Ethereum network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0x1'].name).toBe(
+      'Ethereum Mainnet',
+    );
+
+    // Assert - Linea network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0xe708'].name).toBe(
+      'Linea Mainnet',
+    );
+
+    // Assert - Base network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0x2105'].name).toBe(
+      'Base Mainnet',
+    );
+  });
+
+  describe('lookupEnabledNetworks', () => {
+    it('should lookup all enabled networks successfully', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
+            },
+          },
+        });
+
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2);
+
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+
+      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId1);
+      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId2);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should only lookup enabled networks and skip disabled ones', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
+
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2);
+
+      jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
+            },
+          },
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      // Should only call for enabled networks (0x1 and 0x89), not for disabled (0x38)
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalledWith('0x38');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle empty enabled networks list', async () => {
+      const engine = Engine.init(backgroundState);
+
+      const findNetworkClientIdByChainIdSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'findNetworkClientIdByChainId',
+      );
+
+      const lookupNetworkSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'lookupNetwork',
+      );
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {},
+          },
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
+      expect(lookupNetworkSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle undefined enabledNetworkMap', async () => {
+      const engine = Engine.init(backgroundState);
+
+      const findNetworkClientIdByChainIdSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'findNetworkClientIdByChainId',
+      );
+
+      const lookupNetworkSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'lookupNetwork',
+      );
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: undefined as unknown as Record<
+            string,
+            Record<string, boolean>
+          >,
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
+      expect(lookupNetworkSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle undefined Eip155 namespace in enabledNetworkMap', async () => {
+      const engine = Engine.init(backgroundState);
+
+      const findNetworkClientIdByChainIdSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'findNetworkClientIdByChainId',
+      );
+
+      const lookupNetworkSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'lookupNetwork',
+      );
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {},
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
+      expect(lookupNetworkSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle network lookup failures gracefully', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
+
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2);
+
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockRejectedValueOnce(new Error('Network lookup failed'))
+        .mockImplementation(() => Promise.resolve());
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
+            },
+          },
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle findNetworkClientIdByChainId returning undefined', async () => {
+      const engine = Engine.init(backgroundState);
+
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(undefined as unknown as string)
+        .mockReturnValueOnce('network-client-2');
+
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
+            },
+          },
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+      expect(lookupNetworkSpy).toHaveBeenCalledWith('network-client-2');
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle mixed success and failure scenarios', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
+      const mockNetworkClientId3 = 'network-client-3';
+
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2)
+        .mockReturnValueOnce(mockNetworkClientId3);
+
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('Network 2 failed'))
+        .mockImplementation(() => Promise.resolve());
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0xa': true,
+            },
+          },
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
+    });
   });
 });

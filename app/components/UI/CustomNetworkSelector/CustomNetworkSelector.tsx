@@ -29,11 +29,14 @@ import Text, {
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
+import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -41,19 +44,32 @@ import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
-const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
+const CustomNetworkSelector = ({
+  openModal,
+  dismissModal,
+  openRpcModal,
+}: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
   // Use custom hooks for network management
-  const { networks } = useNetworksByNamespace({
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Custom,
   });
-  const { selectCustomNetwork } = useNetworkSelection({
+
+  const { networksToUse } = useNetworksToUse({
     networks,
+    networkType: NetworkType.Custom,
+    areAllNetworksSelected,
+  });
+
+  const { selectCustomNetwork } = useNetworkSelection({
+    networks: networksToUse,
   });
 
   const goToNetworkSettings = useCallback(() => {
@@ -65,12 +81,20 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
 
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
-      const { name, caipChainId, networkTypeOrRpcUrl, isSelected } = item;
+      const {
+        name,
+        caipChainId,
+        networkTypeOrRpcUrl,
+        isSelected,
+        hasMultipleRpcs,
+      } = item;
       const rawChainId = parseCaipChainId(caipChainId).reference;
-      const chainId = toHex(rawChainId);
+      const chainId = isNonEvmChainId(caipChainId)
+        ? rawChainId
+        : toHex(rawChainId);
 
-      const handlePress = () => {
-        selectCustomNetwork(caipChainId);
+      const handlePress = async () => {
+        await selectCustomNetwork(caipChainId, dismissModal);
       };
 
       const handleMenuPress = () => {
@@ -84,12 +108,20 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
       };
 
       return (
-        <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
+        <View>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
             title={name}
+            secondaryText={
+              networkTypeOrRpcUrl && hasMultipleRpcs
+                ? hideProtocolFromUrl(hideKeyFromUrl(networkTypeOrRpcUrl))
+                : undefined
+            }
             onPress={handlePress}
+            onTextClick={() =>
+              openRpcModal && openRpcModal({ chainId, networkName: name })
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -100,11 +132,15 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
             buttonProps={{
               onButtonClick: handleMenuPress,
             }}
+            testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
+              caipChainId,
+              isSelected,
+            )}
           />
         </View>
       );
     },
-    [selectCustomNetwork, openModal],
+    [selectCustomNetwork, openModal, dismissModal, openRpcModal],
   );
 
   const renderFooter = useCallback(
@@ -129,9 +165,12 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER}
+      style={styles.container}
+    >
       <FlashList
-        data={networks}
+        data={networksToUse}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
         ListFooterComponent={renderFooter}

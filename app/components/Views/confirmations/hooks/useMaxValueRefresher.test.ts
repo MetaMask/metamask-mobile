@@ -8,12 +8,22 @@ import { RootState } from '../../../../reducers';
 import { useMaxValueRefresher } from './useMaxValueRefresher';
 import { transferConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import { useFeeCalculations } from './gas/useFeeCalculations';
+import { useMaxValueMode } from './useMaxValueMode';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { TransactionType } from '@metamask/transaction-controller';
+
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
 
 jest.mock('../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn(),
 }));
+
 jest.mock('./useAccountNativeBalance', () => ({
   useAccountNativeBalance: jest.fn().mockReturnValue({
     balanceWeiInHex: '0x10', // 16 wei
@@ -22,6 +32,7 @@ jest.mock('./useAccountNativeBalance', () => ({
 jest.mock('./gas/useFeeCalculations', () => ({
   useFeeCalculations: jest.fn(),
 }));
+jest.mock('./useMaxValueMode');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -32,18 +43,7 @@ describe('useMaxValueRefresher', () => {
   const mockUseFeeCalculations = jest.mocked(useFeeCalculations);
   const mockUpdateEditableParams = jest.mocked(updateEditableParams);
   const mockUseSelector = jest.mocked(useSelector);
-
-  const maxModeState = merge({}, transferConfirmationState, {
-    transaction: {
-      maxValueMode: true,
-    },
-  });
-
-  const normalSendState = merge({}, transferConfirmationState, {
-    transaction: {
-      maxValueMode: false,
-    },
-  });
+  const mockUseMaxValueMode = jest.mocked(useMaxValueMode);
 
   const transactionId =
     transferConfirmationState.engine.backgroundState.TransactionController
@@ -56,13 +56,18 @@ describe('useMaxValueRefresher', () => {
     } as unknown as ReturnType<typeof useFeeCalculations>);
 
     mockUseSelector.mockImplementation(
-      (fn: (state: DeepPartial<RootState>) => unknown) => fn(maxModeState),
+      (fn: (state: DeepPartial<RootState>) => unknown) =>
+        fn(transferConfirmationState),
     );
   });
 
   it('updates transaction value when calculated value is not equal to the current value', () => {
+    mockUseMaxValueMode.mockReturnValue({
+      maxValueMode: true,
+    });
+
     renderHookWithProvider(() => useMaxValueRefresher(), {
-      state: maxModeState,
+      state: transferConfirmationState,
     });
 
     expect(mockUpdateEditableParams).toHaveBeenCalledWith(transactionId, {
@@ -72,21 +77,30 @@ describe('useMaxValueRefresher', () => {
 
   describe('does not update transaction value', () => {
     it('max mode is off', () => {
+      mockUseMaxValueMode.mockReturnValue({
+        maxValueMode: false,
+      });
+
       mockUseSelector.mockImplementationOnce(
-        (fn: (state: DeepPartial<RootState>) => unknown) => fn(normalSendState),
+        (fn: (state: DeepPartial<RootState>) => unknown) =>
+          fn(transferConfirmationState),
       );
 
       renderHookWithProvider(() => useMaxValueRefresher(), {
-        state: normalSendState,
+        state: transferConfirmationState,
       });
 
       expect(mockUpdateEditableParams).not.toHaveBeenCalled();
     });
 
     it('transaction type is not a simple send', () => {
+      mockUseMaxValueMode.mockReturnValue({
+        maxValueMode: true,
+      });
+
       const transferConfirmationStateWithoutSimpleSend = merge(
         {},
-        maxModeState,
+        transferConfirmationState,
         {
           engine: {
             backgroundState: {

@@ -600,7 +600,6 @@ class Approve extends PureComponent {
         },
       };
       await updateTransaction(updatedTx);
-      await KeyringController.resetQRKeyringState();
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {

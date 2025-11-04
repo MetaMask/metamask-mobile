@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
@@ -7,21 +10,40 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
 
-const blockableStatuses = [
-  TransactionStatus.signed,
-  TransactionStatus.approved,
+export const PAY_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
 ];
+
+const BLOCK_STATUS = [TransactionStatus.signed, TransactionStatus.approved];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
   const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, id: transactionId, txParams } = transactionMetadata || {};
+  const { from } = txParams ?? {};
+
+  const existingTransaction = transactions.find(
+    (transaction) =>
+      BLOCK_STATUS.includes(transaction.status) &&
+      transaction.id !== transactionId &&
+      transaction.chainId === chainId &&
+      transaction.txParams.from.toLowerCase() === from?.toLowerCase(),
+  );
+
+  const isTransactionPay = PAY_TYPES.some(
+    (payType) =>
+      transactionMetadata &&
+      existingTransaction &&
+      hasTransactionType(transactionMetadata, [payType]) &&
+      hasTransactionType(existingTransaction, [payType]),
+  );
+
+  const showAlert = Boolean(existingTransaction);
 
   return useMemo(() => {
-    const showAlert = transactions
-      .filter((transaction) => transaction.id !== transactionMetadata?.id)
-      .some((transaction) => blockableStatuses.includes(transaction.status));
-
     if (!showAlert) {
       return [];
     }
@@ -30,9 +52,14 @@ export const useSignedOrSubmittedAlert = () => {
       {
         isBlocking: true,
         key: AlertKeys.SignedOrSubmitted,
-        message: strings('alert_system.signed_or_submitted.message'),
+        message: isTransactionPay
+          ? strings('alert_system.signed_or_submitted_perps_deposit.message')
+          : strings('alert_system.signed_or_submitted.message'),
+        title: isTransactionPay
+          ? strings('alert_system.signed_or_submitted_perps_deposit.title')
+          : strings('alert_system.signed_or_submitted.title'),
         severity: Severity.Danger,
       },
     ];
-  }, [transactions, transactionMetadata]);
+  }, [isTransactionPay, showAlert]);
 };

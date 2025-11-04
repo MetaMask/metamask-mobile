@@ -37,6 +37,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
         undefined,
         undefined,
         undefined,
+        undefined,
       ]
     }
   >
@@ -118,6 +119,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
           "color": "#121314",
           "fontSize": 22,
         },
+        undefined,
         undefined,
         undefined,
       ]

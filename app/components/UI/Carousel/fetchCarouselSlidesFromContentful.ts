@@ -1,7 +1,10 @@
 import { createClient, type EntrySkeletonType } from 'contentful';
+import compareVersions from 'compare-versions';
+import { getVersion } from 'react-native-device-info';
 import { isProduction } from '../../../util/environment';
 import { CarouselSlide } from './types';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
+import { getContentPreviewToken } from '../../../actions/notification/helpers';
 
 export interface ContentfulCarouselSlideFields {
   headline: string;
@@ -12,16 +15,47 @@ export interface ContentfulCarouselSlideFields {
   startDate?: string;
   endDate?: string;
   priorityPlacement?: boolean;
+  cardPlacement?: number | string;
+  variableName?: string;
 }
 
 export type ContentfulSlideSkeleton =
   EntrySkeletonType<ContentfulCarouselSlideFields>;
 
-const ENVIRONMENT = isProduction() ? 'master' : 'dev';
+export const getContentfulEnvironmentDetails = () => {
+  // If preview mode, then show preview prod master content
+  const previewToken = getContentPreviewToken();
+  if (previewToken) {
+    return {
+      environment: 'master',
+      domain: 'preview.contentful.com',
+      accessToken: previewToken,
+      spaceId: SPACE_ID(),
+    };
+  }
+
+  const isProd = isProduction();
+
+  // If production, show prod master content
+  if (isProd) {
+    return {
+      environment: 'master',
+      domain: 'cdn.contentful.com',
+      accessToken: ACCESS_TOKEN(),
+      spaceId: SPACE_ID(),
+    };
+  }
+
+  // Default to preview dev content
+  return {
+    environment: 'dev',
+    domain: 'preview.contentful.com',
+    accessToken: ACCESS_TOKEN(),
+    spaceId: SPACE_ID(),
+  };
+};
+
 const CONTENT_TYPE = 'promotionalBanner';
-const DEFAULT_DOMAIN = isProduction()
-  ? 'cdn.contentful.com'
-  : 'preview.contentful.com';
 
 interface ContentfulSysField {
   sys: { id: string };
@@ -31,8 +65,8 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
   prioritySlides: CarouselSlide[];
   regularSlides: CarouselSlide[];
 }> {
-  const spaceId = SPACE_ID();
-  const accessToken = ACCESS_TOKEN();
+  const { spaceId, accessToken, environment, domain } =
+    getContentfulEnvironmentDetails();
 
   if (!spaceId || !accessToken) {
     console.warn(
@@ -41,14 +75,14 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
     return { prioritySlides: [], regularSlides: [] };
   }
 
-  const host = `https://${DEFAULT_DOMAIN}/spaces/${spaceId}/environments/${ENVIRONMENT}/entries`;
+  const host = `https://${domain}/spaces/${spaceId}/environments/${environment}/entries`;
 
   // First try through the Contentful Client
   try {
     const contentfulClient = createClient({
       space: spaceId,
       accessToken,
-      environment: ENVIRONMENT,
+      environment,
       host,
     });
 
@@ -119,6 +153,10 @@ function mapContentfulEntriesToSlides(
       startDate,
       endDate,
       priorityPlacement,
+      cardPlacement,
+      variableName,
+      mobileMinimumVersionNumber,
+      mobileMaximumVersionNumber,
     } = entry.fields;
 
     const slide: CarouselSlide = {
@@ -136,7 +174,17 @@ function mapContentfulEntriesToSlides(
       testIDCloseButton: `carousel_slide_close_${entry.sys.id}`,
       startDate,
       endDate,
+      cardPlacement,
+      variableName,
     };
+
+    if (!isValidMinimumVersion(mobileMinimumVersionNumber)) {
+      continue;
+    }
+
+    if (!isValidMaximumVersion(mobileMaximumVersionNumber)) {
+      continue;
+    }
 
     if (priorityPlacement) {
       prioritySlides.push(slide);
@@ -146,6 +194,46 @@ function mapContentfulEntriesToSlides(
   }
 
   return { prioritySlides, regularSlides };
+}
+
+const hasMinRequiredVersion = (minRequiredVersion: string) => {
+  if (!minRequiredVersion) return false;
+  const currentVersion = getVersion();
+  return compareVersions.compare(currentVersion, minRequiredVersion, '>');
+};
+
+const hasMaxRequiredVersion = (maxRequiredVersion: string) => {
+  if (!maxRequiredVersion) return false;
+  const currentVersion = getVersion();
+  return compareVersions.compare(currentVersion, maxRequiredVersion, '<');
+};
+
+function isValidMinimumVersion(contentfulMinimumVersionNumber?: string) {
+  // Field is not set, show by default
+  if (!contentfulMinimumVersionNumber) {
+    return true;
+  }
+
+  try {
+    return hasMinRequiredVersion(contentfulMinimumVersionNumber);
+  } catch {
+    // Invalid mobile version number, not showing banner
+    return false;
+  }
+}
+
+function isValidMaximumVersion(contentfulMaximumVersionNumber?: string) {
+  // Field is not set, show by default
+  if (!contentfulMaximumVersionNumber) {
+    return true;
+  }
+
+  try {
+    return hasMaxRequiredVersion(contentfulMaximumVersionNumber);
+  } catch {
+    // Invalid mobile version number, not showing banner
+    return false;
+  }
 }
 
 export function isActive(

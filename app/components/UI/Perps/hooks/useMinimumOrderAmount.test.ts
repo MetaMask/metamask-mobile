@@ -62,7 +62,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'ETH' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(6); // Mainnet default
+    expect(result.current.minimumOrderAmount).toBe(10); // Mainnet default ($10)
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
   });
@@ -86,7 +86,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'SOL' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(11); // Testnet default
+    expect(result.current.minimumOrderAmount).toBe(10); // Testnet default ($10)
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
   });
@@ -104,7 +104,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'BTC' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(6); // Falls back to default
+    expect(result.current.minimumOrderAmount).toBe(10); // Falls back to default ($10)
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBe(null);
   });
@@ -123,7 +123,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'BTC' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(6); // Falls back to default
+    expect(result.current.minimumOrderAmount).toBe(10); // Falls back to default ($10)
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(errorMessage);
   });
@@ -141,7 +141,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'XYZ' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(11); // Testnet default
+    expect(result.current.minimumOrderAmount).toBe(10); // Testnet default ($10)
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
   });

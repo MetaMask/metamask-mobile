@@ -23,7 +23,9 @@
       "wallets": {}
     },
     "accountGroupsMetadata": {},
-    "accountWalletsMetadata": {}
+    "accountWalletsMetadata": {},
+    "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+    "isAccountTreeSyncingInProgress": false
   },
   "AddressBookController": {
     "addressBook": {}
@@ -56,6 +58,9 @@
       }
     }
   },
+  "DelegationController": {
+    "delegations": {}
+  },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
@@ -64,7 +69,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
-        "name": "Ethereum Mainnet",
+        "name": "Ethereum",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -156,7 +161,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x2105",
         "defaultRpcEndpointIndex": 0,
-        "name": "Base Mainnet",
+        "name": "Base",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -171,13 +176,31 @@
   },
   "NetworkEnablementController": {
     "enabledNetworkMap": {
+      "bip122": {
+        "bip122:000000000019d6689c085ae165831e93": true,
+        "bip122:000000000933ea01ad0ee984209779ba": false,
+        "bip122:00000008819873e925422c1ff0f99f7c": false,
+        "bip122:00000000da84f2bafbbc53dee25a72ae": false,
+        "bip122:regtest": false
+      },
       "eip155": {
         "0x1": true,
+        "0x18c6": false,
         "0x2105": true,
+        "0x279f": false,
+        "0xaa36a7": false,
+        "0xe705": false,
         "0xe708": true
       },
       "solana": {
-        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true
+        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
+      },
+      "tron": {
+        "tron:2494104990": false,
+        "tron:3448148188": false,
+        "tron:728126428": true
       }
     }
   },
@@ -187,7 +210,9 @@
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0,
-    "urlScanCache": {}
+    "tokenScanCache": {},
+    "urlScanCache": {},
+    "whitelistPaths": {}
   },
   "PreferencesController": {
     "featureFlags": {},
@@ -215,6 +240,7 @@
       "0xa869": true,
       "0xaa37dc": true,
       "0x89": true,
+      "0x8f": true,
       "0x13881": true,
       "0xa86a": true,
       "0xfa": true,
@@ -227,7 +253,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x8f": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -380,7 +407,10 @@
     "accountState": null,
     "pendingOrders": [],
     "depositInProgress": false,
+    "lastDepositTransactionId": null,
     "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -391,7 +421,8 @@
     "hasPlacedFirstOrder": {
       "testnet": false,
       "mainnet": false
-    }
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -402,7 +433,8 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {}
+    "domains": {},
+    "activeDappNetwork": null
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -432,9 +464,6 @@
     "isUpdatingFCMToken": false
   },
   "UserStorageController": {
-    "hasAccountSyncingSyncedAtLeastOnce": false,
-    "isAccountSyncingReadyToBeDispatched": false,
-    "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
@@ -443,20 +472,6 @@
   },
   "MultichainBalancesController": {
     "balances": {}
-  },
-  "RatesController": {
-    "cryptocurrencies": ["btc", "sol"],
-    "fiatCurrency": "usd",
-    "rates": {
-      "btc": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      },
-      "sol": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      }
-    }
   },
   "MultichainNetworkController": {
     "isEvmSelected": true,
@@ -510,6 +525,24 @@
         "isEvm": false,
         "name": "Solana Devnet",
         "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
+      },
+      "tron:2494104990": {
+        "chainId": "tron:2494104990",
+        "isEvm": false,
+        "name": "Tron Shasta",
+        "nativeCurrency": "tron:2494104990/slip44:195"
+      },
+      "tron:3448148188": {
+        "chainId": "tron:3448148188",
+        "isEvm": false,
+        "name": "Tron Nile",
+        "nativeCurrency": "tron:3448148188/slip44:195"
+      },
+      "tron:728126428": {
+        "chainId": "tron:728126428",
+        "isEvm": false,
+        "name": "Tron",
+        "nativeCurrency": "tron:728126428/slip44:195"
       }
     }
   },
@@ -595,9 +628,25 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
+  },
   "RewardsController": {
-    "lastAuthTime": 0,
-    "lastAuthenticatedAccount": null,
-    "subscription": null
+    "accounts": {},
+    "activeAccount": null,
+    "activeBoosts": {},
+    "pointsEvents": {},
+    "unlockedRewards": {},
+    "seasonStatuses": {},
+    "seasons": {},
+    "subscriptionReferralDetails": {},
+    "subscriptions": {}
+  },
+  "PredictController": {
+    "eligibility": {},
+    "lastError": null,
+    "lastUpdateTimestamp": 0,
+    "pendingDeposits": {},
+    "isOnboarded": {}
   }
 }

@@ -1,6 +1,29 @@
+import EventEmitter2 from 'eventemitter2';
 import type { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+
+const previewTokenEventEmitter = new EventEmitter2();
+const PREVIEW_TOKEN_UPDATE_EVENT = 'previewTokenUpdate';
+let previewToken: string | undefined;
+
+export function setContentPreviewToken(newPreviewToken?: string | null) {
+  if (typeof newPreviewToken === 'string') {
+    previewToken = newPreviewToken;
+    previewTokenEventEmitter.emit(PREVIEW_TOKEN_UPDATE_EVENT, previewToken);
+  }
+}
+
+export function getContentPreviewToken() {
+  return previewToken;
+}
+
+export function subscribeToContentPreviewToken(
+  callback: (token: string) => void,
+) {
+  const sub = previewTokenEventEmitter.on(PREVIEW_TOKEN_UPDATE_EVENT, callback);
+  return () => sub.off(PREVIEW_TOKEN_UPDATE_EVENT, callback);
+}
 
 export const assertIsFeatureEnabled = () => {
   if (!isNotificationsFeatureEnabled()) {
@@ -63,21 +86,6 @@ export const toggleFeatureAnnouncements = async (
 };
 
 /**
- * Perps Notifications Switch
- * - Enables/Disables Perps Notifications
- * @param perpsNotificationsEnabled boolean to toggle on/off
- */
-export const togglePerpsNotifications = async (
-  perpsNotificationsEnabled: boolean,
-) => {
-  assertIsFeatureEnabled();
-  // @ts-expect-error - setPerpsNotificationsEnabled not yet implemented
-  await Engine.context.NotificationServicesController.setPerpsNotificationsEnabled(
-    perpsNotificationsEnabled,
-  );
-};
-
-/**
  * Account Notification Settings.
  * - Informs us which accounts have notifications enabled.
  * @param accounts - accounts to check
@@ -121,7 +129,9 @@ export const enableAccounts = async (accounts: string[]) => {
  */
 export const fetchNotifications = async () => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications();
+  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications(
+    getContentPreviewToken(),
+  );
 };
 
 /**

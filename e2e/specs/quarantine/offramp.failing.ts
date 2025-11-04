@@ -11,7 +11,7 @@ import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuotesView from '../../pages/Ramps/QuotesView';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import TestHelpers from '../../helpers';
 
@@ -40,7 +40,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapWallet();
-        await WalletView.tapWalletFundButton();
+        await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
         await Assertions.expectElementToBeVisible(
@@ -50,7 +50,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
           BuildQuoteView.getQuotesButton,
         );
         await BuildQuoteView.tapCancelButton();
-        await WalletView.tapWalletFundButton();
+        await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
         await BuildQuoteView.enterAmount('2');
         await BuildQuoteView.tapGetQuotesButton();

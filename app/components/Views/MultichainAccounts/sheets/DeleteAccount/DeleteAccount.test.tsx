@@ -8,6 +8,8 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 // Mock Linking module
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -62,6 +64,12 @@ jest.mock('../../../../../core/Engine', () => ({
       removeAccount: (address: string) => mockRemoveAccount(address),
     },
   },
+}));
+
+const mockRemoveAccountsFromPermissions = jest.fn();
+jest.mock('../../../../../core/Permissions', () => ({
+  removeAccountsFromPermissions: (addresses: Hex[]) =>
+    mockRemoveAccountsFromPermissions(addresses),
 }));
 
 const render = () => {
@@ -141,6 +149,9 @@ describe('DeleteAccount', () => {
     fireEvent.press(removeButton);
 
     await waitFor(() => {
+      expect(mockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
+        toHex(mockRoute.params.account.address),
+      ]);
       expect(mockRemoveAccount).toHaveBeenCalledWith(
         mockRoute.params.account.address,
       );

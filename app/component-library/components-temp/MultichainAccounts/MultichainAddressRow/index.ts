@@ -1,8 +1,5 @@
 export { default } from './MultichainAddressRow';
-export type {
-  MultichainAddressRowProps,
-  MultichainAddressRowStyleSheetVars,
-} from './MultichainAddressRow.types';
+export type { MultichainAddressRowProps } from './MultichainAddressRow.types';
 export {
   MULTICHAIN_ADDRESS_ROW_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID,

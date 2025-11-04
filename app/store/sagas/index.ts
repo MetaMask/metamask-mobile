@@ -29,6 +29,12 @@ import {
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
+import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import { selectExistingUser } from '../../reducers/user';
+import UrlParser from 'url-parse';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -135,7 +141,22 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* initializeSDKServices() {
+  try {
+    // Initialize WalletConnect
+    yield call(() => WC2Manager.init({}));
+    // Initialize SDKConnect
+    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
+  } catch (e) {
+    Logger.log('Failed to initialize services', e);
+  }
+}
+
 export function* handleDeeplinkSaga() {
+  // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
+  // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
+  let hasInitializedSDKServices = false;
+
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
     const value = (yield take([
@@ -153,12 +174,34 @@ export function* handleDeeplinkSaga() {
       completedOnboarding = yield select(selectCompletedOnboarding);
     }
 
+    const existingUser: boolean = yield select(selectExistingUser);
+
+    if (AppStateEventProcessor.pendingDeeplink) {
+      const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
+      // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
+      if (!existingUser && url.pathname === '/onboarding') {
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(url.href, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }, 200);
+        AppStateEventProcessor.clearPendingDeeplink();
+        continue;
+      }
+    }
+
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
 
     // App is locked or onboarding is not yet complete
     if (!isUnlocked || !completedOnboarding) {
       continue;
+    }
+
+    // Initialize SDK services
+    if (!hasInitializedSDKServices) {
+      yield call(initializeSDKServices);
+      hasInitializedSDKServices = true;
     }
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
@@ -188,8 +231,12 @@ export function* startAppServices() {
   // Start Engine service
   yield call(EngineService.start);
 
+  // Start DeeplinkManager and process branch deeplinks
+  DeeplinkManager.start();
+
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
+  yield call(applyVaultInitialization);
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());

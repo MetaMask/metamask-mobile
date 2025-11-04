@@ -103,11 +103,11 @@ export const snapControllerInit: ControllerInitFunction<
     // TODO: Look into the type mismatch.
     messenger: controllerMessenger,
     maxIdleTime: inMilliseconds(5, Duration.Minute),
+    maxRequestTime: inMilliseconds(2, Duration.Minute),
     featureFlags: {
       allowLocalSnaps,
       disableSnapInstallation,
       requireAllowlist,
-      useCaip25Permission: true,
       ///: BEGIN:ONLY_INCLUDE_IF(flask)
       forcePreinstalledSnaps,
       ///: END:ONLY_INCLUDE_IF
@@ -140,6 +140,14 @@ export const snapControllerInit: ControllerInitFunction<
           properties: params.properties,
         }).build(),
       ),
+  });
+
+  initMessenger.subscribe('KeyringController:lock', () => {
+    initMessenger.call('SnapController:setClientActive', false);
+  });
+
+  initMessenger.subscribe('KeyringController:unlock', () => {
+    initMessenger.call('SnapController:setClientActive', true);
   });
 
   return {

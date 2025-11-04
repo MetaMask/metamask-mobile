@@ -48,6 +48,7 @@ import {
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
 import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
@@ -154,6 +155,9 @@ const Settings: React.FC = () => {
   useCheckMultiRpcModal();
 
   const type = useSelector(selectProviderType);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const isMainnet = type === MAINNET;
 
@@ -170,9 +174,8 @@ const Settings: React.FC = () => {
   }, [colors, navigation]);
 
   const handleHintText = useCallback(async () => {
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
@@ -239,9 +242,8 @@ const Settings: React.FC = () => {
   const saveHint = async () => {
     if (!hintText) return;
     toggleHint();
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
+    const currentSeedphraseHints =
+      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     if (currentSeedphraseHints) {
       const parsedHints = JSON.parse(currentSeedphraseHints);
       await StorageWrapper.setItem(
@@ -540,7 +542,7 @@ const Settings: React.FC = () => {
         <View style={styles.setting}>
           <RememberMeOptionSection />
         </View>
-        <RevealPrivateKey />
+        {!isMultichainAccountsState2Enabled ? <RevealPrivateKey /> : null}
         <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <View>

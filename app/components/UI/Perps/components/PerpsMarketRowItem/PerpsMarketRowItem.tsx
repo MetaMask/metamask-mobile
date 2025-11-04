@@ -1,32 +1,42 @@
 import React, { useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
+import { TouchableOpacity, View } from 'react-native';
+import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
-import styleSheet from './PerpsMarketRowItem.styles';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
-import { usePerpsLivePrices } from '../../hooks/stream';
-import type { PerpsMarketData } from '../../controllers/types';
+import { useStyles } from '../../../../../component-library/hooks';
 import {
-  formatPrice,
+  PERPS_CONSTANTS,
+  HOME_SCREEN_CONFIG,
+} from '../../constants/perpsConfig';
+import type { PerpsMarketData } from '../../controllers/types';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import {
+  getPerpsDisplaySymbol,
+  getMarketBadgeType,
+} from '../../utils/marketUtils';
+import {
   formatPercentage,
+  formatPerpsFiat,
   formatPnl,
   formatVolume,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import PerpsBadge from '../PerpsBadge';
+import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import styleSheet from './PerpsMarketRowItem.styles';
+import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 
-const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
+const PerpsMarketRowItem = ({
+  market,
+  onPress,
+  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  displayMetric = 'volume',
+  showBadge = true,
+}: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
@@ -38,18 +48,23 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const displayMarket = useMemo(() => {
     const livePrice = livePrices[market.symbol];
     if (!livePrice) {
+      // No live price available, use existing formatted price from market data
       return market;
     }
 
     // Parse and format the price with exactly 2 decimals for consistency
     const currentPrice = parseFloat(livePrice.price);
-    const formattedPrice = formatPrice(currentPrice, {
+
+    const formattedPrice = formatPerpsFiat(currentPrice, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+    });
+    const comparisonPrice = formatPerpsFiat(currentPrice, {
       minimumDecimals: 2,
       maximumDecimals: 2,
     });
 
     // Only update if price actually changed
-    if (formattedPrice === market.price) {
+    if (comparisonPrice === market.price) {
       return market;
     }
 
@@ -83,9 +98,12 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = '$0.00';
+        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
       }
-    } else if (!market.volume || market.volume === '$0') {
+    } else if (
+      !market.volume ||
+      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
+    ) {
       // Fallback: ensure volume field always has a value
       updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
@@ -97,44 +115,72 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     onPress?.(displayMarket);
   };
 
+  // Helper to get display value based on selected metric
+  const getDisplayValue = useMemo(() => {
+    switch (displayMetric) {
+      case 'priceChange':
+        return displayMarket.change24hPercent;
+      case 'openInterest':
+        return (
+          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        );
+      case 'fundingRate':
+        // Format funding rate as percentage (e.g., 0.0001 → 0.0100%)
+        if (
+          displayMarket.fundingRate !== undefined &&
+          displayMarket.fundingRate !== null
+        ) {
+          return `${(displayMarket.fundingRate * 100).toFixed(4)}%`;
+        }
+        return '0.0000%';
+      case 'volume':
+      default:
+        return displayMarket.volume;
+    }
+  }, [displayMetric, displayMarket]);
+
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
+  const badgeType = getMarketBadgeType(displayMarket);
+
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handlePress}
+      testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
+    >
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
-          {assetUrl ? (
-            <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
-          ) : (
-            <Avatar
-              variant={AvatarVariant.Token}
-              name={displayMarket.symbol}
-              size={AvatarSize.Md}
-              testID={getPerpsMarketRowItemSelector.rowItem(
-                displayMarket.symbol,
-              )}
-            />
-          )}
+          <PerpsTokenLogo
+            symbol={displayMarket.symbol}
+            size={iconSize}
+            recyclingKey={displayMarket.symbol}
+            testID={getPerpsMarketRowItemSelector.tokenLogo(
+              displayMarket.symbol,
+            )}
+          />
         </View>
 
         <View style={styles.tokenInfo}>
           <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {displayMarket.symbol}
+              {getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
-            <View style={styles.leverageContainer}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {displayMarket.maxLeverage}
-              </Text>
-            </View>
+            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Muted}
-            style={styles.tokenVolume}
-          >
-            {displayMarket.volume}
-          </Text>
+          <View style={styles.secondRow}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {getDisplayValue}
+            </Text>
+            {showBadge && badgeType && (
+              <PerpsBadge
+                type={badgeType}
+                testID={getPerpsMarketRowItemSelector.badge(
+                  displayMarket.symbol,
+                )}
+              />
+            )}
+          </View>
         </View>
       </View>
 
@@ -152,7 +198,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             color={isPositiveChange ? TextColor.Success : TextColor.Error}
             style={styles.priceChange}
           >
-            {displayMarket.change24h} ({displayMarket.change24hPercent})
+            {displayMarket.change24hPercent}
           </Text>
         </View>
       </View>

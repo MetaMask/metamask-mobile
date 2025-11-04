@@ -4,7 +4,6 @@ import Engine from '../../../core/Engine';
 import {
   getDecimalChainId,
   isPerDappSelectedNetworkEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
@@ -17,7 +16,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
@@ -27,6 +25,7 @@ import {
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
+  TraceContext,
   TraceName,
   TraceOperation,
   endTrace,
@@ -39,11 +38,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import {
-  NetworkType,
-  useNetworksByNamespace,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import Logger from '../../../util/Logger';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -52,7 +47,7 @@ interface UseSwitchNetworksProps {
   selectedNetworkName?: string;
   dismissModal?: () => void;
   closeRpcModal?: () => void;
-  parentSpan?: unknown;
+  parentSpan?: TraceContext;
 }
 
 interface UseSwitchNetworksReturn {
@@ -84,12 +79,6 @@ export function useSwitchNetworks({
     selectEvmNetworkConfigurationsByChainId,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { networks } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
-  const { selectNetwork } = useNetworkSelection({
-    networks,
-  });
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isSolanaAccountAlreadyCreated = useSelector(
@@ -110,11 +99,8 @@ export function useSwitchNetworks({
           [chainId]: true,
         });
       }
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
-        selectNetwork(chainId);
-      }
     },
-    [isAllNetwork, selectNetwork],
+    [isAllNetwork],
   );
 
   /**
@@ -141,6 +127,15 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = networkConfigurationId;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         trace({
@@ -155,8 +150,6 @@ export function useSwitchNetworks({
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
       }
-
-      setTokenNetworkFilter(chainId);
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
@@ -174,7 +167,6 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
@@ -203,6 +195,15 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = type;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =

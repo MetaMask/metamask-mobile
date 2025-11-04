@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import LoginView from '../../pages/wallet/LoginView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -14,7 +14,9 @@ import Assertions from '../../framework/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
 
 describe(
-  Regression('Log in into the app, change password then delete wallet flow'),
+  RegressionWalletPlatform(
+    'Log in into the app, change password then delete wallet flow',
+  ),
   () => {
     const PASSWORD = '123123123';
 
@@ -51,13 +53,6 @@ describe(
           await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
           await ChangePasswordView.tapIUnderstandCheckBox();
           await ChangePasswordView.tapSubmitButton();
-
-          // bug on CI when tap wallet button makes change password continue
-          // github issue: https://github.com/MetaMask/metamask-mobile/issues/16758
-          // TODO: remove this once the issue is fixed
-          if (device.getPlatform() === 'ios' && process.env.CI) {
-            await TabBarComponent.tapWallet();
-          }
 
           //wait for screen transitions after password change
           await Assertions.expectElementToNotBeVisible(

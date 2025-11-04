@@ -1,12 +1,17 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { EthAccountType, BtcAccountType } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  BtcAccountType,
+  TrxAccountType,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from './constants';
-import { formatAddress } from '../../util/address';
+import { formatAddress, isEthAddress } from '../../util/address';
 import {
   formatBlockExplorerAddressUrl,
   formatBlockExplorerTransactionUrl,
@@ -60,12 +65,9 @@ export function isSolanaAccount(account: InternalAccount): boolean {
  * @returns `true` if the address is a non-EVM address, `false` otherwise.
  */
 export function isNonEvmAddress(address: string): boolean {
-  return (
-    isSolanaAddress(address) ||
-    isBtcMainnetAddress(address) ||
-    isBtcTestnetAddress(address) ||
-    isBtcRegtestAddress(address)
-  );
+  // Instead of checking all other possible non-EVM addresses, we can just check if it's an EVM address
+  // This is much faster than doing multiple checks if it's a Solana, Bitcoin, etc. address
+  return !isEthAddress(address);
 }
 
 export function lastSelectedAccountAddressByNonEvmNetworkChainId(
@@ -103,6 +105,27 @@ export function isNonEvmChainId(chainId: string | Hex | CaipChainId): boolean {
 export function isBtcAccount(account: InternalAccount): boolean {
   const { P2wpkh } = BtcAccountType;
   return Boolean(account && account.type === P2wpkh);
+}
+
+/**
+ * Returns whether an account is a Tron account.
+ *
+ * @param account - The internal account to check.
+ * @returns `true` if the account is of type Eoa, false otherwise.
+ */
+export function isTronAccount(account: InternalAccount): boolean {
+  const { Eoa } = TrxAccountType;
+  return Boolean(account && account.type === Eoa);
+}
+
+/**
+ * Returns whether a chain id is a Tron chain id.
+ *
+ * @param chainId - The chain id to check.
+ * @returns `true` if the chain id is a Tron chain id, `false` otherwise.
+ */
+export function isTronChainId(chainId: string | Hex | CaipChainId): boolean {
+  return Object.values(TrxScope).includes(chainId as TrxScope);
 }
 
 /**

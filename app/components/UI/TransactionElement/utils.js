@@ -33,14 +33,16 @@ import {
   decodeSwapsTx,
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
+import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 
 const { getSwapsContractAddress } = swapsUtils;
 
 function getTokenTransfer(args) {
   const {
     tx: {
-      txParams: { from, to, data, nonce },
+      txParams: { from, nonce },
     },
+    tx,
     txChainId,
     conversionRate,
     currentCurrency,
@@ -53,6 +55,7 @@ function getTokenTransfer(args) {
     ticker,
   } = args;
 
+  const { data, to } = getTokenTransferData(tx) ?? {};
   const [, , encodedAmount] = decodeTransferData('transfer', data);
   const amount = hexToBN(encodedAmount);
   const userHasToken = toFormattedAddress(to) in tokens;
@@ -324,14 +327,18 @@ function decodeIncomingTransfer(args) {
 
 async function decodeTransferTx(args) {
   const {
+    actionKey: originalActionKey,
     tx: {
       txParams,
-      txParams: { from, gas, data, to },
+      txParams: { from, gas },
       hash,
     },
+    tx,
     txChainId,
+    useOriginalActionKey,
   } = args;
 
+  const { data, to } = getTokenTransferData(tx) ?? {};
   const decodedData = decodeTransferData('transfer', data);
   const addressTo = decodedData[0];
   let isCollectible = false;
@@ -347,7 +354,14 @@ async function decodeTransferTx(args) {
   let [transactionElement, transactionDetails] = isCollectible
     ? getCollectibleTransfer({ ...args, totalGas })
     : getTokenTransfer({ ...args, totalGas });
-  transactionElement = { ...transactionElement, renderTo: addressTo };
+  const actionKey = useOriginalActionKey
+    ? originalActionKey
+    : transactionElement.actionKey;
+  transactionElement = {
+    ...transactionElement,
+    renderTo: addressTo,
+    actionKey,
+  };
   transactionDetails = {
     ...transactionDetails,
     ...{
@@ -707,8 +721,8 @@ function decodeLegacySwapsTx(args) {
     sourceToken.symbol === 'ETH'
       ? totalAmountForEthSourceTokenFormatted
       : decimalSourceAmount
-      ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
-      : `${totalEthGas} ${ticker}`;
+        ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
+        : `${totalEthGas} ${ticker}`;
 
   const isSwap = swapTransaction.action === 'swap';
   let notificationKey, actionKey, value, fiatValue;
@@ -890,9 +904,13 @@ export default async function decodeTransaction(args) {
   } else {
     switch (actionKey) {
       case strings('transactions.sent_tokens'):
+      case strings('transactions.tx_review_perps_deposit'):
+      case strings('transactions.tx_review_predict_deposit'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,
+          useOriginalActionKey:
+            actionKey !== strings('transactions.sent_tokens'),
         });
         break;
       case strings('transactions.sent_collectible'):

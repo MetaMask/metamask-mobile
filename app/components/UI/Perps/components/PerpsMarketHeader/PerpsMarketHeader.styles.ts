@@ -1,17 +1,15 @@
-import { StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
 interface PerpsMarketHeaderStyles {
   container: ViewStyle;
   backButton: ViewStyle;
   perpIcon: ViewStyle;
-  tokenIcon: ImageStyle;
+  tokenIcon: ViewStyle;
   leftSection: ViewStyle;
   assetRow: ViewStyle;
+  secondRow: ViewStyle;
   assetName: TextStyle;
-  positionValueRow: ViewStyle;
-  positionValue: TextStyle;
-  priceChange24h: TextStyle;
   moreButton: ViewStyle;
 }
 
@@ -24,22 +22,23 @@ export const styleSheet = ({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 16,
+      paddingLeft: 8,
+      paddingRight: 12,
       paddingVertical: 16,
       backgroundColor: theme.colors.background.default,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
     },
     backButton: {
-      marginRight: 12,
+      padding: 4,
     },
     perpIcon: {
       marginRight: 12,
     },
     tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
     },
     leftSection: {
       flex: 1,
@@ -49,21 +48,15 @@ export const styleSheet = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      marginBottom: 4,
+      marginBottom: 2,
+    },
+    secondRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     assetName: {
       fontWeight: '600',
-    },
-    positionValueRow: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: 6,
-    },
-    positionValue: {
-      fontWeight: '700',
-    },
-    priceChange24h: {
-      fontSize: 12,
     },
     moreButton: {
       padding: 4,

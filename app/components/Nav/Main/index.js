@@ -23,7 +23,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
 import {
@@ -53,7 +52,6 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
   selectIsAllNetworks,
@@ -85,10 +83,7 @@ import { useConnectionHandler } from '../../../util/navigation/useConnectionHand
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
-import {
-  isPortfolioViewEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
@@ -96,7 +91,6 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { Authentication } from '../../../core';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 import {
   useNetworksByNamespace,
@@ -140,9 +134,8 @@ const Main = (props) => {
       if (isSeedlessPasswordOutdated) {
         // Check for latest seedless password outdated state
         // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
-          false,
-        );
+        const isOutdated =
+          await Authentication.checkIsSeedlessPasswordOutdated(false);
         if (!isOutdated) {
           return;
         }
@@ -256,24 +249,6 @@ const Main = (props) => {
       <ActivityIndicator size="small" />
     </View>
   );
-  const skipAccountModalSecureNow = () => {
-    props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
-      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
-      params: { backupFlow: true },
-    });
-  };
-
-  const navigation = useNavigation();
-
-  const toggleRemindLater = () => {
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-      params: {
-        onConfirm: () => navigation.goBack(),
-        onCancel: skipAccountModalSecureNow,
-      },
-    });
-  };
 
   /**
    * Current network
@@ -315,19 +290,16 @@ const Main = (props) => {
     if (
       hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
-      //set here token network filter if portfolio view is enabled
-      if (isPortfolioViewEnabled()) {
-        const { PreferencesController } = Engine.context;
-        if (Object.keys(tokenNetworkFilter).length === 1) {
-          PreferencesController.setTokenNetworkFilter({
-            [chainId]: true,
-          });
-        } else {
-          PreferencesController.setTokenNetworkFilter({
-            ...tokenNetworkFilter,
-            [chainId]: true,
-          });
-        }
+      const { PreferencesController } = Engine.context;
+      if (Object.keys(tokenNetworkFilter).length === 1) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        PreferencesController.setTokenNetworkFilter({
+          ...tokenNetworkFilter,
+          [chainId]: true,
+        });
       }
       if (
         isRemoveGlobalNetworkSelectorEnabled() &&
@@ -335,24 +307,6 @@ const Main = (props) => {
       ) {
         selectNetwork(chainId);
       }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
-        labelOptions: [
-          {
-            label: `${networkName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        networkImageSource: networkImage,
-      });
-
-      handleShowNetworkActiveToast(
-        isOnBridgeRoute,
-        toastRef,
-        networkName,
-        networkImage,
-      );
     }
     previousProviderConfig.current = !isEvmSelected
       ? { chainId }
@@ -386,12 +340,18 @@ const Main = (props) => {
       previousNetworkValues.length &&
       currentNetworkValues.length !== previousNetworkValues.length
     ) {
-      // Find the newly added network
+      // Find the newly added network by comparing chainIds
       const newNetwork = currentNetworkValues.find(
-        (network) => !previousNetworkValues.includes(network),
+        (network) =>
+          !previousNetworkValues.some(
+            (prev) => prev.chainId === network.chainId,
+          ),
       );
       const deletedNetwork = previousNetworkValues.find(
-        (network) => !currentNetworkValues.includes(network),
+        (network) =>
+          !currentNetworkValues.some(
+            (curr) => curr.chainId === network.chainId,
+          ),
       );
 
       toastRef?.current?.showToast({
@@ -457,16 +417,6 @@ const Main = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionChangeHandler]);
 
-  const termsOfUse = useCallback(async () => {
-    if (props.navigation) {
-      await navigateTermsOfUse(props.navigation.navigate);
-    }
-  }, [props.navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
-
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
   };
@@ -507,16 +457,11 @@ const Main = (props) => {
         <RampOrders />
         <SwapsLiveness />
         <CardVerification />
-        <BackupAlert
-          onDismiss={toggleRemindLater}
-          navigation={props.navigation}
-        />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
         )}
         <ProtectYourWalletModal navigation={props.navigation} />
-        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
       </View>

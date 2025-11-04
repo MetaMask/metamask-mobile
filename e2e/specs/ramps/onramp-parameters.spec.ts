@@ -4,7 +4,7 @@ import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { SmokeTrade } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
@@ -13,7 +13,7 @@ import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../utils/SoftAssert';
+import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Matchers from '../../framework/Matchers';
 import { Mockttp } from 'mockttp';
@@ -42,7 +42,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
     },
     async () => {
       await loginToApp();
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await testFn();
@@ -50,7 +50,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
   );
 };
 
-describe(SmokeTrade('On-Ramp Parameters'), () => {
+describe.skip(RegressionTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });

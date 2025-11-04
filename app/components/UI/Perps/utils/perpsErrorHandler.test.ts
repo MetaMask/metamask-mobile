@@ -1,9 +1,30 @@
+// Use fake timers to prevent test hanging
+jest.useFakeTimers();
+
+// Mock PerpsController to avoid heavy import chain
+jest.mock('../controllers/PerpsController', () => ({
+  PERPS_ERROR_CODES: {
+    CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
+    CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
+    PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
+    TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
+    BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
+    WITHDRAW_FAILED: 'WITHDRAW_FAILED',
+    POSITIONS_FAILED: 'POSITIONS_FAILED',
+    ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
+    MARKETS_FAILED: 'MARKETS_FAILED',
+    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+    ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
+  },
+}));
+
 import { strings } from '../../../../../locales/i18n';
 import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import {
   translatePerpsError,
   isPerpsErrorCode,
   handlePerpsError,
+  ensureError,
 } from './perpsErrorHandler';
 
 // Mock the i18n strings function
@@ -122,6 +143,18 @@ describe('translatePerpsError', () => {
       expect(result).toBe('perps.errors.unknownError');
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
     });
+
+    it('should translate ORDER_LEVERAGE_REDUCTION_FAILED error code', () => {
+      const result = translatePerpsError({
+        error: PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+      });
+
+      expect(result).toBe('perps.errors.orderLeverageReductionFailed');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.orderLeverageReductionFailed',
+        {},
+      );
+    });
   });
 
   describe('with Error objects', () => {
@@ -141,6 +174,37 @@ describe('translatePerpsError', () => {
       const result = translatePerpsError({ error });
 
       expect(result).toBe('Custom error message');
+    });
+
+    it('should use fallbackMessage when Error is not an error code', () => {
+      const error = new Error('Some technical error');
+      const result = translatePerpsError({
+        error,
+        fallbackMessage: 'User-friendly fallback message',
+      });
+
+      expect(result).toBe('User-friendly fallback message');
+    });
+
+    it('should prioritize error code translation over fallbackMessage', () => {
+      const error = new Error(PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED);
+      const result = translatePerpsError({
+        error,
+        data: { token: 'DAI' },
+        fallbackMessage: 'This should not be used',
+      });
+
+      expect(result).toBe('perps.errors.tokenNotSupported [token:DAI]');
+      expect(strings).toHaveBeenCalledWith('perps.errors.tokenNotSupported', {
+        token: 'DAI',
+      });
+    });
+
+    it('should return error message when no fallbackMessage provided', () => {
+      const error = new Error('Specific error details');
+      const result = translatePerpsError({ error });
+
+      expect(result).toBe('Specific error details');
     });
   });
 
@@ -163,6 +227,51 @@ describe('translatePerpsError', () => {
         'perps.errors.clientNotInitialized',
         {},
       );
+    });
+
+    it('should use fallbackMessage when string is not an error code', () => {
+      const result = translatePerpsError({
+        error: 'Technical error details',
+        fallbackMessage: 'Something went wrong',
+      });
+
+      expect(result).toBe('Something went wrong');
+    });
+
+    it('should prioritize string error over fallbackMessage', () => {
+      const result = translatePerpsError({
+        error: 'Actual error message',
+        fallbackMessage: 'Fallback message',
+      });
+
+      expect(result).toBe('Fallback message');
+    });
+
+    it('should prioritize error code translation over fallbackMessage for string codes', () => {
+      const result = translatePerpsError({
+        error: PERPS_ERROR_CODES.MARKETS_FAILED,
+        fallbackMessage: 'Should not be used',
+      });
+
+      expect(result).toBe('perps.errors.marketsFailed');
+      expect(strings).toHaveBeenCalledWith('perps.errors.marketsFailed', {});
+    });
+
+    it('should use fallbackMessage for empty string', () => {
+      const result = translatePerpsError({
+        error: '',
+        fallbackMessage: 'Default error message',
+      });
+
+      expect(result).toBe('Default error message');
+    });
+
+    it('should return empty string when no fallbackMessage for empty error', () => {
+      const result = translatePerpsError({
+        error: '',
+      });
+
+      expect(result).toBe('');
     });
   });
 });
@@ -349,13 +458,81 @@ describe('handlePerpsError', () => {
       expect(result).toBe('Fallback message');
     });
 
-    it('should prefer error string over fallback', () => {
+    it('should use fallback message when provided for non-error-code strings', () => {
       const result = handlePerpsError({
         error: 'Some error',
         fallbackMessage: 'Fallback message',
       });
 
-      expect(result).toBe('Some error');
+      expect(result).toBe('Fallback message');
+    });
+  });
+
+  describe('with error codes and fallbackMessage', () => {
+    it('should ignore fallbackMessage when valid error code is provided', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
+        fallbackMessage: 'This should be ignored',
+      });
+
+      expect(result).toBe('perps.errors.clientNotInitialized');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.clientNotInitialized',
+        {},
+      );
+    });
+
+    it('should ignore fallbackMessage for TOKEN_NOT_SUPPORTED with context', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED,
+        context: { token: 'WETH' },
+        fallbackMessage: 'Should not appear',
+      });
+
+      expect(result).toBe('perps.errors.tokenNotSupported [token:WETH]');
+      expect(strings).toHaveBeenCalledWith('perps.errors.tokenNotSupported', {
+        token: 'WETH',
+      });
+    });
+
+    it('should ignore fallbackMessage for PROVIDER_NOT_AVAILABLE with context', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE,
+        context: { providerId: 'gmx' },
+        fallbackMessage: 'Ignored fallback',
+      });
+
+      expect(result).toBe('perps.errors.providerNotAvailable [providerId:gmx]');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerNotAvailable',
+        {
+          providerId: 'gmx',
+        },
+      );
+    });
+
+    it('should ignore fallbackMessage for Error object with valid error code', () => {
+      const error = new Error(PERPS_ERROR_CODES.WITHDRAW_FAILED);
+      const result = handlePerpsError({
+        error,
+        context: { amount: '500' },
+        fallbackMessage: 'Generic withdrawal error',
+      });
+
+      expect(result).toBe('perps.errors.withdrawFailed [amount:500]');
+      expect(strings).toHaveBeenCalledWith('perps.errors.withdrawFailed', {
+        amount: '500',
+      });
+    });
+
+    it('should use fallbackMessage for Error object without valid error code', () => {
+      const error = new Error('Network timeout');
+      const result = handlePerpsError({
+        error,
+        fallbackMessage: 'Connection error, please try again',
+      });
+
+      expect(result).toBe('Connection error, please try again');
     });
   });
 
@@ -430,5 +607,75 @@ describe('handlePerpsError', () => {
         },
       );
     });
+  });
+});
+
+describe('ensureError', () => {
+  it('should return the same Error instance when passed an Error', () => {
+    const originalError = new Error('Test error');
+    const result = ensureError(originalError);
+
+    expect(result).toBe(originalError);
+    expect(result.message).toBe('Test error');
+  });
+
+  it('should convert string to Error with the string as message', () => {
+    const result = ensureError('String error message');
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('String error message');
+  });
+
+  it('should convert number to Error with number as string message', () => {
+    const result = ensureError(42);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('42');
+  });
+
+  it('should convert null to Error with "null" as message', () => {
+    const result = ensureError(null);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('null');
+  });
+
+  it('should convert undefined to Error with "undefined" as message', () => {
+    const result = ensureError(undefined);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('undefined');
+  });
+
+  it('should convert object to Error with stringified object as message', () => {
+    const obj = { code: 'ERROR_CODE', details: 'Some details' };
+    const result = ensureError(obj);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('[object Object]');
+  });
+
+  it('should convert boolean to Error with string representation', () => {
+    const result = ensureError(false);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('false');
+  });
+
+  it('should preserve Error subclasses', () => {
+    class CustomError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = 'CustomError';
+      }
+    }
+
+    const customError = new CustomError('Custom error message');
+    const result = ensureError(customError);
+
+    expect(result).toBe(customError);
+    expect(result).toBeInstanceOf(CustomError);
+    expect(result.name).toBe('CustomError');
+    expect(result.message).toBe('Custom error message');
   });
 });

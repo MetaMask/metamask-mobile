@@ -49,9 +49,8 @@ exports[`PhishingModal should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 24,
-        "fontWeight": "600",
         "marginBottom": 16,
         "textAlign": "left",
       }
@@ -63,9 +62,8 @@ exports[`PhishingModal should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 14,
-        "fontWeight": "400",
         "marginBottom": 20,
       }
     }
@@ -76,9 +74,8 @@ exports[`PhishingModal should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 14,
-        "fontWeight": "400",
         "marginBottom": 20,
       }
     }
@@ -147,9 +144,8 @@ exports[`PhishingModal should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "marginLeft": 12,
         }
       }
@@ -207,9 +203,8 @@ exports[`PhishingModal should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "marginLeft": 12,
         }
       }

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -140,6 +141,7 @@ class Contacts extends PureComponent {
       <SafeAreaView
         style={styles.wrapper}
         testID={ContactsViewSelectorIDs.CONTAINER}
+        edges={{ bottom: 'additive' }}
       >
         <AddressList
           chainId={chainId}

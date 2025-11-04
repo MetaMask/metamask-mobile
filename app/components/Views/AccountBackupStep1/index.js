@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
   View,
-  SafeAreaView,
   StyleSheet,
   BackHandler,
   Image,
   Platform,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -47,7 +47,7 @@ const createStyles = (colors) =>
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 8,
     },
     scrollviewWrapper: {
       flexGrow: 1,
@@ -201,7 +201,7 @@ const AccountBackupStep1 = (props) => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}

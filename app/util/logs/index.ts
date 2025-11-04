@@ -12,6 +12,10 @@ import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
 import { MetaMetrics } from '../../core/Analytics';
+import {
+  getFeatureFlagAppDistribution,
+  getFeatureFlagAppEnvironment,
+} from '../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
 const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
@@ -86,6 +90,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
+  delete fullState.engine.backgroundState.PredictController;
 
   // Remove SeedlessController controller data so that encrypted vault and sensitive data is not included in logs
   delete fullState.engine.backgroundState.SeedlessOnboardingController;
@@ -121,6 +126,9 @@ export const downloadStateLogs = async (
   fullState: RootState,
   loggedIn = true,
 ) => {
+  const environment = process.env.METAMASK_ENVIRONMENT;
+  const remoteFeatureFlagEnvironment = getFeatureFlagAppEnvironment();
+  const remoteFeatureFlagDistribution = getFeatureFlagAppDistribution();
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
@@ -140,6 +148,9 @@ export const downloadStateLogs = async (
         appVersion,
         buildNumber,
         metaMetricsId,
+        environment,
+        remoteFeatureFlagEnvironment,
+        remoteFeatureFlagDistribution,
       },
       loggedIn,
     );

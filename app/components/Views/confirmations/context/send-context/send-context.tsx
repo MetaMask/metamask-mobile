@@ -11,17 +11,20 @@ import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { toHex } from '@metamask/controller-utils';
 
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { AssetType, Nft } from '../../types/token';
+import { AssetProtocol, PROTOCOL_CONFIG } from '../../constants/protocol';
 
 export interface SendContextType {
   asset?: AssetType | Nft;
   chainId?: string;
   fromAccount?: InternalAccount;
   from?: string;
+  maxValueMode: boolean;
   to?: string;
   updateAsset: (asset?: AssetType | Nft) => void;
   updateTo: (to: string) => void;
-  updateValue: (value: string) => void;
+  updateValue: (value: string, maxMode?: boolean) => void;
   value?: string;
 }
 
@@ -30,6 +33,7 @@ export const SendContext = createContext<SendContextType>({
   chainId: undefined,
   fromAccount: {} as InternalAccount,
   from: '',
+  maxValueMode: false,
   to: undefined,
   updateAsset: () => undefined,
   updateTo: () => undefined,
@@ -42,21 +46,56 @@ export const SendContextProvider: React.FC<{
 }> = ({ children }) => {
   const [asset, updateAsset] = useState<AssetType | Nft>();
   const [to, updateTo] = useState<string>();
-  const [value, updateValue] = useState<string>();
+  const [maxValueMode, setMaxValueMode] = useState(false);
+  const [value, setValue] = useState<string>();
   const [fromAccount, updateFromAccount] = useState<InternalAccount>();
   const accounts = useSelector(selectInternalAccountsById);
+  const selectedGroup = useSelector(selectSelectedAccountGroup);
+
+  const updateValue = useCallback(
+    (val: string, maxMode?: boolean) => {
+      setMaxValueMode(maxMode ?? false);
+      setValue(val);
+    },
+    [setMaxValueMode, setValue],
+  );
 
   const handleUpdateAsset = useCallback(
     (updatedAsset?: AssetType | Nft) => {
+      updateValue('', false);
       updateAsset(updatedAsset);
       if (
         updatedAsset?.accountId &&
         updatedAsset.accountId !== fromAccount?.id
       ) {
         updateFromAccount(accounts[updatedAsset.accountId as string]);
+      } else {
+        // We don't have accountId in the updated asset - this is a navigation from outside of the send flow
+        // Hence we need to update the fromAccount from the selected group
+        const selectedAccountGroupAccounts = selectedGroup?.accounts.map(
+          (accountId) => accounts[accountId],
+        );
+
+        for (const protocol of Object.values(AssetProtocol)) {
+          const config = PROTOCOL_CONFIG[protocol];
+          if (updatedAsset && config.isAssetType(updatedAsset)) {
+            const account = selectedAccountGroupAccounts?.find((acc) =>
+              config.isAccountType(acc),
+            );
+            updateFromAccount(account);
+            break;
+          }
+        }
       }
     },
-    [accounts, fromAccount?.id, updateAsset, updateFromAccount],
+    [
+      accounts,
+      fromAccount?.id,
+      updateValue,
+      updateAsset,
+      updateFromAccount,
+      selectedGroup?.accounts,
+    ],
   );
 
   const chainId =
@@ -71,6 +110,7 @@ export const SendContextProvider: React.FC<{
         chainId: chainId as string | undefined,
         fromAccount,
         from: fromAccount?.address as string,
+        maxValueMode,
         to,
         updateAsset: handleUpdateAsset,
         updateTo,

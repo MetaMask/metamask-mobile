@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { useDispatch } from 'react-redux';
 
 import BottomSheet, {
   BottomSheetRef,
@@ -16,16 +15,17 @@ import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncToggle/BackupAndSyncToggle';
 import { InteractionManager } from 'react-native';
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
 const ConfirmTurnOnBackupAndSyncModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
     useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
 
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
 
   const enableBasicFunctionality = async () => {
-    dispatch(toggleBasicFunctionality(true));
+    await dispatch(toggleBasicFunctionality(true));
   };
 
   const handleEnableBackupAndSync = () => {

@@ -5,17 +5,23 @@ import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
-import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
 import Assertions from '../../../../framework/Assertions';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupMockRequest } from '../../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../../framework/types';
+import { AnvilManager } from '../../../../seeder/anvil-manager';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - setApprovalForAll method'),
@@ -24,20 +30,16 @@ describe(
     const ERC_1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
         url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
         response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
         responseCode: 200,
       });
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
     };
 
     it('creates an approve transaction confirmation for given ERC721 and submits it', async () => {
@@ -48,20 +50,35 @@ describe(
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(['0x539']),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
           smartContracts: [ERC_721_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc721Address = await contractRegistry?.getContractAddress(
-            ERC_721_CONTRACT,
-          );
+          const erc721Address =
+            await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
 
           await loginToApp();
 
@@ -80,20 +97,39 @@ describe(
           // Check all expected row components are visible
           await Assertions.expectElementToBeVisible(
             RowComponents.AccountNetwork,
+            {
+              description: 'Account Network',
+            },
           );
-          await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
-          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
+          await Assertions.expectElementToBeVisible(RowComponents.ApproveRow, {
+            description: 'Approve Row',
+          });
+          await Assertions.expectElementToBeVisible(
+            RowComponents.NetworkAndOrigin,
+            {
+              description: 'Network And Origin',
+            },
+          );
           await Assertions.expectElementToBeVisible(
             RowComponents.GasFeesDetails,
+            {
+              description: 'Gas Fees Details',
+            },
           );
           await Assertions.expectElementToBeVisible(
             RowComponents.AdvancedDetails,
+            {
+              description: 'Advanced Details',
+            },
           );
 
           // Check spending cap is visible and has the correct value
           await Assertions.expectElementToHaveText(
             TokenApproveConfirmation.SpendingCapValue,
             'All',
+            {
+              description: 'Spending Cap Value',
+            },
           );
 
           // Accept confirmation
@@ -115,20 +151,35 @@ describe(
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build(),
+          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            return new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: {
+                  chainId: '0x539',
+                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                  type: 'custom',
+                  nickname: 'Local RPC',
+                  ticker: 'ETH',
+                },
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(['0x539']),
+              )
+              .build();
+          },
           restartDevice: true,
           testSpecificMock,
           smartContracts: [ERC_1155_CONTRACT],
         },
         async ({ contractRegistry }) => {
-          const erc1155Address = await contractRegistry?.getContractAddress(
-            ERC_1155_CONTRACT,
-          );
+          const erc1155Address =
+            await contractRegistry?.getContractAddress(ERC_1155_CONTRACT);
 
           await loginToApp();
 
@@ -170,20 +221,35 @@ describe(
                 dappVariant: DappVariants.TEST_DAPP,
               },
             ],
-            fixture: new FixtureBuilder()
-              .withGanacheNetwork()
-              .withPermissionControllerConnectedToTestDapp(
-                buildPermissions(['0x539']),
-              )
-              .build(),
+            fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+              const node = localNodes?.[0] as unknown as AnvilManager;
+              const rpcPort =
+                node instanceof AnvilManager
+                  ? (node.getPort() ?? AnvilPort())
+                  : undefined;
+
+              return new FixtureBuilder()
+                .withNetworkController({
+                  providerConfig: {
+                    chainId: '0x539',
+                    rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                    type: 'custom',
+                    nickname: 'Local RPC',
+                    ticker: 'ETH',
+                  },
+                })
+                .withPermissionControllerConnectedToTestDapp(
+                  buildPermissions(['0x539']),
+                )
+                .build();
+            },
             restartDevice: true,
             testSpecificMock,
             smartContracts: [ERC_721_CONTRACT],
           },
           async ({ contractRegistry }) => {
-            const erc721Address = await contractRegistry?.getContractAddress(
-              ERC_721_CONTRACT,
-            );
+            const erc721Address =
+              await contractRegistry?.getContractAddress(ERC_721_CONTRACT);
 
             await loginToApp();
 

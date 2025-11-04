@@ -5,10 +5,10 @@ import {
   trace,
 } from '../../util/trace';
 
-let UIStartupSpan: TraceContext;
+let UIStartupSpan: TraceContext | null = null;
 
 const getUIStartupSpan = (startTime?: number) => {
-  if (!UIStartupSpan) {
+  if (UIStartupSpan === null) {
     UIStartupSpan = trace({
       name: TraceName.UIStartup,
       startTime,

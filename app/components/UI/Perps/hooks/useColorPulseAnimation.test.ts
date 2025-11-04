@@ -4,7 +4,6 @@ import {
   type PulseColor,
 } from './useColorPulseAnimation';
 
-// Mock dependencies
 jest.mock('../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     theme: {

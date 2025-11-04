@@ -1,30 +1,20 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsDeveloperOptionsSection } from './PerpsDeveloperOptionsSection';
-import {
-  PerpsDeveloperOptionsSectionSelectorsIDs,
-  PerpsTestnetToggleSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import Routes from '../../../../../constants/navigation/Routes';
+import { PerpsTestnetToggleSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
-const mockNavigate = jest.fn();
-
-// Mock react-navigation
+// Mock navigation
 jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  const actualNav = jest.requireActual('@react-navigation/native');
   return {
-    ...actualReactNavigation,
+    ...actualNav,
     useNavigation: () => ({
-      navigate: mockNavigate,
+      navigate: jest.fn(),
     }),
   };
 });
 
 describe('PerpsDeveloperOptionsSection', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(<PerpsDeveloperOptionsSection />);
     expect(toJSON()).toMatchSnapshot();
@@ -40,19 +30,5 @@ describe('PerpsDeveloperOptionsSection', () => {
       <PerpsDeveloperOptionsSection />,
     );
     expect(getByTestId(PerpsTestnetToggleSelectorsIDs.ROOT)).toBeVisible();
-  });
-
-  it('navigates to perps sandbox when button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsDeveloperOptionsSection />,
-    );
-
-    const sandboxButton = getByTestId(
-      PerpsDeveloperOptionsSectionSelectorsIDs.PERPS_SANDBOX_BUTTON,
-    );
-    fireEvent.press(sandboxButton);
-
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT);
   });
 });

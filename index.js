@@ -29,7 +29,7 @@ if (__DEV__) {
 enableFreeze(true);
 
 // Setup Sentry
-setupSentry();
+setupSentry(__DEV__);
 
 // Setup Performance observers
 Performance.setupPerformanceObservers();
@@ -86,6 +86,7 @@ LogBox.ignoreLogs([
   "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
   'ReactImageView: Image source "null"',
   'Warning: componentWillReceiveProps has been renamed',
+  'You passed a server string as an argument to one of the react-native-keychain functions',
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;

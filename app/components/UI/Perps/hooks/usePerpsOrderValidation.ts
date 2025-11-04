@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import {
+  PERFORMANCE_CONFIG,
+  VALIDATION_THRESHOLDS,
+} from '../constants/perpsConfig';
 import type { OrderParams } from '../controllers/types';
-import type { OrderFormState } from '../types';
+import type { OrderFormState } from '../types/perps-types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
-import {
-  VALIDATION_THRESHOLDS,
-  PERFORMANCE_CONFIG,
-} from '../constants/perpsConfig';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
@@ -16,6 +16,7 @@ interface UsePerpsOrderValidationParams {
   assetPrice: number;
   availableBalance: number;
   marginRequired: string;
+  existingPositionLeverage?: number;
 }
 
 interface ValidationResult {
@@ -32,6 +33,9 @@ const EMPTY_WARNINGS: string[] = [];
 /**
  * Hook to handle order validation combining protocol-specific and UI-specific rules
  * Uses the existing validateOrder method from the provider
+ *
+ * Note: Errors are preserved during validation to prevent UI flashing.
+ * Errors are only cleared when validation confirms they're resolved.
  */
 export function usePerpsOrderValidation(
   params: UsePerpsOrderValidationParams,
@@ -42,6 +46,7 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
+    existingPositionLeverage,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -61,11 +66,18 @@ export function usePerpsOrderValidation(
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const performValidation = useCallback(async () => {
+    // Set validation state to indicate we're validating
+    // but preserve existing errors to prevent flashing
+    setValidation((prev) => ({
+      ...prev,
+      isValidating: true,
+    }));
+
     // Perform immediate UI validation for critical errors
     const immediateErrors: string[] = [];
 
     // Balance validation (immediate)
-    const requiredMargin = parseFloat(marginRequired);
+    const requiredMargin = Number.parseFloat(marginRequired);
     if (requiredMargin > availableBalance) {
       immediateErrors.push(
         strings('perps.order.validation.insufficient_balance', {
@@ -74,14 +86,6 @@ export function usePerpsOrderValidation(
         }),
       );
     }
-
-    // Update with immediate errors first (use stable reference if empty)
-    setValidation((prev) => ({
-      ...prev,
-      errors: immediateErrors.length > 0 ? immediateErrors : EMPTY_ERRORS,
-      isValid: immediateErrors.length === 0,
-      isValidating: true,
-    }));
 
     try {
       // Convert form state to OrderParams for protocol validation
@@ -93,6 +97,7 @@ export function usePerpsOrderValidation(
         price: orderForm.limitPrice,
         leverage: orderForm.leverage,
         currentPrice: assetPrice,
+        existingPositionLeverage,
       };
 
       // Get protocol-specific validation
@@ -148,18 +153,19 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
+    existingPositionLeverage,
     validateOrder,
   ]);
 
   useEffect(() => {
     // Skip validation if critical data is missing
     if (!positionSize || assetPrice === 0) {
-      setValidation({
-        errors: EMPTY_ERRORS,
-        warnings: EMPTY_WARNINGS,
-        isValid: false,
+      setValidation((prev) => ({
+        ...prev,
         isValidating: false,
-      });
+        // Keep existing errors but mark as invalid
+        isValid: false,
+      }));
       return;
     }
 

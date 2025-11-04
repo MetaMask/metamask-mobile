@@ -11,13 +11,14 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/Aggregator/routes/utils';
-import { selectTransactionState } from '../../../../../reducers/transaction';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const HEX_ZERO = '0x0';
 
@@ -33,15 +34,17 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata?.chainId as Hex,
     transactionMetadata?.txParams?.from as string,
   );
-  const { maxValueMode } = useSelector(selectTransactionState);
+  const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
+  const { payToken } = useTransactionPayToken();
 
   return useMemo(() => {
-    if (!transactionMetadata || maxValueMode) {
+    if (!transactionMetadata || isTransactionValueUpdating) {
       return [];
     }
 
-    const { txParams, selectedGasFeeToken } = transactionMetadata;
+    const { txParams, selectedGasFeeToken, isGasFeeSponsored } =
+      transactionMetadata;
     const { maxFeePerGas, gas, gasPrice } = txParams;
     const { nativeCurrency } =
       networkConfigurations[transactionMetadata.chainId as Hex];
@@ -63,7 +66,10 @@ export const useInsufficientBalanceAlert = ({
     );
 
     const showAlert =
-      hasInsufficientBalance && (ignoreGasFeeToken || !selectedGasFeeToken);
+      hasInsufficientBalance &&
+      (ignoreGasFeeToken || !selectedGasFeeToken) &&
+      !payToken &&
+      !isGasFeeSponsored;
 
     if (!showAlert) {
       return [];
@@ -94,10 +100,11 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
-    maxValueMode,
+    isTransactionValueUpdating,
     navigation,
     networkConfigurations,
     onReject,
+    payToken,
     transactionMetadata,
   ]);
 };

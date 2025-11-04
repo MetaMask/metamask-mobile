@@ -5,12 +5,12 @@ const styleSheet = () =>
     activitiesButton: {
       width: '100%',
       flexDirection: 'row',
-      paddingVertical: 20,
       paddingHorizontal: 16,
-      gap: 8,
+      gap: 8, // Gap between Main Action Buttons: 8px (unchanged)
     },
     buttonContainer: {
       flex: 1,
+      overflow: 'hidden',
     },
   });
 

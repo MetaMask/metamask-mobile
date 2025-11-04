@@ -5,10 +5,6 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
 
-const NOTCH_WIDTH = 48;
-const NOTCH_HEIGHT = 5;
-const NOTCH_BORDER_RADIUS = 4;
-const NOTCH_MARGIN_TOP = 8;
 const SHEET_BORDER_RADIUS = 20;
 const TITLE_PADDING_TOP = 16;
 const TITLE_MARGIN_TOP = 4;
@@ -25,7 +21,6 @@ const createStyles = (params: { theme: Theme }) => {
   const { colors, typography } = theme;
 
   const backgroundDefault = colors.background.default;
-  const borderDefault = colors.border.default;
   const borderMuted = colors.border.muted;
   const textDefault = colors.text.default;
   const textAlternative = colors.text.alternative;
@@ -36,14 +31,6 @@ const createStyles = (params: { theme: Theme }) => {
       backgroundColor: backgroundDefault,
       borderTopLeftRadius: SHEET_BORDER_RADIUS,
       borderTopRightRadius: SHEET_BORDER_RADIUS,
-    },
-    notch: {
-      width: NOTCH_WIDTH,
-      height: NOTCH_HEIGHT,
-      borderRadius: NOTCH_BORDER_RADIUS,
-      backgroundColor: borderDefault,
-      marginTop: NOTCH_MARGIN_TOP,
-      alignSelf: 'center',
     },
     // network tabs selectors
     networkTabsSelectorWrapper: {
@@ -87,6 +74,20 @@ const createStyles = (params: { theme: Theme }) => {
     },
     textCentred: {
       textAlign: 'center',
+    },
+    // RPC modal styles
+    rpcMenu: {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+    },
+    cellBorder: { borderWidth: 0, paddingTop: 10, paddingBottom: 5 },
+    baseHeader: { paddingVertical: 8 },
+    rpcText: {
+      width: '100%',
+    },
+    alternativeText: {
+      color: textAlternative,
     },
   });
 };

@@ -4,10 +4,16 @@ import {
   getGanachePort,
   getLocalTestDappPort,
   getMockServerPort,
+  getCommandQueueServerPort,
   getSecondTestDappPort,
 } from './framework/fixtures/FixtureUtils';
-import Utilities from './utils/Utilities';
+import Utilities from './framework/Utilities';
 import { resolveConfig } from 'detox/internals';
+import { createLogger } from './framework/logger';
+
+const logger = createLogger({
+  name: 'TestHelpers',
+});
 
 export default class TestHelpers {
   /**
@@ -364,8 +370,7 @@ export default class TestHelpers {
         if (attempt === maxAttempts) {
           throw error;
         } else {
-          // eslint-disable-next-line no-console
-          console.log('Test attempt failed', {
+          logger.error('Test attempt failed', {
             attempt,
             error,
           });
@@ -378,6 +383,7 @@ export default class TestHelpers {
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort(getGanachePort());
       await device.reverseTcpPort(getFixturesServerPort());
+      await device.reverseTcpPort(getCommandQueueServerPort());
       await device.reverseTcpPort(getLocalTestDappPort());
       await device.reverseTcpPort(getSecondTestDappPort());
       await device.reverseTcpPort(getMockServerPort());

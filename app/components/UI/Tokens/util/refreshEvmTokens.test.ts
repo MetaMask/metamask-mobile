@@ -37,6 +37,16 @@ jest.mock('../../../../core/Engine', () => ({
         },
       },
     },
+    NetworkEnablementController: {
+      state: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
+      },
+    },
   },
 }));
 

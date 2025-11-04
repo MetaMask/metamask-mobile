@@ -1,16 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import PerpsTransactionDetailAssetHero from './PerpsTransactionDetailAssetHero';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { FillType } from '../PerpsTransactionItem/PerpsTransactionItem';
 
-// Mock the hooks
-jest.mock('../../hooks/usePerpsAssetsMetadata');
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: ({ size, testID }: { size: number; testID?: string }) => {
+    const { View } = jest.requireActual('react-native');
+    return (
+      <View
+        testID={testID || 'perps-token-logo'}
+        style={{ width: size, height: size }}
+      />
+    );
+  },
+}));
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
@@ -67,31 +79,21 @@ const mockTransaction = {
     feeToken: 'USDC',
     action: 'Opened',
     dir: 'long',
+    fillType: FillType.Standard,
   },
 };
 
 describe('PerpsTransactionDetailAssetHero', () => {
-  const mockUsePerpsAssetMetadata =
-    usePerpsAssetMetadata as jest.MockedFunction<typeof usePerpsAssetMetadata>;
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should render with asset URL when available', () => {
-    // Arrange
-    const assetUrl = 'https://example.com/eth-icon.png';
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl,
-      error: null,
-      hasError: false,
-    });
-
+  it('should render with PerpsTokenLogo component', () => {
     // Act
     const { getByTestId, getByText } = renderWithProvider(
       <PerpsTransactionDetailAssetHero
         transaction={mockTransaction}
-        styles={mockStyles}
+        styles={mockStyles as any}
       />,
       {
         state: mockInitialState,
@@ -102,78 +104,25 @@ describe('PerpsTransactionDetailAssetHero', () => {
     expect(
       getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_DETAIL_ASSET_HERO),
     ).toBeOnTheScreen();
+    expect(getByTestId('perps-token-logo')).toBeOnTheScreen();
     expect(getByText('1.5 ETH')).toBeOnTheScreen();
-  });
-
-  it('should render Avatar when asset URL is not available', () => {
-    // Arrange
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: '',
-      error: null,
-      hasError: false,
-    });
-
-    // Act
-    const { getByTestId, getByText } = renderWithProvider(
-      <PerpsTransactionDetailAssetHero
-        transaction={mockTransaction}
-        styles={mockStyles}
-      />,
-      {
-        state: mockInitialState,
-      },
-    );
-
-    // Assert
-    expect(
-      getByTestId(PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER),
-    ).toBeOnTheScreen();
-    expect(getByText('1.5 ETH')).toBeOnTheScreen();
-  });
-
-  it('should render Avatar when asset URL is empty string', () => {
-    // Arrange
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: '',
-      error: null,
-      hasError: false,
-    });
-
-    // Act
-    const { getByTestId } = renderWithProvider(
-      <PerpsTransactionDetailAssetHero
-        transaction={mockTransaction}
-        styles={mockStyles}
-      />,
-      {
-        state: mockInitialState,
-      },
-    );
-
-    // Assert
-    expect(
-      getByTestId(PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER),
-    ).toBeOnTheScreen();
   });
 
   it('should display correct subtitle from transaction', () => {
-    // Arrange
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: 'https://example.com/eth-icon.png',
-      error: null,
-      hasError: false,
-    });
-
     const customTransaction = {
       ...mockTransaction,
       subtitle: '2.75 BTC',
+      fill: {
+        ...mockTransaction.fill,
+        fillType: FillType.Standard,
+      },
     };
 
     // Act
     const { getByText } = renderWithProvider(
       <PerpsTransactionDetailAssetHero
         transaction={customTransaction}
-        styles={mockStyles}
+        styles={mockStyles as any}
       />,
       {
         state: mockInitialState,
@@ -184,32 +133,29 @@ describe('PerpsTransactionDetailAssetHero', () => {
     expect(getByText('2.75 BTC')).toBeOnTheScreen();
   });
 
-  it('should call usePerpsAssetMetadata with correct asset', () => {
-    // Arrange
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: '',
-      error: null,
-      hasError: false,
-    });
-
+  it('should render PerpsTokenLogo with correct asset symbol', () => {
     const btcTransaction = {
       ...mockTransaction,
       asset: 'BTC',
+      fill: {
+        ...mockTransaction.fill,
+        fillType: FillType.Standard,
+      },
     };
 
     // Act
-    renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <PerpsTransactionDetailAssetHero
         transaction={btcTransaction}
-        styles={mockStyles}
+        styles={mockStyles as any}
       />,
       {
         state: mockInitialState,
       },
     );
 
-    // Assert
-    expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('BTC');
+    // Assert - PerpsTokenLogo should be rendered (it handles asset metadata internally)
+    expect(getByTestId('perps-token-logo')).toBeOnTheScreen();
   });
 
   it('should handle different asset types', () => {
@@ -218,22 +164,16 @@ describe('PerpsTransactionDetailAssetHero', () => {
 
     // Act & Assert
     assets.forEach((asset) => {
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl: `https://example.com/${asset.toLowerCase()}-icon.png`,
-        error: null,
-        hasError: false,
-      });
-
       const assetTransaction = {
         ...mockTransaction,
         asset,
         subtitle: `1.0 ${asset}`,
       };
 
-      const { getByText } = renderWithProvider(
+      const { getByText, getByTestId } = renderWithProvider(
         <PerpsTransactionDetailAssetHero
           transaction={assetTransaction}
-          styles={mockStyles}
+          styles={mockStyles as any}
         />,
         {
           state: mockInitialState,
@@ -241,32 +181,7 @@ describe('PerpsTransactionDetailAssetHero', () => {
       );
 
       expect(getByText(`1.0 ${asset}`)).toBeOnTheScreen();
-      expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith(asset);
+      expect(getByTestId('perps-token-logo')).toBeOnTheScreen();
     });
-  });
-
-  it('should handle undefined asset metadata gracefully', () => {
-    // Arrange
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: '',
-      error: null,
-      hasError: false,
-    });
-
-    // Act
-    const { getByTestId } = renderWithProvider(
-      <PerpsTransactionDetailAssetHero
-        transaction={mockTransaction}
-        styles={mockStyles}
-      />,
-      {
-        state: mockInitialState,
-      },
-    );
-
-    // Assert
-    expect(
-      getByTestId(PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER),
-    ).toBeOnTheScreen();
   });
 });

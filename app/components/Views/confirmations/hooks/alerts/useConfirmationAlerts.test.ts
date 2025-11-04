@@ -16,6 +16,9 @@ import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
+import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
+import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
+import { useBurnAddressAlert } from './useBurnAddressAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useDomainMismatchAlerts');
@@ -27,6 +30,9 @@ jest.mock('./useBatchedUnusedApprovalsAlert');
 jest.mock('./usePerpsDepositMinimumAlert');
 jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
+jest.mock('./useInsufficientPayTokenNativeAlert');
+jest.mock('./useInsufficientPredictBalanceAlert');
+jest.mock('./useBurnAddressAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -123,6 +129,32 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockInsufficientPayTokenNativeAlert: Alert[] = [
+    {
+      key: 'InsufficientPayTokenNativeAlert',
+      title: 'Test Insufficient Pay Token Native Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
+  const mockInsufficientPredictBalanceAlert: Alert[] = [
+    {
+      key: 'InsufficientPredictBalanceAlert',
+      title: 'Test Insufficient Predict Balance Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+  const mockBurnAddressAlert: Alert[] = [
+    {
+      key: 'BurnAddressAlert',
+      title: 'Test Burn Address Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
@@ -135,6 +167,9 @@ describe('useConfirmationAlerts', () => {
     (usePerpsDepositMinimumAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue([]);
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
+    (useInsufficientPayTokenNativeAlert as jest.Mock).mockReturnValue([]);
+    (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
+    (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -199,6 +234,13 @@ describe('useConfirmationAlerts', () => {
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue(
       mockNoPayTokenQuotesAlert,
     );
+    (useInsufficientPayTokenNativeAlert as jest.Mock).mockReturnValue(
+      mockInsufficientPayTokenNativeAlert,
+    );
+    (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue(
+      mockInsufficientPredictBalanceAlert,
+    );
+    (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -212,6 +254,9 @@ describe('useConfirmationAlerts', () => {
       ...mockPerpsDepositMinimumAlert,
       ...mockInsufficientPayTokenBalanceAlert,
       ...mockNoPayTokenQuotesAlert,
+      ...mockInsufficientPayTokenNativeAlert,
+      ...mockInsufficientPredictBalanceAlert,
+      ...mockBurnAddressAlert,
       ...mockUpgradeAccountAlert,
     ]);
   });

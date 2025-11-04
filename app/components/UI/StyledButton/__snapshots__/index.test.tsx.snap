@@ -279,9 +279,8 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -315,9 +314,8 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -352,9 +350,8 @@ exports[`StyledButton should render correctly on iOS the button with type danger
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -389,9 +386,8 @@ exports[`StyledButton should render correctly on iOS the button with type info 1
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -426,9 +422,8 @@ exports[`StyledButton should render correctly on iOS the button with type invers
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -463,9 +458,8 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -499,16 +493,14 @@ exports[`StyledButton should render correctly on iOS the button with type onOver
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
         "color": "#ffffff",
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 18,
-        "fontWeight": "600",
       },
       undefined,
     ]
@@ -538,9 +530,8 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -575,9 +566,8 @@ exports[`StyledButton should render correctly on iOS the button with type second
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
@@ -612,15 +602,13 @@ exports[`StyledButton should render correctly on iOS the button with type transp
   style={
     [
       {
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 14,
-        "fontWeight": "600",
         "textAlign": "center",
       },
       {
         "color": "#ffffff",
-        "fontFamily": "CentraNo1-Bold",
-        "fontWeight": "600",
+        "fontFamily": "Geist Bold",
       },
       undefined,
     ]

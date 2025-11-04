@@ -1,7 +1,11 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { selectPendingSmartTransactionsBySender } from './smartTransactionsController';
+import {
+  selectPendingSmartTransactionsBySender,
+  selectPendingSmartTransactionsForSelectedAccountGroup,
+} from './smartTransactionsController';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 const selectTransactionControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionController;
@@ -43,6 +47,18 @@ export const selectSortedTransactions = createDeepEqualSelector(
     ),
 );
 
+export const selectSortedEVMTransactionsForSelectedAccountGroup =
+  createDeepEqualSelector(
+    [
+      selectNonReplacedTransactions,
+      selectPendingSmartTransactionsForSelectedAccountGroup,
+    ],
+    (sortedTransactions, pendingSmartTransactions) =>
+      [...sortedTransactions, ...pendingSmartTransactions].sort(
+        (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
+      ),
+  );
+
 export const selectSwapsTransactions = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>
@@ -60,4 +76,20 @@ export const selectTransactionBatchMetadataById = createDeepEqualSelector(
   selectTransactionBatchesStrict,
   (_: RootState, id: string) => id,
   (transactionBatches, id) => transactionBatches?.find((tx) => tx.id === id),
+);
+
+export const selectTransactionsByIds = createSelector(
+  selectTransactionsStrict,
+  (_: RootState, ids: string[]) => ids,
+  (transactions, ids) =>
+    ids
+      .map((id) => transactions.find((tx) => tx.id === id))
+      .filter(Boolean) as TransactionMeta[],
+);
+
+export const selectTransactionsByBatchId = createSelector(
+  selectTransactionsStrict,
+  (_: RootState, batchId: string) => batchId,
+  (transactions, batchId) =>
+    transactions.filter((tx) => tx.batchId === batchId),
 );

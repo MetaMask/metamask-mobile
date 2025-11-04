@@ -32,8 +32,8 @@ export const hexToBN = (inputHex) =>
   typeof inputHex !== 'string'
     ? new BN4(inputHex, 16)
     : inputHex
-    ? new BN4(remove0x(inputHex), 16)
-    : new BN4(0);
+      ? new BN4(remove0x(inputHex), 16)
+      : new BN4(0);
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix.
@@ -716,7 +716,10 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   let fiatFixed = parseFloat(Math.round(value * base) / base);
   fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
   if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${fiatFixed}`;
+    const isNegative = fiatFixed < 0;
+    const absValue = Math.abs(fiatFixed);
+    const sign = isNegative ? '-' : '';
+    return `${sign}${currencySymbols[currencyCode]}${absValue}`;
   }
   return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }

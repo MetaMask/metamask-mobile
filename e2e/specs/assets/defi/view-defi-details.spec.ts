@@ -2,11 +2,11 @@ import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../viewHelper';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { defiPositionsWithData } from '../../../api-mocking/mock-responses/defi-api-mocks';
 
 describe(SmokeNetworkAbstractions('View DeFi details'), () => {
   it('open the Aave V3 position details', async () => {
@@ -15,8 +15,7 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          const { urlEndpoint, response } =
-            mockEvents.GET.defiPositionsWithData;
+          const { urlEndpoint, response } = defiPositionsWithData;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: urlEndpoint,

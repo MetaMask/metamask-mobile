@@ -7,18 +7,10 @@ import { useTheme } from '../../../../../util/theme';
 import { endTrace, TraceName } from '../../../../../util/trace';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import {
-  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
-  KycStatus,
-  REDIRECTION_URL,
-  TransakFormId,
-} from '../constants';
+import { REDIRECTION_URL } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
-import {
-  generateThemeParameters,
-  getCryptoCurrencyFromTransakId,
-} from '../utils';
+import { generateThemeParameters } from '../utils';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
 import {
@@ -37,43 +29,36 @@ import Logger from '../../../../../../app/util/Logger';
 import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useDepositUser } from './useDepositUser';
 
-export interface UseDepositRoutingParams {
-  cryptoCurrencyChainId: string;
-  paymentMethodId: string;
+class LimitExceededError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'LimitExceededError';
+  }
 }
 
-export const useDepositRouting = ({
-  cryptoCurrencyChainId,
-  paymentMethodId,
-}: UseDepositRoutingParams) => {
+export const useDepositRouting = () => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const { selectedRegion, logoutFromProvider, selectedWalletAddress } =
-    useDepositSDK();
+  const {
+    selectedRegion,
+    selectedPaymentMethod,
+    logoutFromProvider,
+    selectedWalletAddress,
+  } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
+  const { fetchUserDetails } = useDepositUser();
 
-  const [, fetchKycForms] = useDepositSdkMethod({
-    method: 'getKYCForms',
+  const [, getKycRequirement] = useDepositSdkMethod({
+    method: 'getKycRequirement',
     onMount: false,
     throws: true,
   });
 
-  const [, fetchKycFormData] = useDepositSdkMethod({
-    method: 'getKycForm',
-    onMount: false,
-    throws: true,
-  });
-
-  const [, fetchUserDetails] = useDepositSdkMethod({
-    method: 'getUserDetails',
-    onMount: false,
-    throws: true,
-  });
-
-  const [, createReservation] = useDepositSdkMethod({
-    method: 'walletReserve',
+  const [, getAdditionalRequirements] = useDepositSdkMethod({
+    method: 'getAdditionalRequirements',
     onMount: false,
     throws: true,
   });
@@ -108,6 +93,12 @@ export const useDepositRouting = ({
     throws: true,
   });
 
+  const [, getUserLimits] = useDepositSdkMethod({
+    method: 'getUserLimits',
+    onMount: false,
+    throws: true,
+  });
+
   const popToBuildQuote = useCallback(() => {
     navigation.dispatch((state) => {
       const buildQuoteIndex = state.routes.findIndex(
@@ -126,18 +117,82 @@ export const useDepositRouting = ({
     });
   }, [navigation]);
 
+  const checkUserLimits = useCallback(
+    async (quote: BuyQuote, kycType: string) => {
+      try {
+        const userLimits = await getUserLimits(
+          selectedRegion?.currency || '',
+          selectedPaymentMethod?.id || '',
+          kycType,
+        );
+
+        if (!userLimits?.remaining) {
+          return;
+        }
+
+        const { remaining } = userLimits;
+        const dailyLimit = remaining['1'];
+        const monthlyLimit = remaining['30'];
+        const yearlyLimit = remaining['365'];
+
+        if (
+          dailyLimit === undefined ||
+          monthlyLimit === undefined ||
+          yearlyLimit === undefined
+        ) {
+          return;
+        }
+
+        const depositAmount = quote.fiatAmount;
+        const currency = selectedRegion?.currency || '';
+
+        if (depositAmount > dailyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'daily',
+              remaining: `${dailyLimit} ${currency}`,
+            }),
+          );
+        }
+
+        if (depositAmount > monthlyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'monthly',
+              remaining: `${monthlyLimit} ${currency}`,
+            }),
+          );
+        }
+
+        if (depositAmount > yearlyLimit) {
+          throw new LimitExceededError(
+            strings('deposit.buildQuote.limitExceeded', {
+              period: 'yearly',
+              remaining: `${yearlyLimit} ${currency}`,
+            }),
+          );
+        }
+      } catch (error) {
+        if (error instanceof LimitExceededError) {
+          throw error;
+        }
+
+        Logger.error(error as Error, 'Failed to check user limits');
+      }
+    },
+    [getUserLimits, selectedRegion?.currency, selectedPaymentMethod?.id],
+  );
+
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote }: { quote: BuyQuote }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createVerifyIdentityNavDetails({
           quote,
-          cryptoCurrencyChainId,
-          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const navigateToBasicInfoCallback = useCallback(
@@ -192,24 +247,22 @@ export const useDepositRouting = ({
     ({
       quote,
       kycUrl,
-      kycWorkflowRunId,
+      workFlowRunId,
     }: {
       quote: BuyQuote;
       kycUrl: string;
-      kycWorkflowRunId: string;
+      workFlowRunId: string;
     }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createAdditionalVerificationNavDetails({
           quote,
           kycUrl,
-          kycWorkflowRunId,
-          cryptoCurrencyChainId,
-          paymentMethodId,
+          workFlowRunId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -237,15 +290,9 @@ export const useDepositRouting = ({
                 throw new Error('Missing order');
               }
 
-              const cryptoCurrency = getCryptoCurrencyFromTransakId(
-                order.cryptoCurrency,
-                order.network,
-              );
-
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
-                network: cryptoCurrency?.chainId || order.network,
               };
 
               await handleNewOrder(processedOrder);
@@ -260,10 +307,10 @@ export const useDepositRouting = ({
                   ? Number(order.partnerFees)
                   : 0,
                 total_fee: Number(order.totalFeesFiat),
-                payment_method_id: order.paymentMethod,
+                payment_method_id: order.paymentMethod.id,
                 country: selectedRegion?.isoCode || '',
-                chain_id: cryptoCurrency?.chainId || '',
-                currency_destination: cryptoCurrency?.assetId || '',
+                chain_id: order.network.chainId,
+                currency_destination: order.cryptoCurrency.assetId || '',
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -329,24 +376,22 @@ export const useDepositRouting = ({
     ({
       quote,
       kycUrl,
-      kycWorkflowRunId,
+      workFlowRunId,
     }: {
       quote: BuyQuote;
       kycUrl: string;
-      kycWorkflowRunId: string;
+      workFlowRunId: string;
     }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createKycWebviewModalNavigationDetails({
           quote,
           sourceUrl: kycUrl,
-          kycWorkflowRunId,
-          cryptoCurrencyChainId,
-          paymentMethodId,
+          workFlowRunId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const routeAfterAuthentication = useCallback(
@@ -365,36 +410,28 @@ export const useDepositRouting = ({
           postCode: userDetails?.address?.postCode || '',
           countryCode: userDetails?.address?.countryCode || '',
         };
-        const forms = await fetchKycForms(quote);
-        const { forms: requiredForms } = forms || {};
 
-        const getForm = (formId: string) =>
-          requiredForms?.find((form) => form.id === formId);
+        const requirements = await getKycRequirement(quote.quoteId);
 
-        // If there are no forms, we can assume that all KYC data has been submitted
-        // check kyc status and route to approved or pending flow
-        if (requiredForms?.length === 0) {
-          try {
-            if (!userDetails) {
-              throw new Error('Missing user details');
-            }
-            if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-              const isManualBankTransfer =
-                MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
-                  (method) => method.id === paymentMethodId,
-                );
+        if (!requirements) {
+          throw new Error('Missing KYC requirements');
+        }
 
-              if (isManualBankTransfer) {
-                const reservation = await createReservation(
+        switch (requirements.status) {
+          case 'APPROVED': {
+            try {
+              if (!userDetails) {
+                throw new Error('Missing user details');
+              }
+
+              await checkUserLimits(quote, requirements.kycType);
+
+              if (selectedPaymentMethod?.isManualBankTransfer) {
+                const order = await createOrder(
                   quote,
                   selectedWalletAddress,
+                  selectedPaymentMethod.id,
                 );
-
-                if (!reservation) {
-                  throw new Error('Missing reservation');
-                }
-
-                const order = await createOrder(reservation);
 
                 if (!order) {
                   throw new Error('Missing order');
@@ -403,7 +440,6 @@ export const useDepositRouting = ({
                 const processedOrder = {
                   ...depositOrderToFiatOrder(order),
                   account: selectedWalletAddress || order.walletAddress,
-                  network: cryptoCurrencyChainId,
                 };
 
                 await handleNewOrder(processedOrder);
@@ -420,7 +456,7 @@ export const useDepositRouting = ({
                 }
 
                 const paymentUrl = await generatePaymentUrl(
-                  ottResponse.token,
+                  ottResponse.ott,
                   quote,
                   selectedWalletAddress,
                   generateThemeParameters(themeAppearance, colors),
@@ -433,70 +469,77 @@ export const useDepositRouting = ({
                 navigateToWebviewModalCallback({ paymentUrl });
               }
               return true;
+            } catch (error) {
+              throw new Error(
+                error instanceof Error && error.message
+                  ? error.message
+                  : 'Failed to process KYC flow',
+              );
+            }
+          }
+
+          case 'NOT_SUBMITTED':
+            trackEvent('RAMPS_KYC_STARTED', {
+              ramp_type: 'DEPOSIT',
+              kyc_type: requirements.kycType || '',
+              region: selectedRegion?.isoCode || '',
+            });
+
+            navigateToBasicInfoCallback({ quote, previousFormData });
+            return;
+
+          case 'ADDITIONAL_FORMS_REQUIRED': {
+            const additionalRequirements = await getAdditionalRequirements(
+              quote.quoteId,
+            );
+            const formsRequired = additionalRequirements?.formsRequired || [];
+
+            const purposeOfUsageForm = formsRequired.find(
+              (f) => f.type === 'PURPOSE_OF_USAGE',
+            );
+
+            if (purposeOfUsageForm) {
+              if (depth < 5) {
+                await submitPurposeOfUsage([
+                  'Buying/selling crypto for investments',
+                ]);
+                await routeAfterAuthentication(quote, depth + 1);
+              } else {
+                Logger.error(
+                  new Error(`Submit of purpose depth exceeded: ${depth}`),
+                );
+              }
+              return;
+            }
+            const idProofForm = formsRequired.find((f) => f.type === 'IDPROOF');
+
+            if (idProofForm) {
+              const { metadata } = idProofForm;
+              if (!metadata) {
+                throw new Error('Missing ID proof metadata');
+              }
+
+              navigateToAdditionalVerificationCallback({
+                quote,
+                kycUrl: metadata.kycUrl,
+                workFlowRunId: metadata.workFlowRunId,
+              });
+              return;
             }
 
+            // If no additional forms are required, route to KYC processing
             navigateToKycProcessingCallback({ quote });
-            return false;
-          } catch (error) {
-            throw new Error(
-              error instanceof Error && error.message
-                ? error.message
-                : 'Failed to process KYC flow',
-            );
-          }
-        }
-        // auto-submit purpose of usage form and then recursive call to route again
-        const purposeOfUsageForm = getForm(TransakFormId.PURPOSE_OF_USAGE);
-        if (purposeOfUsageForm && purposeOfUsageForm.isSubmitted === false) {
-          if (depth < 5) {
-            await submitPurposeOfUsage([
-              'Buying/selling crypto for investments',
-            ]);
-            await routeAfterAuthentication(quote, depth + 1);
-          } else {
-            Logger.error(
-              new Error(`Submit of purpose depth exceeded: ${depth}`),
-            );
-          }
-          return;
-        }
-
-        // if personal details or address form is not submitted, route to basic info
-        // SSN is always submitted with personal details for US users, so we don't need to check for it
-        const personalDetailsForm = getForm(TransakFormId.PERSONAL_DETAILS);
-        const addressForm = getForm(TransakFormId.ADDRESS);
-        if (
-          personalDetailsForm?.isSubmitted === false ||
-          addressForm?.isSubmitted === false
-        ) {
-          trackEvent('RAMPS_KYC_STARTED', {
-            ramp_type: 'DEPOSIT',
-            kyc_type: forms?.kycType || '',
-            region: selectedRegion?.isoCode || '',
-          });
-
-          navigateToBasicInfoCallback({ quote, previousFormData });
-          return;
-        }
-
-        // check for id proof form and route to additional verification if needed
-        const idProofForm = getForm(TransakFormId.ID_PROOF);
-        if (idProofForm?.isSubmitted === false) {
-          const idProofData = await fetchKycFormData(quote, idProofForm);
-          if (!idProofData) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-          if (idProofData?.data?.kycUrl) {
-            navigateToAdditionalVerificationCallback({
-              quote,
-              kycUrl: idProofData.data.kycUrl,
-              kycWorkflowRunId: idProofData.data.workFlowRunId,
-            });
             return;
           }
-        }
 
-        throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          case 'SUBMITTED': {
+            navigateToKycProcessingCallback({ quote });
+            return;
+          }
+
+          default:
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+        }
       } catch (error) {
         if ((error as AxiosError).status === 401) {
           await logoutFromProvider(false);
@@ -510,10 +553,12 @@ export const useDepositRouting = ({
     [
       popToBuildQuote,
       navigation,
-      fetchKycForms,
-      fetchKycFormData,
+      getKycRequirement,
+      getAdditionalRequirements,
       fetchUserDetails,
       selectedRegion?.isoCode,
+      selectedPaymentMethod?.isManualBankTransfer,
+      selectedPaymentMethod?.id,
       handleNewOrder,
       navigateToBankDetailsCallback,
       navigateToWebviewModalCallback,
@@ -523,13 +568,11 @@ export const useDepositRouting = ({
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
-      createReservation,
       createOrder,
       requestOtt,
       generatePaymentUrl,
+      checkUserLimits,
       selectedWalletAddress,
-      cryptoCurrencyChainId,
-      paymentMethodId,
       themeAppearance,
       colors,
     ],

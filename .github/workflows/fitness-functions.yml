@@ -5,7 +5,7 @@ on:
     types: [assigned, opened, synchronize, reopened]
 
 jobs:
-  build:
+  fitness-functions:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,9 +19,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Install dependencies
-        run: yarn --immutable
-        working-directory: '.github/scripts'
+      - name: Install dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: cd .github/scripts && yarn --immutable
 
       - name: Run fitness functions
         env:
@@ -32,5 +36,5 @@ jobs:
           # files in the current directory and its subdirectories. The output is
           # then saved to a file called "diff".
           git diff "$(git merge-base "origin/$BASE_REF" HEAD)" HEAD -- . > ./diff
-          yarn run fitness-functions -- "ci" "./diff"
+          yarn run fitness-functions "ci" "./diff"
         working-directory: '.github/scripts'

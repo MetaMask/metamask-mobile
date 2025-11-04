@@ -1,15 +1,24 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
-import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FIXTURE_SERVER_PORT,
+  COMMAND_QUEUE_SERVER_PORT,
+  isE2E,
   isTest,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
+
+import { getPublicKey } from '@metamask/native-utils';
+
+// polyfill getPublicKey with much faster C++ implementation
+// IMPORTANT: This patching works only if @noble/curves version in root package.json is same as @noble/curves version in package.json of @scure/bip32.
+// eslint-disable-next-line import/no-commonjs, import/no-extraneous-dependencies
+const secp256k1_1 = require('@noble/curves/secp256k1');
+secp256k1_1.secp256k1.getPublicKey = getPublicKey;
 
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
@@ -23,20 +32,29 @@ import 'react-native-url-polyfill/auto';
 // Needed to polyfill browser
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
+// Log early if running in E2E mode to help diagnose accidental js.env flags
+if (isE2E) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[E2E MODE] App running with isE2E=true. If unexpected, check your .js.env and unset IS_TEST or METAMASK_ENVIRONMENT=e2e.',
+  );
+  // eslint-disable-next-line no-console
+  console.warn(
+    `IS_TEST=${process.env.IS_TEST || 'unset'} METAMASK_ENVIRONMENT=${
+      process.env.METAMASK_ENVIRONMENT || 'unset'
+    }`,
+  );
+}
+
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FIXTURE_SERVER_PORT;
-}
-
-if (!global.btoa) {
-  global.btoa = encode;
-}
-
-if (!global.atob) {
-  global.atob = decode;
+  testConfig.commandQueueServerPort = raw?.commandQueueServerPort
+    ? raw.commandQueueServerPort
+    : COMMAND_QUEUE_SERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -59,6 +77,9 @@ if (typeof process === 'undefined') {
   }
 }
 
+// Use faster Buffer implementation for React Native
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+
 // Polyfill crypto after process is polyfilled
 const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
 
@@ -71,7 +92,6 @@ global.crypto = {
 };
 
 process.browser = false;
-if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // EventTarget polyfills for Hyperliquid SDK WebSocket support
 if (
@@ -108,6 +128,24 @@ if (typeof global.Promise.withResolvers === 'undefined') {
       reject = rej;
     });
     return { promise, resolve, reject };
+  };
+}
+
+// FinalizationRegistry polyfill for Hyperliquid SDK
+// The SDK uses this for automatic cleanup of request queues when they're garbage collected
+// In React Native, we provide a no-op implementation since the GC behavior differs
+if (typeof global.FinalizationRegistry === 'undefined') {
+  global.FinalizationRegistry = class FinalizationRegistry {
+    constructor(callback) {
+      this.callback = callback;
+    }
+    register() {
+      // No-op: React Native doesn't need GC-based cleanup
+      // Request queues are short-lived and will be cleaned up naturally
+    }
+    unregister() {
+      // No-op
+    }
   };
 }
 
@@ -160,6 +198,25 @@ if (enableApiCallLogs || isTest) {
                 typeof url === 'string' &&
                 (url.startsWith('http://') || url.startsWith('https://'))
               ) {
+                // Bypass proxy for local command queue server (uses adb reverse on Android)
+                try {
+                  const parsed = new URL(url);
+                  const isLocalHost =
+                    parsed.hostname === 'localhost' ||
+                    parsed.hostname === '127.0.0.1';
+                  const isCommandQueue =
+                    isLocalHost &&
+                    parsed.port ===
+                      String(
+                        testConfig.commandQueueServerPort ||
+                          COMMAND_QUEUE_SERVER_PORT,
+                      );
+                  if (isCommandQueue) {
+                    return originalOpen.call(this, method, url, ...openArgs);
+                  }
+                } catch (e) {
+                  // ignore URL parse errors and continue to proxy
+                }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
                   !url.includes('/proxy')

@@ -4,15 +4,17 @@ import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Routes from '../../../../../constants/navigation/Routes';
+import { AssetType } from '../../types/token';
+import Logger from '../../../../../util/Logger';
 import { sendMultichainTransactionForReview } from '../../utils/multichain-snaps';
-import { submitEvmTransaction } from '../../utils/send';
+import { addLeadingZeroIfNeeded, submitEvmTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
-import { AssetType } from '../../types/token';
 
 export const useSendActions = () => {
-  const { asset, chainId, fromAccount, from, to, value } = useSendContext();
+  const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
+    useSendContext();
   const navigation = useNavigation();
   const { isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
@@ -25,7 +27,6 @@ export const useSendActions = () => {
       // Context update is not immediate when submitting from the recipient list
       // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
-
       if (isEvmSendType) {
         submitEvmTransaction({
           asset: asset as AssetType,
@@ -36,21 +37,42 @@ export const useSendActions = () => {
         });
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        );
-      } else {
-        await sendMultichainTransactionForReview(
-          fromAccount as InternalAccount,
           {
-            fromAccountId: fromAccount?.id as string,
-            toAddress: toAddress as string,
-            assetId: asset.address as CaipAssetType,
-            amount: value as string,
+            params: {
+              maxValueMode,
+            },
           },
         );
-        navigation.navigate(Routes.WALLET_VIEW);
+      } else {
+        try {
+          await sendMultichainTransactionForReview(
+            fromAccount as InternalAccount,
+            {
+              fromAccountId: fromAccount?.id as string,
+              toAddress: toAddress as string,
+              assetId: ((asset as AssetType)?.assetId ??
+                asset?.address) as CaipAssetType,
+              amount: addLeadingZeroIfNeeded(value) as string,
+            },
+          );
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        } catch (error) {
+          // Do nothing on rejection - intentionally ignored
+          Logger.log('Multichain transaction for review rejected: ', error);
+        }
       }
     },
-    [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value],
+    [
+      asset,
+      chainId,
+      navigation,
+      fromAccount,
+      from,
+      isEvmSendType,
+      maxValueMode,
+      to,
+      value,
+    ],
   );
 
   const handleCancelPress = useCallback(() => {

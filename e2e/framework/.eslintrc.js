@@ -80,57 +80,11 @@ module.exports = {
             message:
               'Do not call startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
           },
-        ],
-      },
-    },
-    {
-      files: ['**/e2e/pages/**/*.{js,ts}'],
-      rules: {
-        'no-restricted-imports': [
-          'error',
           {
-            paths: [
-              {
-                name: '../utils/Gestures',
-                message:
-                  'Do not import Gestures from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Gestures.js',
-                message:
-                  'Do not import Gestures from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Assertions',
-                message:
-                  'Do not import Assertions from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Assertions.js',
-                message:
-                  'Do not import Assertions from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Utilities',
-                message:
-                  'Do not import Utilities from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Utilities.js',
-                message:
-                  'Do not import Utilities from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Matchers',
-                message:
-                  'Do not import Matchers from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-              {
-                name: '../utils/Matchers.js',
-                message:
-                  'Do not import Matchers from e2e/utils/. Use e2e/framework/index.ts instead.',
-              },
-            ],
+            selector:
+              "Program:not(:has(CallExpression[callee.name=/^with.*Fixtures$/])):has(CallExpression[callee.name='describe']):has(CallExpression[callee.name=/^(it|test)$/])",
+            message:
+              'All E2E spec files must use withFixtures() or other with*Fixtures() methods for consistent test setup, mocking, and fixture management.',
           },
         ],
       },

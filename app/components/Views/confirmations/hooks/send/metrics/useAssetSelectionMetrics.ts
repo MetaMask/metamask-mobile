@@ -45,11 +45,13 @@ export const useAssetSelectionMetrics = () => {
         createEventBuilder(MetaMetricsEvents.SEND_ASSET_SELECTED)
           .addProperties({
             account_type: accountType,
-            assetType,
+            asset_type: assetType,
             asset_list_position: position,
             asset_list_size: assetListSize,
-            chain_id: isEvmSendType ? sendAsset?.chainId : undefined,
-            chain_id_caip: isEvmSendType ? undefined : sendAsset?.chainId,
+            chain_id: sendAsset?.chainId,
+            chain_id_caip: isEvmSendType
+              ? `eip155:${parseInt(sendAsset?.chainId as string, 16)}`
+              : sendAsset?.chainId,
             filter_method: assetFilterMethod,
           })
           .build(),

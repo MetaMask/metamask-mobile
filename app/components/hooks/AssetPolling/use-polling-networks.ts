@@ -2,10 +2,7 @@ import { useSelector } from 'react-redux';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { useMemo } from 'react';
-import {
-  isPortfolioViewEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
   selectAllPopularNetworkConfigurations,
   selectEvmNetworkConfigurationsByChainId,
@@ -43,7 +40,6 @@ export function usePollingNetworks() {
   }, [networkConfigurations, selectedNetworkClientId]);
 
   const networkConfigs: NetworkConfiguration[] = useMemo(() => {
-    const portfolioViewEnabled = isPortfolioViewEnabled();
     const globalNetworkSelectorEnabled = isRemoveGlobalNetworkSelectorEnabled();
     const portfolioViewAllNetworksSelected =
       isAllNetworksSelected && isPopularNetwork;
@@ -53,29 +49,24 @@ export function usePollingNetworks() {
       return [];
     }
 
-    // Non-Portfolio View
-    if (!portfolioViewEnabled) {
-      return selectedNetworkConfig;
-    }
-
-    // Portfolio View and GNS
-    if (portfolioViewEnabled && globalNetworkSelectorEnabled) {
+    // GNS
+    if (globalNetworkSelectorEnabled) {
       // Filtered all EVM networks
       return (enabledEvmNetworks || [])
         .map((network) => {
-          const networkConfig = networkConfigurationsPopularNetworks[network];
+          const networkConfig = networkConfigurations[network];
           return networkConfig;
         })
         .filter((c) => Boolean(c));
     }
 
-    // Portfolio View enabled with single network view
-    if (portfolioViewEnabled && !portfolioViewAllNetworksSelected) {
+    // Enabled with single network view
+    if (!portfolioViewAllNetworksSelected) {
       return selectedNetworkConfig;
     }
 
-    // Portfolio View enabled with all networks
-    if (portfolioViewEnabled && portfolioViewAllNetworksSelected) {
+    // Enabled with all networks
+    if (portfolioViewAllNetworksSelected) {
       return Object.values(networkConfigurationsPopularNetworks);
     }
 
@@ -88,6 +79,7 @@ export function usePollingNetworks() {
     isPopularNetwork,
     networkConfigurationsPopularNetworks,
     selectedNetworkConfig,
+    networkConfigurations,
   ]);
 
   return networkConfigs;

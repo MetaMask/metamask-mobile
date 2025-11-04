@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import React, { useRef, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import BottomSheet, {
@@ -15,7 +16,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
@@ -23,12 +23,31 @@ import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
+/**
+ * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
+ * Wrap the PerpsBottomSheetTooltip in a <Modal> (react-native) component.
+ *
+ * Known compatibility issue:
+ * - On Android, the PerpsBottomSheetTooltip is not rendered correctly when wrapped in a <Modal> component.
+ * Fixed by wrapping the <Modal> in a plain <View> component.
+ *
+ * Example:
+ * {isEligibilityModalVisible && (
+ *   <View>
+ *     <Modal visible transparent animationType="fade">
+ *       <PerpsBottomSheetTooltip isVisible onClose={() => setIsEligibilityModalVisible(false)} contentKey={'geo_block'} />
+ *     </Modal>
+ *   </View>
+ * )}
+ */
 const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
   ({
     isVisible,
     onClose,
     contentKey,
     testID = PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP,
+    buttonConfig: buttonConfigProps,
+    data,
   }) => {
     const { styles } = useStyles(createStyles, {});
     const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -47,6 +66,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         return (
           <CustomRenderer
             testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
+            data={data}
           />
         );
       }
@@ -73,7 +93,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       [],
     );
 
-    const footerButtons = useMemo<ButtonProps[]>(
+    const buttonConfigDefault = useMemo(
       () => [
         {
           label: buttonLabel,
@@ -86,6 +106,15 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       [buttonLabel, handleGotItPress],
     );
 
+    const footerButtons = useMemo(
+      () => buttonConfigProps || buttonConfigDefault,
+      [buttonConfigProps, buttonConfigDefault],
+    );
+
+    // Content keys that render their own header (with icon)
+    const hasCustomHeader =
+      contentKey === 'market_hours' || contentKey === 'after_hours_trading';
+
     // Only render when visible and title is defined
     if (!isVisible || !title) return null;
 
@@ -96,14 +125,16 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         onClose={onClose}
         testID={testID}
       >
-        <BottomSheetHeader>
-          <Text
-            variant={TextVariant.HeadingMD}
-            testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
-          >
-            {title}
-          </Text>
-        </BottomSheetHeader>
+        {!hasCustomHeader && (
+          <BottomSheetHeader>
+            <Text
+              variant={TextVariant.HeadingMD}
+              testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+            >
+              {title}
+            </Text>
+          </BottomSheetHeader>
+        )}
         <View style={styles.contentContainer}>{renderContent()}</View>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}

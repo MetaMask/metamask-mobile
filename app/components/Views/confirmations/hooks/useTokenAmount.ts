@@ -1,7 +1,10 @@
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { NetworkClientId } from '@metamask/network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import I18n from '../../../../../locales/i18n';
@@ -32,12 +35,15 @@ import useNetworkInfo from './useNetworkInfo';
 import { useCallback } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
+import { getTokenTransferData } from '../utils/transaction-pay';
 
 interface TokenAmountProps {
   /**
    * Optional value in wei to display. If not provided, the amount from the transactionMetadata will be used.
    */
   amountWei?: string;
+
+  transactionMeta?: TransactionMeta;
 }
 
 interface TokenAmount {
@@ -46,6 +52,7 @@ interface TokenAmount {
   amountPrecise: string | undefined;
   amountUnformatted: string | undefined;
   fiat: string | undefined;
+  fiatUnformatted: string | undefined;
   isNative: boolean | undefined;
   updateTokenAmount: (amount: string) => void;
   usdValue: string | null;
@@ -85,8 +92,11 @@ const useTokenDecimals = (
 
 export const useTokenAmount = ({
   amountWei,
+  transactionMeta,
 }: TokenAmountProps = {}): TokenAmount => {
   const fiatFormatter = useFiatFormatter();
+  const currentTransaction = useTransactionMetadataOrThrow();
+  const transaction = transactionMeta ?? currentTransaction;
 
   const {
     chainId,
@@ -94,7 +104,7 @@ export const useTokenAmount = ({
     networkClientId,
     txParams,
     type: transactionType,
-  } = useTransactionMetadataOrThrow();
+  } = transaction;
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId as Hex),
@@ -109,9 +119,10 @@ export const useTokenAmount = ({
   const usdConversionRateFromCurrencyRates =
     currencyRates?.[networkNativeCurrency as string]?.usdConversionRate;
   const usdConversionRate = usdConversionRateFromCurrencyRates ?? 0;
+  const tokenData = getTokenTransferData(transaction);
 
   const tokenAddress =
-    safeToChecksumAddress(txParams?.to) || NATIVE_TOKEN_ADDRESS;
+    safeToChecksumAddress(tokenData?.to) || NATIVE_TOKEN_ADDRESS;
 
   const { value: decimals, pending } = useTokenDecimals(
     tokenAddress,
@@ -119,12 +130,15 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
-  const transactionData = parseStandardTokenTransactionData(txParams?.data);
+  const transactionData = parseStandardTokenTransactionData(tokenData?.data);
   const recipient = transactionData?.args?._to;
 
   const updateTokenAmount = useCallback(
     (amount: string) => {
-      const amountRaw = calcTokenValue(amount, decimals);
+      const amountRaw = calcTokenValue(amount, decimals).decimalPlaces(
+        0,
+        BigNumber.ROUND_UP,
+      );
 
       const newData = generateTransferData('transfer', {
         toAddress: recipient,
@@ -146,6 +160,7 @@ export const useTokenAmount = ({
       amountPrecise: undefined,
       amountUnformatted: undefined,
       fiat: undefined,
+      fiatUnformatted: undefined,
       isNative: undefined,
       usdValue: null,
       updateTokenAmount,
@@ -208,6 +223,7 @@ export const useTokenAmount = ({
     amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
     amountUnformatted: amount.toString(),
     fiat: fiat !== undefined ? fiatFormatter(fiat) : undefined,
+    fiatUnformatted: fiat !== undefined ? fiat.toString(10) : undefined,
     isNative,
     updateTokenAmount,
     usdValue,

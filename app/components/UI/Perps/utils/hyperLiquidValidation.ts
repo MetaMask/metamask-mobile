@@ -7,6 +7,7 @@ import {
 import type { GetSupportedPathsParams } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../locales/i18n';
+import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
 
 /**
  * Validation utilities for HyperLiquid operations
@@ -36,7 +37,7 @@ export function validateWithdrawalParams(params: {
   amount?: string;
   destination?: Hex;
 }): { isValid: boolean; error?: string } {
-  DevLogger.log('🔍 validateWithdrawalParams: Starting validation', {
+  DevLogger.log('validateWithdrawalParams: Starting validation', {
     params,
     hasAssetId: !!params.assetId,
     hasAmount: !!params.amount,
@@ -46,7 +47,7 @@ export function validateWithdrawalParams(params: {
   // Validate required parameters
   if (!params.assetId) {
     const error = strings('perps.errors.withdrawValidation.assetIdRequired');
-    DevLogger.log('❌ validateWithdrawalParams: Missing assetId', {
+    DevLogger.log('validateWithdrawalParams: Missing assetId', {
       error,
       params,
     });
@@ -59,7 +60,7 @@ export function validateWithdrawalParams(params: {
   // Validate amount
   if (!params.amount) {
     const error = strings('perps.errors.withdrawValidation.amountRequired');
-    DevLogger.log('❌ validateWithdrawalParams: Missing amount', {
+    DevLogger.log('validateWithdrawalParams: Missing amount', {
       error,
       params,
     });
@@ -72,7 +73,7 @@ export function validateWithdrawalParams(params: {
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
     const error = strings('perps.errors.withdrawValidation.amountPositive');
-    DevLogger.log('❌ validateWithdrawalParams: Invalid amount', {
+    DevLogger.log('validateWithdrawalParams: Invalid amount', {
       error,
       amount: params.amount,
       parsedAmount: amount,
@@ -92,7 +93,7 @@ export function validateWithdrawalParams(params: {
         address: params.destination,
       },
     );
-    DevLogger.log('❌ validateWithdrawalParams: Invalid destination address', {
+    DevLogger.log('validateWithdrawalParams: Invalid destination address', {
       error,
       destination: params.destination,
       isValidHex: isValidHexAddress(params.destination),
@@ -103,7 +104,7 @@ export function validateWithdrawalParams(params: {
     };
   }
 
-  DevLogger.log('✅ validateWithdrawalParams: All validations passed', {
+  DevLogger.log('validateWithdrawalParams: All validations passed', {
     assetId: params.assetId,
     amount: params.amount,
     destination: params.destination || 'will use user wallet',
@@ -120,7 +121,7 @@ export function validateDepositParams(params: {
   amount?: string;
   isTestnet?: boolean;
 }): { isValid: boolean; error?: string } {
-  DevLogger.log('🔍 validateDepositParams: Starting validation', {
+  DevLogger.log('validateDepositParams: Starting validation', {
     params,
     hasAssetId: !!params.assetId,
     hasAmount: !!params.amount,
@@ -130,7 +131,7 @@ export function validateDepositParams(params: {
   // Validate required parameters
   if (!params.assetId) {
     const error = strings('perps.errors.depositValidation.assetIdRequired');
-    DevLogger.log('❌ validateDepositParams: Missing assetId', {
+    DevLogger.log('validateDepositParams: Missing assetId', {
       error,
       params,
     });
@@ -143,7 +144,7 @@ export function validateDepositParams(params: {
   // Validate amount
   if (!params.amount) {
     const error = strings('perps.errors.depositValidation.amountRequired');
-    DevLogger.log('❌ validateDepositParams: Missing amount', {
+    DevLogger.log('validateDepositParams: Missing amount', {
       error,
       params,
     });
@@ -156,7 +157,7 @@ export function validateDepositParams(params: {
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
     const error = strings('perps.errors.depositValidation.amountPositive');
-    DevLogger.log('❌ validateDepositParams: Invalid amount', {
+    DevLogger.log('validateDepositParams: Invalid amount', {
       error,
       amount: params.amount,
       parsedAmount: amount,
@@ -173,7 +174,7 @@ export function validateDepositParams(params: {
     ? TRADING_DEFAULTS.amount.testnet
     : TRADING_DEFAULTS.amount.mainnet;
 
-  DevLogger.log('🔍 validateDepositParams: Checking minimum amount', {
+  DevLogger.log('validateDepositParams: Checking minimum amount', {
     amount,
     minimumAmount,
     isTestnet: params.isTestnet,
@@ -184,7 +185,7 @@ export function validateDepositParams(params: {
     const error = strings('perps.errors.minimumDeposit', {
       amount: minimumAmount,
     });
-    DevLogger.log('❌ validateDepositParams: Below minimum deposit', {
+    DevLogger.log('validateDepositParams: Below minimum deposit', {
       error,
       amount,
       minimumAmount,
@@ -196,7 +197,7 @@ export function validateDepositParams(params: {
     };
   }
 
-  DevLogger.log('✅ validateDepositParams: All validations passed', {
+  DevLogger.log('validateDepositParams: All validations passed', {
     assetId: params.assetId,
     amount: params.amount,
     parsedAmount: amount,
@@ -214,7 +215,7 @@ export function validateAssetSupport(
   assetId: CaipAssetId,
   supportedRoutes: { assetId: CaipAssetId }[],
 ): { isValid: boolean; error?: string } {
-  DevLogger.log('🔍 validateAssetSupport: Checking asset support', {
+  DevLogger.log('validateAssetSupport: Checking asset support', {
     assetId,
     supportedRoutesCount: supportedRoutes.length,
   });
@@ -248,7 +249,7 @@ export function validateAssetSupport(
         },
       );
 
-      DevLogger.log('❌ validateAssetSupport: Asset not supported', {
+      DevLogger.log('validateAssetSupport: Asset not supported', {
         error,
         assetId,
         supportedAssetIds,
@@ -272,7 +273,7 @@ export function validateAssetSupport(
     );
   }
 
-  DevLogger.log('✅ validateAssetSupport: Asset is supported', {
+  DevLogger.log('validateAssetSupport: Asset is supported', {
     assetId,
   });
 
@@ -286,7 +287,7 @@ export function validateBalance(
   withdrawAmount: number,
   availableBalance: number,
 ): { isValid: boolean; error?: string } {
-  DevLogger.log('🔍 validateBalance: Checking balance sufficiency', {
+  DevLogger.log('validateBalance: Checking balance sufficiency', {
     withdrawAmount,
     availableBalance,
     difference: availableBalance - withdrawAmount,
@@ -302,7 +303,7 @@ export function validateBalance(
       },
     );
 
-    DevLogger.log('❌ validateBalance: Insufficient balance', {
+    DevLogger.log('validateBalance: Insufficient balance', {
       error,
       withdrawAmount,
       availableBalance,
@@ -320,7 +321,7 @@ export function validateBalance(
   }
 
   const remainingBalance = availableBalance - withdrawAmount;
-  DevLogger.log('✅ validateBalance: Balance is sufficient', {
+  DevLogger.log('validateBalance: Balance is sufficient', {
     withdrawAmount,
     availableBalance,
     remainingBalance,
@@ -430,6 +431,32 @@ export function getSupportedPaths(
   });
 
   return filteredAssets;
+}
+
+/**
+ * Get maximum order value based on leverage and order type
+ * Based on HyperLiquid contract specifications
+ */
+export function getMaxOrderValue(
+  maxLeverage: number,
+  orderType: 'market' | 'limit',
+): number {
+  let marketLimit: number;
+
+  if (maxLeverage >= 25) {
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.HIGH_LEVERAGE;
+  } else if (maxLeverage >= 20) {
+    marketLimit =
+      HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_HIGH_LEVERAGE;
+  } else if (maxLeverage >= 10) {
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_LEVERAGE;
+  } else {
+    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.LOW_LEVERAGE;
+  }
+
+  return orderType === 'limit'
+    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LIMIT_ORDER_MULTIPLIER
+    : marketLimit;
 }
 
 /**

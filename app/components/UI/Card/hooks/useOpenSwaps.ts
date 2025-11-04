@@ -17,15 +17,13 @@ import { selectAllPopularNetworkConfigurations } from '../../../../selectors/net
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 export interface OpenSwapsParams {
-  chainId: string;
-  cardholderAddress?: string;
   beforeNavigate?: (navigate: () => void) => void;
 }
 
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
-  priorityToken?: CardTokenAllowance;
+  priorityToken?: CardTokenAllowance | null;
 }
 
 export const useOpenSwaps = ({
@@ -61,17 +59,21 @@ export const useOpenSwaps = ({
   });
 
   const openSwaps = useCallback(
-    ({ chainId, beforeNavigate }: OpenSwapsParams) => {
+    ({ beforeNavigate }: OpenSwapsParams) => {
       if (!priorityToken) return;
 
       const destToken: BridgeToken = {
         ...priorityToken,
-        image: buildTokenIconUrl(chainId, priorityToken.address),
+        chainId: priorityToken.caipChainId,
+        image: buildTokenIconUrl(
+          priorityToken.caipChainId,
+          priorityToken.address ?? '',
+        ),
       } as BridgeToken;
       dispatch(setDestToken(destToken));
 
       const navigate = () => {
-        goToSwaps(sourceToken);
+        goToSwaps();
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties({

@@ -49,19 +49,19 @@ const styleSheet = (params: {
       borderRadius: 12,
     },
     textContainer: {
+      flex: 1,
       alignItems: 'center',
-      justifyContent: 'flex-start',
-      backgroundColor: colors.background.alternative,
+      justifyContent: 'center',
+      backgroundColor: colors.background.section,
       borderRadius: 8,
     },
     textWrapper: {
       textAlign: 'center',
-      marginTop: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     textWrapperIcon: {
-      textAlign: 'center',
       fontSize: 18,
-      marginTop: 16,
     },
     mediaPlayer: {
       minHeight: 10,

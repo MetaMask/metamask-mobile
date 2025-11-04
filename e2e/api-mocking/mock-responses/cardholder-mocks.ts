@@ -1,6 +1,6 @@
 import { TestSpecificMock } from '../../framework/types';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
-import { setupMockRequest } from '../mockHelpers';
+import { setupMockRequest } from '../helpers/mockHelpers';
 import { createGeolocationResponse } from './ramps/ramps-geolocation';
 import { RAMPS_NETWORKS_RESPONSE } from './ramps/ramps-mocks';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';

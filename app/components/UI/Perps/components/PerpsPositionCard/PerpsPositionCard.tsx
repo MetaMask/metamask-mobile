@@ -1,46 +1,56 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
-import Routes from '../../../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsPositionCardSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_CONSTANTS, TP_SL_CONFIG } from '../../constants/perpsConfig';
 import type {
   PerpsNavigationParamList,
   Position,
-  PriceUpdate,
+  TPSLTrackingData,
 } from '../../controllers/types';
 import {
-  formatPnl,
-  formatPrice,
-  formatPositionSize,
-} from '../../utils/formatUtils';
-import styleSheet from './PerpsPositionCard.styles';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import RemoteImage from '../../../../Base/RemoteImage';
-import {
+  usePerpsLivePrices,
   usePerpsMarkets,
   usePerpsTPSLUpdate,
-  usePerpsClosePosition,
 } from '../../hooks';
-import { usePerpsLivePrices } from '../../hooks/stream';
-import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
-import PerpsClosePositionBottomSheet from '../PerpsClosePositionBottomSheet';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  formatPerpsFiat,
+  formatPnl,
+  formatPositionSize,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import styleSheet from './PerpsPositionCard.styles';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -48,7 +58,8 @@ interface PerpsPositionCardProps {
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
   onPositionUpdate?: () => Promise<void>;
-  priceData?: PriceUpdate | null; // Current market price data
+  onTooltipPress?: (contentKey: PerpsTooltipContentKey) => void;
+  onTpslCountPress?: (tabId: string) => void;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -57,47 +68,27 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   showIcon = false, // Default to not showing icon
   rightAccessory,
   onPositionUpdate,
-  priceData: externalPriceData,
+  onTooltipPress,
+  onTpslCountPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { assetUrl } = usePerpsAssetMetadata(position.coin);
 
-  // Subscribe to live prices at the leaf level to avoid re-rendering parent components
-  // Only subscribe when expanded (detailed view) to optimize performance
-  const livePrices = usePerpsLivePrices({
-    symbols: expanded ? [position.coin] : [],
-    throttleMs: 1000, // Update every second
-  });
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
 
-  // Use external price data if provided, otherwise use live prices
-  const priceData = externalPriceData || livePrices[position.coin];
+  const [isTPSLCountWarningVisible, setIsTPSLCountWarningVisible] =
+    useState(false);
 
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null,
-  );
+  const isEligible = useSelector(selectPerpsEligibility);
 
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
+  const { handleUpdateTPSL } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Positions update automatically via WebSocket
       // Call parent's position update callback if provided
       if (onPositionUpdate) {
         onPositionUpdate();
       }
-    },
-  });
-
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      // Call parent's position update callback if provided
-      if (onPositionUpdate) {
-        onPositionUpdate();
-      }
-      setIsClosePositionVisible(false);
-      setSelectedPosition(null);
     },
   });
 
@@ -107,6 +98,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const absoluteSize = Math.abs(parseFloat(position.size));
 
   const { markets, error, isLoading } = usePerpsMarkets();
+
+  const livePrices = usePerpsLivePrices({ symbols: [position.coin] });
 
   const marketData = useMemo(
     () => markets.find((market) => market.symbol === position.coin),
@@ -126,14 +119,19 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: marketData,
+        initialTab: 'position',
       },
     });
   };
 
   const handleClosePress = () => {
-    DevLogger.log('PerpsPositionCard: Opening close position bottom sheet');
-    setSelectedPosition(position);
-    setIsClosePositionVisible(true);
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    DevLogger.log('PerpsPositionCard: Navigating to close position screen');
+    navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);
@@ -143,10 +141,201 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const roeValue = parseFloat(position.returnOnEquity || '0');
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
 
-  const handleEditTPSL = () => {
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
+  const handleEditTPSL = useCallback(() => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    if (!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
+      if (
+        (position.takeProfitCount > 0 || position.stopLossCount > 0) &&
+        (!position.takeProfitPrice || !position.stopLossPrice)
+      ) {
+        setIsTPSLCountWarningVisible(true);
+        return;
+      }
+    }
+
+    DevLogger.log('PerpsPositionCard: Editing TPSL', { position });
+
+    navigation.navigate(Routes.PERPS.TPSL, {
+      asset: position.coin,
+      position,
+      initialTakeProfitPrice: position.takeProfitPrice,
+      initialStopLossPrice: position.stopLossPrice,
+      onConfirm: async (
+        takeProfitPrice?: string,
+        stopLossPrice?: string,
+        trackingData?: TPSLTrackingData,
+      ) => {
+        await handleUpdateTPSL(
+          position,
+          takeProfitPrice,
+          stopLossPrice,
+          trackingData,
+        );
+      },
+    });
+  }, [
+    isEligible,
+    position,
+    navigation,
+    handleUpdateTPSL,
+    setIsEligibilityModalVisible,
+    setIsTPSLCountWarningVisible,
+  ]);
+
+  const handleSharePress = () => {
+    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
+      position,
+      marketPrice: livePrices[position.coin]?.price,
+    });
   };
+
+  const handleTpslCountPress = useCallback(async () => {
+    if (isLoading || error) {
+      DevLogger.log(
+        'Failed to redirect to orders tab. Error fetching market data: ',
+        error,
+      );
+      return;
+    }
+
+    if (!marketData) {
+      DevLogger.log('No market data available for navigation');
+      return;
+    }
+
+    if (onTpslCountPress) {
+      onTpslCountPress('orders');
+    }
+  }, [isLoading, error, marketData, onTpslCountPress]);
+
+  // Funding cost (cumulative since open) formatting logic
+  const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
+  const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
+  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+
+  // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
+  let fundingColorFromValue = TextColor.Default;
+  if (fundingSinceOpen > 0) {
+    fundingColorFromValue = TextColor.Error;
+  } else if (fundingSinceOpen < 0) {
+    fundingColorFromValue = TextColor.Success;
+  }
+  const fundingColor = isNearZeroFunding
+    ? TextColor.Default
+    : fundingColorFromValue;
+
+  const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
+  const fundingDisplay = isNearZeroFunding
+    ? '$0.00'
+    : `${fundingSignPrefix}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      })}`;
+
+  const positionTakeProfitCount = position.takeProfitCount || 0;
+  const positionStopLossCount = position.stopLossCount || 0;
+
+  // Shared helper function for rendering TP/SL text
+  const renderTPSLText = useCallback(
+    (
+      _type: 'takeProfit' | 'stopLoss',
+      count: number,
+      price: string | undefined,
+    ) => {
+      if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
+        // Multiple orders - show count as clickable
+        if (count > 1) {
+          return (
+            <TouchableOpacity onPress={handleTpslCountPress}>
+              <Text style={styles.tpslCountPress}>
+                {strings('perps.position.card.tpsl_count_multiple', {
+                  count,
+                })}
+              </Text>
+            </TouchableOpacity>
+          );
+        }
+
+        // Single order with price - show price
+        if (count === 1 && price) {
+          return (
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {formatPerpsFiat(price, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })}
+            </Text>
+          );
+        }
+
+        // Single order without price - show count as clickable
+        if (count === 1 && !price) {
+          return (
+            <TouchableOpacity onPress={handleTpslCountPress}>
+              <Text style={styles.tpslCountPress}>
+                {strings('perps.position.card.tpsl_count_single', {
+                  count,
+                })}
+              </Text>
+            </TouchableOpacity>
+          );
+        }
+
+        // No orders - show "Not Set"
+        return (
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('perps.position.card.not_set')}
+          </Text>
+        );
+      }
+
+      // if position bound TP/SL is disabled
+      if (count > 0 && !price) {
+        return (
+          <TouchableOpacity onPress={handleTpslCountPress}>
+            <Text style={styles.tpslCountPress}>
+              {count === 1
+                ? strings('perps.position.card.tpsl_count_single', {
+                    count,
+                  })
+                : strings('perps.position.card.tpsl_count_multiple', {
+                    count,
+                  })}
+            </Text>
+          </TouchableOpacity>
+        );
+      }
+
+      return (
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          {price !== undefined && price !== null
+            ? formatPerpsFiat(price, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })
+            : strings('perps.position.card.not_set')}
+        </Text>
+      );
+    },
+    [handleTpslCountPress, styles.tpslCountPress],
+  );
+
+  const renderStopLossText = useMemo(
+    () =>
+      renderTPSLText('stopLoss', positionStopLossCount, position.stopLossPrice),
+    [renderTPSLText, positionStopLossCount, position.stopLossPrice],
+  );
+
+  const renderTakeProfitText = useMemo(
+    () =>
+      renderTPSLText(
+        'takeProfit',
+        positionTakeProfitCount,
+        position.takeProfitPrice,
+      ),
+    [renderTPSLText, positionTakeProfitCount, position.takeProfitPrice],
+  );
 
   return (
     <>
@@ -162,35 +351,26 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           {/* Icon Section - Conditionally shown (only in collapsed mode) */}
           {showIcon && !expanded && (
             <View style={styles.perpIcon}>
-              {assetUrl ? (
-                <RemoteImage
-                  source={{ uri: assetUrl }}
-                  style={styles.tokenIcon}
-                />
-              ) : (
-                <Icon name={IconName.Coin} size={IconSize.Lg} />
-              )}
+              <PerpsTokenLogo symbol={position.coin} size={40} />
             </View>
           )}
 
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {position.coin} {position.leverage.value}x{' '}
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {direction}
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {getPerpsDisplaySymbol(position.coin)} {position.leverage.value}
+                x{' '}
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {direction === 'long'
+                    ? strings('perps.market.long_lowercase')
+                    : strings('perps.market.short_lowercase')}
                 </Text>
               </Text>
             </View>
             <View style={styles.headerRow}>
-              <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-                {formatPositionSize(absoluteSize.toString())} {position.coin}
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {formatPositionSize(absoluteSize.toString())}{' '}
+                {getPerpsDisplaySymbol(position.coin)}
               </Text>
             </View>
           </View>
@@ -198,9 +378,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerRight}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(position.positionValue, {
-                  minimumDecimals: 2,
-                  maximumDecimals: 2,
+                {formatPerpsFiat(position.positionValue, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
                 })}
               </Text>
             </View>
@@ -227,57 +406,44 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <View style={styles.bodyRow}>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.entry_price')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {formatPrice(position.entryPrice, {
-                    minimumDecimals: 2,
-                    maximumDecimals: 2,
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {formatPerpsFiat(position.entryPrice, {
+                    ranges: PRICE_RANGES_UNIVERSAL,
                   })}
                 </Text>
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.position.card.market_price')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {priceData?.price
-                    ? formatPrice(priceData.price, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
-                      })
-                    : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
-                </Text>
-              </View>
-              <View style={styles.bodyItem}>
-                <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {position.liquidationPrice
-                    ? formatPrice(position.liquidationPrice, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {position.liquidationPrice !== undefined &&
+                  position.liquidationPrice !== null
+                    ? formatPerpsFiat(position.liquidationPrice, {
+                        ranges: PRICE_RANGES_UNIVERSAL,
                       })
-                    : 'N/A'}
+                    : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+                </Text>
+              </View>
+              <View style={styles.bodyItem}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.margin')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {formatPerpsFiat(position.marginUsed, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })}
                 </Text>
               </View>
             </View>
@@ -285,57 +451,48 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <View style={[styles.bodyRow, styles.bodyRowLast]}>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.take_profit')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {position.takeProfitPrice
-                    ? formatPrice(position.takeProfitPrice, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
-                      })
-                    : strings('perps.position.card.not_set')}
-                </Text>
+                <>{renderTakeProfitText}</>
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.stop_loss')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {position.stopLossPrice
-                    ? formatPrice(position.stopLossPrice, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
-                      })
-                    : strings('perps.position.card.not_set')}
-                </Text>
+                <>{renderStopLossText}</>
               </View>
               <View style={styles.bodyItem}>
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.position.card.margin')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {formatPrice(position.marginUsed, {
-                    minimumDecimals: 2,
-                    maximumDecimals: 2,
-                  })}
+                <View style={styles.fundingCostLabelFlex}>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.fundingCostLabelRightMargin}
+                  >
+                    {strings('perps.position.card.funding_cost')}
+                  </Text>
+                  {onTooltipPress && (
+                    <TouchableOpacity
+                      onPress={() => onTooltipPress('funding_rate')}
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Muted}
+                        testID={
+                          PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON
+                        }
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text variant={TextVariant.BodyMD} color={fundingColor}>
+                  {fundingDisplay}
                 </Text>
               </View>
             </View>
@@ -349,71 +506,85 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Auto}
-              label={strings('perps.position.card.edit_tpsl')}
-              onPress={handleEditTPSL}
+              label={
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {strings('perps.position.card.close_position')}
+                </Text>
+              }
+              onPress={handleClosePress}
               style={styles.footerButton}
-              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+              testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
             />
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Auto}
-              label={strings('perps.position.card.close_position')}
-              onPress={handleClosePress}
+              label={strings('perps.position.card.edit_tpsl')}
+              onPress={handleEditTPSL}
               style={styles.footerButton}
-              testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
+              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+            />
+            <ButtonIcon
+              size={ButtonIconSizes.Md}
+              iconName={IconName.Share}
+              iconColor={IconColor.Default}
+              onPress={handleSharePress}
+              style={styles.shareButton}
+              testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
             />
           </View>
         )}
       </TouchableOpacity>
-      {/* TP/SL Bottom Sheet - Wrapped in Modal to render from root */}
-      {isTPSLVisible && selectedPosition && (
-        <Modal visible transparent animationType="fade">
-          <PerpsTPSLBottomSheet
-            isVisible
-            onClose={() => {
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            onConfirm={async (takeProfitPrice, stopLossPrice) => {
-              await handleUpdateTPSL(
-                selectedPosition,
-                takeProfitPrice,
-                stopLossPrice,
-              );
-              setIsTPSLVisible(false);
-              setSelectedPosition(null);
-            }}
-            asset={selectedPosition.coin}
-            position={selectedPosition}
-            initialTakeProfitPrice={selectedPosition.takeProfitPrice}
-            initialStopLossPrice={selectedPosition.stopLossPrice}
-            isUpdating={isUpdating}
-          />
-        </Modal>
+      {isTPSLCountWarningVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsTPSLCountWarningVisible(false)}
+              contentKey={'tpsl_count_warning'}
+              buttonConfig={[
+                {
+                  label: strings(
+                    'perps.tooltips.tpsl_count_warning.got_it_button',
+                  ),
+                  onPress: () => setIsTPSLCountWarningVisible(false),
+                  variant: ButtonVariants.Secondary,
+                  size: ButtonSize.Lg,
+                  testID:
+                    PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON,
+                },
+                {
+                  label: strings(
+                    'perps.tooltips.tpsl_count_warning.view_orders_button',
+                  ),
+                  onPress: () => handleTpslCountPress(),
+                  variant: ButtonVariants.Primary,
+                  size: ButtonSize.Lg,
+                  testID:
+                    PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON,
+                },
+              ]}
+            />
+          </Modal>
+        </View>
       )}
-
-      {/* Close Position Bottom Sheet - Wrapped in Modal to render from root */}
-      {isClosePositionVisible && selectedPosition && (
-        <Modal visible transparent animationType="fade">
-          <PerpsClosePositionBottomSheet
-            isVisible
-            onClose={() => {
-              setIsClosePositionVisible(false);
-              setSelectedPosition(null);
-            }}
-            onConfirm={async (size, orderType, limitPrice) => {
-              await handleClosePosition(
-                selectedPosition,
-                size,
-                orderType,
-                limitPrice,
-              );
-            }}
-            position={selectedPosition}
-            isClosing={isClosing}
-          />
-        </Modal>
+      {isEligibilityModalVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+            />
+          </Modal>
+        </View>
       )}
     </>
   );

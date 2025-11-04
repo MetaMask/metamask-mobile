@@ -10,11 +10,13 @@ import { useSendNavbar } from '../../hooks/send/useSendNavbar';
 import { Amount } from './amount';
 import { Asset } from './asset';
 import { Recipient } from './recipient';
+import { useEmptyNavHeaderForConfirmations } from '../../hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const Stack = createStackNavigator();
 
 export const Send = () => {
   const sendNavigationOptions = useSendNavbar();
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
     <SendContextProvider>
@@ -38,6 +40,7 @@ export const Send = () => {
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
             component={Confirm}
+            options={emptyNavHeaderOptions}
           />
         </Stack.Navigator>
       </SendMetricsContextProvider>

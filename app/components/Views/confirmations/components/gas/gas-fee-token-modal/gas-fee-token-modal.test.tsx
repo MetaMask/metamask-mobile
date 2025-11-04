@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { GasFeeTokenModal } from './gas-fee-token-modal';
 import { GasFeeToken } from '@metamask/transaction-controller';
@@ -84,12 +84,10 @@ describe('GasFeeTokenModal', () => {
     transactionId = 'test-transaction-id',
     gasFeeTokens = [],
     selectedGasFeeToken = undefined,
-    mockGasFeeTokenResponse = undefined,
   }: {
     transactionId?: string;
     gasFeeTokens?: GasFeeToken[];
     selectedGasFeeToken?: string;
-    mockGasFeeTokenResponse?: ReturnType<typeof useGasFeeToken>;
   } = {}) => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       id: transactionId,
@@ -104,9 +102,21 @@ describe('GasFeeTokenModal', () => {
     mockUseSelectedGasFeeToken.mockReturnValue(
       selectedToken as ReturnType<typeof useSelectedGasFeeToken>,
     );
-    mockUseGasFeeToken.mockReturnValueOnce(
-      mockGasFeeTokenResponse ?? MOCK_WETH_USE_GAS_FEE_TOKEN,
-    );
+
+    mockUseGasFeeToken.mockImplementation(({ tokenAddress }) => {
+      if (!tokenAddress || tokenAddress === NATIVE_TOKEN_ADDRESS) {
+        return MOCK_NATIVE_USE_GAS_FEE_TOKEN as ReturnType<
+          typeof useGasFeeToken
+        >;
+      }
+      if (tokenAddress === GAS_FEE_TOKEN_MOCK.tokenAddress) {
+        return MOCK_USDC_USE_GAS_FEE_TOKEN as ReturnType<typeof useGasFeeToken>;
+      }
+      if (tokenAddress === WETH_TOKEN_ADDRESS) {
+        return MOCK_WETH_USE_GAS_FEE_TOKEN as ReturnType<typeof useGasFeeToken>;
+      }
+      return undefined as unknown as ReturnType<typeof useGasFeeToken>;
+    });
 
     (useNetworkInfo as jest.Mock).mockReturnValue({
       networkNativeCurrency: 'ETH',
@@ -146,9 +156,6 @@ describe('GasFeeTokenModal', () => {
   });
 
   it('renders multiple gas fee tokens', () => {
-    mockUseGasFeeToken.mockReturnValueOnce(
-      MOCK_USDC_USE_GAS_FEE_TOKEN as ReturnType<typeof useGasFeeToken>,
-    );
     const { getByTestId } = setupTest({
       gasFeeTokens: [GAS_FEE_TOKEN_MOCK, GAS_FEE_TOKEN_2_MOCK],
       selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
@@ -165,53 +172,54 @@ describe('GasFeeTokenModal', () => {
     ).toBeTruthy();
   });
 
-  it('does not render other tokens section when no gas fee tokens available', () => {
-    const { queryByText } = setupTest({ gasFeeTokens: [] });
-    expect(queryByText('Pay with other tokens')).toBeNull();
-  });
-
-  it('handles token selection and calls updateSelectedGasFeeToken', () => {
+  it('handles token selection and calls updateSelectedGasFeeToken', async () => {
     const transactionId = 'test-tx-id';
     const { getByTestId } = setupTest({
       transactionId,
-      gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+      gasFeeTokens: [GAS_FEE_TOKEN_MOCK, MOCK_WETH_USE_GAS_FEE_TOKEN],
       selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
     });
+
     fireEvent.press(
       getByTestId(
         `gas-fee-token-list-item-${MOCK_WETH_USE_GAS_FEE_TOKEN.symbol}`,
       ),
     );
-    expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
-      transactionId,
-      MOCK_WETH_USE_GAS_FEE_TOKEN.tokenAddress,
+
+    await waitFor(() =>
+      expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
+        transactionId,
+        MOCK_WETH_USE_GAS_FEE_TOKEN.tokenAddress,
+      ),
     );
-    expect(mockOnClose).toHaveBeenCalled();
+
+    await waitFor(() => expect(mockOnClose).toHaveBeenCalled());
   });
 
-  it('handles native token selection', () => {
+  it('handles native token selection', async () => {
     const transactionId = 'test-tx-id';
-    const { getByTestId } = setupTest({
-      transactionId,
-      mockGasFeeTokenResponse: MOCK_NATIVE_USE_GAS_FEE_TOKEN,
-    });
+    const { getByTestId } = setupTest({ transactionId });
+
     fireEvent.press(
       getByTestId(
         `gas-fee-token-list-item-${MOCK_NATIVE_USE_GAS_FEE_TOKEN.symbol}`,
       ),
     );
-    expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
-      transactionId,
-      undefined,
+
+    await waitFor(() =>
+      expect(mockUpdateSelectedGasFeeToken).toHaveBeenCalledWith(
+        transactionId,
+        undefined,
+      ),
     );
-    expect(mockOnClose).toHaveBeenCalled();
+
+    await waitFor(() => expect(mockOnClose).toHaveBeenCalled());
   });
 
   it('shows native token as selected when no gas fee token is selected', () => {
     const { getByTestId } = setupTest({
       gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
       selectedGasFeeToken: undefined,
-      mockGasFeeTokenResponse: MOCK_NATIVE_USE_GAS_FEE_TOKEN,
     });
     expect(
       getByTestId('gas-fee-token-list-item-selected-indicator'),
@@ -241,7 +249,6 @@ describe('GasFeeTokenModal', () => {
   it('handles empty gas fee tokens array', () => {
     const { getByTestId } = setupTest({
       gasFeeTokens: [],
-      mockGasFeeTokenResponse: MOCK_NATIVE_USE_GAS_FEE_TOKEN,
     });
     expect(getByTestId('native-icon')).toBeTruthy();
   });

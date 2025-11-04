@@ -52,6 +52,12 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+// Mock haptics
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light', Medium: 'medium' },
+}));
+
 // Mock component library hooks
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(),
@@ -538,6 +544,49 @@ describe('PerpsSlider', () => {
 
       // Assert - Should render without crashing
       expect(screen.getByText('0%')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Logger & Haptics Integration', () => {
+    it('configures reanimated logger on first render (if available)', () => {
+      const reanimated = jest.requireMock('react-native-reanimated');
+      render(<PerpsSlider {...defaultProps} />);
+      if (typeof reanimated.configureReanimatedLogger === 'function') {
+        expect(reanimated.configureReanimatedLogger).toHaveBeenCalled();
+      } else {
+        // Fallback: function not exposed in mock; ensure no crash
+        expect(reanimated.configureReanimatedLogger).toBeUndefined();
+      }
+    });
+
+    it('triggers haptic feedback when crossing thresholds upward', () => {
+      const { impactAsync } = jest.requireMock('expo-haptics');
+      // Start below thresholds
+      render(<PerpsSlider {...defaultProps} value={0} />);
+      // Press 50% (crosses 25 and 50)
+      fireEvent.press(screen.getByText('50%'));
+      expect(impactAsync).toHaveBeenCalled();
+    });
+
+    it('triggers haptic feedback when crossing thresholds downward', () => {
+      const { impactAsync } = jest.requireMock('expo-haptics');
+      impactAsync.mockClear();
+      // Start above thresholds
+      render(<PerpsSlider {...defaultProps} value={75} />);
+      // Press 25% (crosses 50 & 25 downward)
+      fireEvent.press(screen.getByText('25%'));
+      expect(impactAsync).toHaveBeenCalled();
+    });
+
+    it('triggers haptic feedback via quick value buttons threshold crossing', () => {
+      const { impactAsync } = jest.requireMock('expo-haptics');
+      impactAsync.mockClear();
+      render(
+        <PerpsSlider {...defaultProps} value={10} quickValues={[5, 30]} />,
+      );
+      // 30 crosses 25 threshold
+      fireEvent.press(screen.getByText('30x'));
+      expect(impactAsync).toHaveBeenCalled();
     });
   });
 

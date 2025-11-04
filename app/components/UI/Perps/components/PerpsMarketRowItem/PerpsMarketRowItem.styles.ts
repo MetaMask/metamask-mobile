@@ -1,30 +1,15 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
-
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 12,
-      backgroundColor: colors.background.default,
+      paddingVertical: 6,
     },
     perpIcon: {
-      width: 32,
-      height: 32,
       marginRight: 16,
-      borderRadius: 16,
-      overflow: 'hidden',
-      backgroundColor: colors.background.alternative,
-    },
-    tokenIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
     },
     leftSection: {
       flexDirection: 'row',
@@ -39,7 +24,10 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 8,
     },
-    tokenVolume: {
+    secondRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
       marginTop: 2,
     },
     rightSection: {
@@ -55,16 +43,6 @@ const styleSheet = (params: { theme: Theme }) => {
     priceChange: {
       marginTop: 2,
     },
-    leverageContainer: {
-      backgroundColor: colors.background.muted,
-      paddingVertical: 2,
-      paddingHorizontal: 4,
-      borderRadius: 2,
-    },
-    networkAvatar: {
-      marginRight: 16,
-    },
   });
-};
 
 export default styleSheet;

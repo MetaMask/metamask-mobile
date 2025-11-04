@@ -10,6 +10,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 
 export const SourceType = {
   SDK: 'sdk',
+  SDK_CONNECT_V2: 'sdk_connect_v2',
   WALLET_CONNECT: 'walletconnect',
   IN_APP_BROWSER: 'in-app browser',
   PERMISSION_SYSTEM: 'permission system',
@@ -33,4 +34,6 @@ export interface IUseMetricsHook {
   isDataRecorded(): boolean;
   getMetaMetricsId(): Promise<string | undefined>;
   createEventBuilder(event: IMetaMetricsEvent): MetricsEventBuilder;
+  // Temporary workaround to avoid breaking all the tests that mock the useMetrics hook method
+  enableSocialLogin?: (enable?: boolean) => Promise<void>;
 }

@@ -6,11 +6,8 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    firstTimeIcon: {
-      width: 48,
-      height: 48,
-      marginTop: 16,
-      marginBottom: 8,
+    tradeInfoContainer: {
+      paddingBottom: 12,
     },
     wrapper: {
       flex: 1,
@@ -19,17 +16,15 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
     },
-    section: {
-      marginBottom: 24,
-    },
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 8,
+      paddingTop: 16,
     },
     sectionTitle: {
-      paddingTop: 8,
+      // Removed paddingTop - now on parent sectionHeader for consistent alignment
     },
     emptyContainer: {
       padding: 24,
@@ -42,28 +37,69 @@ const styleSheet = (params: { theme: Theme }) => {
     loadingContainer: {
       padding: 24,
       alignItems: 'center',
+      marginTop: 10,
+      borderRadius: 12,
     },
-    firstTimeContainer: {
-      flex: 1,
-      padding: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    firstTimeContent: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    firstTimeTitle: {
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    firstTimeDescription: {
-      textAlign: 'center',
+    // Order card styles to match position cards
+    positionCard: {
+      paddingVertical: 12,
       paddingHorizontal: 16,
+      marginVertical: 2,
     },
-    startTradingButton: {
-      marginTop: 16,
-      width: '100%',
+    positionCardContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    positionLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    assetIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 12,
+    },
+    positionInfo: {
+      flex: 1,
+    },
+    positionRight: {
+      alignItems: 'flex-end',
+    },
+    startTradeCTA: {
+      paddingVertical: 12,
+      marginVertical: 2,
+      borderRadius: 8,
+    },
+    startTradeContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    startTradeIconContainer: {
+      width: 40,
+      height: 40,
+      borderWidth: 0,
+      borderRadius: 20,
+      backgroundColor: colors.background.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    startTradeText: {
+      marginLeft: 12,
+      flex: 1,
+    },
+    debugButton: {
+      backgroundColor: colors.warning.default,
+      padding: 8,
+      marginHorizontal: 16,
+      marginVertical: 8,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    debugButtonText: {
+      color: colors.text.default,
     },
   });
 };

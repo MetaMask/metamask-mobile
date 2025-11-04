@@ -7,24 +7,26 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { endTrace } from '../../../../../../util/trace';
 import Logger from '../../../../../../util/Logger';
+import {
+  MOCK_REGIONS,
+  MOCK_US_REGION,
+  MOCK_CA_REGION,
+  FIXED_DATE,
+  FIXED_TIMESTAMP,
+  TEST_QUOTE_ID,
+  createMockSDKMethods,
+} from '../../testUtils';
 
-const mockTrackEvent = jest.fn();
-const mockPostKycForm = jest.fn();
-const mockSubmitSsnDetails = jest.fn();
-
-const FIXED_DATE = new Date(2024, 0, 1);
-const FIXED_TIMESTAMP = FIXED_DATE.getTime();
+const { mockTrackEvent, mockPostKycForm, mockSubmitSsnDetails } =
+  createMockSDKMethods();
 
 const mockQuote = {
-  quoteId: 'test-quote-id',
+  quoteId: TEST_QUOTE_ID,
 } as BuyQuote;
 
-const mockSelectedRegion = DEPOSIT_REGIONS.find(
-  (region) => region.isoCode === 'US',
-) as DepositRegion;
+const mockSelectedRegion = MOCK_US_REGION;
 
 let mockUseParamsReturnValue: {
   quote: BuyQuote;
@@ -81,6 +83,11 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   },
 }));
 
+const mockUseRegions = jest.fn();
+jest.mock('../../hooks/useRegions', () => ({
+  useRegions: () => mockUseRegions(),
+}));
+
 jest.mock('../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../util/trace'),
   endTrace: jest.fn(),
@@ -110,6 +117,12 @@ describe('BasicInfo Component', () => {
 
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: mockSelectedRegion,
+    });
+
+    mockUseRegions.mockReturnValue({
+      regions: MOCK_REGIONS,
+      isFetching: false,
+      error: null,
     });
 
     mockPostKycForm.mockResolvedValue(undefined);
@@ -157,7 +170,7 @@ describe('BasicInfo Component', () => {
 
   it('snapshot matches validation errors when continue is pressed with invalid format fields for non-US region', () => {
     mockUseDepositSDK.mockReturnValue({
-      selectedRegion: { isoCode: 'CA' } as DepositRegion,
+      selectedRegion: MOCK_CA_REGION,
     });
 
     render(BasicInfo);
@@ -304,13 +317,17 @@ describe('BasicInfo Component', () => {
     });
 
     expect(mockPostKycForm).toHaveBeenCalledWith({
-      firstName: 'John',
-      lastName: 'Smith',
-      mobileNumber: '+1234567890',
-      dob: '01-01-2024',
-      ssn: '123456789',
+      personalDetails: {
+        firstName: 'John',
+        lastName: 'Smith',
+        mobileNumber: '+1234567890',
+        dob: '01-01-2024',
+      },
     });
-    expect(mockSubmitSsnDetails).toHaveBeenCalledWith('123456789');
+    expect(mockSubmitSsnDetails).toHaveBeenCalledWith({
+      ssn: '123456789',
+      quoteId: 'test-quote-id',
+    });
   });
 
   it('handles form submission errors and displays error message', async () => {
@@ -343,5 +360,17 @@ describe('BasicInfo Component', () => {
       mockError,
       'Unexpected error during basic info form submission',
     );
+  });
+
+  it('passes regions to DepositPhoneField component', () => {
+    const customRegions = [...MOCK_REGIONS, MOCK_CA_REGION];
+
+    mockUseRegions.mockReturnValue({
+      regions: customRegions,
+      isFetching: false,
+      error: null,
+    });
+    render(BasicInfo);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

@@ -1,53 +1,56 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
-import Device from '../../../../../util/device';
 
-const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = Dimensions.get('window');
-
-const createStyles = (params: { theme: Theme }) =>
+const createStyles = (params: {
+  theme: Theme;
+  vars: {
+    shouldShowSkipButton: boolean;
+  };
+}) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: params.theme.colors.background.default,
     },
-    scrollContainer: {
-      flex: 1,
-    },
-    scrollContent: {
-      flexGrow: 1,
-    },
     carouselWrapper: {
       flex: 1,
-      justifyContent: 'flex-start',
-      alignItems: 'stretch',
+    },
+    fullScreenContainer: {
+      flex: 1,
+    },
+    scrollableContent: {
+      flex: 1,
+    },
+    scrollContentContainer: {
+      flexGrow: 1,
     },
     screenContainer: {
-      flex: 1,
       justifyContent: 'flex-start',
       alignItems: 'stretch',
       paddingHorizontal: 24,
-      paddingTop: 24,
+      paddingTop: 12,
+      flex: 1,
     },
-    contentContainer: {
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      paddingVertical: 0,
-      maxWidth: DEVICE_WIDTH - 48,
+    contentSection: {
+      flex: 1,
+    },
+    animationContainer: {
+      flex: 1,
+    },
+    animation: {
+      maxHeight: 400, // needed for center alignment
+      height: 400, // needed for android
     },
     title: {
       textAlign: 'left',
-      marginBottom: 16,
-      fontSize: Device.isMediumDevice() ? 24 : 28,
-      lineHeight: Device.isMediumDevice() ? 28 : 32,
+      marginBottom: 6,
     },
     description: {
       textAlign: 'left',
-      lineHeight: 22,
       marginBottom: 16,
     },
     subtitle: {
       textAlign: 'left',
-      lineHeight: 22,
     },
     progressContainer: {
       flexDirection: 'row',
@@ -70,7 +73,17 @@ const createStyles = (params: { theme: Theme }) =>
     },
     footer: {
       paddingHorizontal: 16,
-      paddingVertical: 16,
+    },
+    footerTextContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 32,
+    },
+    footerText: {
+      textAlign: 'center',
+    },
+    fundsInfoText: {
+      textAlign: 'center',
+      color: params.theme.colors.text.alternative,
     },
     buttonRow: {
       flexDirection: 'column',
@@ -81,13 +94,9 @@ const createStyles = (params: { theme: Theme }) =>
       paddingHorizontal: 16,
       marginBottom: 16,
       alignSelf: 'center',
+      opacity: params.vars.shouldShowSkipButton ? 1 : 0,
     },
     continueButton: {
-      width: '100%',
-    },
-    animationContainer: {
-      // TEMP Possibly: Waiting for Rive animations to be exported without fullscreen frame.
-      height: Math.min(DEVICE_HEIGHT * 0.45, 400), // Responsive height, max 400px
       width: '100%',
     },
   });

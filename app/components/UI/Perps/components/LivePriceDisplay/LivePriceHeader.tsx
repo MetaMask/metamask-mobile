@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Text, {
   TextVariant,
@@ -6,16 +6,16 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  formatPrice,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
   formatPercentage,
-  formatPnl,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface LivePriceHeaderProps {
   symbol: string;
   fallbackPrice?: string;
-  fallbackChange?: string;
   testIDPrice?: string;
   testIDChange?: string;
   throttleMs?: number;
@@ -28,12 +28,6 @@ const styleSheet = () =>
       alignItems: 'baseline',
       gap: 6,
     },
-    positionValue: {
-      fontWeight: '700',
-    },
-    priceChange24h: {
-      fontSize: 12,
-    },
   });
 
 /**
@@ -43,7 +37,6 @@ const styleSheet = () =>
 const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   symbol,
   fallbackPrice = '0',
-  fallbackChange = '0',
   testIDPrice,
   testIDChange,
   throttleMs = 1000, // Balanced updates for header (1 update per second)
@@ -60,33 +53,73 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const displayPrice = priceData
     ? parseFloat(priceData.price)
     : parseFloat(fallbackPrice);
+
+  // Use null to indicate loading state - only use actual values (including 0) when available
+  // When we have live price data, only use percentChange from that data - don't fall back
   const displayChange = priceData
-    ? parseFloat(priceData.percentChange24h || '0')
-    : parseFloat(fallbackChange);
+    ? priceData.percentChange24h !== undefined
+      ? parseFloat(priceData.percentChange24h)
+      : null
+    : null;
 
-  const isPositiveChange = displayChange >= 0;
-  const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+  // Only determine change color when we have actual data (not loading)
+  const isPositiveChange = displayChange !== null && displayChange >= 0;
+  const changeColor =
+    displayChange === null
+      ? TextColor.Default // Neutral color for loading state
+      : isPositiveChange
+        ? TextColor.Success
+        : TextColor.Error;
 
-  // Calculate fiat change amount (exactly as original)
-  const changeAmount = (displayChange / 100) * displayPrice;
+  // Format price display with edge case handling
+  const formattedPrice = useMemo(() => {
+    // Handle invalid or edge case values
+    if (!displayPrice || displayPrice <= 0 || !Number.isFinite(displayPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+
+    try {
+      return formatPerpsFiat(displayPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
+    } catch {
+      // Fallback if formatPrice throws
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+  }, [displayPrice]);
+
+  const formattedChange = useMemo(() => {
+    // If displayChange is null, we're still loading - show loading indicator
+    if (displayChange === null) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
+    if (!displayPrice || displayPrice <= 0 || !Number.isFinite(displayPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
+    try {
+      return formatPercentage(displayChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+  }, [displayPrice, displayChange]);
 
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.HeadingSM}
+        variant={TextVariant.BodyMD}
         color={TextColor.Default}
-        style={styles.positionValue}
         testID={testIDPrice}
       >
-        {formatPrice(displayPrice)}
+        {formattedPrice}
       </Text>
       <Text
-        variant={TextVariant.BodySM}
+        variant={TextVariant.BodyMD}
         color={changeColor}
-        style={styles.priceChange24h}
         testID={testIDChange}
       >
-        {formatPnl(changeAmount)} ({formatPercentage(displayChange.toString())})
+        {formattedChange}
       </Text>
     </View>
   );

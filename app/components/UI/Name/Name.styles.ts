@@ -14,26 +14,14 @@ const styleSheet = (params: {
   theme: Theme;
   vars: { displayNameVariant: DisplayNameVariant };
 }) => {
-  const { theme, vars } = params;
+  const { theme } = params;
   const { colors } = theme;
-  const { displayNameVariant } = vars;
 
-  const backgroundColor =
-    displayNameVariant === DisplayNameVariant.Saved
-      ? colors.info.muted
-      : colors.background.alternative;
-
-  const textColor =
-    displayNameVariant === DisplayNameVariant.Saved
-      ? colors.info.default
-      : colors.text.default;
+  const textColor = colors.text.default;
 
   const baseStyle: ViewStyle = {
-    backgroundColor,
     borderRadius: 99,
     paddingVertical: 4,
-    paddingLeft: 8,
-    paddingRight: 8,
     gap: 5,
     flexDirection: 'row',
     alignItems: 'center',
@@ -51,10 +39,15 @@ const styleSheet = (params: {
     width: 16,
   };
 
+  const labelContainerStyle: ViewStyle = {
+    marginLeft: 4,
+  };
+
   return StyleSheet.create({
     base: baseStyle,
     label: labelStyle,
     image: imageStyle,
+    labelContainer: labelContainerStyle,
   });
 };
 

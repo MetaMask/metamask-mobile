@@ -6,6 +6,7 @@ import {
   selectPerpsDepositState,
   selectPerpsEligibility,
   selectPerpsNetwork,
+  selectIsFirstTimePerpsUser,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -21,7 +22,7 @@ describe('PerpsController Selectors', () => {
           },
         },
       },
-    } as unknown as RootState);
+    }) as unknown as RootState;
 
   describe('selectPerpsProvider', () => {
     it('returns the active provider from PerpsController state', () => {
@@ -87,9 +88,10 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const mockAccountState: AccountState = {
         availableBalance: '3000',
-        totalBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '50',
+        returnOnEquity: '10.0',
+        totalBalance: '5500',
       };
 
       const mockState = createMockState({
@@ -131,9 +133,10 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const mockAccountState: AccountState = {
         availableBalance: '0',
-        totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: '0',
       };
 
       const mockState = createMockState({
@@ -153,9 +156,10 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const positivePnlState: AccountState = {
         availableBalance: '5000',
-        totalBalance: '6000',
         marginUsed: '1000',
         unrealizedPnl: '500',
+        returnOnEquity: '100.0',
+        totalBalance: '6000',
       };
 
       const mockState = createMockState({
@@ -174,9 +178,10 @@ describe('PerpsController Selectors', () => {
       // Arrange
       const negativePnlState: AccountState = {
         availableBalance: '3000',
-        totalBalance: '4500',
         marginUsed: '2000',
         unrealizedPnl: '-500',
+        returnOnEquity: '-25.0',
+        totalBalance: '4000',
       };
 
       const mockState = createMockState({
@@ -612,6 +617,139 @@ describe('PerpsController Selectors', () => {
       });
       expect(eligibility).toBe(true);
       expect(network).toBe('testnet');
+    });
+  });
+
+  describe('selectIsFirstTimePerpsUser', () => {
+    it('returns true when isFirstTimeUser is true for testnet', () => {
+      // Arrange
+      const mockState = createMockState({
+        isFirstTimeUser: {
+          testnet: true,
+          mainnet: false,
+        },
+        isTestnet: true,
+      });
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('returns false when isFirstTimeUser is false for testnet', () => {
+      // Arrange
+      const mockState = createMockState({
+        isFirstTimeUser: {
+          testnet: false,
+          mainnet: true,
+        },
+        isTestnet: true,
+      });
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('returns true when isFirstTimeUser is true for mainnet', () => {
+      // Arrange
+      const mockState = createMockState({
+        isFirstTimeUser: {
+          testnet: false,
+          mainnet: true,
+        },
+        isTestnet: false,
+      });
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('returns false when isFirstTimeUser is false for mainnet', () => {
+      // Arrange
+      const mockState = createMockState({
+        isFirstTimeUser: {
+          testnet: true,
+          mainnet: false,
+        },
+        isTestnet: false,
+      });
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('returns true when isFirstTimeUser is undefined (default state)', () => {
+      // Arrange
+      const mockState = createMockState({
+        isTestnet: true,
+        // isFirstTimeUser is undefined
+      });
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      // Should return true for undefined state (first time user)
+      expect(result).toBe(true);
+    });
+
+    it('returns true when PerpsController state is undefined', () => {
+      // Arrange
+      const mockState = createMockState(undefined);
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      // Should return true when no state exists (first time user)
+      expect(result).toBe(true);
+    });
+
+    it('handles missing network state gracefully for testnet', () => {
+      // Arrange
+      const mockState = createMockState({
+        isFirstTimeUser: {
+          mainnet: false,
+          // testnet is undefined
+        },
+        isTestnet: true,
+      });
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      // Should return true for undefined testnet state
+      expect(result).toBe(true);
+    });
+
+    it('handles missing network state gracefully for mainnet', () => {
+      // Arrange
+      const mockState = createMockState({
+        isFirstTimeUser: {
+          testnet: false,
+          // mainnet is undefined
+        },
+        isTestnet: false,
+      });
+
+      // Act
+      const result = selectIsFirstTimePerpsUser(mockState);
+
+      // Assert
+      // Should return true for undefined mainnet state
+      expect(result).toBe(true);
     });
   });
 });

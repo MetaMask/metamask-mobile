@@ -9,6 +9,7 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { Nft } from '../../types/token';
+import { useSendScope } from './useSendScope';
 
 export function useEVMNfts(): Nft[] {
   const { NftController, AssetsContractController, NetworkController } =
@@ -16,8 +17,8 @@ export function useEVMNfts(): Nft[] {
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const allNFTS = useSelector(selectAllNfts);
-
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
+  const { isSolanaOnly } = useSendScope();
 
   const evmAccount = selectedAccountGroup?.accounts
     .map((accountId) => internalAccountsById[accountId])
@@ -73,13 +74,16 @@ export function useEVMNfts(): Nft[] {
       }
 
       if (missingCollectionNfts.length > 0) {
-        const groupedByChain = missingCollectionNfts.reduce((acc, nft) => {
-          if (!acc[nft.chainId]) {
-            acc[nft.chainId] = [];
-          }
-          acc[nft.chainId].push(nft);
-          return acc;
-        }, {} as Record<string, typeof missingCollectionNfts>);
+        const groupedByChain = missingCollectionNfts.reduce(
+          (acc, nft) => {
+            if (!acc[nft.chainId]) {
+              acc[nft.chainId] = [];
+            }
+            acc[nft.chainId].push(nft);
+            return acc;
+          },
+          {} as Record<string, typeof missingCollectionNfts>,
+        );
 
         for (const [chainId, nfts] of Object.entries(groupedByChain)) {
           const typedNfts = nfts as typeof missingCollectionNfts;
@@ -127,7 +131,6 @@ export function useEVMNfts(): Nft[] {
           }
         }
       }
-
       setTransformedNfts(transformedResults);
     };
 
@@ -139,6 +142,10 @@ export function useEVMNfts(): Nft[] {
     AssetsContractController,
     NetworkController,
   ]);
+
+  if (isSolanaOnly) {
+    return [];
+  }
 
   return transformedNfts;
 }

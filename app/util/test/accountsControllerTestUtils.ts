@@ -144,7 +144,7 @@ export function createMockSnapInternalAccount(
       ];
       break;
     case BtcAccountType.P2wpkh:
-      methods = [BtcMethod.SendBitcoin];
+      methods = Object.values(BtcMethod);
       break;
     case SolAccountType.DataAccount:
       methods = [SolMethod.SendAndConfirmTransaction];
@@ -199,7 +199,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
     scope: BtcScope.Mainnet,
     index: 0,
   },
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   scopes: [BtcScope.Mainnet],
   type: BtcAccountType.P2wpkh,
   metadata: {
@@ -217,7 +217,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET: InternalAccount = {
     scope: BtcScope.Testnet,
     index: 0,
   },
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   scopes: [BtcScope.Testnet],
   type: BtcAccountType.P2wpkh,
   metadata: {

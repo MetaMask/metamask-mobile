@@ -29,6 +29,7 @@ import {
   getAddressAccountType,
   isValidHexAddress,
 } from '../../../../util/address';
+import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 
 const BATCHED_MESSAGE_TYPE = {
   WALLET_SEND_CALLS: 'wallet_sendCalls',
@@ -37,7 +38,20 @@ const BATCHED_MESSAGE_TYPE = {
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
+  transactionMeta?: TransactionMeta,
 ) {
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    return 'predict_deposit';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    return 'predict_withdraw';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
+    return 'predict_claim';
+  }
+
   switch (transactionType) {
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
@@ -47,6 +61,8 @@ export function getTransactionTypeValue(
       return 'deploy_contract';
     case TransactionType.ethGetEncryptionPublicKey:
       return 'eth_get_encryption_public_key';
+    case TransactionType.perpsDeposit:
+      return 'perps_deposit';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
     case TransactionType.simpleSend:
@@ -90,7 +106,7 @@ export function getTransactionTypeValue(
   }
 }
 
-const getConfirmationMetricProperties = (
+export const getConfirmationMetricProperties = (
   getState: () => RootState,
   transactionId: string,
 ): TransactionMetrics => {
@@ -138,9 +154,8 @@ async function getBatchProperties(transactionMeta: TransactionMeta) {
     properties.batch_transaction_count = nestedTransactions?.length;
     properties.batch_transaction_method = 'eip7702';
 
-    properties.transaction_contract_method = await getNestedMethodNames(
-      transactionMeta,
-    );
+    properties.transaction_contract_method =
+      await getNestedMethodNames(transactionMeta);
 
     properties.transaction_contract_address = nestedTransactions
       ?.filter(
@@ -168,12 +183,21 @@ export async function generateDefaultTransactionMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  const { chainId, status, type, id, origin, txParams } = transactionMeta || {};
+  const { chainId, error, status, type, id, origin, txParams } =
+    transactionMeta || {};
+
   const { from } = txParams || {};
 
-  const accountType = isValidHexAddress(from)
-    ? getAddressAccountType(from)
-    : 'unknown';
+  let accountType = 'unknown';
+
+  // Fails if wallet locked
+  try {
+    accountType = isValidHexAddress(from)
+      ? getAddressAccountType(from)
+      : accountType;
+  } catch {
+    // Intentionally empty
+  }
 
   const batchProperties = await getBatchProperties(transactionMeta);
   const gasFeeProperties = getGasMetricProperties(transactionMeta);
@@ -183,23 +207,18 @@ export async function generateDefaultTransactionMetrics(
       metametricsEvent,
       properties: {
         ...batchProperties,
-        chain_id: chainId,
         ...gasFeeProperties,
+        account_type: accountType,
+        chain_id: chainId,
+        dapp_host_name: origin ?? 'N/A',
+        error: error?.message,
         status,
         source: 'MetaMask Mobile',
-        transaction_contract_method: await getTransactionContractMethod(
-          transactionMeta,
-        ),
+        transaction_contract_method:
+          await getTransactionContractMethod(transactionMeta),
         transaction_envelope_type: transactionMeta.txParams.type,
         transaction_internal_id: id,
-        transaction_type: getTransactionTypeValue(type),
-        account_type: accountType,
-        dapp_host_name: origin ?? 'N/A',
-      },
-      sensitiveProperties: {
-        from_address: transactionMeta.txParams.from,
-        to_address: transactionMeta.txParams.to,
-        value: transactionMeta.txParams.value,
+        transaction_type: getTransactionTypeValue(type, transactionMeta),
       },
     },
     getConfirmationMetricProperties(

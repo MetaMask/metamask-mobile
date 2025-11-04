@@ -19,7 +19,7 @@ export const ICONSIZE_BY_BUTTONICONSIZE: IconSizeByButtonIconSize = {
 };
 
 // Defaults
-export const DEFAULT_BUTTONICON_SIZE = ButtonIconSizes.Sm;
+export const DEFAULT_BUTTONICON_SIZE = ButtonIconSizes.Md;
 export const DEFAULT_BUTTONICON_ICONNAME = IconName.Add;
 export const DEFAULT_BUTTONICON_ICONCOLOR = IconColor.Default;
 

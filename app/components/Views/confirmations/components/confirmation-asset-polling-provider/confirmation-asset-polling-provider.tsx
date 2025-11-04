@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { AssetPollingProvider } from '../../../../hooks/AssetPolling/AssetPollingProvider';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -20,22 +20,34 @@ export const ConfirmationAssetPollingProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const transactionMetaData = useTransactionMetadataRequest();
+  const transactionMeta = useTransactionMetadataRequest();
+  const bridgeChains = useSelector(selectEnabledSourceChains);
 
-  const bridgeChainIds = useSelector(selectEnabledSourceChains).map(
-    (chain) => chain.chainId as Hex,
-  );
+  const pollChainIds = useMemo(() => {
+    const bridgeChainIds = bridgeChains
+      .filter((chain) => chain.isEvm)
+      .map((chain) => chain.chainId as Hex);
 
-  if (!transactionMetaData) {
+    // Always include the transaction's chain to ensure balance is available
+    // This is critical when a user adds a new network from a dapp and immediately
+    // attempts to transact - the new network may not be in the bridge chains list
+    const txChainId = transactionMeta?.chainId as Hex | undefined;
+    if (txChainId && !bridgeChainIds.includes(txChainId)) {
+      return [...bridgeChainIds, txChainId];
+    }
+
+    return bridgeChainIds;
+  }, [bridgeChains, transactionMeta?.chainId]);
+
+  if (!transactionMeta) {
     return children;
   }
 
   return (
     <>
       <AssetPollingProvider
-        chainIds={bridgeChainIds}
-        networkClientId={transactionMetaData.networkClientId}
-        address={transactionMetaData.txParams.from as Hex}
+        chainIds={pollChainIds}
+        address={transactionMeta.txParams.from as Hex}
       />
       {children}
     </>

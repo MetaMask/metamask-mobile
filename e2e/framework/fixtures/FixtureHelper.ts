@@ -1,3 +1,4 @@
+/* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
@@ -10,14 +11,16 @@ import {
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
+  getCommandQueueServerPort,
 } from './FixtureUtils';
-import Utilities from '../../utils/Utilities';
+import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
 import {
   startMockServer,
   stopMockServer,
   validateLiveRequests,
 } from '../../api-mocking/mock-server';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -38,20 +41,30 @@ import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
 import { type Mockttp } from 'mockttp';
-import { Buffer } from 'buffer';
-import crypto from 'crypto';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import CommandQueueServer from './CommandQueueServer';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
 const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
+const COMMAND_QUEUE_SERVER_URL = `http://localhost:${getCommandQueueServerPort()}/queue.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
   try {
     const response = await axios.get(FIXTURE_SERVER_URL);
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+};
+
+// checks if command queue server has already been started
+const isCommandQueueServerStarted = async () => {
+  try {
+    const response = await axios.get(COMMAND_QUEUE_SERVER_URL);
     return response.status === 200;
   } catch (error) {
     return false;
@@ -320,6 +333,27 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
+// Start the command queue server
+export const startCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
+) => {
+  if (await isCommandQueueServerStarted()) {
+    logger.debug('The command queue server has already been started');
+    return;
+  }
+
+  await commandQueueServer.start();
+  logger.debug('The command queue server is started');
+};
+
+// Stop the command queue server
+export const stopCommandQueueServer = async (
+  commandQueueServer: CommandQueueServer,
+) => {
+  await commandQueueServer.stop();
+  logger.debug('The command queue server is stopped');
+};
+
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
@@ -344,6 +378,10 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
+
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
 
@@ -367,7 +405,7 @@ export async function withFixtures(
   testSuite: TestSuiteFunction,
 ) {
   const {
-    fixture,
+    fixture: fixtureOption,
     restartDevice = false,
     smartContracts,
     disableLocalNodes = false,
@@ -385,14 +423,15 @@ export async function withFixtures(
     languageAndLocale,
     permissions = {},
     endTestfn,
+    skipReactNativeReload = false,
+    useCommandQueueServer = false,
   } = options;
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  const { mockServer, mockServerPort } = await createMockAPIServer(
-    testSpecificMock,
-  );
+  const { mockServer, mockServerPort } =
+    await createMockAPIServer(testSpecificMock);
 
   // Handle local nodes
   let localNodes;
@@ -403,6 +442,9 @@ export async function withFixtures(
 
   const dappServer: http.Server[] = [];
   const fixtureServer = new FixtureServer();
+  const commandQueueServer = new CommandQueueServer();
+
+  let testError: Error | null = null;
 
   try {
     // Handle smart contracts
@@ -423,6 +465,14 @@ export async function withFixtures(
       );
     }
 
+    // Resolve fixture after local nodes are started so dynamic ports are known
+    let resolvedFixture: FixtureBuilder;
+    if (typeof fixtureOption === 'function') {
+      resolvedFixture = await fixtureOption({ localNodes });
+    } else {
+      resolvedFixture = fixtureOption;
+    }
+
     // Handle dapps
     if (dapps && dapps.length > 0) {
       await handleDapps(dapps, dappServer);
@@ -430,17 +480,23 @@ export async function withFixtures(
 
     // Start fixture server
     await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
+    await loadFixture(fixtureServer, { fixture: resolvedFixture });
     logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
+
+    if (useCommandQueueServer) {
+      await startCommandQueueServer(commandQueueServer);
+    }
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
+
     if (restartDevice) {
       await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
+          commandQueueServerPort: `${getCommandQueueServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
           mockServerPort: `${mockServerPort}`,
           ...(launchArgs || {}),
@@ -450,129 +506,116 @@ export async function withFixtures(
       });
     }
 
-    await testSuite({ contractRegistry, mockServer, localNodes });
+    await testSuite({
+      contractRegistry,
+      mockServer,
+      localNodes,
+      commandQueueServer,
+    });
   } catch (error) {
+    testError = error as Error;
     logger.error('Error in withFixtures:', error);
-    throw error;
   } finally {
-    validateLiveRequests(mockServer);
+    const cleanupErrors: Error[] = [];
 
     if (endTestfn) {
-      // Pass the mockServer to the endTestfn if it exists as we may want
-      // to capture events before cleanup
-      await endTestfn({ mockServer });
+      try {
+        // Pass the mockServer to the endTestfn if it exists as we may want
+        // to capture events before cleanup
+        await endTestfn({ mockServer });
+      } catch (endTestError) {
+        logger.error('Error in endTestfn:', endTestError);
+        cleanupErrors.push(endTestError as Error);
+      }
     }
 
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
-      await handleLocalNodeCleanup(localNodes);
+      try {
+        await handleLocalNodeCleanup(localNodes);
+      } catch (cleanupError) {
+        logger.error('Error during local node cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (dapps && dapps.length > 0) {
-      await handleDappCleanup(dapps, dappServer);
+      try {
+        await handleDappCleanup(dapps, dappServer);
+      } catch (cleanupError) {
+        logger.error('Error during dapp cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (mockServer) {
-      await stopMockServer(mockServer);
+      try {
+        await stopMockServer(mockServer);
+      } catch (cleanupError) {
+        logger.error('Error during mock server cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
-    await stopFixtureServer(fixtureServer);
+    try {
+      await stopFixtureServer(fixtureServer);
+    } catch (cleanupError) {
+      logger.error('Error during fixture server cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    if (useCommandQueueServer) {
+      try {
+        await stopCommandQueueServer(commandQueueServer);
+      } catch (cleanupError) {
+        logger.error(
+          'Error during command queue server cleanup:',
+          cleanupError,
+        );
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    if (!skipReactNativeReload) {
+      try {
+        // Force reload React Native to stop any lingering timers
+        await device.reloadReactNative();
+      } catch (cleanupError) {
+        logger.warn('React Native reload failed (non-critical):', cleanupError);
+        // Don't add to cleanupErrors as this is a non-critical cleanup operation
+        // The test should not fail if only React Native reload fails
+      }
+    }
+
+    try {
+      // Validate live requests
+      validateLiveRequests(mockServer);
+    } catch (cleanupError) {
+      logger.error('Error during live request validation:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    // Handle error reporting: prioritize test error over cleanup errors
+    if (testError && cleanupErrors.length > 0) {
+      // Both test and cleanup failed - report both but throw the test error
+      const cleanupErrorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      logger.error(
+        `Test failed AND cleanup failed with ${cleanupErrors.length} error(s):\n${cleanupErrorMessages}`,
+      );
+      throw testError; // Preserve original test failure
+    } else if (testError) {
+      // Only test failed - normal case
+      throw testError;
+    } else if (cleanupErrors.length > 0) {
+      // Only cleanup failed - throw cleanup error
+      const errorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      const errorMessage = `Test cleanup failed with ${cleanupErrors.length} error(s):\n${errorMessages}`;
+      throw new Error(errorMessage);
+    }
+    // No errors - test passed successfully
   }
-}
-
-/**
- * Generates a random salt for encryption purposes.
- *
- * @param {number} byteCount - The number of bytes to generate.
- * @returns {string} - The generated salt.
- */
-
-function generateSalt(byteCount = 32) {
-  const view = crypto.randomBytes(byteCount);
-
-  return Buffer.from(view).toString('base64');
-}
-
-/**
- * Encrypts a vault object using AES-256-CBC encryption with a password.
- *
- * @param {Object} vault - The vault object to encrypt.
- * @param {string} [password='123123123'] - The password used for encryption.
- * @returns {string} - The encrypted vault as a JSON string.
- */
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function encryptVault(vault: any, password = '123123123') {
-  const salt = generateSalt(16);
-  const passBuffer = Buffer.from(password, 'utf-8');
-  // Parse base 64 string as utf-8 because mobile encryptor is flawed.
-  const saltBuffer = Buffer.from(salt, 'utf-8');
-  const iv = crypto.randomBytes(16);
-
-  // Derive key using PBKDF2
-  const derivedKey = crypto.pbkdf2Sync(
-    passBuffer,
-    saltBuffer,
-    5000,
-    32,
-    'sha512',
-  );
-
-  const json = JSON.stringify(vault);
-  const buffer = Buffer.from(json, 'utf-8');
-
-  // Encrypt using AES-256-CBC
-  const cipher = crypto.createCipheriv('aes-256-cbc', derivedKey, iv);
-  let encrypted = cipher.update(buffer);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-
-  // Prepare the result object
-  const result = {
-    keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 5000 } },
-    lib: 'original',
-    cipher: encrypted.toString('base64'),
-    iv: iv.toString('hex'),
-    salt,
-  };
-
-  // Convert the result to a JSON string
-  return JSON.stringify(result);
-}
-
-/**
- * Decrypts a vault object that was encrypted using AES-256-CBC encryption with a password.
- *
- * @param {string} vault - The encrypted vault as a JSON string.
- * @param {string} [password='123123123'] - The password used for encryption.
- * @returns {Object} - The decrypted vault JSON object.
- */
-
-export function decryptVault(vault: string, password = '123123123') {
-  // 1. Parse vault inputs
-  const vaultJson = JSON.parse(vault);
-  const cipherText = Buffer.from(vaultJson.cipher, 'base64');
-  const iv = Buffer.from(vaultJson.iv, 'hex');
-  const salt = vaultJson.salt;
-
-  // "flawed": interpret base64 string as UTF-8 bytes, not decoded
-  const saltBuffer = Buffer.from(salt, 'utf-8');
-  const passBuffer = Buffer.from(password, 'utf-8');
-
-  // 2. Recreate PBKDF2 key
-  const derivedKey = crypto.pbkdf2Sync(
-    passBuffer,
-    saltBuffer,
-    5000,
-    32,
-    'sha512',
-  );
-
-  // 3. Decrypt
-  const decipher = crypto.createDecipheriv('aes-256-cbc', derivedKey, iv);
-  let decrypted = decipher.update(cipherText);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-
-  // 4. Convert back to string and parse JSON
-  const decryptedText = decrypted.toString('utf-8');
-  return JSON.parse(decryptedText);
 }

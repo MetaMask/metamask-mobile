@@ -160,20 +160,31 @@ jest.mock('../../hooks/useMetrics', () => ({
     isEnabled: jest.fn(() => true),
   })),
   withMetricsAwareness: jest.fn(
-    (Component) => (props: Record<string, unknown>) =>
-      (
-        <Component
-          {...props}
-          metrics={{
-            trackEvent: mockMetricsTrackEvent,
-            createEventBuilder: mockMetricsCreateEventBuilder,
-          }}
-        />
-      ),
+    (Component) => (props: Record<string, unknown>) => (
+      <Component
+        {...props}
+        metrics={{
+          trackEvent: mockMetricsTrackEvent,
+          createEventBuilder: mockMetricsCreateEventBuilder,
+        }}
+      />
+    ),
   ),
   MetaMetricsEvents: {
     ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
   },
+}));
+
+// Mock useNetInfo
+jest.mock('@react-native-community/netinfo', () => ({
+  useNetInfo: jest.fn(() => ({
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'wifi',
+    details: {
+      isConnectionExpensive: false,
+    },
+  })),
 }));
 
 const mockUseMetrics = jest.mocked(useMetrics);

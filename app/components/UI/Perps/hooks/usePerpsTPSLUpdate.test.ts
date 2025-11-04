@@ -3,9 +3,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts from './usePerpsToasts';
 
-// Mock dependencies
 jest.mock('./usePerpsTrading');
+jest.mock('./usePerpsToasts');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -18,17 +19,21 @@ jest.mock('../../../../component-library/components/Toast', () => ({
 jest.mock('../../../../component-library/components/Icons/Icon', () => ({
   IconName: {
     CheckBold: 'CheckBold',
-    Danger: 'Danger',
-    Error: 'Error',
-  },
-  IconColor: {
-    Success: 'Success',
-    Error: 'Error',
+    Warning: 'Warning',
+    Loading: 'Loading',
   },
 }));
 jest.mock('../../../../component-library/components/Buttons/Button', () => ({
   ButtonVariants: {
     Secondary: 'secondary',
+  },
+}));
+jest.mock('expo-haptics', () => ({
+  notificationAsync: jest.fn(),
+  NotificationFeedbackType: {
+    Success: 'success',
+    Error: 'error',
+    Warning: 'warning',
   },
 }));
 
@@ -40,6 +45,49 @@ describe('usePerpsTPSLUpdate', () => {
       current: {
         showToast: mockShowToast,
         closeToast: jest.fn(),
+      },
+    },
+  };
+
+  const mockPerpsToastOptions = {
+    positionManagement: {
+      tpsl: {
+        updateTPSLSuccess: {
+          variant: 'icon',
+          iconName: 'CheckBold',
+          iconColor: 'mockSuccessColor',
+          backgroundColor: 'mockSuccessBackground',
+          hapticsType: 'success',
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: 'perps.position.tpsl.update_success',
+              isBold: true,
+            },
+          ],
+        },
+        updateTPSLError: jest.fn((error?: string | null) => ({
+          variant: 'icon',
+          iconName: 'Warning',
+          iconColor: 'mockErrorColor',
+          backgroundColor: 'mockErrorBackground',
+          hapticsType: 'error',
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: 'perps.position.tpsl.update_failed',
+              isBold: true,
+            },
+            {
+              label: '\n',
+              isBold: false,
+            },
+            {
+              label: error || 'perps.errors.unknown',
+              isBold: false,
+            },
+          ],
+        })),
       },
     },
   };
@@ -63,6 +111,8 @@ describe('usePerpsTPSLUpdate', () => {
       sinceOpen: '2',
       sinceChange: '1',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
     ...overrides,
   });
 
@@ -70,6 +120,11 @@ describe('usePerpsTPSLUpdate', () => {
     jest.clearAllMocks();
     (usePerpsTrading as jest.Mock).mockReturnValue({
       updatePositionTPSL: mockUpdatePositionTPSL,
+    });
+
+    (usePerpsToasts as jest.Mock).mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: mockPerpsToastOptions,
     });
   });
 
@@ -89,7 +144,7 @@ describe('usePerpsTPSLUpdate', () => {
     const takeProfitPrice = '3300';
     const stopLossPrice = '2700';
 
-    mockUpdatePositionTPSL.mockResolvedValue(undefined);
+    mockUpdatePositionTPSL.mockResolvedValue({ success: true });
 
     await act(async () => {
       await result.current.handleUpdateTPSL(
@@ -117,23 +172,9 @@ describe('usePerpsTPSLUpdate', () => {
       await result.current.handleUpdateTPSL(position, '3300', '2700');
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith({
-      variant: 'icon',
-      labelOptions: [
-        {
-          label: 'perps.position.tpsl.update_success',
-          isBold: true,
-        },
-        { label: ' - ', isBold: false },
-        {
-          label: 'ETH',
-          isBold: true,
-        },
-      ],
-      iconName: 'CheckBold',
-      iconColor: 'Success',
-      hasNoTimeout: false,
-    });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLSuccess,
+    );
     expect(onSuccess).toHaveBeenCalled();
   });
 
@@ -151,28 +192,14 @@ describe('usePerpsTPSLUpdate', () => {
       await result.current.handleUpdateTPSL(position, '3300', '2700');
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith({
-      variant: 'icon',
-      labelOptions: [
-        {
-          label: 'perps.position.tpsl.update_failed',
-          isBold: true,
-        },
-        { label: ': ', isBold: false },
-        {
-          label: 'Network error',
-          isBold: false,
-        },
-      ],
-      iconName: 'Error',
-      iconColor: 'Error',
-      hasNoTimeout: true,
-      closeButtonOptions: {
-        label: 'perps.order.error.dismiss',
-        variant: 'secondary',
-        onPress: expect.any(Function),
-      },
-    });
+    expect(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+    ).toHaveBeenCalledWith('Network error');
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+        'Network error',
+      ),
+    );
     expect(onError).toHaveBeenCalledWith('Network error');
   });
 
@@ -188,28 +215,14 @@ describe('usePerpsTPSLUpdate', () => {
       await result.current.handleUpdateTPSL(position, '3300', '2700');
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith({
-      variant: 'icon',
-      labelOptions: [
-        {
-          label: 'perps.position.tpsl.update_error',
-          isBold: true,
-        },
-        { label: ': ', isBold: false },
-        {
-          label: 'Network error',
-          isBold: false,
-        },
-      ],
-      iconName: 'Error',
-      iconColor: 'Error',
-      hasNoTimeout: true,
-      closeButtonOptions: {
-        label: 'perps.order.error.dismiss',
-        variant: 'secondary',
-        onPress: expect.any(Function),
-      },
-    });
+    expect(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+    ).toHaveBeenCalledWith('Network error');
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+        'Network error',
+      ),
+    );
     expect(onError).toHaveBeenCalledWith('Network error');
   });
 
@@ -217,7 +230,7 @@ describe('usePerpsTPSLUpdate', () => {
     const { result } = renderHookWithToast();
     const position = createMockPosition();
 
-    mockUpdatePositionTPSL.mockResolvedValue(undefined);
+    mockUpdatePositionTPSL.mockResolvedValue({ success: true });
 
     await act(async () => {
       await result.current.handleUpdateTPSL(position, undefined, undefined);
@@ -243,27 +256,29 @@ describe('usePerpsTPSLUpdate', () => {
       await result.current.handleUpdateTPSL(position, '3300', '2700');
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith({
-      variant: 'icon',
-      labelOptions: [
-        {
-          label: 'perps.position.tpsl.update_failed',
-          isBold: true,
-        },
-        { label: ': ', isBold: false },
-        {
-          label: 'perps.errors.unknown',
-          isBold: false,
-        },
-      ],
-      iconName: 'Error',
-      iconColor: 'Error',
-      hasNoTimeout: true,
-      closeButtonOptions: {
-        label: 'perps.order.error.dismiss',
-        variant: 'secondary',
-        onPress: expect.any(Function),
-      },
-    });
+    // When error is null, the mock falls back to 'perps.errors.unknown'
+    expect(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+    ).toHaveBeenCalledWith('perps.errors.unknown');
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+        'perps.errors.unknown',
+      ),
+    );
+  });
+
+  it('should use toast configurations with correct haptics types', () => {
+    // Verify success toast has correct haptics type
+    expect(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLSuccess
+        .hapticsType,
+    ).toBe('success');
+
+    // Verify error toast has correct haptics type
+    const errorToast =
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+        'test error',
+      );
+    expect(errorToast.hapticsType).toBe('error');
   });
 });

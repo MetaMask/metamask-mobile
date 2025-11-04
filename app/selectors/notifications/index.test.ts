@@ -6,7 +6,6 @@ import {
   selectIsUpdatingMetamaskNotifications,
   selectIsFetchingMetamaskNotifications,
   selectIsFeatureAnnouncementsEnabled,
-  selectIsPerpsNotificationsEnabled,
   selectIsUpdatingMetamaskNotificationsAccount,
   selectIsCheckingAccountsPresence,
   getmetamaskNotificationsReadList,
@@ -73,12 +72,6 @@ describe('Notification Selectors', () => {
   it('selectIsFeatureAnnouncementsEnabled returns correct value', () => {
     expect(selectIsFeatureAnnouncementsEnabled(mockState)).toEqual(
       MOCK_NOTIFICATION_SERVICES_CONTROLLER.isFeatureAnnouncementsEnabled,
-    );
-  });
-
-  it('selectIsPerpsNotificationsEnabled returns correct value', () => {
-    expect(selectIsPerpsNotificationsEnabled(mockState)).toEqual(
-      MOCK_NOTIFICATION_SERVICES_CONTROLLER.isPerpsNotificationsEnabled,
     );
   });
 

@@ -241,12 +241,12 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "isNFTAutoDetectionModalViewed": false,
   },
   "settings": {
+    "avatarAccountType": "Maskicon",
     "basicFunctionalityEnabled": true,
     "hideZeroBalanceTokens": false,
     "lockTime": 30000,
     "primaryCurrency": "ETH",
     "searchEngine": "Google",
-    "useBlockieIcon": true,
   },
   "signatureRequest": "object",
   "swaps": "object",

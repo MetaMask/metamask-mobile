@@ -11,16 +11,36 @@ import { EthMethod } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn()); // Returns unsubscribe function
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      addListener: mockAddListener,
+    })),
+    useFocusEffect: jest.fn((callback) => {
+      // Call the callback immediately to simulate focus
+      callback();
+    }),
   };
 });
+
+// Mock react-native-device-info to provide a valid version string
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.0.0'),
+}));
+
+// Mock the selectIsSwapsEnabled selector
+jest.mock('../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../core/redux/slices/bridge'),
+  selectIsSwapsEnabled: jest.fn(),
+}));
 
 // Mock the ramp hooks
 jest.mock('../../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => () => [
@@ -32,20 +52,31 @@ jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
   default: () => ({ isDepositEnabled: true }),
 }));
 
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
   const mockGoToSwaps = jest.fn();
-  const mockGoToBridge = jest.fn();
   const mockOnSend = jest.fn();
   const mockOnReceive = jest.fn();
 
   const defaultProps = {
-    displayFundButton: true,
+    displayBuyButton: true,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    swapsIsLive: true,
+    chainId: '0x1' as const,
     goToSwaps: mockGoToSwaps,
-    goToBridge: mockGoToBridge,
     onSend: mockOnSend,
     onReceive: mockOnReceive,
   };
@@ -65,6 +96,10 @@ describe('AssetDetailsActions', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockAddListener.mockClear();
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
   it('should render correctly', () => {
@@ -81,9 +116,8 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    expect(getByText(strings('asset_overview.fund_button'))).toBeTruthy();
+    expect(getByText(strings('asset_overview.buy_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.swap'))).toBeTruthy();
-    expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
     expect(getByText(strings('asset_overview.send_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.receive_button'))).toBeTruthy();
   });
@@ -99,7 +133,7 @@ describe('AssetDetailsActions', () => {
       { state: createStateWithSigningCapability() },
     );
 
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
@@ -115,7 +149,7 @@ describe('AssetDetailsActions', () => {
       { state: createStateWithSigningCapability() },
     );
 
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
@@ -125,7 +159,32 @@ describe('AssetDetailsActions', () => {
     });
   });
 
+  it('tracks action button click when buy button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: createStateWithSigningCapability() },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+
+    const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      action_name: 'buy',
+      action_position: 0, // ActionPosition.BUY = 0
+      button_label: strings('asset_overview.buy_button'),
+      location: 'home',
+    });
+    expect(mockEventBuilder.build).toHaveBeenCalled();
+  });
+
   it('calls goToSwaps when the swap button is pressed', () => {
+    // Given swaps are enabled
+    jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
+
     // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
@@ -137,20 +196,6 @@ describe('AssetDetailsActions', () => {
 
     // Then the goToSwaps callback should be called
     expect(mockGoToSwaps).toHaveBeenCalled();
-  });
-
-  it('calls goToBridge when the bridge button is pressed', () => {
-    // Given a state with an account that can sign transactions
-    const { getByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} />,
-      { state: createStateWithSigningCapability() },
-    );
-
-    // When the button is pressed
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON));
-
-    // Then the goToBridge callback should be called
-    expect(mockGoToBridge).toHaveBeenCalled();
   });
 
   it('calls onSend when the send button is pressed', () => {
@@ -177,13 +222,13 @@ describe('AssetDetailsActions', () => {
     expect(mockOnReceive).toHaveBeenCalled();
   });
 
-  it('does not render the buy button when displayFundButton is false', () => {
+  it('does not render the buy button when displayBuyButton is false', () => {
     const { queryByText } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} displayFundButton={false} />,
+      <AssetDetailsActions {...defaultProps} displayBuyButton={false} />,
       { state: initialRootState },
     );
 
-    expect(queryByText(strings('asset_overview.fund_button'))).toBeNull();
+    expect(queryByText(strings('asset_overview.buy_button'))).toBeNull();
   });
 
   it('does not render the swap button when displaySwapsButton is false', () => {
@@ -195,58 +240,15 @@ describe('AssetDetailsActions', () => {
     expect(queryByText(strings('asset_overview.swap'))).toBeNull();
   });
 
-  it('does not render the bridge button when displayBridgeButton is false (unified UI enabled)', () => {
-    const { queryByText, queryByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} displayBridgeButton={false} />,
-      { state: initialRootState },
-    );
-
-    expect(queryByText(strings('asset_overview.bridge'))).toBeNull();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeNull();
-  });
-
-  it('renders the bridge button when displayBridgeButton is true (unified UI disabled)', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} displayBridgeButton />,
-      { state: initialRootState },
-    );
-
-    expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
-    expect(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
-  });
-
   it('renders correct number of buttons when unified UI is enabled', () => {
     const { queryByTestId } = renderWithProvider(
-      <AssetDetailsActions
-        {...defaultProps}
-        displayBridgeButton={false} // Unified UI enabled
-      />,
+      <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
     );
 
     // Should have 4 buttons: Buy, Swap, Send, Receive (no Bridge)
-    expect(queryByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
-    expect(
-      queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
-    ).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeNull();
-  });
-
-  it('renders correct number of buttons when unified UI is disabled', () => {
-    const { queryByTestId } = renderWithProvider(
-      <AssetDetailsActions
-        {...defaultProps}
-        displayBridgeButton // Unified UI disabled
-      />,
-      { state: initialRootState },
-    );
-
-    // Should have 5 buttons: Buy, Swap, Bridge, Send, Receive
-    expect(queryByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON)).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
     expect(
       queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
@@ -293,7 +295,6 @@ describe('AssetDetailsActions', () => {
 
     const buttons = [
       TokenOverviewSelectorsIDs.SWAP_BUTTON,
-      TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
       TokenOverviewSelectorsIDs.SEND_BUTTON,
     ];
 

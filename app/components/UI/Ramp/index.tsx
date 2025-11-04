@@ -9,6 +9,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import {
   FiatOrder,
   getPendingOrders,
+  getForceUpdateOrders,
   addFiatOrder,
   updateFiatOrder,
   getCustomOrderIds,
@@ -32,6 +33,7 @@ import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+import useDetectGeolocation from './hooks/useDetectGeolocation';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
@@ -51,7 +53,7 @@ export async function processFiatOrder(
     const state = getState();
     const existingOrder = getOrderById(state, updatedOrder.id);
     if (existingOrder?.state !== updatedOrder.state) {
-      const [event, params] = getOrderAnalyticsPayload(updatedOrder);
+      const [event, params] = getOrderAnalyticsPayload(updatedOrder, state);
       if (event && params) {
         trackEvent(event, params);
       }
@@ -80,9 +82,8 @@ async function processCustomOrderId(
     dispatchThunk: (thunk: ThunkAction) => void;
   },
 ) {
-  const [customOrderId, fiatOrderResponse] = await processCustomOrderIdData(
-    customOrderIdData,
-  );
+  const [customOrderId, fiatOrderResponse] =
+    await processCustomOrderIdData(customOrderIdData);
 
   if (fiatOrderResponse) {
     const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);
@@ -116,18 +117,14 @@ const styles = StyleSheet.create({
 
 function FiatOrders() {
   useFetchRampNetworks();
+  useDetectGeolocation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const authenticationUrls = useSelector<any, string[]>(getAuthenticationUrls);
+  const pendingOrders = useSelector(getPendingOrders);
+  const forceUpdateOrders = useSelector(getForceUpdateOrders);
+  const customOrderIds = useSelector(getCustomOrderIds);
+  const authenticationUrls = useSelector(getAuthenticationUrls);
 
   const dispatchAddFiatOrder = useCallback(
     (order: FiatOrder) => {
@@ -192,6 +189,20 @@ function FiatOrders() {
     },
     {
       delay: customOrderIds.length ? POLLING_FREQUENCY : null,
+      immediate: true,
+    },
+  );
+
+  useInterval(
+    async () => {
+      await Promise.all(
+        forceUpdateOrders.map((order) =>
+          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk),
+        ),
+      );
+    },
+    {
+      delay: forceUpdateOrders.length ? POLLING_FREQUENCY : null,
       immediate: true,
     },
   );

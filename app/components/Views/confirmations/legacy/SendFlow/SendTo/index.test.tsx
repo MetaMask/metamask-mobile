@@ -9,6 +9,7 @@ import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { validateAddressOrENS } from '../../../../../../util/address';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -47,7 +48,7 @@ describe('SendTo Component', () => {
       transaction: {
         selectedAsset: {},
       },
-      settings: { useBlockieIcon: false },
+      settings: { avatarAccountType: AvatarAccountType.Maskicon },
     });
 
     mockValidateAddressOrENS.mockResolvedValue(

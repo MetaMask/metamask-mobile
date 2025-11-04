@@ -1,10 +1,16 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import { usePerpsPositionData } from './usePerpsPositionData';
-import type { PriceUpdate } from '../controllers/types';
-import { formatPrice, formatLargeNumber } from '../utils/formatUtils';
-import { calculate24hHighLow } from '../utils/marketUtils';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+import type { PriceUpdate } from '../controllers/types';
+import {
+  formatFundingRate,
+  formatLargeNumber,
+  formatPerpsFiat,
+  LARGE_NUMBER_RANGES_DETAILED,
+  PRICE_RANGES_UNIVERSAL,
+} from '../utils/formatUtils';
+import { calculate24hHighLow } from '../utils/marketUtils';
+import { usePerpsPositionData } from './usePerpsPositionData';
 
 interface MarketStats {
   high24h: string;
@@ -48,6 +54,35 @@ export const usePerpsMarketStats = (
     if (!symbol) return;
 
     let unsubscribe: (() => void) | undefined;
+    const findCoin = (update: PriceUpdate) => update.coin === symbol;
+
+    const callback = (updates: PriceUpdate[]) => {
+      const update = updates.find(findCoin);
+      if (update) {
+        // Only extract market data, ignore price changes to prevent re-renders
+        setMarketData((prev) => {
+          // Check if market data actually changed
+          if (
+            prev.funding === update.funding &&
+            prev.openInterest === update.openInterest &&
+            prev.volume24h === update.volume24h
+          ) {
+            return prev; // Return same reference if no change
+          }
+
+          return {
+            funding: update.funding,
+            openInterest: update.openInterest,
+            volume24h: update.volume24h,
+          };
+        });
+
+        // Store initial price only once for high/low calculation fallback
+        if (!initialPrice && update.price) {
+          setInitialPrice(Number.parseFloat(update.price));
+        }
+      }
+    };
 
     const subscribeToMarketData = async () => {
       try {
@@ -55,32 +90,7 @@ export const usePerpsMarketStats = (
         unsubscribe = Engine.context.PerpsController.subscribeToPrices({
           symbols: [symbol],
           includeMarketData: true,
-          callback: (updates: PriceUpdate[]) => {
-            const update = updates.find((u) => u.coin === symbol);
-            if (update) {
-              // Only extract market data, ignore price changes to prevent re-renders
-              setMarketData((prev) => {
-                // Check if market data actually changed
-                if (
-                  prev.funding === update.funding &&
-                  prev.openInterest === update.openInterest &&
-                  prev.volume24h === update.volume24h
-                ) {
-                  return prev; // Return same reference if no change
-                }
-                return {
-                  funding: update.funding,
-                  openInterest: update.openInterest,
-                  volume24h: update.volume24h,
-                };
-              });
-
-              // Store initial price only once for high/low calculation fallback
-              if (!initialPrice && update.price) {
-                setInitialPrice(parseFloat(update.price));
-              }
-            }
-          },
+          callback,
         });
       } catch (error) {
         console.error('Error subscribing to market data:', error);
@@ -102,30 +112,30 @@ export const usePerpsMarketStats = (
     const fallbackPrice = initialPrice || 0;
 
     return {
-      // 24h high/low from candlestick data, with fallback estimates
+      // 24h high/low from candlestick data, with fallback estimates (4 sig figs)
       high24h:
         high > 0
-          ? formatPrice(high, { minimumDecimals: 2, maximumDecimals: 2 })
-          : formatPrice(fallbackPrice, {
-              minimumDecimals: 2,
-              maximumDecimals: 2,
+          ? formatPerpsFiat(high, { ranges: PRICE_RANGES_UNIVERSAL })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_UNIVERSAL,
             }),
       low24h:
         low > 0
-          ? formatPrice(low, { minimumDecimals: 2, maximumDecimals: 2 })
-          : formatPrice(fallbackPrice, {
-              minimumDecimals: 2,
-              maximumDecimals: 2,
+          ? formatPerpsFiat(low, { ranges: PRICE_RANGES_UNIVERSAL })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_UNIVERSAL,
             }),
       volume24h: marketData.volume24h
-        ? `$${formatLargeNumber(marketData.volume24h)}`
+        ? `$${formatLargeNumber(marketData.volume24h, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
       openInterest: marketData.openInterest
-        ? `$${formatLargeNumber(marketData.openInterest)}`
+        ? `$${formatLargeNumber(marketData.openInterest, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
-      fundingRate: marketData.funding
-        ? `${(marketData.funding * 100).toFixed(4)}%`
-        : '0.0000%',
+      fundingRate: formatFundingRate(marketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !candleData,
     };
@@ -138,8 +148,12 @@ export const usePerpsMarketStats = (
     // Market data (funding, volume, etc.) will update via WebSocket subscriptions
   }, [refreshCandleData]);
 
-  return {
-    ...stats,
-    refresh,
-  };
+  // Memoize the final return object to prevent unnecessary re-renders
+  return useMemo(
+    () => ({
+      ...stats,
+      refresh,
+    }),
+    [stats, refresh],
+  );
 };

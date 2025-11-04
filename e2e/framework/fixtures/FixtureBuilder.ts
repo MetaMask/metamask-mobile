@@ -1,10 +1,13 @@
 import {
   getGanachePort,
+  getSecondTestDappLocalUrl,
+  getTestDappLocalUrl,
   getMockServerPort,
   getTestDappLocalUrlByDappCounter,
+  AnvilPort,
 } from './FixtureUtils';
 import { merge } from 'lodash';
-import { encryptVault } from './FixtureHelper';
+import { encryptVault } from './helpers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import {
@@ -22,6 +25,12 @@ import {
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
+import {
+  MOCK_ENTROPY_SOURCE,
+  MOCK_ENTROPY_SOURCE_2,
+  MOCK_ENTROPY_SOURCE_3,
+} from '../../../app/util/test/keyringControllerTestUtils';
+import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -40,7 +49,18 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
-const DAPP_URL = 'localhost';
+// AccountTreeController Wallet and Group IDs - reused across fixtures
+export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
+export const ENTROPY_WALLET_2_ID = `entropy:${MOCK_ENTROPY_SOURCE_2}`;
+export const ENTROPY_WALLET_3_ID = `entropy:${MOCK_ENTROPY_SOURCE_3}`;
+export const QR_HARDWARE_WALLET_ID = 'keyring:QR Hardware Wallet Device';
+export const SIMPLE_KEYRING_WALLET_ID = 'keyring:Simple Key Pair';
+
+// Snap Wallet IDs - using real Snap IDs from the codebase
+export const SIMPLE_KEYRING_SNAP_ID =
+  'snap:npm:@metamask/snap-simple-keyring-snap';
+export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
+export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -94,6 +114,46 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Ensures that the multichain accounts intro modal is suppressed by setting the appropriate flag.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  ensureMultichainIntroModalSuppressed() {
+    if (!this.fixture?.state?.user) {
+      this.fixture.state.user = {};
+    }
+    this.fixture.state.user.multichainAccountsIntroModalSeen = true;
+    return this;
+  }
+
+  /**
+   * Defines a Perps profile for E2E mocks.
+   * The value is stored in the PerpsController state so that the mocks can read it.
+   * @param profile Profile, e.g.: 'no-funds', 'default'.
+   * @returns {FixtureBuilder}
+   */
+  withPerpsProfile(profile: string) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      // Field only for E2E; read by the mocks mixin
+      mockProfile: profile,
+    });
+    return this;
+  }
+
+  /**
+   * Forces the Perps first-time flag in the initial state.
+   * @param firstTime true to show tutorial; false to mark as seen.
+   */
+  withPerpsFirstTimeUser(firstTime: boolean) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      isFirstTimeUser: {
+        testnet: firstTime,
+        mainnet: firstTime,
+      },
+    });
+    return this;
+  }
+
   withSolanaFeatureSheetDisplayed() {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};
@@ -113,8 +173,7 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withTestNetworksOff() {
-    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks =
-      false;
+    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks = false;
     return this;
   }
 
@@ -501,6 +560,27 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
+            PerpsController: {
+              isFirstTimeUser: {
+                testnet: false,
+                mainnet: false,
+              },
+            },
+            NetworkEnablementController: {},
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: false,
+                  featureVersion: null,
+                  minimumVersion: null,
+                },
+                enableMultichainAccountsState2: {
+                  enabled: false,
+                  featureVersion: null,
+                  minimumVersion: null,
+                },
+              },
+            },
           },
         },
         privacy: {
@@ -531,7 +611,7 @@ class FixtureBuilder {
           searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
-          useBlockieIcon: true,
+          avatarAccountType: 'Maskicon', // Must match the enum in AvatarAccountType form app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types.ts
           hideZeroBalanceTokens: false,
           basicFunctionalityEnabled: true,
         },
@@ -558,6 +638,7 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
           existingUser: true,
+          multichainAccountsIntroModalSeen: true,
         },
         onboarding: {
           events: [],
@@ -802,7 +883,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = DAPP_URL,
+    dappUrl = getTestDappLocalUrl(),
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -876,7 +957,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
+        getSecondTestDappLocalUrl(),
       );
     }
     this.withPermissionController(
@@ -1163,9 +1244,8 @@ class FixtureBuilder {
           const balanceInWei = (
             finalBalance * Math.pow(10, token.decimals)
           ).toString(16);
-          tokenBalances[accountAddress][chainId][
-            token.address
-          ] = `0x${balanceInWei}`;
+          tokenBalances[accountAddress][chainId][token.address] =
+            `0x${balanceInWei}`;
         });
       });
     });
@@ -1188,7 +1268,13 @@ class FixtureBuilder {
     return this;
   }
 
-  withGanacheNetwork(chainId = '0x539') {
+  /**
+   * @deprecated Use withNetworkController instead
+   * @param chainId
+   * @param port
+   * @returns
+   */
+  withGanacheNetwork(chainId = '0x539', port = AnvilPort()) {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
@@ -1203,7 +1289,7 @@ class FixtureBuilder {
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: `http://localhost:${getGanachePort()}`,
+          url: `http://localhost:${port}`,
           type: 'custom',
           name: 'Localhost',
         },
@@ -1264,6 +1350,43 @@ class FixtureBuilder {
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
     // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
+  }
+
+  /**
+   * Configure Polygon network to route through mock server proxy
+   * This allows RPC calls to be intercepted by the mock server
+   */
+  withPolygon(chainId = CHAIN_IDS.POLYGON) {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    const polygonNetworkConfig = {
+      chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: `http://localhost:${getMockServerPort()}/proxy?url=https://polygon-rpc.com`,
+          type: 'custom',
+          name: 'Polygon Localhost',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      blockExplorerUrls: ['https://polygonscan.com'],
+      name: 'Polygon Localhost',
+      nativeCurrency: 'MATIC',
+    };
+
+    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
+      polygonNetworkConfig;
+
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
     return this.ensureSolanaModalSuppressed();
   }
 
@@ -1606,9 +1729,6 @@ class FixtureBuilder {
       isBackupAndSyncUpdateLoading: false,
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
-      hasAccountSyncingSyncedAtLeastOnce: true,
-      isAccountSyncingReadyToBeDispatched: true,
-      isAccountSyncingInProgress: false,
       isContactSyncingInProgress: false,
     });
 
@@ -1777,9 +1897,6 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
-      hasAccountSyncingSyncedAtLeastOnce: false,
-      isAccountSyncingReadyToBeDispatched: true,
-      isAccountSyncingInProgress: false,
     };
     return this;
   }
@@ -1793,6 +1910,354 @@ class FixtureBuilder {
   withSeedphraseBackedUpDisabled() {
     this.fixture.state.user.seedphraseBackedUp = false;
     return this;
+  }
+
+  /**
+   * Merges provided data into the background state of the AccountTreeController.
+   * If no data is provided, sets up a comprehensive default state following @metamask/account-tree-controller specs
+   * with pre-defined grouping rules. Uses existing entropy sources (MOCK_ENTROPY_SOURCE),
+   * real keyring types (KeyringTypes.hd, .qr, .simple), and actual Snap IDs from the codebase.
+   * If custom wallets are provided, they completely replace the defaults.
+   * @param {object} data - Data to merge into the AccountTreeController's state. Optional.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withAccountTreeController(data: Record<string, unknown> = {}) {
+    // Define a comprehensive default state following @metamask/account-tree-controller specs
+    // Leverages existing keyring types, entropy sources (MOCK_ENTROPY_SOURCE*), and real Snap IDs from the codebase
+    const defaultAccountTreeState = {
+      accountTree: {
+        wallets: {
+          // Entropy-based Multichain Wallet (Primary SRP)
+          [ENTROPY_WALLET_1_ID]: {
+            id: ENTROPY_WALLET_1_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 1',
+              entropySource: MOCK_ENTROPY_SOURCE,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_1_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_1_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Account 1 - EVM address
+                  'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Account 1 - Solana address
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+              [`${ENTROPY_WALLET_1_ID}/account-2`]: {
+                id: `${ENTROPY_WALLET_1_ID}/account-2`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '5e8c6f1a-c372-5bed-9237-1f03c3d4e5b2', // Account 2 - EVM address
+                  'b2c3d4e5-f6g7-8901-bcde-f23456789012', // Account 2 - Solana address
+                ],
+                metadata: {
+                  name: 'Account 2',
+                },
+              },
+            },
+          },
+          // Secondary Entropy Wallet (Secondary SRP)
+          [ENTROPY_WALLET_2_ID]: {
+            id: ENTROPY_WALLET_2_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 2',
+              entropySource: MOCK_ENTROPY_SOURCE_2,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_2_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_2_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'f47ac10b-58cc-4372-a567-0e02b2c3d479', // Secondary wallet Account 1
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+            },
+          },
+          // Third Entropy-based Multichain Wallet (HD Keyring)
+          [ENTROPY_WALLET_3_ID]: {
+            id: ENTROPY_WALLET_3_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 3',
+              entropySource: MOCK_ENTROPY_SOURCE_3,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_3_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_3_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '6f9d7e2b-d483-6cfe-a348-2g14d4e5f6c3', // HD Account 1
+                  '7a0e8c3c-e594-7dg0-b459-3h25e5f6d7d4', // HD Account 2
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+            },
+          },
+          // QR Hardware Wallet (KeyringTypes.qr)
+          [QR_HARDWARE_WALLET_ID]: {
+            id: QR_HARDWARE_WALLET_ID,
+            type: 'Keyring',
+            metadata: {
+              name: 'QR Hardware Device',
+              keyringType: 'QR Hardware Wallet Device', // KeyringTypes.qr
+            },
+            groups: {
+              [`${QR_HARDWARE_WALLET_ID}/ethereum`]: {
+                id: `${QR_HARDWARE_WALLET_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'b374ca01-3934-e498-e5ba-d3409147f34e', // Hardware Account
+                ],
+                metadata: {
+                  name: 'Hardware Accounts',
+                },
+              },
+            },
+          },
+          // Simple Key Pair (KeyringTypes.simple)
+          [SIMPLE_KEYRING_WALLET_ID]: {
+            id: SIMPLE_KEYRING_WALLET_ID,
+            type: 'Keyring',
+            metadata: {
+              name: 'Imported Accounts',
+              keyringType: 'Simple Key Pair', // KeyringTypes.simple
+            },
+            groups: {
+              [`${SIMPLE_KEYRING_WALLET_ID}/ethereum`]: {
+                id: `${SIMPLE_KEYRING_WALLET_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '43e1c289-177e-cfbe-6ef3-4b5fb2b66ebc', // Imported Account
+                ],
+                metadata: {
+                  name: 'Private Key Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Simple Keyring Snap
+          [SIMPLE_KEYRING_SNAP_ID]: {
+            id: SIMPLE_KEYRING_SNAP_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Simple Keyring Snap',
+              snapId: 'npm:@metamask/snap-simple-keyring-snap',
+            },
+            groups: {
+              [`${SIMPLE_KEYRING_SNAP_ID}/ethereum`]: {
+                id: `${SIMPLE_KEYRING_SNAP_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'e697fe4b-399h-899i-fgh0-h567890124de', // Snap Account 1
+                ],
+                metadata: {
+                  name: 'Snap Ethereum Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Bitcoin Wallet Snap
+          [GENERIC_SNAP_WALLET_1_ID]: {
+            id: GENERIC_SNAP_WALLET_1_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Bitcoin Wallet Snap',
+              snapId: 'npm:@metamask/bitcoin-wallet-snap',
+            },
+            groups: {
+              [`${GENERIC_SNAP_WALLET_1_ID}/bitcoin`]: {
+                id: `${GENERIC_SNAP_WALLET_1_ID}/bitcoin`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'f798gf5c-4a0i-9a0j-ghi1-i678901235ef', // Bitcoin Account 1
+                ],
+                metadata: {
+                  name: 'Bitcoin Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Solana Wallet Snap
+          [GENERIC_SNAP_WALLET_2_ID]: {
+            id: GENERIC_SNAP_WALLET_2_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Solana Wallet Snap',
+              snapId: 'npm:@metamask/solana-wallet-snap',
+            },
+            groups: {
+              [`${GENERIC_SNAP_WALLET_2_ID}/solana`]: {
+                id: `${GENERIC_SNAP_WALLET_2_ID}/solana`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'g899hg6d-5b1j-0b1k-hij2-j789012346fg', // Solana Account 1
+                ],
+                metadata: {
+                  name: 'Solana Accounts',
+                },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: `${ENTROPY_WALLET_1_ID}/account-1`,
+      },
+    };
+
+    // Check if user provided their own wallets - if so, use those instead of defaults
+    const providedAccountTree = data.accountTree as {
+      wallets?: Record<string, unknown>;
+    };
+    const hasCustomWallets = providedAccountTree?.wallets;
+
+    let stateToMerge;
+    if (hasCustomWallets) {
+      // User provided custom wallets, so skip defaults and use their data directly
+      stateToMerge = data;
+    } else {
+      // No custom wallets provided, merge with comprehensive defaults
+      stateToMerge = merge({}, defaultAccountTreeState, data);
+    }
+
+    merge(
+      this.fixture.state.engine.backgroundState.AccountTreeController,
+      stateToMerge,
+    );
+
+    // Also update KeyringController to ensure compatibility with legacy UI
+    // This creates the accounts that the legacy account selection UI expects when multichain accounts are disabled
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'], // Imported account
+        },
+      ],
+      vault:
+        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+    });
+    return this;
+  }
+
+  withNetworkEnabledMap(
+    data: NetworkEnablementControllerState['enabledNetworkMap'],
+  ) {
+    const stateToMerge: NetworkEnablementControllerState = {
+      enabledNetworkMap: data,
+    };
+
+    merge(
+      this.fixture.state.engine.backgroundState.NetworkEnablementController,
+      stateToMerge,
+    );
+
+    return this;
+  }
+
+  withCleanBannerState() {
+    merge(this.fixture.state, {
+      banners: {
+        dismissedBanners: [],
+      },
+    });
+
+    return this;
+  }
+
+  withSnapController(data: Record<string, unknown> = {}) {
+    merge(this.fixture.state.engine.backgroundState.SnapController, data);
+    return this;
+  }
+
+  withSnapControllerOnStartLifecycleSnap() {
+    return this.withPermissionController({
+      subjects: {
+        'npm:@metamask/lifecycle-hooks-example-snap': {
+          origin: 'npm:@metamask/lifecycle-hooks-example-snap',
+          permissions: {
+            'endowment:lifecycle-hooks': {
+              caveats: null,
+              date: 1750244440562,
+              id: '0eKn8SjGEH6o_6Mhcq3Lw',
+              invoker: 'npm:@metamask/lifecycle-hooks-example-snap',
+              parentCapability: 'endowment:lifecycle-hooks',
+            },
+            snap_dialog: {
+              caveats: null,
+              date: 1750244440562,
+              id: 'Fbme_UWcuSK92JqfrT4G2',
+              invoker: 'npm:@metamask/lifecycle-hooks-example-snap',
+              parentCapability: 'snap_dialog',
+            },
+          },
+        },
+      },
+    }).withSnapController({
+      snaps: {
+        'npm:@metamask/lifecycle-hooks-example-snap': {
+          auxiliaryFiles: [],
+          blocked: false,
+          enabled: true,
+          id: 'npm:@metamask/lifecycle-hooks-example-snap',
+          initialPermissions: {
+            'endowment:lifecycle-hooks': {},
+            snap_dialog: {},
+          },
+          localizationFiles: [],
+          manifest: {
+            description:
+              'MetaMask example snap demonstrating the use of the `onStart`, `onInstall`, and `onUpdate` lifecycle hooks.',
+            initialPermissions: {
+              'endowment:lifecycle-hooks': {},
+              snap_dialog: {},
+            },
+            manifestVersion: '0.1',
+            platformVersion: '8.1.0',
+            proposedName: 'Lifecycle Hooks Example Snap',
+            repository: {
+              type: 'git',
+              url: 'https://github.com/MetaMask/snaps.git',
+            },
+            source: {
+              location: {
+                npm: {
+                  filePath: 'dist/bundle.js',
+                  packageName: '@metamask/lifecycle-hooks-example-snap',
+                  registry: 'https://registry.npmjs.org',
+                },
+              },
+              shasum: '5tlM5E71Fbeid7I3F0oQURWL7/+0620wplybtklBCHQ=',
+            },
+            version: '2.2.0',
+          },
+          sourceCode:
+            // eslint-disable-next-line no-template-curly-in-string
+            '(()=>{var e={d:(n,t)=>{for(var a in t)e.o(t,a)&&!e.o(n,a)&&Object.defineProperty(n,a,{enumerable:!0,get:t[a]})},o:(e,n)=>Object.prototype.hasOwnProperty.call(e,n),r:e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})}},n={};(()=>{"use strict";function t(e,n,t){if("string"==typeof e)throw new Error(`An HTML element ("${String(e)}") was used in a Snap component, which is not supported by Snaps UI. Please use one of the supported Snap components.`);if(!e)throw new Error("A JSX fragment was used in a Snap component, which is not supported by Snaps UI. Please use one of the supported Snap components.");return e({...n,key:t})}function a(e){return Object.fromEntries(Object.entries(e).filter((([,e])=>void 0!==e)))}function r(e){return n=>{const{key:t=null,...r}=n;return{type:e,props:a(r),key:t}}}e.r(n),e.d(n,{onInstall:()=>p,onStart:()=>l,onUpdate:()=>d});const o=r("Box"),s=r("Text"),l=async()=>await snap.request({method:"snap_dialog",params:{type:"alert",content:t(o,{children:t(s,{children:\'The client was started successfully, and the "onStart" handler was called.\'})})}}),p=async()=>await snap.request({method:"snap_dialog",params:{type:"alert",content:t(o,{children:t(s,{children:\'The Snap was installed successfully, and the "onInstall" handler was called.\'})})}}),d=async()=>await snap.request({method:"snap_dialog",params:{type:"alert",content:t(o,{children:t(s,{children:\'The Snap was updated successfully, and the "onUpdate" handler was called.\'})})}})})(),module.exports=n})();',
+          status: 'stopped',
+          version: '2.2.0',
+          versionHistory: [
+            {
+              date: 1750244439310,
+              origin: 'https://metamask.github.io',
+              version: '2.2.0',
+            },
+          ],
+        },
+      },
+    });
   }
 
   /**

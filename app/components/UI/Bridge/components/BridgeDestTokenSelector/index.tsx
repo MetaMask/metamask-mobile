@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -32,6 +33,7 @@ import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -57,7 +59,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const selectedDestToken = useSelector(selectDestToken);
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
-  const { tokens: tokensList, pending } = useTokens({
+  const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedDestChainId,
     balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
@@ -68,6 +70,19 @@ export const BridgeDestTokenSelector: React.FC = () => {
       navigation.goBack();
     },
     [dispatch, navigation],
+  );
+
+  const debouncedTokenPress = useMemo(
+    () => debounce(handleTokenPress, 500),
+    [handleTokenPress],
+  );
+
+  // Cleanup debounced function on unmount and dependency changes
+  useEffect(
+    () => () => {
+      debouncedTokenPress.cancel();
+    },
+    [debouncedTokenPress],
   );
 
   const renderToken = useCallback(
@@ -85,15 +100,13 @@ export const BridgeDestTokenSelector: React.FC = () => {
         networkConfigurations,
       );
 
-      // Open the asset details screen as a bottom sheet
-      // Use dispatch with unique key to force new modal instance
+      // Open the token insights bottom sheet
       const handleInfoButtonPress = () => {
-        navigation.dispatch({
-          type: 'NAVIGATE',
-          payload: {
-            name: 'Asset',
-            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
-            params: { ...item },
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.TOKEN_INSIGHTS,
+          params: {
+            token: item,
+            networkName,
           },
         });
 
@@ -112,7 +125,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       return (
         <TokenSelectorItem
           token={item}
-          onPress={handleTokenPress}
+          onPress={debouncedTokenPress}
           networkName={networkName}
           networkImageSource={getNetworkImageSource({
             chainId: item.chainId as Hex,
@@ -134,7 +147,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       );
     },
     [
-      handleTokenPress,
+      debouncedTokenPress,
       networkConfigurations,
       selectedDestToken,
       navigation,
@@ -151,9 +164,11 @@ export const BridgeDestTokenSelector: React.FC = () => {
         ) : undefined
       }
       renderTokenItem={renderToken}
-      tokensList={tokensList}
+      allTokens={allTokens}
+      tokensToRender={tokensToRender}
       pending={pending}
       chainIdToFetchMetadata={selectedDestChainId}
+      scrollResetKey={selectedDestChainId}
     />
   );
 };

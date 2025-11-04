@@ -1,6 +1,19 @@
-import { AccountGroupObject } from '@metamask/account-tree-controller';
+import {
+  AccountGroupObject,
+  AccountWalletObject,
+} from '@metamask/account-tree-controller';
 import { RefObject } from 'react';
 import { FlashListProps, FlashListRef } from '@shopify/flash-list';
+import { AccountWalletId } from '@metamask/account-api';
+
+/**
+ * Account section data structure
+ */
+export interface AccountSection {
+  title: string;
+  wallet: AccountWalletObject;
+  data: AccountGroupObject[];
+}
 
 /**
  * Flattened item type for the account list
@@ -8,7 +21,8 @@ import { FlashListProps, FlashListRef } from '@shopify/flash-list';
 export type FlattenedMultichainAccountListItem =
   | { type: 'cell'; data: AccountGroupObject; walletName: string }
   | { type: 'header'; data: { title: string; walletName: string } }
-  | { type: 'footer'; data: { walletName: string } };
+  | { type: 'footer'; data: { walletName: string; walletId: AccountWalletId } }
+  | { type: 'external'; data: { address: string } };
 
 /**
  * Props for MultichainAccountSelectorList component
@@ -22,7 +36,7 @@ export interface MultichainAccountSelectorListProps
   /**
    * Selected account group
    */
-  selectedAccountGroup: AccountGroupObject;
+  selectedAccountGroups: AccountGroupObject[];
   /**
    * Test ID for the component
    */
@@ -31,6 +45,45 @@ export interface MultichainAccountSelectorListProps
    * Reference to the FlashList component
    */
   listRef?: RefObject<FlashListRef<FlattenedMultichainAccountListItem>>;
+  /**
+   * Optional boolean to show checkbox
+   */
+  showCheckbox?: boolean;
+  /**
+   * Optional boolean to show footer
+   */
+  showFooter?: boolean;
+  /**
+   * Optional boolean to set keyboard avoiding view enabled
+   */
+  setKeyboardAvoidingViewEnabled?: (enabled: boolean) => void;
+  /**
+   * Optional account sections to override the default account sections from selector
+   * Should be in the same format as selectAccountGroupsByWallet returns
+   */
+  accountSections?: AccountSection[];
+  /**
+   * Optional chain ID that determines which account address and network avatar to display
+   */
+  chainId?: string;
+  /**
+   * Optional boolean to hide the account cell menu
+   */
+  hideAccountCellMenu?: boolean;
+  /**
+   * Optional boolean to show the external account on empty search
+   */
+  showExternalAccountOnEmptySearch?: boolean;
+  /**
+   * Optional callback to trigger when external account is selected
+   */
+  onSelectExternalAccount?: (address: string) => void;
+  /**
+   * Optional pre-selected external address to show in search and mark as selected.
+   * Should only be provided if the address is NOT in the user's accounts.
+   * The parent component is responsible for determining if an address is external.
+   */
+  selectedExternalAddress?: string;
 }
 
 /**
@@ -40,4 +93,5 @@ export interface WalletSection {
   title: string;
   data: AccountGroupObject[];
   walletName: string;
+  walletId: AccountWalletId;
 }

@@ -13,52 +13,40 @@ import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
 import ClipboardManager from '../../../../../core/ClipboardManager';
-import { useToAddressValidation } from '../../hooks/send/useToAddressValidation';
-import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
-import { useSendActions } from '../../hooks/send/useSendActions';
 import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
+  resetStateOnInput,
+  setPastedRecipient,
 }: {
   isRecipientSelectedFromList: boolean;
+  resetStateOnInput: () => void;
+  setPastedRecipient: (recipient?: string) => void;
 }) => {
   const { to, updateTo } = useSendContext();
   const inputRef = useRef<TextInput>(null);
-  const { validateToAddress } = useToAddressValidation();
-  const { setRecipientInputMethodPasted, captureRecipientSelected } =
-    useRecipientSelectionMetrics();
-  const { handleSubmitPress } = useSendActions();
 
   const handlePaste = useCallback(async () => {
+    resetStateOnInput();
     try {
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
         const trimmedText = clipboardText.trim();
-        const { error } = await validateToAddress(trimmedText);
-        if (!error) {
-          setRecipientInputMethodPasted();
-          captureRecipientSelected();
-          handleSubmitPress(clipboardText);
-          return;
-        }
         updateTo(trimmedText);
+        setPastedRecipient(trimmedText);
         setTimeout(() => {
           inputRef.current?.focus();
         }, 100);
+        return true;
       }
     } catch (error) {
       // Might consider showing an alert here if pasting fails
       // for now just ignore it
+      // eslint-disable-next-line no-console
+      console.log('error while pasting', error);
     }
-  }, [
-    updateTo,
-    inputRef,
-    validateToAddress,
-    setRecipientInputMethodPasted,
-    captureRecipientSelected,
-    handleSubmitPress,
-  ]);
+  }, [updateTo, inputRef, setPastedRecipient, resetStateOnInput]);
 
   const handleClearInput = useCallback(() => {
     updateTo('');
@@ -66,6 +54,15 @@ export const RecipientInput = ({
       inputRef.current?.blur();
     }, 100);
   }, [updateTo, inputRef]);
+
+  const handleTextChange = useCallback(
+    async (toAddress: string) => {
+      resetStateOnInput();
+      updateTo(toAddress);
+      setPastedRecipient(undefined);
+    },
+    [resetStateOnInput, setPastedRecipient, updateTo],
+  );
 
   const defaultStartAccessory = useMemo(
     () => <Text color={TextColor.TextAlternative}>{strings('send.to')}</Text>,
@@ -102,8 +99,8 @@ export const RecipientInput = ({
       <TextField
         autoCorrect={false}
         ref={inputRef}
-        value={isRecipientSelectedFromList ? '' : to}
-        onChangeText={updateTo}
+        value={to}
+        onChangeText={handleTextChange}
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="none"
@@ -112,6 +109,7 @@ export const RecipientInput = ({
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
         autoFocus={false}
+        testID="recipient-address-input"
       />
     </Box>
   );

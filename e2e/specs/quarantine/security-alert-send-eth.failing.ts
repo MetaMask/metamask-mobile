@@ -7,13 +7,21 @@ import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../tags';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../api-mocking/mockHelpers';
+} from '../../api-mocking/helpers/mockHelpers';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  securityAlertsUrl,
+} from '../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../framework/types';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
 
@@ -24,7 +32,25 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
   ) => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .build();
+        },
         restartDevice: true,
         testSpecificMock,
       },
@@ -42,20 +68,16 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
 
       await setupMockPostRequest(
         mockServer,
-        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
+        securityAlertsUrl('0x539'),
         {},
-        mockEvents.POST.securityAlertApiValidate.response,
+        SECURITY_ALERTS_BENIGN_RESPONSE,
         {
           statusCode: 201,
           ignoreFields: [
@@ -83,18 +105,13 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for malicious request', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
-
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
       await setupMockPostRequest(
         mockServer,
-        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
+        securityAlertsUrl('0x539'),
         {},
         {
           block: 20733277,
@@ -127,14 +144,10 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for error when validating request fails', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
 
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
@@ -147,7 +160,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
       await setupMockPostRequest(
         mockServer,
-        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
+        securityAlertsUrl('0x539'),
         {},
         {
           error: 'Internal Server Error',

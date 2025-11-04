@@ -5,4 +5,7 @@ export const styleSheet = () =>
     container: {
       flex: 1,
     },
+    banner: {
+      marginBottom: 16,
+    },
   });

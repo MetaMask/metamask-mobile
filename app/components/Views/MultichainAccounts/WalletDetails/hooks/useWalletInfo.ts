@@ -16,7 +16,7 @@ export const useWalletInfo = (wallet: AccountWalletObject) => {
   const globalSRPBackedUp = useSelector(selectSeedphraseBackedUp);
 
   const accounts = useMemo(
-    () => getInternalAccountsFromWallet(wallet),
+    () => (wallet ? getInternalAccountsFromWallet(wallet) : []),
     [wallet],
   );
 

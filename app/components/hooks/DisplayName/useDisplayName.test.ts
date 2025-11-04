@@ -6,7 +6,9 @@ import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useNftNames } from './useNftName';
-import { useInternalAccountNames } from './useInternalAccountNames';
+import { useAccountNames } from './useAccountNames';
+import { useAccountWalletNames } from './useAccountWalletNames';
+import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
@@ -16,6 +18,7 @@ const KNOWN_NFT_NAME_MOCK = 'Known NFT';
 const KNOWN_FIRST_PARTY_CONTRACT_NAME = 'Pool Staking';
 const KNOWN_TOKEN_LIST_NAME = 'Known Token List';
 const KNOWN_ACCOUNT_NAME = 'Account 1';
+const KNOWN_ACCOUNT_WALLET_NAME = 'Account Wallet 1';
 
 jest.mock('./useWatchedNFTNames', () => ({
   useWatchedNFTNames: jest.fn(),
@@ -33,9 +36,22 @@ jest.mock('./useNftName', () => ({
   useNftNames: jest.fn(),
 }));
 
-jest.mock('./useInternalAccountNames', () => ({
-  useInternalAccountNames: jest.fn(),
+jest.mock('./useAccountNames', () => ({
+  useAccountNames: jest.fn(),
 }));
+
+jest.mock('./useAccountWalletNames', () => ({
+  useAccountWalletNames: jest.fn(),
+}));
+
+jest.mock(
+  '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions',
+  () => ({
+    useSendFlowEnsResolutions: jest.fn(() => ({
+      getResolvedENSName: jest.fn(),
+    })),
+  }),
+);
 
 describe('useDisplayName', () => {
   const mockUseWatchedNFTNames = jest.mocked(useWatchedNFTNames);
@@ -44,7 +60,10 @@ describe('useDisplayName', () => {
   );
   const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
   const mockUseNFTNames = jest.mocked(useNftNames);
-  const mockUseInternalAccountNames = jest.mocked(useInternalAccountNames);
+  const mockUseAccountNames = jest.mocked(useAccountNames);
+  const mockUseAccountWalletNames = jest.mocked(useAccountWalletNames);
+  const mockUseSendFlowEnsResolutions = jest.mocked(useSendFlowEnsResolutions);
+  const mockGetResolvedENSName = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -52,7 +71,11 @@ describe('useDisplayName', () => {
     mockUseFirstPartyContractNames.mockReturnValue([]);
     mockUseERC20Tokens.mockReturnValue([]);
     mockUseNFTNames.mockReturnValue([]);
-    mockUseInternalAccountNames.mockReturnValue([]);
+    mockUseAccountNames.mockReturnValue([]);
+    mockUseAccountWalletNames.mockReturnValue([]);
+    mockUseSendFlowEnsResolutions.mockReturnValue({
+      getResolvedENSName: mockGetResolvedENSName,
+    } as unknown as ReturnType<typeof useSendFlowEnsResolutions>);
   });
 
   describe('unknown address', () => {
@@ -150,7 +173,7 @@ describe('useDisplayName', () => {
     });
 
     it('returns internal account name', () => {
-      mockUseInternalAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
+      mockUseAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
 
       const displayName = useDisplayName({
         type: NameType.EthereumAddress,
@@ -162,6 +185,40 @@ describe('useDisplayName', () => {
         expect.objectContaining({
           variant: DisplayNameVariant.Saved,
           name: KNOWN_ACCOUNT_NAME,
+        }),
+      );
+    });
+
+    it('returns account wallet name', () => {
+      mockUseAccountWalletNames.mockReturnValue([KNOWN_ACCOUNT_WALLET_NAME]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          subtitle: KNOWN_ACCOUNT_WALLET_NAME,
+        }),
+      );
+    });
+
+    it('returns ENS name', () => {
+      mockUseSendFlowEnsResolutions.mockReturnValue({
+        getResolvedENSName: jest.fn().mockReturnValue('ensname.eth'),
+      } as unknown as ReturnType<typeof useSendFlowEnsResolutions>);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          name: 'ensname.eth',
         }),
       );
     });

@@ -1,15 +1,35 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { handleFetch } from '@metamask/controller-utils';
 import useFetchTokenRatesMulti from './useTokenRates';
-import { USDC_TOKEN, USDT_TOKEN, USD_CURRENCY } from '../constants';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 jest.mock('@metamask/controller-utils', () => ({
   handleFetch: jest.fn(),
 }));
 
+const MOCK_USDC_TOKEN: DepositCryptoCurrency = {
+  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  chainId: 'eip155:1',
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+};
+
+const MOCK_USDT_TOKEN: DepositCryptoCurrency = {
+  assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  chainId: 'eip155:1',
+  name: 'Tether USD',
+  symbol: 'USDT',
+  decimals: 6,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
+};
+
 describe('useFetchTokenRatesMulti', () => {
-  const mockTokens = [USDC_TOKEN, USDT_TOKEN];
-  const mockFiatCurrency = USD_CURRENCY;
+  const mockTokens = [MOCK_USDC_TOKEN, MOCK_USDT_TOKEN];
+  const mockFiatCurrency = 'USD';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -112,8 +132,8 @@ describe('useFetchTokenRatesMulti', () => {
         useFetchTokenRatesMulti({ tokens, fiatCurrency }),
       {
         initialProps: {
-          tokens: [USDC_TOKEN],
-          fiatCurrency: USD_CURRENCY,
+          tokens: [MOCK_USDC_TOKEN],
+          fiatCurrency: 'USD',
         },
       },
     );
@@ -121,8 +141,8 @@ describe('useFetchTokenRatesMulti', () => {
     await waitForNextUpdate();
 
     rerender({
-      tokens: [USDT_TOKEN],
-      fiatCurrency: USD_CURRENCY,
+      tokens: [MOCK_USDT_TOKEN],
+      fiatCurrency: 'USD',
     });
 
     expect(result.current.isLoading).toBe(true);

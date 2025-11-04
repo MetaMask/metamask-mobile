@@ -93,7 +93,7 @@ const TransactionsFooter = ({
       return null;
     }
 
-    if (isMainnetByChainId(chainId) || providerType !== RPC) {
+    if (isMainnetByChainId(chainId) || (providerType && providerType !== RPC)) {
       return strings('transactions.view_full_history_on_etherscan');
     }
 
@@ -110,7 +110,7 @@ const TransactionsFooter = ({
 
   return (
     <View>
-      {blockExplorerText && (
+      {blockExplorerText && rpcBlockExplorer && (
         <View style={styles.viewMoreWrapper}>
           <Button
             variant={ButtonVariants.Link}

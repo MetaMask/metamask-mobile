@@ -1,4 +1,9 @@
 /* eslint-disable react/prop-types */
+
+/**
+ * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native`
+ */
+
 import React from 'react';
 
 // External dependencies.

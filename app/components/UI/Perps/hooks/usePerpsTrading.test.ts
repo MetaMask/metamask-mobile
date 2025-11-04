@@ -247,6 +247,8 @@ describe('usePerpsTrading', () => {
             sinceOpen: '10',
             sinceChange: '5',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -267,9 +269,10 @@ describe('usePerpsTrading', () => {
     it('should call PerpsController.getAccountState and return account state', async () => {
       const mockAccountState: AccountState = {
         availableBalance: '10000',
-        totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '16.67',
+        totalBalance: '10500',
       };
 
       (
@@ -290,9 +293,10 @@ describe('usePerpsTrading', () => {
     it('should call getAccountState without parameters', async () => {
       const mockAccountState: AccountState = {
         availableBalance: '10000',
-        totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '16.67',
+        totalBalance: '10500',
       };
 
       (
@@ -525,6 +529,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
+        coin: 'BTC',
       };
 
       const response = await result.current.calculateFees(params);
@@ -551,6 +556,7 @@ describe('usePerpsTrading', () => {
         orderType: 'limit' as const,
         isMaker: true,
         amount: '100000',
+        coin: 'BTC',
       };
 
       const resultPromise = result.current.calculateFees(params);
@@ -575,6 +581,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
+        coin: 'BTC',
       };
 
       await expect(result.current.calculateFees(params)).rejects.toThrow(
@@ -603,6 +610,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market',
         isMaker: false,
         amount: '100000',
+        coin: 'BTC',
       });
       expect(marketResult).toEqual(mockMarketFeeResult);
 
@@ -615,6 +623,7 @@ describe('usePerpsTrading', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
+        coin: 'BTC',
       });
       expect(limitResult).toEqual(mockLimitFeeResult);
     });

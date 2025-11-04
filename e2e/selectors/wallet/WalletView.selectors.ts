@@ -4,11 +4,12 @@ export const WalletViewSelectorsIDs = {
   WALLET_CONTAINER: 'wallet-screen',
   NETWORK_NAME: 'network-name',
   NFT_CONTAINER: 'collectible-name',
-
+  WALLET_SCAN_BUTTON: 'wallet-scan-button',
   WALLET_NOTIFICATIONS_BUTTON: 'wallet-notifications-button',
   WALLET_TOKEN_DETECTION_LINK_BUTTON: 'wallet-token-detection-link-button',
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   CARD_BUTTON: 'card-button',
+  CARD_BUTTON_BADGE: 'card-button-badge',
   STAKE_BUTTON: 'stake-button',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
@@ -25,7 +26,7 @@ export const WalletViewSelectorsIDs = {
   TOKENS_CONTAINER: 'tokens',
   TOKENS_CONTAINER_LIST: 'token-list',
   ACCOUNT_OVERVIEW: 'account-overview',
-  ACCOUNT_ACTIONS: 'main-wallet-account-actions',
+  ACCOUNT_ACTIONS: 'multichain-account-cell-menu',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
   EYE_SLASH_ICON: 'balance-container',
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
@@ -33,9 +34,11 @@ export const WalletViewSelectorsIDs = {
   NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
+  SORT_BUTTON: 'token-sort-button',
   SORT_BY: 'sort-by',
   NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
-  TOKEN_NETWORK_FILTER: 'token-network-filter',
+  TOKEN_NETWORK_FILTER: 'tokens-network-filter',
+  COLLECTIBLES_NETWORK_FILTER: 'collectibles-network-filter',
   TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
   TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
   NAVBAR_TITLE_TEXT: 'navbar-title-text',
@@ -72,19 +75,25 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
+  DEFI_POSITIONS_SCROLL_VIEW: 'defi-positions-scroll-view',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
   // Wallet-specific action buttons to avoid conflicts with TokenOverview
-  WALLET_FUND_BUTTON: 'wallet-fund-button',
+  WALLET_BUY_BUTTON: 'wallet-buy-button',
   WALLET_SWAP_BUTTON: 'wallet-swap-button',
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',
   WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
+  // Balance Empty State - displayed when account group has zero balance across all networks
+  BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
+  BALANCE_EMPTY_STATE_ACTION_BUTTON:
+    'account-group-balance-empty-state-action-button',
 } as const;
 
 export const WalletViewSelectorsText = {
   IMPORT_TOKENS: `${enContent.wallet.no_available_tokens} ${enContent.wallet.add_tokens}`,
   NFTS_TAB: enContent.wallet.collectibles,
   TOKENS_TAB: enContent.wallet.tokens,
+  PERPS_TAB: enContent.wallet.perps,
   HIDE_TOKENS: enContent.wallet.remove,
   STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',
@@ -92,8 +101,12 @@ export const WalletViewSelectorsText = {
   PERMISSIONS_SUMMARY_TAB: 'Permissions',
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
   DEFI_TAB: enContent.wallet.defi,
-  DEFI_NO_VISIBLE_POSITIONS: enContent.defi_positions.no_visible_positions,
-  DEFI_NOT_SUPPORTED: enContent.defi_positions.not_supported,
+  PREDICTIONS_TAB: enContent.wallet.predict,
+  AVAILABLE_BALANCE: enContent.predict.available_balance,
+  DEFI_EMPTY_STATE_DESCRIPTION:
+    enContent.defi_positions.empty_state.description,
+  DEFI_EMPTY_STATE_EXPLORE_BUTTON:
+    enContent.defi_positions.empty_state.explore_defi,
   DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
   DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 } as const;

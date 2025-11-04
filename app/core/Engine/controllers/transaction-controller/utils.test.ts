@@ -147,6 +147,25 @@ describe('getTransactionTypeValue', () => {
       'unknown',
     );
   });
+
+  it.each([
+    ['predict_claim', TransactionType.predictClaim],
+    ['predict_deposit', TransactionType.predictDeposit],
+    ['predict_withdraw', TransactionType.predictWithdraw],
+  ])('returns %s if nested transaction type is %s', (expected, nestedType) => {
+    const mockTransactionMeta = {
+      type: TransactionType.simpleSend,
+      nestedTransactions: [
+        {
+          type: nestedType,
+        },
+      ],
+    } as TransactionMeta;
+
+    expect(
+      getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
+    ).toBe(expected);
+  });
 });
 
 describe('generateRPCProperties', () => {
@@ -218,7 +237,7 @@ describe('generateDefaultTransactionMetrics', () => {
         confirmationMetrics: {
           metricsById: mockMetricsById,
         },
-      } as unknown as RootState),
+      }) as unknown as RootState,
   );
 
   const mockEventHandlerRequest: Partial<TransactionEventHandlerRequest> = {
@@ -266,10 +285,7 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_type: 'simple_send',
       },
       sensitiveProperties: {
-        from_address: FROM_ADDRESS_MOCK,
         sensitive_data: 'sensitive_value',
-        to_address: undefined,
-        value: undefined,
       },
     });
   });
@@ -304,11 +320,6 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_envelope_type: undefined,
         transaction_internal_id: 'test-id-123',
         transaction_type: 'simple_send',
-      },
-      sensitiveProperties: {
-        from_address: FROM_ADDRESS_MOCK,
-        to_address: undefined,
-        value: undefined,
       },
     });
   });
@@ -527,7 +538,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -539,6 +550,7 @@ describe('generateDefaultTransactionMetrics', () => {
         chain_id: '0xaa36a7',
         dapp_host_name: 'metamask.github.io',
         eip7702_upgrade_transaction: true,
+        error: undefined,
         gas_estimation_failed: true,
         gas_fee_presented: ['custom'],
         gas_fee_selected: undefined,
@@ -562,7 +574,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -571,6 +583,7 @@ describe('generateDefaultTransactionMetrics', () => {
         chain_id: '0xaa36a7',
         dapp_host_name: 'metamask',
         eip7702_upgrade_transaction: true,
+        error: undefined,
         gas_estimation_failed: true,
         gas_fee_presented: ['custom'],
         gas_fee_selected: undefined,
@@ -599,7 +612,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -609,6 +622,7 @@ describe('generateDefaultTransactionMetrics', () => {
         dapp_host_name: 'metamask',
         eip7702_upgrade_rejection: true,
         eip7702_upgrade_transaction: true,
+        error: undefined,
         gas_estimation_failed: true,
         gas_fee_presented: ['custom'],
         gas_fee_selected: undefined,
@@ -631,7 +645,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [batchApprovalConfirmation.id]: {} },
               },
-            } as RootState),
+            }) as RootState,
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -643,6 +657,7 @@ describe('generateDefaultTransactionMetrics', () => {
         chain_id: '0x1',
         dapp_host_name: 'jumper123.exchange',
         eip7702_upgrade_transaction: false,
+        error: undefined,
         gas_estimation_failed: false,
         gas_fee_presented: ['custom', 'low', 'medium', 'high'],
         gas_fee_selected: 'medium',

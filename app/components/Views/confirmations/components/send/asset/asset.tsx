@@ -10,11 +10,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 
+import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
-import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { TokenList } from '../../token-list';
 import { NftList } from '../../nft-list';
@@ -22,14 +22,18 @@ import { NftList } from '../../nft-list';
 import { AssetType } from '../../../types/token';
 import { NetworkFilter } from '../../network-filter';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const Asset = () => {
-  const tokens = useSelectedEVMAccountTokens();
+  const tokens = useAccountTokens();
   const nfts = useEVMNfts();
   const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
     useState<AssetType[]>(tokens);
   const [selectedNetworkFilter, setSelectedNetworkFilter] =
     useState<string>('all');
+  const theme = useTheme();
+  const { bottom: bottomOffset } = useSafeAreaInsets();
 
   const {
     searchQuery,
@@ -103,6 +107,9 @@ export const Asset = () => {
           size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
+          style={{
+            borderColor: theme.colors.border.muted,
+          }}
         />
       </Box>
       <NetworkFilter
@@ -112,7 +119,7 @@ export const Asset = () => {
         onExposeFilterControls={handleExposeFilterControls}
         onNetworkFilterChange={handleNetworkFilterChange}
       />
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: bottomOffset }}>
         {hasNoResults && hasActiveFilters ? (
           <Box twClassName="items-center py-8 px-4">
             <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">
@@ -135,7 +142,7 @@ export const Asset = () => {
           <>
             {filteredTokens.length > 0 && (
               <Text
-                twClassName="m-4 mt-4"
+                twClassName="m-4 mt-2 mb-2"
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
@@ -146,7 +153,7 @@ export const Asset = () => {
             <TokenList tokens={filteredTokens} />
             {filteredNfts.length > 0 && (
               <Text
-                twClassName="m-4 mt-4"
+                twClassName="m-4 mt-4 mb-4"
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}

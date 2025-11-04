@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { ChainId } from '@metamask/controller-utils';
+import { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { stakingApiService } from '../sdk/stakeSdkProvider';
+import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
+import { EVM_SCOPE } from '../../Earn/constants/networks';
 
 export interface EarningHistory {
   sumRewards: string;
@@ -28,8 +30,12 @@ const useStakingEarningsHistory = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : '';
   const fetchEarningsHistory = useCallback(async () => {
     if (stakingApiService) {
       setIsLoading(true);

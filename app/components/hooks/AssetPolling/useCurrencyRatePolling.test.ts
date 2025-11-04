@@ -61,6 +61,14 @@ describe('useCurrencyRatePolling', () => {
               '0x89': true,
             },
           },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+                '0x89': true,
+              },
+            },
+          },
         },
       },
     } as unknown as RootState;
@@ -111,6 +119,14 @@ describe('useCurrencyRatePolling', () => {
             tokenNetworkFilter: {
               '0x82750': true,
               '0x89': true,
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x82750': true,
+                '0x89': false,
+              },
             },
           },
         },
@@ -356,8 +372,7 @@ describe('useCurrencyRatePolling', () => {
       },
     } as unknown as RootState;
 
-    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+    it('should poll enabled EVM networks when global network selector is removed', () => {
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -371,20 +386,7 @@ describe('useCurrencyRatePolling', () => {
       ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH', 'POL'] });
     });
 
-    it('should poll current chain when portfolio view is disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
-      renderHookWithProvider(() => useCurrencyRatePolling(), {
-        state: baseState,
-      });
-
-      expect(
-        jest.mocked(Engine.context.CurrencyRateController.startPolling),
-      ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH'] });
-    });
-
     it('should handle empty enabled networks gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -414,7 +416,6 @@ describe('useCurrencyRatePolling', () => {
     });
 
     it('should handle missing network configurations gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -447,7 +448,6 @@ describe('useCurrencyRatePolling', () => {
     });
 
     it('should handle undefined enabled networks gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);

@@ -3,7 +3,9 @@ import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useNftNames } from './useNftName';
-import { useInternalAccountNames } from './useInternalAccountNames';
+import { useAccountNames } from './useAccountNames';
+import { useAccountWalletNames } from './useAccountWalletNames';
+import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -15,9 +17,10 @@ export interface UseDisplayNameRequest {
 export interface UseDisplayNameResponse {
   contractDisplayName?: string;
   image?: string;
-  name?: string;
-  variant: DisplayNameVariant;
   isFirstPartyContractName?: boolean;
+  name?: string;
+  subtitle?: string;
+  variant: DisplayNameVariant;
 }
 
 /**
@@ -95,18 +98,23 @@ export function useDisplayNames(
   const watchedNftNames = useWatchedNFTNames(requests);
   const erc20Tokens = useERC20Tokens(requests);
   const nftNames = useNftNames(requests);
-  const accountNames = useInternalAccountNames(requests);
+  const accountNames = useAccountNames(requests);
+  const accountWalletNames = useAccountWalletNames(requests);
+  const { getResolvedENSName } = useSendFlowEnsResolutions();
 
-  return requests.map((_request, index) => {
+  return requests.map(({ value, variation }, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
     const erc20Token = erc20Tokens[index];
     const { name: nftCollectionName, image: nftCollectionImage } =
       nftNames[index] || {};
     const accountName = accountNames[index];
+    const subtitle = accountWalletNames[index];
+    const ensName = getResolvedENSName(variation, value);
 
     const name =
       accountName ||
+      ensName ||
       firstPartyContractName ||
       watchedNftName ||
       erc20Token?.name ||
@@ -120,9 +128,10 @@ export function useDisplayNames(
     return {
       contractDisplayName: erc20Token?.name,
       image,
-      name,
-      variant: getVariant({ name, accountName }),
       isFirstPartyContractName,
+      name,
+      subtitle,
+      variant: getVariant({ name, accountName }),
     };
   });
 }

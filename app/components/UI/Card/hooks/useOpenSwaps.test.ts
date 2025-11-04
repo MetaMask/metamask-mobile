@@ -89,6 +89,9 @@ describe('useOpenSwaps', () => {
     decimals: 6,
     name: 'USD Coin',
     chainId: '0xe708',
+    caipChainId: 'eip155:59144' as const,
+    allowanceState: 'enabled' as const,
+    allowance: '1000000',
   };
 
   const mockTopToken = {
@@ -154,10 +157,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-        cardholderAddress: '0xcard',
-      });
+      result.current.openSwaps({});
     });
 
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -168,12 +168,8 @@ describe('useOpenSwaps', () => {
       }),
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: '0xbeef',
-        symbol: 'ETHX',
-      }),
-    );
+    // goToSwaps is now called without arguments (sourceToken passed to hook)
+    expect(mockGoToSwaps).toHaveBeenCalled();
 
     expect(mockTrackEvent).toHaveBeenCalledWith('mock-event');
   });
@@ -192,19 +188,12 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-        cardholderAddress: '0xcard',
-      });
+      result.current.openSwaps({});
     });
 
     // The sourceToken should be created from the ethToken
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: '0xbeef',
-        symbol: 'ETHX',
-      }),
-    );
+    // goToSwaps is now called without arguments (sourceToken passed to hook)
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('honors beforeNavigate: closes first, then navigates when callback is invoked', () => {
@@ -221,8 +210,6 @@ describe('useOpenSwaps', () => {
 
     act(() => {
       result.current.openSwaps({
-        chainId: '0xe708',
-        cardholderAddress: '0xcard',
         beforeNavigate,
       });
     });
@@ -245,9 +232,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -258,12 +243,8 @@ describe('useOpenSwaps', () => {
       }),
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: '0xbeef',
-        symbol: 'ETHX',
-      }),
-    );
+    // goToSwaps is now called without arguments (sourceToken passed to hook)
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('passes undefined to goToSwaps if getHighestFiatToken returns undefined', () => {
@@ -274,13 +255,11 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-        cardholderAddress: '0xcard',
-      });
+      result.current.openSwaps({});
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(undefined);
+    // goToSwaps is now called without arguments
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('uses custom location and sourcePage when provided', () => {
@@ -306,9 +285,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
     expect(mockDispatch).not.toHaveBeenCalled();
@@ -321,12 +298,10 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
-    expect(buildTokenIconUrl).toHaveBeenCalledWith('0xe708', '0xdead');
+    expect(buildTokenIconUrl).toHaveBeenCalledWith('eip155:59144', '0xdead');
   });
 
   it('uses tokens with balance correctly', () => {

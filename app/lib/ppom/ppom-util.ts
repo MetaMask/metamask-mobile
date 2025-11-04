@@ -25,7 +25,7 @@ import {
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
-import { Messenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
 import { SignatureStateChange } from '@metamask/signature-controller';
 import cloneDeep from 'lodash/cloneDeep';
 
@@ -41,6 +41,7 @@ export interface PPOMRequest {
 }
 
 export type PPOMMessenger = Messenger<
+  'PPOMMessenger',
   never,
   SignatureStateChange | TransactionControllerUnapprovedTransactionAddedEvent
 >;
@@ -344,7 +345,8 @@ function normalizeTransactionRequest(
 
   request.origin = request.origin
     ?.replace(WALLET_CONNECT_ORIGIN, '')
-    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
+    ?.replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
 
   const txParams = (
     Array.isArray(request.params) ? request.params[0] : {}

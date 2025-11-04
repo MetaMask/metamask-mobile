@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
@@ -123,7 +123,7 @@ const PermissionsSummary = ({
 
   const hostname = useMemo(() => {
     try {
-      return new URL(currentPageInformation.url).hostname;
+      return new URL(currentPageInformation.url).origin;
     } catch {
       return currentPageInformation.url;
     }
@@ -221,7 +221,6 @@ const PermissionsSummary = ({
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
-              size={ButtonIconSizes.Sm}
               iconColor={IconColor.Default}
               onPress={onBack}
               iconName={IconName.ArrowLeft}
@@ -251,7 +250,7 @@ const PermissionsSummary = ({
                       metadata: {
                         origin:
                           currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).hostname,
+                          new URL(currentPageInformation?.url).origin,
                       },
                     },
                     connectionDateTime: new Date().getTime(),
@@ -641,10 +640,10 @@ const PermissionsSummary = ({
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
                 : !isAlreadyConnected || isNetworkSwitch
-                ? hostname
-                : strings('permissions.title_dapp_url_has_approval_to', {
-                    dappUrl: hostname,
-                  })}
+                  ? hostname
+                  : strings('permissions.title_dapp_url_has_approval_to', {
+                      dappUrl: hostname,
+                    })}
             </TextComponent>
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}

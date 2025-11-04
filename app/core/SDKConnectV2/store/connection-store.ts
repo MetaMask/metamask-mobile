@@ -1,38 +1,97 @@
-import { Connection } from '../types/connection';
 import { IConnectionStore } from '../types/connection-store';
+import { ConnectionInfo } from '../types/connection-info';
+import StorageWrapper from '../../../store/storage-wrapper';
+import logger from '../services/logger';
 
 /**
- * Placeholder implementation of the IConnectionStore.
- * For now, this class provides no-op implementations of the
- * required storage methods to satisfy the dependency requirements
- * of the ConnectionRegistry.
+ * An implementation of IConnectionStore to persist
+ * the metadata of established dApp connections.
  */
 export class ConnectionStore implements IConnectionStore {
-  save(_connection: Connection): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.save called but is not yet implemented.',
-    );
-    return Promise.resolve();
+  private readonly prefix: string;
+
+  constructor(prefix: string) {
+    this.prefix = prefix;
   }
 
-  get(_id: string): Promise<Connection | null> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.get called but is not yet implemented.',
-    );
-    return Promise.resolve(null);
+  private getKey(id: string): string {
+    return `${this.prefix}/${id}`;
   }
 
-  list(): Promise<Connection[]> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.list called but is not yet implemented.',
-    );
-    return Promise.resolve([]);
+  private extractId(key: string): string {
+    return key.replace(this.prefix + '/', '');
   }
 
-  delete(_id: string): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.delete called but is not yet implemented.',
+  /**
+   * Processes a raw JSON string from storage. It parses, validates expiration,
+   * and cleans up the record if it's invalid or expired.
+   * @param id - The connection ID.
+   * @param json - The raw JSON string from storage.
+   * @returns The valid ConnectionInfo object or null if invalid/expired.
+   */
+  private async toConnectionInfo(
+    id: string,
+    json: string | null,
+  ): Promise<ConnectionInfo | null> {
+    if (!json) return null;
+
+    try {
+      const connectionInfo = JSON.parse(json) as ConnectionInfo;
+
+      // Expiration check
+      if (connectionInfo.expiresAt < Date.now()) {
+        await this.delete(id)
+          .then(() => logger.debug('Deleted expired connection', id))
+          .catch(() =>
+            logger.error('Failed to delete expired connection:', id),
+          );
+        return null;
+      }
+
+      return connectionInfo;
+    } catch {
+      // Corrupted data, clean it up
+      await this.delete(id)
+        .then(() => logger.debug('Deleted corrupted connection', id))
+        .catch(() =>
+          logger.error('Failed to delete corrupted connection:', id),
+        );
+      return null;
+    }
+  }
+
+  async save(connection: ConnectionInfo): Promise<void> {
+    await StorageWrapper.setItem(
+      this.getKey(connection.id),
+      JSON.stringify(connection),
     );
-    return Promise.resolve();
+  }
+
+  async get(id: string): Promise<ConnectionInfo | null> {
+    const json = await StorageWrapper.getItem(this.getKey(id));
+    return this.toConnectionInfo(id, json);
+  }
+
+  async list(): Promise<ConnectionInfo[]> {
+    const keys = await StorageWrapper.getAllKeys();
+    const connectionKeys = keys.filter((key) => key.startsWith(this.prefix));
+
+    if (connectionKeys.length === 0) {
+      return [];
+    }
+
+    const items = await StorageWrapper.multiGet(connectionKeys);
+
+    const connInfos = await Promise.all(
+      items.map(([key, json]) =>
+        this.toConnectionInfo(this.extractId(key), json),
+      ),
+    );
+
+    return connInfos.filter((conn): conn is ConnectionInfo => conn !== null);
+  }
+
+  async delete(id: string): Promise<void> {
+    await StorageWrapper.removeItem(this.getKey(id));
   }
 }
