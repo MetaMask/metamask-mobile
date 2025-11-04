@@ -66,6 +66,28 @@ const PerpsModalStack = () => (
             title: strings('perps.cancel_all_modal.title'),
           }}
         />
+      </ModalStack.Navigator>
+    </PerpsStreamProvider>
+  </PerpsConnectionProvider>
+);
+
+const PerpsClosePositionBottomSheetStack = () => (
+  <PerpsConnectionProvider isFullScreen>
+    <PerpsStreamProvider>
+      <ModalStack.Navigator
+        mode="modal"
+        screenOptions={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
+      >
         <ModalStack.Screen
           name={Routes.PERPS.MODALS.TOOLTIP}
           component={PerpsTooltipView}
@@ -79,12 +101,7 @@ const PerpsScreenStack = () => (
   <PerpsConnectionProvider isFullScreen>
     <PerpsStreamProvider>
       <PerpsStreamBridge />
-      <Stack.Navigator
-        initialRouteName={Routes.PERPS.PERPS_TAB}
-        screenOptions={{
-          detachPreviousScreen: false,
-        }}
-      >
+      <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
         {/* Redirect to wallet perps tab */}
         <Stack.Screen
           name={Routes.PERPS.PERPS_TAB}
@@ -205,6 +222,21 @@ const PerpsScreenStack = () => (
           }}
         />
 
+        {/* Modal stack for ClosePosition bottom sheets (triggered bytooltip) */}
+        <Stack.Screen
+          name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
+          component={PerpsClosePositionBottomSheetStack}
+          options={{
+            headerShown: false,
+            cardStyle: {
+              backgroundColor: 'transparent',
+            },
+            animationEnabled: false,
+            // adding detachPreviousScreen to specific screen, rather than to the entire global stack
+            detachPreviousScreen: false,
+          }}
+        />
+
         {/* Modal stack for bottom sheet modals */}
         <Stack.Screen
           name={Routes.PERPS.MODALS.ROOT}
@@ -232,4 +264,4 @@ const PerpsScreenStack = () => (
 
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsModalStack };
+export { PerpsModalStack, PerpsClosePositionBottomSheetStack };
