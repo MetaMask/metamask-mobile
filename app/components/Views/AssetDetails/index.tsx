@@ -17,10 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
-import Networks, {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import Networks, { getDecimalChainId } from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
@@ -38,26 +35,15 @@ import {
   selectProviderConfig,
   selectNetworkConfigurationByChainId,
   selectIsAllNetworks,
-  selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import {
-  selectConversionRate,
   selectCurrentCurrency,
   selectConversionRateBySymbol,
 } from '../../../selectors/currencyRateController';
-import {
-  selectAllTokens,
-  selectTokens,
-} from '../../../selectors/tokensController';
-import {
-  selectContractExchangeRates,
-  selectTokenMarketDataByChainId,
-} from '../../../selectors/tokenRatesController';
-import {
-  selectContractBalances,
-  selectTokensBalances,
-} from '../../../selectors/tokenBalancesController';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectTokenMarketDataByChainId } from '../../../selectors/tokenRatesController';
+import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
@@ -136,9 +122,7 @@ const AssetDetails = (props: Props) => {
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
 
   const selectedAccountAddress = selectedAccountAddressEvm?.address;
-  const selectedChainId = useSelector(selectEvmChainId);
-  const chainId = isPortfolioViewEnabled() ? networkId : selectedChainId;
-  const tokens = useSelector(selectTokens);
+  const chainId = networkId;
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -152,7 +136,6 @@ const AssetDetails = (props: Props) => {
     [allTokens, networkId, selectedAccountAddress],
   );
 
-  const conversionRateLegacy = useSelector(selectConversionRate);
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
   );
@@ -166,11 +149,10 @@ const AssetDetails = (props: Props) => {
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
-  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
+
   const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
     selectTokenMarketDataByChainId(state, chainId),
   );
-  const tokenBalancesLegacy = useSelector(selectContractBalances);
   const allTokenBalances = useSelector(selectTokensBalances);
 
   const portfolioToken = useMemo(
@@ -178,20 +160,13 @@ const AssetDetails = (props: Props) => {
     [tokensByChain, address],
   );
 
-  const legacyToken = useMemo(
-    () => tokens.find((rawToken) => rawToken.address === address),
-    [tokens, address],
-  );
-
-  const token: TokenType | undefined = isPortfolioViewEnabled()
-    ? portfolioToken
-    : legacyToken;
+  const token: TokenType | undefined = portfolioToken;
 
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 
   const getNetworkName = useCallback(() => {
     let name = '';
-    if (isPortfolioViewEnabled() && isAllNetworks) {
+    if (isAllNetworks) {
       name = tokenNetworkConfig;
     } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
@@ -329,12 +304,7 @@ const AssetDetails = (props: Props) => {
 
   const renderTokenBalance = () => {
     let balanceDisplay = '';
-    const tokenExchangeRates = isPortfolioViewEnabled()
-      ? tokenExchangeRatesByChainId
-      : tokenExchangeRatesLegacy;
-    const tokenBalances = isPortfolioViewEnabled()
-      ? allTokenBalances
-      : tokenBalancesLegacy;
+    const tokenExchangeRates = tokenExchangeRatesByChainId;
 
     const multiChainTokenBalance =
       Object.keys(allTokenBalances).length > 0
@@ -343,13 +313,9 @@ const AssetDetails = (props: Props) => {
           ]
         : undefined;
 
-    const tokenBalance = isPortfolioViewEnabled()
-      ? multiChainTokenBalance
-      : tokenBalancesLegacy[address];
+    const tokenBalance = multiChainTokenBalance;
 
-    const conversionRate = isPortfolioViewEnabled()
-      ? conversionRateBySymbol
-      : conversionRateLegacy;
+    const conversionRate = conversionRateBySymbol;
 
     const exchangeRate =
       tokenExchangeRates && address in tokenExchangeRates
@@ -357,9 +323,7 @@ const AssetDetails = (props: Props) => {
         : undefined;
 
     const balance = tokenBalance
-      ? address in tokenBalances || isPortfolioViewEnabled() || !tokenBalance
-        ? renderFromTokenMinimalUnit(tokenBalance.toString(), decimals)
-        : undefined
+      ? renderFromTokenMinimalUnit(tokenBalance.toString(), decimals)
       : undefined;
 
     const balanceFiat = balance

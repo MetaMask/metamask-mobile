@@ -21,6 +21,7 @@ import {
   selectOnboardingId,
   resetOnboardingState,
   resetAuthenticatedData,
+  clearAllCache,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 
@@ -109,6 +110,9 @@ export const CardSDKProvider = ({
 
     await removeCardBaanxToken();
     removeAuthenticatedData();
+
+    // Clear all cached data (card details, priority tokens, etc.)
+    dispatch(clearAllCache());
 
     // reset onboarding state
     dispatch(resetOnboardingState());
