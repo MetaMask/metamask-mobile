@@ -167,6 +167,11 @@ export enum TraceName {
   PerpsWithdrawView = 'Perps Withdraw View',
   PerpsConnectionEstablishment = 'Perps Connection Establishment',
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
+  // Predict
+  PredictPlaceOrder = 'Predict Place Order',
+  PredictMarketDetailsView = 'Predict Market Details View',
+  PredictBuyPreviewView = 'Predict Buy Preview View',
+  PredictSellPreviewView = 'Predict Sell Preview View',
 }
 
 export enum TraceOperation {
@@ -208,6 +213,9 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  // Predict
+  PredictOperation = 'predict.operation',
+  PredictOrderSubmission = 'predict.order_submission',
 }
 
 const ID_DEFAULT = 'default';

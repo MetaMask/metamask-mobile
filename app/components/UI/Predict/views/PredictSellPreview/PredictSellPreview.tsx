@@ -21,6 +21,8 @@ import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
@@ -91,6 +93,15 @@ const PredictSellPreview = () => {
     side: Side.SELL,
     size: position.amount,
     autoRefreshTimeout: 1000,
+  });
+
+  // Track screen load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictSellPreviewView,
+    conditions: [
+      !!position, // Position data loaded
+      !!preview, // Sell quote received
+    ],
   });
 
   // Track Predict Action Initiated when screen mounts

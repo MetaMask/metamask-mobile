@@ -24,17 +24,27 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
+import type { Span } from '@sentry/core';
+import { v4 as uuidv4 } from 'uuid';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
   PredictEventType,
   PredictEventTypeValue,
 } from '../constants/eventNames';
+import { PredictMeasurementName } from '../constants/performanceMetrics';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
@@ -951,8 +961,12 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
+    const traceId = uuidv4();
     const startTime = performance.now();
     const { analyticsProperties, preview, providerId } = params;
+    let traceData:
+      | { success: boolean; error?: string; providerId?: string }
+      | undefined;
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
@@ -961,6 +975,31 @@ export class PredictController extends BaseController<
         : preview?.minAmountReceived;
 
     try {
+      // Start Sentry trace for the entire operation
+      const traceSpan = trace({
+        name: TraceName.PredictPlaceOrder,
+        id: traceId,
+        op: TraceOperation.PredictOrderSubmission,
+        tags: {
+          provider: providerId,
+          ...(analyticsProperties?.transactionType && {
+            transactionType: analyticsProperties.transactionType,
+          }),
+          ...(analyticsProperties?.marketType && {
+            marketType: analyticsProperties.marketType,
+          }),
+          ...(analyticsProperties?.outcome && {
+            outcome: analyticsProperties.outcome,
+          }),
+        },
+        data: {
+          side: preview.side,
+          ...(analyticsProperties?.marketId && {
+            marketId: analyticsProperties.marketId,
+          }),
+        },
+      }) as Span | undefined;
+
       const provider = this.providers.get(providerId);
       if (!provider) {
         throw new Error('Provider not available');
@@ -987,7 +1026,18 @@ export class PredictController extends BaseController<
         sharePrice,
       });
 
+      // Measure order submission time
+      const orderSubmissionStart = performance.now();
       const result = await provider.placeOrder({ ...params, signer });
+      const orderSubmissionDuration = performance.now() - orderSubmissionStart;
+
+      // Add measurement to trace
+      setMeasurement(
+        PredictMeasurementName.PREDICT_ORDER_SUBMISSION,
+        orderSubmissionDuration,
+        'millisecond',
+        traceSpan,
+      );
 
       // Track Predict Action Completed or Failed
       const completionDuration = performance.now() - startTime;
@@ -1020,6 +1070,8 @@ export class PredictController extends BaseController<
           completionDuration,
           sharePrice: realSharePrice,
         });
+
+        traceData = { success: true, providerId };
       } else {
         // Track Predict Action Failed (fire and forget)
         this.trackPredictOrderEvent({
@@ -1031,6 +1083,13 @@ export class PredictController extends BaseController<
           completionDuration,
           failureReason: result.error || 'Unknown error',
         });
+
+        traceData = {
+          success: false,
+          error: result.error || 'Unknown error',
+          providerId,
+        };
+
         throw new Error(result.error);
       }
 
@@ -1080,7 +1139,20 @@ export class PredictController extends BaseController<
         }),
       );
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+        providerId,
+      };
+
       throw new Error(errorMessage);
+    } finally {
+      // Always end trace on exit (success or failure)
+      endTrace({
+        name: TraceName.PredictPlaceOrder,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 

@@ -45,6 +45,8 @@ import PredictDetailsChart, {
 import PredictPositionDetail from '../../components/PredictPositionDetail';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import {
   PredictPriceHistoryInterval,
   PredictMarketStatus,
@@ -276,6 +278,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const chartEmptyLabel = hasAnyOutcomeToken
     ? (errors.find(Boolean) ?? undefined)
     : '';
+
+  // Track screen load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictMarketDetailsView,
+    conditions: [
+      !!market, // Market data loaded
+      !!chartData && chartData.length > 0, // Chart data loaded
+      !isMarketFetching, // Market not loading
+      !isPriceHistoryFetching, // Chart not loading
+    ],
+  });
 
   const handleTimeframeChange = (timeframe: string) => {
     if (

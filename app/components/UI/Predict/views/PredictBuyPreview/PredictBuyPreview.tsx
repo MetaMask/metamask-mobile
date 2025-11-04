@@ -50,6 +50,8 @@ import PredictKeypad, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
@@ -119,6 +121,15 @@ const PredictBuyPreview = () => {
   });
 
   const errorMessage = previewError ?? placeOrderError;
+
+  // Track screen load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictBuyPreviewView,
+    conditions: [
+      !isBalanceLoading, // Balance loaded
+      !!preview, // Initial preview/quote received
+    ],
+  });
 
   // Track Predict Action Initiated when screen mounts
   useEffect(() => {
