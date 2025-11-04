@@ -97,7 +97,7 @@ runs:
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
       run: |
-        # Check if we should skip (label check or non-PR event)
+        echo "e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
 
@@ -111,15 +111,14 @@ runs:
 
         if [[ "$SHOULD_SKIP" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
-          echo "tags=" >> "$GITHUB_OUTPUT"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          # The script will generate different GH output variables
+          # The script will generate the GH output variables
           node .github/scripts/e2e-smart-selection.mjs 
         fi
 
     - name: Delete previous comments
-      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != '' && steps.ai-analysis.outputs.pr_comment_file != ''
+      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
@@ -176,7 +175,7 @@ runs:
         # Build and post comment
         FULL_COMMENT="${TITLE}
         ${COMMENT_BODY}
-        
+
         ${FOOTER}
         ${MARKER}"
 
