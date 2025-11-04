@@ -92,6 +92,7 @@
     "release:ios": "./scripts/build.sh ios release",
     "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit",
+    "test:integration": "jest -c integration/jest.integration.config.js --watchman=false",
     "test:unit": "jest ./app/ ./locales/ ./e2e/**/*.test.ts .github/**/*.test.ts",
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
