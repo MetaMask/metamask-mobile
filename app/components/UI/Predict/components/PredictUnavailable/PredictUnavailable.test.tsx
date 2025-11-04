@@ -1,20 +1,28 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 import PredictUnavailable, {
   PredictUnavailableRef,
 } from './PredictUnavailable';
 
 const mockNavigate = jest.fn();
+const runAfterInteractionsCallbacks: (() => void)[] = [];
+const mockRunAfterInteractions = jest.spyOn(
+  InteractionManager,
+  'runAfterInteractions',
+);
+const runAfterInteractionsMockImpl: typeof InteractionManager.runAfterInteractions =
+  (task) => {
+    if (typeof task === 'function') {
+      runAfterInteractionsCallbacks.push(task as () => void);
+    }
 
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  InteractionManager: {
-    runAfterInteractions: (callback: () => void) => {
-      callback();
-      return { cancel: jest.fn() };
-    },
-  },
-}));
+    return {
+      then: jest.fn(),
+      done: jest.fn(),
+      cancel: jest.fn(),
+    } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+  };
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -193,10 +201,17 @@ describe('PredictUnavailable', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    runAfterInteractionsCallbacks.length = 0;
+    mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    mockRunAfterInteractions.mockReset();
+  });
+
+  afterAll(() => {
+    mockRunAfterInteractions.mockRestore();
   });
 
   describe('Component Rendering', () => {
@@ -426,6 +441,34 @@ describe('PredictUnavailable', () => {
       const termsLink = screen.getByTestId('polymarket-terms-link');
       expect(termsLink.props.onPress).toBeDefined();
       expect(typeof termsLink.props.onPress).toBe('function');
+    });
+
+    it('navigates to polymarket terms webview when link is pressed', () => {
+      // Arrange
+      const ref = React.createRef<PredictUnavailableRef>();
+
+      // Act
+      render(<PredictUnavailable ref={ref} onDismiss={mockOnDismiss} />);
+      act(() => {
+        ref.current?.onOpenBottomSheet();
+      });
+      const termsLink = screen.getByTestId('polymarket-terms-link');
+      act(() => {
+        termsLink.props.onPress();
+      });
+
+      // Assert
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+      const callback = runAfterInteractionsCallbacks[0];
+      expect(callback).toBeDefined();
+      callback?.();
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polymarket.com/tos',
+          title: 'Polymarket Terms',
+        },
+      });
     });
   });
 
