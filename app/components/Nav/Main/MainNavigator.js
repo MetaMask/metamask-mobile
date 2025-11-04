@@ -199,11 +199,6 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="AddAsset"
-      component={AddAsset}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
       name="Collectible"
       component={Collectible}
       options={Collectible.navigationOptions}
