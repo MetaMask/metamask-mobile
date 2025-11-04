@@ -19,7 +19,7 @@ import {
 } from '../../util/middlewares';
 import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
-import Logger from '../../util/Logger';
+import Logger, { AsyncLogger } from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
@@ -150,6 +150,8 @@ export class BackgroundBridge extends EventEmitter {
 
     this.lastSelectedSolanaAccountAddress = null;
 
+    console.log("jiexi background bridge for", this.channelIdOrOrigin)
+
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       this.origin,
@@ -255,9 +257,12 @@ export class BackgroundBridge extends EventEmitter {
       this.notifyChainChanged();
     }
 
+    Logger.log('jiexi backgroundBridge constructor', this.isRemoteConn);
+
     if (this.isRemoteConn) {
       const memState = this.getState();
       const selectedAddress = memState.selectedAddress;
+      Logger.log('jiexi backgroundBridge constructor notify', memState, selectedAddress);
       this.notifyChainChanged();
       this.notifySelectedAddressChanged(selectedAddress);
     }
@@ -371,6 +376,7 @@ export class BackgroundBridge extends EventEmitter {
       );
       approvedAccounts = getPermittedAccounts(this.channelIdOrOrigin);
 
+      Logger.log('jiexi notifySelectedAddressChanged approved accounts', approvedAccounts, selectedAddress);
       // Check if selectedAddress is approved
       const found = approvedAccounts.some((addr) =>
         areAddressesEqual(addr, selectedAddress),
@@ -389,6 +395,7 @@ export class BackgroundBridge extends EventEmitter {
           `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
           { approvedAccounts },
         );
+        Logger.log('jiexi notifySelectedAddressChanged notifying', approvedAccounts);
         this.sendNotificationEip1193({
           method: NOTIFICATION_NAMES.accountsChanged,
           params: approvedAccounts,
@@ -411,7 +418,9 @@ export class BackgroundBridge extends EventEmitter {
     const publicState = await this.getProviderNetworkState(
       this.channelIdOrOrigin,
     );
+    Logger.log('jiexi onStateUpdate', memState, publicState);
     // Check if update already sent
+    Logger.log('jiexi onStateUpdate', this.lastChainIdSent, this.networkVersionSent);
     if (
       this.lastChainIdSent !== publicState.chainId ||
       (this.networkVersionSent !== publicState.networkVersion &&
@@ -423,13 +432,17 @@ export class BackgroundBridge extends EventEmitter {
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
+      const accountControllerSelectedAddress = toFormattedAddress(
+        Engine.context.AccountsController.getSelectedAccount().address,
+      );
+      Logger.log('jiexi onStateUpdate', this.isRemoteConn, this.addressSent, memState.selectedAddress, accountControllerSelectedAddress);
       if (
         this.addressSent != null &&
-        memState.selectedAddress != null &&
-        !areAddressesEqual(this.addressSent, memState.selectedAddress)
+        accountControllerSelectedAddress != null &&
+        !areAddressesEqual(this.addressSent, accountControllerSelectedAddress)
       ) {
-        this.addressSent = memState.selectedAddress;
-        this.notifySelectedAddressChanged(memState.selectedAddress);
+        this.addressSent = accountControllerSelectedAddress;
+        this.notifySelectedAddressChanged(accountControllerSelectedAddress);
       }
     }
   }
@@ -446,6 +459,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   sendStateUpdate = () => {
+    Logger.log('jiexi sendStateUpdate');
     this.emit('update');
   };
 
@@ -1133,14 +1147,17 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const {
-      PreferencesController: { selectedAddress },
-    } = Engine.datamodel.state;
+    // const {
+    //   PreferencesController: { selectedAddress },
+    // } = Engine.datamodel.state;
+    const accountControllerSelectedAddress = toFormattedAddress(
+      Engine.context.AccountsController.getSelectedAccount().address,
+    );
     return {
       isInitialized: !!vault,
       isUnlocked: true,
       network: legacyNetworkId(),
-      selectedAddress,
+      selectedAddress: accountControllerSelectedAddress,
     };
   }
 

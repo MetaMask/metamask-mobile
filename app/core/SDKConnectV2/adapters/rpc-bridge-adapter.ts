@@ -9,6 +9,7 @@ import { ConnectionInfo } from '../types/connection-info';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
 import { whenStoreReady } from '../utils/when-store-ready';
+import Logger from '../../../util/Logger';
 
 export class RPCBridgeAdapter
   extends EventEmitter
@@ -25,6 +26,7 @@ export class RPCBridgeAdapter
     super();
     this.connInfo = connInfo;
     this.processQueue = this.processQueue.bind(this);
+    this.ensureInitialized();
   }
 
   /**
@@ -79,6 +81,7 @@ export class RPCBridgeAdapter
    * Is triggered when new messages are received or the keyring is unlocked.
    */
   private async processQueue(): Promise<void> {
+    console.log('jiexi processQueue');
     await this.ensureInitialized();
 
     if (
@@ -108,6 +111,8 @@ export class RPCBridgeAdapter
    */
   private createClient(): BackgroundBridge {
     const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.connInfo.id}`;
+
+    Logger.log('jiexi rpc bridge adapter createClient', middlewareHostname);
 
     return new BackgroundBridge({
       webview: null,

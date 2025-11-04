@@ -15,6 +15,7 @@ import logger from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
+import Logger from '../../../util/Logger';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -64,6 +65,7 @@ export class ConnectionRegistry {
         );
         await conn.resume();
         this.connections.set(conn.id, conn);
+        Logger.log('jiexi connection registry initialize', conn.id, this.hostapp);
         logger.debug('Connection resumed', conn.id);
       } catch (error) {
         logger.error('Failed to resume connection', connInfo.id, error);
