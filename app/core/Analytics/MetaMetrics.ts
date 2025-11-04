@@ -41,6 +41,7 @@ import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 import { segmentPersistor } from './SegmentPersistor';
+import { isHexAddress } from '@metamask/utils';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -298,7 +299,7 @@ class MetaMetrics implements IMetaMetrics {
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
     const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
-    if (legacyId) {
+    if (legacyId && isHexAddress(legacyId.toLowerCase())) {
       this.metametricsId = legacyId;
       await StorageWrapper.setItem(METAMETRICS_ID, legacyId);
       return legacyId;
