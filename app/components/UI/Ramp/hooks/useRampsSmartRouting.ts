@@ -45,6 +45,7 @@ export default function useRampsSmartRouting() {
 
       try {
         // TODO: Remove this once the API is ready and use the actual API route instead
+        // https://consensyssoftware.atlassian.net/browse/TRAM-2807
         const response = await fetch(
           `/endpoint-coming-soon?region=${rampGeodetectedRegion}`,
         );
