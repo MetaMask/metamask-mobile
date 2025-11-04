@@ -164,9 +164,9 @@ export const POLYMARKET_CURRENT_POSITIONS_RESPONSE = [
 ];
 /*
 *endpoint: /positions?user&redeemable=true
-This is all your positions in resolved markets
+This contains all lost positions in resolved markets (no winning positions)
 */
-export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_RESPONSE = [
+export const POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE = [
   {
     proxyWallet: PROXY_WALLET_ADDRESS,
     asset:

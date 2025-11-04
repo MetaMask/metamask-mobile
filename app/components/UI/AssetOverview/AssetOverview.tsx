@@ -84,6 +84,7 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -123,6 +124,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
+
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
@@ -323,6 +326,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
+          region: rampGeodetectedRegion,
         })
         .build(),
     );

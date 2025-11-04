@@ -93,7 +93,8 @@ export type PredictMarket = {
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
-  categories: PredictCategory[];
+  category: PredictCategory;
+  tags: string[];
   outcomes: PredictOutcome[];
   liquidity: number;
   volume: number;
