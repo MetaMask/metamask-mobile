@@ -17,7 +17,7 @@ import I18n from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TotalFiatBalancesCrossChains } from '../useGetTotalFiatBalanceCrossChains';
-import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
+import { isTestNet } from '../../../util/networks';
 
 // Production balance calculation (EVM)
 const getEvmBalance = (
@@ -29,24 +29,14 @@ const getEvmBalance = (
   const balance = Engine.getTotalEvmFiatAccountBalance(account);
   let total;
 
-  const isPortfolioEnabled = isPortfolioViewEnabled();
-
   if (isOriginalNativeEvmTokenSymbol) {
-    if (isPortfolioEnabled) {
-      total =
-        totalFiatBalancesCrossEvmChain[account?.address as string]
-          ?.totalFiatBalance ?? 0;
-    } else {
-      const tokenFiatTotal = balance?.tokenFiat ?? 0;
-      const ethFiatTotal = balance?.ethFiat ?? 0;
-      total = tokenFiatTotal + ethFiatTotal;
-    }
-  } else if (isPortfolioEnabled) {
+    total =
+      totalFiatBalancesCrossEvmChain[account?.address as string]
+        ?.totalFiatBalance ?? 0;
+  } else {
     total =
       totalFiatBalancesCrossEvmChain[account?.address as string]
         ?.totalTokenFiat ?? 0;
-  } else {
-    total = balance?.tokenFiat ?? 0;
   }
 
   const displayBalance = formatWithThreshold(total, 0, I18n.locale, {

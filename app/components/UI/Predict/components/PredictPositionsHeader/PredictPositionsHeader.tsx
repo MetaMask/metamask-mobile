@@ -32,8 +32,9 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-import { selectPredictClaimablePositions } from '../../selectors/predictController';
-import { PredictPosition, PredictPositionStatus } from '../../types';
+import { selectPredictWonPositions } from '../../selectors/predictController';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
@@ -71,8 +72,12 @@ const PredictPositionsHeader = forwardRef<
     loadOnMount: true,
     refreshOnFocus: true,
   });
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
-  const claimablePositions = useSelector(selectPredictClaimablePositions);
+  const wonPositions = useSelector(
+    selectPredictWonPositions({ address: selectedAddress }),
+  );
 
   const {
     unrealizedPnL,
@@ -110,14 +115,6 @@ const PredictPositionsHeader = forwardRef<
     },
   }));
 
-  const wonPositions = useMemo(
-    () =>
-      claimablePositions.filter(
-        (position) => position.status === PredictPositionStatus.WON,
-      ),
-    [claimablePositions],
-  );
-
   const totalClaimableAmount = useMemo(
     () =>
       wonPositions.reduce(
@@ -152,7 +149,11 @@ const PredictPositionsHeader = forwardRef<
     });
   };
 
-  if (isBalanceLoading || isUnrealizedPnLLoading) {
+  if (
+    isBalanceLoading ||
+    isUnrealizedPnLLoading ||
+    (!hasClaimableAmount && !shouldShowMainCard)
+  ) {
     return null;
   }
 

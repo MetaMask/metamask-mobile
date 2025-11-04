@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -94,6 +94,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
+  const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const { marketId, entryPoint } = route.params || {};
   const resolvedMarketId = marketId;
@@ -104,7 +106,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     navigation,
   });
 
-  const { market, isFetching: isMarketFetching } = usePredictMarket({
+  const {
+    market,
+    isFetching: isMarketFetching,
+    refetch: refetchMarket,
+  } = usePredictMarket({
     id: resolvedMarketId,
     providerId,
     enabled: Boolean(resolvedMarketId),
@@ -112,7 +118,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const claimable = market?.status === PredictMarketStatus.CLOSED;
 
-  const { positions, isLoading: isPositionsLoading } = usePredictPositions({
+  const {
+    positions,
+    isLoading: isPositionsLoading,
+    loadPositions,
+  } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: claimable && !isMarketFetching,
   });
@@ -213,11 +223,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const hasAnyOutcomeToken = loadedOutcomeTokenIds.length > 0;
   const multipleOutcomes = loadedOutcomeTokenIds.length > 1;
   const singleOutcomeMarket = loadedOutcomeTokenIds.length === 1;
+  const multipleOpenOutcomesPartiallyResolved =
+    loadedOutcomeTokenIds.length > 1 &&
+    !!market?.outcomes?.some(
+      (outcome) => outcome.resolutionStatus === 'resolved',
+    );
 
   const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
-
-  // Use the updated hook with multiple market IDs
-  const { priceHistories, isFetching, errors } = usePredictPriceHistory({
+  const {
+    priceHistories,
+    isFetching: isPriceHistoryFetching,
+    errors,
+    refetch: refetchPriceHistory,
+  } = usePredictPriceHistory({
     marketIds: loadedOutcomeTokenIds,
     interval: selectedTimeframe,
     providerId,
@@ -314,6 +332,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     setUserSelectedTab(true);
     setActiveTab(tabIndex);
   };
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.allSettled([
+      refetchMarket(),
+      refetchPriceHistory(),
+      loadPositions({ isRefresh: true }),
+    ]);
+    setIsRefreshing(false);
+  }, [loadPositions, refetchMarket, refetchPriceHistory]);
 
   type TabKey = 'positions' | 'outcomes' | 'about';
 
@@ -471,7 +499,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const renderMarketStatus = () => (
     <Box twClassName="pt-4 gap-2">
       <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
-        {winningOutcomeToken && (
+        {winningOutcomeToken && !multipleOpenOutcomesPartiallyResolved && (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -704,6 +732,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   // see if there are any positions with positive percentPnl
   const hasPositivePnl = positions.some((position) => position.percentPnl > 0);
 
+  const closedOutcomes = useMemo(
+    () =>
+      market?.outcomes?.filter((outcome) => outcome.status === 'closed') ?? [],
+    [market?.outcomes],
+  );
+  const openOutcomes = useMemo(
+    () =>
+      market?.outcomes?.filter((outcome) => outcome.status === 'open') ?? [],
+    [market?.outcomes],
+  );
+
   const renderActionButtons = () => (
     <>
       {(() => {
@@ -801,7 +840,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           twClassName="px-3 pt-4 pb-8"
           testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
         >
-          {market?.status === PredictMarketStatus.CLOSED ? (
+          {market?.status === PredictMarketStatus.CLOSED &&
+          singleOutcomeMarket ? (
             <Box>
               {winningOutcome && (
                 <PredictMarketOutcome
@@ -819,6 +859,112 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   isClosed
                 />
               )}
+            </Box>
+          ) : market?.status === PredictMarketStatus.OPEN &&
+            multipleOutcomes &&
+            multipleOpenOutcomesPartiallyResolved ? (
+            <Box>
+              <Pressable
+                onPress={() => setIsResolvedExpanded((prev) => !prev)}
+                style={({ pressed }) =>
+                  tw.style(
+                    'w-full rounded-xl bg-default px-4 py-3 mt-2 mb-4 bg-muted',
+                    pressed && 'bg-pressed',
+                  )
+                }
+                accessibilityRole="button"
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Between}
+                  twClassName="gap-3"
+                >
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="gap-2"
+                  >
+                    <Text
+                      variant={TextVariant.BodyMDMedium}
+                      color={TextColor.Default}
+                    >
+                      {strings('predict.resolved_outcomes')}
+                    </Text>
+                    <Box twClassName="px-2 py-0.5 rounded bg-muted">
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Alternative}
+                      >
+                        {closedOutcomes.length}
+                      </Text>
+                    </Box>
+                  </Box>
+                  <Icon
+                    name={
+                      isResolvedExpanded ? IconName.ArrowUp : IconName.ArrowDown
+                    }
+                    size={IconSize.Md}
+                    color={colors.text.alternative}
+                  />
+                </Box>
+                {isResolvedExpanded &&
+                  closedOutcomes.map((outcome) => (
+                    <Box key={outcome.id} twClassName="pt-2">
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        justifyContent={BoxJustifyContent.Between}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2"
+                      >
+                        <Box
+                          flexDirection={BoxFlexDirection.Column}
+                          twClassName="gap-1 mb-2"
+                        >
+                          <Text
+                            variant={TextVariant.BodyMDMedium}
+                            color={TextColor.Default}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {outcome.groupItemTitle}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodySMMedium}
+                            color={TextColor.Alternative}
+                          >
+                            ${formatVolume(outcome.volume)}{' '}
+                            {strings('predict.volume_abbreviated')}
+                          </Text>
+                        </Box>
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          twClassName="gap-2"
+                        >
+                          <Text
+                            variant={TextVariant.BodyMDMedium}
+                            color={TextColor.Default}
+                          >
+                            {outcome.tokens[0].price > outcome.tokens[1].price
+                              ? outcome.tokens[0].title
+                              : outcome.tokens[1].price >
+                                  outcome.tokens[0].price
+                                ? outcome.tokens[1].title
+                                : 'draw'}
+                          </Text>
+                        </Box>
+                      </Box>
+                    </Box>
+                  ))}
+              </Pressable>
+              {openOutcomes.map((outcome) => (
+                <PredictMarketOutcome
+                  key={outcome.id}
+                  market={market}
+                  outcome={outcome}
+                />
+              ))}
             </Box>
           ) : (
             <Box>
@@ -854,18 +1000,28 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
         style={tw.style('flex-1')}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary.default}
+            colors={[colors.primary.default]}
+          />
+        }
       >
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
           {renderMarketStatus()}
-          <PredictDetailsChart
-            data={chartData}
-            timeframes={PRICE_HISTORY_TIMEFRAMES}
-            selectedTimeframe={selectedTimeframe}
-            onTimeframeChange={handleTimeframeChange}
-            isLoading={isFetching}
-            emptyLabel={chartEmptyLabel}
-          />
+          {!multipleOpenOutcomesPartiallyResolved && (
+            <PredictDetailsChart
+              data={chartData}
+              timeframes={PRICE_HISTORY_TIMEFRAMES}
+              selectedTimeframe={selectedTimeframe}
+              onTimeframeChange={handleTimeframeChange}
+              isLoading={isPriceHistoryFetching}
+              emptyLabel={chartEmptyLabel}
+            />
+          )}
         </Box>
 
         {/* Sticky tab bar */}
