@@ -569,6 +569,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             shouldIncludeMarket(
               market.name,
               dex,
+              this.equityEnabled,
               this.compiledEnabledPatterns,
               this.compiledBlockedPatterns,
             ),
@@ -3648,6 +3649,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
                 shouldIncludeMarket(
                   asset.name,
                   result.dex,
+                  this.equityEnabled,
                   this.compiledEnabledPatterns,
                   this.compiledBlockedPatterns,
                 ),

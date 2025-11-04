@@ -139,40 +139,50 @@ export const matchesMarketPattern = (
 };
 
 /**
- * Check if a market should be included based on whitelist/blacklist patterns
+ * Check if a market should be included based on HIP-3 master switch and whitelist/blacklist patterns
  * Main DEX markets (null dex) are ALWAYS included (no filtering)
  *
- * Logic: Start with all markets → apply whitelist (if non-empty) → apply blacklist
+ * Logic: Check master switch → apply whitelist (if non-empty) → apply blacklist
  *
  * @param symbol - Market symbol (e.g., "BTC", "xyz:TSLA")
  * @param dex - DEX identifier (null for main DEX, "xyz" for HIP-3 DEX)
+ * @param equityEnabled - Master switch for HIP-3 markets (false = block all HIP-3)
  * @param compiledEnabledPatterns - Pre-compiled whitelist patterns (empty = allow all)
  * @param compiledBlockedPatterns - Pre-compiled blacklist patterns (empty = block none)
  * @returns true if market should be shown to users
  *
  * @example Main DEX market (always included)
- * shouldIncludeMarket("BTC", null, [...], [...]) // → true
+ * shouldIncludeMarket("BTC", null, true, [...], [...]) // → true
+ *
+ * @example HIP-3 when master switch is OFF
+ * shouldIncludeMarket("xyz:TSLA", "xyz", false, [...], [...]) // → false (HIP-3 disabled)
  *
  * @example HIP-3 with empty whitelist (discovery mode)
- * shouldIncludeMarket("xyz:TSLA", "xyz", [], []) // → true (allow all)
+ * shouldIncludeMarket("xyz:TSLA", "xyz", true, [], []) // → true (allow all)
  *
  * @example HIP-3 with whitelist
- * shouldIncludeMarket("xyz:TSLA", "xyz",
+ * shouldIncludeMarket("xyz:TSLA", "xyz", true,
  *   [{pattern: "xyz:*", matcher: /^xyz:/}], []) // → true (matches whitelist)
  *
  * @example HIP-3 with blacklist
- * shouldIncludeMarket("xyz:SCAM", "xyz", [],
+ * shouldIncludeMarket("xyz:SCAM", "xyz", true, [],
  *   [{pattern: "xyz:SCAM", matcher: "xyz:SCAM"}]) // → false (blocked)
  */
 export const shouldIncludeMarket = (
   symbol: string,
   dex: string | null,
+  equityEnabled: boolean,
   compiledEnabledPatterns: CompiledMarketPattern[],
   compiledBlockedPatterns: CompiledMarketPattern[],
 ): boolean => {
   // ALWAYS include main DEX markets (no filtering)
   if (dex === null) {
     return true;
+  }
+
+  // Enforce HIP-3 master switch: if disabled, block ALL HIP-3 markets
+  if (!equityEnabled) {
+    return false;
   }
 
   // Step 1: Apply whitelist only if non-empty

@@ -1,6 +1,7 @@
 import {
   type Subscription,
   type WsAllMidsEvent,
+  type WsWebData2Event,
   type WsWebData3Event,
   type WsUserFillsEvent,
   type WsActiveAssetCtxEvent,
@@ -667,7 +668,7 @@ export class HyperLiquidSubscriptionService {
     if (!this.webData3Subscriptions.has('')) {
       if (!this.webData3SubscriptionPromise) {
         this.webData3SubscriptionPromise =
-          this.createWebData3Subscription(accountId);
+          this.createUserDataSubscription(accountId);
 
         try {
           await this.webData3SubscriptionPromise;
@@ -683,17 +684,16 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Create webData3 subscription for all DEXs (main + HIP-3)
+   * Create WebSocket subscription for user data (positions, orders, account)
+   * - Uses webData2 when HIP-3 disabled (main DEX only)
+   * - Uses webData3 when HIP-3 enabled (main + HIP-3 DEXs)
    *
+   * webData2 provides data for main DEX only
    * webData3 provides perpDexStates[] array containing data for all DEXs:
    * - Index 0: Main DEX (dexName = '')
    * - Index 1+: HIP-3 DEXs in order of enabledDexs array
-   *
-   * This replaces both webData2 and clearinghouseState subscriptions,
-   * providing positions, orders, account states, and OI caps for all DEXs
-   * in a single subscription.
    */
-  private async createWebData3Subscription(
+  private async createUserDataSubscription(
     accountId?: CaipAccountId,
   ): Promise<void> {
     this.clientService.ensureSubscriptionClient(
@@ -708,7 +708,7 @@ export class HyperLiquidSubscriptionService {
     const userAddress =
       await this.walletService.getUserAddressWithDefault(accountId);
 
-    const dexName = ''; // Use empty string as key for single webData3 subscription
+    const dexName = ''; // Use empty string as key for single subscription
 
     // Skip if subscription already exists
     if (this.webData3Subscriptions.has(dexName)) {
@@ -716,173 +716,273 @@ export class HyperLiquidSubscriptionService {
     }
 
     return new Promise<void>((resolve, reject) => {
-      subscriptionClient
-        .webData3({ user: userAddress }, (data: WsWebData3Event) => {
-          // Process data from each DEX in perpDexStates array
-          // webData3 returns data for ALL protocol DEXs, but we only process the ones we care about
-          data.perpDexStates.forEach((dexState, index) => {
-            // Map webData3 index to DEX name
-            // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
-            const dexIdentifier =
-              index === 0 ? null : this.discoveredDexNames[index - 1];
+      // Choose channel based on HIP-3 master switch
+      if (!this.equityEnabled) {
+        // HIP-3 disabled: Use webData2 (main DEX only)
+        subscriptionClient
+          .webData2({ user: userAddress }, (data: WsWebData2Event) => {
+            // webData2 returns clearinghouseState for main DEX only
+            const currentDexName = ''; // Main DEX
 
-            // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
-            if (index > 0 && dexIdentifier === undefined) {
-              return; // Unknown DEX - skip to prevent misidentifying as main DEX
-            }
-
-            // Only process DEXs we care about (skip others silently)
-            // webData3 API returns all protocol DEXs regardless of our config
-            if (!this.isDexEnabled(dexIdentifier ?? null)) {
-              return; // Skip this DEX - not enabled in our configuration
-            }
-
-            const currentDexName = dexIdentifier === null ? '' : dexIdentifier; // null -> '' for Map keys
-
-            // Extract and process positions for this DEX
-            const positions = dexState.clearinghouseState.assetPositions
+            // Extract and process positions from clearinghouseState
+            const positions = data.clearinghouseState.assetPositions
               .filter((assetPos) => assetPos.position.szi !== '0')
               .map((assetPos) => adaptPositionFromSDK(assetPos));
 
-            // Extract TP/SL from orders and process orders using shared helper
+            // Extract TP/SL from orders
             const {
               tpslMap,
               tpslCountMap,
               processedOrders: orders,
-            } = this.extractTPSLFromOrders(
-              dexState.openOrders || [],
-              positions,
-            );
+            } = this.extractTPSLFromOrders(data.openOrders || [], positions);
 
-            // Merge TP/SL data into positions using shared helper
+            // Merge TP/SL data into positions
             const positionsWithTPSL = this.mergeTPSLIntoPositions(
               positions,
               tpslMap,
               tpslCountMap,
             );
 
-            // Extract account data for this DEX
-            // Note: spotState is not included in webData3
+            // Extract account data (webData2 provides clearinghouseState)
             const accountState: AccountState = adaptAccountStateFromSDK(
-              dexState.clearinghouseState,
-              undefined, // webData3 doesn't include spotState
+              data.clearinghouseState,
+              undefined, // webData2 doesn't include spotState
             );
 
-            // Store per-DEX data in caches
+            // Store in caches (main DEX only)
             this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
             this.dexOrdersCache.set(currentDexName, orders);
             this.dexAccountCache.set(currentDexName, accountState);
-          });
 
-          // Extract OI caps from all DEXs (main + HIP-3)
-          const allOICaps: string[] = [];
-          data.perpDexStates.forEach((dexState, index) => {
-            // Map webData3 index to DEX name
-            // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
-            const dexIdentifier =
-              index === 0 ? null : this.discoveredDexNames[index - 1];
-
-            // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
-            if (index > 0 && dexIdentifier === undefined) {
-              return; // Unknown DEX - skip to prevent misidentifying as main DEX
+            // OI caps (main DEX only)
+            const oiCaps = data.perpsAtOpenInterestCap || [];
+            const oiCapsHash = [...oiCaps]
+              .sort((a: string, b: string) => a.localeCompare(b))
+              .join(',');
+            if (oiCapsHash !== this.cachedOICapsHash) {
+              this.cachedOICaps = oiCaps;
+              this.cachedOICapsHash = oiCapsHash;
+              this.oiCapsCacheInitialized = true;
+              this.oiCapSubscribers.forEach((callback) => callback(oiCaps));
             }
 
-            // Only process DEXs we care about (skip others silently)
-            if (!this.isDexEnabled(dexIdentifier ?? null)) {
-              return; // Skip this DEX - not enabled in our configuration
-            }
+            // Notify subscribers (no aggregation needed - only main DEX)
+            const positionsHash = this.hashPositions(positionsWithTPSL);
+            const ordersHash = this.hashOrders(orders);
+            const accountHash = this.hashAccountState(accountState);
 
-            const currentDexName = dexIdentifier === null ? '' : dexIdentifier;
-            const oiCaps = dexState.perpsAtOpenInterestCap || [];
-
-            // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
-            if (currentDexName) {
-              allOICaps.push(
-                ...oiCaps.map((symbol) => `${currentDexName}:${symbol}`),
+            if (positionsHash !== this.cachedPositionsHash) {
+              this.cachedPositions = positionsWithTPSL;
+              this.cachedPositionsHash = positionsHash;
+              this.positionsCacheInitialized = true;
+              this.positionSubscribers.forEach((callback) =>
+                callback(positionsWithTPSL),
               );
-            } else {
-              // Main DEX - no prefix needed
-              allOICaps.push(...oiCaps);
             }
+
+            if (ordersHash !== this.cachedOrdersHash) {
+              this.cachedOrders = orders;
+              this.cachedOrdersHash = ordersHash;
+              this.ordersCacheInitialized = true;
+              this.orderSubscribers.forEach((callback) => callback(orders));
+            }
+
+            if (accountHash !== this.cachedAccountHash) {
+              this.cachedAccount = accountState;
+              this.cachedAccountHash = accountHash;
+              this.accountSubscribers.forEach((callback) =>
+                callback(accountState),
+              );
+            }
+          })
+          .then((subscription) => {
+            this.webData3Subscriptions.set(dexName, subscription);
+            DevLogger.log(
+              'webData2 subscription established for main DEX only',
+            );
+            resolve();
+          })
+          .catch((error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext('createUserDataSubscription (webData2)', {
+                dex: dexName,
+              }),
+            );
+            reject(ensureError(error));
           });
+      } else {
+        // HIP-3 enabled: Use webData3 (main + HIP-3 DEXs)
+        subscriptionClient
+          .webData3({ user: userAddress }, (data: WsWebData3Event) => {
+            // Process data from each DEX in perpDexStates array
+            // webData3 returns data for ALL protocol DEXs, but we only process the ones we care about
+            data.perpDexStates.forEach((dexState, index) => {
+              // Map webData3 index to DEX name
+              // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
+              const dexIdentifier =
+                index === 0 ? null : this.discoveredDexNames[index - 1];
 
-          // Update OI caps cache and notify if changed
-          const oiCapsHash = [...allOICaps]
-            .sort((a: string, b: string) => a.localeCompare(b))
-            .join(',');
-          if (oiCapsHash !== this.cachedOICapsHash) {
-            this.cachedOICaps = allOICaps;
-            this.cachedOICapsHash = oiCapsHash;
-            this.oiCapsCacheInitialized = true;
+              // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
+              if (index > 0 && dexIdentifier === undefined) {
+                return; // Unknown DEX - skip to prevent misidentifying as main DEX
+              }
 
-            // Notify all subscribers
-            this.oiCapSubscribers.forEach((callback) => callback(allOICaps));
-          }
+              // Only process DEXs we care about (skip others silently)
+              // webData3 API returns all protocol DEXs regardless of our config
+              if (!this.isDexEnabled(dexIdentifier ?? null)) {
+                return; // Skip this DEX - not enabled in our configuration
+              }
 
-          // Aggregate data from all DEX caches
-          const aggregatedPositions = Array.from(
-            this.dexPositionsCache.values(),
-          ).flat();
+              const currentDexName =
+                dexIdentifier === null ? '' : dexIdentifier; // null -> '' for Map keys
 
-          const aggregatedOrders = Array.from(
-            this.dexOrdersCache.values(),
-          ).flat();
+              // Extract and process positions for this DEX
+              const positions = dexState.clearinghouseState.assetPositions
+                .filter((assetPos) => assetPos.position.szi !== '0')
+                .map((assetPos) => adaptPositionFromSDK(assetPos));
 
-          const aggregatedAccount = this.aggregateAccountStates();
+              // Extract TP/SL from orders and process orders using shared helper
+              const {
+                tpslMap,
+                tpslCountMap,
+                processedOrders: orders,
+              } = this.extractTPSLFromOrders(
+                dexState.openOrders || [],
+                positions,
+              );
 
-          // Check if aggregated data changed using fast hash comparison
-          const positionsHash = this.hashPositions(aggregatedPositions);
-          const ordersHash = this.hashOrders(aggregatedOrders);
-          const accountHash = this.hashAccountState(aggregatedAccount);
+              // Merge TP/SL data into positions using shared helper
+              const positionsWithTPSL = this.mergeTPSLIntoPositions(
+                positions,
+                tpslMap,
+                tpslCountMap,
+              );
 
-          const positionsChanged = positionsHash !== this.cachedPositionsHash;
-          const ordersChanged = ordersHash !== this.cachedOrdersHash;
-          const accountChanged = accountHash !== this.cachedAccountHash;
+              // Extract account data for this DEX
+              // Note: spotState is not included in webData3
+              const accountState: AccountState = adaptAccountStateFromSDK(
+                dexState.clearinghouseState,
+                undefined, // webData3 doesn't include spotState
+              );
 
-          // Only notify subscribers if aggregated data changed
-          if (positionsChanged) {
-            this.cachedPositions = aggregatedPositions;
-            this.cachedPositionsHash = positionsHash;
-            this.positionsCacheInitialized = true; // Mark cache as initialized
-            this.positionSubscribers.forEach((callback) => {
-              callback(aggregatedPositions);
+              // Store per-DEX data in caches
+              this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
+              this.dexOrdersCache.set(currentDexName, orders);
+              this.dexAccountCache.set(currentDexName, accountState);
             });
-          }
 
-          if (ordersChanged) {
-            this.cachedOrders = aggregatedOrders;
-            this.cachedOrdersHash = ordersHash;
-            this.ordersCacheInitialized = true; // Mark cache as initialized
-            this.orderSubscribers.forEach((callback) => {
-              callback(aggregatedOrders);
-            });
-          }
+            // Extract OI caps from all DEXs (main + HIP-3)
+            const allOICaps: string[] = [];
+            data.perpDexStates.forEach((dexState, index) => {
+              // Map webData3 index to DEX name
+              // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
+              const dexIdentifier =
+                index === 0 ? null : this.discoveredDexNames[index - 1];
 
-          if (accountChanged) {
-            this.cachedAccount = aggregatedAccount;
-            this.cachedAccountHash = accountHash;
-            this.accountSubscribers.forEach((callback) => {
-              callback(aggregatedAccount);
+              // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
+              if (index > 0 && dexIdentifier === undefined) {
+                return; // Unknown DEX - skip to prevent misidentifying as main DEX
+              }
+
+              // Only process DEXs we care about (skip others silently)
+              if (!this.isDexEnabled(dexIdentifier ?? null)) {
+                return; // Skip this DEX - not enabled in our configuration
+              }
+
+              const currentDexName =
+                dexIdentifier === null ? '' : dexIdentifier;
+              const oiCaps = dexState.perpsAtOpenInterestCap || [];
+
+              // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
+              if (currentDexName) {
+                allOICaps.push(
+                  ...oiCaps.map((symbol) => `${currentDexName}:${symbol}`),
+                );
+              } else {
+                // Main DEX - no prefix needed
+                allOICaps.push(...oiCaps);
+              }
             });
-          }
-        })
-        .then((sub) => {
-          this.webData3Subscriptions.set(dexName, sub);
-          DevLogger.log(
-            `webData3 subscription established for all DEXs (main + HIP-3)`,
-          );
-          resolve();
-        })
-        .catch((error) => {
-          Logger.error(
-            ensureError(error),
-            this.getErrorContext('createWebData3Subscription', {
-              dex: dexName,
-            }),
-          );
-          reject(ensureError(error));
-        });
-    });
+
+            // Update OI caps cache and notify if changed
+            const oiCapsHash = [...allOICaps]
+              .sort((a: string, b: string) => a.localeCompare(b))
+              .join(',');
+            if (oiCapsHash !== this.cachedOICapsHash) {
+              this.cachedOICaps = allOICaps;
+              this.cachedOICapsHash = oiCapsHash;
+              this.oiCapsCacheInitialized = true;
+
+              // Notify all subscribers
+              this.oiCapSubscribers.forEach((callback) => callback(allOICaps));
+            }
+
+            // Aggregate data from all DEX caches
+            const aggregatedPositions = Array.from(
+              this.dexPositionsCache.values(),
+            ).flat();
+
+            const aggregatedOrders = Array.from(
+              this.dexOrdersCache.values(),
+            ).flat();
+
+            const aggregatedAccount = this.aggregateAccountStates();
+
+            // Check if aggregated data changed using fast hash comparison
+            const positionsHash = this.hashPositions(aggregatedPositions);
+            const ordersHash = this.hashOrders(aggregatedOrders);
+            const accountHash = this.hashAccountState(aggregatedAccount);
+
+            const positionsChanged = positionsHash !== this.cachedPositionsHash;
+            const ordersChanged = ordersHash !== this.cachedOrdersHash;
+            const accountChanged = accountHash !== this.cachedAccountHash;
+
+            // Only notify subscribers if aggregated data changed
+            if (positionsChanged) {
+              this.cachedPositions = aggregatedPositions;
+              this.cachedPositionsHash = positionsHash;
+              this.positionsCacheInitialized = true; // Mark cache as initialized
+              this.positionSubscribers.forEach((callback) => {
+                callback(aggregatedPositions);
+              });
+            }
+
+            if (ordersChanged) {
+              this.cachedOrders = aggregatedOrders;
+              this.cachedOrdersHash = ordersHash;
+              this.ordersCacheInitialized = true; // Mark cache as initialized
+              this.orderSubscribers.forEach((callback) => {
+                callback(aggregatedOrders);
+              });
+            }
+
+            if (accountChanged) {
+              this.cachedAccount = aggregatedAccount;
+              this.cachedAccountHash = accountHash;
+              this.accountSubscribers.forEach((callback) => {
+                callback(aggregatedAccount);
+              });
+            }
+          })
+          .then((sub) => {
+            this.webData3Subscriptions.set(dexName, sub);
+            DevLogger.log(
+              `webData3 subscription established for all DEXs (main + HIP-3)`,
+            );
+            resolve();
+          })
+          .catch((error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext('createUserDataSubscription (webData3)', {
+                dex: dexName,
+              }),
+            );
+            reject(ensureError(error));
+          });
+      } // Close else block for webData3
+    }); // Close Promise wrapper
   }
 
   /**

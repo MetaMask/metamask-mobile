@@ -489,14 +489,28 @@ describe('marketUtils', () => {
         const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
         const blocked = [{ pattern: 'BTC', matcher: 'BTC' }];
 
-        expect(shouldIncludeMarket('BTC', null, enabled, blocked)).toBe(true);
-        expect(shouldIncludeMarket('ETH', null, enabled, blocked)).toBe(true);
-        expect(shouldIncludeMarket('SOL', null, [], blocked)).toBe(true);
+        expect(shouldIncludeMarket('BTC', null, true, enabled, blocked)).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('ETH', null, true, enabled, blocked)).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('SOL', null, true, [], blocked)).toBe(true);
+      });
+
+      it('blocks all HIP-3 markets when equityEnabled is false', () => {
+        const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', false, enabled, [])).toBe(
+          false,
+        );
+        expect(shouldIncludeMarket('abc:AAPL', 'abc', false, [], [])).toBe(
+          false,
+        );
       });
 
       it('includes all HIP-3 markets when whitelist is empty', () => {
-        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', [], [])).toBe(true);
-        expect(shouldIncludeMarket('abc:AAPL', 'abc', [], [])).toBe(true);
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', true, [], [])).toBe(true);
+        expect(shouldIncludeMarket('abc:AAPL', 'abc', true, [], [])).toBe(true);
       });
 
       it('applies whitelist when non-empty', () => {
@@ -505,21 +519,27 @@ describe('marketUtils', () => {
           { pattern: 'BTC', matcher: 'BTC' },
         ];
 
-        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, [])).toBe(true);
-        expect(shouldIncludeMarket('xyz:AAPL', 'xyz', enabled, [])).toBe(true);
-        expect(shouldIncludeMarket('abc:TSLA', 'abc', enabled, [])).toBe(false);
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', true, enabled, [])).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('xyz:AAPL', 'xyz', true, enabled, [])).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('abc:TSLA', 'abc', true, enabled, [])).toBe(
+          false,
+        );
       });
 
       it('applies blacklist after whitelist', () => {
         const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
         const blocked = [{ pattern: 'xyz:SCAM', matcher: 'xyz:SCAM' }];
 
-        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, blocked)).toBe(
-          true,
-        );
-        expect(shouldIncludeMarket('xyz:SCAM', 'xyz', enabled, blocked)).toBe(
-          false,
-        );
+        expect(
+          shouldIncludeMarket('xyz:TSLA', 'xyz', true, enabled, blocked),
+        ).toBe(true);
+        expect(
+          shouldIncludeMarket('xyz:SCAM', 'xyz', true, enabled, blocked),
+        ).toBe(false);
       });
 
       it('applies blacklist when whitelist is empty', () => {
@@ -528,12 +548,18 @@ describe('marketUtils', () => {
           { pattern: 'abc:*', matcher: /^abc:/ },
         ];
 
-        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', [], blocked)).toBe(true);
-        expect(shouldIncludeMarket('xyz:SCAM', 'xyz', [], blocked)).toBe(false);
-        expect(shouldIncludeMarket('abc:ANYTHING', 'abc', [], blocked)).toBe(
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', true, [], blocked)).toBe(
+          true,
+        );
+        expect(shouldIncludeMarket('xyz:SCAM', 'xyz', true, [], blocked)).toBe(
           false,
         );
-        expect(shouldIncludeMarket('def:ASSET', 'def', [], blocked)).toBe(true);
+        expect(
+          shouldIncludeMarket('abc:ANYTHING', 'abc', true, [], blocked),
+        ).toBe(false);
+        expect(shouldIncludeMarket('def:ASSET', 'def', true, [], blocked)).toBe(
+          true,
+        );
       });
 
       it('handles complex whitelist + blacklist combinations', () => {
@@ -547,34 +573,36 @@ describe('marketUtils', () => {
         ];
 
         // xyz markets whitelisted but specific ones blocked
-        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, blocked)).toBe(
-          true,
-        );
-        expect(shouldIncludeMarket('xyz:SCAM', 'xyz', enabled, blocked)).toBe(
-          false,
-        );
-        expect(shouldIncludeMarket('xyz:RISKY', 'xyz', enabled, blocked)).toBe(
-          false,
-        );
+        expect(
+          shouldIncludeMarket('xyz:TSLA', 'xyz', true, enabled, blocked),
+        ).toBe(true);
+        expect(
+          shouldIncludeMarket('xyz:SCAM', 'xyz', true, enabled, blocked),
+        ).toBe(false);
+        expect(
+          shouldIncludeMarket('xyz:RISKY', 'xyz', true, enabled, blocked),
+        ).toBe(false);
 
         // abc market specifically whitelisted
-        expect(shouldIncludeMarket('abc:GOOD', 'abc', enabled, blocked)).toBe(
-          true,
-        );
-        expect(shouldIncludeMarket('abc:BAD', 'abc', enabled, blocked)).toBe(
-          false,
-        ); // Not whitelisted
+        expect(
+          shouldIncludeMarket('abc:GOOD', 'abc', true, enabled, blocked),
+        ).toBe(true);
+        expect(
+          shouldIncludeMarket('abc:BAD', 'abc', true, enabled, blocked),
+        ).toBe(false); // Not whitelisted
 
         // def not whitelisted at all
-        expect(shouldIncludeMarket('def:ASSET', 'def', enabled, blocked)).toBe(
-          false,
-        );
+        expect(
+          shouldIncludeMarket('def:ASSET', 'def', true, enabled, blocked),
+        ).toBe(false);
       });
 
       it('returns true immediately when blacklist is empty', () => {
         const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
 
-        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, [])).toBe(true);
+        expect(shouldIncludeMarket('xyz:TSLA', 'xyz', true, enabled, [])).toBe(
+          true,
+        );
       });
     });
   });
