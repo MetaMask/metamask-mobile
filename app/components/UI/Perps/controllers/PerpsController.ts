@@ -92,6 +92,7 @@ import type {
   PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
+  SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -254,7 +255,7 @@ export type PerpsControllerState = {
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
-  isTestnet: __DEV__, // Default to testnet in dev
+  isTestnet: false, // Default to mainnet
   connectionStatus: 'disconnected',
   accountState: null,
   positions: [],
@@ -3655,6 +3656,28 @@ export class PerpsController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('subscribeToAccount', {
+          accountId: params.accountId,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
+   * Subscribe to open interest cap updates
+   * Zero additional network overhead - data comes from existing webData3 subscription
+   */
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOICaps(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOICaps', {
           accountId: params.accountId,
         }),
       );

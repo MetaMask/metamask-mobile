@@ -7058,9 +7058,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^56.0.0":
-  version: 56.0.0
-  resolution: "@metamask/bridge-controller@npm:56.0.0"
+"@metamask/bridge-controller@npm:^56.0.3":
+  version: 56.0.3
+  resolution: "@metamask/bridge-controller@npm:56.0.3"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -7086,7 +7086,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": ^2.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/d63591ddb50565c969447050a5c8f7f12fade69fb30e884e87c24c2d86803074d7a337df42c4f9feaf91d01241baaba7da0b23101a993547af8331085c8df1a5
+  checksum: 10/399a53ec01e18a9b9add4242b12c42ace472372fc04ed6e21d6e65f277ecc4aa220456933547d8d838e8834927602e7b1c149a8264de8742367d051801573bbd
   languageName: node
   linkType: hard
 
@@ -7923,9 +7923,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/multichain-account-service@npm:2.0.0"
+"@metamask/multichain-account-service@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/multichain-account-service@npm:2.1.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -7948,7 +7948,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/40e84247ca763b508b0a7db654b5b36f8062126f9323beefc56b938fe85b1cced452f474e3a9a9154a5b8dd6e00945bc4ba8a1f1a54cf09631266abdd30e1334
+  checksum: 10/d6e8497c41a0ae1195b6ec859bf7b6ba0427b46aa01afb36e040a6d8393ed43104cacafbeb255cfc146398998c60ff3ae6d1622aa6f45662ae3a80b0f4f8beca
   languageName: node
   linkType: hard
 
@@ -8914,10 +8914,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.5.1":
-  version: 1.5.1
-  resolution: "@metamask/tron-wallet-snap@npm:1.5.1"
-  checksum: 10/89bab80d3d9a6892650da1904f5312a6b0a1b07070757d911373463b8b95baa2daeeea605df7541035948bfb75621170b52d82b8c39930e914ad04b7dce9b57b
+"@metamask/tron-wallet-snap@npm:^1.6.1":
+  version: 1.6.1
+  resolution: "@metamask/tron-wallet-snap@npm:1.6.1"
+  checksum: 10/549f0dad4bfaee091bb5ff9bc3d5b9db124121ac77c40da67261d32f71a239cd4db0914436e0c9fb5a2eb9b82b254078d86b41dab6ba32b92359954595fc39c3
   languageName: node
   linkType: hard
 
@@ -9061,9 +9061,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nktkas/hyperliquid@npm:^0.25.4":
-  version: 0.25.4
-  resolution: "@nktkas/hyperliquid@npm:0.25.4"
+"@nktkas/hyperliquid@npm:^0.25.7":
+  version: 0.25.7
+  resolution: "@nktkas/hyperliquid@npm:0.25.7"
   dependencies:
     "@msgpack/msgpack": "npm:^3.1.2"
     "@noble/hashes": "npm:^2.0.0"
@@ -9072,7 +9072,7 @@ __metadata:
     valibot: "npm:1.1.0"
   bin:
     hyperliquid: esm/bin/cli.js
-  checksum: 10/8006850f8772038f6e22ec2aafe1c7284d4af4ec68393bbb78cb993299beab65e1b0e3c75f42b2b537e7c4d5caea506b047a0731435a8955a7e5ee1f74a84dec
+  checksum: 10/673e004d406cd774fc7af215598503cd5e70fe08c4b54e9e1297bde8eb85a15a68dbe67d1d3e47d068ff7266390ad6fe67107950986c98a26b3f08028b308e3a
   languageName: node
   linkType: hard
 
@@ -34279,7 +34279,7 @@ __metadata:
     "@metamask/auto-changelog": "npm:^5.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.4.3"
-    "@metamask/bridge-controller": "npm:^56.0.0"
+    "@metamask/bridge-controller": "npm:^56.0.3"
     "@metamask/bridge-status-controller": "npm:^56.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/build-utils": "npm:^3.0.0"
@@ -34328,7 +34328,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.3.1"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.2.1"
-    "@metamask/multichain-account-service": "npm:^2.0.0"
+    "@metamask/multichain-account-service": "npm:^2.1.0"
     "@metamask/multichain-api-client": "npm:^0.7.0"
     "@metamask/multichain-api-middleware": "npm:1.2.4"
     "@metamask/multichain-network-controller": "npm:^2.0.0"
@@ -34378,10 +34378,10 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A61.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
-    "@metamask/tron-wallet-snap": "npm:^1.5.1"
+    "@metamask/tron-wallet-snap": "npm:^1.6.1"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
-    "@nktkas/hyperliquid": "npm:^0.25.4"
+    "@nktkas/hyperliquid": "npm:^0.25.7"
     "@noble/curves": "npm:1.9.6"
     "@notifee/react-native": "npm:^9.0.0"
     "@octokit/rest": "npm:^21.0.0"

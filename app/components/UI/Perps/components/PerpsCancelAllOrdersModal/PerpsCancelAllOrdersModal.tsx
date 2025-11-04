@@ -61,7 +61,7 @@ const PerpsCancelAllOrdersModal: React.FC<PerpsCancelAllOrdersModalProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent03],
@@ -83,7 +83,7 @@ const PerpsCancelAllOrdersModal: React.FC<PerpsCancelAllOrdersModalProps> = ({
               { label: message, isBold: false },
             ]
           : [{ label: title, isBold: true }],
-      };
+      } as PerpsToastOptions;
       showToast(toastConfig);
     },
     [showToast, theme.colors.accent01],
