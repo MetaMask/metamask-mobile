@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import type { Position } from '../../controllers/types';
+import type { Position, PriceUpdate } from '../../controllers/types';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -12,42 +12,110 @@ export interface UsePerpsLivePositionsOptions {
 }
 
 export interface UsePerpsLivePositionsReturn {
-  /** Array of current positions */
+  /** Array of current positions with live PnL calculations */
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
 }
 
 /**
+ * Enrich positions with recalculated unrealizedPnl and returnOnEquity
+ * based on current mark price from live price feed
+ */
+export function enrichPositionsWithLivePnL(
+  positions: Position[],
+  priceData: Record<string, PriceUpdate>,
+): Position[] {
+  if (!priceData || Object.keys(priceData).length === 0) {
+    return positions;
+  }
+
+  return positions.map((position) => {
+    const priceUpdate = priceData[position.coin];
+    if (!priceUpdate) {
+      return position;
+    }
+
+    // Use mark price if available, fallback to mid price
+    const markPrice = priceUpdate.markPrice
+      ? Number.parseFloat(priceUpdate.markPrice)
+      : Number.parseFloat(priceUpdate.price);
+
+    if (!markPrice || Number.isNaN(markPrice) || markPrice <= 0) {
+      return position;
+    }
+
+    const entryPrice = Number.parseFloat(position.entryPrice);
+    const size = Number.parseFloat(position.size);
+    const marginUsed = Number.parseFloat(position.marginUsed);
+
+    if (
+      Number.isNaN(entryPrice) ||
+      Number.isNaN(size) ||
+      Number.isNaN(marginUsed)
+    ) {
+      return position;
+    }
+
+    // Calculate unrealized PnL: (markPrice - entryPrice) * size
+    const calculatedUnrealizedPnl = (markPrice - entryPrice) * size;
+
+    // Calculate ROE: (unrealizedPnl / marginUsed) as decimal (not percentage)
+    const calculatedRoe =
+      marginUsed > 0 ? calculatedUnrealizedPnl / marginUsed : 0;
+
+    return {
+      ...position,
+      unrealizedPnl: calculatedUnrealizedPnl.toString(),
+      returnOnEquity: calculatedRoe.toString(),
+    };
+  });
+}
+
+/**
  * Hook for real-time position updates via WebSocket subscription
- * Replaces the old polling-based usePerpsPositions hook
- *
- * Positions update instantly by default since changes are important
- * (TP/SL modifications, liquidations, etc.) and users need immediate feedback.
+ * with live PnL calculations based on current mark prices
  *
  * @param options - Configuration options for the hook
- * @returns Object containing positions array and loading state
+ * @returns Object containing positions array with live PnL and loading state
  */
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0 } = options; // No throttling by default for instant updates
+  const { throttleMs = 0 } = options;
   const stream = usePerpsStream();
   const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const lastPositionsRef = useRef<Position[]>(EMPTY_POSITIONS);
   const hasReceivedFirstUpdate = useRef(false);
 
+  // Store raw positions and price data in refs to avoid unnecessary re-renders
+  const rawPositionsRef = useRef<Position[]>(EMPTY_POSITIONS);
+  const priceDataRef = useRef<Record<string, PriceUpdate>>({});
+
+  // Enrich and update positions whenever raw positions or prices change
+  const updateEnrichedPositions = useCallback(() => {
+    if (rawPositionsRef.current.length === 0) {
+      if (positions.length !== 0) {
+        setPositions(EMPTY_POSITIONS);
+      }
+      return;
+    }
+
+    const enrichedPositions = enrichPositionsWithLivePnL(
+      rawPositionsRef.current,
+      priceDataRef.current,
+    );
+    setPositions(enrichedPositions);
+  }, [positions.length]);
+
+  // Subscribe to position updates
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
-        // null means no cached data yet, keep loading state
         if (newPositions === null) {
-          // Keep isInitialLoading as true, positions as empty array
           return;
         }
 
-        // We have real data now (either empty array or positions)
         if (!hasReceivedFirstUpdate.current) {
           DevLogger.log(
             'usePerpsLivePositions: Received first WebSocket update',
@@ -57,19 +125,8 @@ export function usePerpsLivePositions(
           setIsInitialLoading(false);
         }
 
-        // Only update if positions actually changed
-        // For empty arrays, use stable reference
-        if (newPositions.length === 0) {
-          if (lastPositionsRef.current.length === 0) {
-            // Already empty, don't update
-            return;
-          }
-          lastPositionsRef.current = EMPTY_POSITIONS;
-          setPositions(EMPTY_POSITIONS);
-        } else {
-          lastPositionsRef.current = newPositions;
-          setPositions(newPositions);
-        }
+        rawPositionsRef.current = newPositions;
+        updateEnrichedPositions();
       },
       throttleMs,
     });
@@ -77,7 +134,22 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs]);
+  }, [stream, throttleMs, updateEnrichedPositions]);
+
+  // Subscribe to price updates for real-time PnL recalculation
+  useEffect(() => {
+    const unsubscribe = stream.prices.subscribe({
+      callback: (newPriceData) => {
+        priceDataRef.current = newPriceData;
+        updateEnrichedPositions();
+      },
+      throttleMs: 0,
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [stream, updateEnrichedPositions]);
 
   return {
     positions,
