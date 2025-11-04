@@ -2,7 +2,6 @@ import { ControllerInitFunction } from '../../types';
 import {
   AnalyticsController,
   type AnalyticsControllerMessenger,
-  getDefaultAnalyticsControllerState,
 } from '@metamask/analytics-controller';
 import { createPlatformAdapter } from './platform-adapter';
 import Logger from '../../../../util/Logger';
@@ -23,9 +22,9 @@ export const analyticsControllerInit: ControllerInitFunction<
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,
-    state:
-      persistedState?.AnalyticsController ??
-      getDefaultAnalyticsControllerState(),
+    ...(persistedState?.AnalyticsController && {
+      state: persistedState.AnalyticsController,
+    }),
     platformAdapter,
   });
 

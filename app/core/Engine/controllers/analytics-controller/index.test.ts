@@ -44,6 +44,17 @@ describe('analyticsControllerInit', () => {
     expect(analyticsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
+  it('initializes controller without state when no persisted state provided', () => {
+    initRequestMock.persistedState = {};
+
+    analyticsControllerInit(initRequestMock);
+
+    const callArgs = analyticsControllerClassMock.mock.calls[0][0];
+    expect(callArgs).toHaveProperty('messenger');
+    expect(callArgs).toHaveProperty('platformAdapter');
+    expect(callArgs).not.toHaveProperty('state');
+  });
+
   it('uses custom state when provided', () => {
     // state not similar to default state from mock analytics controller
     const customState: AnalyticsControllerState = {
