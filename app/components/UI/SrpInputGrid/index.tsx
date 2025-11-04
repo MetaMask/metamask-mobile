@@ -55,7 +55,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       placeholderText,
       uniqueId = uuidv4(),
       disabled = false,
-      autoFocus = true,
     },
     ref,
   ) => {
@@ -235,11 +234,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       (index: number) => {
         const currentWord = seedPhrase[index];
         const trimmedWord = currentWord ? currentWord.trim() : '';
-        const checkValid = checkValidSeedWord(trimmedWord);
-        setErrorWordIndexes((prev) => ({
-          ...prev,
-          [index]: !checkValid,
-        }));
+        if (trimmedWord) {
+          const checkValid = checkValidSeedWord(trimmedWord);
+          setErrorWordIndexes((prev) => ({
+            ...prev,
+            [index]: !checkValid,
+          }));
+        }
       },
       [seedPhrase],
     );
@@ -391,10 +392,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   autoCorrect={false}
                   textContentType="oneTimeCode"
                   spellCheck={false}
-                  autoFocus={
-                    autoFocus &&
-                    (isFirstInput || index === nextSeedPhraseInputFocusedIndex)
-                  }
+                  autoFocus={index === nextSeedPhraseInputFocusedIndex}
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   isDisabled={disabled}
                 />
@@ -432,7 +430,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 autoCorrect={false}
                 textContentType="oneTimeCode"
                 spellCheck={false}
-                autoFocus={autoFocus}
                 multiline
                 onKeyPress={(e) => handleKeyPress(e, 0)}
                 isDisabled={disabled}
