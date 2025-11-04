@@ -165,6 +165,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
+
+  // coming from oauth onboarding flow flag
+  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess ?? false;
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -172,9 +175,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setStartFoxAnimationCallback = () => {
     setStartFoxAnimation('Start');
   };
-
-  // coming from oauth onboarding flow flag
-  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess ?? false;
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -792,7 +792,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         keyboardAppearance={themeAppearance}
         isDisabled={disabledInput}
         isError={!!error}
-        style={styles.textField}
+        style={!isComingFromOauthOnboarding ? styles.textField : undefined}
       />
     </View>
   );
@@ -834,7 +834,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       <SafeAreaView
         style={[
           styles.mainWrapper,
-          {
+          !isComingFromOauthOnboarding && {
             backgroundColor:
               themeAppearance === 'dark'
                 ? importedColors.gettingStartedTextColor
