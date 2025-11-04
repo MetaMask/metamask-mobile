@@ -348,7 +348,6 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
-      !isNonEvmChainId(networkId) && // TODO: Remove this once we have a way to add tokens on non-EVM chains
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,
