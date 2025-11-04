@@ -1,5 +1,6 @@
 import { useCallback, useContext, useState } from 'react';
-import { captureException } from '@sentry/react-native';
+import { captureException, setMeasurement } from '@sentry/react-native';
+import performance from 'react-native-performance';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -14,6 +15,7 @@ import { formatPrice } from '../utils/format';
 import { usePredictBalance } from './usePredictBalance';
 import { parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { PredictMeasurementName } from '../constants/performanceMetrics';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -86,6 +88,7 @@ export function usePredictPlaceOrder(
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {
+      const orderStartTime = performance.now();
       const {
         preview: { minAmountReceived, side },
       } = orderParams;
@@ -102,6 +105,9 @@ export function usePredictPlaceOrder(
 
         setResult(orderResult);
 
+        // Measure time from order start to toast display
+        const toastStartTime = performance.now();
+
         if (side === Side.BUY) {
           showOrderPlacedToast();
         } else {
@@ -110,7 +116,23 @@ export function usePredictPlaceOrder(
           );
         }
 
+        // Measure toast display time (order submission toast)
+        const submissionToastDuration = performance.now() - orderStartTime;
+        setMeasurement(
+          PredictMeasurementName.PREDICT_ORDER_SUBMISSION_TOAST_LOADED,
+          submissionToastDuration,
+          'millisecond',
+        );
+
         await loadBalance({ isRefresh: true });
+
+        // Measure confirmation toast time (includes balance refresh)
+        const confirmationToastDuration = performance.now() - toastStartTime;
+        setMeasurement(
+          PredictMeasurementName.PREDICT_ORDER_CONFIRMATION_TOAST_LOADED,
+          confirmationToastDuration,
+          'millisecond',
+        );
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
       } catch (err) {

@@ -172,6 +172,9 @@ export enum TraceName {
   PredictMarketDetailsView = 'Predict Market Details View',
   PredictBuyPreviewView = 'Predict Buy Preview View',
   PredictSellPreviewView = 'Predict Sell Preview View',
+  PredictTabView = 'Predict Tab View',
+  PredictOrderSubmissionToast = 'Predict Order Submission Toast',
+  PredictOrderConfirmationToast = 'Predict Order Confirmation Toast',
 }
 
 export enum TraceOperation {

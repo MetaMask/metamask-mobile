@@ -14,4 +14,13 @@ export enum PredictMeasurementName {
   // API Call Metrics (milliseconds)
   // Tracks order submission and external API performance
   PREDICT_ORDER_SUBMISSION = 'predict.api.order_submission',
+
+  // Data Operation Metrics (milliseconds)
+  // Tracks data fetch operations
+  PREDICT_GET_POSITIONS_OPERATION = 'predict.operation.get_positions',
+
+  // UI Component Metrics (milliseconds)
+  // Tracks individual UI component render performance
+  PREDICT_ORDER_SUBMISSION_TOAST_LOADED = 'predict.ui.order_submission_toast_loaded',
+  PREDICT_ORDER_CONFIRMATION_TOAST_LOADED = 'predict.ui.order_confirmation_toast_loaded',
 }

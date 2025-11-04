@@ -548,6 +548,8 @@ export class PredictController extends BaseController<
    * Get user positions
    */
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
+    const startTime = performance.now();
+
     try {
       const { address, providerId } = params;
       const { AccountsController } = Engine.context;
@@ -578,6 +580,14 @@ export class PredictController extends BaseController<
         .filter(
           (position): position is PredictPosition => position !== undefined,
         );
+
+      // Measure operation duration
+      const duration = performance.now() - startTime;
+      setMeasurement(
+        PredictMeasurementName.PREDICT_GET_POSITIONS_OPERATION,
+        duration,
+        'millisecond',
+      );
 
       // Only update state if the provider call succeeded
       this.update((state) => {

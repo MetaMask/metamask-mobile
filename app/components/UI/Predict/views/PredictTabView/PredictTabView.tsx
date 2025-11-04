@@ -12,8 +12,11 @@ import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictA
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
@@ -33,6 +36,20 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+
+  // Get loading state for positions to track screen load performance
+  const { isLoading: isPositionsLoading } = usePredictPositions({
+    loadOnMount: false, // Don't load here, let child component handle it
+  });
+
+  // Track screen load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictTabView,
+    conditions: [
+      !isPositionsLoading, // Positions loaded
+      isVisible === true, // Tab is visible
+    ],
+  });
 
   usePredictDepositToasts();
   usePredictClaimToasts();
