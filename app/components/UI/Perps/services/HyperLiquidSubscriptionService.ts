@@ -222,6 +222,18 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Get array of all enabled DEXs including main DEX
+   * @returns Array with null as first element (main DEX) followed by HIP-3 DEXs
+   */
+  private getEnabledDexs(): (string | null)[] {
+    if (!this.equityEnabled) {
+      return [null]; // Main DEX only
+    }
+    // Main DEX + all enabled HIP-3 DEXs
+    return [null, ...this.enabledDexs];
+  }
+
+  /**
    * Update feature flags for HIP-3 support
    * Called when provider configuration changes at runtime
    * Note: Market filtering is NOT applied in subscription service - only in Provider
@@ -242,19 +254,52 @@ export class HyperLiquidSubscriptionService {
     this.enabledMarkets = enabledMarkets;
     this.blockedMarkets = blockedMarkets;
 
-    DevLogger.log(
-      '[MARKET:FILTERING] HyperLiquidSubscriptionService: Feature flags updated',
-      {
-        previousEquityEnabled,
-        equityEnabled,
-        previousEnabledDexs,
-        enabledDexs,
-        previousEnabledMarkets,
-        enabledMarkets,
-        previousBlockedMarkets,
-        blockedMarkets,
-      },
+    DevLogger.log('Feature flags updated:', {
+      previousEquityEnabled,
+      equityEnabled,
+      previousEnabledDexs,
+      enabledDexs,
+      previousEnabledMarkets,
+      enabledMarkets,
+      previousBlockedMarkets,
+      blockedMarkets,
+    });
+
+    // If equity was just enabled or new DEXs were added
+    const newDexs = enabledDexs.filter(
+      (dex) => !previousEnabledDexs.includes(dex),
     );
+    if (
+      (!previousEquityEnabled && equityEnabled && enabledDexs.length > 0) ||
+      newDexs.length > 0
+    ) {
+      DevLogger.log('Establishing subscriptions for new DEXs:', newDexs);
+
+      // Establish assetCtxs subscriptions for new DEXs (for market data)
+      const hasMarketDataSubscribers = this.marketDataSubscribers.size > 0;
+      if (hasMarketDataSubscribers) {
+        await Promise.all(
+          newDexs.map(async (dex) => {
+            try {
+              await this.ensureAssetCtxsSubscription(dex);
+            } catch (error) {
+              Logger.error(
+                ensureError(error),
+                this.getErrorContext(
+                  'updateFeatureFlags.ensureAssetCtxsSubscription',
+                  {
+                    dex,
+                  },
+                ),
+              );
+            }
+          }),
+        );
+      }
+
+      // Note: webData3 automatically includes all DEX data, so no separate
+      // subscription setup needed for positions/orders/account data
+    }
   }
 
   /**
@@ -699,17 +744,25 @@ export class HyperLiquidSubscriptionService {
     return new Promise<void>((resolve, reject) => {
       subscriptionClient
         .webData3({ user: userAddress }, (data: WsWebData3Event) => {
-          DevLogger.log(
-            'HyperLiquidSubscriptionService: webData3 callback received',
-            JSON.stringify(data, null, 2),
-          );
+          const enabledDexs = this.getEnabledDexs();
 
           // Process data from each DEX in perpDexStates array
           data.perpDexStates.forEach((dexState, index) => {
-            // Determine DEX name from INDEX (reliable even with no positions/orders)
-            // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs
-            const currentDexName: string | null =
-              index === 0 ? null : (this.enabledDexs[index - 1] ?? '');
+            // Defensive validation: Ensure perpDexStates array doesn't exceed enabledDexs
+            if (index >= enabledDexs.length) {
+              Logger.error(
+                new Error('perpDexStates array length exceeds enabledDexs'),
+                this.getErrorContext('subscribeToWebData3', {
+                  perpDexStatesLength: data.perpDexStates.length,
+                  enabledDexsLength: enabledDexs.length,
+                  index,
+                  issue: 'Array index out of bounds - skipping unknown DEX',
+                }),
+              );
+              return; // Skip this DEX state to prevent data corruption
+            }
+
+            const currentDexName = enabledDexs[index] || ''; // null -> ''
 
             // Extract and process positions for this DEX
             const positions = dexState.clearinghouseState.assetPositions
@@ -740,28 +793,42 @@ export class HyperLiquidSubscriptionService {
               undefined, // webData3 doesn't include spotState
             );
 
-            // Store per-DEX data in caches (convert null to '' for cache keys)
-            const cacheKey = currentDexName ?? '';
-            this.dexPositionsCache.set(cacheKey, positionsWithTPSL);
-            this.dexOrdersCache.set(cacheKey, orders);
-            this.dexAccountCache.set(cacheKey, accountState);
+            // Store per-DEX data in caches
+            this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
+            this.dexOrdersCache.set(currentDexName, orders);
+            this.dexAccountCache.set(currentDexName, accountState);
           });
 
           // Extract OI caps from all DEXs (main + HIP-3)
           const allOICaps: string[] = [];
           data.perpDexStates.forEach((dexState, index) => {
-            // Determine DEX name from INDEX (same as above)
-            const currentDexName: string | null =
-              index === 0 ? null : (this.enabledDexs[index - 1] ?? '');
+            // Defensive validation: Ensure perpDexStates array doesn't exceed enabledDexs
+            if (index >= enabledDexs.length) {
+              Logger.error(
+                new Error('perpDexStates array length exceeds enabledDexs'),
+                this.getErrorContext('subscribeToWebData3:OICaps', {
+                  perpDexStatesLength: data.perpDexStates.length,
+                  enabledDexsLength: enabledDexs.length,
+                  index,
+                  issue:
+                    'Array index out of bounds - skipping OI caps for unknown DEX',
+                }),
+              );
+              return; // Skip this DEX state to prevent incorrect OI cap attribution
+            }
 
+            const currentDexName = enabledDexs[index];
             const oiCaps = dexState.perpsAtOpenInterestCap || [];
 
-            // Build full symbol names with DEX prefix for HIP-3
-            const oiCapSymbols = currentDexName
-              ? oiCaps.map((symbol) => `${currentDexName}:${symbol}`)
-              : oiCaps; // Main DEX - no prefix
-
-            allOICaps.push(...oiCapSymbols);
+            // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
+            if (currentDexName) {
+              allOICaps.push(
+                ...oiCaps.map((symbol) => `${currentDexName}:${symbol}`),
+              );
+            } else {
+              // Main DEX - no prefix needed
+              allOICaps.push(...oiCaps);
+            }
           });
 
           // Update OI caps cache and notify if changed
