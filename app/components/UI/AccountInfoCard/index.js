@@ -224,6 +224,8 @@ class AccountInfoCard extends PureComponent {
             >
               {accountLabel}
             </Text>
+          </View>
+          <View style={styles.accountNameAndAddress}>
             <Text
               numberOfLines={1}
               style={[
@@ -231,7 +233,7 @@ class AccountInfoCard extends PureComponent {
                 accountLabelTag ? styles.accountAddressSmall : undefined,
               ]}
             >
-              ({address})
+              {address}
             </Text>
           </View>
           <Text
