@@ -169,7 +169,7 @@ describe('useRampsSmartRouting', () => {
       );
     });
 
-    it('routes to AGGREGATOR when API returns deposit: false, aggregator: true, global: true', async () => {
+    it('routes to AGGREGATOR when API returns deposit: false and global: true', async () => {
       mockApiResponse({
         deposit: false,
         aggregator: true,
@@ -187,10 +187,10 @@ describe('useRampsSmartRouting', () => {
       );
     });
 
-    it('routes to AGGREGATOR when API returns aggregator support regardless of orders', async () => {
+    it('routes to AGGREGATOR when deposit unsupported regardless of orders', async () => {
       mockApiResponse({
         deposit: false,
-        aggregator: true,
+        aggregator: false,
         global: true,
       });
       mockOrders = [
@@ -262,7 +262,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to DEPOSIT when there are no completed orders', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [];
@@ -280,7 +280,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to DEPOSIT when all orders are pending', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -309,7 +309,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to DEPOSIT when all orders are failed', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -338,7 +338,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to DEPOSIT when all orders are cancelled', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -364,7 +364,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to DEPOSIT when last completed order is from Transak', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -393,7 +393,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to DEPOSIT when only completed order is from Transak', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -417,7 +417,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to DEPOSIT when Transak is most recent among mixed states', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -453,7 +453,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to AGGREGATOR when last completed order is from Aggregator', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -482,7 +482,7 @@ describe('useRampsSmartRouting', () => {
     it('routes to AGGREGATOR when last completed order is from MoonPay', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -556,7 +556,7 @@ describe('useRampsSmartRouting', () => {
     it('uses most recent completed order when multiple completed orders exist', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -590,7 +590,7 @@ describe('useRampsSmartRouting', () => {
     it('ignores pending orders when determining last completed order', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -626,7 +626,7 @@ describe('useRampsSmartRouting', () => {
     it('determines routing decision on mount', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [];
@@ -641,7 +641,7 @@ describe('useRampsSmartRouting', () => {
     it('updates routing decision when orders change', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [];
@@ -714,7 +714,7 @@ describe('useRampsSmartRouting', () => {
     it('handles orders with same timestamp', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       const sameTimestamp = 5000;
@@ -744,7 +744,7 @@ describe('useRampsSmartRouting', () => {
     it('handles mix of completed and non-completed orders', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [
@@ -783,7 +783,7 @@ describe('useRampsSmartRouting', () => {
     it('handles orders array with created state', async () => {
       mockApiResponse({
         deposit: true,
-        aggregator: false,
+        aggregator: true,
         global: true,
       });
       mockOrders = [

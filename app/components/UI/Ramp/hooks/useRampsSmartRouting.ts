@@ -51,12 +51,10 @@ export default function useRampsSmartRouting() {
 
         if (!data.global) {
           setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
-        } else if (data.deposit) {
-          setRampRegionSupport(RampRegionSupport.DEPOSIT);
-        } else if (data.aggregator) {
+        } else if (!data.deposit) {
           setRampRegionSupport(RampRegionSupport.AGGREGATOR);
         } else {
-          setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
+          setRampRegionSupport(RampRegionSupport.DEPOSIT);
         }
       } catch (error) {
         setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
