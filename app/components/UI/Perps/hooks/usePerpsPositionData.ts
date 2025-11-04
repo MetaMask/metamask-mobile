@@ -289,7 +289,7 @@ export const usePerpsPositionData = ({
     setIsLoadingHistory(true);
     try {
       const historicalData = await fetchHistoricalCandles();
-      // Only update data and flag if we received valid data
+
       if (historicalData && historicalData.candles?.length > 0) {
         setCandleData((prev) => {
           // Prevent re-render if data is identical
@@ -299,9 +299,13 @@ export const usePerpsPositionData = ({
           return historicalData;
         });
         setHasHistoricalData(true);
+      } else {
+        // No valid data received on refresh
+        setHasHistoricalData(false);
       }
     } catch (err) {
       console.error('Error refreshing candle data:', err);
+      setHasHistoricalData(false);
     } finally {
       setIsLoadingHistory(false);
     }
