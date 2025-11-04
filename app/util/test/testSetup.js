@@ -471,7 +471,26 @@ jest.mock('../theme', () => ({
   ...jest.requireActual('../theme'),
   useAppThemeFromContext: () => ({ ...mockTheme }),
 }));
-
+// Mock FeatureFlagOverrideContext to avoid async state updates
+jest.mock('../../contexts/FeatureFlagOverrideContext', () => ({
+  useFeatureFlagOverride: jest.fn(() => ({
+    featureFlags: {},
+    originalFlags: {},
+    getFeatureFlag: jest.fn(),
+    getFeatureFlagSnapshots: jest.fn(() => ({})),
+    featureFlagsList: [],
+    overrides: {},
+    setOverride: jest.fn(),
+    removeOverride: jest.fn(),
+    clearAllOverrides: jest.fn(),
+    hasOverride: jest.fn(),
+    getOverride: jest.fn(),
+    getAllOverrides: jest.fn(),
+    applyOverrides: jest.fn(),
+    getOverrideCount: jest.fn(),
+  })),
+  FeatureFlagOverrideProvider: ({ children }) => children,
+}));
 global.segmentMockClient = null;
 
 const initializeMockClient = () => {
