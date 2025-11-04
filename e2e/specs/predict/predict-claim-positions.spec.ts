@@ -61,7 +61,9 @@ describe(SmokePredictions('Predictions'), () => {
         await loginToApp();
 
         // Claim button is animated - disabling sync on iOS to prevent test hang
-        await device.disableSynchronization();
+        if (device.getPlatform() === 'ios') {
+          await device.disableSynchronization();
+        }
 
         await WalletView.tapOnPredictionsTab();
 
@@ -79,7 +81,9 @@ describe(SmokePredictions('Predictions'), () => {
         await POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS(mockServer);
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await device.enableSynchronization();
+        if (device.getPlatform() === 'ios') {
+          await device.enableSynchronization();
+        }
 
         await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
           description: 'Claim button should not be visible',
