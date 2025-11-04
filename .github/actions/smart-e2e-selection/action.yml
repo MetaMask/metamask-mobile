@@ -34,6 +34,12 @@ runs:
       with:
         fetch-depth: 1 # Shallow clone - only need PR commit
 
+    - name: Disable sparse checkout and restore all files
+      shell: bash
+      run: |
+        git sparse-checkout disable
+        git checkout HEAD -- .
+
     - name: Fetch base branch for comparison
       shell: bash
       run: |
