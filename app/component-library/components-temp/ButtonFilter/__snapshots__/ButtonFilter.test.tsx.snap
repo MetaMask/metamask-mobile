@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonFilter renders correctly  1`] = `
+<View
+  accessibilityLabel="All"
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
+        "height": 40,
+        "justifyContent": "center",
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      [
+        {
+          "color": "#ffffff",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        undefined,
+      ]
+    }
+  >
+    All
+  </Text>
+</View>
+`;
