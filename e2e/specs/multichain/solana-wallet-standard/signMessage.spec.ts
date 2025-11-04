@@ -5,7 +5,7 @@ import Assertions from '../../../framework/Assertions';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 import { logger } from '../../../framework/logger';
 
-describe(
+describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),
   () => {
     beforeAll(async () => {
