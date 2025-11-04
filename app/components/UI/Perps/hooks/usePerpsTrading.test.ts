@@ -529,6 +529,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
+        coin: 'BTC',
       };
 
       const response = await result.current.calculateFees(params);
@@ -555,6 +556,7 @@ describe('usePerpsTrading', () => {
         orderType: 'limit' as const,
         isMaker: true,
         amount: '100000',
+        coin: 'BTC',
       };
 
       const resultPromise = result.current.calculateFees(params);
@@ -579,6 +581,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
+        coin: 'BTC',
       };
 
       await expect(result.current.calculateFees(params)).rejects.toThrow(
@@ -607,6 +610,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market',
         isMaker: false,
         amount: '100000',
+        coin: 'BTC',
       });
       expect(marketResult).toEqual(mockMarketFeeResult);
 
@@ -619,6 +623,7 @@ describe('usePerpsTrading', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
+        coin: 'BTC',
       });
       expect(limitResult).toEqual(mockLimitFeeResult);
     });

@@ -50,8 +50,10 @@ import {
 } from 'react-native-confirmation-code-field';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useDispatch } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
 
@@ -84,6 +86,7 @@ const createOtpStyles = (params: { theme: Theme }) => {
 };
 
 const CardAuthentication = () => {
+  const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [email, setEmail] = useState('');
@@ -178,8 +181,36 @@ const CardAuthentication = () => {
     }
   }, [step]);
 
+  useEffect(() => {
+    const screenName =
+      step === 'login'
+        ? CardScreens.AUTHENTICATION
+        : CardScreens.OTP_AUTHENTICATION;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: screenName,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, step]);
+
   const performLogin = useCallback(
     async (otpCode?: string) => {
+      const action =
+        step === 'login'
+          ? CardActions.AUTHENTICATION_LOGIN_BUTTON
+          : CardActions.OTP_AUTHENTICATION_CONFIRM_BUTTON;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action,
+          })
+          .build(),
+      );
+
       try {
         setLoading(true);
         const loginResponse = await login({
@@ -220,7 +251,17 @@ const CardAuthentication = () => {
         setLoading(false);
       }
     },
-    [email, location, login, password, navigation, dispatch],
+    [
+      email,
+      location,
+      login,
+      password,
+      step,
+      navigation,
+      dispatch,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   // Auto-submit when all OTP digits are entered

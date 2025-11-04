@@ -103,7 +103,7 @@ const NftDetails = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
+      createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
         .addProperties({
           chain_id: getDecimalChainId(chainId),
         })

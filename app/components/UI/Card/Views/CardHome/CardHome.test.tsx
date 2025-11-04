@@ -38,6 +38,7 @@ jest.mock('../../hooks/isBaanxLoginEnabled', () => ({
 }));
 
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -47,11 +48,9 @@ import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AllowanceState, CardWarning, CardType } from '../../types';
-import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
+import useLoadCardData from '../../hooks/useLoadCardData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
-import { useIsCardholder } from '../../hooks/useIsCardholder';
-import useCardDetails from '../../hooks/useCardDetails';
 import { useCardProvision } from '../../hooks/useCardProvision';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -91,8 +90,11 @@ const mockPriorityToken = {
   decimals: 6,
   balance: '1000000000',
   allowance: '500000000',
+  totalAllowance: '1000',
   name: 'USD Coin',
   chainId: 1,
+  caipChainId: 'eip155:1',
+  walletAddress: '0x789',
   allowanceState: AllowanceState.Enabled,
 };
 
@@ -104,40 +106,52 @@ const mockSelectedInternalAccount = {
 
 // Mock hooks
 const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
+const mockFetchCardDetails = jest.fn();
+const mockFetchAllData = jest.fn();
+const mockPollCardStatusUntilProvisioned = jest.fn().mockResolvedValue(true);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockDispatch = jest.fn();
 const mockOpenSwaps = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-const mockProvisionCard = jest.fn();
-const mockPollCardStatusUntilProvisioned = jest.fn();
 
 const mockEventBuilder = {
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({ event: 'built' }),
 };
 
-interface MockAssetBalanceReturn {
+interface MockAssetBalanceInfo {
   balanceFiat: string | undefined;
   asset: { symbol: string; image: string };
-  mainBalance: string | undefined;
-  secondaryBalance: string | undefined;
+  balanceFormatted: string | undefined;
   rawTokenBalance?: number;
   rawFiatNumber?: number;
 }
 
-const mockUseAssetBalance = jest.fn<MockAssetBalanceReturn, []>(() => ({
-  balanceFiat: '$1,000.00',
-  asset: {
-    symbol: 'USDC',
-    image: 'usdc-image-url',
-  },
-  mainBalance: '$1,000.00',
-  secondaryBalance: '1000 USDC',
-  rawTokenBalance: 1000,
-  rawFiatNumber: 1000,
-}));
+const createMockAssetBalancesMap = (
+  balanceInfo: MockAssetBalanceInfo,
+  token = mockPriorityToken,
+): Map<string, MockAssetBalanceInfo> => {
+  const map = new Map<string, MockAssetBalanceInfo>();
+  // Use the same key format as the component: `${address}-${caipChainId}-${walletAddress}`
+  const key = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+  map.set(key, balanceInfo);
+  return map;
+};
+
+const mockUseAssetBalances = jest.fn(() =>
+  createMockAssetBalancesMap({
+    balanceFiat: '$1,000.00',
+    asset: {
+      symbol: 'USDC',
+      image: 'usdc-image-url',
+    },
+    balanceFormatted: '1000.000000 USDC',
+    rawTokenBalance: 1000,
+    rawFiatNumber: 1000,
+  }),
+);
 
 const mockUseNavigateToCardPage = jest.fn(() => ({
   navigateToCardPage: mockNavigateToCardPage,
@@ -147,29 +161,17 @@ const mockUseSwapBridgeNavigation = jest.fn(() => ({
   goToSwaps: mockGoToSwaps,
 }));
 
-jest.mock('../../hooks/useGetPriorityCardToken', () => ({
-  useGetPriorityCardToken: jest.fn(),
-}));
-
-jest.mock('../../hooks/useAssetBalance', () => ({
-  useAssetBalance: () => mockUseAssetBalance(),
-}));
-
-jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToCardPage: () => mockUseNavigateToCardPage(),
-}));
-
-jest.mock('../../hooks/useIsCardholder', () => ({
-  useIsCardholder: jest.fn(),
-}));
-
-jest.mock('../../hooks/useCardDetails', () => ({
+jest.mock('../../hooks/useLoadCardData', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock('../../hooks/useCardProvision', () => ({
-  useCardProvision: jest.fn(),
+jest.mock('../../hooks/useAssetBalances', () => ({
+  useAssetBalances: () => mockUseAssetBalances(),
+}));
+
+jest.mock('../../hooks/useNavigateToCardPage', () => ({
+  useNavigateToCardPage: () => mockUseNavigateToCardPage(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -185,6 +187,10 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
 
 jest.mock('../../hooks/useIsSwapEnabledForPriorityToken', () => ({
   useIsSwapEnabledForPriorityToken: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCardProvision', () => ({
+  useCardProvision: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useMetrics', () => ({
@@ -301,15 +307,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.error_title': 'Unable to load card',
       'card.card_home.error_description': 'Please try again later',
       'card.card_home.try_again': 'Try again',
-      'card.card_home.enable_card_button_label': 'Enable card',
-      'card.card_home.enable_assets_button_label': 'Enable assets',
-      'card.card_home.change_asset': 'Change asset',
-      'card.card_home.manage_card_options.manage_spending_limit':
-        'Manage spending limit',
-      'card.card_home.manage_card_options.manage_spending_limit_description_full':
-        'Full spending access',
-      'card.card_home.manage_card_options.manage_spending_limit_description_restricted':
-        'Restricted spending',
+      'card.card_home.logout': 'Logout',
+      'card.card_home.logout_description': 'Logout of your Card account',
+      'card.card_home.logout_confirmation_title': 'Confirm Logout',
+      'card.card_home.logout_confirmation_message':
+        'Are you sure you want to logout?',
+      'card.card_home.logout_confirmation_cancel': 'Cancel',
+      'card.card_home.logout_confirmation_confirm': 'Logout',
     };
     return strings[key] || key;
   },
@@ -391,6 +395,44 @@ function setupMockSelectors(
   });
 }
 
+// Helper: Setup useLoadCardData mock with custom values
+function setupLoadCardDataMock(
+  overrides?: Partial<{
+    priorityToken: typeof mockPriorityToken | null;
+    allTokens: (typeof mockPriorityToken)[];
+    cardDetails: { type: CardType } | null;
+    isLoading: boolean;
+    error: string | null;
+    warning: CardWarning | null;
+    isAuthenticated: boolean;
+    isBaanxLoginEnabled: boolean;
+    isCardholder: boolean;
+  }>,
+) {
+  const defaults = {
+    priorityToken: mockPriorityToken,
+    allTokens: [mockPriorityToken],
+    cardDetails: { type: CardType.VIRTUAL },
+    isLoading: false,
+    error: null,
+    warning: null,
+    isAuthenticated: false,
+    isBaanxLoginEnabled: true,
+    isCardholder: true,
+  };
+
+  const config = { ...defaults, ...overrides };
+
+  (useLoadCardData as jest.Mock).mockReturnValueOnce({
+    ...config,
+    fetchPriorityToken: mockFetchPriorityToken,
+    fetchCardDetails: mockFetchCardDetails,
+    fetchAllData: mockFetchAllData,
+    pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
+    isLoadingPollCardStatusUntilProvisioned: false,
+  });
+}
+
 // Helper: Render component with proper wrapper
 function render() {
   return renderScreen(
@@ -411,6 +453,16 @@ function render() {
 describe('CardHome Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock Alert.alert
+    jest
+      .spyOn(Alert, 'alert')
+      .mockImplementation((_title, _message, buttons) => {
+        // For logout confirmation, immediately call the confirm button's onPress
+        if (buttons && buttons.length > 1 && buttons[1].onPress) {
+          buttons[1].onPress();
+        }
+      });
 
     // Clear SDK mocks
     mockLogoutFromProvider.mockClear();
@@ -438,24 +490,35 @@ describe('CardHome Component', () => {
     mockSetSelectedAccount.mockClear();
 
     // Setup hook mocks with default values
-    (useGetPriorityCardToken as jest.Mock).mockReturnValue({
+    (useLoadCardData as jest.Mock).mockReturnValue({
       priorityToken: mockPriorityToken,
-      fetchPriorityToken: mockFetchPriorityToken,
+      allTokens: [mockPriorityToken],
+      cardDetails: { type: CardType.VIRTUAL },
       isLoading: false,
       error: null,
+      warning: null,
+      isAuthenticated: false,
+      isBaanxLoginEnabled: true,
+      isCardholder: true,
+      fetchPriorityToken: mockFetchPriorityToken,
+      fetchCardDetails: mockFetchCardDetails,
+      fetchAllData: mockFetchAllData,
+      pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
+      isLoadingPollCardStatusUntilProvisioned: false,
     });
 
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: '$1,000.00',
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: '$1,000.00',
-      secondaryBalance: '1000 USDC',
-      rawTokenBalance: 1000,
-      rawFiatNumber: 1000,
-    });
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: {
+          symbol: 'USDC',
+          image: 'usdc-image-url',
+        },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: 1000,
+      }),
+    );
 
     mockUseNavigateToCardPage.mockReturnValue({
       navigateToCardPage: mockNavigateToCardPage,
@@ -469,8 +532,6 @@ describe('CardHome Component', () => {
       openSwaps: mockOpenSwaps,
     });
 
-    (useIsCardholder as jest.Mock).mockReturnValue(true);
-
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -478,22 +539,12 @@ describe('CardHome Component', () => {
 
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
-    (useCardDetails as jest.Mock).mockReturnValue({
-      cardDetails: { type: 'virtual' },
-      fetchCardDetails: jest.fn(),
-      pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-      isLoading: false,
-      isLoadingPollCardStatusUntilProvisioned: false,
-      error: null,
-      warning: null,
-    });
+    (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
 
     (useCardProvision as jest.Mock).mockReturnValue({
-      provisionCard: mockProvisionCard,
+      provisionCard: jest.fn().mockResolvedValue(undefined),
       isLoading: false,
     });
-
-    (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
 
     // Setup default selectors
     setupMockSelectors();
@@ -552,13 +603,7 @@ describe('CardHome Component', () => {
       ...mockPriorityToken,
       symbol: 'USDT',
     };
-
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-      priorityToken: usdtToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: false,
-      error: null,
-    });
+    setupLoadCardDataMock({ priorityToken: usdtToken, allTokens: [usdtToken] });
 
     // When: user presses add funds button
     render();
@@ -582,13 +627,7 @@ describe('CardHome Component', () => {
       ...mockPriorityToken,
       symbol: 'ETH',
     };
-
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-      priorityToken: ethToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: false,
-      error: null,
-    });
+    setupLoadCardDataMock({ priorityToken: ethToken, allTokens: [ethToken] });
 
     render();
     mockOpenSwaps.mockClear();
@@ -603,9 +642,7 @@ describe('CardHome Component', () => {
     // Then: should navigate to swaps
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockOpenSwaps).toHaveBeenCalledWith({
-        chainId: '0xe708',
-      });
+      expect(mockOpenSwaps).toHaveBeenCalledWith({});
     });
   });
 
@@ -669,10 +706,8 @@ describe('CardHome Component', () => {
 
   it('displays error state when there is an error fetching priority token', () => {
     // Given: priority token fetch failed
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+    setupLoadCardDataMock({
       priorityToken: null,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: false,
       error: 'Failed to fetch token',
     });
 
@@ -685,12 +720,10 @@ describe('CardHome Component', () => {
     expect(screen.getByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON)).toBeTruthy();
   });
 
-  it('calls fetchPriorityToken when try again button is pressed', async () => {
+  it('calls fetchAllData when try again button is pressed', async () => {
     // Given: error state is displayed
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+    setupLoadCardDataMock({
       priorityToken: null,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: false,
       error: 'Failed to fetch token',
     });
 
@@ -702,9 +735,9 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(tryAgainButton);
 
-    // Then: should retry fetching priority token
+    // Then: should retry fetching all data
     await waitFor(() => {
-      expect(mockFetchPriorityToken).toHaveBeenCalled();
+      expect(mockFetchAllData).toHaveBeenCalled();
     });
   });
 
@@ -714,12 +747,9 @@ describe('CardHome Component', () => {
       ...mockPriorityToken,
       allowanceState: AllowanceState.Limited,
     };
-
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+    setupLoadCardDataMock({
       priorityToken: limitedAllowanceToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: false,
-      error: null,
+      allTokens: [limitedAllowanceToken],
     });
 
     // When: component renders
@@ -757,13 +787,7 @@ describe('CardHome Component', () => {
       ...mockPriorityToken,
       symbol: 'ETH',
     };
-
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-      priorityToken: ethToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: false,
-      error: null,
-    });
+    setupLoadCardDataMock({ priorityToken: ethToken, allTokens: [ethToken] });
 
     render();
     mockOpenSwaps.mockClear();
@@ -775,55 +799,55 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
-    // Then: should navigate to swaps with correct chain
+    // Then: should navigate to swaps
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockOpenSwaps).toHaveBeenCalledWith({
-        chainId: '0xe708',
-      });
+      expect(mockOpenSwaps).toHaveBeenCalledWith({});
     });
   });
 
-  it('falls back to mainBalance when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
+  it('falls back to balanceFormatted when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
     // Given: fiat rate is undefined
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: TOKEN_RATE_UNDEFINED,
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: '1000 USDC',
-      secondaryBalance: 'Unable to find conversion rate',
-      rawTokenBalance: 1000,
-      rawFiatNumber: 0,
-    });
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: TOKEN_RATE_UNDEFINED,
+        asset: {
+          symbol: 'USDC',
+          image: 'usdc-image-url',
+        },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: 0,
+      }),
+    );
 
     // When: component renders
     render();
 
-    // Then: should display main balance instead of fiat
-    expect(screen.getByText('1000 USDC')).toBeTruthy();
+    // Then: should display formatted balance instead of fiat
+    expect(screen.getByText('1000.000000 USDC')).toBeTruthy();
   });
 
-  it('falls back to mainBalance when balanceFiat is not available', () => {
+  it('falls back to balanceFormatted when balanceFiat is not available', () => {
     // Given: fiat balance is empty
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: '',
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: '1000 USDC',
-      secondaryBalance: 'Unable to find conversion rate',
-      rawTokenBalance: 1000,
-      rawFiatNumber: 0,
-    });
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: '',
+        asset: {
+          symbol: 'USDC',
+          image: 'usdc-image-url',
+        },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: 0,
+      }),
+    );
 
     // When: component renders
     render();
 
-    // Then: should display main balance as fallback
-    expect(screen.getByText('1000 USDC')).toBeTruthy();
+    // Then: should display formatted balance as fallback
+    expect(screen.getByText('1000.000000 USDC')).toBeTruthy();
   });
 
   it('fires CARD_HOME_VIEWED once when balances are loaded', async () => {
@@ -854,14 +878,15 @@ describe('CardHome Component', () => {
 
   it('includes zero raw balances in metrics', async () => {
     // Given: zero balances
-    mockUseAssetBalance.mockReturnValueOnce({
-      balanceFiat: '$0.00',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: '0 USDC',
-      secondaryBalance: '$0.00',
-      rawTokenBalance: 0,
-      rawFiatNumber: 0,
-    });
+    mockUseAssetBalances.mockReturnValueOnce(
+      createMockAssetBalancesMap({
+        balanceFiat: '$0.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '0.000000 USDC',
+        rawTokenBalance: 0,
+        rawFiatNumber: 0,
+      }),
+    );
 
     // When: component renders
     render();
@@ -877,15 +902,16 @@ describe('CardHome Component', () => {
   });
 
   it('includes only rawTokenBalance when fiat is undefined', async () => {
-    // Given: only main balance is valid (fiat undefined)
-    mockUseAssetBalance.mockReturnValueOnce({
-      balanceFiat: undefined as unknown as string,
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: '1000 USDC',
-      secondaryBalance: '1000 USDC',
-      rawTokenBalance: 1000,
-      // rawFiatNumber intentionally omitted (undefined)
-    });
+    // Given: only formatted balance is valid (fiat undefined)
+    mockUseAssetBalances.mockReturnValueOnce(
+      createMockAssetBalancesMap({
+        balanceFiat: undefined as unknown as string,
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        // rawFiatNumber intentionally omitted (undefined)
+      }),
+    );
 
     // When: component renders
     render();
@@ -901,16 +927,17 @@ describe('CardHome Component', () => {
     );
   });
 
-  it('includes only rawFiatNumber when main balance is undefined', async () => {
-    // Given: only fiat balance is valid (main undefined)
-    mockUseAssetBalance.mockReturnValueOnce({
-      balanceFiat: '$1,000.00',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: undefined as unknown as string,
-      secondaryBalance: '$1,000.00',
-      // rawTokenBalance omitted
-      rawFiatNumber: 1000,
-    });
+  it('includes only rawFiatNumber when formatted balance is undefined', async () => {
+    // Given: only fiat balance is valid (formatted balance undefined)
+    mockUseAssetBalances.mockReturnValueOnce(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: undefined as unknown as string,
+        // rawTokenBalance omitted
+        rawFiatNumber: 1000,
+      }),
+    );
 
     // When: component renders
     render();
@@ -926,16 +953,17 @@ describe('CardHome Component', () => {
     );
   });
 
-  it('fires CARD_HOME_VIEWED once when only mainBalance is valid', async () => {
-    // Given: only main balance is available
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: undefined as unknown as string,
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: '1000 USDC',
-      secondaryBalance: '1000 USDC',
-      rawTokenBalance: 1000,
-      // rawFiatNumber omitted
-    });
+  it('fires CARD_HOME_VIEWED once when only balanceFormatted is valid', async () => {
+    // Given: only formatted balance is available
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: undefined as unknown as string,
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        // rawFiatNumber omitted
+      }),
+    );
 
     // When: component renders
     render();
@@ -951,14 +979,15 @@ describe('CardHome Component', () => {
 
   it('fires CARD_HOME_VIEWED once when only fiat balance is valid', async () => {
     // Given: only fiat balance is available
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: '$1,000.00',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: undefined as unknown as string,
-      secondaryBalance: '$1,000.00',
-      // rawTokenBalance omitted
-      rawFiatNumber: 1000,
-    });
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: undefined as unknown as string,
+        // rawTokenBalance omitted
+        rawFiatNumber: 1000,
+      }),
+    );
 
     // When: component renders
     render();
@@ -974,13 +1003,14 @@ describe('CardHome Component', () => {
 
   it('does not fire metrics when balances are still loading', async () => {
     // Given: balances show loading sentinels
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: 'tokenBalanceLoading',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: 'TOKENBALANCELOADING',
-      secondaryBalance: 'loading',
-      // raw values omitted
-    });
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: 'tokenBalanceLoading',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: 'TOKENBALANCELOADING',
+        // raw values omitted
+      }),
+    );
 
     // When: component renders
     render();
@@ -991,14 +1021,15 @@ describe('CardHome Component', () => {
   });
 
   it('does not fire metrics when balances are unavailable', async () => {
-    // Given: fiat is undefined and main is also undefined
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: 'tokenRateUndefined',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: undefined as unknown as string,
-      secondaryBalance: 'n/a',
-      // raw values omitted
-    });
+    // Given: fiat is undefined and formatted balance is also undefined
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: 'tokenRateUndefined',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: undefined as unknown as string,
+        // raw values omitted
+      }),
+    );
 
     // When: component renders
     render();
@@ -1010,14 +1041,15 @@ describe('CardHome Component', () => {
 
   it('converts NaN rawTokenBalance to 0 in metrics', async () => {
     // Given: rawTokenBalance is NaN
-    mockUseAssetBalance.mockReturnValueOnce({
-      balanceFiat: '$1,000.00',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: '1000 USDC',
-      secondaryBalance: '1000 USDC',
-      rawTokenBalance: NaN,
-      rawFiatNumber: 1000,
-    });
+    mockUseAssetBalances.mockReturnValueOnce(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: NaN,
+        rawFiatNumber: 1000,
+      }),
+    );
 
     // When: component renders and fires metrics
     render();
@@ -1035,14 +1067,15 @@ describe('CardHome Component', () => {
 
   it('converts NaN rawFiatNumber to 0 in metrics', async () => {
     // Given: rawFiatNumber is NaN
-    mockUseAssetBalance.mockReturnValueOnce({
-      balanceFiat: '$1,000.00',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: '1000 USDC',
-      secondaryBalance: '1000 USDC',
-      rawTokenBalance: 1000,
-      rawFiatNumber: NaN,
-    });
+    mockUseAssetBalances.mockReturnValueOnce(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: NaN,
+      }),
+    );
 
     // When: component renders and fires metrics
     render();
@@ -1060,14 +1093,15 @@ describe('CardHome Component', () => {
 
   it('converts both NaN raw values to 0 in metrics', async () => {
     // Given: both raw values are NaN
-    mockUseAssetBalance.mockReturnValueOnce({
-      balanceFiat: '$1,000.00',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: '1000 USDC',
-      secondaryBalance: '1000 USDC',
-      rawTokenBalance: NaN,
-      rawFiatNumber: NaN,
-    });
+    mockUseAssetBalances.mockReturnValueOnce(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: NaN,
+        rawFiatNumber: NaN,
+      }),
+    );
 
     // When: component renders and fires metrics
     render();
@@ -1085,13 +1119,14 @@ describe('CardHome Component', () => {
 
   it('preserves undefined raw values in metrics', async () => {
     // Given: raw values are undefined (not provided)
-    mockUseAssetBalance.mockReturnValueOnce({
-      balanceFiat: '$1,000.00',
-      asset: { symbol: 'USDC', image: 'usdc-image-url' },
-      mainBalance: '1000 USDC',
-      secondaryBalance: '1000 USDC',
-      // rawTokenBalance and rawFiatNumber intentionally omitted (undefined)
-    });
+    mockUseAssetBalances.mockReturnValueOnce(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: { symbol: 'USDC', image: 'usdc-image-url' },
+        balanceFormatted: '1000.000000 USDC',
+        // rawTokenBalance and rawFiatNumber intentionally omitted (undefined)
+      }),
+    );
 
     // When: component renders and fires metrics
     render();
@@ -1238,6 +1273,7 @@ describe('CardHome Component', () => {
     it('shows logout button when user is authenticated', () => {
       // Given: user is authenticated
       setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
 
       // When: component renders
       render();
@@ -1247,21 +1283,69 @@ describe('CardHome Component', () => {
       expect(screen.getByText('Logout of your Card account')).toBeTruthy();
     });
 
-    it('calls logout and navigates back when logout button pressed', async () => {
+    it('shows logout confirmation alert when logout button pressed', () => {
       // Given: user is authenticated
       setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
 
       render();
 
-      // When: user presses logout
+      // When: user presses logout button
+      const logoutButton = screen.getByText('Logout');
+      fireEvent.press(logoutButton);
+
+      // Then: should show confirmation alert with correct buttons
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Confirm Logout',
+        'Are you sure you want to logout?',
+        expect.arrayContaining([
+          expect.objectContaining({ text: 'Cancel', style: 'cancel' }),
+          expect.objectContaining({
+            text: 'Logout',
+            style: 'destructive',
+            onPress: expect.any(Function),
+          }),
+        ]),
+      );
+    });
+
+    it('calls logout and navigates back when logout confirmed', () => {
+      // Given: user is authenticated
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      // When: user presses logout and confirms the Alert
       const logoutButton = screen.getByText('Logout');
       fireEvent.press(logoutButton);
 
       // Then: should call logout and navigate back
-      await waitFor(() => {
-        expect(mockLogoutFromProvider).toHaveBeenCalled();
-        expect(mockGoBack).toHaveBeenCalled();
-      });
+      expect(mockLogoutFromProvider).toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('does not logout when alert is cancelled', () => {
+      // Given: user is authenticated and Alert will be cancelled
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation((_title, _message, buttons) => {
+          // Simulate pressing Cancel button (button at index 0)
+          buttons?.[0].onPress?.();
+        });
+
+      render();
+
+      // When: user presses logout but cancels the Alert
+      const logoutButton = screen.getByText('Logout');
+      fireEvent.press(logoutButton);
+
+      // Then: should not call logout or navigate back
+      expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('does not show logout button when user is not authenticated', () => {
@@ -1279,11 +1363,7 @@ describe('CardHome Component', () => {
   describe('CardWarning Edge Cases', () => {
     it('hides balance and asset when warning is NeedDelegation', () => {
       // Given: warning is NeedDelegation
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-        priorityToken: mockPriorityToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
+      setupLoadCardDataMock({
         warning: CardWarning.NeedDelegation,
       });
 
@@ -1303,11 +1383,7 @@ describe('CardHome Component', () => {
 
     it('displays CardWarningBox when warning exists', () => {
       // Given: warning exists
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-        priorityToken: mockPriorityToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
+      setupLoadCardDataMock({
         warning: CardWarning.NeedDelegation,
       });
 
@@ -1317,21 +1393,15 @@ describe('CardHome Component', () => {
       // Then: should display warning box
       // Note: The warning box text depends on CardWarningBox component implementation
       // This test verifies the warning prop is passed
-      expect(useGetPriorityCardToken).toHaveBeenCalled();
+      expect(useLoadCardData).toHaveBeenCalled();
     });
   });
 
   describe('Card Details', () => {
     it('displays card with correct type from cardDetails', () => {
       // Given: card details with physical type
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         cardDetails: { type: CardType.PHYSICAL },
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: null,
       });
 
       // When: component renders
@@ -1339,38 +1409,27 @@ describe('CardHome Component', () => {
 
       // Then: should pass card type to CardImage
       // Card image component should be rendered with physical type
-      expect(useCardDetails).toHaveBeenCalled();
+      expect(useLoadCardData).toHaveBeenCalled();
     });
 
     it('defaults to virtual card type when cardDetails is null', () => {
       // Given: no card details
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: null,
       });
 
       // When: component renders
       render();
 
       // Then: should default to virtual type
-      expect(useCardDetails).toHaveBeenCalled();
+      expect(useLoadCardData).toHaveBeenCalled();
     });
 
     it('shows error when cardDetails fetch fails', () => {
       // Given: card details error
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: 'Failed to fetch card details',
-        warning: null,
       });
 
       // When: component renders
@@ -1381,17 +1440,11 @@ describe('CardHome Component', () => {
       expect(screen.getByText('Please try again later')).toBeTruthy();
     });
 
-    it('calls fetchCardDetails when try again pressed with card details error', async () => {
+    it('calls fetchAllData when try again pressed with card details error', async () => {
       // Given: card details error
-      const mockFetchCardDetails = jest.fn();
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         cardDetails: null,
-        fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
         error: 'Failed to fetch card details',
-        warning: null,
       });
 
       render();
@@ -1402,30 +1455,17 @@ describe('CardHome Component', () => {
       );
       fireEvent.press(tryAgainButton);
 
-      // Then: should retry fetching both priority token and card details
+      // Then: should retry fetching all data
       await waitFor(() => {
-        expect(mockFetchPriorityToken).toHaveBeenCalled();
-        expect(mockFetchCardDetails).toHaveBeenCalled();
+        expect(mockFetchAllData).toHaveBeenCalled();
       });
     });
 
     it('shows loading state when cardDetails is loading', () => {
-      // Given: priority token is loaded but card details is loading
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-        priorityToken: mockPriorityToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
-      });
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
+      // Given: card details is loading
+      setupLoadCardDataMock({
         isLoading: true,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: null,
+        cardDetails: null,
       });
 
       // When: component renders
@@ -1444,20 +1484,10 @@ describe('CardHome Component', () => {
 
     it('combines priority token and card details loading states', () => {
       // Given: both are loading
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         priorityToken: null,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: true,
-        error: null,
-      });
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoading: true,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: null,
       });
 
       // When: component renders
@@ -1473,21 +1503,11 @@ describe('CardHome Component', () => {
     });
 
     it('prioritizes priority token error over card details error', () => {
-      // Given: both have errors
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      // Given: error present
+      setupLoadCardDataMock({
         priorityToken: null,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: 'Priority token error',
-      });
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
         cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: 'Card details error',
-        warning: null,
+        error: 'Priority token error',
       });
 
       // When: component renders
@@ -1506,12 +1526,10 @@ describe('CardHome Component', () => {
         ...mockPriorityToken,
         allowanceState: AllowanceState.Limited,
       };
-
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: false,
       });
 
       // When: component renders
@@ -1528,12 +1546,10 @@ describe('CardHome Component', () => {
         ...mockPriorityToken,
         allowanceState: AllowanceState.Limited,
       };
-
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         priorityToken: limitedAllowanceToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
       });
 
       // When: component renders
@@ -1552,12 +1568,10 @@ describe('CardHome Component', () => {
         ...mockPriorityToken,
         allowanceState: AllowanceState.Enabled,
       };
-
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      setupLoadCardDataMock({
         priorityToken: enabledAllowanceToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
+        allTokens: [enabledAllowanceToken],
+        isAuthenticated: false,
       });
 
       // When: component renders
@@ -1570,274 +1584,139 @@ describe('CardHome Component', () => {
     });
   });
 
-  describe('Card Provisioning', () => {
-    it('shows enable card button when card warning is NoCard', () => {
-      // Given: no card warning
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
+  describe('SpendingLimitProgressBar', () => {
+    it('renders when authenticated and allowance is limited', () => {
+      // Given: authenticated with limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
       });
 
       // When: component renders
       render();
 
-      // Then: should show enable card button
-      expect(
-        screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-      ).toBeTruthy();
-      expect(screen.getByText('Enable card')).toBeTruthy();
+      // Then: should display spending limit progress bar
+      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
+      expect(screen.getByText('500/1000 USDC')).toBeOnTheScreen();
     });
 
-    it('calls provision flow when enable card button is pressed', async () => {
-      // Given: no card warning and provision will succeed
-      mockProvisionCard.mockResolvedValue({ success: true });
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      render();
-
-      // When: user presses enable card button
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should call provision and polling
-      await waitFor(() => {
-        expect(mockProvisionCard).toHaveBeenCalled();
-        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
-      });
-    });
-
-    it('fetches priority token after successful provisioning', async () => {
-      // Given: provision succeeds
-      mockProvisionCard.mockResolvedValue({ success: true });
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
-      mockFetchPriorityToken.mockClear();
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      render();
-
-      // When: user successfully provisions card
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should fetch priority token after provisioning
-      await waitFor(() => {
-        expect(mockFetchPriorityToken).toHaveBeenCalled();
-      });
-    });
-
-    it('does not fetch priority token when provisioning fails', async () => {
-      // Given: provision fails
-      mockProvisionCard.mockResolvedValue({ success: true });
-      mockPollCardStatusUntilProvisioned.mockResolvedValue(false);
-      mockFetchPriorityToken.mockClear();
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      render();
-
-      // When: provisioning fails
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      fireEvent.press(enableCardButton);
-
-      // Then: should not fetch priority token
-      await waitFor(() => {
-        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
-      });
-
-      await new Promise((r) => setTimeout(r, 100));
-      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
-    });
-
-    it('disables enable card button during provisioning', () => {
-      // Given: provision is in progress
-      (useCardProvision as jest.Mock).mockReturnValueOnce({
-        provisionCard: mockProvisionCard,
-        isLoading: true,
-      });
-
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      // When: component renders during provisioning
-      render();
-
-      // Then: enable card button should be disabled and show loading
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      expect(enableCardButton.props.disabled).toBe(true);
-    });
-
-    it('disables enable card button during polling', () => {
-      // Given: polling is in progress
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: null,
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: true,
-        error: null,
-        warning: CardWarning.NoCard,
-      });
-
-      // When: component renders during polling
-      render();
-
-      // Then: enable card button should be disabled
-      const enableCardButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_CARD_BUTTON,
-      );
-      expect(enableCardButton.props.disabled).toBe(true);
-    });
-
-    it('shows enable assets button when priority token warning is NeedDelegation', () => {
-      // Given: need delegation warning
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-        priorityToken: mockPriorityToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
-        warning: CardWarning.NeedDelegation,
+    it('does not render when not authenticated', () => {
+      // Given: not authenticated with limited allowance
+      setupMockSelectors({ isAuthenticated: false });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: false,
       });
 
       // When: component renders
       render();
 
-      // Then: should show enable assets button
-      expect(
-        screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
-      ).toBeTruthy();
-      expect(screen.getByText('Enable assets')).toBeTruthy();
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
     });
 
-    it('calls change asset action when enable assets button is pressed', async () => {
-      // Given: need delegation warning
-      (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-        priorityToken: mockPriorityToken,
-        fetchPriorityToken: mockFetchPriorityToken,
-        isLoading: false,
-        error: null,
-        warning: CardWarning.NeedDelegation,
-      });
-
-      render();
-
-      // When: user presses enable assets button
-      const enableAssetsButton = screen.getByTestId(
-        CardHomeSelectors.ENABLE_ASSETS_BUTTON,
-      );
-      fireEvent.press(enableAssetsButton);
-
-      // Then: should navigate to welcome (since not authenticated by default)
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
-      });
-    });
-  });
-
-  describe('Card Warning Display', () => {
-    it('displays CardWarningBox when card details has frozen warning', () => {
-      // Given: frozen card warning
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: { type: CardType.VIRTUAL },
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.Frozen,
+    it('does not render when allowance is enabled', () => {
+      // Given: authenticated with enabled allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const enabledAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Enabled,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: enabledAllowanceToken,
+        allTokens: [enabledAllowanceToken],
+        isAuthenticated: true,
       });
 
       // When: component renders
       render();
 
-      // Then: CardWarningBox should be displayed
-      // Note: The actual warning box content depends on CardWarningBox component
-      expect(useCardDetails).toHaveBeenCalled();
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
     });
 
-    it('displays CardWarningBox when card details has blocked warning', () => {
-      // Given: blocked card warning
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: { type: CardType.VIRTUAL },
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: CardWarning.Blocked,
+    it('displays correct consumed and total amounts', () => {
+      // Given: authenticated with specific allowance values
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '200',
+        allowance: '150',
+        symbol: 'USDC',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
       });
 
       // When: component renders
       render();
 
-      // Then: CardWarningBox should be displayed
-      expect(useCardDetails).toHaveBeenCalled();
+      // Then: should display correct consumed amount (50/200)
+      expect(screen.getByText('50/200 USDC')).toBeOnTheScreen();
     });
 
-    it('does not display CardWarningBox when no warning exists', () => {
-      // Given: no warnings
-      (useCardDetails as jest.Mock).mockReturnValueOnce({
-        cardDetails: { type: CardType.VIRTUAL },
-        fetchCardDetails: jest.fn(),
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoading: false,
-        isLoadingPollCardStatusUntilProvisioned: false,
-        error: null,
-        warning: null,
+    it('handles zero remaining allowance', () => {
+      // Given: authenticated with zero remaining allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '0',
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
       });
 
       // When: component renders
       render();
 
-      // Then: CardWarningBox should not be rendered
-      // Note: Without testID, we verify through the hook being called correctly
-      expect(useCardDetails).toHaveBeenCalled();
+      // Then: should display fully consumed allowance
+      expect(screen.getByText('1000/1000 USDC')).toBeOnTheScreen();
+    });
+
+    it('handles undefined allowance values', () => {
+      // Given: authenticated with undefined allowance values
+      setupMockSelectors({ isAuthenticated: true });
+      const limitedAllowanceToken = {
+        ...mockPriorityToken,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: undefined as unknown as string,
+        allowance: undefined as unknown as string,
+      };
+      setupLoadCardDataMock({
+        priorityToken: limitedAllowanceToken,
+        allTokens: [limitedAllowanceToken],
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display zero values as fallback
+      expect(screen.getByText('0/0 USDC')).toBeOnTheScreen();
     });
   });
 });

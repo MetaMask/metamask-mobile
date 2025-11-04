@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-
+import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
@@ -26,6 +26,7 @@ import { toHex } from '@metamask/controller-utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { type TxData } from '@metamask/bridge-controller';
 import { hasTransactionType } from '../../utils/transaction';
+import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -91,6 +92,11 @@ export function useTransactionConfirm() {
     [selectedGasFeeToken],
   );
 
+  const { value: chainSupportsSendBundle } = useAsyncResult(
+    async () => (chainId ? isSendBundleSupported(chainId) : false),
+    [chainId],
+  );
+
   const handleGasless7702 = useCallback(
     (updatedMetadata: TransactionMeta) => {
       if (!selectedGasFeeToken) {
@@ -120,7 +126,7 @@ export function useTransactionConfirm() {
       updatedMetadata.batchTransactionsOptions = {};
     }
 
-    if (shouldUseSmartTransaction) {
+    if (shouldUseSmartTransaction && chainSupportsSendBundle) {
       handleSmartTransaction(updatedMetadata);
     } else if (selectedGasFeeToken) {
       handleGasless7702(updatedMetadata);
@@ -142,7 +148,7 @@ export function useTransactionConfirm() {
 
     if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     } else if (
       isFullScreenConfirmation &&
@@ -163,6 +169,7 @@ export function useTransactionConfirm() {
   }, [
     batchTransactions,
     bridgeFeeFiat,
+    chainSupportsSendBundle,
     chainId,
     dispatch,
     handleGasless7702,

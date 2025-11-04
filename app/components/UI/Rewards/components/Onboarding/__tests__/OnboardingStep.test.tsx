@@ -7,6 +7,7 @@ import OnboardingStep2 from '../OnboardingStep2';
 import OnboardingStep3 from '../OnboardingStep3';
 import OnboardingStep4 from '../OnboardingStep4';
 import { renderWithProviders } from '../testUtils';
+import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -138,7 +139,7 @@ describe('OnboardingStep - Skip and Swipe Functionality', () => {
       />,
     );
 
-    const skipButton = screen.getByTestId('skip-button');
+    const skipButton = screen.getByTestId(REWARDS_VIEW_SELECTORS.SKIP_BUTTON);
     expect(skipButton).toBeTruthy();
   });
 
@@ -155,7 +156,7 @@ describe('OnboardingStep - Skip and Swipe Functionality', () => {
       />,
     );
 
-    const skipButton = screen.getByTestId('skip-button');
+    const skipButton = screen.getByTestId(REWARDS_VIEW_SELECTORS.SKIP_BUTTON);
     fireEvent.press(skipButton);
 
     expect(onSkipMock).toHaveBeenCalledTimes(1);
@@ -172,7 +173,7 @@ describe('OnboardingStep - Skip and Swipe Functionality', () => {
       />,
     );
 
-    const skipButton = screen.queryByTestId('skip-button');
+    const skipButton = screen.queryByTestId(REWARDS_VIEW_SELECTORS.SKIP_BUTTON);
     expect(skipButton).toBeNull();
   });
 
@@ -187,7 +188,7 @@ describe('OnboardingStep - Skip and Swipe Functionality', () => {
       />,
     );
 
-    const nextButton = screen.getByTestId('next-button');
+    const nextButton = screen.getByTestId(REWARDS_VIEW_SELECTORS.NEXT_BUTTON);
     fireEvent.press(nextButton);
 
     expect(onNextMock).toHaveBeenCalledTimes(1);

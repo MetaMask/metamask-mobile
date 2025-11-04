@@ -79,13 +79,13 @@ const createStyles = (
           ? 'System'
           : 'Roboto'
         : Platform.OS === 'ios'
-        ? 'MM Poly'
-        : 'MM Poly Regular',
+          ? 'MM Poly'
+          : 'MM Poly Regular',
       fontWeight: useSystemFont
         ? '700'
         : Platform.OS === 'ios'
-        ? '900'
-        : 'normal',
+          ? '900'
+          : 'normal',
     },
     titleDescription: {
       paddingTop: scaleVertical(10),

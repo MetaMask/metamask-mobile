@@ -111,7 +111,7 @@ describe('defiPositionsController selectors', () => {
           },
         },
       },
-    } as unknown as RootState);
+    }) as unknown as RootState;
 
   describe('selectDeFiPositionsByAddress', () => {
     it('returns defi positions for the selected address', () => {
