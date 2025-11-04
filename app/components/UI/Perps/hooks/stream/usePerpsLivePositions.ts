@@ -143,13 +143,13 @@ export function usePerpsLivePositions(
         priceDataRef.current = newPriceData;
         updateEnrichedPositions();
       },
-      throttleMs: 0,
+      throttleMs,
     });
 
     return () => {
       unsubscribe();
     };
-  }, [stream, updateEnrichedPositions]);
+  }, [stream, throttleMs, updateEnrichedPositions]);
 
   return {
     positions,
