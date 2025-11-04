@@ -62,7 +62,7 @@ describe('usePopularTokens', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
       'https://bridge.dev-api.cx.metamask.io/getTokens/popular',
-      {
+      expect.objectContaining({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,8 @@ describe('usePopularTokens', () => {
           chainIds: ['eip155:1'],
           excludeAssetIds: [],
         }),
-      },
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -330,7 +331,7 @@ describe('usePopularTokens', () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       'https://bridge.dev-api.cx.metamask.io/getTokens/popular',
-      {
+      expect.objectContaining({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -339,7 +340,8 @@ describe('usePopularTokens', () => {
           chainIds: ['eip155:1'],
           excludeAssetIds,
         }),
-      },
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -388,5 +390,58 @@ describe('usePopularTokens', () => {
     expect(global.fetch).toHaveBeenCalledTimes(2);
 
     jest.useRealTimers();
+  });
+
+  it('prevents race conditions when parameters change rapidly', async () => {
+    const chain1Tokens = [mockPopularTokens[0]];
+    const chain2Tokens = [mockPopularTokens[1]];
+
+    // Mock slow fetch for chain 1
+    let resolveChain1: ((value: unknown) => void) | undefined;
+    const chain1Promise = new Promise((resolve) => {
+      resolveChain1 = resolve;
+    });
+
+    (global.fetch as jest.Mock).mockImplementationOnce(() => chain1Promise);
+
+    // Start with chain 1 (slow fetch)
+    const { result, rerender } = renderHook(
+      ({ chainIds }) =>
+        usePopularTokens({
+          chainIds,
+          excludeAssetIds: '[]',
+        }),
+      {
+        initialProps: { chainIds: ['eip155:1' as CaipChainId] },
+      },
+    );
+
+    expect(result.current.isLoading).toBe(true);
+
+    // Quickly switch to chain 2 (fast fetch with cache miss)
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      json: async () => chain2Tokens,
+    });
+
+    rerender({ chainIds: ['eip155:137' as CaipChainId] });
+
+    // Wait for chain 2 to load
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Should show chain 2 tokens
+    expect(result.current.popularTokens).toEqual(chain2Tokens);
+
+    // Now resolve the slow chain 1 request
+    resolveChain1?.({
+      json: async () => chain1Tokens,
+    });
+
+    // Wait a bit to ensure stale request doesn't update state
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Should STILL show chain 2 tokens (not overwritten by chain 1)
+    expect(result.current.popularTokens).toEqual(chain2Tokens);
   });
 });

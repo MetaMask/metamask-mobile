@@ -100,6 +100,9 @@ export const usePopularTokens = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    let isCancelled = false;
+
     const fetchPopularTokens = async () => {
       // Cleanup expired entries before checking cache
       cleanupExpiredEntries();
@@ -114,7 +117,9 @@ export const usePopularTokens = ({
         return;
       }
 
-      setIsLoading(true);
+      if (!isCancelled) {
+        setIsLoading(true);
+      }
 
       try {
         const parsedExcludeAssetIds: CaipAssetType[] =
@@ -131,6 +136,7 @@ export const usePopularTokens = ({
               chainIds,
               excludeAssetIds: parsedExcludeAssetIds,
             }),
+            signal: abortController.signal,
           },
         );
         const popularAssets: PopularToken[] = await response.json();
@@ -141,16 +147,32 @@ export const usePopularTokens = ({
           timestamp: Date.now(),
         });
 
-        setPopularTokens(popularAssets);
+        if (!isCancelled) {
+          setPopularTokens(popularAssets);
+        }
       } catch (error) {
+        // Ignore abort errors - request was intentionally cancelled
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
         console.error('Error fetching popular tokens:', error);
-        setPopularTokens([]);
+        if (!isCancelled) {
+          setPopularTokens([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchPopularTokens();
+
+    // Cleanup function: abort fetch and mark as cancelled when deps change
+    return () => {
+      isCancelled = true;
+      abortController.abort();
+    };
   }, [chainIds, excludeAssetIds]);
 
   return { popularTokens, isLoading };
