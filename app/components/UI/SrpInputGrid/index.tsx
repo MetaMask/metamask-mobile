@@ -361,10 +361,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   onSubmitEditing={() => {
                     handleEnterKeyPress(index);
                   }}
-                  placeholder={isFirstInput ? placeholderText : ''}
-                  placeholderTextColor={
-                    isFirstInput ? colors.text.alternative : colors.text.muted
-                  }
+                  placeholder=""
+                  placeholderTextColor={colors.text.muted}
                   size={TextFieldSize.Md}
                   style={
                     isFirstInput
@@ -385,9 +383,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   showSoftInputOnFocus
                   isError={errorWordIndexes[index]}
                   autoCapitalize="none"
-                  testID={
-                    isFirstInput ? testIDPrefix : `${testIDPrefix}_${index}`
-                  }
+                  testID={`${testIDPrefix}_${index}`}
                   keyboardType="default"
                   autoCorrect={false}
                   textContentType="oneTimeCode"

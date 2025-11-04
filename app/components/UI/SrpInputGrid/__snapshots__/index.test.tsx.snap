@@ -64,11 +64,13 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
-              "display": "none",
               "flexDirection": "row",
-              "height": 40,
-              "opacity": 1,
+              "height": 0,
+              "left": 0,
+              "opacity": 0,
               "paddingHorizontal": 16,
+              "position": "absolute",
+              "top": 0,
             }
           }
           testID="textfield"
@@ -90,7 +92,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={false}
               editable={true}
               keyboardType="default"
               onBlur={[Function]}
@@ -99,8 +101,8 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
               onSubmitEditing={[Function]}
-              placeholder="Enter your Secret Recovery Phrase"
-              placeholderTextColor="#686e7d"
+              placeholder=""
+              placeholderTextColor="#b7bbc8"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -123,7 +125,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
                 }
               }
               submitBehavior="submit"
-              testID="seed-phrase-input"
+              testID="seed-phrase-input_0"
               textAlignVertical="top"
               textContentType="oneTimeCode"
               value=""
@@ -183,7 +185,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={false}
               editable={true}
               keyboardType="default"
               multiline={true}
@@ -312,11 +314,13 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
-              "display": "none",
               "flexDirection": "row",
-              "height": 40,
-              "opacity": 0.5,
+              "height": 0,
+              "left": 0,
+              "opacity": 0,
               "paddingHorizontal": 16,
+              "position": "absolute",
+              "top": 0,
             }
           }
           testID="textfield"
@@ -338,7 +342,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={false}
               editable={false}
               keyboardType="default"
               onBlur={[Function]}
@@ -347,8 +351,8 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
               onSubmitEditing={[Function]}
-              placeholder="Enter your Secret Recovery Phrase"
-              placeholderTextColor="#686e7d"
+              placeholder=""
+              placeholderTextColor="#b7bbc8"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -371,7 +375,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
                 }
               }
               submitBehavior="submit"
-              testID="seed-phrase-input"
+              testID="seed-phrase-input_0"
               textAlignVertical="top"
               textContentType="oneTimeCode"
               value=""
@@ -431,7 +435,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={false}
               editable={false}
               keyboardType="default"
               multiline={true}
@@ -560,11 +564,13 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
-              "display": "none",
               "flexDirection": "row",
-              "height": 40,
-              "opacity": 1,
+              "height": 0,
+              "left": 0,
+              "opacity": 0,
               "paddingHorizontal": 16,
+              "position": "absolute",
+              "top": 0,
             }
           }
           testID="textfield"
@@ -586,7 +592,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={false}
               editable={true}
               keyboardType="default"
               onBlur={[Function]}
@@ -595,8 +601,8 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
               onSubmitEditing={[Function]}
-              placeholder="Enter your Secret Recovery Phrase"
-              placeholderTextColor="#686e7d"
+              placeholder=""
+              placeholderTextColor="#b7bbc8"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -619,7 +625,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
                 }
               }
               submitBehavior="submit"
-              testID="seed-phrase-input"
+              testID="seed-phrase-input_0"
               textAlignVertical="top"
               textContentType="oneTimeCode"
               value=""
@@ -679,7 +685,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={false}
               editable={true}
               keyboardType="default"
               multiline={true}
@@ -1195,11 +1201,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
-              "display": "none",
               "flexDirection": "row",
-              "height": 40,
-              "opacity": 1,
+              "height": 0,
+              "left": 0,
+              "opacity": 0,
               "paddingHorizontal": 16,
+              "position": "absolute",
+              "top": 0,
             }
           }
           testID="textfield"
@@ -1221,7 +1229,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={false}
               editable={true}
               keyboardType="default"
               multiline={true}

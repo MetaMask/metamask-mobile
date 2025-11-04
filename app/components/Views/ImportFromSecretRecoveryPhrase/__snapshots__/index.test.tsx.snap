@@ -577,11 +577,13 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           "borderColor": "#b7bbc8",
                                           "borderRadius": 8,
                                           "borderWidth": 1,
-                                          "display": "none",
                                           "flexDirection": "row",
-                                          "height": 40,
-                                          "opacity": 1,
+                                          "height": 0,
+                                          "left": 0,
+                                          "opacity": 0,
                                           "paddingHorizontal": 16,
+                                          "position": "absolute",
+                                          "top": 0,
                                         }
                                       }
                                       testID="textfield"
@@ -603,7 +605,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           autoCapitalize="none"
                                           autoComplete="off"
                                           autoCorrect={false}
-                                          autoFocus={true}
+                                          autoFocus={false}
                                           editable={true}
                                           keyboardType="default"
                                           onBlur={[Function]}
@@ -612,8 +614,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           onKeyPress={[Function]}
                                           onSelectionChange={[Function]}
                                           onSubmitEditing={[Function]}
-                                          placeholder="Add a space between each word and make sure no one is watching."
-                                          placeholderTextColor="#686e7d"
+                                          placeholder=""
+                                          placeholderTextColor="#b7bbc8"
                                           showSoftInputOnFocus={true}
                                           spellCheck={false}
                                           style={
@@ -636,7 +638,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             }
                                           }
                                           submitBehavior="submit"
-                                          testID="import-from-seed-screen-seed-phrase-input-id"
+                                          testID="import-from-seed-screen-seed-phrase-input-id_0"
                                           textAlignVertical="top"
                                           textContentType="oneTimeCode"
                                           value=""
@@ -696,7 +698,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           autoCapitalize="none"
                                           autoComplete="off"
                                           autoCorrect={false}
-                                          autoFocus={true}
+                                          autoFocus={false}
                                           editable={true}
                                           keyboardType="default"
                                           multiline={true}
