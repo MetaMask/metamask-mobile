@@ -10,6 +10,7 @@ import {
   createSellNavigationDetails,
 } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
+import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 
 export enum RampMode {
   AGGREGATOR = 'aggregator',
@@ -29,9 +30,15 @@ interface AggregatorParams {
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
+  const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   const goToRamps = useCallback(
     (mode: RampMode, params?: AggregatorParams | DepositNavigationParams) => {
+      if (isRampsUnifiedV1Enabled) {
+        // TODO: Implement smart routing hook
+        return;
+      }
+
       if (mode === RampMode.AGGREGATOR) {
         const { intent, rampType = AggregatorRampType.BUY } = (params ||
           {}) as AggregatorParams;
@@ -51,7 +58,7 @@ export const useRampNavigation = () => {
         );
       }
     },
-    [navigation],
+    [navigation, isRampsUnifiedV1Enabled],
   );
 
   return { goToRamps };
