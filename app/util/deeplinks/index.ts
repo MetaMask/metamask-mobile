@@ -1,5 +1,11 @@
 import AppConstants from '../../core/AppConstants';
 
+const {
+  MM_UNIVERSAL_LINK_HOST,
+  MM_IO_UNIVERSAL_LINK_HOST,
+  MM_IO_UNIVERSAL_LINK_TEST_HOST,
+} = AppConstants;
+
 /**
  * Checks if a URL is an internal MetaMask deeplink that should be handled
  * within the app rather than passed to the OS
@@ -11,9 +17,9 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
   if (!url) return false;
 
   const metamaskHosts = [
-    AppConstants.MM_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-    AppConstants.MM_IO_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-    AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST || 'link-test.metamask.io',
+    MM_UNIVERSAL_LINK_HOST || 'link.metamask.io',
+    MM_IO_UNIVERSAL_LINK_HOST || 'link.metamask.io',
+    MM_IO_UNIVERSAL_LINK_TEST_HOST || 'link-test.metamask.io',
     'metamask.app.link',
     'metamask.test-app.link',
     'metamask-alternate.app.link',
@@ -41,7 +47,7 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
 };
 
 /**
- * Determines if a URL should be opened externally (outside the app)
+ * Determines if a URL should be opened externally (Linking.openURL())
  * This is the inverse of isInternalDeepLink but kept separate for clarity
  *
  * @param url - The URL to check

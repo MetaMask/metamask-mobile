@@ -819,7 +819,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       if (isInternalDeepLink(urlToLoad)) {
         // Handle the deeplink internally instead of passing to OS
         SharedDeeplinkManager.parse(urlToLoad, {
-          origin: 'in-app-browser',
+          origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
           browserCallBack: (url: string) => {
             // If the deeplink handler wants to navigate to a different URL in the browser
             if (url && webviewRef.current) {

@@ -44,6 +44,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { isInternalDeepLink } from '../../../util/deeplinks';
+import AppConstants from '../../../core/AppConstants';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -347,7 +348,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       if (isInternalDeepLink(href)) {
         // Handle internal deeplinks through SharedDeeplinkManager
         return SharedDeeplinkManager.parse(href, {
-          origin: 'carousel',
+          origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
         }).catch((error) => {
           console.error('Failed to handle internal deeplink:', error);
           return false;
