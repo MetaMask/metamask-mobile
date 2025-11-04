@@ -19,6 +19,7 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
+import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 
@@ -182,6 +183,14 @@ const PerpsScreenStack = () => (
           component={PerpsHeroCardView}
           options={{
             title: strings('perps.pnl_hero_card.title'),
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name={Routes.PERPS.ACTIVITY}
+          component={ActivityView}
+          options={{
+            title: strings('activity_view.title'),
             headerShown: false,
           }}
         />

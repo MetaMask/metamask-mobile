@@ -73,7 +73,6 @@ exports[`Collectibles should render correctly collectibles 1`] = `
           style={
             {
               "alignItems": "center",
-              "flex": 1,
               "flexDirection": "row",
               "height": 64,
             }
@@ -110,7 +109,8 @@ exports[`Collectibles should render correctly collectibles 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "#f3f5f9",
                         "borderRadius": 8,
-                        "justifyContent": "flex-start",
+                        "flex": 1,
+                        "justifyContent": "center",
                       },
                       undefined,
                       undefined,

@@ -101,18 +101,14 @@ const PredictBuyPreview = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
 
-  const {
-    preview,
-    isCalculating,
-    error: previewError,
-  } = usePredictOrderPreview({
+  const { preview, error: previewError } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
     outcomeTokenId: outcomeToken.id,
     side: Side.BUY,
     size: currentValue,
-    autoRefreshTimeout: 5000,
+    autoRefreshTimeout: 1000,
   });
 
   const errorMessage = previewError ?? placeOrderError;
@@ -145,7 +141,6 @@ const PredictBuyPreview = () => {
     currentValue >= MINIMUM_BET &&
     !hasInsufficientFunds &&
     preview &&
-    !isCalculating &&
     !isLoading &&
     !isBalanceLoading &&
     !isRateLimited;

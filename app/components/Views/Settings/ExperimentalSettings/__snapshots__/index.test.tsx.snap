@@ -39,7 +39,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         }
       }
     >
-      View the list of active WalletConnect sessions
+      View the list of active WalletConnect sessions.
     </Text>
     <TouchableOpacity
       accessibilityRole="button"

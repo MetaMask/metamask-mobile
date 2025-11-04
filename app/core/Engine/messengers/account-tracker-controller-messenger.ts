@@ -34,9 +34,10 @@ export function getAccountTrackerControllerMessenger(
     ],
     events: [
       'AccountsController:selectedEvmAccountChange',
-      'AccountsController:selectedAccountChange',
       'TransactionController:transactionConfirmed',
       'TransactionController:unapprovedTransactionAdded',
+      'NetworkController:networkAdded',
+      'KeyringController:unlock',
     ],
     messenger,
   });

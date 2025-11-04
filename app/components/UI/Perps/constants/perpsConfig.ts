@@ -82,7 +82,7 @@ export const PERFORMANCE_CONFIG = {
 
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
-  VALIDATION_DEBOUNCE_MS: 1000,
+  VALIDATION_DEBOUNCE_MS: 300,
 
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes

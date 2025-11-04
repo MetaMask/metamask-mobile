@@ -21,7 +21,7 @@ import {
 } from '@metamask/assets-controllers';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
-import { formatCurrency } from '../../Ramp/Deposit/utils';
+import { formatCurrency } from './currencyUtils';
 
 interface GetDisplayCurrencyValueParams {
   token: BridgeToken | undefined;

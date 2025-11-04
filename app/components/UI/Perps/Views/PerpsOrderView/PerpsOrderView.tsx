@@ -51,6 +51,7 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -92,6 +93,7 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -168,7 +170,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
-  const { account } = usePerpsLiveAccount();
+  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get real HyperLiquid USDC balance
   const availableBalance = parseFloat(
@@ -223,6 +225,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
     asset: orderForm.asset || '',
     loadOnMount: true,
   });
+
+  // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
+  const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -349,7 +354,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Show error toast if market data is not available
   useEffect(() => {
-    if (marketDataError) {
+    // Don't show error during initial load - only for persistent failures
+    if (marketDataError && !isLoadingMarketData) {
       showToast(
         PerpsToastOptions.dataFetching.market.error.marketDataUnavailable(
           orderForm.asset,
@@ -358,6 +364,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     }
   }, [
     marketDataError,
+    isLoadingMarketData,
     orderForm.asset,
     navigation,
     showToast,
@@ -836,7 +843,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.direction === 'long'
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
-  const isInsufficientFunds = amountTimesLeverage < minimumOrderAmount;
+  const isInsufficientFunds =
+    !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, { asset: orderForm.asset });
@@ -876,7 +884,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          showWarning={availableBalance === 0}
+          showWarning={!isLoadingAccount && availableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
@@ -1214,19 +1222,25 @@ const PerpsOrderViewContentBase: React.FC = () => {
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={fixedBottomContainerStyle}>
-          {filteredErrors.length > 0 && (
-            <View style={styles.validationContainer}>
-              {filteredErrors.map((error) => (
-                <Text
-                  key={error}
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Error}
-                >
-                  {error}
-                </Text>
-              ))}
-            </View>
-          )}
+          {filteredErrors.length > 0 &&
+            !isLoadingMarketData &&
+            currentPrice != null &&
+            !orderValidation.isValidating && (
+              <View style={styles.validationContainer}>
+                {filteredErrors.map((error) => (
+                  <Text
+                    key={error}
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Error}
+                  >
+                    {error}
+                  </Text>
+                ))}
+              </View>
+            )}
+
+          {/* OI Cap Warning - Only shows when market is at capacity */}
+          <PerpsOICapWarning symbol={orderForm.asset} variant="inline" />
 
           <ButtonSemantic
             severity={
@@ -1240,7 +1254,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
             isDisabled={
               !orderValidation.isValid ||
               isPlacingOrder ||
-              doesStopLossRiskLiquidation
+              doesStopLossRiskLiquidation ||
+              isAtOICap
             }
             isLoading={isPlacingOrder}
             testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}

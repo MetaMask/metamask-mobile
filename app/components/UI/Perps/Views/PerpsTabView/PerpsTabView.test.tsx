@@ -45,6 +45,11 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   })),
 }));
 
+// Mock homepage redesign selector
+jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageRedesignV1Enabled: jest.fn(),
+}));
+
 // Mock PerpsConnectionProvider
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
@@ -149,12 +154,18 @@ jest.mock('../../components/PerpsTabControlBar', () => ({
 jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
   PerpsTabViewSelectorsIDs: {
     START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+    SCROLL_VIEW: 'perps-tab-scroll-view',
   },
   PerpsPositionsViewSelectorsIDs: {
     POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
     POSITION_ITEM: 'perps-positions-item',
   },
 }));
+
+// Import after mock to use the mocked values
+const { PerpsTabViewSelectorsIDs } = jest.requireMock(
+  '../../../../../../e2e/selectors/Perps/Perps.selectors',
+);
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
@@ -204,6 +215,17 @@ describe('PerpsTabView', () => {
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
   const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
+
+  // Mock selectors
+  const mockSelectPerpsEligibility = jest.requireMock(
+    '../../selectors/perpsController',
+  ).selectPerpsEligibility;
+  const mockSelectHomepageRedesignV1Enabled = jest.requireMock(
+    '../../../../../selectors/featureFlagController/homepage',
+  ).selectHomepageRedesignV1Enabled;
+  const mockSelectSelectedInternalAccountByScope = jest.requireMock(
+    '../../../../../selectors/multichainAccounts/accounts',
+  ).selectSelectedInternalAccountByScope;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -261,16 +283,15 @@ describe('PerpsTabView', () => {
 
     mockUsePerpsAccount.mockReturnValue(null);
 
-    // Default eligibility mock
-    const mockSelectPerpsEligibility = jest.requireMock(
-      '../../selectors/perpsController',
-    ).selectPerpsEligibility;
+    // Setup selector mocks
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
-      // Handle the multichain selector
-      if (typeof selector === 'function') {
+      if (selector === mockSelectHomepageRedesignV1Enabled) {
+        return false; // Default: V1 disabled
+      }
+      if (selector === mockSelectSelectedInternalAccountByScope) {
         return () => ({
           address: '0x1234567890123456789012345678901234567890',
           id: 'mock-account-id',
@@ -634,14 +655,14 @@ describe('PerpsTabView', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have proper accessibility for manage balance button', () => {
+    it('has proper accessibility for manage balance button', () => {
       render(<PerpsTabView />);
 
       const manageBalanceButton = screen.getByTestId('manage-balance-button');
       expect(manageBalanceButton).toBeOnTheScreen();
     });
 
-    it('should render text with proper variants and colors', () => {
+    it('renders positions section title when positions exist', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
         isInitialLoading: false,
@@ -652,6 +673,104 @@ describe('PerpsTabView', () => {
       expect(
         screen.getByText(strings('perps.position.title')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Homepage Redesign V1 Feature', () => {
+    it('renders content without ScrollView when isHomepageRedesignV1Enabled is true', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === mockSelectHomepageRedesignV1Enabled) {
+          return true;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsTabView />);
+
+      expect(
+        screen.queryByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeNull();
+      expect(
+        screen.getByText(strings('perps.position.title')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders content with ScrollView when isHomepageRedesignV1Enabled is false', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === mockSelectHomepageRedesignV1Enabled) {
+          return false;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsTabView />);
+
+      expect(
+        screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.title')),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays empty state when homepage redesign is enabled and no positions or orders', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === mockSelectHomepageRedesignV1Enabled) {
+          return true;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
+
+      render(<PerpsTabView />);
+
+      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
     });
   });
 });

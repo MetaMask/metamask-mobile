@@ -445,7 +445,6 @@ export const useGetPriorityCardToken = (
           externalWalletDetailsData.priorityWalletDetail
         ) {
           priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
-          Logger.log('priorityWalletDetail', priorityWalletDetail);
         }
 
         const warning = !priorityWalletDetail
@@ -631,7 +630,7 @@ export const useGetPriorityCardToken = (
   return {
     fetchPriorityToken,
     priorityToken,
-    allTokensWithAllowances, // For asset selection in unauthenticated mode
+    allTokensWithAllowances,
     isLoading: isLoadingFinal,
     error: state.error,
     warning: state.warning,

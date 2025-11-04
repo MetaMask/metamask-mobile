@@ -321,9 +321,9 @@ describe('PerpsRecentActivityList', () => {
       fireEvent.press(seeAllButton);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
-        screen: Routes.TRANSACTIONS_VIEW,
-        params: { redirectToPerpsTransactions: true },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ACTIVITY, {
+        redirectToPerpsTransactions: true,
+        showBackButton: true,
       });
     });
 

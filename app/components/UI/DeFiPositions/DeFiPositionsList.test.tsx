@@ -10,6 +10,10 @@ jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
 }));
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
 jest.mock('../../../selectors/defiPositionsController', () => ({
   ...jest.requireActual('../../../selectors/defiPositionsController'),
   selectDeFiPositionsByAddress: jest.fn(),
@@ -214,13 +218,14 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
     ).toBeOnTheScreen();
-    expect(await findByText('Protocol 1')).toBeOnTheScreen();
-    expect(await findByText('$100.00')).toBeOnTheScreen();
 
-    const flatList = await findByTestId(
+    const listContainer = await findByTestId(
       WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
     );
-    expect(flatList.props.data.length).toEqual(1);
+    expect(listContainer).toBeOnTheScreen();
+
+    expect(await findByText('Protocol 1')).toBeOnTheScreen();
+    expect(await findByText('$100.00')).toBeOnTheScreen();
   });
 
   it('renders protocol name and aggregated value for all chains when all networks is selected', async () => {
@@ -254,14 +259,16 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).toBeOnTheScreen();
+
+    const listContainer = await findByTestId(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+    );
+    expect(listContainer).toBeOnTheScreen();
+
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
     expect(await findByText('$10.00')).toBeOnTheScreen();
-    const flatList = await findByTestId(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
-    );
-    expect(flatList.props.data.length).toEqual(2);
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {
@@ -414,14 +421,13 @@ describe('DeFiPositionsList', () => {
         await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
       ).toBeOnTheScreen();
 
-      // Should show the filtered protocol name
-      expect(await findByText('Protocol 1 (Filtered)')).toBeOnTheScreen();
-      expect(await findByText('$100.00')).toBeOnTheScreen();
-
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.data.length).toEqual(1);
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1 (Filtered)')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
     });
 
     it('shows no positions when defiPositionsByEnabledNetworks returns empty data', async () => {
@@ -531,13 +537,161 @@ describe('DeFiPositionsList', () => {
         ),
       ).toBeOnTheScreen();
 
-      expect(await findByText('Protocol 1')).toBeOnTheScreen();
-      expect(await findByText('$100.00')).toBeOnTheScreen();
-
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.data.length).toEqual(1);
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Homepage Redesign V1 Feature', () => {
+    it('removes scrolling container in favour of global scroll container when isHomepageRedesignV1Enabled is true', async () => {
+      const { findByTestId, queryByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const container = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+      );
+      expect(container).toBeOnTheScreen();
+
+      const listContainer = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(listContainer).toBeOnTheScreen();
+
+      const scrollView = queryByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeNull();
+    });
+
+    it('renders empty state without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        {},
+      );
+
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const container = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+      );
+      expect(container).toBeOnTheScreen();
+    });
+
+    it('renders multiple positions without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+      const { findByTestId, findByText, queryByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                PreferencesController: {
+                  ...mockInitialState.engine.backgroundState
+                    .PreferencesController,
+                  tokenNetworkFilter: {
+                    [MOCK_CHAIN_ID_1]: true,
+                    [MOCK_CHAIN_ID_2]: true,
+                  },
+                },
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const listContainer = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1')).toBeOnTheScreen();
+      expect(await findByText('Protocol 2')).toBeOnTheScreen();
+
+      const scrollView = queryByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeNull();
+    });
+
+    it('renders scroll container when isHomepageRedesignV1Enabled is false', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const listContainer = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(listContainer).toBeOnTheScreen();
+
+      const scrollView = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeOnTheScreen();
     });
   });
 });

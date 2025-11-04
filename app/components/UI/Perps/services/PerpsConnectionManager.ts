@@ -110,6 +110,7 @@ class PerpsConnectionManagerClass {
         streamManager.account.clearCache();
         streamManager.prices.clearCache();
         streamManager.marketData.clearCache();
+        streamManager.oiCaps.clearCache();
 
         // Force the controller to reconnect with new account
         // This ensures proper WebSocket reconnection at the controller level
@@ -260,9 +261,6 @@ class PerpsConnectionManagerClass {
             // Clean up preloaded subscriptions
             this.cleanupPreloadedSubscriptions();
 
-            // Clean up state monitoring when leaving Perps
-            this.cleanupStateMonitoring();
-
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
             this.isInitialized = false;
@@ -286,9 +284,6 @@ class PerpsConnectionManagerClass {
         })();
 
         await this.disconnectPromise;
-      } else {
-        // Even if not connected, clean up monitoring when leaving Perps
-        this.cleanupStateMonitoring();
       }
     } else {
       DevLogger.log(
@@ -663,6 +658,7 @@ class PerpsConnectionManagerClass {
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
       streamManager.marketData.clearCache();
+      streamManager.oiCaps.clearCache();
       setMeasurement(
         PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
         performance.now() - cleanupStart,
@@ -819,9 +815,6 @@ class PerpsConnectionManagerClass {
           'PerpsConnectionManager: Starting grace period before disconnection',
         );
         this.scheduleGracePeriodDisconnection();
-      } else {
-        // Even if not connected, clean up monitoring when leaving Perps
-        this.cleanupStateMonitoring();
       }
     }
   }
@@ -857,6 +850,7 @@ class PerpsConnectionManagerClass {
       const orderCleanup = streamManager.orders.prewarm();
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
+      const oiCapCleanup = streamManager.oiCaps.prewarm();
 
       // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
@@ -869,6 +863,7 @@ class PerpsConnectionManagerClass {
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
+        oiCapCleanup,
         priceCleanup,
       );
 

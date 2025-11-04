@@ -345,3 +345,56 @@ export const POLYMARKET_ACTIVITY_RESPONSE = [
     profileImageOptimized: '',
   },
 ];
+
+export const POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE = [
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1762189059,
+    conditionId:
+      '0xbf97a1420a810787dc6ffa2810f1d1d91977267e542b8685ecd21e622567a46c',
+    type: 'REDEEM',
+    size: 15,
+    usdcSize: 15,
+    transactionHash:
+      '0x205120808686f9164ca306404e6221cd0fda524002587a410bebdff3f7d3858c',
+    price: 0,
+    asset: '',
+    side: '',
+    outcomeIndex: 999,
+    title: 'Blue Jays vs. Mariners',
+    slug: 'mlb-tor-sea-2025-10-17',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg',
+    eventSlug: 'mlb-tor-sea-2025-10-17',
+    outcome: '',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    timestamp: 1762189060,
+    conditionId:
+      '0xa13312b2cc64532aed2a446b66e5a2d8d8b440b24d7213d33b6dae6a58c33223',
+    type: 'REDEEM',
+    size: 5,
+    usdcSize: 5,
+    transactionHash:
+      '0x205120808686f9164ca306404e6221cd0fda524002587a410bebdff3f7d3858d',
+    price: 0,
+    asset: '',
+    side: '',
+    outcomeIndex: 999,
+    title: 'Steelers vs. Bengals',
+    slug: 'nfl-pit-cin-2025-10-16',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/nfl.png',
+    eventSlug: 'nfl-pit-cin-2025-10-16',
+    outcome: '',
+    name: 'cropMaster',
+    pseudonym: 'Nonstop-Suitcase',
+    bio: '',
+    profileImage: '',
+    profileImageOptimized: '',
+  },
+];

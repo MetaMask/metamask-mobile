@@ -34,9 +34,9 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   const handleSeeAll = useCallback(() => {
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: { redirectToPerpsTransactions: true },
+    navigation.navigate(Routes.PERPS.ACTIVITY, {
+      redirectToPerpsTransactions: true,
+      showBackButton: true,
     });
   }, [navigation]);
 

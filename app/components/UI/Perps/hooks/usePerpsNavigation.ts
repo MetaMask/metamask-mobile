@@ -87,7 +87,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   }, [navigation]);
 
   const navigateToActivity = useCallback(() => {
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    navigation.navigate(Routes.PERPS.ACTIVITY, {
+      redirectToPerpsTransactions: true,
+      showBackButton: true,
+    });
   }, [navigation]);
 
   const navigateToRewardsOrSettings = useCallback(() => {

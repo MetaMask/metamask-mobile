@@ -581,6 +581,12 @@ export interface SubscribeAccountParams {
   callback: (account: AccountState) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
+
+export interface SubscribeOICapsParams {
+  callback: (caps: string[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -767,6 +773,7 @@ export interface IPerpsProvider {
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

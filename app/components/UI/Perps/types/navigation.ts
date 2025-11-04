@@ -157,6 +157,23 @@ export interface PerpsNavigationParamList extends ParamListBase {
     marketPrice?: string;
   };
 
+  // Activity view - Stack-based for proper back navigation
+  // Uses the same redirect params as the tab-based TRANSACTIONS_VIEW
+  PerpsActivity: {
+    /**
+     * Redirect to Perps transactions tab
+     */
+    redirectToPerpsTransactions?: boolean;
+    /**
+     * Redirect to Orders tab
+     */
+    redirectToOrders?: boolean;
+    /**
+     * Show back button in header for stack navigation
+     */
+    showBackButton?: boolean;
+  };
+
   // Root perps view
   Perps: undefined;
 }

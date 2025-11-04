@@ -26,12 +26,11 @@ export function getDeFiPositionsControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AccountsController:listAccounts'],
+    actions: ['AccountTreeController:getAccountsFromSelectedAccountGroup'],
     events: [
-      'KeyringController:unlock',
       'KeyringController:lock',
       'TransactionController:transactionConfirmed',
-      'AccountsController:accountAdded',
+      'AccountTreeController:selectedAccountGroupChange',
     ],
     messenger,
   });
@@ -56,7 +55,6 @@ export function getDeFiPositionsControllerInitMessenger(
   });
   rootMessenger.delegate({
     actions: ['RemoteFeatureFlagController:getState'],
-    events: [],
     messenger,
   });
   return messenger;

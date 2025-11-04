@@ -51,6 +51,22 @@ export function getInitialNetworkControllerState(persistedState: {
       ChainId['base-mainnet']
     ].rpcEndpoints[0].failoverUrls =
       getFailoverUrlsForInfuraNetwork('base-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('arbitrum-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('bsc-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('optimism-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('polygon-mainnet');
 
     // Update default popular network names
     initialNetworkControllerState.networkConfigurationsByChainId[
@@ -62,6 +78,21 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState.networkConfigurationsByChainId[
       ChainId['base-mainnet']
     ].name = 'Base';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].name = 'Arbitrum';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].name = 'BNB Chain';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].name = 'OP';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].name = 'Polygon';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['sei-mainnet']
+    ].name = 'Sei';
   }
 
   return initialNetworkControllerState;

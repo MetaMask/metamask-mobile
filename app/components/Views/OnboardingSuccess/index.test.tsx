@@ -301,34 +301,6 @@ describe('OnboardingSuccess', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('adds networks to the network controller', async () => {
-      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
-      expect(toJSON()).toMatchSnapshot();
-
-      // wait for the useEffect side-effect to call addNetwork
-      await waitFor(() => {
-        expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenBalancesController.updateBalances,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenListController.fetchTokenList,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenDetectionController.detectTokens,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.AccountTrackerController.refresh,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.CurrencyRateController.updateExchangeRate,
-        ).toHaveBeenCalled();
-      });
-    });
-
     it('fails to add networks to the network controller but should render the component', async () => {
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
