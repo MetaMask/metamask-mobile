@@ -46,7 +46,6 @@ describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
       },
       async () => {
         await loginToApp();
-        await device.disableSynchronization();
         // send 5 ETH
         await WalletView.tapWalletSendButton();
         await SendView.selectEthereumToken();

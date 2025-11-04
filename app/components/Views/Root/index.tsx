@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTest } from '../../../util/test/utils';
+import { isTest , isE2E } from '../../../util/test/utils';
 import FontLoadingGate from './FontLoadingGate';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -81,7 +81,11 @@ const Root = ({ foxCode }: RootProps) => {
                   <ToastContextWrapper>
                     <ErrorBoundary view="Root">
                       <FontLoadingGate>
-                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <ReducedMotionConfig
+                          mode={
+                            isE2E ? ReduceMotion.Always : ReduceMotion.Never
+                          }
+                        />
                         <App />
                       </FontLoadingGate>
                     </ErrorBoundary>
