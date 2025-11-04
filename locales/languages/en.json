@@ -1786,6 +1786,8 @@
     },
     "outcomes_singular": "outcome",
     "outcomes_plural": "outcomes",
+    "outcome_winner": "Winner",
+    "outcome_loser": "Loser",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",

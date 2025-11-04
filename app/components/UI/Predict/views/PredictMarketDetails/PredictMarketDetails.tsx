@@ -940,11 +940,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                         <Box
                           flexDirection={BoxFlexDirection.Row}
                           alignItems={BoxAlignItems.Center}
-                          twClassName="gap-2"
+                          twClassName="gap-1"
                         >
                           <Text
                             variant={TextVariant.BodyMDMedium}
-                            color={TextColor.Default}
+                            color={
+                              outcome.tokens[0].price > outcome.tokens[1].price
+                                ? TextColor.Default
+                                : TextColor.Alternative
+                            }
                           >
                             {outcome.tokens[0].price > outcome.tokens[1].price
                               ? outcome.tokens[0].title
@@ -953,6 +957,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                                 ? outcome.tokens[1].title
                                 : 'draw'}
                           </Text>
+                          {outcome.tokens[0].price >
+                            outcome.tokens[1].price && (
+                            <Icon
+                              name={IconName.Confirmation}
+                              size={IconSize.Md}
+                              color={TextColor.Success}
+                            />
+                          )}
                         </Box>
                       </Box>
                     </Box>
