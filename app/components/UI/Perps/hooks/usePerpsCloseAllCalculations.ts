@@ -34,8 +34,10 @@ export interface CloseAllCalculationsResult {
   avgProtocolFeeRate: number;
   /** Average original MetaMask fee rate before discounts (as decimal) */
   avgOriginalMetamaskFeeRate: number;
-  /** Whether any fee calculation is still loading */
+  /** Whether initial calculation is still loading (shows spinner) */
   isLoading: boolean;
+  /** Whether background refresh is in progress (shows subtle indicator, keeps stale data visible) */
+  isFetchingInBackground: boolean;
   /** Whether there was an error in any calculation */
   hasError: boolean;
   /** Whether rewards should be shown (at least one position has valid rewards) */
@@ -102,6 +104,7 @@ export function usePerpsCloseAllCalculations({
     PerPositionResult[]
   >([]);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isFetchingInBackground, setIsFetchingInBackground] = useState(false);
   const [hasCalculationError, setHasCalculationError] = useState(false);
 
   // State for account-level fee discount (applies uniformly to all positions)
@@ -110,6 +113,7 @@ export function usePerpsCloseAllCalculations({
   // Freeze mechanism: Prevent recalculation on WebSocket updates (price changes)
   // Reset freeze when positions/account/discount changes to allow recalculation
   const hasValidResultsRef = useRef(false);
+  const hasValidDiscountRef = useRef(false);
 
   // Calculate total margin (including P&L)
   const totalMargin = useMemo(
@@ -133,10 +137,17 @@ export function usePerpsCloseAllCalculations({
   );
 
   // Fetch account-level fee discount (applies uniformly to all positions)
-  // This runs once per account change and is cached by RewardsController
+  // Freeze mechanism prevents refetching when only positions change
   useEffect(() => {
     async function fetchFeeDiscount() {
+      // Skip if already have valid discount for this account (freeze guard)
+      if (hasValidDiscountRef.current) {
+        return;
+      }
+
       if (!selectedAddress || !currentChainId) {
+        setFeeDiscountBips(0);
+        hasValidDiscountRef.current = false;
         return;
       }
 
@@ -146,6 +157,8 @@ export function usePerpsCloseAllCalculations({
           currentChainId,
         );
         if (!caipAccountId) {
+          setFeeDiscountBips(0);
+          hasValidDiscountRef.current = false;
           return;
         }
 
@@ -154,12 +167,16 @@ export function usePerpsCloseAllCalculations({
             caipAccountId,
           );
         setFeeDiscountBips(discountBips);
+        hasValidDiscountRef.current = true;
       } catch (error) {
         console.warn('Failed to fetch fee discount:', error);
         setFeeDiscountBips(0);
+        hasValidDiscountRef.current = false;
       }
     }
 
+    // Reset freeze when account changes (allow refetch for new account)
+    hasValidDiscountRef.current = false;
     fetchFeeDiscount().catch((error) => {
       console.error('Unhandled error in fetchFeeDiscount:', error);
     });
@@ -169,11 +186,13 @@ export function usePerpsCloseAllCalculations({
   // This ensures accurate coin-specific rewards calculation
   useEffect(() => {
     // Reset freeze when meaningful inputs change (not price updates)
+    // This MUST happen synchronously at effect start, before async function runs
     // Allows recalculation for: new positions, account switch, or discount arrival
     hasValidResultsRef.current = false;
 
     async function calculatePerPosition() {
       // Skip if already frozen (prevents recalculation on WebSocket price updates)
+      // This check happens AFTER the synchronous reset above
       if (hasValidResultsRef.current) {
         return;
       }
@@ -186,10 +205,14 @@ export function usePerpsCloseAllCalculations({
 
       if (!selectedAddress || !currentChainId) {
         setHasCalculationError(true);
+        setFeeDiscountBips(0);
         return;
       }
 
-      setIsCalculating(true);
+      // Determine if this is initial load or background refresh
+      const isInitialLoad = perPositionResults.length === 0;
+      setIsCalculating(isInitialLoad);
+      setIsFetchingInBackground(!isInitialLoad);
       setHasCalculationError(false);
 
       try {
@@ -327,6 +350,7 @@ export function usePerpsCloseAllCalculations({
         setHasCalculationError(true);
       } finally {
         setIsCalculating(false);
+        setIsFetchingInBackground(false);
       }
     }
 
@@ -456,6 +480,7 @@ export function usePerpsCloseAllCalculations({
     avgProtocolFeeRate: aggregatedResults.avgProtocolFeeRate,
     avgOriginalMetamaskFeeRate: aggregatedResults.avgOriginalMetamaskFeeRate,
     isLoading: isCalculating,
+    isFetchingInBackground,
     hasError: hasCalculationError,
     shouldShowRewards: aggregatedResults.shouldShowRewards,
   };
