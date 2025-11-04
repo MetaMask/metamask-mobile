@@ -23,7 +23,6 @@ import {
 import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
 import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
-import { defaultAccountsControllerState } from '../core/Engine/controllers/accounts-controller/constants';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -35,8 +34,7 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @returns - AccountsController state
  */
 export const selectAccountsControllerState = (state: RootState) =>
-  state.engine?.backgroundState?.AccountsController ??
-  defaultAccountsControllerState;
+  state.engine.backgroundState.AccountsController;
 
 /**
  * A memoized selector that returns internal accounts from the AccountsController.
