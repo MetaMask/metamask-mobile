@@ -28,7 +28,6 @@ export function getBridgeControllerMessenger(
     actions: [
       'AccountsController:getAccountByAddress',
       'SnapController:handleRequest',
-      'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'TokenRatesController:getState',

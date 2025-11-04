@@ -93,6 +93,11 @@ export type SignTypedMessageFn = (
   version: SignTypedDataVersion,
 ) => Promise<string>;
 
+interface RecentlySoldPosition {
+  positionId: string;
+  timestamp: number;
+}
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
 
@@ -100,6 +105,7 @@ export class PolymarketProvider implements PredictProvider {
   #accountStateByAddress: Map<string, AccountState> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
+  #recentlySoldPositionsByAddress = new Map<string, RecentlySoldPosition[]>();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
 
@@ -257,6 +263,28 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  private addRecentlySoldPositions({
+    address,
+    positionIds,
+  }: {
+    address: string;
+    positionIds: string[];
+  }) {
+    // Delete anything older than 5 minutes to prevent
+    // list from growing too large
+    const recentlySoldPositions = (
+      this.#recentlySoldPositionsByAddress.get(address) ?? []
+    ).filter((soldPosition) => soldPosition.timestamp > Date.now() - 5 * 60000);
+
+    recentlySoldPositions.push(
+      ...positionIds.map((positionId) => ({
+        positionId,
+        timestamp: Date.now(),
+      })),
+    );
+    this.#recentlySoldPositionsByAddress.set(address, recentlySoldPositions);
+  }
+
   public async getPositions({
     address,
     limit = 100, // todo: reduce this once we've decided on the pagination approach
@@ -299,7 +327,19 @@ export class PolymarketProvider implements PredictProvider {
       positions: positionsData,
     });
 
-    return parsedPositions;
+    // NOTE: Remove positions that were recently sold. This is a workaround for
+    // Polymarket's API taking some time to update positions
+    const soldPositions =
+      this.#recentlySoldPositionsByAddress.get(address) ?? [];
+
+    const filteredPositions = parsedPositions.filter((position) => {
+      const isSold = soldPositions.some(
+        (soldPosition) => soldPosition.positionId === position.id,
+      );
+      return !isSold;
+    });
+
+    return filteredPositions;
   }
 
   private async fetchActivity({
@@ -419,6 +459,7 @@ export class PolymarketProvider implements PredictProvider {
       fees,
       slippage,
       tickSize,
+      positionId,
     } = preview;
 
     if (side === Side.BUY) {
@@ -430,7 +471,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const makerAddress =
         this.#accountStateByAddress.get(signer.address)?.address ??
-        (await this.getAccountState({ ownerAddress: signer.address })).address;
+        computeProxyAddress(signer.address);
 
       if (!makerAddress) {
         throw new Error('Maker address not found');
@@ -542,6 +583,11 @@ export class PolymarketProvider implements PredictProvider {
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
+      } else if (positionId) {
+        this.addRecentlySoldPositions({
+          address: signer.address,
+          positionIds: [positionId],
+        });
       }
 
       return {
@@ -640,6 +686,19 @@ export class PolymarketProvider implements PredictProvider {
       // Re-throw with clear error message
       throw error;
     }
+  }
+
+  public confirmClaim({
+    positions,
+    signer,
+  }: {
+    positions: PredictPosition[];
+    signer: Signer;
+  }) {
+    this.addRecentlySoldPositions({
+      address: signer.address,
+      positionIds: positions.map((position) => position.id),
+    });
   }
 
   public async isEligible(): Promise<boolean> {

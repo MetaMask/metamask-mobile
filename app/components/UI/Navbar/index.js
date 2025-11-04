@@ -1946,7 +1946,7 @@ export function getPerpsMarketDetailsNavbar(navigation, title) {
     },
   });
   // Always navigate back to markets page for consistent navigation
-  const leftAction = () => navigation.navigate(Routes.PERPS.MARKETS);
+  const leftAction = () => navigation.navigate(Routes.PERPS.PERPS_HOME);
 
   return {
     headerTitle: () => (

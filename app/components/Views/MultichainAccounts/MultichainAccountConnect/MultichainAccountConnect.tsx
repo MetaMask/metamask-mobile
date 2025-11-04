@@ -102,6 +102,28 @@ import { Box } from '@metamask/design-system-react-native';
 import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
 
+interface ScreenContainerProps {
+  isVisible: boolean;
+  children: React.ReactNode;
+  styles: {
+    screenVisible: object;
+    screenHidden: object;
+  };
+}
+
+const ScreenContainer: React.FC<ScreenContainerProps> = ({
+  isVisible,
+  children,
+  styles,
+}) => (
+  <Box
+    style={isVisible ? styles.screenVisible : styles.screenHidden}
+    pointerEvents={isVisible ? 'auto' : 'none'}
+  >
+    {children}
+  </Box>
+);
+
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
@@ -855,25 +877,26 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const renderConnectScreens = useCallback(() => {
-    switch (screen) {
-      case AccountConnectScreens.SingleConnect:
-        return renderPermissionsSummaryScreen();
-      case AccountConnectScreens.MultiConnectSelector:
-        return renderMultiConnectSelectorScreen();
-      case AccountConnectScreens.MultiConnectNetworkSelector:
-        return renderMultiConnectNetworkSelectorScreen();
-    }
-  }, [
-    screen,
-    renderPermissionsSummaryScreen,
-    renderMultiConnectSelectorScreen,
-    renderMultiConnectNetworkSelectorScreen,
-  ]);
-
   return (
     <Box style={styles.container}>
-      {renderConnectScreens()}
+      <ScreenContainer
+        isVisible={screen === AccountConnectScreens.SingleConnect}
+        styles={styles}
+      >
+        {renderPermissionsSummaryScreen()}
+      </ScreenContainer>
+      <ScreenContainer
+        isVisible={screen === AccountConnectScreens.MultiConnectSelector}
+        styles={styles}
+      >
+        {renderMultiConnectSelectorScreen()}
+      </ScreenContainer>
+      <ScreenContainer
+        isVisible={screen === AccountConnectScreens.MultiConnectNetworkSelector}
+        styles={styles}
+      >
+        {renderMultiConnectNetworkSelectorScreen()}
+      </ScreenContainer>
       {renderPhishingModal()}
     </Box>
   );

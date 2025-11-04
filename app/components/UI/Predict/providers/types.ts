@@ -42,6 +42,7 @@ export interface PlaceOrderParams {
     marketId?: string;
     marketTitle?: string;
     marketCategory?: string;
+    marketTags?: string[];
     entryPoint?: string;
     transactionType?: string;
     sharePrice?: number;
@@ -57,7 +58,9 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
-  signer?: Signer;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
 }
 
 // Fees in US dollars
@@ -96,6 +99,9 @@ export interface OrderPreview {
   negRisk: boolean;
   fees?: PredictFees;
   rateLimited?: boolean;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
 }
 
 export type OrderResult = Result<{
@@ -123,12 +129,12 @@ export interface ClaimOrderResponse {
 }
 
 export interface GetPositionsParams {
-  address?: string;
   providerId?: string;
-  limit?: number;
-  offset?: number;
+  address?: string;
   claimable?: boolean;
   marketId?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface PrepareDepositParams {
@@ -209,13 +215,16 @@ export interface PredictProvider {
   }): Promise<import('../types').UnrealizedPnL>;
 
   // Order management
-  previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
+  previewOrder(
+    params: Omit<PreviewOrderParams, 'providerId'> & { signer: Signer },
+  ): Promise<OrderPreview>;
   placeOrder(
-    params: PlaceOrderParams & { signer: Signer },
+    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
   ): Promise<OrderResult>;
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
+  confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   // Eligibility (Geo-Blocking)
   isEligible(): Promise<boolean>;

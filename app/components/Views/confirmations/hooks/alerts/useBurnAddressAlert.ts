@@ -41,7 +41,7 @@ export function useBurnAddressAlert(): Alert[] {
         message: strings('alert_system.burn_address.message'),
         title: strings('alert_system.burn_address.title'),
         severity: Severity.Danger,
-        isBlocking: false,
+        isBlocking: true,
       },
     ];
   }, [hasBurnAddressRecipient]);

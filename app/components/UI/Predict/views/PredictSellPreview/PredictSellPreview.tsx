@@ -18,7 +18,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -34,12 +33,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonSize as ButtonSizeHero,
+} from '@metamask/design-system-react-native';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { colors } = useTheme();
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -55,7 +57,8 @@ const PredictSellPreview = () => {
     () => ({
       marketId: market?.id,
       marketTitle: market?.title,
-      marketCategory: market?.categories?.[0],
+      marketCategory: market?.category,
+      marketTags: market?.tags,
       entryPoint:
         entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
@@ -73,14 +76,15 @@ const PredictSellPreview = () => {
     error: placeOrderError,
   } = usePredictPlaceOrder();
 
-  const { preview, isCalculating } = usePredictOrderPreview({
+  const { preview } = usePredictOrderPreview({
     providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
     outcomeTokenId: position.outcomeTokenId,
     side: Side.SELL,
     size: position.amount,
-    autoRefreshTimeout: 5000,
+    positionId: position.id,
+    autoRefreshTimeout: 1000,
   });
 
   // Track Predict Action Initiated when screen mounts
@@ -92,7 +96,7 @@ const PredictSellPreview = () => {
       analyticsProperties,
       providerId: position.providerId,
       sharePrice: position?.price,
-      amount: position?.amount,
+      amountUsd: position?.amount,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -144,22 +148,20 @@ const PredictSellPreview = () => {
     }
 
     return (
-      <Button
+      <ButtonHero
         testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
-        label={
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
-            {strings('predict.cash_out')}
-          </Text>
-        }
-        variant={ButtonVariants.Secondary}
-        disabled={!preview || isCalculating || isLoading}
+        disabled={!preview || isLoading}
         onPress={onCashOut}
         style={{
           ...styles.cashOutButton,
-          backgroundColor: colors.primary.default,
         }}
-        loading={isLoading}
-      />
+        isLoading={isLoading}
+        size={ButtonSizeHero.Lg}
+      >
+        <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
+          {strings('predict.cash_out')}
+        </Text>
+      </ButtonHero>
     );
   };
 

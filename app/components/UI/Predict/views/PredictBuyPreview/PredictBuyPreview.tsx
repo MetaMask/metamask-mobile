@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize as ButtonSizeHero,
   Icon,
   IconName,
   IconSize,
@@ -51,6 +52,7 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -67,7 +69,8 @@ const PredictBuyPreview = () => {
     () => ({
       marketId: market?.id,
       marketTitle: market?.title,
-      marketCategory: market?.categories?.[0],
+      marketCategory: market?.category,
+      marketTags: market?.tags,
       entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
       liquidity: market?.liquidity,
@@ -98,15 +101,17 @@ const PredictBuyPreview = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
 
-  const { preview, isCalculating } = usePredictOrderPreview({
+  const { preview, error: previewError } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
     outcomeTokenId: outcomeToken.id,
     side: Side.BUY,
     size: currentValue,
-    autoRefreshTimeout: 5000,
+    autoRefreshTimeout: 1000,
   });
+
+  const errorMessage = previewError ?? placeOrderError;
 
   // Track Predict Action Initiated when screen mounts
   useEffect(() => {
@@ -136,15 +141,16 @@ const PredictBuyPreview = () => {
     currentValue >= MINIMUM_BET &&
     !hasInsufficientFunds &&
     preview &&
-    !isCalculating &&
     !isLoading &&
     !isBalanceLoading &&
     !isRateLimited;
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
-    ? `${outcome.groupItemTitle} · `
+    ? outcome.groupItemTitle
     : '';
+
+  const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
@@ -178,10 +184,7 @@ const PredictBuyPreview = () => {
         source={{ uri: outcome?.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="flex-1 min-w-0 gap-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Text
@@ -195,16 +198,24 @@ const PredictBuyPreview = () => {
         </Box>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
-            <Box flexDirection={BoxFlexDirection.Row}>
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
               {!!outcomeGroupTitle && (
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {outcomeGroupTitle}
-                </Text>
+                <>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {outcomeGroupTitle}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {separator}
+                  </Text>
+                </>
               )}
               <Text
                 variant={TextVariant.BodySMMedium}
@@ -346,29 +357,17 @@ const PredictBuyPreview = () => {
     }
 
     return (
-      <Button
-        label={
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
-            {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
-          </Text>
-        }
-        variant={ButtonVariants.Secondary}
+      <ButtonHero
         onPress={onPlaceBet}
-        style={tw.style(
-          outcomeToken?.title === 'Yes'
-            ? 'bg-success-default/15'
-            : 'bg-error-default/15',
-          outcomeToken?.title === 'Yes'
-            ? 'text-success-default'
-            : 'text-error-default',
-          !canPlaceBet && 'opacity-40',
-        )}
         disabled={!canPlaceBet}
-        loading={isLoading}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        labelTextVariant={TextVariant.BodyMD}
-      />
+        isLoading={isLoading}
+        size={ButtonSizeHero.Lg}
+        style={tw.style('w-full')}
+      >
+        <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
+          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+        </Text>
+      </ButtonHero>
     );
   };
 
@@ -383,13 +382,13 @@ const PredictBuyPreview = () => {
         twClassName="border-t border-muted p-4 pb-0 gap-4"
       >
         <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-          {placeOrderError && (
+          {errorMessage && (
             <Text
               variant={TextVariant.BodySM}
               color={TextColor.Error}
               style={tw.style('text-center pb-2')}
             >
-              {strings('predict.order.order_failed_generic')}
+              {errorMessage}
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
