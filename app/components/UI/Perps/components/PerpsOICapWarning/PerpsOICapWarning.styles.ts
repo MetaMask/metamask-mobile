@@ -12,10 +12,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     bannerContainer: {
       backgroundColor: colors.background.muted,
-      borderRadius: 8,
+      borderRadius: 12,
       padding: 12,
       marginHorizontal: 16,
-      marginVertical: 16,
+      marginBottom: 16,
     },
     inlineContainer: {
       paddingVertical: 8,

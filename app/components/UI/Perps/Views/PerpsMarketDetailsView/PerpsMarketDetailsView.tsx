@@ -684,12 +684,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             <PerpsOICapWarning symbol={market.symbol} variant="banner" />
           )}
 
-          {/* Market Hours Banner */}
-          <PerpsMarketHoursBanner
-            marketType={market?.marketType}
-            onInfoPress={handleMarketHoursInfoPress}
-            testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
-          />
+          {/* Market Hours Banner - Hidden when OI cap warning is showing */}
+          {!isAtOICap && (
+            <PerpsMarketHoursBanner
+              marketType={market?.marketType}
+              onInfoPress={handleMarketHoursInfoPress}
+              testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
+            />
+          )}
 
           {/* Market Tabs Section */}
           <View style={styles.tabsSection}>
@@ -732,7 +734,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </View>
 
       {/* Fixed Actions Footer */}
-      {(hasAddFundsButton || hasLongShortButtons) && !isAtOICap && (
+      {(hasAddFundsButton || (hasLongShortButtons && !isAtOICap)) && (
         <View style={styles.actionsFooter}>
           {hasAddFundsButton && (
             <View style={styles.singleActionContainer}>
@@ -750,7 +752,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {hasLongShortButtons && (
+          {hasLongShortButtons && !isAtOICap && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
                 <ButtonSemantic
