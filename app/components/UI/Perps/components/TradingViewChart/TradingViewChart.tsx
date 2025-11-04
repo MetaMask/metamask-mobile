@@ -89,7 +89,6 @@ const TradingViewChart = React.forwardRef<
       if (!marketData?.szDecimals) return undefined;
       return Math.max(
         0,
-        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
         Math.min(
           marketData.szDecimals,
           DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
