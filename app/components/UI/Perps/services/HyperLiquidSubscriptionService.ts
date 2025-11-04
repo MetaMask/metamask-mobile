@@ -768,11 +768,16 @@ export class HyperLiquidSubscriptionService {
             // Map webData3 index to DEX name
             // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
             const dexIdentifier =
-              index === 0 ? null : (this.discoveredDexNames[index - 1] ?? null);
+              index === 0 ? null : this.discoveredDexNames[index - 1];
+
+            // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
+            if (index > 0 && dexIdentifier === undefined) {
+              return; // Unknown DEX - skip to prevent misidentifying as main DEX
+            }
 
             // Only process DEXs we care about (skip others silently)
             // webData3 API returns all protocol DEXs regardless of our config
-            if (!this.isDexEnabled(dexIdentifier)) {
+            if (!this.isDexEnabled(dexIdentifier ?? null)) {
               return; // Skip this DEX - not enabled in our configuration
             }
 
@@ -819,10 +824,15 @@ export class HyperLiquidSubscriptionService {
             // Map webData3 index to DEX name
             // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
             const dexIdentifier =
-              index === 0 ? null : (this.discoveredDexNames[index - 1] ?? null);
+              index === 0 ? null : this.discoveredDexNames[index - 1];
+
+            // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
+            if (index > 0 && dexIdentifier === undefined) {
+              return; // Unknown DEX - skip to prevent misidentifying as main DEX
+            }
 
             // Only process DEXs we care about (skip others silently)
-            if (!this.isDexEnabled(dexIdentifier)) {
+            if (!this.isDexEnabled(dexIdentifier ?? null)) {
               return; // Skip this DEX - not enabled in our configuration
             }
 
