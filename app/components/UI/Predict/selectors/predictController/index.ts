@@ -58,7 +58,7 @@ const selectPredictBalanceByAddress = ({
 }) =>
   createSelector(
     selectPredictBalances,
-    (balances) => balances[providerId]?.[address] || 0,
+    (balances) => balances[providerId]?.[address]?.balance || 0,
   );
 
 const selectPredictPendingDepositByAddress = ({
