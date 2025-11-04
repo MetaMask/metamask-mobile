@@ -226,7 +226,9 @@ export function usePerpsCloseAllCalculations({
               const discountMultiplier =
                 feeDiscountBips > 0 ? 1 - feeDiscountBips / 10000 : 1;
               const adjustedMetamaskFeeRate =
-                baseFees.metamaskFeeRate * discountMultiplier;
+                baseFees.metamaskFeeRate !== undefined
+                  ? baseFees.metamaskFeeRate * discountMultiplier
+                  : undefined;
 
               // Preserve undefined state if base fees are undefined - don't default to 0
               // Undefined indicates error/unavailable state, which should be handled at UI layer
@@ -258,12 +260,12 @@ export function usePerpsCloseAllCalculations({
               return {
                 position: pos,
                 fees: {
-                  feeRate: 0,
-                  feeAmount: 0,
-                  protocolFeeRate: 0,
-                  protocolFeeAmount: 0,
-                  metamaskFeeRate: 0,
-                  metamaskFeeAmount: 0,
+                  feeRate: undefined,
+                  feeAmount: undefined,
+                  protocolFeeRate: undefined,
+                  protocolFeeAmount: undefined,
+                  metamaskFeeRate: undefined,
+                  metamaskFeeAmount: undefined,
                 },
                 error: error instanceof Error ? error.message : 'Unknown error',
               };
@@ -369,7 +371,11 @@ export function usePerpsCloseAllCalculations({
 
     perPositionResults.forEach((result) => {
       const weight = result.fees.feeAmount ?? 0;
-      if (weight > 0) {
+      if (
+        weight > 0 &&
+        result.fees.metamaskFeeRate !== undefined &&
+        result.fees.protocolFeeRate !== undefined
+      ) {
         weightedMetamaskFeeRate += result.fees.metamaskFeeRate * weight;
         weightedProtocolFeeRate += result.fees.protocolFeeRate * weight;
         totalWeight += weight;

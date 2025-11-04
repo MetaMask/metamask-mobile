@@ -115,6 +115,12 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
+  // Use ref to access latest price without triggering fee recalculations
+  // This prevents continuous recalculations on every WebSocket price update
+  // Pattern matches usePerpsCloseAllCalculations (lines 96-98, 336-339)
+  const currentPriceRef = useRef(currentPrice);
+  currentPriceRef.current = currentPrice;
+
   // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: position.coin,
@@ -157,22 +163,31 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = useMemo(
-    () => absSize * effectivePrice,
-    [absSize, effectivePrice], // Round to 2 decimal places
-  );
+  // Use ref for market price to prevent recalculation on every WebSocket update
+  const positionValue = useMemo(() => {
+    const priceToUse =
+      orderType === 'limit' && limitPrice
+        ? parseFloat(limitPrice)
+        : currentPriceRef.current;
+    return absSize * priceToUse;
+  }, [absSize, orderType, limitPrice]); // Exclude currentPrice from deps to prevent recalculation
 
   // Calculate P&L based on effective price (limit price for limit orders)
+  // Use ref for market price to prevent recalculation on every WebSocket update
   const entryPrice = parseFloat(position.entryPrice);
   const effectivePnL = useMemo(() => {
     // Calculate P&L based on the effective price (limit price for limit orders)
     // For long positions: (effectivePrice - entryPrice) * absSize
     // For short positions: (entryPrice - effectivePrice) * absSize
+    const priceToUse =
+      orderType === 'limit' && limitPrice
+        ? parseFloat(limitPrice)
+        : currentPriceRef.current;
     const priceDiff = isLong
-      ? effectivePrice - entryPrice
-      : entryPrice - effectivePrice;
+      ? priceToUse - entryPrice
+      : entryPrice - priceToUse;
     return priceDiff * absSize;
-  }, [effectivePrice, entryPrice, absSize, isLong]);
+  }, [entryPrice, absSize, isLong, orderType, limitPrice]); // Exclude effectivePrice from deps
 
   // Use the actual initial margin from the position
   const initialMargin = parseFloat(position.marginUsed);
