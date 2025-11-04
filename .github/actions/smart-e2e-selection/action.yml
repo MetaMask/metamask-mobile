@@ -156,11 +156,10 @@ runs:
       run: |
         if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           # Create a comment to indicate that Smart E2E selection has been disabled
-          gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body '## 🔍 Smart E2E Test Selection
-
+          gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body '
+        ## 🔍 Smart E2E Test Selection
         ⏭️ **Smart E2E selection disabled due to`skip-smart-e2e-selection` label**
         All E2E tests will run according to the standard CI/CD pipeline configuration.
-
         <!-- ai-e2e-analysis -->'
           
           echo "✅ Successfully created skip notification comment"
