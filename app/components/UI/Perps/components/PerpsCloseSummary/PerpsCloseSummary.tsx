@@ -3,6 +3,7 @@ import {
   View,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
   type ViewStyle,
 } from 'react-native';
 import Text, {
@@ -297,33 +298,39 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
 
       {/* Tooltip Bottom Sheets */}
       {enableTooltips && selectedTooltip === 'closing_fees' && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey="closing_fees"
-          data={{
-            metamaskFeeRate,
-            protocolFeeRate,
-            originalMetamaskFeeRate,
-            feeDiscountPercentage,
-          }}
-        />
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey="closing_fees"
+            data={{
+              metamaskFeeRate,
+              protocolFeeRate,
+              originalMetamaskFeeRate,
+              feeDiscountPercentage,
+            }}
+          />
+        </Modal>
       )}
 
       {enableTooltips && selectedTooltip === 'close_position_you_receive' && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey="close_position_you_receive"
-        />
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey="close_position_you_receive"
+          />
+        </Modal>
       )}
 
       {enableTooltips && selectedTooltip === 'points' && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey="points"
-        />
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey="points"
+          />
+        </Modal>
       )}
     </>
   );
