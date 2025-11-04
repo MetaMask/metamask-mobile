@@ -1094,7 +1094,9 @@
         "please_set_a_limit_price": "Please set a limit price",
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
-        "limit_price_far_warning": "Limit price is far from current market price"
+        "limit_price_far_warning": "Limit price is far from current market price",
+        "oi_cap_reached": "Open Interest Cap Reached",
+        "oi_cap_description": "This market is at capacity. New positions cannot be opened until open interest decreases."
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1407,6 +1409,8 @@
       "expect_more_volatility": "Expect more volatility outside of regular market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
+      "oi_cap_warning": "Market At Capacity",
+      "oi_cap_description": "This market has reached its open interest cap. New positions cannot be opened at this time.",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -2046,6 +2050,7 @@
     "learn_more": "Learn more",
     "add_collectibles": "Import NFTs",
     "nft_empty_description": "There's a world of NFTs out there. Start your collection today.",
+    "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
     "discover_nfts": "Import NFTs",
     "no_transactions": "You have no transactions!",
     "switch_network_to_view_transactions": "Please switch network to view transactions",
@@ -2809,7 +2814,7 @@
       "navigate_to_sample_feature": "Navigate to Sample Feature",
       "sample_feature_desc": "A sample feature as a template for developers."
     },
-    "feature_flag_override":  {
+    "feature_flag_override": {
       "title": "Feature Flag Override",
       "description": "Override the feature flags for the app locally."
     }
@@ -6276,6 +6281,7 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
+      "enable_card_error": "Failed to enable card. Please try again later.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",

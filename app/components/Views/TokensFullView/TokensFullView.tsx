@@ -35,9 +35,10 @@ const TokensFullView = () => {
             size={ButtonIconSizes.Lg}
             onPress={handleBackPress}
             iconName={IconName.ArrowLeft}
+            testID="back-button"
           />
         }
-        includesTopInset
+        style={tw`p-4`}
       >
         {strings('wallet.tokens')}
       </HeaderBase>
