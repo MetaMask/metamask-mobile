@@ -261,6 +261,7 @@ describe('Engine', () => {
           mainnet: [],
           testnet: [],
         },
+        hip3ConfigVersion: 0,
       },
     };
 
