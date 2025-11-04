@@ -163,7 +163,6 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
-import { ratesControllerInit } from './controllers/rates-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
@@ -344,7 +343,6 @@ export class Engine {
         MultichainRouter: multichainRouterInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
-        RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -456,7 +454,6 @@ export class Engine {
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
     const multichainAccountService = controllersByName.MultichainAccountService;
-    const ratesController = controllersByName.RatesController;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -519,7 +516,6 @@ export class Engine {
       PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
-      RatesController: ratesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
@@ -724,10 +720,6 @@ export class Engine {
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    this.context.RatesController.start();
-    ///: END:ONLY_INCLUDE_IF
   }
 
   configureControllersOnNetworkChange() {
@@ -1328,7 +1320,6 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      RatesController,
       ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
@@ -1390,7 +1381,6 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      RatesController,
       ///: END:ONLY_INCLUDE_IF
     };
   },

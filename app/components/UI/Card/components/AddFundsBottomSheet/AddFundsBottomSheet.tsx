@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
@@ -32,6 +33,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 
 export interface AddFundsBottomSheetProps {
   setOpenAddFundsBottomSheet: (open: boolean) => void;
@@ -53,6 +55,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
     priorityToken,
   });
   const { trackEvent, createEventBuilder } = useMetrics();
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -85,6 +88,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
           location: 'CardHome',
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
           ramp_type: 'DEPOSIT',
+          region: rampGeodetectedRegion,
         })
         .build(),
     );
@@ -93,6 +97,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
       name: TraceName.LoadDepositExperience,
     });
   }, [
+    rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
     navigate,
     trackEvent,

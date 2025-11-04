@@ -51,8 +51,8 @@ export type OrderType = 'market' | 'limit';
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
-// Market type filter including 'all' option for UI filtering
-export type MarketTypeFilter = MarketType | 'all';
+// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
+export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -581,6 +581,12 @@ export interface SubscribeAccountParams {
   callback: (account: AccountState) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
+
+export interface SubscribeOICapsParams {
+  callback: (caps: string[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -599,6 +605,7 @@ export interface FeeCalculationParams {
   orderType: 'market' | 'limit';
   isMaker?: boolean;
   amount?: string;
+  coin: string; // Required: Asset symbol for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
 }
 
 export interface FeeCalculationResult {
@@ -647,6 +654,8 @@ export interface Order {
   // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)
+  stopLossOrderId?: string; // Stop loss order ID
+  takeProfitOrderId?: string; // Take profit order ID
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
@@ -764,6 +773,7 @@ export interface IPerpsProvider {
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

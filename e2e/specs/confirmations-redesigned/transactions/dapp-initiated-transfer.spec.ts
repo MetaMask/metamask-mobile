@@ -7,7 +7,10 @@ import ConfirmationUITypes from '../../../pages/Browser/Confirmations/Confirmati
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import {
+  AnvilPort,
+  buildPermissions,
+} from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import {
   SEND_ETH_SIMULATION_MOCK,
@@ -30,6 +33,8 @@ import {
 } from '../../../api-mocking/mock-responses/security-alerts-mock';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { LocalNode } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -102,16 +107,32 @@ describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withNetworkEnabledMap({
-            eip155: { '0x539': true },
-          })
-          .withMetaMetricsOptIn()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x539',
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .withMetaMetricsOptIn()
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0x539']),
+            )
+            .build();
+        },
         restartDevice: true,
         testSpecificMock,
         endTestfn: async ({ mockServer }) => {
