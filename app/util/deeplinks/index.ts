@@ -20,10 +20,8 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
     MM_UNIVERSAL_LINK_HOST || 'link.metamask.io',
     MM_IO_UNIVERSAL_LINK_HOST || 'link.metamask.io',
     MM_IO_UNIVERSAL_LINK_TEST_HOST || 'link-test.metamask.io',
-    'metamask.app.link',
-    'metamask.test-app.link',
-    'metamask-alternate.app.link',
-    'metamask-alternate.test-app.link',
+    'metamask.app.link', // todo double-check if we can remove
+    'metamask.test-app.link', // todo double-check if we can remove
   ].filter(Boolean);
 
   try {
