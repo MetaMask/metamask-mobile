@@ -73,13 +73,25 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
-    it('subscribes to prices on mount with no throttle for live PnL updates', () => {
+    it('does NOT subscribe to prices by default (useLivePnl: false)', () => {
       // Arrange
       mockPositionsSubscribe.mockReturnValue(jest.fn());
       mockPricesSubscribe.mockReturnValue(jest.fn());
 
       // Act
       renderHook(() => usePerpsLivePositions());
+
+      // Assert - prices should NOT be subscribed
+      expect(mockPricesSubscribe).not.toHaveBeenCalled();
+    });
+
+    it('subscribes to prices only when useLivePnl: true', () => {
+      // Arrange
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      // Act
+      renderHook(() => usePerpsLivePositions({ useLivePnl: true }));
 
       // Assert
       expect(mockPricesSubscribe).toHaveBeenCalledWith({
@@ -88,7 +100,20 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
-    it('unsubscribes from positions and prices on unmount', () => {
+    it('unsubscribes from positions on unmount', () => {
+      // Arrange
+      const mockPositionsUnsubscribe = jest.fn();
+      mockPositionsSubscribe.mockReturnValue(mockPositionsUnsubscribe);
+
+      // Act
+      const { unmount } = renderHook(() => usePerpsLivePositions());
+      unmount();
+
+      // Assert
+      expect(mockPositionsUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('unsubscribes from positions and prices on unmount when useLivePnl: true', () => {
       // Arrange
       const mockPositionsUnsubscribe = jest.fn();
       const mockPricesUnsubscribe = jest.fn();
@@ -96,7 +121,9 @@ describe('usePerpsLivePositions', () => {
       mockPricesSubscribe.mockReturnValue(mockPricesUnsubscribe);
 
       // Act
-      const { unmount } = renderHook(() => usePerpsLivePositions());
+      const { unmount } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
       unmount();
 
       // Assert
@@ -321,7 +348,9 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
 
       const position: Position = {
         ...mockPosition,
@@ -369,7 +398,9 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
 
       const position: Position = {
         ...mockPosition,
@@ -416,7 +447,9 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
 
       const position: Position = {
         ...mockPosition,
@@ -462,7 +495,9 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
 
       const shortPosition: Position = {
         ...mockPosition,
@@ -510,7 +545,9 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
 
       const position: Position = {
         ...mockPosition,
@@ -557,7 +594,9 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
 
       const position: Position = {
         ...mockPosition,

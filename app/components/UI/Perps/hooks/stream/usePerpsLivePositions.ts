@@ -9,6 +9,8 @@ const EMPTY_POSITIONS: Position[] = [];
 export interface UsePerpsLivePositionsOptions {
   /** Throttle delay in milliseconds (default: 0 - no throttling for instant updates) */
   throttleMs?: number;
+  /** Whether to subscribe to price updates for live PnL calculations (default: false) */
+  useLivePnl?: boolean;
 }
 
 export interface UsePerpsLivePositionsReturn {
@@ -74,15 +76,17 @@ export function enrichPositionsWithLivePnL(
 
 /**
  * Hook for real-time position updates via WebSocket subscription
- * with live PnL calculations based on current mark prices
+ * with optional live PnL calculations based on current mark prices
  *
  * @param options - Configuration options for the hook
- * @returns Object containing positions array with live PnL and loading state
+ * @param options.throttleMs - Throttle delay in milliseconds (default: 0)
+ * @param options.useLivePnl - Whether to subscribe to price updates for live PnL calculations (default: false)
+ * @returns Object containing positions array with optional live PnL and loading state
  */
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0 } = options; // No throttling by default for instant updates
+  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -134,8 +138,12 @@ export function usePerpsLivePositions(
     };
   }, [stream, throttleMs, updateEnrichedPositions]);
 
-  // Subscribe to price updates for real-time PnL recalculation
+  // Subscribe to price updates for real-time PnL recalculation (only if useLivePnl is true)
   useEffect(() => {
+    if (!useLivePnl) {
+      return undefined;
+    }
+
     const unsubscribe = stream.prices.subscribe({
       callback: (newPriceData) => {
         priceDataRef.current = newPriceData;
@@ -147,7 +155,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs, updateEnrichedPositions]);
+  }, [stream, throttleMs, updateEnrichedPositions, useLivePnl]);
 
   return {
     positions,
