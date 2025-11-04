@@ -298,7 +298,12 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
 
       {/* Tooltip Bottom Sheets */}
       {enableTooltips && selectedTooltip === 'closing_fees' && (
-        <Modal visible transparent animationType="fade">
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={handleTooltipClose}
+        >
           <PerpsBottomSheetTooltip
             isVisible
             onClose={handleTooltipClose}
@@ -314,7 +319,12 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       )}
 
       {enableTooltips && selectedTooltip === 'close_position_you_receive' && (
-        <Modal visible transparent animationType="fade">
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={handleTooltipClose}
+        >
           <PerpsBottomSheetTooltip
             isVisible
             onClose={handleTooltipClose}
@@ -324,7 +334,12 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       )}
 
       {enableTooltips && selectedTooltip === 'points' && (
-        <Modal visible transparent animationType="fade">
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={handleTooltipClose}
+        >
           <PerpsBottomSheetTooltip
             isVisible
             onClose={handleTooltipClose}
