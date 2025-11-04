@@ -34,7 +34,7 @@ export function useDepositUser(config?: UseDepositUserConfig) {
       const result = await fetchUserDetails();
       if (shouldTrackFetch) {
         trackEvent('RAMPS_USER_DETAILS_FETCHED', {
-          logged_in: isAuthenticated,
+          logged_in: true,
           region: result?.address?.countryCode || selectedRegion?.isoCode || '',
           location: screenLocation,
         });
@@ -60,7 +60,6 @@ export function useDepositUser(config?: UseDepositUserConfig) {
     fetchUserDetails,
     logoutFromProvider,
     shouldTrackFetch,
-    isAuthenticated,
     selectedRegion,
     screenLocation,
   ]);
