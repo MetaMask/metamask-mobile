@@ -152,4 +152,4 @@ export const selectPerpsBlockedMarkets = createSelector(
  * @returns number - Version increments when HIP-3 config changes
  */
 export const selectHip3ConfigVersion = (state: RootState): number =>
-  state.engine.backgroundState.PerpsController?.hip3ConfigVersion ?? 0;
+  state?.engine?.backgroundState?.PerpsController?.hip3ConfigVersion ?? 0;

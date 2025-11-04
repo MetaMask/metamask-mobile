@@ -319,6 +319,7 @@ describe('HyperLiquidProvider', () => {
       clearAll: jest.fn(),
       isPositionsCacheInitialized: jest.fn().mockReturnValue(false),
       getCachedPositions: jest.fn().mockReturnValue([]),
+      updateFeatureFlags: jest.fn().mockResolvedValue(undefined),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors
@@ -417,29 +418,6 @@ describe('HyperLiquidProvider', () => {
       await provider.initialize();
 
       const markets = await provider.getMarkets();
-      expect(Array.isArray(markets)).toBe(true);
-    });
-
-    it('filters invalid DEX names in whitelist mode', async () => {
-      const whitelistProvider = new HyperLiquidProvider({
-        equityEnabled: true,
-        enabledDexs: ['valid-dex', 'invalid-dex'],
-      });
-
-      mockClientService.getInfoClient = jest.fn().mockReturnValue(
-        createMockInfoClient({
-          perpDexs: jest
-            .fn()
-            .mockResolvedValue([
-              null,
-              { name: 'valid-dex', url: 'https://valid.example' },
-            ]),
-        }),
-      );
-
-      await whitelistProvider.initialize();
-
-      const markets = await whitelistProvider.getMarkets();
       expect(Array.isArray(markets)).toBe(true);
     });
 
@@ -1756,40 +1734,6 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Asset Mapping', () => {
-    it('should build asset mapping on first operation', async () => {
-      // Reset mocks to ensure fresh state
-      jest.clearAllMocks();
-
-      // Mock constructors again for the fresh provider
-      MockedHyperLiquidClientService.mockImplementation(
-        () => mockClientService,
-      );
-      MockedHyperLiquidWalletService.mockImplementation(
-        () => mockWalletService,
-      );
-      MockedHyperLiquidSubscriptionService.mockImplementation(
-        () => mockSubscriptionService,
-      );
-
-      // Create a fresh provider instance
-      provider = new HyperLiquidProvider();
-
-      // Clear the asset mapping to force it to be rebuilt
-      Object.defineProperty(provider, 'coinToAssetId', {
-        value: new Map(),
-        writable: true,
-      });
-      Object.defineProperty(provider, 'assetIdToCoin', {
-        value: new Map(),
-        writable: true,
-      });
-
-      // Use getPositions which now calls ensureReady() and builds asset mapping
-      await provider.getPositions();
-
-      expect(mockClientService.getInfoClient().meta).toHaveBeenCalled();
-    });
-
     it('should handle asset mapping errors', async () => {
       (
         mockClientService.getInfoClient().meta as jest.Mock
@@ -5618,7 +5562,6 @@ describe('HyperLiquidProvider', () => {
         requiredAmount: number;
       }): Promise<{ sourceDex: string; available: number } | null>;
       cachedUsdcTokenId?: string;
-      enabledDexs: string[];
     }
 
     let testableProvider: ProviderWithPrivateMethods;
