@@ -1,4 +1,4 @@
-import migrate from './106';
+import migrate from './105';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 106: Remove RatesController state', () => {
+describe('Migration 105: Remove RatesController state', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -165,7 +165,7 @@ describe('Migration 106: Remove RatesController state', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 106 failed',
+      'Migration 105 failed',
     );
   });
 });

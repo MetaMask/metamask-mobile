@@ -3,13 +3,13 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 106: Remove RatesController state
+ * Migration 105: Remove RatesController state
  *
  * This migration removes the entire RatesController from backgroundState
  * as it's no longer used (functionality moved to MultichainAssetsRatesController)
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 106;
+  const migrationVersion = 105;
 
   if (!ensureValidState(state, migrationVersion)) {
     return state;

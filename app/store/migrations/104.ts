@@ -44,4 +44,3 @@ const migration = (state: unknown): unknown => {
 };
 
 export default migration;
-

@@ -160,4 +160,3 @@ describe('Migration 104: Reset PhishingController urlScanCache', () => {
     );
   });
 });
-
