@@ -19,9 +19,10 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
-import enContent from '../../../locales/languages/en.json';
-import CustomAmountInfo from '../../pages/Confirmations/CustomAmountInfo';
+import { PredictWithdrawSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import PredictWithdraw from '../../pages/Predict/PredictWithdraw';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
+import ToastModal from '../../pages/wallet/ToastModal';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -53,42 +54,66 @@ describe(SmokeTrade('Predictions'), () => {
         await loginToApp();
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
-
-        // Start withdraw flow
         await PredictDetailsPage.tapWithdrawButton();
 
-        // Choose max and confirm
-        // Wait for confirmation container to appear
-        // const flatContainer = Matchers.getElementByID(
-        //   'flat-confirmation-container',
-        // ) as DetoxElement;
-        // const modalContainer = Matchers.getElementByID(
-        //   'modal-confirmation-container',
-        // ) as DetoxElement;
-
-        // const flatVisible = await Utilities.isElementVisible(
-        //   flatContainer,
-        //   3000,
-        // );
-        // if (!flatVisible) {
-        //   await Assertions.expectElementToBeVisible(modalContainer, {
-        //     description: 'Confirmation container visible',
-        //   });
-        // }
-
-        // Enter a small amount and tap Done (Max button may not be shown depending on state)
-        await CustomAmountInfo.typeAmountAndDone('1');
-
+        // Enter a small amount and tap Done
+        await PredictWithdraw.typeAmountAndDone('2');
+        await POLYMARKET_POST_WITHDRAW_MOCKS(mockServer);
         await FooterActions.tapConfirmButton();
 
-        // Post-confirmation withdraw mocks (balance refresh + sentinel)
-        await POLYMARKET_POST_WITHDRAW_MOCKS(mockServer);
-
         // Verify withdrawal completion toast title appears
-        await Assertions.expectTextDisplayed(
-          enContent.predict.withdraw.withdraw_completed,
-          { description: 'Withdrawal completed toast should appear' },
+        await Assertions.expectElementToBeVisible(
+          ToastModal.notificationTitle,
+          { description: 'Toast title visible' },
         );
+        await Assertions.expectElementToHaveText(
+          ToastModal.notificationTitle,
+          PredictWithdrawSelectorsIDs.WITHDRAW_COMPLETED,
+          { description: 'Toast title text matches' },
+        );
+      },
+    );
+  });
+
+  it('taps percentage shortcuts on withdraw', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withPolygon().build(),
+        restartDevice: true,
+        testSpecificMock: PredictionMarketFeature,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
+        await PredictDetailsPage.tapWithdrawButton();
+
+        // Focus input to reveal percentage buttons
+        await PredictWithdraw.focusAmountInput();
+
+        // Tap 10%, validate, then clear to 0
+        await PredictWithdraw.tapTenPercent();
+        await PredictWithdraw.expectAmountContains('2.81');
+        await PredictWithdraw.clearAll();
+        await PredictWithdraw.expectAmountVisible('0');
+
+        // Tap 25%, validate, then clear to 0 (→ 7.04)
+        await PredictWithdraw.tapTwentyFivePercent();
+        await PredictWithdraw.expectAmountContains('7.04');
+        await PredictWithdraw.clearAll();
+        await PredictWithdraw.expectAmountVisible('0');
+
+        // Tap 50%, validate, then clear to 0 (→ 14.08)
+        await PredictWithdraw.tapFiftyPercent();
+        await PredictWithdraw.expectAmountContains('14.08');
+        await PredictWithdraw.clearAll();
+        await PredictWithdraw.expectAmountVisible('0');
+
+        // Tap Max, validate, then clear to 0 (→ 28.16)
+        await PredictWithdraw.tapMaxButton();
+        await PredictWithdraw.expectAmountContains('27.45');
+        await PredictWithdraw.clearAll();
+        await PredictWithdraw.expectAmountVisible('0');
       },
     );
   });

@@ -1255,4 +1255,419 @@ export const POLYMARKET_POST_WITHDRAW_MOCKS = async (mockServer: Mockttp) => {
 
   // High-priority balance refresh for withdraw screen flow
   await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);
+
+  // Ensure TransactionController sees a successful send + confirmed receipt via proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
+      );
+      if (!isPolygonRPC) return false;
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+        return body?.method === 'eth_sendRawTransaction';
+      } catch (e) {
+        return false;
+      }
+    })
+    .asPriority(1010)
+    .thenCallback(async () => ({
+      statusCode: 200,
+      body: JSON.stringify({
+        id: 5962607910217980,
+        jsonrpc: '2.0',
+        result:
+          '0x1193d50c61c25a0fa8cdb6795844279cb8be781dd447fefe2750f544fb1e93e1',
+      }),
+    }));
+
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
+      );
+      if (!isPolygonRPC) return false;
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+        return body?.method === 'eth_getTransactionReceipt';
+      } catch (e) {
+        return false;
+      }
+    })
+    .asPriority(1010)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+      const txHash =
+        body?.params?.[0] ??
+        '0x9f2c5d6a0a9d9a2e3b4c5d6e7f819203a4b5c6d7e8f90123456789abcdefabcd';
+      const receipt = {
+        transactionHash: txHash,
+        transactionIndex: '0x0',
+        blockHash:
+          '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd',
+        blockNumber: '0x1',
+        cumulativeGasUsed: '0x5208',
+        gasUsed: '0x5208',
+        status: '0x1',
+        logs: [],
+      };
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: receipt,
+        }),
+      };
+    });
+
+  // Ensure getBlockByHash / getBlockByNumber return valid blocks via proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
+      );
+      if (!isPolygonRPC) return false;
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+        return (
+          body?.method === 'eth_getBlockByHash' ||
+          body?.method === 'eth_getBlockByNumber'
+        );
+      } catch (e) {
+        return false;
+      }
+    })
+    .asPriority(1010)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+      const hash =
+        body?.method === 'eth_getBlockByHash'
+          ? body?.params?.[0] ||
+            '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd'
+          : '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd';
+      const block = {
+        number: '0x1',
+        hash,
+        parentHash:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        nonce: '0x0000000000000000',
+        sha3Uncles:
+          '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
+        logsBloom: '0x' + '0'.repeat(512),
+        transactionsRoot:
+          '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+        stateRoot:
+          '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+        receiptsRoot:
+          '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+        miner: USER_WALLET_ADDRESS,
+        difficulty: '0x0',
+        totalDifficulty: '0x0',
+        extraData: '0x',
+        size: '0x0',
+        gasLimit: '0x1c9c380',
+        gasUsed: '0x5208',
+        timestamp: '0x5ba43b740',
+        transactions: [],
+        uncles: [],
+      };
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: block,
+        }),
+      };
+    });
+
+  // Ensure getTransactionByHash returns a mined transaction via proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
+      );
+      if (!isPolygonRPC) return false;
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+        return body?.method === 'eth_getTransactionByHash';
+      } catch (e) {
+        return false;
+      }
+    })
+    .asPriority(1010)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+      const txHash =
+        body?.params?.[0] ||
+        '0x9f2c5d6a0a9d9a2e3b4c5d6e7f819203a4b5c6d7e8f90123456789abcdefabcd';
+      const tx = {
+        hash: txHash,
+        nonce: '0x0',
+        blockHash:
+          '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd',
+        blockNumber: '0x1',
+        transactionIndex: '0x0',
+        from: USER_WALLET_ADDRESS,
+        to: PROXY_WALLET_ADDRESS,
+        value: '0x0',
+        input: '0x',
+      };
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ id: body?.id ?? 1, jsonrpc: '2.0', result: tx }),
+      };
+    });
+
+  // Also handle direct polygon-rpc.com calls (some providers bypass /proxy)
+  await mockServer
+    .forPost()
+    .matching((request) => request.url.includes('polygon-rpc.com'))
+    .asPriority(1015)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+      if (body?.method === 'eth_sendRawTransaction') {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: 5962607910217980,
+            jsonrpc: '2.0',
+            method: 'eth_sendRawTransaction',
+            params: [
+              '0x02f902b481890c8506fc23ac00850bc2cc5fe083016f0b94254955be605cf7c4e683e92b157187550bd5e63980b902446a7612020000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000044a9059cbb000000000000000000000000e49267bcddd5e137ea83b24731491b3d8c4b5c5500000000000000000000000000000000000000000000000000000000001e842e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000412c7e54de1e968241828ed80844dc8850e3748e32d4c021ca9bd8187267aa5adc619726f384d264f969d684f3af594ec87c6f2cd24c0a48900d350b0c03955b2f1f00000000000000000000000000000000000000000000000000000000000000c001a0e11183d42f7e180439ae42c6b036b47a607373556182c8ff33a91fbafeabb301a040e24a44b52841384bdaf58e89da6676071ca2bc6b73c72e173c8117b9002376',
+            ],
+          }),
+        };
+      }
+
+      if (body?.method === 'eth_getTransactionCount') {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: '0x0',
+          }),
+        };
+      }
+
+      if (body?.method === 'eth_getTransactionReceipt') {
+        const txHash =
+          body?.params?.[0] ??
+          '0x9f2c5d6a0a9d9a2e3b4c5d6e7f819203a4b5c6d7e8f90123456789abcdefabcd';
+        const receipt = {
+          transactionHash: txHash,
+          transactionIndex: '0x0',
+          blockHash:
+            '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd',
+          blockNumber: '0x1',
+          cumulativeGasUsed: '0x5208',
+          gasUsed: '0x5208',
+          status: '0x1',
+          logs: [],
+        };
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: receipt,
+          }),
+        };
+      }
+
+      if (body?.method === 'eth_blockNumber') {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: MOCK_RPC_RESPONSES.BLOCK_NUMBER_RESULT,
+          }),
+        };
+      }
+
+      if (body?.method === 'eth_getCode') {
+        const address = (body?.params?.[0] || '').toLowerCase();
+        let result = '0x';
+        if (address === USER_WALLET_ADDRESS.toLowerCase()) {
+          result = EIP7702_CODE_FORMAT(POLYGON_EIP7702_CONTRACT_ADDRESS);
+        } else if (address === PROXY_WALLET_ADDRESS.toLowerCase()) {
+          result = MOCK_RPC_RESPONSES.CONTRACT_CODE_RESULT;
+        }
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result,
+          }),
+        };
+      }
+
+      if (body?.method === 'eth_getBalance') {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: MOCK_RPC_RESPONSES.ETH_BALANCE_RESULT,
+          }),
+        };
+      }
+
+      if (body?.method === 'eth_getTransactionByHash') {
+        const txHash =
+          body?.params?.[0] ??
+          '0x9f2c5d6a0a9d9a2e3b4c5d6e7f819203a4b5c6d7e8f90123456789abcdefabcd';
+        const tx = {
+          hash: txHash,
+          nonce: '0x0',
+          blockHash: null,
+          blockNumber: null,
+          transactionIndex: null,
+          from: USER_WALLET_ADDRESS,
+          to: PROXY_WALLET_ADDRESS,
+          value: '0x0',
+          input: '0x',
+        };
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: tx,
+          }),
+        };
+      }
+
+      // default
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: '0x',
+        }),
+      };
+    });
+
+  // Handle direct Infura calls as well (some environments bypass /proxy)
+  await mockServer
+    .forPost()
+    .matching((request) => request.url.includes('infura.io'))
+    .asPriority(1015)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+      if (body?.method === 'eth_sendRawTransaction') {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result:
+              '0x1193d50c61c25a0fa8cdb6795844279cb8be781dd447fefe2750f544fb1e93e1',
+          }),
+        };
+      }
+
+      if (body?.method === 'eth_getTransactionReceipt') {
+        const txHash =
+          body?.params?.[0] ||
+          '0x1193d50c61c25a0fa8cdb6795844279cb8be781dd447fefe2750f544fb1e93e1';
+        const receipt = {
+          transactionHash: txHash,
+          transactionIndex: '0x0',
+          blockHash:
+            '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd',
+          blockNumber: '0x1',
+          cumulativeGasUsed: '0x5208',
+          gasUsed: '0x5208',
+          status: '0x1',
+          logs: [],
+        };
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: receipt,
+          }),
+        };
+      }
+
+      if (
+        body?.method === 'eth_getBlockByHash' ||
+        body?.method === 'eth_getBlockByNumber'
+      ) {
+        const hash =
+          body?.method === 'eth_getBlockByHash'
+            ? body?.params?.[0] ||
+              '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd'
+            : '0x1d3c5b7a9e2f4c6d8b0a1e2f3c4d5b6a7980abcdefabcdefabcdefabcdefabcd';
+        const block = {
+          number: '0x1',
+          hash,
+          parentHash:
+            '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          nonce: '0x0000000000000000',
+          sha3Uncles:
+            '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
+          logsBloom: '0x' + '0'.repeat(512),
+          transactionsRoot:
+            '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+          stateRoot:
+            '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+          receiptsRoot:
+            '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+          miner: USER_WALLET_ADDRESS,
+          difficulty: '0x0',
+          totalDifficulty: '0x0',
+          extraData: '0x',
+          size: '0x0',
+          gasLimit: '0x1c9c380',
+          gasUsed: '0x5208',
+          timestamp: '0x5ba43b740',
+          transactions: [],
+          uncles: [],
+        };
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: body?.id ?? 1,
+            jsonrpc: '2.0',
+            result: block,
+          }),
+        };
+      }
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: '0x',
+        }),
+      };
+    });
 };

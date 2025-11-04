@@ -156,3 +156,17 @@ export const PredictActivityDetailsSelectorsIDs = {
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
 } as const;
+
+// ========================================
+// PREDICT WITHDRAW SELECTORS
+// ========================================
+
+export const PredictWithdrawSelectorsIDs = {
+  MAX_TEXT: enContent.perps.withdrawal.max,
+  TEN_PERCENT_TEXT: '10%',
+  TWENTY_FIVE_PERCENT_TEXT: '25%',
+  FIFTY_PERCENT_TEXT: '50%',
+  AMOUNT_INPUT: 'custom-amount-input',
+  DONE_BUTTON: 'deposit-keyboard-done-button',
+  WITHDRAW_COMPLETED: enContent.predict.withdraw.withdraw_completed,
+} as const;
