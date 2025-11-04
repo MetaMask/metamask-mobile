@@ -279,15 +279,11 @@ const AssetOptions = (props: Props) => {
                     address as CaipAssetType
                   ]?.symbol || null;
               } else {
-                const chainIdToUse = isPortfolioViewEnabled()
-                  ? networkId
-                  : chainId;
-
                 const { TokensController, NetworkController } = Engine.context;
 
                 const networkClientId =
                   NetworkController.findNetworkClientIdByChainId(
-                    chainIdToUse as Hex,
+                    networkId as Hex,
                   );
                 await TokensController.ignoreTokens([address], networkClientId);
                 tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
