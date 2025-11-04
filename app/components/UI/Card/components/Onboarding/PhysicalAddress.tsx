@@ -502,7 +502,6 @@ const PhysicalAddress = () => {
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
-      // Allow error message to display
     }
   };
 
