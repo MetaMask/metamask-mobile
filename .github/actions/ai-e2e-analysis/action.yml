@@ -66,6 +66,19 @@ runs:
         cp -r /tmp/ai-deps/node_modules/* node_modules/
         echo "✅ AI dependencies available in workspace"
 
+    - name: Check skip-smart-e2e-selection label
+      id: check-skip-label
+      if: inputs.event-name == 'pull_request' && inputs.pr-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        echo "SKIP=false" >> "$GITHUB_OUTPUT"
+        if gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
+          echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
+        fi
+
     - name: Test Selection AI Analysis
       id: ai-analysis
       shell: bash
@@ -78,22 +91,28 @@ runs:
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
       run: |
-        # Only run AI analysis for pull_request events
-        if [[ "$EVENT_NAME" == "pull_request" ]]; then
+        # Check if we should skip (label check or non-PR event)
+        SHOULD_SKIP=false
+        SKIP_REASON=""
+
+        if [[ "$EVENT_NAME" != "pull_request" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="only runs on PRs"
+        elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="skip-smart-e2e-selection label found"
+        fi
+
+        if [[ "$SHOULD_SKIP" == "true" ]]; then
+          echo "⏭️ Skipping AI analysis - $SKIP_REASON"
+          echo "tags=" >> "$GITHUB_OUTPUT"
+        else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
           node .github/scripts/e2e-ai-analysis.mjs 
-        else
-          echo "⏭️ Skipping AI analysis - only runs on PRs)"
-          echo "test_matrix=[]" >> "$GITHUB_OUTPUT"
-          echo "tags=" >> "$GITHUB_OUTPUT"
-          echo "tags_display=None (AI analysis skipped)" >> "$GITHUB_OUTPUT"
-          echo "risk_level=N/A" >> "$GITHUB_OUTPUT"
-          echo "reasoning=AI analysis only runs for pull_request events with changed files" >> "$GITHUB_OUTPUT"
-          echo "confidence=0" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Delete existing AI E2E comments
-      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
+      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != '' && steps.ai-analysis.outputs.pr_comment_file != ''
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
@@ -123,7 +142,7 @@ runs:
         fi
 
     - name: Create PR comment with AI E2E Analysis Report
-      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
+      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != '' && steps.ai-analysis.outputs.pr_comment_file != ''
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
