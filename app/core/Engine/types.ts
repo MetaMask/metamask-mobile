@@ -50,10 +50,6 @@ import {
   MultichainBalancesController,
   MultichainBalancesControllerEvents,
   MultichainBalancesControllerActions,
-  RatesControllerState,
-  RatesController,
-  RatesControllerEvents,
-  RatesControllerActions,
   TokenSearchDiscoveryDataController,
   TokenSearchDiscoveryDataControllerState,
   TokenSearchDiscoveryDataControllerActions,
@@ -455,7 +451,6 @@ type GlobalActions =
   | AccountActivityServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
-  | RatesControllerActions
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
@@ -525,7 +520,6 @@ type GlobalEvents =
   | AccountActivityServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
-  | RatesControllerEvents
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
@@ -653,7 +647,6 @@ export type Controllers = {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
-  RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   MultichainRouter: MultichainRouter;
   MultichainTransactionsController: MultichainTransactionsController;
@@ -728,7 +721,6 @@ export type EngineState = {
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesControllerState;
-  RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
@@ -804,7 +796,6 @@ export type ControllersToInitialize =
   | 'MultichainRouter'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
-  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
