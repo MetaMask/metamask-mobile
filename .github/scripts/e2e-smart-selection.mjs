@@ -3,16 +3,13 @@ import { execSync } from 'child_process';
 import { appendFileSync, writeFileSync } from 'fs';
 
 /**
- * AI E2E Analysis Script
- * Runs AI analysis to select appropriate E2E smoke test tags based on code changes
+ * Smart E2E selection Script
+ * Runs AI analysis to select appropriate E2E test tags based on code changes
  */
 
 const env = {
-  PR_NUMBER: process.env.PR_NUMBER || '',
-  EVENT_NAME: process.env.EVENT_NAME || '',
   PR_COMMENT_FILE: process.env.PR_COMMENT_FILE || 'pr_comment.md',
-  GITHUB_REPOSITORY: process.env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile',
-  GITHUB_RUN_ID: process.env.GITHUB_RUN_ID || '',
+  PR_NUMBER: process.env.PR_NUMBER || '',
   GITHUB_OUTPUT: process.env.GITHUB_OUTPUT || '',
   GITHUB_STEP_SUMMARY: process.env.GITHUB_STEP_SUMMARY || '',
 };
@@ -52,7 +49,7 @@ function appendGithubSummary(content) {
 function generateAnalysisSummary(analysis) {
   const { tagDisplay, tagCount, riskLevel, confidence, reasoning, testFileBreakdown } = analysis;
 
-  let summary = '## 🔍 Smart E2E Test Selection\n';
+  let summary = '';
 
   // Add summary details
   if (tagCount === 0) {
@@ -90,20 +87,11 @@ function generatePRComment(summaryContent) {
     return;
   }
 
-  console.log(`📝 Generating PR comment file: ${env.PR_COMMENT_FILE}`);
-  let commentContent = summaryContent;
+  console.log(`📝 Generating PR comment body file: ${env.PR_COMMENT_FILE}`);
 
-  // Add footer with link to workflow run
-  const runUrl = env.GITHUB_RUN_ID
-    ? `https://github.com/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`
-    : '#';
-
-  commentContent += `\n[View GitHub actions results](${runUrl})\n\n`;
-  commentContent += '<!-- ai-e2e-analysis -->\n';
-
-  // Write comment file
-  writeFileSync(env.PR_COMMENT_FILE, commentContent, 'utf8');
-  console.log(`✅ PR comment file written to ${env.PR_COMMENT_FILE}`);
+  // Write just the body content - action will add title, footer, and marker
+  writeFileSync(env.PR_COMMENT_FILE, summaryContent, 'utf8');
+  console.log(`✅ PR comment body written to ${env.PR_COMMENT_FILE}`);
 
   // Set output for the action to know the file location
   setGithubOutputs('pr_comment_file', env.PR_COMMENT_FILE);
@@ -135,7 +123,7 @@ async function main() {
     console.log(`PR number: ${env.PR_NUMBER}`);
 
     // Only run AI analysis for pull_request events
-    if (env.EVENT_NAME !== 'pull_request') {
+    if (!env.PR_NUMBER) {
       console.log('⏭️ Skipping AI analysis - only runs on PRs');
       setGithubOutputs('test_matrix', '[]');
       setGithubOutputs('tags', '');
@@ -199,11 +187,11 @@ async function main() {
     // Set GitHub Actions outputs
     setGitHubOutputs(analysis, testMatrix);
 
-    // Generate analysis summary (single source of truth for both step summary and PR comment)
+    // Generate analysis summary (body content only)
     const summaryContent = generateAnalysisSummary(analysis);
 
-    // Write to step summary
-    appendGithubSummary(summaryContent);
+    // Write to step summary (with title for step summary)
+    appendGithubSummary('## 🔍 Smart E2E Test Selection\n' + summaryContent);
 
     // Generate PR comment file if PR number is available
     generatePRComment(summaryContent);
