@@ -23,6 +23,7 @@ import {
   isCollectibleAddress,
   getActionKey,
   TRANSACTION_TYPES,
+  isTransactionIncomplete,
 } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
@@ -41,6 +42,7 @@ function getTokenTransfer(args) {
   const {
     tx: {
       txParams: { from, nonce },
+      status,
     },
     tx,
     txChainId,
@@ -60,9 +62,13 @@ function getTokenTransfer(args) {
   const amount = hexToBN(encodedAmount);
   const userHasToken = toFormattedAddress(to) in tokens;
   const token = userHasToken ? tokens[toFormattedAddress(to)] : null;
-  const renderActionKey = token
-    ? `${strings('transactions.sent')} ${token.symbol}`
-    : actionKey;
+
+  const isIncomplete = isTransactionIncomplete(status);
+  const actionVerb = isIncomplete
+    ? strings('transactions.send')
+    : strings('transactions.sent');
+
+  const renderActionKey = token ? `${actionVerb} ${token.symbol}` : actionKey;
   const renderTokenAmount = token
     ? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
     : undefined;
@@ -145,6 +151,7 @@ function getCollectibleTransfer(args) {
   const {
     tx: {
       txParams: { from, to, data },
+      status,
     },
     txChainId,
     collectibleContracts,
@@ -155,15 +162,23 @@ function getCollectibleTransfer(args) {
     selectedAddress,
     ticker,
   } = args;
+
+  const isIncomplete = isTransactionIncomplete(status);
+  const actionVerb = isIncomplete
+    ? strings('transactions.send')
+    : strings('transactions.sent');
+
   let actionKey;
   const [, tokenId] = decodeTransferData('transfer', data);
   const collectible = collectibleContracts.find((collectible) =>
     areAddressesEqual(collectible.address, to),
   );
   if (collectible) {
-    actionKey = `${strings('transactions.sent')} ${collectible.name}`;
+    actionKey = `${actionVerb} ${collectible.name}`;
   } else {
-    actionKey = strings('transactions.sent_collectible');
+    actionKey = isIncomplete
+      ? strings('transactions.send_collectible')
+      : strings('transactions.sent_collectible');
   }
 
   const renderCollectible = collectible

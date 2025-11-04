@@ -32,7 +32,16 @@ import {
 } from '../number';
 import AppConstants from '../../core/AppConstants';
 import { isMainnetByChainId } from '../networks';
-import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
+import {
+  UINT256_BN_MAX_VALUE,
+  TX_SUBMITTED,
+  TX_APPROVED,
+  TX_UNAPPROVED,
+  TX_PENDING,
+  TX_CANCELLED,
+  TX_REJECTED,
+  TX_FAILED,
+} from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 import {
   addCurrencies,
@@ -599,6 +608,26 @@ export async function getTransactionActionKey(transaction, chainId) {
 }
 
 /**
+ * Checks if a transaction is in an incomplete state (not yet confirmed)
+ * Includes pending, rejected, cancelled, and failed transactions
+ *
+ * @param {string | undefined} status - The transaction status
+ * @returns {boolean} - Whether the transaction is incomplete
+ */
+export function isTransactionIncomplete(status) {
+  if (!status) return false;
+  return [
+    TX_SUBMITTED,
+    TX_APPROVED,
+    TX_UNAPPROVED,
+    TX_PENDING,
+    TX_CANCELLED,
+    TX_REJECTED,
+    TX_FAILED,
+  ].includes(status);
+}
+
+/**
  * Returns corresponding transaction type message to show in UI
  *
  * @param {object} tx - Transaction object
@@ -624,17 +653,27 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
     const selfSent =
       incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
 
-    return incoming
-      ? selfSent
+    // Check if transaction is incomplete (not confirmed)
+    const isIncomplete = isTransactionIncomplete(tx.status);
+
+    if (incoming) {
+      return selfSent
         ? currencySymbol
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
           ? strings('transactions.received_unit', { unit: currencySymbol })
-          : strings('transactions.received_ether')
-      : currencySymbol
-        ? strings('transactions.sent_unit', { unit: currencySymbol })
-        : strings('transactions.sent_ether');
+          : strings('transactions.received_ether');
+    }
+    // For outgoing transactions, check status
+    if (isIncomplete) {
+      return currencySymbol
+        ? strings('transactions.send_unit', { unit: currencySymbol })
+        : strings('transactions.send_ether');
+    }
+    return currencySymbol
+      ? strings('transactions.sent_unit', { unit: currencySymbol })
+      : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
