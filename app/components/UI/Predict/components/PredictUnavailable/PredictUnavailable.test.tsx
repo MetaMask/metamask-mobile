@@ -411,6 +411,22 @@ describe('PredictUnavailable', () => {
       // Assert
       expect(screen.getByText('See Polymarket terms')).toBeOnTheScreen();
     });
+
+    it('renders terms link with onPress handler', () => {
+      // Arrange
+      const ref = React.createRef<PredictUnavailableRef>();
+
+      // Act
+      render(<PredictUnavailable ref={ref} onDismiss={mockOnDismiss} />);
+      act(() => {
+        ref.current?.onOpenBottomSheet();
+      });
+
+      // Assert
+      const termsLink = screen.getByTestId('polymarket-terms-link');
+      expect(termsLink.props.onPress).toBeDefined();
+      expect(typeof termsLink.props.onPress).toBe('function');
+    });
   });
 
   describe('Accessibility', () => {
