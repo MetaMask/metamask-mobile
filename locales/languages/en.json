@@ -1833,7 +1833,8 @@
       "description": "MetaMask partners with Polymarket to offer prediction markets. All of our available markets, orders, and settlements happen on Polymarket.",
       "learn_more": "Learn more.",
       "agree": "Agree",
-      "disagree": "Disagree"
+      "disagree": "Disagree",
+      "disclaimer": "By continuing, you accept Polymarket’s terms."
     },
     "transactions": {
       "title": "Predictions",

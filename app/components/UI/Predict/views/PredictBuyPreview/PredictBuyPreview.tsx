@@ -20,6 +20,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
@@ -418,9 +419,18 @@ const PredictBuyPreview = () => {
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center">
+          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
             <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-              {strings('predict.order.payments_made_in_usdc')}
+              {strings('predict.consent_sheet.disclaimer')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXS}
+              style={tw.style('text-info-default')}
+              onPress={() => {
+                Linking.openURL('https://polymarket.com/tos');
+              }}
+            >
+              {strings('predict.consent_sheet.learn_more')}
             </Text>
           </Box>
         </Box>
