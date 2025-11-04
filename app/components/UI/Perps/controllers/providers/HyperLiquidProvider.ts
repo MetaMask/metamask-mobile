@@ -114,6 +114,21 @@ import type {
 import { PERPS_ERROR_CODES } from '../PerpsController';
 
 /**
+ * Compiled pattern matcher type for market filtering
+ * - string: exact match (fastest)
+ * - RegExp: wildcard/prefix match
+ */
+type CompiledPatternMatcher = RegExp | string;
+
+/**
+ * Pre-compiled pattern with original pattern and compiled matcher
+ */
+interface CompiledPattern {
+  pattern: string;
+  matcher: CompiledPatternMatcher;
+}
+
+/**
  * HyperLiquid provider implementation
  *
  * Implements the IPerpsProvider interface for HyperLiquid protocol.
@@ -162,7 +177,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private readonly MARKET_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
 
   // Cache for compiled market filter patterns (for performance)
-  private patternCache = new Map<string, RegExp | string>();
+  private patternCache = new Map<string, CompiledPatternMatcher>();
+
+  // Pre-compiled patterns for fast filtering (avoid Map lookups on every check)
+  private compiledEnabledPatterns: CompiledPattern[] = [];
+  private compiledBlockedPatterns: CompiledPattern[] = [];
 
   // Fee discount context for MetaMask reward discounts (in basis points)
   private userFeeDiscountBips?: number;
@@ -224,6 +243,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // NOTE: Clients are NOT initialized here - they'll be initialized lazily
     // when first needed. This avoids accessing Engine.context before it's ready.
+
+    // Pre-compile filter patterns for performance
+    this.recompileAllPatterns();
 
     // Debug: Confirm batch methods exist and show HIP-3 config
     DevLogger.log('[HyperLiquidProvider] Constructor complete', {
@@ -494,14 +516,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @param pattern - e.g., "xyz:*", "BTC", "xyz"
    * @returns Compiled matcher for fast checking
    */
-  private compilePattern(pattern: string): RegExp | string {
+  private compilePattern(pattern: string): CompiledPatternMatcher {
     // Check cache first
     const cached = this.patternCache.get(pattern);
     if (cached !== undefined) {
       return cached;
     }
 
-    let matcher: RegExp | string;
+    let matcher: CompiledPatternMatcher;
 
     if (pattern.endsWith(':*')) {
       // Wildcard: "xyz:*" → regex /^xyz:/
@@ -520,14 +542,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Fast pattern matching using pre-compiled matchers
+   * Pre-compile all filter patterns for performance
+   * Called once in constructor to avoid Map lookups on every market check
+   */
+  private recompileAllPatterns(): void {
+    this.compiledEnabledPatterns = this.enabledMarkets.map((pattern) => ({
+      pattern,
+      matcher: this.compilePattern(pattern),
+    }));
+    this.compiledBlockedPatterns = this.blockedMarkets.map((pattern) => ({
+      pattern,
+      matcher: this.compilePattern(pattern),
+    }));
+  }
+
+  /**
+   * Fast pattern matching using pre-compiled matcher
    * @param symbol - Market symbol (e.g., "BTC", "xyz:XYZ100")
-   * @param pattern - Pattern to match (e.g., "xyz:*", "BTC", "xyz")
+   * @param matcher - Pre-compiled matcher (string or RegExp)
    * @returns true if matches
    */
-  private matchesPattern(symbol: string, pattern: string): boolean {
-    const matcher = this.compilePattern(pattern);
-
+  private matchesCompiledPattern(
+    symbol: string,
+    matcher: CompiledPatternMatcher,
+  ): boolean {
     if (typeof matcher === 'string') {
       // Exact match - fastest
       return symbol === matcher;
@@ -542,6 +580,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Main DEX markets are ALWAYS included (no filtering)
    *
    * Logic: Start with all → apply whitelist (if non-empty) → apply blacklist
+   * Uses pre-compiled patterns for performance (no Map lookups)
    * @param symbol - Market symbol (e.g., "BTC", "xyz:XYZ100")
    * @param dex - DEX name (null for main DEX, "xyz" for HIP-3 DEX)
    * @returns true if market should be shown
@@ -552,14 +591,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return true;
     }
 
-    // Apply filtering only to HIP-3 DEX markets
-    const enabledMarkets = this.enabledMarkets;
-    const blockedMarkets = this.blockedMarkets;
-
     // Step 1: Apply whitelist only if non-empty
-    if (enabledMarkets.length > 0) {
-      const whitelisted = enabledMarkets.some((pattern) =>
-        this.matchesPattern(symbol, pattern),
+    if (this.compiledEnabledPatterns.length > 0) {
+      const whitelisted = this.compiledEnabledPatterns.some(({ matcher }) =>
+        this.matchesCompiledPattern(symbol, matcher),
       );
       if (!whitelisted) {
         return false;
@@ -567,13 +602,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Step 2: Apply blacklist ONLY if non-empty (early return optimization)
-    if (blockedMarkets.length === 0) {
+    if (this.compiledBlockedPatterns.length === 0) {
       return true; // No blacklist to check - accept immediately
     }
 
     // Only reach here if blacklist has values
-    const blacklisted = blockedMarkets.some((pattern) =>
-      this.matchesPattern(symbol, pattern),
+    const blacklisted = this.compiledBlockedPatterns.some(({ matcher }) =>
+      this.matchesCompiledPattern(symbol, matcher),
     );
 
     return !blacklisted;

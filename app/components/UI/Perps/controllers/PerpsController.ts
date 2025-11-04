@@ -913,7 +913,7 @@ export class PerpsController extends BaseController<
 
     if (equityChanged || enabledMarketsChanged || blockedMarketsChanged) {
       DevLogger.log(
-        '[MARKET:FILTERING] PerpsController: HIP-3 config CHANGED via remote feature flags',
+        'PerpsController: HIP-3 config changed via remote feature flags',
         {
           equityChanged,
           enabledMarketsChanged,
@@ -947,7 +947,7 @@ export class PerpsController extends BaseController<
       });
 
       DevLogger.log(
-        '[MARKET:FILTERING] PerpsController: Incremented hip3ConfigVersion to trigger reconnection',
+        'PerpsController: Incremented hip3ConfigVersion to trigger reconnection',
         {
           newVersion,
           newHip3Enabled: this.hip3Enabled,
