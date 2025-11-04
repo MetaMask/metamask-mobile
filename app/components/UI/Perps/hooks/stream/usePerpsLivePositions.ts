@@ -82,7 +82,7 @@ export function enrichPositionsWithLivePnL(
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0 } = options;
+  const { throttleMs = 0 } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
   const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
