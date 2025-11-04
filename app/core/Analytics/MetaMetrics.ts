@@ -33,7 +33,7 @@ import {
   ISegmentClient,
   ITrackingEvent,
 } from './MetaMetrics.types';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate, version } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
@@ -305,10 +305,21 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId: string | undefined = await StorageWrapper.getItem(
-      METAMETRICS_ID,
-    );
-    if (!metametricsId) {
+    const metametricsId: string | undefined =
+      await StorageWrapper.getItem(METAMETRICS_ID);
+
+    // This catches '""', 'null', 'undefined', and other corruptions
+    if (
+      !metametricsId ||
+      !validate(metametricsId) ||
+      version(metametricsId) !== 4
+    ) {
+      if (metametricsId) {
+        // Log corruption for monitoring
+        Logger.log(
+          `MetaMetrics: Corrupted metaMetricsId detected and regenerated. Invalid value: ${metametricsId}`,
+        );
+      }
       // keep the id format compatible with MixPanel but base it on a UUIDv4
       this.metametricsId = uuidv4();
       await StorageWrapper.setItem(METAMETRICS_ID, this.metametricsId);
@@ -875,7 +886,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns the current MetaMetrics ID
    */
-  getMetaMetricsId = async (): Promise<string | undefined> =>
+  getMetaMetricsId = async (): Promise<string> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
 }
 
