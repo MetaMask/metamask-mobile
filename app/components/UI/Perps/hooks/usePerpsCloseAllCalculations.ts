@@ -107,8 +107,8 @@ export function usePerpsCloseAllCalculations({
   // State for account-level fee discount (applies uniformly to all positions)
   const [feeDiscountBips, setFeeDiscountBips] = useState<number>(0);
 
-  // Prevent slow points computation from retriggering on WebSocket position updates
-  // Once we have valid results, freeze them to avoid recalculation failures showing 0 points
+  // Freeze mechanism: Prevent recalculation on WebSocket updates (price changes)
+  // Reset freeze when positions/account/discount changes to allow recalculation
   const hasValidResultsRef = useRef(false);
 
   // Calculate total margin (including P&L)
@@ -168,13 +168,16 @@ export function usePerpsCloseAllCalculations({
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation
   useEffect(() => {
-    // Skip recalculation if we already have valid results
-    // Prevents slow points API calls from retriggering on WebSocket position updates
-    if (hasValidResultsRef.current) {
-      return;
-    }
+    // Reset freeze when meaningful inputs change (not price updates)
+    // Allows recalculation for: new positions, account switch, or discount arrival
+    hasValidResultsRef.current = false;
 
     async function calculatePerPosition() {
+      // Skip if already frozen (prevents recalculation on WebSocket price updates)
+      if (hasValidResultsRef.current) {
+        return;
+      }
+
       if (positions.length === 0) {
         setPerPositionResults([]);
         setHasCalculationError(false);
@@ -314,8 +317,8 @@ export function usePerpsCloseAllCalculations({
         const hasErrors = results.some((r) => r.error);
         setHasCalculationError(hasErrors);
 
-        // Mark as valid if calculation succeeded (no errors and has results)
-        // Freezes results to prevent slow points computation from retriggering
+        // Freeze results after successful calculation to prevent WebSocket price updates
+        // from triggering expensive points API calls. Reset happens on position/account/discount change.
         if (!hasErrors && results.length > 0) {
           hasValidResultsRef.current = true;
         }
@@ -332,11 +335,12 @@ export function usePerpsCloseAllCalculations({
       setHasCalculationError(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [positions, selectedAddress, currentChainId]);
-  // Note: priceData and feeDiscountBips intentionally excluded from deps to prevent recalculation on every update
-  // - priceData: Uses ref to get latest price without triggering re-renders
-  // - feeDiscountBips: Fetched separately, will be applied on next calculation trigger (positions/account change)
-  //   Including it in deps would cause recalculation on every WebSocket position update after discount arrives
+  }, [positions, selectedAddress, currentChainId, feeDiscountBips]);
+  // Dependencies trigger freeze reset (line 173), allowing exactly one recalculation per change:
+  // - positions: Recalculate when user opens/closes positions
+  // - selectedAddress/currentChainId: Recalculate on account switch
+  // - feeDiscountBips: Recalculate when discount arrives from async fetch (happens once)
+  // Price updates (priceDataRef) do NOT trigger recalculation due to freeze mechanism (line 177)
 
   // Aggregate results from per-position calculations
   const aggregatedResults = useMemo(() => {
@@ -359,10 +363,13 @@ export function usePerpsCloseAllCalculations({
       0,
     );
 
-    const totalEstimatedPoints = perPositionResults.reduce(
-      (sum, result) => sum + (result.points?.pointsEstimate ?? 0),
-      0,
-    );
+    // Batch API returns aggregated total for ALL positions (not per-position)
+    // All positions share the same batchPoints object (see line 307), so use first result directly
+    // Summing would incorrectly multiply by number of positions (e.g., 300 points × 3 positions = 900)
+    const totalEstimatedPoints =
+      perPositionResults.length > 0
+        ? (perPositionResults[0].points?.pointsEstimate ?? 0)
+        : 0;
 
     // Calculate weighted averages based on fee amounts
     let weightedMetamaskFeeRate = 0;
@@ -390,8 +397,9 @@ export function usePerpsCloseAllCalculations({
     // Calculate original MetaMask fee rate (before discount was applied)
     // The discount is applied as: discounted_rate = original_rate * (1 - discount_bips/10000)
     // Therefore: original_rate = discounted_rate / (1 - discount_bips/10000)
+    // Guard against 100% discount (10000 bips) causing division by zero
     const avgOriginalMetamaskFeeRate =
-      feeDiscountBips > 0 && avgMetamaskFeeRate > 0
+      feeDiscountBips > 0 && feeDiscountBips < 10000 && avgMetamaskFeeRate > 0
         ? avgMetamaskFeeRate / (1 - feeDiscountBips / 10000)
         : avgMetamaskFeeRate;
 
