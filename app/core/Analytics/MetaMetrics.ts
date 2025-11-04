@@ -287,7 +287,7 @@ class MetaMetrics implements IMetaMetrics {
   /**
    * Retrieve the analytics user ID from references
    *
-   * Generates a new ID if none is found
+   * Generates a new ID if none is found or if the stored ID is corrupted
    *
    * @returns Promise containing the user ID
    */
@@ -298,7 +298,7 @@ class MetaMetrics implements IMetaMetrics {
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
     const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
-    if (legacyId) {
+    if (legacyId && legacyId.length >= 32) {
       this.metametricsId = legacyId;
       await StorageWrapper.setItem(METAMETRICS_ID, legacyId);
       return legacyId;
@@ -307,7 +307,17 @@ class MetaMetrics implements IMetaMetrics {
     // look for a new Metametics ID and use it or generate a new one
     const metametricsId: string | undefined =
       await StorageWrapper.getItem(METAMETRICS_ID);
-    if (!metametricsId) {
+
+    // Validate the stored ID - regenerate if corrupted or too short
+    // Valid IDs are at least 32 chars (UUIDv4=36, Hex=66)
+    // This catches '""', 'null', 'undefined', and other corruptions
+    if (!metametricsId || metametricsId.length < 32) {
+      if (metametricsId) {
+        // Log corruption for monitoring
+        Logger.log(
+          `MetaMetrics: Corrupted metaMetricsId detected and regenerated. Invalid value: ${metametricsId}`,
+        );
+      }
       // keep the id format compatible with MixPanel but base it on a UUIDv4
       this.metametricsId = uuidv4();
       await StorageWrapper.setItem(METAMETRICS_ID, this.metametricsId);

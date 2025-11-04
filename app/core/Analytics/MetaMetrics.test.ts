@@ -731,6 +731,129 @@ describe('MetaMetrics', () => {
       expect(metricsId2).not.toEqual('');
       expect(metricsId).not.toEqual(metricsId2);
     });
+
+    describe('corrupted ID validation', () => {
+      it('regenerates new ID when stored ID is JSON-stringified empty string', async () => {
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? '""' : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual('""');
+        expect(metricsId).not.toEqual('');
+        expect(metricsId.length).toBeGreaterThan(10);
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          METAMETRICS_ID,
+          metricsId,
+        );
+      });
+
+      it('regenerates new ID when stored ID is too short', async () => {
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? 'abc' : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual('abc');
+        expect(metricsId.length).toBeGreaterThan(10);
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          METAMETRICS_ID,
+          metricsId,
+        );
+      });
+
+      it('regenerates new ID when stored ID is "null" string', async () => {
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? 'null' : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual('null');
+        expect(metricsId.length).toBeGreaterThan(10);
+      });
+
+      it('regenerates new ID when stored ID is "undefined" string', async () => {
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? 'undefined' : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual('undefined');
+        expect(metricsId.length).toBeGreaterThan(10);
+      });
+
+      it('regenerates new ID when stored ID has invalid UUID format', async () => {
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? 'not-a-valid-uuid-format' : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual('not-a-valid-uuid-format');
+        expect(metricsId).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        );
+      });
+
+      it('accepts valid UUIDv4 format', async () => {
+        const validUUID = '12345678-1234-4234-a234-123456789012';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? validUUID : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).toEqual(validUUID);
+        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+          METAMETRICS_ID,
+          expect.anything(),
+        );
+      });
+
+      it('accepts valid hex format with 0x prefix', async () => {
+        const validHex =
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? validHex : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).toEqual(validHex);
+      });
+
+      it('rejects corrupted legacy Mixpanel ID', async () => {
+        mockGet.mockImplementation(async (key: string) => {
+          if (key === MIXPANEL_METAMETRICS_ID) return '""';
+          return '';
+        });
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual('""');
+        expect(metricsId.length).toBeGreaterThan(10);
+      });
+    });
   });
 
   describe('Delete regulation', () => {
