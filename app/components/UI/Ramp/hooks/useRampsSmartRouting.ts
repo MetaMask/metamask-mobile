@@ -1,23 +1,76 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setRampRoutingDecision,
   RampRoutingType,
-  getRampRegionSupport,
+  getDetectedGeolocation,
 } from '../../../../reducers/fiatOrders';
 import type { RootState } from '../../../../reducers';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
-import { RampRegionSupport } from '../../../../reducers/fiatOrders/types';
+import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
+
+export enum RampRegionSupport {
+  DEPOSIT = 'DEPOSIT',
+  AGGREGATOR = 'AGGREGATOR',
+  UNSUPPORTED = 'UNSUPPORTED',
+}
+
+export interface RampEligibilityAPIResponse {
+  deposit: boolean;
+  aggregator: boolean;
+  global: boolean;
+}
 
 export default function useRampsSmartRouting() {
+  const unifiedV1Enabled = useRampsUnifiedV1Enabled();
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.fiatOrders.orders);
-  const rampRegionSupport = useSelector(getRampRegionSupport);
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const [rampRegionSupport, setRampRegionSupport] =
+    useState<RampRegionSupport | null>(null);
+
+  useEffect(() => {
+    if (!unifiedV1Enabled) {
+      return;
+    }
+
+    const fetchRampEligibility = async () => {
+      if (!rampGeodetectedRegion) {
+        setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/endpoint-coming-soon?region=${rampGeodetectedRegion}`,
+        );
+        const data: RampEligibilityAPIResponse = await response.json();
+
+        if (!data.global) {
+          setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
+        } else if (data.deposit) {
+          setRampRegionSupport(RampRegionSupport.DEPOSIT);
+        } else if (data.aggregator) {
+          setRampRegionSupport(RampRegionSupport.AGGREGATOR);
+        } else {
+          setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
+        }
+      } catch (error) {
+        setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
+      }
+    };
+
+    fetchRampEligibility();
+  }, [rampGeodetectedRegion, unifiedV1Enabled]);
 
   const determineRoutingDecision = useCallback(() => {
+    if (rampRegionSupport === null) {
+      return;
+    }
+
     if (rampRegionSupport === RampRegionSupport.UNSUPPORTED) {
       dispatch(setRampRoutingDecision(RampRoutingType.UNSUPPORTED));
       return;
@@ -50,6 +103,10 @@ export default function useRampsSmartRouting() {
   }, [dispatch, orders, rampRegionSupport]);
 
   useEffect(() => {
+    if (!unifiedV1Enabled) {
+      return;
+    }
+
     determineRoutingDecision();
-  }, [determineRoutingDecision]);
+  }, [determineRoutingDecision, unifiedV1Enabled]);
 }
