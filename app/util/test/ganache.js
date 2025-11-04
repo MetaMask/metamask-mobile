@@ -110,7 +110,7 @@ export default class Ganache {
 
   /**
    * Get the current server status
-   * @returns {string} The server status ('started' or 'stopped')
+   * @returns {ServerStatus} The server status
    */
   getServerStatus() {
     return this._serverStatus;
