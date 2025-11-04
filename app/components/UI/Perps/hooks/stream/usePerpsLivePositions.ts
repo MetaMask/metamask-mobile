@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type { Position, PriceUpdate } from '../../controllers/types';
@@ -92,23 +92,23 @@ export function usePerpsLivePositions(
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const hasReceivedFirstUpdate = useRef(false);
 
-  // Store raw positions and price data in refs to avoid unnecessary re-renders
-  const rawPositionsRef = useRef<Position[]>(EMPTY_POSITIONS);
-  const priceDataRef = useRef<Record<string, PriceUpdate>>({});
+  // Store raw positions and price data in state
+  const [rawPositions, setRawPositions] = useState<Position[]>(EMPTY_POSITIONS);
+  const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
   // Enrich and update positions whenever raw positions or prices change
-  const updateEnrichedPositions = useCallback(() => {
-    if (rawPositionsRef.current.length === 0) {
+  useEffect(() => {
+    if (rawPositions.length === 0) {
       setPositions(EMPTY_POSITIONS);
       return;
     }
 
     const enrichedPositions = enrichPositionsWithLivePnL(
-      rawPositionsRef.current,
-      priceDataRef.current,
+      rawPositions,
+      priceData,
     );
     setPositions(enrichedPositions);
-  }, []);
+  }, [rawPositions, priceData]);
 
   // Subscribe to position updates
   useEffect(() => {
@@ -127,8 +127,7 @@ export function usePerpsLivePositions(
           setIsInitialLoading(false);
         }
 
-        rawPositionsRef.current = newPositions;
-        updateEnrichedPositions();
+        setRawPositions(newPositions);
       },
       throttleMs,
     });
@@ -136,7 +135,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs, updateEnrichedPositions]);
+  }, [stream, throttleMs]);
 
   // Subscribe to price updates for real-time PnL recalculation (only if useLivePnl is true)
   useEffect(() => {
@@ -146,8 +145,7 @@ export function usePerpsLivePositions(
 
     const unsubscribe = stream.prices.subscribe({
       callback: (newPriceData) => {
-        priceDataRef.current = newPriceData;
-        updateEnrichedPositions();
+        setPriceData(newPriceData);
       },
       throttleMs,
     });
@@ -155,7 +153,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs, updateEnrichedPositions, useLivePnl]);
+  }, [stream, throttleMs, useLivePnl]);
 
   return {
     positions,
