@@ -71,6 +71,7 @@ import type {
   ClosePositionsParams,
   ClosePositionsResult,
   EditOrderParams,
+  FeeCalculationParams,
   FeeCalculationResult,
   Funding,
   GetAccountStateParams,
@@ -91,6 +92,7 @@ import type {
   PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
+  SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -186,7 +188,7 @@ export type PerpsControllerState = {
   withdrawalProgress: {
     progress: number; // 0-100
     lastUpdated: number; // timestamp
-    activeWithdrawalId?: string; // ID of the withdrawal being tracked
+    activeWithdrawalId: string | null; // ID of the withdrawal being tracked
   };
 
   // Deposit request tracking (persistent, for transaction history)
@@ -253,7 +255,7 @@ export type PerpsControllerState = {
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
-  isTestnet: __DEV__, // Default to testnet in dev
+  isTestnet: false, // Default to mainnet
   connectionStatus: 'disconnected',
   accountState: null,
   positions: [],
@@ -268,7 +270,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   withdrawalProgress: {
     progress: 0,
     lastUpdated: 0,
-    activeWithdrawalId: undefined,
+    activeWithdrawalId: null,
   },
   depositRequests: [],
   lastError: null,
@@ -2498,7 +2500,7 @@ export class PerpsController extends BaseController<
           state.withdrawalProgress = {
             progress: 0,
             lastUpdated: Date.now(),
-            activeWithdrawalId: undefined,
+            activeWithdrawalId: null,
           };
         }
 
@@ -2516,7 +2518,7 @@ export class PerpsController extends BaseController<
    */
   updateWithdrawalProgress(
     progress: number,
-    activeWithdrawalId?: string,
+    activeWithdrawalId: string | null = null,
   ): void {
     this.update((state) => {
       state.withdrawalProgress = {
@@ -2533,7 +2535,7 @@ export class PerpsController extends BaseController<
   getWithdrawalProgress(): {
     progress: number;
     lastUpdated: number;
-    activeWithdrawalId?: string;
+    activeWithdrawalId: string | null;
   } {
     return this.state.withdrawalProgress;
   }
@@ -3665,6 +3667,28 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Subscribe to open interest cap updates
+   * Zero additional network overhead - data comes from existing webData3 subscription
+   */
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOICaps(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOICaps', {
+          accountId: params.accountId,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
    * Configure live data throttling
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -3683,11 +3707,9 @@ export class PerpsController extends BaseController<
    * Calculate trading fees for the active provider
    * Each provider implements its own fee structure
    */
-  async calculateFees(params: {
-    orderType: 'market' | 'limit';
-    isMaker?: boolean;
-    amount?: string;
-  }): Promise<FeeCalculationResult> {
+  async calculateFees(
+    params: FeeCalculationParams,
+  ): Promise<FeeCalculationResult> {
     const provider = this.getActiveProvider();
     return provider.calculateFees(params);
   }

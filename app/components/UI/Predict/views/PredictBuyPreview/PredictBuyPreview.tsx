@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize as ButtonSizeHero,
   Icon,
   IconName,
   IconSize,
@@ -51,6 +52,7 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -67,7 +69,8 @@ const PredictBuyPreview = () => {
     () => ({
       marketId: market?.id,
       marketTitle: market?.title,
-      marketCategory: market?.categories?.[0],
+      marketCategory: market?.category,
+      marketTags: market?.tags,
       entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
       liquidity: market?.liquidity,
@@ -98,18 +101,14 @@ const PredictBuyPreview = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
 
-  const {
-    preview,
-    isCalculating,
-    error: previewError,
-  } = usePredictOrderPreview({
+  const { preview, error: previewError } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
     outcomeTokenId: outcomeToken.id,
     side: Side.BUY,
     size: currentValue,
-    autoRefreshTimeout: 5000,
+    autoRefreshTimeout: 1000,
   });
 
   const errorMessage = previewError ?? placeOrderError;
@@ -142,7 +141,6 @@ const PredictBuyPreview = () => {
     currentValue >= MINIMUM_BET &&
     !hasInsufficientFunds &&
     preview &&
-    !isCalculating &&
     !isLoading &&
     !isBalanceLoading &&
     !isRateLimited;
@@ -359,29 +357,17 @@ const PredictBuyPreview = () => {
     }
 
     return (
-      <Button
-        label={
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
-            {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
-          </Text>
-        }
-        variant={ButtonVariants.Secondary}
+      <ButtonHero
         onPress={onPlaceBet}
-        style={tw.style(
-          outcomeToken?.title === 'Yes'
-            ? 'bg-success-default/15'
-            : 'bg-error-default/15',
-          outcomeToken?.title === 'Yes'
-            ? 'text-success-default'
-            : 'text-error-default',
-          !canPlaceBet && 'opacity-40',
-        )}
         disabled={!canPlaceBet}
-        loading={isLoading}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        labelTextVariant={TextVariant.BodyMD}
-      />
+        isLoading={isLoading}
+        size={ButtonSizeHero.Lg}
+        style={tw.style('w-full')}
+      >
+        <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
+          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+        </Text>
+      </ButtonHero>
     );
   };
 
