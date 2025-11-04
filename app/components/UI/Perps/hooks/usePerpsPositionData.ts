@@ -248,12 +248,12 @@ export const usePerpsPositionData = ({
     };
 
     return newLiveCandle;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     priceData,
     selectedInterval,
     getCurrentCandleStartTime,
     isLoadingHistory,
-    candleData,
   ]);
 
   // Merge historical candles with live candle for chart display
