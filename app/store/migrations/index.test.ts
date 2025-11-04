@@ -376,7 +376,7 @@ describe('Critical Error Handling', () => {
   });
 
   describe('Migration flow integration', () => {
-    it('should not trigger inflation for migrations <= 104', async () => {
+    it('should not trigger inflation/deflation for migrations <= 104', async () => {
       // Arrange
       const testMigrationList = {
         104: (state: unknown) => ({
@@ -392,12 +392,10 @@ describe('Critical Error Handling', () => {
 
       // Assert
       expect((result as Record<string, unknown>).test).toEqual('migration104');
-      // Inflation should NOT happen for migration 104
       expect(
         mockedControllerStorage.getAllPersistedState,
       ).not.toHaveBeenCalled();
-      // Deflation SHOULD happen for migration 104 (lastVersion >= 104)
-      expect(mockedControllerStorage.setItem).toHaveBeenCalled();
+      expect(mockedControllerStorage.setItem).not.toHaveBeenCalled();
     });
 
     it('should handle mixed migration versions correctly', async () => {

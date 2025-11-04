@@ -24,7 +24,6 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
-import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
@@ -99,6 +98,11 @@ export class EngineService {
         update_bg_state_cb(controllerName),
       );
     });
+
+    // CRITICAL: Set up filesystem persistence for all controllers
+    // This is called automatically after Redux subscriptions to ensure
+    // both Redux and filesystem are kept in sync when controller state changes
+    this.setupEnginePersistence();
   };
 
   /**
@@ -149,8 +153,6 @@ export class EngineService {
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.initializeControllers(Engine as unknown as TypedEngine);
-
-      this.setupEnginePersistence();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -206,7 +208,6 @@ export class EngineService {
             eventName,
             async (controllerState: StateConstraint) => {
               try {
-                // Filter out non-persistent fields based on controller metadata
                 const filteredState = getPersistentState(
                   controllerState,
                   // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available

@@ -313,8 +313,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         unknown,
       ][];
 
-      // Save all controller states to individual storage
-      // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -322,8 +320,34 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               `persist:${controllerName}`,
               JSON.stringify(controllerState),
             );
+
+            if (controllerName === 'KeyringController') {
+              // Verify it was actually saved by reading it back
+              const savedData = await ControllerStorage.getItem(
+                `persist:${controllerName}`,
+              );
+              Logger.log('KeyringController saved to individual file', {
+                wasActuallySaved: !!savedData,
+                dataLength: savedData?.length || 0,
+                canParse: (() => {
+                  try {
+                    const parsed = JSON.parse(savedData || '{}');
+                    return { success: true, hasVault: !!parsed.vault };
+                  } catch {
+                    return { success: false };
+                  }
+                })(),
+              });
+            }
           } catch (error) {
-            // Log the error for debugging
+            // 🔍 DEBUG: Extra logging for KeyringController failures
+            if (controllerName === 'KeyringController') {
+              console.error(
+                '❌ [MIGRATION DEBUG] CRITICAL: Failed to save KeyringController!',
+                error,
+              );
+            }
+
             captureException(
               new Error(
                 `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
@@ -332,8 +356,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               ),
             );
 
-            // CRASH immediately, don't allow partial migration success
-            // This ensures clean recovery and prevents state corruption
             throw new Error(
               `Critical: Migration failed for controller '${controllerName}'. ` +
                 `Cannot continue with partial migration as this would corrupt user data. ` +
@@ -343,7 +365,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         }),
       );
 
-      // All controllers saved successfully, safe to strip engine state
       const { engine: _engine, ...rest } = s;
       return rest as unknown;
     } catch (error) {
@@ -355,8 +376,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         ),
       );
 
-      // CRASH on any deflation error, don't return original state
-      // Returning original state would mean user continues with unmigrated data
       throw new Error(
         `Critical: deflateToControllersAndStrip failed completely. ` +
           `Cannot continue safely as this indicates severe migration system failure. ` +

@@ -17,13 +17,15 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Authentication } from '../../../core';
+import { useDispatch } from 'react-redux';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { setExistingUser } from '../../../actions/user';
+import Logger from '../../../util/Logger';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -33,6 +35,7 @@ const WalletRestored = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { colors } = useAppThemeFromContext();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const dispatch = useDispatch();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,13 +55,23 @@ const WalletRestored = () => {
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
-      await Authentication.appTriggeredAuth();
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    } catch (e) {
-      // we were not able to log in automatically so we will go back to login
+      // CRITICAL: Set existingUser = true after successful vault restore
+      // This prevents the vault recovery screen from appearing again on app restart
+      dispatch(setExistingUser(true));
+
+      // Trying to call appTriggeredAuth() will fail because no password is stored yet.
+      // The vault has been restored from backup, but it's still LOCKED.
+      // The user MUST enter their password to unlock it and save credentials to keychain.
+      navigation.replace(Routes.ONBOARDING.LOGIN);
+    } catch (error) {
+      // Defensive: Log error but still navigate to login to allow user to proceed
+      Logger.error(
+        error as Error,
+        'WalletRestored: Error during finishWalletRestore',
+      );
       navigation.replace(Routes.ONBOARDING.LOGIN);
     }
-  }, [navigation]);
+  }, [dispatch, navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);
