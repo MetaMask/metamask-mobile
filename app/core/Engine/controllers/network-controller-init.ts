@@ -67,32 +67,6 @@ export function getInitialNetworkControllerState(persistedState: {
       ChainId['polygon-mainnet']
     ].rpcEndpoints[0].failoverUrls =
       getFailoverUrlsForInfuraNetwork('polygon-mainnet');
-
-    // Update default popular network names
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId.mainnet
-    ].name = 'Ethereum';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['linea-mainnet']
-    ].name = 'Linea';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['base-mainnet']
-    ].name = 'Base';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['arbitrum-mainnet']
-    ].name = 'Arbitrum';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['bsc-mainnet']
-    ].name = 'BNB Chain';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['optimism-mainnet']
-    ].name = 'OP';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['polygon-mainnet']
-    ].name = 'Polygon';
-    initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['sei-mainnet']
-    ].name = 'Sei';
   }
 
   return initialNetworkControllerState;
