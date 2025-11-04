@@ -176,6 +176,7 @@ runs:
         # Build and post comment
         FULL_COMMENT="${TITLE}
         ${COMMENT_BODY}
+        
         ${FOOTER}
         ${MARKER}"
 
