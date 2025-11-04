@@ -80,14 +80,17 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const backspaceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Cleanup timeouts on unmount
-    useEffect(() => () => {
+    useEffect(
+      () => () => {
         if (validateTimeoutRef.current) {
           clearTimeout(validateTimeoutRef.current);
         }
         if (backspaceTimeoutRef.current) {
           clearTimeout(backspaceTimeoutRef.current);
         }
-      }, []);
+      },
+      [],
+    );
 
     // Calculate trimmed seed phrase length
     const trimmedSeedPhraseLength = useMemo(
