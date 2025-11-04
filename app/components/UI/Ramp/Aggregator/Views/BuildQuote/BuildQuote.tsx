@@ -201,8 +201,13 @@ const BuildQuote = () => {
     queryGetCryptoCurrencies,
   } = useCryptoCurrencies();
 
-  const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
-    useLimits();
+  const {
+    limits,
+    isFetching: isFetchingLimits,
+    isAmountBelowMinimum,
+    isAmountAboveMaximum,
+    isAmountValid,
+  } = useLimits();
 
   useIntentAmount(
     setAmount,
@@ -250,7 +255,6 @@ const BuildQuote = () => {
       ) {
         const newRegionCurrency = await queryDefaultFiatCurrency(
           selectedRegion.id,
-          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
         );
         if (newRegionCurrency?.id) {
           setSelectedFiatCurrencyId(newRegionCurrency.id);
@@ -418,10 +422,11 @@ const BuildQuote = () => {
     : undefined;
 
   const isFetching =
+    isFetchingRegions ||
+    isFetchingFiatCurrency ||
     isFetchingCryptoCurrencies ||
     isFetchingPaymentMethods ||
-    isFetchingFiatCurrency ||
-    isFetchingRegions;
+    isFetchingLimits;
 
   const handleCancelPress = useCallback(() => {
     if (!selectedAsset?.network?.chainId) {
@@ -894,20 +899,31 @@ const BuildQuote = () => {
               {isSell ? (
                 <>
                   <View style={styles.spacer} />
-                  <SelectorButton
-                    accessibilityRole="button"
-                    accessible
-                    onPress={handleFiatSelectorPress}
-                  >
-                    <Text variant={TextVariant.BodyLGMedium}>
-                      {currentFiatCurrency?.symbol}
-                    </Text>
-                  </SelectorButton>
+                  {isFetchingRegions ||
+                  isFetchingFiatCurrency ||
+                  !selectedFiatCurrencyId ? (
+                    <SkeletonText thick />
+                  ) : (
+                    <SelectorButton
+                      accessibilityRole="button"
+                      accessible
+                      onPress={handleFiatSelectorPress}
+                    >
+                      <Text variant={TextVariant.BodyLGMedium}>
+                        {currentFiatCurrency?.symbol}
+                      </Text>
+                    </SelectorButton>
+                  )}
                 </>
               ) : null}
             </Row>
             <AssetSelectorButton
-              loading={isFetchingRegions || isFetchingCryptoCurrencies}
+              loading={
+                isFetchingRegions ||
+                isFetchingFiatCurrency ||
+                isFetchingCryptoCurrencies ||
+                !selectedAsset?.id
+              }
               label={
                 isBuy
                   ? strings('fiat_on_ramp_aggregator.want_to_buy')
@@ -938,7 +954,10 @@ const BuildQuote = () => {
               onPress={handleAssetSelectorPress}
             />
             <Row>
-              {isFetchingRegions || isFetchingCryptoCurrencies ? (
+              {isFetchingRegions ||
+              isFetchingFiatCurrency ||
+              isFetchingCryptoCurrencies ||
+              !selectedAsset?.id ? (
                 <SkeletonText thin medium />
               ) : (
                 <Text
@@ -971,7 +990,7 @@ const BuildQuote = () => {
               loading={
                 isFetchingRegions ||
                 isFetchingFiatCurrency ||
-                isFetchingCryptoCurrencies
+                !selectedFiatCurrencyId
               }
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
@@ -1048,9 +1067,10 @@ const BuildQuote = () => {
               <PaymentMethodSelector
                 loading={
                   isFetchingRegions ||
-                  // isFetchingCryptoCurrencies ||
-                  // isFetchingFiatCurrency ||
-                  isFetchingPaymentMethods
+                  isFetchingFiatCurrency ||
+                  isFetchingCryptoCurrencies ||
+                  isFetchingPaymentMethods ||
+                  !selectedPaymentMethodId
                 }
                 label={
                   isBuy

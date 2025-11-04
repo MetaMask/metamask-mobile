@@ -148,6 +148,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           params: {
             marketId: market.id,
             entryPoint,
+            title: market.title,
+            image: market.image,
           },
         });
       }}

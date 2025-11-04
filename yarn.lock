@@ -2061,9 +2061,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@consensys/on-ramp-sdk@npm:2.1.11":
-  version: 2.1.11
-  resolution: "@consensys/on-ramp-sdk@npm:2.1.11"
+"@consensys/on-ramp-sdk@npm:2.1.12":
+  version: 2.1.12
+  resolution: "@consensys/on-ramp-sdk@npm:2.1.12"
   dependencies:
     async: "npm:^3.2.3"
     axios: "npm:^1.8.3"
@@ -2071,7 +2071,7 @@ __metadata:
     crypto-js: "npm:^4.2.0"
     reflect-metadata: "npm:^0.1.13"
     uuid: "npm:^9.0.0"
-  checksum: 10/f14dd36b82c7f804a8d5fcb0f91bdb4cf234aecb5c8c5008d25ad5deece52029feeff1605977042c279ea684c7aebb1db735b52b6e060a60c013db3f34c160af
+  checksum: 10/59c70f0cbec62a55e3de01422026600913b07c075f592f212cbd8e5fc11b9555d1da385a7f12704403e5d1bc21d0f3b0730b6ca37f0440a51c05d18ac5b1e7a9
   languageName: node
   linkType: hard
 
@@ -6943,9 +6943,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^86.0.0":
-  version: 86.0.0
-  resolution: "@metamask/assets-controllers@npm:86.0.0"
+"@metamask/assets-controllers@npm:^87.0.0":
+  version: 87.0.0
+  resolution: "@metamask/assets-controllers@npm:87.0.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -6991,7 +6991,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^61.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/a6f6b94b9527014e2bec70587442d7999ac4fdcded2d89d5100cae3cb9ef87392a72337326896342e2d02db91b0d6c6e4459247cf5c5f29c484067557fb2596e
+  checksum: 10/023c91a982e932978dcf33e057a82cb0a7531db18da0293721838cb14965a6adc38200cbcb1c129165c20411d3abd0dbd9dc6ac41ff0d1902c9648c536c07fde
   languageName: node
   linkType: hard
 
@@ -34276,7 +34276,7 @@ __metadata:
     "@babel/runtime": "npm:^7.25.0"
     "@config-plugins/detox": "npm:^9.0.0"
     "@consensys/native-ramps-sdk": "npm:2.1.6"
-    "@consensys/on-ramp-sdk": "npm:2.1.11"
+    "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.0"
     "@cucumber/message-streams": "npm:^4.0.1"
     "@cucumber/messages": "npm:^22.0.0"
@@ -34302,7 +34302,7 @@ __metadata:
     "@metamask/address-book-controller": "npm:^7.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
-    "@metamask/assets-controllers": "npm:^86.0.0"
+    "@metamask/assets-controllers": "npm:^87.0.0"
     "@metamask/auto-changelog": "npm:^5.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.4.3"
