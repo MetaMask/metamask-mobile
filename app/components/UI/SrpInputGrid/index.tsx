@@ -325,13 +325,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       setNextSeedPhraseInputFocusedIndex(null);
     }, [onSeedPhraseChange]);
 
-    const gridRef = useRef(null);
     React.useImperativeHandle(ref, () => ({
       handleSeedPhraseChange,
     }));
 
     return (
-      <View ref={gridRef} style={styles.seedPhraseRoot}>
+      <View style={styles.seedPhraseRoot}>
         <View style={styles.seedPhraseContainer}>
           <View style={styles.seedPhraseInnerContainer}>
             <View style={styles.seedPhraseInputContainer}>
