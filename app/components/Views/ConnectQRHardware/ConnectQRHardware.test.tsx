@@ -2,7 +2,6 @@ import Engine from '../../../core/Engine';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import Logger from '../../../util/Logger';
 
-// Minimal mocks - only what we need to test
 jest.mock('../../../core/Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
@@ -34,13 +33,11 @@ describe('ConnectQRHardware - onUnlock', () => {
       '0x3333333333333333333333333333333333333333',
     ];
 
-    // Mock addAccounts to return different addresses for each call
     mockKeyring.addAccounts
       .mockResolvedValueOnce([accountAddresses[0]])
       .mockResolvedValueOnce([accountAddresses[1]])
       .mockResolvedValueOnce([accountAddresses[2]]);
 
-    // Simulate the onUnlock logic
     let lastAccount: string | undefined;
     await withQrKeyring(async ({ keyring }) => {
       for (const index of [0, 1, 2]) {
@@ -56,7 +53,6 @@ describe('ConnectQRHardware - onUnlock', () => {
       Engine.setSelectedAddress(lastAccount);
     }
 
-    // Verify Engine.setSelectedAddress was called only once with the last account
     expect(mockEngine.setSelectedAddress).toHaveBeenCalledTimes(1);
     expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith(
       accountAddresses[2],
@@ -64,10 +60,8 @@ describe('ConnectQRHardware - onUnlock', () => {
   });
 
   it('does not call Engine.setSelectedAddress if no accounts were added', async () => {
-    // Mock addAccounts to return empty array
     mockKeyring.addAccounts.mockResolvedValue([]);
 
-    // Simulate the onUnlock logic
     let lastAccount: string | undefined;
     await withQrKeyring(async ({ keyring }) => {
       keyring.setAccountToUnlock(0);
@@ -81,7 +75,6 @@ describe('ConnectQRHardware - onUnlock', () => {
       Engine.setSelectedAddress(lastAccount);
     }
 
-    // Verify Engine.setSelectedAddress was not called
     expect(mockEngine.setSelectedAddress).not.toHaveBeenCalled();
   });
 
@@ -89,7 +82,6 @@ describe('ConnectQRHardware - onUnlock', () => {
     const singleAccount = '0x1111111111111111111111111111111111111111';
     mockKeyring.addAccounts.mockResolvedValue([singleAccount]);
 
-    // Simulate the onUnlock logic
     let lastAccount: string | undefined;
     await withQrKeyring(async ({ keyring }) => {
       keyring.setAccountToUnlock(0);
@@ -103,7 +95,6 @@ describe('ConnectQRHardware - onUnlock', () => {
       Engine.setSelectedAddress(lastAccount);
     }
 
-    // Verify Engine.setSelectedAddress was called with the single account
     expect(mockEngine.setSelectedAddress).toHaveBeenCalledTimes(1);
     expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith(singleAccount);
   });
@@ -121,13 +112,11 @@ describe('ConnectQRHardware - onUnlock', () => {
       Logger.log('Error: Connecting QR hardware wallet', err);
     }
 
-    // Verify error was logged
     expect(mockLogger.log).toHaveBeenCalledWith(
       'Error: Connecting QR hardware wallet',
       testError,
     );
 
-    // Verify Engine.setSelectedAddress was not called
     expect(mockEngine.setSelectedAddress).not.toHaveBeenCalled();
   });
 });
