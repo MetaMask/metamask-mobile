@@ -320,6 +320,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         <View style={styles.seedPhraseContainer}>
           <View style={styles.seedPhraseInnerContainer}>
             <View style={styles.seedPhraseInputContainer}>
+              {/* Grid Inputs on multiple words mode. hidden when first input mode.
+              Need to use style hidden instead of condition rendering to avoid
+              keyboard flicker when change input */}
               {seedPhrase.map((item, index) => (
                 <SrpInput
                   key={`seed-phrase-item-${uniqueId}-${index}`}
@@ -364,7 +367,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   size={TextFieldSize.Md}
                   style={
                     isFirstInput
-                      ? styles.seedPhraseDefaultInput
+                      ? styles.hiddenInput
                       : [
                           styles.input,
                           styles.seedPhraseInputItem,
@@ -373,9 +376,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                         ]
                   }
                   inputStyle={
-                    (isFirstInput
-                      ? styles.textAreaInput
-                      : styles.inputItem) as never
+                    isFirstInput ? styles.textAreaInput : styles.inputItem
                   }
                   submitBehavior="submit"
                   autoComplete="off"
@@ -398,6 +399,44 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   isDisabled={disabled}
                 />
               ))}
+
+              {/* Textarea Input on first input mode hidden during multiple works */}
+              <SrpInput
+                key={`seed-phrase-item-${uniqueId}`}
+                value={seedPhrase[0]}
+                onFocus={() => {
+                  handleOnFocus(0);
+                }}
+                onBlur={() => {
+                  handleOnBlur(0);
+                }}
+                onChangeText={(text) => {
+                  handleSeedPhraseChange(text);
+                }}
+                placeholder={placeholderText}
+                placeholderTextColor={colors.text.alternative}
+                size={TextFieldSize.Md}
+                style={
+                  isFirstInput
+                    ? styles.seedPhraseDefaultInput
+                    : styles.hiddenInput
+                }
+                inputStyle={styles.textAreaInput}
+                submitBehavior="submit"
+                autoComplete="off"
+                textAlignVertical="top"
+                showSoftInputOnFocus
+                autoCapitalize="none"
+                testID={testIDPrefix}
+                keyboardType="default"
+                autoCorrect={false}
+                textContentType="oneTimeCode"
+                spellCheck={false}
+                autoFocus={autoFocus}
+                multiline
+                onKeyPress={(e) => handleKeyPress(e, 0)}
+                isDisabled={disabled}
+              />
             </View>
           </View>
         </View>

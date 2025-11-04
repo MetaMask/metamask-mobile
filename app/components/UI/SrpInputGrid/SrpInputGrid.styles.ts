@@ -1,4 +1,4 @@
-import { StyleSheet, Platform, TextStyle } from 'react-native';
+import { StyleSheet, Platform, TextStyle, ViewStyle } from 'react-native';
 import { fontStyles, colors as commonColors } from '../../../styles/common';
 import { Colors } from '../../../util/theme/models';
 
@@ -61,7 +61,7 @@ export const createStyles = (colors: Colors) =>
       lineHeight: 20,
       paddingTop: Platform.OS === 'ios' ? 12 : 8,
       paddingBottom: 12,
-    } as TextStyle,
+    } as ViewStyle,
     inputItem: {
       flex: 1,
       minWidth: 0,
@@ -95,5 +95,9 @@ export const createStyles = (colors: Colors) =>
       paddingTop: 12,
       paddingBottom: 16,
       alignSelf: 'flex-end' as const,
+    } as TextStyle,
+
+    hiddenInput: {
+      display: 'none' as const,
     } as TextStyle,
   });
