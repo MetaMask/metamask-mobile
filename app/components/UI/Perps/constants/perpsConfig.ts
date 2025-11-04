@@ -82,7 +82,7 @@ export const PERFORMANCE_CONFIG = {
 
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
-  VALIDATION_DEBOUNCE_MS: 1000,
+  VALIDATION_DEBOUNCE_MS: 300,
 
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes
@@ -397,7 +397,7 @@ export type SortButtonPreset =
  */
 export const LEARN_MORE_CONFIG = {
   EXTERNAL_URL: 'https://metamask.io/perps',
-  TITLE_KEY: 'perps.learn_more.title',
+  TITLE_KEY: 'perps.tutorial.card.title',
   DESCRIPTION_KEY: 'perps.learn_more.description',
   CTA_KEY: 'perps.learn_more.cta',
 } as const;

@@ -11,6 +11,12 @@ export const defaultPerpsLivePricesMock = {
   BTC: { price: '45000.00', change24h: 1.2 },
 };
 
+export const defaultPerpsTopOfBookMock = {
+  bestBid: '2999.00',
+  bestAsk: '3001.00',
+  spread: '2.00',
+};
+
 export const defaultPerpsOrderFeesMock = {
   totalFee: 45,
   protocolFee: 45,

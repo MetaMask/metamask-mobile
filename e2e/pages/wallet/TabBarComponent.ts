@@ -19,6 +19,10 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
+  get tabBarTradeButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
+  }
+
   get tabBarSettingButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
@@ -44,6 +48,11 @@ class TabBarComponent {
     );
   }
 
+  async tapHome(): Promise<void> {
+    const homeButton = Matchers.getElementByText('Home');
+    await Gestures.waitAndTap(homeButton);
+  }
+
   async tapWallet(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
@@ -59,6 +68,12 @@ class TabBarComponent {
 
   async tapActions(): Promise<void> {
     await Gestures.waitAndTap(this.tabBarActionButton, {
+      elemDescription: 'Tab Bar - Trade Button',
+    });
+  }
+
+  async tapTrade(): Promise<void> {
+    await Gestures.waitAndTap(this.tabBarTradeButton, {
       elemDescription: 'Tab Bar - Trade Button',
     });
   }

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, SafeAreaView } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -157,7 +157,7 @@ const ConfirmAddAsset = () => {
   );
 
   return (
-    <View
+    <SafeAreaView
       style={styles.rowWrapper}
       testID={ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET}
     >
@@ -223,7 +223,7 @@ const ConfirmAddAsset = () => {
         />
       </View>
       {renderImportModal()}
-    </View>
+    </SafeAreaView>
   );
 };
 export default ConfirmAddAsset;
