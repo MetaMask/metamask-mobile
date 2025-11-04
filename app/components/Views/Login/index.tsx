@@ -471,7 +471,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         if (isComingFromOauthOnboarding) {
           track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
             account_type: 'social',
-            failed_attempts: rehydrationFailedAttempts,
+            failed_attempts:
+              seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts,
             error_type: 'incorrect_password',
           });
         }
