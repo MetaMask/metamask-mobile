@@ -85,7 +85,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   if (isLoading) {
     return (
       <Box
-        twClassName="bg-muted rounded-xl p-4 gap-3"
+        twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
         testID="predict-balance-card-skeleton"
       >
         <Box

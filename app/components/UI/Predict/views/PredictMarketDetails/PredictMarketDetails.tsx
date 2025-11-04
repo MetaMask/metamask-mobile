@@ -24,7 +24,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatVolume, formatAddress } from '../../utils/format';
+import {
+  formatVolume,
+  formatAddress,
+  estimateLineCount,
+} from '../../utils/format';
 import Engine from '../../../../../core/Engine';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import {
@@ -97,9 +101,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const { marketId, entryPoint } = route.params || {};
+  const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
+
+  const [titleLineCount, setTitleLineCount] = useState<number>(
+    estimateLineCount(title),
+  );
 
   const { executeGuardedAction } = usePredictActionGuard({
     providerId,
@@ -134,6 +142,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
     }
   }, [market?.status]);
+
+  // Update estimated line count when market data loads (if title wasn't passed in params)
+  useEffect(() => {
+    if (!title && market?.title) {
+      setTitleLineCount(estimateLineCount(market.title));
+    }
+  }, [market?.title, title]);
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
@@ -455,41 +470,55 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderHeader = () => (
     <Box
-      twClassName="flex-row items-start gap-3"
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Start}
+      twClassName="gap-3"
       style={{ paddingTop: insets.top + 12 }}
     >
-      <Pressable
-        onPress={handleBackPress}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={strings('back')}
-        style={tw.style('items-center justify-center rounded-full w-10 h-10')}
-        testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-      >
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Md}
-          color={colors.icon.default}
-        />
-      </Pressable>
-      <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
-        {market?.image ? (
-          <Image
-            source={{ uri: market?.image }}
-            style={tw.style('w-full h-full')}
-            resizeMode="cover"
+      <Box twClassName="flex-row items-center gap-3 px-1">
+        <Pressable
+          onPress={handleBackPress}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={strings('back')}
+          style={tw.style('items-center justify-center rounded-full')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
+        >
+          <Icon
+            name={IconName.ArrowLeft}
+            size={IconSize.Lg}
+            color={colors.icon.default}
           />
-        ) : (
-          <Box twClassName="w-full h-full bg-muted" />
-        )}
+        </Pressable>
+        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+          {image || market?.image ? (
+            <Image
+              source={{ uri: image || market?.image }}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+            />
+          ) : (
+            <Box twClassName="w-full h-full bg-muted" />
+          )}
+        </Box>
       </Box>
-      <Box twClassName="flex-1">
+      <Box
+        twClassName="flex-1 min-h-[40px]"
+        justifyContent={
+          titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
+        }
+        style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
+      >
         <Text
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
-          style={tw.style('mb-1')}
+          //style={tw.style('mb-1')}
+          onTextLayout={(e) => {
+            setTitleLineCount(e.nativeEvent.lines.length);
+          }}
         >
-          {market?.title ||
+          {title ||
+            market?.title ||
             (isMarketFetching ? strings('predict.loading') : '')}
         </Text>
       </Box>
