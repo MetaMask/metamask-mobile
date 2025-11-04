@@ -201,7 +201,7 @@ class TestableRewardsController extends RewardsController {
     this.update(callback);
   }
 
-  public invalidateAccountsAndSubscriptions() {
+  public async invalidateAccountsAndSubscriptions() {
     this.update((state: RewardsControllerState) => {
       if (state.activeAccount) {
         state.activeAccount = {
@@ -216,6 +216,7 @@ class TestableRewardsController extends RewardsController {
       state.accounts = {};
       state.subscriptions = {};
     });
+    await resetAllSubscriptionTokens();
     Logger.log('RewardsController: Invalidated accounts and subscriptions');
   }
 }
@@ -6538,6 +6539,9 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated accounts and subscriptions',
       );
+
+      // Verify that resetAllSubscriptionTokens was called
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
     });
 
     it('should handle case with no active account', async () => {
@@ -6582,6 +6586,9 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated accounts and subscriptions',
       );
+
+      // Verify that resetAllSubscriptionTokens was called
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
     });
 
     it('should preserve activeAccount account field while resetting other properties', async () => {
@@ -6631,6 +6638,9 @@ describe('RewardsController', () => {
       });
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
+
+      // Verify that resetAllSubscriptionTokens was called
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
     });
 
     it('should handle activeAccount with minimal properties', async () => {
@@ -6666,6 +6676,9 @@ describe('RewardsController', () => {
       });
       expect(testController.state.accounts).toEqual({});
       expect(testController.state.subscriptions).toEqual({});
+
+      // Verify that resetAllSubscriptionTokens was called
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
     });
 
     it('should clear multiple accounts and subscriptions', async () => {
@@ -6742,6 +6755,9 @@ describe('RewardsController', () => {
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       });
+
+      // Verify that resetAllSubscriptionTokens was called
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
     });
 
     it('should not affect other state properties', async () => {
@@ -6849,6 +6865,9 @@ describe('RewardsController', () => {
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       });
+
+      // Verify that resetAllSubscriptionTokens was called
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
     });
 
     it('should ensure account field is never undefined after invalidation', async () => {
@@ -6896,6 +6915,9 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: null,
         lastFreshOptInStatusCheck: null,
       });
+
+      // Verify that resetAllSubscriptionTokens was called
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
     });
   });
 

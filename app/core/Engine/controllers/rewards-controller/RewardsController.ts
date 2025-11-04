@@ -1782,7 +1782,7 @@ export class RewardsController extends BaseController<
                 error instanceof Error ? error.message : String(error),
               );
               this.invalidateSubscriptionCache(subscriptionId);
-              this.invalidateAccountsAndSubscriptions();
+              await this.invalidateAccountsAndSubscriptions();
               throw error;
             }
           }
@@ -1804,7 +1804,7 @@ export class RewardsController extends BaseController<
     return result;
   }
 
-  invalidateAccountsAndSubscriptions() {
+  async invalidateAccountsAndSubscriptions() {
     this.update((state: RewardsControllerState) => {
       if (state.activeAccount) {
         state.activeAccount = {
@@ -1820,6 +1820,7 @@ export class RewardsController extends BaseController<
       state.accounts = {};
       state.subscriptions = {};
     });
+    await resetAllSubscriptionTokens();
     Logger.log('RewardsController: Invalidated accounts and subscriptions');
   }
 
