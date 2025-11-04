@@ -157,8 +157,6 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
-import UpdateAvailableModal from '../../UI/UpdateAvailableModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1060,9 +1058,6 @@ const App: React.FC = () => {
     selectSeedlessOnboardingLoginFlow,
   );
 
-  // Initialize OTA updates feature flag-based checking
-  const { updateAvailable, applyUpdate } = useOTAUpdates();
-
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,
@@ -1235,7 +1230,6 @@ const App: React.FC = () => {
       <AppFlow />
       <Toast ref={toastRef} />
       <ProfilerManager />
-      <UpdateAvailableModal isVisible={updateAvailable} onClose={applyUpdate} />
     </>
   );
 };

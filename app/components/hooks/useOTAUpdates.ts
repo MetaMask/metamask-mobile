@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import {
   checkForUpdateAsync,
   fetchUpdateAsync,
@@ -11,20 +11,24 @@ import Logger from '../../util/Logger';
 /**
  * Hook to manage OTA updates based on feature flag
  * Checks for updates once when app initially opens if feature flag is enabled
- * Returns state for showing update available modal to user
+ * Automatically reloads the app if an update is available
+ * Returns isCheckingUpdates to gate rendering until check is complete
  */
 export const useOTAUpdates = () => {
   const otaUpdatesEnabled = useSelector(selectOTAUpdatesEnabled);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(true);
+
   useEffect(() => {
     const checkForUpdates = async () => {
+      // Skip if feature flag is disabled
       if (!otaUpdatesEnabled) {
-        Logger.log('OTA Updates: Feature flag disabled, skipping update check');
+        setIsCheckingUpdates(false);
         return;
       }
 
+      // Skip in development mode
       if (__DEV__) {
-        Logger.log('OTA Updates: Skipping in development mode');
+        setIsCheckingUpdates(false);
         return;
       }
 
@@ -33,42 +37,30 @@ export const useOTAUpdates = () => {
 
         if (update.isAvailable) {
           const fetchResult = await fetchUpdateAsync();
+
           if (fetchResult.isNew) {
-            Logger.log('OTA Updates: New update downloaded, showing modal');
-            setUpdateAvailable(true);
+            await reloadAsync();
           } else {
             Logger.log('OTA Updates: Update fetched but not new');
+            setIsCheckingUpdates(false);
           }
         } else {
           Logger.log('OTA Updates: No updates available');
+          setIsCheckingUpdates(false);
         }
       } catch (error) {
         Logger.error(
           error as Error,
-          'useOTAUpdates: Error checking for updates',
+          'OTA Updates: Error checking for updates, continuing with current version',
         );
+        setIsCheckingUpdates(false);
       }
     };
 
-    // Check on initial mount only
-    checkForUpdates().catch((error) => {
-      Logger.error(error, 'OTA Updates: Error on initial check');
-    });
+    checkForUpdates();
   }, [otaUpdatesEnabled]);
 
-  const applyUpdate = useCallback(async () => {
-    try {
-      Logger.log('OTA Updates: Applying update and reloading app');
-      await reloadAsync();
-    } catch (error) {
-      Logger.error(error as Error, 'useOTAUpdates: Error applying update');
-      // Fallback: just dismiss the modal if reload fails
-      setUpdateAvailable(false);
-    }
-  }, []);
-
   return {
-    updateAvailable,
-    applyUpdate,
+    isCheckingUpdates,
   };
 };
