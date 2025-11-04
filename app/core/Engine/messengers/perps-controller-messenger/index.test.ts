@@ -1,9 +1,12 @@
 import { getPerpsControllerMessenger } from '.';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 describe('PerpsController Messenger', () => {
   it('returns an instance of the perps controller messenger', () => {
-    const baseControllerMessenger = new ExtendedControllerMessenger();
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
 
     const result = getPerpsControllerMessenger(baseControllerMessenger);
 

@@ -10,6 +10,7 @@ import {
   PredictActivitySell,
   PredictActivityEntry,
 } from '../../types';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -518,6 +519,32 @@ describe('polymarket utils', () => {
         'Network error',
       );
     });
+
+    it('throws PREVIEW_NO_ORDER_BOOK error when orderbook does not exist', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({
+          error: 'No orderbook exists for the requested token id',
+        }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
+      );
+    });
+
+    it('throws error message from response when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({ error: 'Custom error message' }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        'Custom error message',
+      );
+    });
   });
 
   describe('generateSalt', () => {
@@ -903,7 +930,8 @@ describe('polymarket utils', () => {
         status: 'open',
         recurrence: 'daily',
         endDate: undefined,
-        categories: [mockCategory],
+        category: mockCategory,
+        tags: [],
         outcomes: [
           {
             id: 'market-1',
@@ -2030,102 +2058,102 @@ describe('polymarket utils', () => {
   });
 
   describe('decimalPlaces', () => {
-    it('should return 0 for integers', () => {
+    it('returns 0 for integers', () => {
       expect(decimalPlaces(5)).toBe(0);
       expect(decimalPlaces(100)).toBe(0);
       expect(decimalPlaces(0)).toBe(0);
     });
 
-    it('should return correct decimal places for decimals', () => {
+    it('returns correct decimal places for decimals', () => {
       expect(decimalPlaces(1.5)).toBe(1);
       expect(decimalPlaces(0.123)).toBe(3);
       expect(decimalPlaces(3.14159)).toBe(5);
     });
 
-    it('should return 0 for numbers without decimal part', () => {
+    it('returns 0 for numbers without decimal part', () => {
       expect(decimalPlaces(10.0)).toBe(0);
     });
   });
 
   describe('roundNormal', () => {
-    it('should round numbers to specified decimals', () => {
+    it('rounds numbers to specified decimals', () => {
       expect(roundNormal(1.235, 2)).toBe(1.24);
       expect(roundNormal(1.234, 2)).toBe(1.23);
       expect(roundNormal(1.5, 0)).toBe(2);
     });
 
-    it('should return same number if already at or below target decimals', () => {
+    it('returns same number if already at or below target decimals', () => {
       expect(roundNormal(1.5, 2)).toBe(1.5);
       expect(roundNormal(1, 2)).toBe(1);
     });
 
-    it('should handle zero decimals', () => {
+    it('handles zero decimals', () => {
       expect(roundNormal(1.6, 0)).toBe(2);
       expect(roundNormal(1.4, 0)).toBe(1);
     });
   });
 
   describe('roundDown', () => {
-    it('should round down to specified decimals', () => {
+    it('rounds down to specified decimals', () => {
       expect(roundDown(1.239, 2)).toBe(1.23);
       expect(roundDown(1.999, 2)).toBe(1.99);
       expect(roundDown(1.5, 0)).toBe(1);
     });
 
-    it('should return same number if already at or below target decimals', () => {
+    it('returns same number if already at or below target decimals', () => {
       expect(roundDown(1.5, 2)).toBe(1.5);
       expect(roundDown(1, 2)).toBe(1);
     });
 
-    it('should handle edge cases', () => {
+    it('handles edge cases', () => {
       expect(roundDown(0.999, 2)).toBe(0.99);
       expect(roundDown(100.123456, 3)).toBe(100.123);
     });
   });
 
   describe('roundUp', () => {
-    it('should round up to specified decimals', () => {
+    it('rounds up to specified decimals', () => {
       expect(roundUp(1.231, 2)).toBe(1.24);
       expect(roundUp(1.001, 2)).toBe(1.01);
       expect(roundUp(1.5, 0)).toBe(2);
     });
 
-    it('should return same number if already at or below target decimals', () => {
+    it('returns same number if already at or below target decimals', () => {
       expect(roundUp(1.5, 2)).toBe(1.5);
       expect(roundUp(1, 2)).toBe(1);
     });
 
-    it('should handle edge cases', () => {
+    it('handles edge cases', () => {
       expect(roundUp(0.001, 2)).toBe(0.01);
       expect(roundUp(100.123456, 3)).toBe(100.124);
     });
   });
 
   describe('roundOrderAmount', () => {
-    it('should return same amount if decimal places are within limit', () => {
+    it('returns same amount if decimal places are within limit', () => {
       expect(roundOrderAmount({ amount: 1.5, decimals: 2 })).toBe(1.5);
       expect(roundOrderAmount({ amount: 10.25, decimals: 2 })).toBe(10.25);
       expect(roundOrderAmount({ amount: 5, decimals: 2 })).toBe(5);
     });
 
-    it('should round down amount if it exceeds decimals after rounding up', () => {
+    it('rounds down amount if it exceeds decimals after rounding up', () => {
       expect(roundOrderAmount({ amount: 1.235, decimals: 2 })).toBe(1.23);
       expect(roundOrderAmount({ amount: 10.999, decimals: 2 })).toBe(10.99);
     });
 
-    it('should round down when amount has more decimals than target', () => {
+    it('rounds down when amount has more decimals than target', () => {
       expect(roundOrderAmount({ amount: 1.001, decimals: 2 })).toBe(1);
       expect(roundOrderAmount({ amount: 0.0001, decimals: 2 })).toBe(0);
       expect(roundOrderAmount({ amount: 1.0001, decimals: 2 })).toBe(1);
     });
 
-    it('should handle zero decimals', () => {
+    it('handles zero decimals', () => {
       expect(roundOrderAmount({ amount: 1.5, decimals: 0 })).toBe(1);
       expect(roundOrderAmount({ amount: 1.999, decimals: 0 })).toBe(1);
       expect(roundOrderAmount({ amount: 5, decimals: 0 })).toBe(5);
     });
 
-    it('should handle large decimal precision', () => {
+    it('handles large decimal precision', () => {
       expect(roundOrderAmount({ amount: 1.123456789, decimals: 6 })).toBe(
         1.123456,
       );
@@ -2134,13 +2162,13 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle edge case with very small amounts', () => {
+    it('handles edge case with very small amounts', () => {
       expect(roundOrderAmount({ amount: 0.00001, decimals: 2 })).toBe(0);
       expect(roundOrderAmount({ amount: 0.000001, decimals: 4 })).toBe(0);
       expect(roundOrderAmount({ amount: 0.123456, decimals: 4 })).toBe(0.1234);
     });
 
-    it('should handle edge case with large amounts', () => {
+    it('handles edge case with large amounts', () => {
       expect(roundOrderAmount({ amount: 1000.123456, decimals: 2 })).toBe(
         1000.12,
       );
@@ -2149,7 +2177,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should apply roundUp with extra decimals then roundDown if needed', () => {
+    it('applies roundUp with extra decimals then roundDown if needed', () => {
       const amount = 1.12345678;
       const decimals = 2;
       const result = roundOrderAmount({ amount, decimals });
@@ -2157,19 +2185,19 @@ describe('polymarket utils', () => {
       expect(decimalPlaces(result)).toBeLessThanOrEqual(decimals);
     });
 
-    it('should round up when amount can fit exactly into target decimals', () => {
+    it('rounds up when amount can fit exactly into target decimals', () => {
       expect(roundOrderAmount({ amount: 1.2345, decimals: 2 })).toBe(1.23);
       expect(roundOrderAmount({ amount: 10.1234567, decimals: 4 })).toBe(
         10.1234,
       );
     });
 
-    it('should handle negative amounts', () => {
+    it('handles negative amounts', () => {
       expect(roundOrderAmount({ amount: -1.235, decimals: 2 })).toBe(-1.24);
       expect(roundOrderAmount({ amount: -10.999, decimals: 2 })).toBe(-11);
     });
 
-    it('should handle amounts that round up to exceed decimals', () => {
+    it('handles amounts that round up to exceed decimals', () => {
       expect(roundOrderAmount({ amount: 1.996, decimals: 2 })).toBe(1.99);
       expect(roundOrderAmount({ amount: 0.999999, decimals: 2 })).toBe(0.99);
     });
@@ -2182,7 +2210,7 @@ describe('polymarket utils', () => {
       amount: 2,
     };
 
-    it('should round BUY order amounts correctly', () => {
+    it('rounds BUY order amounts correctly', () => {
       const result = roundOrderAmounts({
         roundConfig: mockRoundConfig,
         side: Side.BUY,
@@ -2194,7 +2222,7 @@ describe('polymarket utils', () => {
       expect(result.takerAmount).toBeGreaterThan(0);
     });
 
-    it('should round SELL order amounts correctly', () => {
+    it('rounds SELL order amounts correctly', () => {
       const result = roundOrderAmounts({
         roundConfig: mockRoundConfig,
         side: Side.SELL,
@@ -2206,7 +2234,7 @@ describe('polymarket utils', () => {
       expect(result.takerAmount).toBeGreaterThan(0);
     });
 
-    it('should handle price rounding down', () => {
+    it('handles price rounding down', () => {
       const result = roundOrderAmounts({
         roundConfig: mockRoundConfig,
         side: Side.BUY,
@@ -2218,7 +2246,7 @@ describe('polymarket utils', () => {
       expect(result.takerAmount).toBeGreaterThan(0);
     });
 
-    it('should apply additional rounding when necessary', () => {
+    it('applies additional rounding when necessary', () => {
       const result = roundOrderAmounts({
         roundConfig: mockRoundConfig,
         side: Side.BUY,
@@ -2236,7 +2264,7 @@ describe('polymarket utils', () => {
       mockFetch.mockReset();
     });
 
-    it('should preview BUY order successfully', async () => {
+    it('previews BUY order successfully', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2274,7 +2302,7 @@ describe('polymarket utils', () => {
       expect(result.slippage).toBeDefined();
     });
 
-    it('should preview SELL order successfully', async () => {
+    it('previews SELL order successfully', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2311,7 +2339,7 @@ describe('polymarket utils', () => {
       expect(result.fees).toBeUndefined();
     });
 
-    it('should throw error when orderbook is not available', async () => {
+    it('throws error when orderbook is not available', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => null,
@@ -2325,10 +2353,10 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no orderbook');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_BOOK');
     });
 
-    it('should throw error for BUY when no asks available', async () => {
+    it('throws error for BUY when no asks available', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2351,10 +2379,10 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (buy)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_BUY');
     });
 
-    it('should throw error for SELL when no bids available', async () => {
+    it('throws error for SELL when no bids available', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2377,10 +2405,10 @@ describe('polymarket utils', () => {
           side: Side.SELL,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (sell)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_SELL');
     });
 
-    it('should include fees for BUY orders', async () => {
+    it('includes fees for BUY orders', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2414,7 +2442,7 @@ describe('polymarket utils', () => {
       expect(result.fees?.providerFee).toBeGreaterThanOrEqual(0);
     });
 
-    it('should not include fees for SELL orders', async () => {
+    it('does not include fees for SELL orders', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2445,7 +2473,7 @@ describe('polymarket utils', () => {
       expect(result.fees).toBeUndefined();
     });
 
-    it('should handle negRisk markets', async () => {
+    it('handles negRisk markets', async () => {
       const mockOrderBook = {
         timestamp: '2024-01-01T00:00:00Z',
         tick_size: '0.01',
@@ -2478,7 +2506,7 @@ describe('polymarket utils', () => {
   });
 
   describe('getAllowanceCalls', () => {
-    it('should return array of allowance transaction calls', () => {
+    it('returns array of allowance transaction calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
 
       expect(Array.isArray(calls)).toBe(true);
@@ -2493,7 +2521,7 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should include all necessary approval calls', () => {
+    it('includes all necessary approval calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
       expect(calls.length).toBe(6);
     });

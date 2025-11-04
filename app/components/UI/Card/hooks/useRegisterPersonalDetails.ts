@@ -50,11 +50,12 @@ const useRegisterPersonalDetails = (): {
         setIsSuccess(false);
         setError(null);
 
-        const RegisterUserResponse = await sdk.registerPersonalDetails(request);
+        const registerPersonalDetailsResponse =
+          await sdk.registerPersonalDetails(request);
 
         setIsSuccess(true);
 
-        return RegisterUserResponse;
+        return registerPersonalDetailsResponse;
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);

@@ -75,6 +75,7 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
+  DEFI_POSITIONS_SCROLL_VIEW: 'defi-positions-scroll-view',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
   // Wallet-specific action buttons to avoid conflicts with TokenOverview
   WALLET_BUY_BUTTON: 'wallet-buy-button',
@@ -82,6 +83,10 @@ export const WalletViewSelectorsIDs = {
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',
   WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
+  // Balance Empty State - displayed when account group has zero balance across all networks
+  BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
+  BALANCE_EMPTY_STATE_ACTION_BUTTON:
+    'account-group-balance-empty-state-action-button',
 } as const;
 
 export const WalletViewSelectorsText = {
@@ -97,6 +102,7 @@ export const WalletViewSelectorsText = {
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
   DEFI_TAB: enContent.wallet.defi,
   PREDICTIONS_TAB: enContent.wallet.predict,
+  AVAILABLE_BALANCE: enContent.predict.available_balance,
   DEFI_EMPTY_STATE_DESCRIPTION:
     enContent.defi_positions.empty_state.description,
   DEFI_EMPTY_STATE_EXPLORE_BUTTON:

@@ -22,8 +22,9 @@ export function useDepositUser() {
       if ((error as AxiosError).status === 401) {
         Logger.log('useDepositUser: 401 error, clearing authentication');
         await logoutFromProvider(false);
+      } else {
+        throw error;
       }
-      throw error;
     }
   }, [fetchUserDetails, logoutFromProvider]);
 

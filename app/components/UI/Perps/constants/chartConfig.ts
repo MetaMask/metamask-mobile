@@ -75,7 +75,7 @@ export const PERPS_CHART_CONFIG = {
     TOTAL: 500, // Total candles to load in memory (reduced for better performance)
   },
   // Default candle period settings
-  DEFAULT_CANDLE_PERIOD: CandlePeriod.THREE_MINUTES,
+  DEFAULT_CANDLE_PERIOD: CandlePeriod.FIFTEEN_MINUTES,
 } as const;
 
 /**
@@ -177,6 +177,8 @@ export const CANDLE_PERIODS = [
   { label: '3d', value: CandlePeriod.THREE_DAYS },
   { label: '7d', value: CandlePeriod.ONE_WEEK },
 ] as const;
+
+export const DEFAULT_CANDLE_PERIOD = CandlePeriod.FIFTEEN_MINUTES;
 
 /**
  * Get available candle periods for a specific duration
