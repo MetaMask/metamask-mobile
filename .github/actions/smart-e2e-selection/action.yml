@@ -179,3 +179,6 @@ runs:
                     
           gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body-file "$PR_COMMENT_FILE"
           echo "✅ Successfully created comment"
+        else
+          echo "⏭️ No comment to create (analysis was skipped or no comment file generated)"
+        fi
