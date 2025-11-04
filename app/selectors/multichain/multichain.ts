@@ -159,19 +159,26 @@ export const selectMultichainTransactions = createDeepEqualSelector(
     multichainTransactionsControllerState.nonEvmTransactions,
 );
 
-// TODO: refactor this file to use createDeepEqualSelector
-export function selectMultichainAssets(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsController.accountsAssets;
-}
+const selectMultichainAssetsControllerState = (state: RootState) =>
+  state.engine.backgroundState.MultichainAssetsController;
 
-export function selectMultichainAssetsMetadata(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
-}
+export const selectMultichainAssets = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.accountsAssets,
+);
 
-export function selectMultichainAssetsAllIgnoredAssets(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsController
-    .allIgnoredAssets;
-}
+export const selectMultichainAssetsMetadata = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.assetsMetadata,
+);
+
+export const selectMultichainAssetsAllIgnoredAssets = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.allIgnoredAssets,
+);
 
 function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
