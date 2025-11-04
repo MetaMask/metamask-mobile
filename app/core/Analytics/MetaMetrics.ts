@@ -33,7 +33,7 @@ import {
   ISegmentClient,
   ITrackingEvent,
 } from './MetaMetrics.types';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
@@ -298,7 +298,7 @@ class MetaMetrics implements IMetaMetrics {
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
     const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
-    if (legacyId && legacyId.length >= 32) {
+    if (legacyId) {
       this.metametricsId = legacyId;
       await StorageWrapper.setItem(METAMETRICS_ID, legacyId);
       return legacyId;
@@ -308,10 +308,8 @@ class MetaMetrics implements IMetaMetrics {
     const metametricsId: string | undefined =
       await StorageWrapper.getItem(METAMETRICS_ID);
 
-    // Validate the stored ID - regenerate if corrupted or too short
-    // Valid IDs are at least 32 chars (UUIDv4=36, Hex=66)
     // This catches '""', 'null', 'undefined', and other corruptions
-    if (!metametricsId || metametricsId.length < 32) {
+    if (!metametricsId || !validate(metametricsId)) {
       if (metametricsId) {
         // Log corruption for monitoring
         Logger.log(

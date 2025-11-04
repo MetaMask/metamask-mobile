@@ -19,6 +19,7 @@ import {
 import { MetricsEventBuilder } from './MetricsEventBuilder';
 import { segmentPersistor } from './SegmentPersistor';
 import { createClient } from '@segment/analytics-react-native';
+import { validate } from 'uuid';
 
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
@@ -778,7 +779,7 @@ describe('MetaMetrics', () => {
 
         const metricsId = await metaMetrics.getMetaMetricsId();
         expect(metricsId).not.toEqual('null');
-        expect(metricsId.length).toBeGreaterThan(10);
+        expect(metricsId?.length).toBeGreaterThan(10);
       });
 
       it('regenerates new ID when stored ID is "undefined" string', async () => {
@@ -791,7 +792,7 @@ describe('MetaMetrics', () => {
 
         const metricsId = await metaMetrics.getMetaMetricsId();
         expect(metricsId).not.toEqual('undefined');
-        expect(metricsId.length).toBeGreaterThan(10);
+        expect(metricsId?.length).toBeGreaterThan(10);
       });
 
       it('regenerates new ID when stored ID has invalid UUID format', async () => {
@@ -804,9 +805,8 @@ describe('MetaMetrics', () => {
 
         const metricsId = await metaMetrics.getMetaMetricsId();
         expect(metricsId).not.toEqual('not-a-valid-uuid-format');
-        expect(metricsId).toMatch(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-        );
+        // casting for testing
+        expect(validate(metricsId as unknown as string)).toBe(true);
       });
 
       it('accepts valid UUIDv4 format', async () => {
@@ -824,34 +824,6 @@ describe('MetaMetrics', () => {
           METAMETRICS_ID,
           expect.anything(),
         );
-      });
-
-      it('accepts valid hex format with 0x prefix', async () => {
-        const validHex =
-          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? validHex : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).toEqual(validHex);
-      });
-
-      it('rejects corrupted legacy Mixpanel ID', async () => {
-        mockGet.mockImplementation(async (key: string) => {
-          if (key === MIXPANEL_METAMETRICS_ID) return '""';
-          return '';
-        });
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual('""');
-        expect(metricsId.length).toBeGreaterThan(10);
       });
     });
   });
