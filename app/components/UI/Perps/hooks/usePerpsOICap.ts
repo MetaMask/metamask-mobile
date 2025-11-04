@@ -22,7 +22,7 @@ import { usePerpsStream } from '../providers/PerpsStreamManager';
  * const FORCE_OI_CAP_STATE: boolean | null = null;
  * ```
  */
-const FORCE_OI_CAP_STATE: boolean | null = null;
+const FORCE_OI_CAP_STATE: boolean | null = true;
 
 /**
  * Return type for usePerpsOICap hook

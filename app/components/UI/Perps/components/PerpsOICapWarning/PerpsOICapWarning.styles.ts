@@ -7,22 +7,20 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       gap: 8,
     },
     bannerContainer: {
-      backgroundColor: colors.warning.muted,
+      backgroundColor: colors.background.muted,
       borderRadius: 8,
       padding: 12,
-      borderWidth: 1,
-      borderColor: colors.warning.default,
+      marginHorizontal: 16,
+      marginVertical: 16,
     },
     inlineContainer: {
       paddingVertical: 8,
     },
-    icon: {
-      marginTop: 2,
-    },
+    icon: {},
     textContainer: {
       flex: 1,
       gap: 4,
