@@ -115,6 +115,7 @@ import {
   type VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
+import { parseCommaSeparatedString } from '../utils/stringParseUtils';
 
 // Simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -796,10 +797,7 @@ export class PerpsController extends BaseController<
 
       // LaunchDarkly returns comma-separated strings for list values
       if (typeof remoteMarkets === 'string') {
-        const parsed = remoteMarkets
-          .split(',')
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0);
+        const parsed = parseCommaSeparatedString(remoteMarkets);
 
         if (parsed.length > 0) {
           validatedEnabledMarkets = parsed;
@@ -854,10 +852,7 @@ export class PerpsController extends BaseController<
 
       // LaunchDarkly returns comma-separated strings for list values
       if (typeof remoteBlocked === 'string') {
-        const parsed = remoteBlocked
-          .split(',')
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0);
+        const parsed = parseCommaSeparatedString(remoteBlocked);
 
         if (parsed.length > 0) {
           validatedBlockedMarkets = parsed;

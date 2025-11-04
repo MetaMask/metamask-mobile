@@ -7,6 +7,11 @@ import {
 } from '../constants/hyperLiquidConfig';
 
 /**
+ * Maximum length for market filter patterns (prevents DoS attacks)
+ */
+const MAX_MARKET_PATTERN_LENGTH = 200;
+
+/**
  * Pattern matcher type - either string (exact match) or RegExp (wildcard)
  */
 export type MarketPatternMatcher = RegExp | string;
@@ -52,9 +57,9 @@ export const validateMarketPattern = (pattern: string): boolean => {
   }
 
   // Reject patterns that are too long (potential DoS)
-  if (pattern.length > 100) {
+  if (pattern.length > MAX_MARKET_PATTERN_LENGTH) {
     throw new Error(
-      `Market pattern exceeds maximum length (100 chars): ${pattern}`,
+      `Market pattern exceeds maximum length (${MAX_MARKET_PATTERN_LENGTH} chars): ${pattern}`,
     );
   }
 
