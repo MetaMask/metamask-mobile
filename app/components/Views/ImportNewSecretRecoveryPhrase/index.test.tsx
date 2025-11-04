@@ -954,6 +954,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await act(async () => {
+        await fireEvent(input0, 'onBlur');
+      });
+
+      await act(async () => {
         await fireEvent(input1, 'onFocus');
       });
 

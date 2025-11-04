@@ -296,13 +296,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         strings('import_from_seed.srp_placeholder'),
       );
 
-      fireEvent.changeText(input, 'say');
+      await act(async () => {
+        fireEvent.changeText(input, 'say ');
+      });
 
       await act(async () => {
-        fireEvent(input, 'onSubmitEditing', {
-          nativeEvent: { key: 'Enter' },
-          index: 0,
-        });
+        jest.runAllTimers();
       });
 
       await waitFor(() => {
