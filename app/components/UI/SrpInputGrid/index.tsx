@@ -75,6 +75,20 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       { focus: () => void; blur: () => void }
     > | null>(null);
 
+    // Refs to track timeouts
+    const validateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const backspaceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Cleanup timeouts on unmount
+    useEffect(() => () => {
+        if (validateTimeoutRef.current) {
+          clearTimeout(validateTimeoutRef.current);
+        }
+        if (backspaceTimeoutRef.current) {
+          clearTimeout(backspaceTimeoutRef.current);
+        }
+      }, []);
+
     // Calculate trimmed seed phrase length
     const trimmedSeedPhraseLength = useMemo(
       () => getTrimmedSeedPhraseLength(seedPhrase),
@@ -211,12 +225,17 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
           onSeedPhraseChange(updatedTrimmedText);
 
+          if (validateTimeoutRef.current) {
+            clearTimeout(validateTimeoutRef.current);
+          }
+
           // Validate complete phrases that might have invalid words
-          setTimeout(() => {
+          validateTimeoutRef.current = setTimeout(() => {
             setErrorWordIndexes(validateWords(updatedTrimmedText));
             setNextSeedPhraseInputFocusedIndex(null);
             seedPhraseInputRefs.current?.get(0)?.blur();
             Keyboard.dismiss();
+            validateTimeoutRef.current = null;
           }, 150);
         } else {
           handleSeedPhraseChangeAtIndexRef.current?.(text, 0);
@@ -257,8 +276,14 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               }
               setNextSeedPhraseInputFocusedIndex(index - 1);
             }
-            setTimeout(() => {
+
+            if (backspaceTimeoutRef.current) {
+              clearTimeout(backspaceTimeoutRef.current);
+            }
+
+            backspaceTimeoutRef.current = setTimeout(() => {
               onSeedPhraseChange(index === 0 ? [''] : [...newData]);
+              backspaceTimeoutRef.current = null;
             }, 0);
           }
         }
@@ -426,6 +451,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 autoCorrect={false}
                 textContentType="oneTimeCode"
                 spellCheck={false}
+                autoFocus={isFirstInput}
                 multiline
                 onKeyPress={(e) => handleKeyPress(e, 0)}
                 isDisabled={disabled}

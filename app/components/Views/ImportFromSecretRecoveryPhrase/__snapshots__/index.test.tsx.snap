@@ -698,7 +698,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           autoCapitalize="none"
                                           autoComplete="off"
                                           autoCorrect={false}
-                                          autoFocus={false}
+                                          autoFocus={true}
                                           editable={true}
                                           keyboardType="default"
                                           multiline={true}

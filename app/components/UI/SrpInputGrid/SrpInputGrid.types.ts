@@ -43,9 +43,4 @@ export interface SrpInputGridProps {
    * Whether the inputs should be disabled
    */
   disabled?: boolean;
-
-  /**
-   * Whether the first input should auto-focus
-   */
-  autoFocus?: boolean;
 }
