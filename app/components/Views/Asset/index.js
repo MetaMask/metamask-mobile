@@ -21,7 +21,6 @@ import {
   getFeatureFlagChainId,
   setSwapsLiveness,
   swapsTokensMultiChainObjectSelector,
-  swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
 import {
   selectChainId,
@@ -39,7 +38,6 @@ import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   isMainnetByChainId,
-  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -761,9 +759,7 @@ const mapStateToProps = (state, { route }) => {
 
   return {
     swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
-    swapsTokens: isPortfolioViewEnabled()
-      ? swapsTokensMultiChainObjectSelector(state)
-      : swapsTokensObjectSelector(state),
+    swapsTokens: swapsTokensMultiChainObjectSelector(state),
     searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
       state,
       route.params.chainId,

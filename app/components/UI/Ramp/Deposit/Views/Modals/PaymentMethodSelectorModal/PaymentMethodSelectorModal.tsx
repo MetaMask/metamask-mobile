@@ -85,7 +85,6 @@ function PaymentMethodSelectorModal() {
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: DepositPaymentMethod }) => (
       <ListItemSelect
-        shouldEnableAndroidPressIn
         isSelected={selectedPaymentMethod?.id === paymentMethod.id}
         onPress={() => handleSelectPaymentMethodIdCallback(paymentMethod.id)}
         accessibilityRole="button"
@@ -98,7 +97,7 @@ function PaymentMethodSelectorModal() {
               color={
                 typeof paymentMethod.iconColor === 'object'
                   ? paymentMethod.iconColor[themeAppearance]
-                  : paymentMethod.iconColor ?? IconColor.Primary
+                  : (paymentMethod.iconColor ?? IconColor.Primary)
               }
             />
           </View>

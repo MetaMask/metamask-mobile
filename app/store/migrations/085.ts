@@ -21,10 +21,8 @@ const migration = (state: unknown): unknown => {
       hasProperty(state.engine.backgroundState, 'UserStorageController') &&
       isObject(state.engine.backgroundState.UserStorageController)
     ) {
-      state.engine.backgroundState.UserStorageController.isBackupAndSyncEnabled =
-        true;
-      state.engine.backgroundState.UserStorageController.isAccountSyncingEnabled =
-        true;
+      state.engine.backgroundState.UserStorageController.isBackupAndSyncEnabled = true;
+      state.engine.backgroundState.UserStorageController.isAccountSyncingEnabled = true;
     } else {
       captureException(
         new Error(

@@ -11,7 +11,6 @@ exports[`StakingBalance render matches snapshot 1`] = `
     style={
       {
         "alignItems": "center",
-        "flex": 1,
         "flexDirection": "row",
         "height": 64,
       }
@@ -420,6 +419,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -459,6 +459,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -751,6 +752,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -790,7 +792,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
 </View>
 `;
 
-exports[`StakingBalance should match the snapshot when portfolio view is enabled   1`] = `
+exports[`StakingBalance should match the snapshot 1`] = `
 <View
   testID="staking-balance-container"
 >
@@ -801,7 +803,6 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     style={
       {
         "alignItems": "center",
-        "flex": 1,
         "flexDirection": "row",
         "height": 64,
       }
@@ -1210,6 +1211,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1249,6 +1251,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1541,6 +1544,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",

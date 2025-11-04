@@ -1,21 +1,24 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
-  useRef,
 } from 'react';
 
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { ActivityIndicator, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictNewButton from '../PredictNewButton';
 import PredictPosition from '../PredictPosition/PredictPosition';
 import PredictPositionEmpty from '../PredictPositionEmpty';
@@ -26,11 +29,25 @@ export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
 }
 
-const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
+interface PredictPositionsProps {
+  isVisible?: boolean;
+  /**
+   * Callback when an error occurs during positions fetch
+   */
+  onError?: (error: string | null) => void;
+}
+
+const PredictPositions = forwardRef<
+  PredictPositionsHandle,
+  PredictPositionsProps
+>(({ isVisible, onError }, ref) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { positions, isRefreshing, loadPositions, isLoading } =
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
+  const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,
       refreshOnFocus: true,
@@ -38,12 +55,18 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   const {
     positions: claimablePositions,
     loadPositions: loadClaimablePositions,
+    error: claimableError,
   } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const listRef = useRef<FlashListRef<PredictPositionType>>(null);
+
+  // Notify parent of errors while keeping state isolated
+  useEffect(() => {
+    const combinedError = error || claimableError;
+    onError?.(combinedError);
+  }, [error, claimableError, onError]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
@@ -54,6 +77,15 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     },
   }));
 
+  // Track position viewed when tab becomes visible
+  useEffect(() => {
+    if (isVisible && !isLoading) {
+      Engine.context.PredictController.trackPositionViewed({
+        openPositionsCount: positions.length,
+      });
+    }
+  }, [isVisible, isLoading, positions.length]);
+
   const renderPosition = useCallback(
     ({ item }: { item: PredictPositionType }) => (
       <PredictPosition
@@ -63,6 +95,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
               headerShown: false,
             },
           });
@@ -81,6 +114,7 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
               headerShown: false,
             },
           });
@@ -92,8 +126,18 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
 
   if (isLoading || (isRefreshing && positions.length === 0)) {
     return (
-      <View style={tw.style('flex-1 bg-default')}>
-        <Box style={tw.style('flex-1 px-4 py-4 justify-center items-center')}>
+      <View
+        style={tw.style(
+          isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+        )}
+      >
+        <Box
+          style={tw.style(
+            isHomepageRedesignV1Enabled
+              ? 'px-4 py-20 justify-center items-center'
+              : 'flex-1 px-4 py-4 justify-center items-center',
+          )}
+        >
           <ActivityIndicator
             testID="activity-indicator"
             size="large"
@@ -110,18 +154,20 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   // TODO: Sort positions in the controller (business logic)
   return (
     <>
-      <FlashList
-        testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}
-        ref={listRef}
-        data={positions}
-        renderItem={renderPosition}
-        scrollEnabled={false}
-        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-        removeClippedSubviews
-        decelerationRate={0}
-        ListEmptyComponent={isTrulyEmpty ? <PredictPositionEmpty /> : null}
-        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
-      />
+      <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
+        {isTrulyEmpty ? (
+          <PredictPositionEmpty />
+        ) : (
+          <>
+            {positions.map((item) => (
+              <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
+                {renderPosition({ item })}
+              </React.Fragment>
+            ))}
+          </>
+        )}
+      </View>
+      {!isTrulyEmpty && <PredictNewButton />}
       {claimablePositions.length > 0 && (
         <>
           <Box>
@@ -132,16 +178,18 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
               {strings('predict.tab.resolved_markets')}
             </Text>
           </Box>
-          <FlashList
-            testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}
-            data={claimablePositions.sort(
-              (a, b) =>
-                new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
-            )}
-            renderItem={renderResolvedPosition}
-            scrollEnabled={false}
-            keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-          />
+          <View testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
+            {claimablePositions
+              .sort(
+                (a, b) =>
+                  new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+              )
+              .map((item) => (
+                <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
+                  {renderResolvedPosition({ item })}
+                </React.Fragment>
+              ))}
+          </View>
         </>
       )}
     </>

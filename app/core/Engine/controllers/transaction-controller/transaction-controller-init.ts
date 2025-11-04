@@ -117,6 +117,8 @@ export const TransactionControllerInit: ControllerInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
+          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
+            beforeSign(_request, request),
         },
         incomingTransactions: {
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
@@ -126,7 +128,17 @@ export const TransactionControllerInit: ControllerInitFunction<
           const { chainId } = transactionMeta;
           const state = getState();
 
-          return !selectShouldUseSmartTransaction(state, chainId);
+          const isSmartTransactionEnabled = selectShouldUseSmartTransaction(
+            state,
+            chainId,
+          );
+          const isSendBundleSupportedChain =
+            await isSendBundleSupported(chainId);
+
+          // EIP7702 gas fee tokens are enabled when:
+          // - Smart transactions are NOT enabled, OR
+          // - Send bundle is NOT supported
+          return !isSmartTransactionEnabled || !isSendBundleSupportedChain;
         },
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
@@ -306,6 +318,17 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function beforeSign(
+  hookRequest: { transactionMeta: TransactionMeta },
+  request: ControllerInitRequest<
+    TransactionControllerMessenger,
+    TransactionControllerInitMessenger
+  >,
+) {
+  const predictController = request.getController('PredictController');
+  return predictController.beforeSign(hookRequest);
 }
 
 function addTransactionControllerListeners(

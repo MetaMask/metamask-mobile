@@ -4,6 +4,7 @@ import { selectSelectedCountry } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../core/AppConstants';
 import { getErrorMessage } from '../util/getErrorMessage';
+import { Consent } from '../types';
 
 interface UseRegisterUserConsentState {
   isLoading: boolean;
@@ -62,7 +63,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         throw new Error('Card SDK not initialized');
       }
 
-      const policy = selectedCountry === 'US' ? 'us' : 'global';
+      const policy = selectedCountry === 'US' ? 'US' : 'global';
 
       try {
         // Reset state and start loading
@@ -75,16 +76,49 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         }));
 
         // Stage 1: Create onboarding consent
-        const { consentSetId } = await sdk.createOnboardingConsent({
-          policy,
-          onboardingId,
-          consents: {
-            eSignAct: 'granted',
-            termsAndPrivacy: 'granted',
-            marketingNotifications: 'granted',
-            smsNotifications: 'granted',
-            emailNotifications: 'granted',
+        const eSignActConsent: Consent = {
+          consentType: 'eSignAct',
+          consentStatus: 'granted',
+          metadata: {
+            userAgent: AppConstants.USER_AGENT,
           },
+        };
+        const consents: Consent[] = [
+          ...(policy === 'US' ? [eSignActConsent] : []),
+          {
+            consentType: 'termsAndPrivacy',
+            consentStatus: 'granted',
+            metadata: {
+              userAgent: AppConstants.USER_AGENT,
+            },
+          },
+          {
+            consentType: 'marketingNotifications',
+            consentStatus: 'granted',
+            metadata: {
+              userAgent: AppConstants.USER_AGENT,
+            },
+          },
+          {
+            consentType: 'smsNotifications',
+            consentStatus: 'granted',
+            metadata: {
+              userAgent: AppConstants.USER_AGENT,
+            },
+          },
+          {
+            consentType: 'emailNotifications',
+            consentStatus: 'granted',
+            metadata: {
+              userAgent: AppConstants.USER_AGENT,
+            },
+          },
+        ];
+        const { consentSetId } = await sdk.createOnboardingConsent({
+          policyType: policy,
+          onboardingId,
+          consents,
+          tenantId: 'tenant_baanx_global',
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: new Date().toISOString(),

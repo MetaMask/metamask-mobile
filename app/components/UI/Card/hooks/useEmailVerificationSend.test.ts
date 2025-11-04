@@ -49,6 +49,8 @@ describe('useEmailVerificationSend', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: mockLogoutFromProvider,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
@@ -190,6 +192,8 @@ describe('useEmailVerificationSend', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 
@@ -388,6 +392,8 @@ describe('useEmailVerificationSend', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: mockLogoutFromProvider,
       });
 

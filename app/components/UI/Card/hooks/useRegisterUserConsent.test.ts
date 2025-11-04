@@ -58,6 +58,8 @@ describe('useRegisterUserConsent', () => {
     mockUseCardSDK.mockReturnValue({
       sdk: mockSDK,
       isLoading: false,
+      user: null,
+      setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
 
@@ -98,15 +100,46 @@ describe('useRegisterUserConsent', () => {
 
         // Verify Stage 1: createOnboardingConsent called with correct parameters
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith({
-          policy: 'us',
+          policyType: 'US',
           onboardingId: testOnboardingId,
-          consents: {
-            eSignAct: 'granted',
-            termsAndPrivacy: 'granted',
-            marketingNotifications: 'granted',
-            smsNotifications: 'granted',
-            emailNotifications: 'granted',
-          },
+          consents: [
+            {
+              consentType: 'eSignAct',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+            {
+              consentType: 'termsAndPrivacy',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+            {
+              consentType: 'marketingNotifications',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+            {
+              consentType: 'smsNotifications',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+            {
+              consentType: 'emailNotifications',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+          ],
+          tenantId: 'tenant_baanx_global',
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),
@@ -139,15 +172,39 @@ describe('useRegisterUserConsent', () => {
 
         // Verify Stage 1: createOnboardingConsent called with global policy
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith({
-          policy: 'global',
+          policyType: 'global',
           onboardingId: testOnboardingId,
-          consents: {
-            eSignAct: 'granted',
-            termsAndPrivacy: 'granted',
-            marketingNotifications: 'granted',
-            smsNotifications: 'granted',
-            emailNotifications: 'granted',
-          },
+          consents: [
+            {
+              consentType: 'termsAndPrivacy',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+            {
+              consentType: 'marketingNotifications',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+            {
+              consentType: 'smsNotifications',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+            {
+              consentType: 'emailNotifications',
+              consentStatus: 'granted',
+              metadata: {
+                userAgent: AppConstants.USER_AGENT,
+              },
+            },
+          ],
+          tenantId: 'tenant_baanx_global',
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),
@@ -223,6 +280,8 @@ describe('useRegisterUserConsent', () => {
         mockUseCardSDK.mockReturnValue({
           sdk: null,
           isLoading: false,
+          user: null,
+          setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
         });
 
@@ -518,7 +577,7 @@ describe('useRegisterUserConsent', () => {
     const countryTestCases = [
       {
         country: 'US',
-        expectedPolicy: 'us',
+        expectedPolicy: 'US',
         description: 'US users',
       },
       {
@@ -553,7 +612,7 @@ describe('useRegisterUserConsent', () => {
 
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith(
           expect.objectContaining({
-            policy: expectedPolicy,
+            policyType: expectedPolicy,
           }),
         );
       },
@@ -572,6 +631,8 @@ describe('useRegisterUserConsent', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: customSDK,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -589,6 +650,8 @@ describe('useRegisterUserConsent', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: mockSDK,
         isLoading: true,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -605,6 +668,8 @@ describe('useRegisterUserConsent', () => {
       mockUseCardSDK.mockReturnValue({
         sdk: null,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
@@ -682,6 +747,8 @@ describe('useRegisterUserConsent', () => {
           linkUserToConsent: jest.fn(),
         } as unknown as CardSDK,
         isLoading: false,
+        user: null,
+        setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
       });
 
