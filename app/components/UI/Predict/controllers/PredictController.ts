@@ -1017,6 +1017,8 @@ export class PredictController extends BaseController<
       if (result.success) {
         const { id: orderId, spentAmount, receivedAmount } = result.response;
 
+        const cachedBalance =
+          this.state.balances[providerId]?.[signer.address]?.balance ?? 0;
         let realAmountUsd = amountUsd;
         let realSharePrice = sharePrice;
         try {
@@ -1027,11 +1029,11 @@ export class PredictController extends BaseController<
 
             // Optimistically update balance
             this.update((state) => {
-              state.balances[providerId][signer.address].balance -=
-                realAmountUsd;
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              state.balances[providerId][signer.address].validUntil =
-                Date.now() + 5000;
+              state.balances[providerId][signer.address] = {
+                balance: cachedBalance - realAmountUsd,
+                // valid for 5 seconds (since it takes some time to reflect balance on-chain)
+                validUntil: Date.now() + 5000,
+              };
             });
           } else {
             realAmountUsd = parseFloat(receivedAmount);
@@ -1040,11 +1042,11 @@ export class PredictController extends BaseController<
 
             // Optimistically update balance
             this.update((state) => {
-              state.balances[providerId][signer.address].balance +=
-                realAmountUsd;
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              state.balances[providerId][signer.address].validUntil =
-                Date.now() + 5000;
+              state.balances[providerId][signer.address] = {
+                balance: cachedBalance + realAmountUsd,
+                // valid for 5 seconds (since it takes some time to reflect balance on-chain)
+                validUntil: Date.now() + 5000,
+              };
             });
           }
         } catch (_e) {
