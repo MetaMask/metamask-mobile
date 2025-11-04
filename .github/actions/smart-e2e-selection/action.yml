@@ -22,7 +22,7 @@ inputs:
     default: 'false'
 
 outputs:
-  e2e-test-tags:
+  e2e_test_tags:
     description: 'E2E test tags to run'
     value: ${{ steps.ai-analysis.outputs.e2e_test_tags }}
 
@@ -158,9 +158,7 @@ runs:
           # Create a comment to indicate that Smart E2E selection has been disabled
           gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body '## 🔍 Smart E2E Test Selection
 
-        ⏭️ **Smart E2E selection has been disabled for this PR**
-
-        The `skip-smart-e2e-selection` label was applied to this PR, which disables the AI-powered test selection.
+        ⏭️ **Smart E2E selection disabled due to`skip-smart-e2e-selection` label**
         All E2E tests will run according to the standard CI/CD pipeline configuration.
 
         <!-- ai-e2e-analysis -->'

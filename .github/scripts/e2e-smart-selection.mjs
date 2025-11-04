@@ -114,7 +114,7 @@ function setGitHubOutputs(analysis, testMatrix) {
 
   // Set outputs for GitHub Actions
   setGithubOutputs('test_matrix', JSON.stringify(testMatrix));
-  setGithubOutputs('tags', tags);
+  setGithubOutputs('e2e_test_tags', tags);
   setGithubOutputs('tags_display', tagDisplay);
   setGithubOutputs('risk_level', riskLevel);
   setGithubOutputs('reasoning', reasoning);
