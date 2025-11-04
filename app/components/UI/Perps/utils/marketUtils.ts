@@ -9,7 +9,7 @@ import {
 /**
  * Maximum length for market filter patterns (prevents DoS attacks)
  */
-const MAX_MARKET_PATTERN_LENGTH = 200;
+const MAX_MARKET_PATTERN_LENGTH = 100;
 
 /**
  * Pattern matcher type - either string (exact match) or RegExp (wildcard)
