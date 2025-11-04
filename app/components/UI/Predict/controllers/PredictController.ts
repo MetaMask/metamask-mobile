@@ -730,32 +730,21 @@ export class PredictController extends BaseController<
     analyticsProperties,
     providerId,
     completionDuration,
-    orderId,
     failureReason,
     sharePrice,
+    pnl,
   }: {
     eventType: PredictEventTypeValue;
     amountUsd?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
     providerId: string;
     completionDuration?: number;
-    orderId?: string;
     failureReason?: string;
     sharePrice?: number;
+    pnl?: number;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
-    }
-
-    // Get safe address from getAccountState for analytics
-    let safeAddress: string | undefined;
-    try {
-      const accountState = await this.getAccountState({
-        providerId,
-      });
-      safeAddress = accountState.address;
-    } catch {
-      // If we can't get safe address, continue without it
     }
 
     // Build regular properties (common to all events)
@@ -771,6 +760,13 @@ export class PredictController extends BaseController<
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
       [PredictEventProperties.VOLUME]: analyticsProperties.volume,
       [PredictEventProperties.SHARE_PRICE]: sharePrice,
+      // Add market type and outcome
+      ...(analyticsProperties.marketType && {
+        [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
+      }),
+      ...(analyticsProperties.outcome && {
+        [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
+      }),
       // Add completion duration for COMPLETED and FAILED events
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
@@ -786,13 +782,9 @@ export class PredictController extends BaseController<
       ...(amountUsd !== undefined && {
         [PredictEventProperties.AMOUNT_USD]: amountUsd,
       }),
-      // Add user address only if we have it
-      ...(safeAddress && {
-        [PredictEventProperties.USER_ADDRESS]: safeAddress,
-      }),
-      // Add order ID for COMPLETED events
-      ...(orderId && {
-        [PredictEventProperties.ORDER_ID]: orderId,
+      // Add PNL for sell orders only
+      ...(pnl !== undefined && {
+        [PredictEventProperties.PNL]: pnl,
       }),
     };
 
@@ -820,6 +812,7 @@ export class PredictController extends BaseController<
     }
 
     DevLogger.log(`📊 [Analytics] ${eventLabel}`, {
+      providerId,
       regularProperties,
       sensitiveProperties,
     });
@@ -1000,7 +993,7 @@ export class PredictController extends BaseController<
       const completionDuration = performance.now() - startTime;
 
       if (result.success) {
-        const { id: orderId, spentAmount, receivedAmount } = result.response;
+        const { spentAmount, receivedAmount } = result.response;
 
         let realAmountUsd = amountUsd;
         let realSharePrice = sharePrice;
@@ -1025,7 +1018,6 @@ export class PredictController extends BaseController<
           analyticsProperties,
           providerId,
           completionDuration,
-          orderId,
           sharePrice: realSharePrice,
         });
       } else {

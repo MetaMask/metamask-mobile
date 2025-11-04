@@ -65,6 +65,13 @@ const PredictSellPreview = () => {
       liquidity: market?.liquidity,
       volume: outcome?.volume,
       sharePrice: position?.price,
+      // Market type: binary if 1 outcome group, multi-outcome otherwise
+      marketType:
+        market?.outcomes?.length === 1
+          ? PredictEventValues.MARKET_TYPE.BINARY
+          : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
+      // Outcome: use actual outcome text (e.g., "Yes", "No", "Trump", "Biden", etc.)
+      outcome: position?.outcome?.toLowerCase(),
     }),
     [market, position, outcome, entryPoint],
   );
@@ -96,6 +103,7 @@ const PredictSellPreview = () => {
       providerId: position.providerId,
       sharePrice: position?.price,
       amountUsd: position?.amount,
+      pnl: position?.percentPnl, // PnL as percentage for sell orders
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

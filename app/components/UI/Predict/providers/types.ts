@@ -48,6 +48,8 @@ export interface PlaceOrderParams {
     sharePrice?: number;
     liquidity?: number;
     volume?: number;
+    marketType?: string;
+    outcome?: string;
   };
 }
 
