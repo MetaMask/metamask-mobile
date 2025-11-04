@@ -293,6 +293,7 @@ export const usePerpsPositionData = ({
       setHasHistoricalData(true);
     } catch (err) {
       console.error('Error refreshing candle data:', err);
+      setHasHistoricalData(false);
     } finally {
       setIsLoadingHistory(false);
     }
