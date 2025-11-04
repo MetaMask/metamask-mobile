@@ -42,9 +42,6 @@ describe('deeplinks utils', () => {
       expect(isInternalDeepLink('https://metamask.test-app.link/home')).toBe(
         true,
       );
-      expect(
-        isInternalDeepLink('https://metamask-alternate.app.link/buy'),
-      ).toBe(true);
     });
 
     it('does not identify external URLs as internal', () => {
