@@ -162,10 +162,7 @@ export async function handleIntentTransaction(
     });
 
     const txResult = await Engine.context.BridgeStatusController.submitIntent({
-      quoteResponse: {
-        ...quoteResponse,
-        approval: undefined, // TODO: remove this once approval is optional
-      },
+      quoteResponse,
       signature,
       accountAddress: accountAddress as Hex,
     });
