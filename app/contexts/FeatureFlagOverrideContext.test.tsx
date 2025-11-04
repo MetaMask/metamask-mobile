@@ -1,3 +1,8 @@
+// Unmocking FeatureFlagOverrideContext as it's mocked in testSetup directly
+// to allow easy testing of other parts of the app
+// but here we want to actually test FeatureFlagOverrideContext
+jest.unmock('./FeatureFlagOverrideContext');
+
 import React from 'react';
 import { renderHook, act, render, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
