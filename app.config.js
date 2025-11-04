@@ -1,4 +1,4 @@
-const { RUNTIME_VERSION } = require('./ota.config.js');
+const { RUNTIME_VERSION, PROJECT_ID, UPDATE_URL } = require('./ota.config.js');
 
 module.exports = {
   name: 'MetaMask',
@@ -46,7 +46,7 @@ module.exports = {
     owner: 'metamask-test',
     runtimeVersion: RUNTIME_VERSION,
     updates: {
-      url: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
+      url: UPDATE_URL,
       // Channel is set by requestHeaders, will be overridden with build script
       requestHeaders: {
         'expo-channel-name': 'preview',
@@ -54,7 +54,7 @@ module.exports = {
     },
     extra: {
       eas: {
-        projectId: 'fddf3e54-a014-4ba7-a695-d116a9ef9620',
+        projectId: PROJECT_ID,
       },
     },
     android: {

@@ -10,10 +10,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { RUNTIME_VERSION } = require('../ota.config.js');
+const { RUNTIME_VERSION, UPDATE_URL } = require('../ota.config.js');
 
 // Valid environment values
-const VALID_ENVIRONMENTS = ['beta', 'rc', 'exp', 'test', 'e2e', 'dev'];
+const VALID_ENVIRONMENTS = ['beta', 'rc', 'exp', 'test', 'e2e', 'dev', 'production'];
 
 // File paths
 const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
@@ -25,7 +25,7 @@ const CONFIG_MAP = {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: false,
-    updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
+    updateUrl: UPDATE_URL,
   },
 };
 
@@ -235,14 +235,15 @@ function main() {
 
   console.log(`Environment: ${environment}`);
 
+  // Skip configuration for production environment
+  if (environment === 'production') {
+    console.log('ℹ️  Production environment detected - skipping Expo Updates configuration');
+    console.log('✓ No configuration changes made');
+    return;
+  }
+
   // Get configuration for this environment
   const { channel, runtimeVersion, updatesEnabled, updateUrl } = getConfigForEnvironment(environment);
-
-  console.log(`Channel: ${channel}`);
-  console.log(`Runtime Version: ${runtimeVersion}`);
-  console.log(`Updates Enabled: ${updatesEnabled}`);
-  console.log(`Update URL: ${updateUrl}`);
-  console.log('');
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
