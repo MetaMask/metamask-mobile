@@ -2,12 +2,9 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import {
-  Box,
   Text,
   Button,
   ButtonVariant,
-  BoxFlexDirection,
-  BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
@@ -19,9 +16,6 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 
 const getNetworkName = (
   chainId: Hex | CaipChainId,
@@ -102,7 +96,6 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
 
   const renderChainPills = () =>
     chainRanking.map((chain) => {
-      const networkImage = getNetworkImageSource({ chainId: chain.chainId });
       const isSelected = selectedChainId === chain.chainId;
 
       return (
@@ -114,14 +107,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
           }
           onPress={() => handleChainPress(chain.chainId)}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <AvatarNetwork imageSource={networkImage} size={AvatarSize.Xs} />
-            <Text>{chain.name}</Text>
-          </Box>
+          <Text>{chain.name}</Text>
         </Button>
       );
     });
