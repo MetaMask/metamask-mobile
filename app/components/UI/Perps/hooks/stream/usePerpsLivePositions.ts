@@ -95,9 +95,7 @@ export function usePerpsLivePositions(
   // Enrich and update positions whenever raw positions or prices change
   const updateEnrichedPositions = useCallback(() => {
     if (rawPositionsRef.current.length === 0) {
-      if (positions.length !== 0) {
-        setPositions(EMPTY_POSITIONS);
-      }
+      setPositions((p) => (p.length === 0 ? EMPTY_POSITIONS : p));
       return;
     }
 
@@ -106,7 +104,7 @@ export function usePerpsLivePositions(
       priceDataRef.current,
     );
     setPositions(enrichedPositions);
-  }, [positions.length]);
+  }, []);
 
   // Subscribe to position updates
   useEffect(() => {
