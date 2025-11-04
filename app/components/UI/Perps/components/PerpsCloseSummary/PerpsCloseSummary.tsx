@@ -38,11 +38,11 @@ export interface PerpsCloseSummaryProps {
   totalFees: number;
   /** Fee discount percentage (0-100) */
   feeDiscountPercentage?: number;
-  /** MetaMask fee rate (as decimal, e.g. 0.01 for 1%) */
-  metamaskFeeRate: number;
-  /** Protocol fee rate (as decimal, e.g. 0.00045 for 0.045%) */
-  protocolFeeRate: number;
-  /** Original MetaMask fee rate before discounts */
+  /** MetaMask fee rate (as decimal, e.g. 0.01 for 1%) - undefined means unavailable/error state */
+  metamaskFeeRate?: number;
+  /** Protocol fee rate (as decimal, e.g. 0.00045 for 0.045%) - undefined means unavailable/error state */
+  protocolFeeRate?: number;
+  /** Original MetaMask fee rate before discounts - undefined means unavailable/error state */
   originalMetamaskFeeRate?: number;
 
   /** Amount user will receive after closing */
