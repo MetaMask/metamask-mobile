@@ -173,6 +173,7 @@ export enum TraceName {
   PredictBuyPreviewView = 'Predict Buy Preview View',
   PredictSellPreviewView = 'Predict Sell Preview View',
   PredictTabView = 'Predict Tab View',
+  PredictTransactionsView = 'Predict Transactions View',
   PredictOrderSubmissionToast = 'Predict Order Submission Toast',
   PredictOrderConfirmationToast = 'Predict Order Confirmation Toast',
 }

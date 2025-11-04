@@ -633,6 +633,8 @@ export class PredictController extends BaseController<
     address?: string;
     providerId?: string;
   }): Promise<PredictActivity[]> {
+    const startTime = performance.now();
+
     try {
       const { address, providerId } = params;
       const { AccountsController } = Engine.context;
@@ -657,6 +659,14 @@ export class PredictController extends BaseController<
       const activity = allActivity
         .flat()
         .filter((entry): entry is PredictActivity => entry !== undefined);
+
+      // Measure operation duration
+      const duration = performance.now() - startTime;
+      setMeasurement(
+        PredictMeasurementName.PREDICT_GET_ACTIVITY_OPERATION,
+        duration,
+        'millisecond',
+      );
 
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();

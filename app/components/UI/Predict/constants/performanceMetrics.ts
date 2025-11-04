@@ -18,6 +18,7 @@ export enum PredictMeasurementName {
   // Data Operation Metrics (milliseconds)
   // Tracks data fetch operations
   PREDICT_GET_POSITIONS_OPERATION = 'predict.operation.get_positions',
+  PREDICT_GET_ACTIVITY_OPERATION = 'predict.operation.get_activity',
 
   // UI Component Metrics (milliseconds)
   // Tracks individual UI component render performance

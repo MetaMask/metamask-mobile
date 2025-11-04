@@ -5,6 +5,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import { PredictActivityType, type PredictActivityItem } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -21,6 +23,15 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 }) => {
   const tw = useTailwind();
   const { activity, isLoading } = usePredictActivity({});
+
+  // Track screen load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictTransactionsView,
+    conditions: [
+      !isLoading, // Activity loaded
+      isVisible === true, // Screen visible
+    ],
+  });
 
   // Track activity list viewed when tab becomes visible
   useEffect(() => {
