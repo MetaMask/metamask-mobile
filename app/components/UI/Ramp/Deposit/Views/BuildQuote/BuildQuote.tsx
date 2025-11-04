@@ -396,11 +396,37 @@ const BuildQuote = () => {
       return;
     }
 
+    const networkName = selectedCryptoCurrency
+      ? networkConfigurationsByCaipChainId[selectedCryptoCurrency.chainId]?.name
+      : undefined;
+
+    trackEvent('RAMPS_TOKEN_SELECTOR_CLICKED', {
+      ramp_type: 'DEPOSIT',
+      region: selectedRegion?.isoCode || '',
+      location: 'build_quote',
+      chain_id: selectedCryptoCurrency?.chainId,
+      currency_destination: selectedCryptoCurrency?.assetId,
+      currency_destination_symbol: selectedCryptoCurrency?.symbol,
+      currency_destination_network: networkName,
+      currency_source: selectedRegion?.currency,
+      is_authenticated: isAuthenticated,
+    });
+
     setError(null);
     navigation.navigate(
       ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
     );
-  }, [navigation, cryptoCurrencies, cryptosError]);
+  }, [
+    navigation,
+    cryptoCurrencies,
+    cryptosError,
+    trackEvent,
+    selectedRegion?.isoCode,
+    selectedRegion?.currency,
+    networkConfigurationsByCaipChainId,
+    isAuthenticated,
+    selectedCryptoCurrency,
+  ]);
 
   const handlePaymentMethodPress = useCallback(() => {
     if (paymentMethodsError || !paymentMethods || paymentMethods.length === 0) {
