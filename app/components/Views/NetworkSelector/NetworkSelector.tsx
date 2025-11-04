@@ -39,7 +39,6 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
-  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -850,22 +849,20 @@ const NetworkSelector = () => {
       );
 
       // set tokenNetworkFilter
-      if (isPortfolioViewEnabled()) {
-        const { PreferencesController } = Engine.context;
-        if (!isAllNetwork) {
-          PreferencesController.setTokenNetworkFilter({
-            [chainId]: true,
-          });
-        } else {
-          // Remove the chainId from the tokenNetworkFilter
-          const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
-          PreferencesController.setTokenNetworkFilter({
-            // TODO fix type of preferences controller level
-            // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ...(newTokenNetworkFilter as any),
-          });
-        }
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetwork) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        // Remove the chainId from the tokenNetworkFilter
+        const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
+        PreferencesController.setTokenNetworkFilter({
+          // TODO fix type of preferences controller level
+          // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(newTokenNetworkFilter as any),
+        });
       }
 
       setShowConfirmDeleteModal({
